@@ -8,6 +8,8 @@
 * Run the project
 * Look for the application in the "Console" of the Eclipse IDE
 
+This has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
+
 ###Flow
 * Runs as a console application
 * Asks for the channel name (multiple channels separated by comma can be entered), SSL, Cipher and Custom UUID
