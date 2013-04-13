@@ -9,19 +9,17 @@ import (
     "strings"
 )
 
-const delim = '\n'
-
-var pubnubChannel = ""
-var ssl bool
-var cipher = ""
-var uuid = ""
-var pub *pubnubMessaging.Pubnub
+var _connectChannels = ""
+var _ssl bool
+var _cipher = ""
+var _uuid = ""
+var _pub *pubnubMessaging.Pubnub
 
 func main() {
     b := Init()
     if b {
-	    ch := make(chan int)
-	    ReadLoop(ch)
+        ch := make(chan int)
+        ReadLoop(ch)
     }
     fmt.Println("Exit")
 }
@@ -34,41 +32,41 @@ func Init() (b bool){
     if err != nil {
         fmt.Println(err)
     }else{
-        pubnubChannel = string(line)
-        if strings.TrimSpace(pubnubChannel) != "" { 
-	        fmt.Println("Channel: ", pubnubChannel)
-	        fmt.Println("Enable SSL. Enter y for Yes, n for No.")
-	        var enableSsl string
-	        fmt.Scanln(&enableSsl)
-	        
-	        if enableSsl == "y" || enableSsl == "Y" {
-	            ssl = true
-	            fmt.Println("SSL enabled")    
-	        }else{
-	            ssl = false
-	            fmt.Println("SSL disabled")
-	        }
-	        
-	        fmt.Println("Please enter a CIPHER key, leave blank if you don't want to use this.")
-	        fmt.Scanln(&cipher)
-	        fmt.Println("Cipher: ", cipher)
-	        
-	        fmt.Println("Please enter a Custom UUID, leave blank for default.")
-	        fmt.Scanln(&uuid)
-	        fmt.Println("UUID: ", uuid)
-	        
-	        pubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", cipher, ssl, uuid)
-	        pub = pubInstance
-	        return true
-	    }else{
-	    	fmt.Println("Channel cannot be empty.")
-	    }    
+        _connectChannels = string(line)
+        if strings.TrimSpace(_connectChannels) != "" { 
+            fmt.Println("Channel: ", _connectChannels)
+            fmt.Println("Enable SSL. Enter y for Yes, n for No.")
+            var enableSsl string
+            fmt.Scanln(&enableSsl)
+            
+            if enableSsl == "y" || enableSsl == "Y" {
+                _ssl = true
+                fmt.Println("SSL enabled")    
+            }else{
+                _ssl = false
+                fmt.Println("SSL disabled")
+            }
+            
+            fmt.Println("Please enter a CIPHER key, leave blank if you don't want to use this.")
+            fmt.Scanln(&_cipher)
+            fmt.Println("Cipher: ", _cipher)
+            
+            fmt.Println("Please enter a Custom UUID, leave blank for default.")
+            fmt.Scanln(&_uuid)
+            fmt.Println("UUID: ", _uuid)
+            
+            pubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", _cipher, _ssl, _uuid)
+            _pub = pubInstance
+            return true
+        }else{
+            fmt.Println("Channel cannot be empty.")
+        }    
     }
     return false
 }
 
 func ReadLoop(ch chan int){
-	fmt.Println("")
+    fmt.Println("")
     fmt.Println("ENTER 1 FOR Subscribe")
     fmt.Println("ENTER 2 FOR Publish")
     fmt.Println("ENTER 3 FOR Presence")
@@ -117,9 +115,10 @@ func ReadLoop(ch chan int){
                 go TimeRoutine()
             case "9":
                 fmt.Println("Exiting") 
-                pub.Abort()   
+                _pub.Abort()   
                 breakOut = true
-            case "default":            
+            default: 
+                fmt.Println("Invalid choice!")            
         }
         if breakOut {
             break
@@ -134,13 +133,13 @@ func ParseResponseSubscribe(channel chan []byte){
     for {
         value, ok := <-channel
         if !ok {  
-        	fmt.Println("")            
+            fmt.Println("")            
             break
         }
-		if string(value) != "[]"{
-	        fmt.Println(fmt.Sprintf("Subscribe: %s", value))
-	        //fmt.Println(fmt.Sprintf("%s", value))
-	        fmt.Println("")
+        if string(value) != "[]"{
+            fmt.Println(fmt.Sprintf("Subscribe: %s", value))
+            //fmt.Println(fmt.Sprintf("%s", value))
+            fmt.Println("")
         }
     }
 }
@@ -152,9 +151,9 @@ func ParseResponsePresence(channel chan []byte){
             break
         }
         if string(value) != "[]"{
-        	fmt.Println(fmt.Sprintf("Presence: %s ", value))
-        	//fmt.Println(fmt.Sprintf("%s", value))
-        	fmt.Println("");
+            fmt.Println(fmt.Sprintf("Presence: %s ", value))
+            //fmt.Println(fmt.Sprintf("%s", value))
+            fmt.Println("");
         }
     }
 }
@@ -166,59 +165,58 @@ func ParseResponse(channel chan []byte){
             break
         }
         if string(value) != "[]"{
-	        fmt.Println(fmt.Sprintf("Response: %s ", value))
-	        //fmt.Println(fmt.Sprintf("%s", value))
-	        fmt.Println("");
-	    }
+            fmt.Println(fmt.Sprintf("Response: %s ", value))
+            //fmt.Println(fmt.Sprintf("%s", value))
+            fmt.Println("");
+        }
     }
 }
 
 func SubscribeRoutine(){
-	var subscribeChannel = make(chan []byte)
-    go pub.Subscribe(pubnubChannel, subscribeChannel, false)
+    var subscribeChannel = make(chan []byte)
+    go _pub.Subscribe(_connectChannels, subscribeChannel, false)
     ParseResponseSubscribe(subscribeChannel)
 }
 
 func PublishRoutine(message string){
-    channelArray := strings.Split(pubnubChannel, ",");
+    channelArray := strings.Split(_connectChannels, ",");
     
     for i:=0; i < len(channelArray); i++ {
         ch := strings.TrimSpace(channelArray[i])
         fmt.Println("Publish to channel: ",ch)
         channel := make(chan []byte)
-        go pub.Publish(ch, message, channel)
+        go _pub.Publish(ch, message, channel)
         ParseResponse(channel)
     }
 }
 
 func PresenceRoutine(){
-	var presenceChannel = make(chan []byte)
-    //go pub.Subscribe(pubnubChannel, subscribeChannel, true)
-    go pub.Subscribe(pubnubChannel, presenceChannel, true)
+    var presenceChannel = make(chan []byte)
+    go _pub.Subscribe(_connectChannels, presenceChannel, true)
     ParseResponsePresence(presenceChannel)
 }
 
 func DetailedHistoryRoutine(){
-    channelArray := strings.Split(pubnubChannel, ",");
+    channelArray := strings.Split(_connectChannels, ",");
     for i:=0; i < len(channelArray); i++ {
         ch := strings.TrimSpace(channelArray[i])
         fmt.Println("DetailedHistory for channel: ", ch)
         
         channel := make(chan []byte)
         
-        go pub.History(ch, 100, channel)
+        go _pub.History(ch, 100, channel)
         ParseResponse(channel)
     }
 }
 
 func HereNowRoutine(){
-    channelArray := strings.Split(pubnubChannel, ",");
+    channelArray := strings.Split(_connectChannels, ",");
     for i:=0; i < len(channelArray); i++ {    
         channel := make(chan []byte)
         ch := strings.TrimSpace(channelArray[i])
         fmt.Println("HereNow for channel: ", ch)
         
-        go pub.HereNow(ch, channel)
+        go _pub.HereNow(ch, channel)
         ParseResponse(channel)
     }
 }
@@ -226,19 +224,19 @@ func HereNowRoutine(){
 func UnsubscribeRoutine(){
     channel := make(chan []byte)
     
-    go pub.Unsubscribe(pubnubChannel, channel)
+    go _pub.Unsubscribe(_connectChannels, channel)
     ParseResponse(channel)
 }
 
 func UnsubscribePresenceRoutine(){
     channel := make(chan []byte)
     
-    go pub.PrsenceUnsubscribe(pubnubChannel, channel)
+    go _pub.PresenceUnsubscribe(_connectChannels, channel)
     ParseResponse(channel)
 }
 
 func TimeRoutine(){
     channel := make(chan []byte)
-    go pub.GetTime(channel)
+    go _pub.GetTime(channel)
     ParseResponse(channel)
 }
