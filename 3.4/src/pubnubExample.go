@@ -7,6 +7,7 @@ import (
     "time"
     "pubnubMessaging"
     "strings"
+    "strconv"
 )
 
 var _connectChannels = ""
@@ -56,7 +57,11 @@ func Init() (b bool){
             fmt.Println("UUID: ", _uuid)
             
             pubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", _cipher, _ssl, _uuid)
-            _pub = pubInstance
+			
+			_pub = pubInstance
+            
+            SetupProxy()
+            
             return true
         }else{
             fmt.Println("Channel cannot be empty.")
@@ -64,6 +69,71 @@ func Init() (b bool){
     }
     return false
 }
+
+func SetupProxy(){
+    fmt.Println("Using Proxy? Enter y to setup.")
+    var enableProxy string
+    fmt.Scanln(&enableProxy)
+            
+    if enableProxy == "y" || enableProxy == "Y" {
+		proxyServer := AskServer();
+		proxyPort := AskPort();
+		proxyUser := AskUser();
+		proxyPassword := AskPassword();
+	
+		pubnubMessaging.SetProxy(proxyServer, proxyPort, proxyUser, proxyPassword)
+    
+        fmt.Println("Proxy sever set")    
+    }else{
+        fmt.Println("Proxy not used")
+    }
+}
+
+func AskServer() (string){
+	var proxyServer string
+	
+    fmt.Println("Enter proxy servername or IP.")
+    fmt.Scanln(&proxyServer)
+    
+    if(strings.TrimSpace(proxyServer) == ""){
+    	fmt.Println("Proxy servername or IP is empty.")
+    	AskServer()
+    }
+    return proxyServer
+}
+
+func AskPort() (int){
+	var proxyPort string
+	
+    fmt.Println("Enter proxy port.")
+    fmt.Scanln(&proxyPort)
+    
+    port, err := strconv.Atoi(proxyPort)
+    if (err != nil) || ((port <= 0) || (port > 65536)) {
+        fmt.Println("Proxy port is invalid.")
+    	AskPort()
+    }
+    return port
+}
+
+func AskUser() (string){
+	var proxyUser string
+	
+    fmt.Println("Enter proxy username (optional)")
+    fmt.Scanln(&proxyUser)
+    
+    return proxyUser
+}
+
+func AskPassword() (string){
+	var proxyPassword string
+	
+    fmt.Println("Enter proxy password (optional)")
+    fmt.Scanln(&proxyPassword)
+    
+    return proxyPassword
+}
+
 
 func ReadLoop(ch chan int){
     fmt.Println("")
@@ -204,7 +274,8 @@ func DetailedHistoryRoutine(){
         
         channel := make(chan []byte)
         
-        go _pub.History(ch, 100, channel)
+        //go _pub.History(ch, 100, 13662867154115803, 13662867243518473, false, channel)
+        go _pub.History(ch, 100, 0, 0, false, channel)
         ParseResponse(channel)
     }
 }
