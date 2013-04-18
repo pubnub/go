@@ -57,8 +57,8 @@ func Init() (b bool){
             fmt.Println("UUID: ", _uuid)
             
             pubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", _cipher, _ssl, _uuid)
-			
-			_pub = pubInstance
+            
+            _pub = pubInstance
             
             SetupProxy()
             
@@ -76,12 +76,12 @@ func SetupProxy(){
     fmt.Scanln(&enableProxy)
             
     if enableProxy == "y" || enableProxy == "Y" {
-		proxyServer := AskServer();
-		proxyPort := AskPort();
-		proxyUser := AskUser();
-		proxyPassword := AskPassword();
-	
-		pubnubMessaging.SetProxy(proxyServer, proxyPort, proxyUser, proxyPassword)
+        proxyServer := AskServer();
+        proxyPort := AskPort();
+        proxyUser := AskUser();
+        proxyPassword := AskPassword();
+    
+        pubnubMessaging.SetProxy(proxyServer, proxyPort, proxyUser, proxyPassword)
     
         fmt.Println("Proxy sever set")    
     }else{
@@ -90,35 +90,35 @@ func SetupProxy(){
 }
 
 func AskServer() (string){
-	var proxyServer string
-	
+    var proxyServer string
+    
     fmt.Println("Enter proxy servername or IP.")
     fmt.Scanln(&proxyServer)
     
     if(strings.TrimSpace(proxyServer) == ""){
-    	fmt.Println("Proxy servername or IP is empty.")
-    	AskServer()
+        fmt.Println("Proxy servername or IP is empty.")
+        AskServer()
     }
     return proxyServer
 }
 
 func AskPort() (int){
-	var proxyPort string
-	
+    var proxyPort string
+    
     fmt.Println("Enter proxy port.")
     fmt.Scanln(&proxyPort)
     
     port, err := strconv.Atoi(proxyPort)
     if (err != nil) || ((port <= 0) || (port > 65536)) {
         fmt.Println("Proxy port is invalid.")
-    	AskPort()
+        AskPort()
     }
     return port
 }
 
 func AskUser() (string){
-	var proxyUser string
-	
+    var proxyUser string
+    
     fmt.Println("Enter proxy username (optional)")
     fmt.Scanln(&proxyUser)
     
@@ -126,8 +126,8 @@ func AskUser() (string){
 }
 
 func AskPassword() (string){
-	var proxyPassword string
-	
+    var proxyPassword string
+    
     fmt.Println("Enter proxy password (optional)")
     fmt.Scanln(&proxyPassword)
     

@@ -87,20 +87,20 @@ func PubnubInit(publishKey string, subscribeKey string, secretKey string, cipher
 }
 
 func SetProxy(proxyServer string, proxyPort int, proxyUser string, proxyPassword string){
-	_proxyServer = proxyServer
-	_proxyPort = proxyPort
-	_proxyUser = proxyUser
-	_proxyPassword = proxyPassword
-	_proxyServerEnabled = true
+    _proxyServer = proxyServer
+    _proxyPort = proxyPort
+    _proxyUser = proxyUser
+    _proxyPassword = proxyPassword
+    _proxyServerEnabled = true
 }
 
 func (pub *Pubnub) Abort() {
     pub.subscribedChannels = ""
     if(_conn != nil) {
-    	_conn.Close()
+        _conn.Close()
     }
     if(_subscribeConn!= nil) {
-    	_subscribeConn.Close()
+        _subscribeConn.Close()
     }
 }
 
@@ -170,15 +170,15 @@ func (pub *Pubnub) SendResponseToChannel(c chan []byte, channels string, action 
             message = "not subscribed"
             intResponse = "0"
         case 5:
-        	sendReponseAsIs = true
+            sendReponseAsIs = true
         case 6:
-        	message = "reconnected"
+            message = "reconnected"
             intResponse = "1"
         case 7:
-        	message = "disconnected due to internet connection issues, trying to reconnect"
+            message = "disconnected due to internet connection issues, trying to reconnect"
             intResponse = "1"
         case 8:
-        	message = "aborted due to max retry limit"
+            message = "aborted due to max retry limit"
             intResponse = "1"
     }
     
@@ -208,9 +208,9 @@ func (pub *Pubnub) SendResponseToChannel(c chan []byte, channels string, action 
         var value string
         
         if(sendReponseAsIs){
-        	value = strings.Replace(string(response), "-pnpres", "", -1)
+            value = strings.Replace(string(response), "-pnpres", "", -1)
         } else {
-        	value = fmt.Sprintf("[%s, \"%s%s %s\", \"%s\"]", intResponse, presence, channel, message, channel)
+            value = fmt.Sprintf("[%s, \"%s%s %s\", \"%s\"]", intResponse, presence, channel, message, channel)
         }
          
         responseChannel <- []byte(value)
@@ -259,19 +259,19 @@ func (pub *Pubnub) GetSubscribedChannels(channels string, c chan []byte, isPrese
 func (pub *Pubnub) CheckForTimeoutAndRetries(err error) (bool){
     //if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "no such host") {
     if (_retryCount == 0) {
-    	if !strings.Contains(err.Error(), "closed network connection") {
-    		pub.SendResponseToChannel(nil, pub.subscribedChannels, 7, nil)
-    	}
+        if !strings.Contains(err.Error(), "closed network connection") {
+            pub.SendResponseToChannel(nil, pub.subscribedChannels, 7, nil)
+        }
     }
     
     SleepForAWhile(true)
     
     if(_retryCount >= _maxRetries){
-    	pub.SendResponseToChannel(nil, pub.subscribedChannels, 8, nil)
-    	pub.subscribedChannels = ""
+        pub.SendResponseToChannel(nil, pub.subscribedChannels, 8, nil)
+        pub.subscribedChannels = ""
         return true
     }
-    	
+        
     //}
     return false
 }
@@ -305,7 +305,7 @@ func (pub *Pubnub) StartSubscribeLoop(c chan []byte) {
             if err != nil {
                 c <- value
                 if(pub.CheckForTimeoutAndRetries(err)){
-                	break
+                    break
                 }
             } else if string(value) != "" {
                 if string(value) == "[]" {
@@ -326,28 +326,28 @@ func (pub *Pubnub) StartSubscribeLoop(c chan []byte) {
                 
                 if err != nil {
                     pub.SendResponseToChannel(nil, channelName, 5, []byte(fmt.Sprintf("Error: %s", err)))
-	                if(pub.CheckForTimeoutAndRetries(err)){
-	                	break
-	                }
+                    if(pub.CheckForTimeoutAndRetries(err)){
+                        break
+                    }
                 } else {
-                	if (strings.Contains(channelName, "-pnpres")) {
-                		pub.SendResponseToChannel(pub.presenceChannel, channelName, 5, value)
-                	} else {
-                		//in case of single subscribe request the channelname will be empty
-                		if (channelName == ""){                		
-                			channelName = pub.GetSubscribedChannelName()
-                		}
-                		
-                		if(channelName != "") {
-	                		if(pub.cipherKey != ""){
-	                			var decryptedJsonData = "["
-	                			decryptedJsonData += "[" + DecryptString(pub.cipherKey, data) + "]" 
-	                			decryptedJsonData += ",\"" + fmt.Sprintf("%s",pub.timeToken) + "\",\"" + channelName + "\"]"
-	                			value = []byte(decryptedJsonData)
-	                		}
-		                	pub.SendResponseToChannel(pub.subscribeChannel, channelName, 5, value)	
-                		}
-                	}
+                    if (strings.Contains(channelName, "-pnpres")) {
+                        pub.SendResponseToChannel(pub.presenceChannel, channelName, 5, value)
+                    } else {
+                        //in case of single subscribe request the channelname will be empty
+                        if (channelName == ""){                        
+                            channelName = pub.GetSubscribedChannelName()
+                        }
+                        
+                        if(channelName != "") {
+                            if(pub.cipherKey != ""){
+                                var decryptedJsonData = "["
+                                decryptedJsonData += "[" + DecryptString(pub.cipherKey, data) + "]" 
+                                decryptedJsonData += ",\"" + fmt.Sprintf("%s",pub.timeToken) + "\",\"" + channelName + "\"]"
+                                value = []byte(decryptedJsonData)
+                            }
+                            pub.SendResponseToChannel(pub.subscribeChannel, channelName, 5, value)    
+                        }
+                    }
                 }
             }
         }else {
@@ -358,15 +358,15 @@ func (pub *Pubnub) StartSubscribeLoop(c chan []byte) {
 }
 
 func (pub *Pubnub) GetSubscribedChannelName() (string){
-	channelArray := strings.Split(pub.subscribedChannels, ",")
+    channelArray := strings.Split(pub.subscribedChannels, ",")
     for i := 0; i < len(channelArray); i++ {
-		if (strings.Contains(channelArray[i], "-pnpres")) {
-			continue
-		}else{
-			return channelArray[i]
-		}	    	
-	}
-	return ""
+        if (strings.Contains(channelArray[i], "-pnpres")) {
+            continue
+        }else{
+            return channelArray[i]
+        }            
+    }
+    return ""
 }
 
 func CloseExistingConnection(){
@@ -405,8 +405,8 @@ func (pub *Pubnub) Subscribe(channels string, c chan []byte, isPresenceSubscribe
 func SleepForAWhile(retry bool){
     //TODO: change to reconnect val
     if(retry) {
-    	_retryCount++
-    	fmt.Println("Retry count: ", _retryCount)
+        _retryCount++
+        fmt.Println("Retry count: ", _retryCount)
     }
     time.Sleep(_retryInterval * time.Second)
 }
@@ -509,17 +509,17 @@ func (pub *Pubnub) PresenceUnsubscribe(channels string, c chan []byte) {
 }
 
 func (pub *Pubnub) History(channel string, limit int, start int64, end int64, reverse bool, c chan []byte) {
-	if(limit < 0){
-		limit = 100
-	}
-	
-	parameters := "&reverse=" + fmt.Sprintf("%t", reverse)
-	if(start > 0){
-		parameters += "&start=" + fmt.Sprintf("%d", start)
-	}
-	if(end > 0){
-		parameters += "&end=" + fmt.Sprintf("%d", end)
-	}
+    if(limit < 0){
+        limit = 100
+    }
+    
+    parameters := "&reverse=" + fmt.Sprintf("%t", reverse)
+    if(start > 0){
+        parameters += "&start=" + fmt.Sprintf("%d", start)
+    }
+    if(end > 0){
+        parameters += "&end=" + fmt.Sprintf("%d", end)
+    }
 
     url := ""
     url += "/v2/history"
@@ -562,17 +562,17 @@ func (pub *Pubnub) HereNow(channel string, c chan []byte) {
 }
 
 func GetData(rawData interface{}) (string){
-	dataInterface := rawData.(interface{})
-	switch vv := dataInterface.(type){
-		case string:
-			return fmt.Sprintf("%s", vv[0])
-		case []interface{}:
-	        length := len(vv)	
-			if(length > 0){
-				return fmt.Sprintf("%s", vv[0])
-			}	
-	} 
-	return fmt.Sprintf("%s", rawData)	
+    dataInterface := rawData.(interface{})
+    switch vv := dataInterface.(type){
+        case string:
+            return fmt.Sprintf("%s", vv[0])
+        case []interface{}:
+            length := len(vv)    
+            if(length > 0){
+                return fmt.Sprintf("%s", vv[0])
+            }    
+    } 
+    return fmt.Sprintf("%s", rawData)    
 }
 
 func ParseJson (contents []byte) (data string, timeToken string, channels string, err error){
@@ -615,10 +615,10 @@ func (pub *Pubnub) HttpRequest(url string, isSubscribe bool) ([]byte, error) {
             return []byte(fmt.Sprintf("Network Error: %s", err.Error())), err
         }
     } else {
-    	if ((_retryCount > 0) && (isSubscribe)){
-    		pub.SendResponseToChannel(nil, pub.subscribedChannels, 6, nil)
-    	}
-    	_retryCount = 0
+        if ((_retryCount > 0) && (isSubscribe)){
+            pub.SendResponseToChannel(nil, pub.subscribedChannels, 6, nil)
+        }
+        _retryCount = 0
     }
     
     return contents, err
@@ -630,19 +630,19 @@ func SetOrGetTransport(isSubscribe bool) (http.RoundTripper){
             c, err := net.DialTimeout(netw, addr, _connectTimeout * time.Second)
             
             if(c != nil){
-	            if(isSubscribe){
-	            	deadline := time.Now().Add(_subscribeTimeout * time.Second)
-	                c.SetDeadline(deadline)            
-	                _subscribeConn = c
-	            } else {
-	                deadline := time.Now().Add(_nonSubscribeTimeout * time.Second)
-	                c.SetDeadline(deadline)
-	                _conn = c
-	            }
-			} else {
-				err = fmt.Errorf("Error in initializating connection")
-			}
-			    
+                if(isSubscribe){
+                    deadline := time.Now().Add(_subscribeTimeout * time.Second)
+                    c.SetDeadline(deadline)            
+                    _subscribeConn = c
+                } else {
+                    deadline := time.Now().Add(_nonSubscribeTimeout * time.Second)
+                    c.SetDeadline(deadline)
+                    _conn = c
+                }
+            } else {
+                err = fmt.Errorf("Error in initializating connection")
+            }
+                
             if err != nil {
                 return nil, err
             }
@@ -651,13 +651,13 @@ func SetOrGetTransport(isSubscribe bool) (http.RoundTripper){
     }}
     
     if(_proxyServerEnabled){
-	    proxyUrl, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", _proxyUser, _proxyPassword, _proxyServer, _proxyPort))
-	    if(err == nil){ 
-			transport.Proxy = http.ProxyURL(proxyUrl)
-		} else {
-			fmt.Println("Error in connecting to proxy: ", err)
-		}
-	}
+        proxyUrl, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", _proxyUser, _proxyPassword, _proxyServer, _proxyPort))
+        if(err == nil){ 
+            transport.Proxy = http.ProxyURL(proxyUrl)
+        } else {
+            fmt.Println("Error in connecting to proxy: ", err)
+        }
+    }
     return transport
 }
 
@@ -682,9 +682,9 @@ func CreateHttpClient (isSubscribe bool) (*http.Client, error) {
     var httpClient *http.Client
 
     if(transport != nil) {
-    	httpClient = &http.Client{Transport: transport, CheckRedirect: nil}
+        httpClient = &http.Client{Transport: transport, CheckRedirect: nil}
     } else {
-    	err = fmt.Errorf("Error in initializating transport")
+        err = fmt.Errorf("Error in initializating transport")
     }
     return httpClient, err
 }
@@ -694,26 +694,26 @@ func Connect (url string, isSubscribe bool) ([]byte, error) {
     httpClient, err := CreateHttpClient(isSubscribe)
     
     if(err == nil) {
-    	req, err := http.NewRequest("GET", url, nil) 
-    	 
-    	if(err == nil) {
-    		response, err := httpClient.Do(req)  
-	    	//response, err := httpClient.Get(url)
-		 	if (err == nil) {
-		        defer response.Body.Close()
-		        bodyContents, e := ioutil.ReadAll(response.Body)
-		        if(e == nil){
-		        	contents = bodyContents
-		        	return contents, nil
-		        } else {
-		        	return nil, e
-		        }
-		    }else {
-		    	return nil, err
-		    }
-	    }else {
-	    	return nil, err
-	    }
+        req, err := http.NewRequest("GET", url, nil) 
+         
+        if(err == nil) {
+            response, err := httpClient.Do(req)  
+            //response, err := httpClient.Get(url)
+             if (err == nil) {
+                defer response.Body.Close()
+                bodyContents, e := ioutil.ReadAll(response.Body)
+                if(e == nil){
+                    contents = bodyContents
+                    return contents, nil
+                } else {
+                    return nil, e
+                }
+            }else {
+                return nil, err
+            }
+        }else {
+            return nil, err
+        }
     }
    
     return nil, err
