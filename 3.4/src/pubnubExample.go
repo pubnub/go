@@ -8,6 +8,9 @@ import (
     "pubnubMessaging"
     "strings"
     "strconv"
+    "unicode/utf16"
+    "unicode/utf8"
+    "encoding/binary"
 )
 
 var _connectChannels = ""
@@ -134,6 +137,18 @@ func AskPassword() (string){
     return proxyPassword
 }
 
+// UTF16BytesToString converts UTF-16 encoded bytes, in big or little endian byte order,
+// to a UTF-8 encoded string.
+func UTF16BytesToString(b []byte, o binary.ByteOrder) string {
+    utf := make([]uint16, (len(b)+(2-1))/2)
+    for i := 0; i+(2-1) < len(b); i += 2 {
+        utf[i/2] = o.Uint16(b[i:])
+    }
+    if len(b)/2 < len(utf) {
+        utf[len(utf)-1] = utf8.RuneError
+    }
+    return string(utf16.Decode(utf))
+}
 
 func ReadLoop(ch chan int){
     fmt.Println("")
@@ -160,10 +175,21 @@ func ReadLoop(ch chan int){
             case "2":
                 fmt.Println("Please enter the message")
                 message, _ , err := reader.ReadLine()
+                //unicodeCodePoints := bytes.Runes(message)
+                //fmt.Println(UTF16BytesToString(message, binary.BigEndian))
+                /*rn := ""
+                for _, c := range unicodeCodePoints {
+                    rn += string(c) 
+                    fmt.Println(string(c)) 
+                } */               
+                fmt.Println(string(message))
+                //fmt.Println(string(unicodeCodePoints))
+                
                 if err != nil {
                     fmt.Println(err)
                 }else{
                     go PublishRoutine(string(message))
+                    //go PublishRoutine(UTF16BytesToString(message, binary.LittleEndian))
                 }
             case "3":
                 fmt.Println("Running Presence")

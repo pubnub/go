@@ -31,38 +31,38 @@ var _proxyServer string
 var _proxyPort int
 var _proxyUser string
 var _proxyPassword string
-
+    
 var _proxyServerEnabled = false
 
 type Pubnub struct {
-    origin                string
-    publishKey           string
-    subscribeKey         string
-    secretKey            string
-    cipherKey            string
-    ssl                   bool
-    uuid                  string
-    subscribedChannels     string 
-    timeToken            string
-    resetTimeToken         bool  
-    presenceChannel     chan []byte
-    subscribeChannel     chan []byte 
-    newSubscribedChannels     string
+    origin                   string
+    publishKey               string
+    subscribeKey             string
+    secretKey                string
+    cipherKey                string
+    ssl                      bool
+    uuid                     string
+    subscribedChannels       string 
+    timeToken                string
+    resetTimeToken           bool  
+    presenceChannel          chan []byte
+    subscribeChannel         chan []byte 
+    newSubscribedChannels    string
 }
 
 //Init pubnub struct
 func PubnubInit(publishKey string, subscribeKey string, secretKey string, cipherKey string, sslOn bool, customUuid string) *Pubnub {
     newPubnub := &Pubnub{
         origin:                _origin,
-        publishKey:           publishKey,
-        subscribeKey:         subscribeKey,
-        secretKey:            secretKey,
-        cipherKey:            cipherKey,
+        publishKey:            publishKey,
+        subscribeKey:          subscribeKey,
+        secretKey:             secretKey,
+        cipherKey:             cipherKey,
         ssl:                   sslOn,
         uuid:                  "",
-        subscribedChannels: "",
+        subscribedChannels:    "",
         resetTimeToken:        true,
-        timeToken:            "0",
+        timeToken:             "0",
         newSubscribedChannels: "",
     }
 
@@ -119,35 +119,53 @@ func (pub *Pubnub) GetTime(c chan []byte) {
     close(c)
 }
 
-func (pub *Pubnub) Publish(channel string, message string, c chan []byte) {
+func (pub *Pubnub) SendPublishRequest(publishUrl string, jsonBytes []byte, c chan []byte) {    
+    publishUrl += fmt.Sprintf("%s", url.QueryEscape(string(jsonBytes)))
+    //fmt.Println("publishUrl2:", publishUrl)
+    value, err := pub.HttpRequest(publishUrl, false)
+
+    if err != nil {
+        c <- value
+    } else {
+        c <- []byte(fmt.Sprintf("%s", value))
+    }
+}
+
+func (pub *Pubnub) Publish(channel string, message interface{}, c chan []byte) {
+//func (pub *Pubnub) Publish(channel string, message string, c chan []byte) {
     signature := ""
     if pub.secretKey != "" {
         signature = GetHmacSha256(pub.secretKey, fmt.Sprintf("%s/%s/%s/%s/%s", pub.publishKey, pub.subscribeKey, pub.secretKey, channel, message))
     } else {
         signature = "0"
     }
-    url := ""
-    url += "/publish"
-    url += "/" + pub.publishKey
-    url += "/" + pub.subscribeKey
-    url += "/" + signature
-    url += "/" + channel
-    url += "/0"
-
+    publishUrl := ""
+    publishUrl += "/publish"
+    publishUrl += "/" + pub.publishKey
+    publishUrl += "/" + pub.subscribeKey
+    publishUrl += "/" + signature
+    publishUrl += "/" + channel
+    publishUrl += "/0/"
+    
+    //message = "漢語"
+    //fmt.Println("mess:", string(message))
     //Now only for string, need add encrypt for other types
     // use "/{\"msg\":\"%s\"}" for sending hash 
-    if pub.cipherKey != "" {
-        url += fmt.Sprintf("/\"%s\"", EncryptString(pub.cipherKey, fmt.Sprintf("\"%s\"", message)))
-    } else {
-        url += fmt.Sprintf("/\"%s\"", message)
-    }
 
-    value, err := pub.HttpRequest(url, false)
-
+    jsonSerialized, err := json.Marshal(message)
     if err != nil {
-        c <- value
+        c <- []byte(fmt.Sprintf("error in serializing: %s", err))
     } else {
-         c <- []byte(fmt.Sprintf("%s", value))
+        if pub.cipherKey != "" {
+            jsonEncBytes, errEnc := json.Marshal(EncryptString(pub.cipherKey, fmt.Sprintf("%s", jsonSerialized)))
+            if errEnc != nil {
+                c <- []byte(fmt.Sprintf("error in serializing: %s", errEnc))        
+              } else {
+                  pub.SendPublishRequest(publishUrl, jsonEncBytes, c)
+              }
+        } else {
+            pub.SendPublishRequest(publishUrl, jsonSerialized, c)
+        }
     }
     close(c)
 }
@@ -184,7 +202,7 @@ func (pub *Pubnub) SendResponseToChannel(c chan []byte, channels string, action 
     
     channelArray := strings.Split(channels, ",")
     for i := 0; i < len(channelArray); i++ {
-        presence := ""
+        presence := "Subscription to channel "
         channel := channelArray[i]
         
         if(channel == ""){
@@ -195,7 +213,7 @@ func (pub *Pubnub) SendResponseToChannel(c chan []byte, channels string, action 
 
         if (strings.Contains(channel, "-pnpres")) {
             channel = strings.Replace(channel, "-pnpres", "", -1)
-            presence = "Presence notifications for "
+            presence = "Presence notifications for channel "
             if (responseChannel == nil){
                 responseChannel = pub.presenceChannel
             }    
@@ -210,7 +228,7 @@ func (pub *Pubnub) SendResponseToChannel(c chan []byte, channels string, action 
         if(sendReponseAsIs){
             value = strings.Replace(string(response), "-pnpres", "", -1)
         } else {
-            value = fmt.Sprintf("[%s, \"%s%s %s\", \"%s\"]", intResponse, presence, channel, message, channel)
+            value = fmt.Sprintf("[%s, \"%s'%s' %s\", \"%s\"]", intResponse, presence, channel, message, channel)
         }
          
         responseChannel <- []byte(value)
@@ -276,6 +294,7 @@ func (pub *Pubnub) CheckForTimeoutAndRetries(err error) (bool){
     return false
 }
 
+//TODO refactor
 func (pub *Pubnub) StartSubscribeLoop(c chan []byte) {
     for {
           if len(pub.subscribedChannels) > 0 {
@@ -339,11 +358,28 @@ func (pub *Pubnub) StartSubscribeLoop(c chan []byte) {
                         }
                         
                         if(channelName != "") {
+                            
                             if(pub.cipherKey != ""){
-                                var decryptedJsonData = "["
-                                decryptedJsonData += "[" + DecryptString(pub.cipherKey, data) + "]" 
-                                decryptedJsonData += ",\"" + fmt.Sprintf("%s",pub.timeToken) + "\",\"" + channelName + "\"]"
-                                value = []byte(decryptedJsonData)
+                                decrypted := DecryptString(pub.cipherKey, data)
+                                fmt.Println("decrypted", decrypted)
+                                //unquotedDec , decErr := strconv.Unquote(decrypted)
+                                
+                                jsonData, _, _, decErr := ParseJson([]byte(decrypted))
+
+                                if(jsonData == ""){
+                                    jsonData = data
+                                }
+                                
+                                fmt.Println("data2", jsonData)
+                                if(decErr != nil){
+                                    fmt.Println("error", decErr)
+                                    pub.SendResponseToChannel(nil, channelName, 5, []byte(fmt.Sprintf("Error: %s", decErr)))
+                                } else {
+                                    var decryptedJsonData = "["
+                                    decryptedJsonData += "[" + jsonData + "]" 
+                                    decryptedJsonData += ",\"" + fmt.Sprintf("%s",pub.timeToken) + "\",\"" + channelName + "\"]"
+                                    value = []byte(decryptedJsonData)
+                                }    
                             }
                             pub.SendResponseToChannel(pub.subscribeChannel, channelName, 5, value)    
                         }
@@ -403,7 +439,6 @@ func (pub *Pubnub) Subscribe(channels string, c chan []byte, isPresenceSubscribe
 }    
 
 func SleepForAWhile(retry bool){
-    //TODO: change to reconnect val
     if(retry) {
         _retryCount++
         fmt.Println("Retry count: ", _retryCount)
@@ -585,6 +620,11 @@ func ParseJson (contents []byte) (data string, timeToken string, channels string
         v := s.(interface{})
         
         switch vv := v.(type) {
+           case string:
+               length := len(vv)
+               if(length > 0){
+                   returnData = vv
+               }
            case []interface{}:
                length := len(vv)
                if(length > 0){
