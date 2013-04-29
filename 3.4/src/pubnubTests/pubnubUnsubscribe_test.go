@@ -8,6 +8,11 @@ import (
     "time"
 )
 
+// Start indicator
+func TestUnsubscribeStart(t *testing.T){
+	PrintTestMessage("==========Unsubscribe tests start==========")
+}
+
 func TestUnsubscribeNotSubscribed(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
 
@@ -37,14 +42,20 @@ func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *pubnubMessaging.Pu
         }
         if string(value) != "[]"{
             response := fmt.Sprintf("%s", value)
-            message = channel + " " + message
+            
+            message = "'" + channel + "' " + message
+            messageAbort := "'" + channel + "' aborted" 
             if(strings.Contains(response, message)){
                 returnUnsubscribeChannel := make(chan []byte)
                 go pubnubInstance.Unsubscribe(channel, returnUnsubscribeChannel)
                 ParseUnsubscribeResponse(returnUnsubscribeChannel, t, channel, "unsubscribed")    
                 break
+            } else if (strings.Contains(response, messageAbort)){
+            	t.Error("Test unsubscribed: failed.");
+            	break
             } else {
                 t.Error("Test unsubscribed: failed.");
+                break
             }
         }
     }
@@ -59,11 +70,17 @@ func ParseUnsubscribeResponse(returnChannel chan []byte, t *testing.T, channel s
         if string(value) != "[]"{
             response := fmt.Sprintf("%s", value)
             if(strings.Contains(response, message)){
-                fmt.Println("Test " + message + ": passed.")
+                fmt.Println("Test '" + message + "': passed.")
                 break
             } else {
-                t.Error("Test " + message + ": failed.");
+                t.Error("Test '" + message + "': failed.");
+                break
             }
         }
     }
 }
+
+// End indicator
+func TestUnsubscribeEnd(t *testing.T){
+	PrintTestMessage("==========Unsubscribe tests end==========")
+}   

@@ -9,9 +9,7 @@ import (
 
 // Start indicator
 func TestDetailedHistoryStart(t *testing.T){
-    fmt.Println("")
-    fmt.Println("==========DetailedHistory tests start==========")
-    fmt.Println("")
+    PrintTestMessage("==========DetailedHistory tests start==========")
 }
     
 func TestDetailedHistory(t *testing.T) {
@@ -31,8 +29,8 @@ func ParseHistoryResponse(returnChannel chan []byte, t *testing.T, channel strin
             break
         }
         if string(value) != "[]"{
-            response := fmt.Sprintf("%s", value)
-            fmt.Println("response", response)
+            response := string(value)
+            //fmt.Println("response", response)
             if(strings.Contains(response, message)){
                 fmt.Println("Detailed history: passed.") 
                 break
@@ -60,7 +58,5 @@ func ParseResponse(returnChannel chan []byte,t *testing.T, pubnubInstance *pubnu
 
 // End indicator
 func TestDetailedHistoryEnd(t *testing.T){
-    fmt.Println("")
-    fmt.Println("==========DetailedHistory tests end==========")
-    fmt.Println("")
+    PrintTestMessage("==========DetailedHistory tests end==========")
 }

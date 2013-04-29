@@ -8,21 +8,9 @@ import (
     "unicode/utf16"
 )
 
-type EmptyStruct struct {
-}
-
-// CustomStruct to test the custom structure encryption and decryption
-// The variables "foo" and "bar" give an empty value when serialized, used "Foo" and "Bar" instead 
-type CustomStruct struct {
-    Foo string
-    Bar []int
-}
-
 // Start indicator
 func TestEncryptionStart(t *testing.T){
-    fmt.Println("")
-    fmt.Println("==========Encryption tests start==========")
-    fmt.Println("")
+    PrintTestMessage("==========Encryption tests start==========")
 }
 
 // TestYayDecryptionBasic tests the yay decryption.
@@ -469,7 +457,5 @@ func TestGermanEncryption(t *testing.T) {
 
 // End indicator
 func TestEncryptionEnd(t *testing.T){
-    fmt.Println("")
-    fmt.Println("==========Encryption tests end==========")
-    fmt.Println("")
+    PrintTestMessage("==========Encryption tests end==========")
 }

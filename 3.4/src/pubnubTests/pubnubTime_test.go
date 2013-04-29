@@ -6,6 +6,11 @@ import (
     "fmt"
 )
 
+// Start indicator
+func TestTimeStart(t *testing.T){
+	PrintTestMessage("==========Time tests start==========")
+}
+
 func TestServerTime(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     
@@ -32,3 +37,8 @@ func ParseTimeResponse(returnChannel chan []byte,t *testing.T){
         }
     }
 }
+
+// End indicator
+func TestTimeEnd(t *testing.T){
+	PrintTestMessage("==========Time tests end==========")
+}   
