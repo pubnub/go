@@ -105,17 +105,29 @@ func EncryptString(cipherKey string, message string) string {
     blockmode := cipher.NewCBCEncrypter(block, []byte(_IV))
     cipherBytes := make([]byte, len(value))
     blockmode.CryptBlocks(cipherBytes, value)
-    return fmt.Sprintf("%s", Encode(cipherBytes))
+    
+    return base64.StdEncoding.EncodeToString(cipherBytes)//fmt.Sprintf("%s", Encode(cipherBytes))
 }
 
-func DecryptString(cipherKey string, message string) string { //need add error catching
-    block, _ := AesCipher(cipherKey)
-    value, _ := base64.StdEncoding.DecodeString(message)
+func DecryptString(cipherKey string, message string) (retVal string, err error) { 
+    block, aesErr := AesCipher(cipherKey)
+    if(aesErr != nil){
+        return "***Decrypt Error***", fmt.Errorf("Decrypt error aes cipher: ", aesErr) 
+    }
     
+    value, decodeErr := base64.StdEncoding.DecodeString(message)
+    if(decodeErr != nil){
+        return "***Decrypt Error***", fmt.Errorf("Decrypt error on decode: ", decodeErr) 
+    }
     decrypter := cipher.NewCBCDecrypter(block, []byte(_IV))
+    defer func(){
+        if r := recover(); r != nil {
+            retVal, err = "***Decrypt Error***", fmt.Errorf("Decrypt error:", r)
+        }
+    }()
     decrypted := make([]byte, len(value))
     decrypter.CryptBlocks(decrypted, value)
-    return fmt.Sprintf("%s", string(UnPKCS7Padding(decrypted)))
+    return fmt.Sprintf("%s", string(UnPKCS7Padding(decrypted))), nil
 }
 
 func AesCipher(cipherKey string) (cipher.Block, error) {
@@ -133,21 +145,4 @@ func EncryptCipherKey(cipherKey string) []byte {
 
     sha256String := hash.Sum(nil)[:16]
     return []byte(hex.EncodeToString(sha256String))
-}
-
-//Encodes a value using base64
-func Encode(value []byte) []byte {
-    encoded := make([]byte, base64.StdEncoding.EncodedLen(len(value)))
-    base64.StdEncoding.Encode(encoded, value)
-    return encoded
-}
-
-//Decodes a value using base64 
-func Decode(value []byte) ([]byte, error) {
-    decoded := make([]byte, base64.StdEncoding.DecodedLen(len(value)))
-    b, err := base64.StdEncoding.Decode(decoded, value)
-    if err != nil {
-        return nil, err
-    }
-    return decoded[:b], nil
 }

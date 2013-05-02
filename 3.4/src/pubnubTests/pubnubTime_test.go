@@ -8,7 +8,7 @@ import (
 
 // Start indicator
 func TestTimeStart(t *testing.T){
-	PrintTestMessage("==========Time tests start==========")
+    PrintTestMessage("==========Time tests start==========")
 }
 
 func TestServerTime(t *testing.T) {
@@ -40,5 +40,5 @@ func ParseTimeResponse(returnChannel chan []byte,t *testing.T){
 
 // End indicator
 func TestTimeEnd(t *testing.T){
-	PrintTestMessage("==========Time tests end==========")
+    PrintTestMessage("==========Time tests end==========")
 }   

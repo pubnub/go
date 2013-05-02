@@ -1,4 +1,5 @@
 // Package pubnubMessaging provides the implemetation to connect to pubnub api
+// TODO change string concat to buffer
 package pubnubMessaging
 
 import (
@@ -11,6 +12,8 @@ import (
     "net"
     "crypto/tls"
     "net/url"
+    "reflect"
+    "bytes"
 )
 
 const _origin = "pubsub.pubnub.com"
@@ -119,69 +122,74 @@ func (pub *Pubnub) GetTime(c chan []byte) {
     close(c)
 }
 
-func (pub *Pubnub) SendPublishRequest(publishUrl string, jsonBytes []byte, c chan []byte) {    
-    publishUrl += fmt.Sprintf("%s", url.QueryEscape(string(jsonBytes)))
-    //fmt.Println("publishUrl2:", publishUrl)
-    value, err := pub.HttpRequest(publishUrl, false)
-
-    if err != nil {
-        c <- value
+func (pub *Pubnub) SendPublishRequest(publishUrlString string, jsonBytes []byte, c chan []byte) {
+    var publishUrl *url.URL
+    publishUrl, urlErr := url.Parse(publishUrlString)
+    if urlErr != nil {
+        c <- []byte(fmt.Sprintf("%s", urlErr))
     } else {
-        c <- []byte(fmt.Sprintf("%s", value))
+        publishUrl.Path += string(jsonBytes)
+        value, err := pub.HttpRequest(publishUrl.String(), false)
+    
+        if err != nil {
+            c <- value
+        } else {
+            c <- []byte(fmt.Sprintf("%s", value))
+        }
     }
 }
 
 func InvalidMessage(message interface{}) bool{
-	if(message == nil){
-		return true
-	}
-	
-	dataInterface := message.(interface{})
-	
+    if(message == nil){
+        return true
+    }
+    
+    dataInterface := message.(interface{})
+    
     switch vv := dataInterface.(type){
-    	case string:
-    		if (strings.TrimSpace(vv) != ""){
-    			return false
-    		}
-    	case []interface{}:
-			if (vv != nil) {
-				return false
-			}
-		default :
-			if (vv != nil) {
-				return false
-			}
-		}	 
-	return true	
+        case string:
+            if (strings.TrimSpace(vv) != ""){
+                return false
+            }
+        case []interface{}:
+            if (vv != nil) {
+                return false
+            }
+        default :
+            if (vv != nil) {
+                return false
+            }
+        }     
+    return true    
 }
 
 func InvalidChannel(channel string, c chan []byte) bool{
-	if (strings.TrimSpace(channel) == "") {
-		return true
-	} else {
-    	channelArray := strings.Split(channel, ",")
+    if (strings.TrimSpace(channel) == "") {
+        return true
+    } else {
+        channelArray := strings.Split(channel, ",")
     
-    	for i:=0; i < len(channelArray); i++ {
-    		if (strings.TrimSpace(channelArray[i]) == "") {	
-				c <- []byte(fmt.Sprintf("Invalid Channel: %s", channel))
-				close(c)	
-				return true
-			}
-		}	
-	}
-	return false
+        for i:=0; i < len(channelArray); i++ {
+            if (strings.TrimSpace(channelArray[i]) == "") {    
+                c <- []byte(fmt.Sprintf("Invalid Channel: %s", channel))
+                close(c)    
+                return true
+            }
+        }    
+    }
+    return false
 }
 
 func (pub *Pubnub) Publish(channel string, message interface{}, c chan []byte) {
-	if(InvalidChannel(channel, c)){
-		return 
-	}
+    if(InvalidChannel(channel, c)){
+        return 
+    }
 
-	if(InvalidMessage(message)){
-		c <- []byte(fmt.Sprintf("Invalid Message"))
-		close(c)
-		return 
-	}
+    if(InvalidMessage(message)){
+        c <- []byte(fmt.Sprintf("Invalid Message"))
+        close(c)
+        return 
+    }
 
     signature := ""
     if pub.SecretKey != "" {
@@ -369,6 +377,7 @@ func (pub *Pubnub) StartSubscribeLoop(c chan []byte) {
             value, err := pub.HttpRequest(subscribeUrl, true)
             //fmt.Println(fmt.Sprintf("Value: %s", value))
             
+            
             if err != nil {
                 c <- value
                 if(pub.CheckForTimeoutAndRetries(err)){
@@ -380,7 +389,7 @@ func (pub *Pubnub) StartSubscribeLoop(c chan []byte) {
                     continue
                 }      
                 
-                data, returnTimeToken, channelName, err := ParseJson(value)
+                data, returnTimeToken, channelName, err := ParseJson(value, pub.CipherKey)
                 
                 pub.TimeToken = returnTimeToken
                 if (data == "[]") {
@@ -406,32 +415,12 @@ func (pub *Pubnub) StartSubscribeLoop(c chan []byte) {
                         }
                         
                         if(channelName != "") {
+                            var buffer bytes.Buffer
+                            buffer.WriteString("[")
+                            buffer.WriteString(data)
+                            buffer.WriteString(",\"" + fmt.Sprintf("%s",pub.TimeToken) + "\",\"" + channelName + "\"]")
                             
-                            if(pub.CipherKey != ""){
-                                decrypted := DecryptString(pub.CipherKey, data)
-                                //fmt.Println("decrypted", decrypted)
-                                //unquotedDec , decErr := strconv.Unquote(decrypted)
-                                
-                                jsonData, _, _, decErr := ParseJson([]byte(decrypted))
-
-                                if(jsonData == ""){
-                                    jsonData = data
-                                }
-                                
-                                if(decErr != nil){
-                                    fmt.Println("error", decErr)
-                                    pub.SendResponseToChannel(nil, channelName, 5, []byte(fmt.Sprintf("Error: %s", decErr)))
-                                    continue
-                                } else {
-                                    var decryptedJsonData = "["
-                                    decryptedJsonData += "[" + jsonData + "]" 
-                                    decryptedJsonData += ",\"" + fmt.Sprintf("%s",pub.TimeToken) + "\",\"" + channelName + "\"]"
-                                    value = []byte(decryptedJsonData)
-                                }    
-                            } else {
-                            	value = UnescapeContents(value)
-                            }
-                            pub.SendResponseToChannel(pub.SubscribeChannel, channelName, 5, value)    
+                            pub.SendResponseToChannel(pub.SubscribeChannel, channelName, 5, buffer.Bytes())    
                         }
                     }
                 }
@@ -463,9 +452,9 @@ func CloseExistingConnection(){
 }
 
 func (pub *Pubnub) Subscribe(channels string, c chan []byte, isPresenceSubscribe bool) {
-	if(InvalidChannel(channels, c)){
-		return 
-	}
+    if(InvalidChannel(channels, c)){
+        return 
+    }
 
     pub.ResetTimeToken = true
     
@@ -597,9 +586,9 @@ func (pub *Pubnub) PresenceUnsubscribe(channels string, c chan []byte) {
 }
 
 func (pub *Pubnub) History(channel string, limit int, start int64, end int64, reverse bool, c chan []byte) {
-	if(InvalidChannel(channel, c)){
-		return 
-	}
+    if(InvalidChannel(channel, c)){
+        return 
+    }
 
     if(limit < 0){
         limit = 100
@@ -620,27 +609,30 @@ func (pub *Pubnub) History(channel string, limit int, start int64, end int64, re
     historyUrl += "?count=" + fmt.Sprintf("%d", limit)
     historyUrl += parameters
     
-    //fmt.Println(historyUrl)
-    /*url += "/history"
-    url += "/" + pub.subscribeKey
-    url += "/" + channel
-    url += "/0"
-    url += "/" + fmt.Sprintf("%d", limit)*/
-
     value, err := pub.HttpRequest(historyUrl, false)
 
     if err != nil {
         c <- value
     } else {
-         c <- []byte(fmt.Sprintf("%s", UnescapeContents(value)))
+        data, returnOne, returnTwo, err := ParseJson(value, pub.CipherKey)
+        if(err != nil){
+            c <- value        
+        } else {
+            var buffer bytes.Buffer
+            buffer.WriteString("[")
+            buffer.WriteString(data)
+            buffer.WriteString(",\"" + fmt.Sprintf("%s",returnOne) + "\",\"" + returnTwo + "\"]")
+               
+            c <- []byte(fmt.Sprintf("%s", buffer.Bytes()))
+        }
     }
     close(c)
 }
 
 func (pub *Pubnub) HereNow(channel string, c chan []byte) {
-	if(InvalidChannel(channel, c)){
-		return 
-	}
+    if(InvalidChannel(channel, c)){
+        return 
+    }
 
     hereNowUrl := ""
     hereNowUrl += "/v2/presence"
@@ -657,40 +649,85 @@ func (pub *Pubnub) HereNow(channel string, c chan []byte) {
     close(c)
 }
 
-func GetData(rawData interface{}) (string){
+//TODO: refactor
+func GetData(rawData interface{}, cipherKey string) (string){
     dataInterface := rawData.(interface{})
     switch vv := dataInterface.(type){
         case string:
-            return fmt.Sprintf("%s", vv[0])
-        case []interface{}:
-            length := len(vv)    
-            if(length > 0){
+            jsonData, err := json.Marshal(fmt.Sprintf("%s", vv[0]))
+            if(err == nil){
+                return string(jsonData)
+            }else{
                 return fmt.Sprintf("%s", vv[0])
-            }    
+            }
+        case []interface{}:
+            doMarshal := true
+            for i, u := range vv {
+                if (reflect.TypeOf(u).Kind() == reflect.String){
+                    var intf interface{} 
+                    if(cipherKey != ""){
+                        decrypted, errDecryption := DecryptString(cipherKey, u.(string))
+                        if(errDecryption != nil){
+                            intf = u
+                        }else{
+                            decryptedData, _, _, errParseJson := ParseJson([]byte(decrypted), "")
+                            if(decryptedData == ""){
+                                intf = decrypted
+                                doMarshal = false
+                            } else if(errParseJson == nil){
+                                intf = decryptedData
+                            }else {
+                                intf = decrypted
+                                doMarshal = false
+                            }                        
+                        }
+                    }else{
+                        intf = u
+                    }
+                    
+                    unescapeVal, unescapeErr := url.QueryUnescape(intf.(string))
+                    if(unescapeErr != nil){
+                        vv[i] = intf.(string)
+                    }else{
+                        vv[i] = unescapeVal
+                    }
+                }    
+            }
+            length := len(vv) 
+            if(length > 0){
+                jsonData, err := json.Marshal(vv)
+                if((err == nil) && (doMarshal)){
+                    return string(jsonData)
+                }else{  
+                    return fmt.Sprintf("%s", vv)
+                }
+            } 
     } 
     return fmt.Sprintf("%s", rawData)    
 }
 
 func UnescapeContents(contents []byte) ([]byte){
-	if(contents != nil){
-		stringContents := string(contents)
-		stringContents, err := url.QueryUnescape(stringContents)
-		if(err == nil){
-			contents = []byte(stringContents)
-			return contents
-		} 
-	}
-	return contents
+    if(contents != nil){
+        stringContents := string(contents)
+        stringContents, err := url.QueryUnescape(stringContents)
+        if(err == nil){
+            contents = []byte(stringContents)
+            return contents
+        } 
+    }
+    return contents
 }
 
-func ParseJson (contents []byte) (data string, timeToken string, channels string, err error){
-	contents = UnescapeContents(contents)
+func ParseJson (contents []byte, cipherKey string) (string, string, string, error){
+    //contents = UnescapeContents(contents)
     var s interface{}
     returnData := ""
-    returnTimeToken := ""
-    returnChannels := ""
+    returnOne := ""
+    returnTwo := ""
     
-    if err := json.Unmarshal(contents, &s); err == nil {
+    err := json.Unmarshal(contents, &s)
+    
+    if err == nil {
         v := s.(interface{})
         
         switch vv := v.(type) {
@@ -702,19 +739,19 @@ func ParseJson (contents []byte) (data string, timeToken string, channels string
            case []interface{}:
                length := len(vv)
                if(length > 0){
-                   returnData = GetData(vv[0])
+                   returnData = GetData(vv[0], cipherKey)
                }
                if(length > 1){
-                   returnTimeToken = fmt.Sprintf("%s", vv[1])
+                   returnOne = fmt.Sprintf("%s", vv[1])
                }
                if(length > 2){
-                   returnChannels = fmt.Sprintf("%s", vv[2])
+                   returnTwo = fmt.Sprintf("%s", vv[2])
                }
         }
     } else {
         //fmt.Println("Not a valid json, err:", err)
     }
-    return returnData, returnTimeToken, returnChannels, err
+    return returnData, returnOne, returnTwo, err
 }
 
 func (pub *Pubnub) HttpRequest(requestUrl string, isSubscribe bool) ([]byte, error) {

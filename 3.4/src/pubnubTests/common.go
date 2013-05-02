@@ -1,8 +1,10 @@
 package pubnubTests
 
 import(
-	"fmt"
-	"encoding/xml"
+    "fmt"
+    "encoding/xml"
+    "bytes"
+    "strings"
 )
 
 var publishSuccessMessage = "1,\"Sent\""
@@ -27,63 +29,72 @@ type CustomSingleElementStruct struct {
 // CustomStruct to test the custom structure encryption and decryption
 // The variables "foo" and "bar" give an empty value when serialized, used "Foo" and "Bar" instead 
 type CustomComplexMessage struct {
-    VersionId 		float32   
-    TimeToken 		int64
-    OperationName 	string
-    Channels 		[]string
-    DemoMessage 	PubnubDemoMessage
-    SampleXml 		[]byte
+    VersionId         float32        `json:",string"`
+    TimeToken         int64        `json:",string"`
+    OperationName     string
+    Channels         []string
+    DemoMessage     PubnubDemoMessage `json:",string"`
+    SampleXml         string         `json:",string"`
 }
 
 type PubnubDemoMessage struct {
-	DefaultMessage string
+    DefaultMessage string `json:",string"`
 }
 
 func InitComplexMessage() CustomComplexMessage{
-	pubnubDemoMessage := PubnubDemoMessage{
-		DefaultMessage:  "~!@#$%^&*()_+ `1234567890-= qwertyuiop[]\\ {}| asdfghjkl;' :\" zxcvbnm,./ <>? ",
-	}
-	
-	xmlDoc := &Person{Id: 13, FirstName: "John", LastName: "Doe", Age: 42}
-	xmlDoc.Comment = " Need more details. "
-	xmlDoc.Address = Address{"Hanga Roa", "Easter Island"}
-	
-	//_, err := xml.MarshalIndent(xmlDoc, "  ", "    ")
-	output, err := xml.MarshalIndent(xmlDoc, "  ", "    ")
-	if err != nil {
-	    fmt.Printf("error: %v\n", err)
-	    return CustomComplexMessage{}
-	}
-	customComplexMessage := CustomComplexMessage{
-	    VersionId		: 3.4,   
-	    TimeToken 		: 13601488652764619,
-	    OperationName	: "Publish",
-		Channels		: []string{"ch1"},
-		DemoMessage 	: pubnubDemoMessage,
-		//SampleXml		: xmlDoc,
-		SampleXml		: output,
-	}
-	return customComplexMessage
+    pubnubDemoMessage := PubnubDemoMessage{
+        DefaultMessage:  "~!@#$%^&*()_+ `1234567890-= qwertyuiop[]\\ {}| asdfghjkl;' :\" zxcvbnm,./ <>? ",
+    }
+    
+    xmlDoc := &Data{Name:"Doe", Age:42 }
+    
+    //_, err := xml.MarshalIndent(xmlDoc, "  ", "    ")
+    //output, err := xml.MarshalIndent(xmlDoc, "  ", "    ")
+    output := new(bytes.Buffer) 
+    enc := xml.NewEncoder(output)
+    
+    err := enc.Encode(xmlDoc)
+    if err != nil {
+        fmt.Printf("error: %v\n", err)
+        return CustomComplexMessage{}
+    }
+    //fmt.Printf("xmlDoc: %v\n", xmlDoc)    
+    customComplexMessage := CustomComplexMessage{
+        VersionId        : 3.4,   
+        TimeToken         : 13601488652764619,
+        OperationName    : "Publish",
+        Channels        : []string{"ch1", "ch 2"},
+        DemoMessage     : pubnubDemoMessage,
+        //SampleXml        : xmlDoc,
+        SampleXml        : output.String(),
+    }
+    return customComplexMessage
 }
 
-type Address struct {
-    City, State string
+// Represents a <data> element
+type Data struct {
+    XMLName xml.Name `xml:"data"`
+    //Entry   []Entry  `xml:"entry"`
+    Name string `xml:"name"`
+    Age  int    `xml:"age"`
 }
 
-type Person struct {
-    XMLName   xml.Name `xml:"person"`
-    Id        int      `xml:"id,attr"`
-    FirstName string   `xml:"name>first"`
-    LastName  string   `xml:"name>last"`
-    Age       int      `xml:"age"`
-    Height    float32  `xml:"height,omitempty"`
-    Married   bool
-    Address
-    Comment string `xml:",comment"`
+// Represents an <entry> element
+type Entry struct {
+    Name string `xml:"name"`
+    Age  int    `xml:"age"`
 }
 
 func PrintTestMessage(message string){
-	fmt.Println(" ")
-	fmt.Println(message)
-	fmt.Println(" ")
+    fmt.Println(" ")
+    fmt.Println(message)
+    fmt.Println(" ")
 }
+
+func ReplaceEncodedChars(str string) string{
+    str = strings.Replace(str, "\\u003c", "<", -1)
+    str = strings.Replace(str, "\\u003e", ">", -1)
+    str = strings.Replace(str, "\\u0026", "&", -1)
+    return str
+}
+

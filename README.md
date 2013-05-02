@@ -39,5 +39,5 @@ This has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
 * Naming convention consistency
 
 ###Pending work: 
-* Test cases
+* Test cases for detailed history and presence
 * Documentation

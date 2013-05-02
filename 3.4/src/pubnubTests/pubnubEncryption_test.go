@@ -19,13 +19,16 @@ func TestEncryptionStart(t *testing.T){
 func TestYayDecryptionBasic(t *testing.T) {
     message := "q/xJqqN6qbiZMXYmiQC1Fw==";
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message)
-
-    if("yay!" == decrypted){        
-        fmt.Println("Yay decryption basic: passed.") 
-    } else {
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message)
+    if(decErr != nil){
         t.Error("Yay decryption basic: failed.");
-    }
+    } else {
+        if("yay!" == decrypted){        
+            fmt.Println("Yay decryption basic: passed.") 
+        } else {
+            t.Error("Yay decryption basic: failed.");
+        }
+    }    
 }
 
 // TestYayEncryptionBasic tests the yay encryption.
@@ -49,19 +52,23 @@ func TestYayEncryptionBasic(t *testing.T) {
 func TestYayDecryption(t *testing.T) {
     message := "Wi24KS4pcTzvyuGOHubiXg==";
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message)
-    //serialize
-    b, err := json.Marshal("yay!")
-    if err != nil {
-        fmt.Println("error:", err)
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message)
+    if(decErr != nil){
         t.Error("Yay decryption: failed.");
-    }else {
-        if(string(b) == decrypted){        
-            fmt.Println("Yay decryption: passed.") 
-        } else {
+    } else {    
+        //serialize
+        b, err := json.Marshal("yay!")
+        if err != nil {
+            fmt.Println("error:", err)
             t.Error("Yay decryption: failed.");
+        }else {
+            if(string(b) == decrypted){        
+                fmt.Println("Yay decryption: passed.") 
+            } else {
+                t.Error("Yay decryption: failed.");
+            }
         }
-    }    
+    }        
 }
 
 // TestYayEncryption tests the yay encryption.
@@ -92,26 +99,23 @@ func TestYayEncryption(t *testing.T) {
 func TestArrayDecryption(t *testing.T) {
     message := "Ns4TB41JjT2NCXaGLWSPAQ=="
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message);
-    /*b1, err1 := json.Marshal("string")
-    if err1 != nil {
-        fmt.Println("error:", err1)
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message);
+    if(decErr != nil){
         t.Error("Slice decryption: failed.");
     } else {
-        fmt.Println("s:", string(b1))
-    }*/
-    slice := []string{}
-    b, err := json.Marshal(slice)
-    if err != nil {
-        fmt.Println("error:", err)
-        t.Error("Slice decryption: failed.");
-    } else {
-        if(string(b) == decrypted){        
-            fmt.Println("Slice decryption: passed.") 
-        } else {
+        slice := []string{}
+        b, err := json.Marshal(slice)
+        if err != nil {
+            fmt.Println("error:", err)
             t.Error("Slice decryption: failed.");
+        } else {
+            if(string(b) == decrypted){        
+                fmt.Println("Slice decryption: passed.") 
+            } else {
+                t.Error("Slice decryption: failed.");
+            }
         }
-    }    
+    }        
 }
 
 // TestArrayEncryption tests the slice encryption.
@@ -142,20 +146,23 @@ func TestArrayEncryption(t *testing.T) {
 func TestObjectDecryption(t *testing.T) {
     message := "IDjZE9BHSjcX67RddfCYYg=="
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message);
-
-    emptyStruct := EmptyStruct{}
-    b, err := json.Marshal(emptyStruct)
-    if err != nil {
-        fmt.Println("error:", err)
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message);
+    if(decErr != nil){
         t.Error("Object decryption: failed.");
     } else {
-        if(string(b) == decrypted){        
-            fmt.Println("Object decryption: passed.") 
-        } else {
+        emptyStruct := EmptyStruct{}
+        b, err := json.Marshal(emptyStruct)
+        if err != nil {
+            fmt.Println("error:", err)
             t.Error("Object decryption: failed.");
+        } else {
+            if(string(b) == decrypted){        
+                fmt.Println("Object decryption: passed.") 
+            } else {
+                t.Error("Object decryption: failed.");
+            }
         }
-    }    
+    }        
 }
 
 // TestObjectEncryption tests the empty object encryption.
@@ -186,22 +193,26 @@ func TestObjectEncryption(t *testing.T) {
 func TestMyObjectDecryption(t *testing.T) {
     message := "BMhiHh363wsb7kNk7krTtDcey/O6ZcoKDTvVc4yDhZY="
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message);
-    customStruct := CustomStruct{
-        Foo : "hi!",
-        Bar : []int{1,2,3,4,5},
-    }
-    b, err := json.Marshal(customStruct)
-    if err != nil {
-        fmt.Println("error:", err)
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message);
+    if(decErr != nil){
         t.Error("My object decryption: failed.");
-    } else {
-        if(string(b) == decrypted){        
-            fmt.Println("My object decryption: passed.") 
-        } else {
-            t.Error("My object decryption: failed.");
+    } else {    
+        customStruct := CustomStruct{
+            Foo : "hi!",
+            Bar : []int{1,2,3,4,5},
         }
-    }    
+        b, err := json.Marshal(customStruct)
+        if err != nil {
+            fmt.Println("error:", err)
+            t.Error("My object decryption: failed.");
+        } else {
+            if(string(b) == decrypted){        
+                fmt.Println("My object decryption: passed.") 
+            } else {
+                t.Error("My object decryption: failed.");
+            }
+        }
+    }        
 }
 
 // TestMyObjectEncryption tests the custom object encryption.
@@ -234,18 +245,22 @@ func TestMyObjectEncryption(t *testing.T) {
 func TestPubNubDecryption2(t *testing.T) {
     message := "f42pIQcWZ9zbTbH8cyLwB/tdvRxjFLOYcBNMVKeHS54=";
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message)
-    b, err := json.Marshal("Pubnub Messaging API 2")
-    if err != nil {
-        fmt.Println("error:", err)
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message)
+    if(decErr != nil){
         t.Error("Pubnub Messaging API 2 decryption: failed.");
-    } else {        
-        if(string(b) == decrypted){        
-            fmt.Println("Pubnub Messaging API 2 decryption: passed.") 
-        } else {
+    } else {    
+        b, err := json.Marshal("Pubnub Messaging API 2")
+        if err != nil {
+            fmt.Println("error:", err)
             t.Error("Pubnub Messaging API 2 decryption: failed.");
+        } else {        
+            if(string(b) == decrypted){        
+                fmt.Println("Pubnub Messaging API 2 decryption: passed.") 
+            } else {
+                t.Error("Pubnub Messaging API 2 decryption: failed.");
+            }
         }
-    }    
+    }        
 }
 
 // TestPubNubEncryption2 tests the Pubnub Messaging API 2 encryption.
@@ -274,19 +289,22 @@ func TestPubNubEncryption2(t *testing.T) {
 func TestPubNubDecryption(t *testing.T) {
     message := "f42pIQcWZ9zbTbH8cyLwByD/GsviOE0vcREIEVPARR0=";
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message)
-    
-    b, err := json.Marshal("Pubnub Messaging API 1")
-    if err != nil {
-        fmt.Println("error:", err)
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message)
+    if(decErr != nil){
         t.Error("Pubnub Messaging API 1 decryption: failed.");
     } else {    
-        if(string(b) == decrypted){        
-            fmt.Println("Pubnub Messaging API 1 decryption: passed.") 
-        } else {
+        b, err := json.Marshal("Pubnub Messaging API 1")
+        if err != nil {
+            fmt.Println("error:", err)
             t.Error("Pubnub Messaging API 1 decryption: failed.");
+        } else {    
+            if(string(b) == decrypted){        
+                fmt.Println("Pubnub Messaging API 1 decryption: passed.") 
+            } else {
+                t.Error("Pubnub Messaging API 1 decryption: failed.");
+            }
         }
-    }    
+    }        
 }
 
 // TestPubNubEncryption tests the Pubnub Messaging API 1 encryption.
@@ -315,12 +333,16 @@ func TestPubNubEncryption(t *testing.T) {
 func TestStuffCanDecryption(t *testing.T) {
     message := "zMqH/RTPlC8yrAZ2UhpEgLKUVzkMI2cikiaVg30AyUu7B6J0FLqCazRzDOmrsFsF";
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message)
-    if("{\"this stuff\":{\"can get\":\"complicated!\"}}" == decrypted){        
-        fmt.Println("StuffCan decryption: passed.") 
-    } else {
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message)
+    if(decErr != nil){
         t.Error("StuffCan decryption: failed.");
-    }
+    } else {    
+        if("{\"this stuff\":{\"can get\":\"complicated!\"}}" == decrypted){        
+            fmt.Println("StuffCan decryption: passed.") 
+        } else {
+            t.Error("StuffCan decryption: failed.");
+        }
+    }    
 }
 
 // TestStuffCanEncryption tests the StuffCan encryption.
@@ -343,12 +365,16 @@ func TestStuffCanEncryption(t *testing.T) {
 func TestHashDecryption(t *testing.T) {
     message := "GsvkCYZoYylL5a7/DKhysDjNbwn+BtBtHj2CvzC4Y4g=";
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message)
-    if("{\"foo\":{\"bar\":\"foobar\"}}" == decrypted){        
-        fmt.Println("Hash decryption: passed.") 
-    } else {
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message)
+    if(decErr != nil){
         t.Error("Hash decryption: failed.");
-    }
+    } else {    
+        if("{\"foo\":{\"bar\":\"foobar\"}}" == decrypted){        
+            fmt.Println("Hash decryption: passed.") 
+        } else {
+            t.Error("Hash decryption: failed.");
+        }
+    }    
 }
 
 // TestHashEncryption tests the hash encryption.
@@ -371,17 +397,21 @@ func TestHashEncryption(t *testing.T) {
 func TestUnicodeDecryption(t *testing.T) {
    message := "+BY5/miAA8aeuhVl4d13Kg==";
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message)
-    data, _, _, err := pubnubMessaging.ParseJson([]byte(decrypted))
-    if(err != nil){
-        t.Error("Unicode decryption: failed.", err);
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message)
+    if(decErr != nil){
+        t.Error("Unicode decryption: failed.");
     } else {
-        if("漢語" == data){        
-            fmt.Println("Unicode decryption: passed.") 
+        data, _, _, err := pubnubMessaging.ParseJson([]byte(decrypted), "")
+        if(err != nil){
+            t.Error("Unicode decryption: failed.", err);
         } else {
-            t.Error("Unicode decryption: failed.");
+            if("漢語" == data){        
+                fmt.Println("Unicode decryption: passed.") 
+            } else {
+                t.Error("Unicode decryption: failed.");
+            }
         }
-    }     
+    }         
 }
 
 // UTF16ToString returns the UTF-8 encoding of the UTF-16 sequence s,
@@ -422,15 +452,19 @@ func TestUnicodeEncryption(t *testing.T) {
 func TestGermanDecryption(t *testing.T) {
     message := "stpgsG1DZZxb44J7mFNSzg==";
     //decrypt
-    decrypted := pubnubMessaging.DecryptString("enigma", message)
-    data, _, _, err := pubnubMessaging.ParseJson([]byte(decrypted))
-    if(err != nil){
-        t.Error("German decryption: failed.", err);
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message)
+    if(decErr != nil){
+        t.Error("German decryption: failed.");
     } else {
-        if("ÜÖ" == data){        
-            fmt.Println("German decryption: passed.") 
+        data, _, _, err := pubnubMessaging.ParseJson([]byte(decrypted), "")
+        if(err != nil){
+            t.Error("German decryption: failed.", err);
         } else {
-            t.Error("German decryption: failed.");
+            if("ÜÖ" == data){        
+                fmt.Println("German decryption: passed.") 
+            } else {
+                t.Error("German decryption: failed.");
+            }
         }
     }
 }
@@ -454,6 +488,48 @@ func TestGermanEncryption(t *testing.T) {
         }
     }    
 }
+
+func TestComplexClassDecryption(t *testing.T) {
+     message := "uu3hDKcmV5/5mym7sIPJaf+W3Uu1xJLZLYaEBJPbZut+uwGHV5QmMWCOTTSOuBwcNk4bldx+y1ZAaHFETwkfMOOCHvdwrw6YcoyuJDqPglD+DEwLjUes50nEfrw7aMwmsKP2BmbyM+0mL2Nw30X4QP6lCcOaaUgXGWuMPJXfhrutSpiDDvJhSG6/eqZUEVmpKilxVnbsCqYGRWHHIE5dbuWE1odOot6oW4OobspaQtK2bBj/MNwFWwoZjLgyRi6Rxm0PRhgcOgxWneSrIW5UUf6xan4i4UfSN0PevVu5iRxwg1yLSISQViYihwFkc6ncJaUQ6nY+fESwHAn8IYGTYtuHc4j/C9pQwB5WhnoUaXRiJKchjnCf+zS6hyU7hlDZm7XdXRI6dZIIHGfBI5o2H/DmT3DFQM/mUZQLqmyFGM72QXV4bRIr0zUulTMOQgDVL2khic8bEZ28ji68ogNSnRMDMW81IzRInpv14zWyADRcab2tnlcQosmVwhDSJtnd"
+    //decrypt
+    decrypted, decErr := pubnubMessaging.DecryptString("enigma", message);
+    if(decErr != nil){
+        t.Error("Custom complex decryption: failed.");
+    } else {    
+        customComplexMessage := InitComplexMessage()
+        
+        b, err := json.Marshal(customComplexMessage)
+        if err != nil {
+            fmt.Println("error:", err)
+            t.Error("Custom complex decryption: failed.");
+        } else {
+            if(string(b) == decrypted){        
+                fmt.Println("Custom complex decryption: passed.") 
+            } else {
+                t.Error("Custom complex decryption: failed.");
+            }
+        }
+    } 
+}
+
+func TestComplexClassEncryption(t *testing.T) {
+    customComplexMessage := InitComplexMessage()
+    //serialize
+    b1, err := json.Marshal(customComplexMessage)
+    if err != nil {
+        fmt.Println("error:", err)
+        t.Error("Custom complex encryption: failed.");
+    }else {
+        //encrypt
+        encrypted := pubnubMessaging.EncryptString("enigma", string(b1));
+        if("uu3hDKcmV5/5mym7sIPJaf+W3Uu1xJLZLYaEBJPbZut+uwGHV5QmMWCOTTSOuBwcNk4bldx+y1ZAaHFETwkfMOOCHvdwrw6YcoyuJDqPglD+DEwLjUes50nEfrw7aMwmsKP2BmbyM+0mL2Nw30X4QP6lCcOaaUgXGWuMPJXfhrutSpiDDvJhSG6/eqZUEVmpKilxVnbsCqYGRWHHIE5dbuWE1odOot6oW4OobspaQtK2bBj/MNwFWwoZjLgyRi6Rxm0PRhgcOgxWneSrIW5UUf6xan4i4UfSN0PevVu5iRxwg1yLSISQViYihwFkc6ncJaUQ6nY+fESwHAn8IYGTYtuHc4j/C9pQwB5WhnoUaXRiJKchjnCf+zS6hyU7hlDZm7XdXRI6dZIIHGfBI5o2H/DmT3DFQM/mUZQLqmyFGM72QXV4bRIr0zUulTMOQgDVL2khic8bEZ28ji68ogNSnRMDMW81IzRInpv14zWyADRcab2tnlcQosmVwhDSJtnd" == encrypted){
+            fmt.Println("Custom complex encryption: passed.") 
+        } else {
+            t.Error("Custom complex encryption: failed.");
+        }
+    }
+}
+
 
 // End indicator
 func TestEncryptionEnd(t *testing.T){

@@ -10,7 +10,7 @@ import (
 
 // Start indicator
 func TestUnsubscribeStart(t *testing.T){
-	PrintTestMessage("==========Unsubscribe tests start==========")
+    PrintTestMessage("==========Unsubscribe tests start==========")
 }
 
 func TestUnsubscribeNotSubscribed(t *testing.T) {
@@ -51,8 +51,8 @@ func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *pubnubMessaging.Pu
                 ParseUnsubscribeResponse(returnUnsubscribeChannel, t, channel, "unsubscribed")    
                 break
             } else if (strings.Contains(response, messageAbort)){
-            	t.Error("Test unsubscribed: failed.");
-            	break
+                t.Error("Test unsubscribed: failed.");
+                break
             } else {
                 t.Error("Test unsubscribed: failed.");
                 break
@@ -82,5 +82,5 @@ func ParseUnsubscribeResponse(returnChannel chan []byte, t *testing.T, channel s
 
 // End indicator
 func TestUnsubscribeEnd(t *testing.T){
-	PrintTestMessage("==========Unsubscribe tests end==========")
+    PrintTestMessage("==========Unsubscribe tests end==========")
 }   
