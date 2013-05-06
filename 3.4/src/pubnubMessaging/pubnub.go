@@ -743,11 +743,11 @@ func ParseJson (contents []byte, cipherKey string) (string, string, string, erro
                    returnData = GetData(vv[0], cipherKey)
                }
                if(length > 1){
-               		returnOne = ParseInterfaceData(vv[1])
+                       returnOne = ParseInterfaceData(vv[1])
                     //returnOne = vv[1].(string)
                }
                if(length > 2){
-               	   returnTwo = ParseInterfaceData(vv[2])
+                      returnTwo = ParseInterfaceData(vv[2])
                    //returnTwo = vv[2].(string)
                }
         }
@@ -758,15 +758,15 @@ func ParseJson (contents []byte, cipherKey string) (string, string, string, erro
 }
 
 func ParseInterfaceData(myInterface interface{}) string{
-	switch v := myInterface.(type) {
-		case int:
-			return strconv.Itoa(v)
-		case float64:
-			return strconv.FormatFloat(v, 'f', -1, 64)
-		case string:
-		    return string(v)
-		}
-	return fmt.Sprintf("%s", myInterface)
+    switch v := myInterface.(type) {
+        case int:
+            return strconv.Itoa(v)
+        case float64:
+            return strconv.FormatFloat(v, 'f', -1, 64)
+        case string:
+            return string(v)
+        }
+    return fmt.Sprintf("%s", myInterface)
 }
 
 func (pub *Pubnub) HttpRequest(requestUrl string, isSubscribe bool) ([]byte, error) {
