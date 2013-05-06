@@ -14,6 +14,7 @@ import (
     "net/url"
     "reflect"
     "bytes"
+    "strconv"
 )
 
 const _origin = "pubsub.pubnub.com"
@@ -621,7 +622,7 @@ func (pub *Pubnub) History(channel string, limit int, start int64, end int64, re
             var buffer bytes.Buffer
             buffer.WriteString("[")
             buffer.WriteString(data)
-            buffer.WriteString(",\"" + fmt.Sprintf("%s",returnOne) + "\",\"" + returnTwo + "\"]")
+            buffer.WriteString(",\"" + returnOne + "\",\"" + returnTwo + "\"]")
                
             c <- []byte(fmt.Sprintf("%s", buffer.Bytes()))
         }
@@ -742,16 +743,30 @@ func ParseJson (contents []byte, cipherKey string) (string, string, string, erro
                    returnData = GetData(vv[0], cipherKey)
                }
                if(length > 1){
-                   returnOne = fmt.Sprintf("%s", vv[1])
+               		returnOne = ParseInterfaceData(vv[1])
+                    //returnOne = vv[1].(string)
                }
                if(length > 2){
-                   returnTwo = fmt.Sprintf("%s", vv[2])
+               	   returnTwo = ParseInterfaceData(vv[2])
+                   //returnTwo = vv[2].(string)
                }
         }
     } else {
         //fmt.Println("Not a valid json, err:", err)
     }
     return returnData, returnOne, returnTwo, err
+}
+
+func ParseInterfaceData(myInterface interface{}) string{
+	switch v := myInterface.(type) {
+		case int:
+			return strconv.Itoa(v)
+		case float64:
+			return strconv.FormatFloat(v, 'f', -1, 64)
+		case string:
+		    return string(v)
+		}
+	return fmt.Sprintf("%s", myInterface)
 }
 
 func (pub *Pubnub) HttpRequest(requestUrl string, isSubscribe bool) ([]byte, error) {

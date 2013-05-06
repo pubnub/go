@@ -145,7 +145,7 @@ func ValidateComplexData(m map[string]interface{}) (bool){
                  }    
              }
         } else if (k == "TimeToken") {
-             i, convErr := strconv.ParseInt(v.(string), 10, 64)
+            i, convErr := strconv.ParseInt(v.(string), 10, 64)
             if (convErr != nil) { 
                 fmt.Println(convErr)
                 return false 

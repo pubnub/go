@@ -138,7 +138,7 @@ func ParsePublishResponse(returnChannel chan []byte, t *testing.T, channel strin
     }
  }   
  
- // End indicator
+// End indicator
 func TestPublishEnd(t *testing.T){
     PrintTestMessage("==========Publish tests end==========")
 }
