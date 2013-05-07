@@ -1,5 +1,4 @@
 // Package pubnubMessaging provides the implemetation to connect to pubnub api
-// TODO change string concat to buffer
 package pubnubMessaging
 
 import (
@@ -198,14 +197,17 @@ func (pub *Pubnub) Publish(channel string, message interface{}, c chan []byte) {
     } else {
         signature = "0"
     }
-    publishUrl := ""
-    publishUrl += "/publish"
-    publishUrl += "/" + pub.PublishKey
-    publishUrl += "/" + pub.SubscribeKey
-    publishUrl += "/" + signature
-    publishUrl += "/" + channel
-    publishUrl += "/0/"
-    
+    var publishUrlBuffer bytes.Buffer
+    publishUrlBuffer.WriteString("/publish")
+    publishUrlBuffer.WriteString("/")
+    publishUrlBuffer.WriteString(pub.PublishKey)
+    publishUrlBuffer.WriteString("/")
+    publishUrlBuffer.WriteString(pub.SubscribeKey)
+    publishUrlBuffer.WriteString("/")
+    publishUrlBuffer.WriteString(signature)
+    publishUrlBuffer.WriteString("/")
+    publishUrlBuffer.WriteString(channel)
+    publishUrlBuffer.WriteString("/0/")
     //fmt.Println("mess:", string(message))
 
     jsonSerialized, err := json.Marshal(message)
@@ -217,10 +219,10 @@ func (pub *Pubnub) Publish(channel string, message interface{}, c chan []byte) {
             if errEnc != nil {
                 c <- []byte(fmt.Sprintf("error in serializing: %s", errEnc))        
               } else {
-                  pub.SendPublishRequest(publishUrl, jsonEncBytes, c)
+                  pub.SendPublishRequest(publishUrlBuffer.String(), jsonEncBytes, c)
               }
         } else {
-            pub.SendPublishRequest(publishUrl, jsonSerialized, c)
+            pub.SendPublishRequest(publishUrlBuffer.String(), jsonSerialized, c)
         }
     }
     close(c)
@@ -331,9 +333,11 @@ func (pub *Pubnub) GetSubscribedChannels(channels string, c chan []byte, isPrese
 }
 
 func (pub *Pubnub) CheckForTimeoutAndRetries(err error) (bool){
-    //if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "no such host") {
     if (_retryCount == 0) {
-        if !strings.Contains(err.Error(), "closed network connection") {
+        //closedNetworkError :=strings.Contains(err.Error(), "closed network connection")
+        errorInitConn :=strings.Contains(err.Error(), "Error in initializating connection")
+        
+        if  (errorInitConn || (strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "no such host"))){
             pub.SendResponseToChannel(nil, pub.SubscribedChannels, 7, nil)
         }
     }
@@ -355,29 +359,36 @@ func (pub *Pubnub) CheckForTimeoutAndRetries(err error) (bool){
 func (pub *Pubnub) StartSubscribeLoop(c chan []byte) {
     for {
           if len(pub.SubscribedChannels) > 0 {
-            subscribeUrl := ""
-            subscribeUrl += "/subscribe"
-            subscribeUrl += "/" + pub.SubscribeKey
-            subscribeUrl += "/" + pub.SubscribedChannels
-            subscribeUrl += "/0"
-            
+              var subscribeUrlBuffer bytes.Buffer
+            subscribeUrlBuffer.WriteString("/subscribe")
+              subscribeUrlBuffer.WriteString("/")
+              subscribeUrlBuffer.WriteString(pub.SubscribeKey)
+              subscribeUrlBuffer.WriteString("/")
+              subscribeUrlBuffer.WriteString(pub.SubscribedChannels)
+              subscribeUrlBuffer.WriteString("/0")
+              
             sentTimeToken := pub.TimeToken
             
             if pub.ResetTimeToken {
-                subscribeUrl += "/0"
+                subscribeUrlBuffer.WriteString("/0")
                 sentTimeToken = "0"
                 pub.ResetTimeToken = false
             }else{
-                subscribeUrl += "/" + pub.TimeToken
-               }
+                subscribeUrlBuffer.WriteString("/")
+                if(strings.TrimSpace(pub.TimeToken) == ""){
+                    pub.TimeToken = "0"
+                }    
+                subscribeUrlBuffer.WriteString(pub.TimeToken)
+                //fmt.Println("tt:", pub.TimeToken)
+            }
                 
             if pub.Uuid != "" {
-                subscribeUrl += "?uuid=" + pub.Uuid
+                subscribeUrlBuffer.WriteString("?uuid=")
+                subscribeUrlBuffer.WriteString(pub.Uuid)
             }
-            //fmt.Println(fmt.Sprintf("Url: %s", url))
-            value, err := pub.HttpRequest(subscribeUrl, true)
+            //fmt.Println(fmt.Sprintf("Url: %s", subscribeUrlBuffer.String()))
+            value, err := pub.HttpRequest(subscribeUrlBuffer.String(), true)
             //fmt.Println(fmt.Sprintf("Value: %s", value))
-            
             
             if err != nil {
                 c <- value
@@ -419,7 +430,11 @@ func (pub *Pubnub) StartSubscribeLoop(c chan []byte) {
                             var buffer bytes.Buffer
                             buffer.WriteString("[")
                             buffer.WriteString(data)
-                            buffer.WriteString(",\"" + fmt.Sprintf("%s",pub.TimeToken) + "\",\"" + channelName + "\"]")
+                            buffer.WriteString(",\"")
+                            buffer.WriteString(fmt.Sprintf("%s",pub.TimeToken))
+                            buffer.WriteString("\",\"")
+                            buffer.WriteString(channelName)
+                            buffer.WriteString("\"]")
                             
                             pub.SendResponseToChannel(pub.SubscribeChannel, channelName, 5, buffer.Bytes())    
                         }
@@ -470,6 +485,7 @@ func (pub *Pubnub) Subscribe(channels string, c chan []byte, isPresenceSubscribe
     }
     
     subscribedChannels, newSubscribedChannels, channelsModified := pub.GetSubscribedChannels(channels, c, isPresenceSubscribe)
+    
     pub.NewSubscribedChannels = newSubscribedChannels
     
     if(pub.SubscribedChannels == ""){
@@ -478,6 +494,7 @@ func (pub *Pubnub) Subscribe(channels string, c chan []byte, isPresenceSubscribe
     }else if (channelsModified){
         CloseExistingConnection()
         pub.SubscribedChannels = subscribedChannels
+        pub.StartSubscribeLoop(c)
     }
 }    
 
@@ -571,13 +588,16 @@ func (pub *Pubnub) PresenceUnsubscribe(channels string, c chan []byte) {
         CloseExistingConnection() 
         pub.ResetTimeToken = true
         
-        subscribeUrl := ""
-        subscribeUrl += "/v2/presence"
-        subscribeUrl += "/sub-key/" + pub.SubscribeKey
-        subscribeUrl += "/channel/" + presenceChannels
-        subscribeUrl += "/leave?uuid=" + pub.Uuid
-            
-        value, err := pub.HttpRequest(subscribeUrl, false)
+        var subscribeUrlBuffer bytes.Buffer
+        subscribeUrlBuffer.WriteString("/v2/presence")
+        subscribeUrlBuffer.WriteString("/sub-key/")
+        subscribeUrlBuffer.WriteString(pub.SubscribeKey)
+        subscribeUrlBuffer.WriteString("/channel/")
+        subscribeUrlBuffer.WriteString(presenceChannels)
+        subscribeUrlBuffer.WriteString("/leave?uuid=")
+        subscribeUrlBuffer.WriteString(pub.Uuid)
+        
+        value, err := pub.HttpRequest(subscribeUrlBuffer.String(), false)
         c <- value
         if err != nil {
             c <- value
@@ -595,22 +615,30 @@ func (pub *Pubnub) History(channel string, limit int, start int64, end int64, re
         limit = 100
     }
     
-    parameters := "&reverse=" + fmt.Sprintf("%t", reverse)
+    var parameters bytes.Buffer
+    parameters.WriteString("&reverse=")
+    parameters.WriteString(fmt.Sprintf("%t", reverse))
+    
     if(start > 0){
-        parameters += "&start=" + fmt.Sprintf("%d", start)
+        parameters.WriteString("&start=")
+        parameters.WriteString(fmt.Sprintf("%d", start))
     }
     if(end > 0){
-        parameters += "&end=" + fmt.Sprintf("%d", end)
+        parameters.WriteString("&end=")
+        parameters.WriteString(fmt.Sprintf("%d", end))
     }
-
-    historyUrl := ""
-    historyUrl += "/v2/history"
-    historyUrl += "/sub-key/" + pub.SubscribeKey
-    historyUrl += "/channel/" + channel
-    historyUrl += "?count=" + fmt.Sprintf("%d", limit)
-    historyUrl += parameters
     
-    value, err := pub.HttpRequest(historyUrl, false)
+    var historyUrlBuffer bytes.Buffer
+    historyUrlBuffer.WriteString("/v2/history")
+    historyUrlBuffer.WriteString("/sub-key/")
+    historyUrlBuffer.WriteString(pub.SubscribeKey)
+    historyUrlBuffer.WriteString("/channel/")
+    historyUrlBuffer.WriteString(channel)
+    historyUrlBuffer.WriteString("?count=")
+    historyUrlBuffer.WriteString(fmt.Sprintf("%d", limit))
+    historyUrlBuffer.WriteString(parameters.String())
+        
+    value, err := pub.HttpRequest(historyUrlBuffer.String(), false)
 
     if err != nil {
         c <- value
@@ -635,12 +663,14 @@ func (pub *Pubnub) HereNow(channel string, c chan []byte) {
         return 
     }
 
-    hereNowUrl := ""
-    hereNowUrl += "/v2/presence"
-    hereNowUrl += "/sub-key/" + pub.SubscribeKey
-    hereNowUrl += "/channel/" + channel
+    var hereNowUrl bytes.Buffer
+    hereNowUrl.WriteString("/v2/presence")
+    hereNowUrl.WriteString("/sub-key/")
+    hereNowUrl.WriteString(pub.SubscribeKey)
+    hereNowUrl.WriteString("/channel/")
+    hereNowUrl.WriteString(channel)
 
-    value, err := pub.HttpRequest(hereNowUrl, false)
+    value, err := pub.HttpRequest(hereNowUrl.String(), false)
 
     if err != nil {
         c <- value
@@ -743,11 +773,11 @@ func ParseJson (contents []byte, cipherKey string) (string, string, string, erro
                    returnData = GetData(vv[0], cipherKey)
                }
                if(length > 1){
-                       returnOne = ParseInterfaceData(vv[1])
+                    returnOne = ParseInterfaceData(vv[1])
                     //returnOne = vv[1].(string)
                }
                if(length > 2){
-                      returnTwo = ParseInterfaceData(vv[2])
+                   returnTwo = ParseInterfaceData(vv[2])
                    //returnTwo = vv[2].(string)
                }
         }

@@ -222,10 +222,10 @@ func ParseHistoryResponseForMultipleMessages(returnChannel chan []byte, t *testi
                     if(messagesReceived == numberOfMessages){
                         fmt.Println("Test '" + testName + "': passed.")
                     } else {
-                    t.Error("Test '" + testName + "': failed.");
-                }
+                        t.Error("Test '" + testName + "': failed.");
+                    }
                 break
-            }
+                }
             }
         }
     }

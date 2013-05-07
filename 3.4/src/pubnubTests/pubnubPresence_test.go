@@ -5,7 +5,7 @@ import (
     "pubnubMessaging"
     "strings"
     "fmt"
-    //"strconv"
+    //"time"
     "encoding/json"
 )
 
@@ -39,17 +39,38 @@ func TestHereNowWithCipher(t *testing.T) {
 func TestPresence(t *testing.T) {
     customUuid := "customuuid"
     testName := "Presence"
-    
+    t.Parallel()
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, customUuid)  
-    
     channel := "testChannel"
-    
     returnPresenceChannel := make(chan []byte)
-    go pubnubInstance.Subscribe(channel, returnPresenceChannel, true)
-    ParsePresenceResponse(t, returnPresenceChannel, channel, testName)    
-
+    go SubscribeToPresence(channel, pubnubInstance, t, testName, customUuid, returnPresenceChannel)
     returnSubscribeChannel := make(chan []byte)
     go pubnubInstance.Subscribe(channel, returnSubscribeChannel, false)
+    subscribed := ParseSubscribeResponseForPresence(returnSubscribeChannel, channel)
+
+    if(!subscribed) {
+        t.Error("Test '" + testName + "': failed.")
+    }
+    //time.Sleep(10 * time.Second)
+}
+
+func SubscribeToPresence(channel string, pubnubInstance *pubnubMessaging.Pubnub, t *testing.T, testName string, customUuid string, returnPresenceChannel chan []byte){
+    go pubnubInstance.Subscribe(channel, returnPresenceChannel, true)
+    ParsePresenceResponse(pubnubInstance, t, returnPresenceChannel, channel, testName, customUuid, false)    
+}
+
+func ParseResponsePresence(channel chan []byte){
+    for {
+        value, ok := <-channel
+        if !ok {  
+            break
+        }
+        if string(value) != "[]"{
+            fmt.Println(fmt.Sprintf("Presence: %s ", value))
+            //fmt.Println(fmt.Sprintf("%s", value))
+            fmt.Println("");
+        }
+    }
 }
 
 func HereNow(t *testing.T, cipherKey string, customUuid string, testName string){
@@ -114,13 +135,15 @@ func ParseHereNowResponse(returnChannel chan []byte, t *testing.T, channel strin
 func ParseSubscribeResponseForPresence(returnChannel chan []byte, channel string) bool{
     for {
         value, ok := <-returnChannel
+        
         if !ok {
             break
         }
         if string(value) != "[]"{
             response := fmt.Sprintf("%s", value)
-             message := "'" + channel + "' connected"
-            if(strings.Contains(response, message)){
+            message := "'" + channel + "' connected"
+            messageReconn := "'" + channel + "' reconnected"
+            if((strings.Contains(response, message)) || (strings.Contains(response, messageReconn))){
                 return true
             }else {
                 break
@@ -130,8 +153,7 @@ func ParseSubscribeResponseForPresence(returnChannel chan []byte, channel string
     return false
 }
 
-func ParsePresenceResponse(t *testing.T, returnChannel chan []byte, channel string, testName string) {
-    connected := false
+func ParsePresenceResponse(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T, returnChannel chan []byte, channel string, testName string, customUuid string, testConnected bool) bool {
     for {
         value, ok := <-returnChannel
         if !ok {
@@ -139,42 +161,68 @@ func ParsePresenceResponse(t *testing.T, returnChannel chan []byte, channel stri
         }
         if string(value) != "[]"{
             response := fmt.Sprintf("%s", value)
-             message := "'" + channel + "' connected"
-            if ((!connected) && (strings.Contains(response, message))){
-                connected = true
-            } 
-            if(connected){
-                data, _, returnedChannel, err2 := pubnubMessaging.ParseJson(value, "")
-                var occupants []struct {
-                    Action string
-                    Timestamp string
-                    Uuid string
-                    Occupancy string
-                }
-                if(err2 != nil){
-                    fmt.Println("err2 '" + testName + "':",err2)
-                    t.Error("Test '" + testName + "': failed.");
-                    break
-                }
-                fmt.Println("data '" + testName + "':",data)
-                fmt.Println("returnedChannel '" + testName + "':",returnedChannel)
-                err := json.Unmarshal([]byte(data), &occupants)
-                if(err != nil) { 
-                    fmt.Println("err '" + testName + "':",err)
-                    t.Error("Test '" + testName + "': failed.");
-                    break
-                } else {
-                    if(channel == returnedChannel){
-                        fmt.Println("Test '" + testName + "': passed.");    
-                        break
-                    } else {
+            //fmt.Println("resp:", response)
+            messagePresence := "Presence notifications for channel '" + channel + "' connected"
+            messagePresenceReconn := "Presence notifications for channel '" + channel + "' reconnected"
+            
+            if (testConnected && ((strings.Contains(response, messagePresence)) || (strings.Contains(response, messagePresenceReconn)))){
+                return true
+            } else if(!testConnected) {
+                
+                message := "'" + channel + "' disconnected"
+                messageConn := "'" + channel + "' connected"
+                messageReconn := "'" + channel + "' reconnected"
+                if(!strings.Contains(response, message) && (!strings.Contains(response, messageConn)) && (!strings.Contains(response, messageReconn))){
+                    data, _, returnedChannel, err2 := pubnubMessaging.ParseJson(value, "")
+                    var occupants []struct {
+                        Action string
+                        Timestamp float64 `json:",string"`
+                        Uuid string
+                        Occupancy int64 `json:",string"`
+                    }
+                    if(err2 != nil){
+                        fmt.Println("err2 '" + testName + "':",err2)
                         t.Error("Test '" + testName + "': failed.");
                         break
                     }
-                }                
+                    fmt.Println("data '" + testName + "':",data)
+                    //fmt.Println("ts '" + testName + "':",ts)
+                    //fmt.Println("returnedChannel '" + testName + "':",returnedChannel)
+                    err := json.Unmarshal([]byte(data), &occupants)
+                    if(err != nil) { 
+                        fmt.Println("err '" + testName + "':",err)
+                        fmt.Println("Test '" + testName + "': failed.")    
+                        t.Error("Test '" + testName + "': failed.");
+                        break
+                    } else {
+                        channelSubRepsonseReceived := false
+                        for i:=0; i<len(occupants); i++ {
+                            if((occupants[i].Action == "join") && occupants[i].Uuid == customUuid){
+                                channelSubRepsonseReceived = true
+                                fmt.Println("Test '" + testName + "': failed. Err1")    
+                                t.Error("Test '" + testName + "': failed.");
+                                break
+                            }
+                        }
+                        if(!channelSubRepsonseReceived){
+                            fmt.Println("Test '" + testName + "': failed. Err2")
+                            t.Error("Test '" + testName + "': failed.");
+                            break
+                        }
+                        if(channel == returnedChannel){
+                            fmt.Println("Test '" + testName + "': passed.")
+                            return true    
+                        } else {
+                            fmt.Println("Test '" + testName + "': failed. Err3")
+                            t.Error("Test '" + testName + "': failed.");
+                            break
+                        }
+                    } 
+                }               
             }
         }
     }
+    return false
 }
 
 // End indicator
