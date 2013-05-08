@@ -7,6 +7,7 @@ import (
     "fmt"
     "strconv"
     "encoding/json"
+    "time"
 )
 
 // Start indicator
@@ -164,6 +165,7 @@ func PublishMessages(pubnubInstance *pubnubMessaging.Pubnub, channel string, t *
         if (published) {
             messagesReceived++
         }
+        time.Sleep(500*time.Millisecond)
     }
     if(messagesReceived == numberOfMessages){
         return true
@@ -200,7 +202,7 @@ func ParseHistoryResponseForMultipleMessages(returnChannel chan []byte, t *testi
         if string(value) != "[]"{
             data, _, _, err := pubnubMessaging.ParseJson(value, cipherKey)
             if(err != nil) {
-                t.Error("Test '" + testName + "': failed.");
+                t.Error("Test '" + testName + "': failed.")
             } else {
                 var arr []string
                 err2 := json.Unmarshal([]byte(data), &arr)

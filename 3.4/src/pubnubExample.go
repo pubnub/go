@@ -29,6 +29,7 @@ func main() {
 }
 
 func Init() (b bool){
+	fmt.Println("PubNub Api for go;", pubnubMessaging.VersionInfo())
     fmt.Println("Please enter the channel name(s). Enter multiple channels separated by comma.")
     reader := bufio.NewReader(os.Stdin)
     
