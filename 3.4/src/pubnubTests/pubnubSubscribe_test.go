@@ -42,18 +42,42 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 }
 
 func TestMultiSubscriptionConnectStatus(t *testing.T) {
-    /*pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
-    
-    channel := "testChannel"
-    channel2 := "testChannel2"
-    var buff bytes.Buffer
-    buff.WriteString(channel)
-    buff.WriteString(",")
-    buff.WriteString(channel2)
+    pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
+    testName := "TestMultiSubscriptionConnectStatus"
+    channels := "testChannel1,testChannel2"
 
     returnSubscribeChannel := make(chan []byte)
-    go pubnubInstance.Subscribe(buff.String(), returnSubscribeChannel, false)
-    ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, buff.String(), "", "MultiSubscriptionConnectStatus")*/    
+    go pubnubInstance.Subscribe(channels, returnSubscribeChannel, false)
+    ParseSubscribeResponseForMultipleChannels(returnSubscribeChannel, channels, t, testName)    
+}
+
+func ParseSubscribeResponseForMultipleChannels(returnChannel chan []byte, channels string, t *testing.T, testName string){
+    noOfChannelsConnected := 0
+    channelArray := strings.Split(channels, ",");
+    loops := 0
+    for {
+        value, ok := <-returnChannel
+        if !ok {
+            break
+        }
+        if string(value) != "[]"{
+            response := fmt.Sprintf("%s", value)
+            message := "' connected"
+            messageReconn := "' reconnected"
+            if((strings.Contains(response, message)) || (strings.Contains(response, messageReconn))){
+                noOfChannelsConnected++
+                if(noOfChannelsConnected >= len(channelArray)){
+                    fmt.Println("Test '" + testName + "': passed.")
+                    break
+                }
+            } 
+        }
+        loops++
+        if(loops > 30){
+            t.Error("Test '" + testName + "': failed.");
+            break	
+        }
+    }
 }
 
 func TestSubscriptionForSimpleMessage(t *testing.T) {

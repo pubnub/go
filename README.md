@@ -24,7 +24,6 @@ This has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
 * Time
 * Exit
 
-
 ###Features
 * Runs on the console similar to the C#, mac and linux example
 * Supports multiplexing
@@ -39,5 +38,4 @@ This has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
 * Naming convention consistency
 
 ###Pending work: 
-* Test cases for detailed history and presence
 * Documentation

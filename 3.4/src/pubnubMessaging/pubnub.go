@@ -368,6 +368,19 @@ func (pub *Pubnub) Publish(channel string, message interface{}, c chan []byte) {
 // c: Channel on which to send the response back. Can be nil. If nil, assumes that if the channel name 
 // is suffixed with "-pnpres" it is a presence channel else subscribe channel and send the response to the 
 // respective channel.
+//
+// PresenceChannel: All the presence responses will be routed to this channel. 
+// This is the first channel which is sent for the presence routine. The routine
+// sends reponse only to one (first one that is used to init presence) go channel.
+// Calling this routine again with a new go channel will not send teh response back to 
+// the new channel.
+//
+// SubscribeChannel: All the subscribe responses will be routed to this channel. 
+// This is the first channel which is sent for the subscribe routine. The routine
+// sends reponse only to one (first one that is used to init subscribe) go channel.
+// Calling this routine again with a new go channel will not send teh response back to 
+// the new channel.
+// 
 // channels: Pubnub Channels to send a response to. Comma separated string for multiple channels.
 // action: (1-8) 
 // response: can be nil, is used only in the case action is '5'.  
@@ -668,9 +681,17 @@ func CloseExistingConnection(){
 // and returns if true.
 // Initaiates the presence and subscribe response channels.
 // PresenceChannel: All the presence responses will be routed to this channel. 
-// This is the first channel which is sent for the presence routine.
+// This is the first channel which is sent for the presence routine. The routine
+// sends reponse only to one (first one that is used to init presence) go channel.
+// Calling this routine again with a new go channel will not send teh response back to 
+// the new channel.
+//
 // SubscribeChannel: All the subscribe responses will be routed to this channel. 
-// This is the first channel which is sent for the subscribe routine.
+// This is the first channel which is sent for the subscribe routine. The routine
+// sends reponse only to one (first one that is used to init subscribe) go channel.
+// Calling this routine again with a new go channel will not send teh response back to 
+// the new channel.
+//
 // If there is no existing subscribe/presence loop running then it starts a 
 // new loop with the new pubnub channels.
 // Else closes the earlier connection.

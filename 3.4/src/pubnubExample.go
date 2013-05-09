@@ -1,3 +1,5 @@
+// Package main provides the example implemetation to connect to pubnub api.
+// Runs on the console. 
 package main 
 
 import (
@@ -13,21 +15,42 @@ import (
     "encoding/binary"
 )
 
+// _connectChannels: the conected pubnub channels, multiple channels are stored separated by comma.
 var _connectChannels = ""
+
+// _ssl: true if the ssl is enabled else false.
 var _ssl bool
+
+// _cipher: stores the cipher key set by the user.
 var _cipher = ""
+
+// _uuid stores the custom uuid set by the user.
 var _uuid = ""
+
+// _pub instance of the Pubnub struct from the pubnubMessaging package.
 var _pub *pubnubMessaging.Pubnub
 
+// main method to initiate the application in the console.
+// Calls the init method to read user input. And starts the read loop to parse user input.
 func main() {
     b := Init()
     if b {
-        ch := make(chan int)
-        ReadLoop(ch)
+        ReadLoop()
     }
     fmt.Println("Exit")
 }
 
+// Init asks the user the basic settings to initialize to the pubnub struct. 
+// Settings include the pubnub channel(s) to connect to.
+// Ssl settings
+// Cipher key
+// Secret Key
+// Custom Uuid
+// Proxy details
+// 
+// The method returns false if the channel name is not provided.
+//
+// returns: a bool, true if the user completed the initail settings.
 func Init() (b bool){
 	fmt.Println("PubNub Api for go;", pubnubMessaging.VersionInfo())
     fmt.Println("Please enter the channel name(s). Enter multiple channels separated by comma.")
@@ -74,6 +97,8 @@ func Init() (b bool){
     return false
 }
 
+// SetupProxy asks the user the Proxy details and calls the SetProxy of the pubnubMessaging 
+// package with the details. 
 func SetupProxy(){
     fmt.Println("Using Proxy? Enter y to setup.")
     var enableProxy string
@@ -93,6 +118,8 @@ func SetupProxy(){
     }
 }
 
+// AskServer asks the user to enter the proxy server name or IP. 
+// It validates the input and returns the value if validated.
 func AskServer() (string){
     var proxyServer string
     
@@ -106,6 +133,8 @@ func AskServer() (string){
     return proxyServer
 }
 
+// AskPort asks the user to enter the proxy port number. 
+// It validates the input and returns the value if validated.
 func AskPort() (int){
     var proxyPort string
     
@@ -120,6 +149,8 @@ func AskPort() (int){
     return port
 }
 
+// AskUser asks the user to enter the proxy username. 
+// returns the value, can be empty.
 func AskUser() (string){
     var proxyUser string
     
@@ -129,6 +160,8 @@ func AskUser() (string){
     return proxyUser
 }
 
+// AskPassword asks the user to enter the proxy password. 
+// returns the value, can be empty.
 func AskPassword() (string){
     var proxyPassword string
     
@@ -151,7 +184,9 @@ func UTF16BytesToString(b []byte, o binary.ByteOrder) string {
     return string(utf16.Decode(utf))
 }
 
-func ReadLoop(ch chan int){
+// ReadLoop starts an infinite loop to read the user's input.
+// Based on the input the respective go routine is called as a parallel process.
+func ReadLoop(){
     fmt.Println("")
     fmt.Println("ENTER 1 FOR Subscribe")
     fmt.Println("ENTER 2 FOR Publish")
@@ -223,9 +258,10 @@ func ReadLoop(ch chan int){
             time.Sleep(1000 * time.Millisecond)
         }
     }
-    close(ch)
 }
 
+// ParseResponseSubscribe parses the response of the Subscribed pubnub channel.
+// It prints the response as-is in the console.
 func ParseResponseSubscribe(channel chan []byte){
     for {
         value, ok := <-channel
@@ -235,12 +271,13 @@ func ParseResponseSubscribe(channel chan []byte){
         }
         if string(value) != "[]"{
             fmt.Println(fmt.Sprintf("Subscribe: %s", value))
-            //fmt.Println(fmt.Sprintf("%s", value))
             fmt.Println("")
         }
     }
 }
 
+// ParseResponsePresence parses the response of the presence subscription pubnub channel.
+// It prints the response as-is in the console.
 func ParseResponsePresence(channel chan []byte){
     for {
         value, ok := <-channel
@@ -249,12 +286,14 @@ func ParseResponsePresence(channel chan []byte){
         }
         if string(value) != "[]"{
             fmt.Println(fmt.Sprintf("Presence: %s ", value))
-            //fmt.Println(fmt.Sprintf("%s", value))
             fmt.Println("");
         }
     }
 }
 
+// ParseResponse parses the response of all the other activities apart 
+// from subscribe and presence on the pubnub channel.
+// It prints the response as-is in the console.
 func ParseResponse(channel chan []byte){
     for {
         value, ok := <-channel
@@ -263,18 +302,23 @@ func ParseResponse(channel chan []byte){
         }
         if string(value) != "[]"{
             fmt.Println(fmt.Sprintf("Response: %s ", value))
-            //fmt.Println(fmt.Sprintf("%s", value))
             fmt.Println("");
         }
     }
 }
 
+// SubscribeRoutine calls the Subscribe routine of the pubnubMessaging package
+// as a parallel process. 
 func SubscribeRoutine(){
     var subscribeChannel = make(chan []byte)
     go _pub.Subscribe(_connectChannels, subscribeChannel, false)
-    ParseResponseSubscribe(subscribeChannel)
+    ParseResponseSubscribe(subscribeChannel)    
 }
 
+// PublishRoutine asks the user the message to send to the pubnub channel(s) and 
+// calls the Publish routine of the pubnubMessaging package as a parallel 
+// process. If we have multiple pubnub channels then this method will spilt the 
+// _connectChannels by comma and send the message on all the pubnub channels.
 func PublishRoutine(message string){
     channelArray := strings.Split(_connectChannels, ",");
     
@@ -287,12 +331,17 @@ func PublishRoutine(message string){
     }
 }
 
+// PresenceRoutine calls the Subscribe routine of the pubnubMessaging package,
+// by setting the last argument as true, as a parallel process. 
 func PresenceRoutine(){
     var presenceChannel = make(chan []byte)
     go _pub.Subscribe(_connectChannels, presenceChannel, true)
     ParseResponsePresence(presenceChannel)
 }
 
+// DetailedHistoryRoutine calls the History routine of the pubnubMessaging package as a parallel 
+// process. If we have multiple pubnub channels then this method will spilt the _connectChannels 
+// by comma and send the message on all the pubnub channels.
 func DetailedHistoryRoutine(){
     channelArray := strings.Split(_connectChannels, ",");
     for i:=0; i < len(channelArray); i++ {
@@ -307,6 +356,9 @@ func DetailedHistoryRoutine(){
     }
 }
 
+// HereNowRoutine calls the HereNow routine of the pubnubMessaging package as a parallel 
+// process. If we have multiple pubnub channels then this method will spilt the _connectChannels 
+// by comma and send the message on all the pubnub channels.
 func HereNowRoutine(){
     channelArray := strings.Split(_connectChannels, ",");
     for i:=0; i < len(channelArray); i++ {    
@@ -319,6 +371,8 @@ func HereNowRoutine(){
     }
 }
 
+// UnsubscribeRoutine calls the Unsubscribe routine of the pubnubMessaging package as a parallel 
+// process. All the channels in the _connectChannels string will be unsubscribed.
 func UnsubscribeRoutine(){
     channel := make(chan []byte)
     
@@ -326,6 +380,8 @@ func UnsubscribeRoutine(){
     ParseResponse(channel)
 }
 
+// UnsubscribePresenceRoutine calls the PresenceUnsubscribe routine of the pubnubMessaging package as a parallel 
+// process. All the channels in the _connectChannels string will be unsubscribed.
 func UnsubscribePresenceRoutine(){
     channel := make(chan []byte)
     
@@ -333,6 +389,8 @@ func UnsubscribePresenceRoutine(){
     ParseResponse(channel)
 }
 
+// TimeRoutine calls the GetTime routine of the pubnubMessaging package as a parallel 
+// process. 
 func TimeRoutine(){
     channel := make(chan []byte)
     go _pub.GetTime(channel)

@@ -56,8 +56,8 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
     messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
     
     if(messagesSent){
-    returnHistoryChannel := make(chan []byte)
-    go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, returnHistoryChannel)
+        returnHistoryChannel := make(chan []byte)
+        go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, returnHistoryChannel)
         ParseHistoryResponseForMultipleMessages(returnHistoryChannel, t, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey)
     }else{
         t.Error("Test '" + testName + "': failed.");
@@ -102,8 +102,8 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
     
     startMessagesFrom = 0
     if(messagesSent){
-    returnHistoryChannel := make(chan []byte)
-    go pubnubInstance.History(channel, numberOfMessages, startTime, midTime, false, returnHistoryChannel)
+        returnHistoryChannel := make(chan []byte)
+        go pubnubInstance.History(channel, numberOfMessages, startTime, midTime, false, returnHistoryChannel)
         ParseHistoryResponseForMultipleMessages(returnHistoryChannel, t, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey)
     }else{
         t.Error("Test '" + testName + "': failed.");
@@ -111,9 +111,9 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
     
     startMessagesFrom = 5
     if(messagesSent2){
-    returnHistoryChannel := make(chan []byte)
-    go pubnubInstance.History(channel, numberOfMessages, midTime, endTime, false, returnHistoryChannel)
-        ParseHistoryResponseForMultipleMessages(returnHistoryChannel, t, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey)
+        returnHistoryChannel2 := make(chan []byte)
+        go pubnubInstance.History(channel, numberOfMessages, midTime, endTime, false, returnHistoryChannel2)
+        ParseHistoryResponseForMultipleMessages(returnHistoryChannel2, t, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey)
     }else{
         t.Error("Test '" + testName + "': failed.");
     }    
@@ -137,12 +137,12 @@ func ParseServerTimeResponse(returnChannel chan []byte,t *testing.T, testName st
                 var arr []int64
                 err2 := json.Unmarshal(value, &arr)
                 if(err2 != nil){
-                    fmt.Println("err2", err2)
+                    fmt.Println("err2 time", err2)
                     t.Error("Test '" + testName + "': failed.");
                     break
                 }else {    
-                return arr[0]
-            }         
+                    return arr[0]
+                }         
             } else {
                 fmt.Println("response", response)
                 t.Error("Test '" + testName + "': failed.");
@@ -161,10 +161,7 @@ func PublishMessages(pubnubInstance *pubnubMessaging.Pubnub, channel string, t *
     
         returnPublishChannel := make(chan []byte)
         go pubnubInstance.Publish(channel, messageToSend, returnPublishChannel)
-        published := ParsePublishResponseForMultipleMessages(returnPublishChannel, t, channel, publishSuccessMessage, "PublishTenMessages")
-        if (published) {
-            messagesReceived++
-        }
+        messagesReceived++
         time.Sleep(500*time.Millisecond)
     }
     if(messagesReceived == numberOfMessages){

@@ -1,3 +1,5 @@
+// Package pubnubMessaging has the unit tests of package pubnubMessaging.
+// common file has the reused methods across the varoius unit test files  
 package pubnubTests
 
 import(
@@ -7,9 +9,11 @@ import(
     "strings"
 )
 
+// publishSuccessMessage: the reponse that is received when a message is 
+// successfully published on a pubnub channel
 var publishSuccessMessage = "1,\"Sent\""
 
-
+// EmptyStruct provided the empty struct to test the encryption
 type EmptyStruct struct {
 }
 
@@ -20,13 +24,13 @@ type CustomStruct struct {
     Bar []int
 }
 
-// CustomStruct to test the custom structure encryption and decryption
+// CustomSingleElementStruct: Used to test the custom structure encryption and decryption
 // The variables "foo" and "bar" give an empty value when serialized, used "Foo" and "Bar" instead 
 type CustomSingleElementStruct struct {
     Foo string
 }
 
-// CustomStruct to test the custom structure encryption and decryption
+// CustomComplexMessage is used to test the custom structure encryption and decryption
 // The variables "foo" and "bar" give an empty value when serialized, used "Foo" and "Bar" instead 
 type CustomComplexMessage struct {
     VersionId         float32        `json:",string"`
@@ -37,6 +41,7 @@ type CustomComplexMessage struct {
     SampleXml         string         `json:",string"`
 }
 
+// 
 type PubnubDemoMessage struct {
     DefaultMessage string `json:",string"`
 }

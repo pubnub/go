@@ -5,9 +5,12 @@ import (
     "pubnubMessaging"
     "strings"
     "fmt"
-    //"time"
+    "time"
     "encoding/json"
 )
+
+var _endPresenceTestAsFailure = false
+var _endPresenceTestAsSuccess = false
 
 // Start indicator
 func TestPresenceStart(t *testing.T){
@@ -33,44 +36,42 @@ func TestHereNowWithCipher(t *testing.T) {
     testName := "HereNowWithCipher"
     customUuid := "customuuid"
     HereNow(t, cipherKey, customUuid, testName)
-
 }
 
 func TestPresence(t *testing.T) {
-    /*customUuid := "customuuid"
+    customUuid := "customuuid"
     testName := "Presence"
-    //t.Parallel()
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, customUuid)  
-    channel := "testChannel"
+    channel := "testForPresenceChannel"
     returnPresenceChannel := make(chan []byte)
     go SubscribeToPresence(channel, pubnubInstance, t, testName, customUuid, returnPresenceChannel)
-    returnSubscribeChannel := make(chan []byte)
-    go pubnubInstance.Subscribe(channel, returnSubscribeChannel, false)
-    subscribed := ParseSubscribeResponseForPresence(returnSubscribeChannel, channel)
+    time.Sleep(500*time.Millisecond)
+    go SubscribeRoutine(channel, pubnubInstance)
 
-    if(!subscribed) {
-        t.Error("Test '" + testName + "': failed.")
-    }*/
-    //time.Sleep(10 * time.Second)
+    _endPresenceTestAsSuccess = false
+    _endPresenceTestAsFailure = false
+    
+    for {
+        if(_endPresenceTestAsSuccess){
+        	fmt.Println("Test '" + testName + "': passed.");
+            break
+        } else if (_endPresenceTestAsFailure) {
+            t.Error("Test '" + testName + "': failed.");
+        	break
+        }
+        time.Sleep(500*time.Millisecond) 
+    }
+}
+
+func SubscribeRoutine(channel string, pubnubInstance *pubnubMessaging.Pubnub){
+    var subscribeChannel = make(chan []byte)
+    go pubnubInstance.Subscribe(channel, subscribeChannel, false)
+    ParseSubscribeResponseForPresence(subscribeChannel, channel)   
 }
 
 func SubscribeToPresence(channel string, pubnubInstance *pubnubMessaging.Pubnub, t *testing.T, testName string, customUuid string, returnPresenceChannel chan []byte){
     go pubnubInstance.Subscribe(channel, returnPresenceChannel, true)
     ParsePresenceResponse(pubnubInstance, t, returnPresenceChannel, channel, testName, customUuid, false)    
-}
-
-func ParseResponsePresence(channel chan []byte){
-    for {
-        value, ok := <-channel
-        if !ok {  
-            break
-        }
-        if string(value) != "[]"{
-            fmt.Println(fmt.Sprintf("Presence: %s ", value))
-            //fmt.Println(fmt.Sprintf("%s", value))
-            fmt.Println("");
-        }
-    }
 }
 
 func HereNow(t *testing.T, cipherKey string, customUuid string, testName string){
@@ -80,14 +81,11 @@ func HereNow(t *testing.T, cipherKey string, customUuid string, testName string)
     
     returnSubscribeChannel := make(chan []byte)
     go pubnubInstance.Subscribe(channel, returnSubscribeChannel, false)
-    subscribed := ParseSubscribeResponseForPresence(returnSubscribeChannel, channel)    
-    if(subscribed){
-        returnChannel := make(chan []byte)
-        go pubnubInstance.HereNow(channel, returnChannel)
-        ParseHereNowResponse(returnChannel, t, channel, customUuid, testName)
-    } else {
-        t.Error("Test '" + testName + "': failed.");
-    }    
+    ParseSubscribeResponseForPresence(returnSubscribeChannel, channel)  
+    time.Sleep(500*time.Millisecond)  
+    returnChannel := make(chan []byte)
+    go pubnubInstance.HereNow(channel, returnChannel)
+    ParseHereNowResponse(returnChannel, t, channel, customUuid, testName)
 }
 
 func ParseHereNowResponse(returnChannel chan []byte, t *testing.T, channel string, message string, testName string){
@@ -135,7 +133,6 @@ func ParseHereNowResponse(returnChannel chan []byte, t *testing.T, channel strin
 func ParseSubscribeResponseForPresence(returnChannel chan []byte, channel string) bool{
     for {
         value, ok := <-returnChannel
-        
         if !ok {
             break
         }
@@ -153,7 +150,7 @@ func ParseSubscribeResponseForPresence(returnChannel chan []byte, channel string
     return false
 }
 
-func ParsePresenceResponse(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T, returnChannel chan []byte, channel string, testName string, customUuid string, testConnected bool) bool {
+func ParsePresenceResponse(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T, returnChannel chan []byte, channel string, testName string, customUuid string, testConnected bool) bool {    
     for {
         value, ok := <-returnChannel
         if !ok {
@@ -161,7 +158,7 @@ func ParsePresenceResponse(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T,
         }
         if string(value) != "[]"{
             response := fmt.Sprintf("%s", value)
-            //fmt.Println("resp:", response)
+            //fmt.Println("resp pres:", response)
             messagePresence := "Presence notifications for channel '" + channel + "' connected"
             messagePresenceReconn := "Presence notifications for channel '" + channel + "' reconnected"
             
@@ -176,45 +173,41 @@ func ParsePresenceResponse(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T,
                     data, _, returnedChannel, err2 := pubnubMessaging.ParseJson(value, "")
                     var occupants []struct {
                         Action string
-                        Timestamp float64 `json:",string"`
                         Uuid string
-                        Occupancy int64 `json:",string"`
+                        Timestamp float64
+                        Occupancy int
                     }
+                    //fmt.Println("data '" + testName + "':",data)
                     if(err2 != nil){
                         fmt.Println("err2 '" + testName + "':",err2)
-                        t.Error("Test '" + testName + "': failed.");
+                        _endPresenceTestAsFailure = true
                         break
                     }
-                    fmt.Println("data '" + testName + "':",data)
-                    //fmt.Println("ts '" + testName + "':",ts)
-                    //fmt.Println("returnedChannel '" + testName + "':",returnedChannel)
+                    
                     err := json.Unmarshal([]byte(data), &occupants)
                     if(err != nil) { 
                         fmt.Println("err '" + testName + "':",err)
-                        fmt.Println("Test '" + testName + "': failed.")    
-                        t.Error("Test '" + testName + "': failed.");
+                        _endPresenceTestAsFailure = true
                         break
                     } else {
                         channelSubRepsonseReceived := false
                         for i:=0; i<len(occupants); i++ {
                             if((occupants[i].Action == "join") && occupants[i].Uuid == customUuid){
                                 channelSubRepsonseReceived = true
-                                fmt.Println("Test '" + testName + "': failed. Err1")    
-                                t.Error("Test '" + testName + "': failed.");
                                 break
                             }
                         }
                         if(!channelSubRepsonseReceived){
                             fmt.Println("Test '" + testName + "': failed. Err2")
-                            t.Error("Test '" + testName + "': failed.");
+                            _endPresenceTestAsFailure = true
                             break
                         }
                         if(channel == returnedChannel){
-                            fmt.Println("Test '" + testName + "': passed.")
+                            _endPresenceTestAsSuccess = true
                             return true    
                         } else {
                             fmt.Println("Test '" + testName + "': failed. Err3")
-                            t.Error("Test '" + testName + "': failed.");
+                            _endPresenceTestAsFailure = true
                             break
                         }
                     } 
