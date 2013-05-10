@@ -1,3 +1,5 @@
+// Package pubnubMessaging has the unit tests of package pubnubMessaging.
+// pubnubPublish_test.go contains the tests related to the publish requests on pubnub Api
 package pubnubTests
 
 import (
@@ -7,11 +9,15 @@ import (
     "fmt"
 )
 
-// Start indicator
+// TestPublishStart prints a message on the screen to mark the beginning of 
+// publish tests.
+// PrintTestMessage is defined in the common.go file.
 func TestPublishStart(t *testing.T){
     PrintTestMessage("==========Publish tests start==========")
 }
 
+// TestNullMessage sends out a null message to a pubnub channel. The response should
+// be an "Invalid Message".
 func TestNullMessage(t *testing.T){
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     channel := "testChannel"
@@ -24,6 +30,7 @@ func TestNullMessage(t *testing.T){
     ParsePublishResponse(returnChannel, t, channel, "Invalid Message", "NullMessage")
 }
 
+// TestUniqueGuid tests the generation of a unique GUID for the client.
 func TestUniqueGuid(t *testing.T){
     guid, err := pubnubMessaging.GenUuid()
     if(err != nil){
@@ -36,6 +43,9 @@ func TestUniqueGuid(t *testing.T){
     }
 }
 
+// TestSuccessCodeAndInfo sends out a message to the pubnub channel
+// The response is parsed and should match the 'sent' status.
+// publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfo(t *testing.T){
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     channel := "testChannel"
@@ -46,6 +56,10 @@ func TestSuccessCodeAndInfo(t *testing.T){
     ParsePublishResponse(returnChannel, t, channel, publishSuccessMessage, "SuccessCodeAndInfo")
 }
 
+// TestSuccessCodeAndInfoWithEncryption sends out an encrypted 
+// message to the pubnub channel
+// The response is parsed and should match the 'sent' status.
+// publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithEncryption(t *testing.T){
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "enigma", false, "")    
     channel := "testChannel"
@@ -56,6 +70,10 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T){
     ParsePublishResponse(returnChannel, t, channel, publishSuccessMessage, "SuccessCodeAndInfoWithEncryption")
 }
 
+// TestSuccessCodeAndInfoWithSecretAndEncryption sends out an encrypted 
+// secret keyed message to the pubnub channel
+// The response is parsed and should match the 'sent' status.
+// publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T){
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "secret", "enigma", false, "")    
     channel := "testChannel"
@@ -66,6 +84,9 @@ func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T){
     ParsePublishResponse(returnChannel, t, channel, publishSuccessMessage, "SuccessCodeAndInfoWithSecretAndEncryption")
 }
 
+// TestSuccessCodeAndInfoForComplexMessage sends out a complex message to the pubnub channel
+// The response is parsed and should match the 'sent' status.
+// publishSuccessMessage and customstruct is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage(t *testing.T){
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     channel := "testChannel"
@@ -81,6 +102,9 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T){
     ParsePublishResponse(returnChannel, t, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage")
 }
 
+// TestSuccessCodeAndInfoForComplexMessage2 sends out a complex message to the pubnub channel
+// The response is parsed and should match the 'sent' status.
+// publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T){
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     channel := "testChannel"
@@ -93,6 +117,10 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T){
     ParsePublishResponse(returnChannel, t, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2")
 }
 
+// TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption sends out an 
+// encypted and secret keyed complex message to the pubnub channel
+// The response is parsed and should match the 'sent' status.
+// publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.T){
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "secret", "enigma", false, "")    
     channel := "testChannel"
@@ -105,6 +133,10 @@ func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.
     ParsePublishResponse(returnChannel, t, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption")
 }
 
+// TestSuccessCodeAndInfoForComplexMessage2WithEncryption sends out an 
+// encypted complex message to the pubnub channel
+// The response is parsed and should match the 'sent' status.
+// publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T){
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "enigma", false, "")    
     channel := "testChannel"
@@ -117,7 +149,8 @@ func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T){
     ParsePublishResponse(returnChannel, t, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2WithEncryption")
 }
 
-
+// ParsePublishResponse parses the response from the pubnub api to validate the
+// sent status. 
 func ParsePublishResponse(returnChannel chan []byte, t *testing.T, channel string, message string, testname string){
     for {
         value, ok := <-returnChannel
@@ -138,7 +171,9 @@ func ParsePublishResponse(returnChannel chan []byte, t *testing.T, channel strin
     }
  }   
  
-// End indicator
+// TestPublishEnd prints a message on the screen to mark the end of 
+// publish tests.
+// PrintTestMessage is defined in the common.go file.
 func TestPublishEnd(t *testing.T){
     PrintTestMessage("==========Publish tests end==========")
 }

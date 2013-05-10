@@ -1,3 +1,5 @@
+// Package pubnubMessaging has the unit tests of package pubnubMessaging.
+// pubnubTime_test.go contains the tests related to the Time requests on pubnub Api
 package pubnubTests
 
 import (
@@ -6,11 +8,14 @@ import (
     "fmt"
 )
 
-// Start indicator
+// TestTimeStart prints a message on the screen to mark the beginning of 
+// time tests.
+// PrintTestMessage is defined in the common.go file.
 func TestTimeStart(t *testing.T){
     PrintTestMessage("==========Time tests start==========")
 }
 
+// TestServerTime calls the GetTime method of the pubnubMessaging to test the time
 func TestServerTime(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     
@@ -19,6 +24,8 @@ func TestServerTime(t *testing.T) {
     ParseTimeResponse(returnTimeChannel, t)    
 }
 
+// ParseTimeResponse parses the time response from the pubnub api.
+// On error the test fails.
 func ParseTimeResponse(returnChannel chan []byte,t *testing.T){
     for {
         value, ok := <-returnChannel
@@ -38,7 +45,9 @@ func ParseTimeResponse(returnChannel chan []byte,t *testing.T){
     }
 }
 
-// End indicator
+// TestTimeEnd prints a message on the screen to mark the end of 
+// time tests.
+// PrintTestMessage is defined in the common.go file.
 func TestTimeEnd(t *testing.T){
     PrintTestMessage("==========Time tests end==========")
 }   

@@ -1,3 +1,5 @@
+// Package pubnubMessaging has the unit tests of package pubnubMessaging.
+// pubnubUnsubscribe_test.go contains the tests related to the Unsubscribe requests on pubnub Api
 package pubnubTests
 
 import (
@@ -8,11 +10,15 @@ import (
     "time"
 )
 
-// Start indicator
+// TestUnsubscribeStart prints a message on the screen to mark the beginning of 
+// unsubscribe tests.
+// PrintTestMessage is defined in the common.go file.
 func TestUnsubscribeStart(t *testing.T){
     PrintTestMessage("==========Unsubscribe tests start==========")
 }
 
+// TestUnsubscribeNotSubscribed will try to unsubscribe a non subscribed pubnub channel. 
+// The response should contain 'not subscribed'
 func TestUnsubscribeNotSubscribed(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
 
@@ -24,6 +30,8 @@ func TestUnsubscribeNotSubscribed(t *testing.T) {
     ParseUnsubscribeResponse(returnUnsubscribeChannel, t, channel, "not subscribed")    
 }
 
+// TestUnsubscribe will subscribe to a pubnub channel and then send an unsubscribe request
+// The response should contain 'unsubscribed'
 func TestUnsubscribe(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     
@@ -34,6 +42,9 @@ func TestUnsubscribe(t *testing.T) {
     ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance, returnSubscribeChannel, t, channel, "connected")    
 }
 
+// ParseSubscribeResponseAndCallUnsubscribe will parse the response on the go channel.
+// It will check the subscribe connection status and when connected
+// it will initiate the unsubscribe request. 
 func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *pubnubMessaging.Pubnub, returnChannel chan []byte, t *testing.T, channel string, message string){
     for {
         value, ok := <-returnChannel
@@ -61,6 +72,8 @@ func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *pubnubMessaging.Pu
     }
 }
 
+// ParseUnsubscribeResponse will parse the unsubscribe response on the go channel. 
+// If it contains unsubscribed the test will pass.
 func ParseUnsubscribeResponse(returnChannel chan []byte, t *testing.T, channel string, message string){
     for {
         value, ok := <-returnChannel
@@ -80,7 +93,9 @@ func ParseUnsubscribeResponse(returnChannel chan []byte, t *testing.T, channel s
     }
 }
 
-// End indicator
+// TestUnsubscribeEnd prints a message on the screen to mark the end of 
+// unsubscribe tests.
+// PrintTestMessage is defined in the common.go file.
 func TestUnsubscribeEnd(t *testing.T){
     PrintTestMessage("==========Unsubscribe tests end==========")
 }   

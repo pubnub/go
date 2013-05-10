@@ -1,3 +1,5 @@
+// Package pubnubMessaging has the unit tests of package pubnubMessaging.
+// pubnubSubscribe_test.go contains the tests related to the Subscribe requests on pubnub Api
 package pubnubTests
 
 import (
@@ -9,16 +11,17 @@ import (
     "strconv"
     "net/url"
     "encoding/xml"
-    //"bytes"
-    //"html"
-    //"encoding/hex"
 )
 
-// Start indicator
+// TestSubscribeStart prints a message on the screen to mark the beginning of 
+// subscribe tests.
+// PrintTestMessage is defined in the common.go file.
 func TestSubscribeStart(t *testing.T){
     PrintTestMessage("==========Subscribe tests start==========")
 }
 
+// TestSubscriptionConnectStatus sends out a subscribe request to a pubnub channel
+// and validates the response for the connect status.
 func TestSubscriptionConnectStatus(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     
@@ -29,6 +32,8 @@ func TestSubscriptionConnectStatus(t *testing.T) {
     ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectStatus", "")    
 }
 
+// TestSubscriptionAlreadySubscribed sends out a subscribe request to a pubnub channel
+// and when connected sends out another subscribe request. The response for the second 
 func TestSubscriptionAlreadySubscribed(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     
@@ -41,6 +46,8 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
     ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "already subscribed", "SubscriptionAlreadySubscribed", "")    
 }
 
+// TestMultiSubscriptionConnectStatus send out a pubnub multi channel subscribe request and 
+// parses the response for multiple connection status.
 func TestMultiSubscriptionConnectStatus(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     testName := "TestMultiSubscriptionConnectStatus"
@@ -51,6 +58,8 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
     ParseSubscribeResponseForMultipleChannels(returnSubscribeChannel, channels, t, testName)    
 }
 
+// ParseSubscribeResponseForMultipleChannels parses the pubnub multi channel response 
+// for the number or channels connected and matches them to the connected channels.
 func ParseSubscribeResponseForMultipleChannels(returnChannel chan []byte, channels string, t *testing.T, testName string){
     noOfChannelsConnected := 0
     channelArray := strings.Split(channels, ",");
@@ -80,6 +89,8 @@ func ParseSubscribeResponseForMultipleChannels(returnChannel chan []byte, channe
     }
 }
 
+// TestSubscriptionForSimpleMessage first subscribes to a pubnub channel and then publishes 
+// a message on the same pubnub channel. The subscribe response should receive this same message.  
 func TestSubscriptionForSimpleMessage(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     
@@ -90,6 +101,9 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
     ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForSimple", "")    
 }
 
+// TestSubscriptionForSimpleMessageWithCipher first subscribes to a pubnub channel and then publishes 
+// an encrypted message on the same pubnub channel. The subscribe response should receive 
+// the decrypted message.   
 func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "enigma", false, "")    
     
@@ -100,7 +114,9 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
     ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForSimpleWithCipher", "enigma")    
 }
 
-
+// TestSubscriptionForComplexMessage first subscribes to a pubnub channel and then publishes 
+// a complex message on the same pubnub channel. The subscribe response should receive 
+// the same message.  
 func TestSubscriptionForComplexMessage(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     
@@ -111,6 +127,9 @@ func TestSubscriptionForComplexMessage(t *testing.T) {
     ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForComplex", "")    
 }
 
+// TestSubscriptionForComplexMessageWithCipher first subscribes to a pubnub channel and then publishes 
+// an encrypted complex message on the same pubnub channel. The subscribe response should receive 
+// the decrypted message.   
 func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "enigma", false, "")    
     
@@ -121,6 +140,9 @@ func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
     ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForComplexWithCipher", "enigma")    
 }
 
+// PublishComplexMessage publises a complex message on a pubnub channel and 
+// calls the parse method to validate the message subscription.
+// CustomComplexMessage and InitComplexMessage are defined in the common.go file.
 func PublishComplexMessage(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T, channel string, testName string, cipherKey string){
     customComplexMessage := InitComplexMessage()
     
@@ -130,6 +152,8 @@ func PublishComplexMessage(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T,
     ParseSubscribeResponse(pubnubInstance, returnChannel, t, channel, "", testName, cipherKey)    
 }
 
+// PublishSimpleMessage publises a message on a pubnub channel and 
+// calls the parse method to validate the message subscription.
 func PublishSimpleMessage(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T, channel string, testName string, cipherKey string){
     message := "Test message"
     
@@ -139,6 +163,9 @@ func PublishSimpleMessage(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T, 
     ParseSubscribeResponse(pubnubInstance, returnChannel, t, channel, "", testName, cipherKey)    
 }
 
+// ValidateComplexData takes an interafce as a parameter and iterates through it 
+// It validates each field of the response interface against the initialized struct
+// CustomComplexMessage, ReplaceEncodedChars and InitComplexMessage are defined in the common.go file.
 func ValidateComplexData(m map[string]interface{}) (bool){
     //m := vv.(map[string]interface{})
     //if val,ok := m["VersionId"]; ok {
@@ -227,6 +254,9 @@ func ValidateComplexData(m map[string]interface{}) (bool){
     return valid
 }
 
+// CheckComplexData iterates through the json interafce and will read when 
+// map type is encountered. 
+// CustomComplexMessage and InitComplexMessage are defined in the common.go file.
 func CheckComplexData(b interface{}) bool{
     valid := false
     switch vv := b.(type) {
@@ -249,6 +279,9 @@ func CheckComplexData(b interface{}) bool{
     return valid        
 }
 
+// ParseSubscribeData is used by multiple test cases and acts according to the testcase names.
+// In case of complex message calls a sub method and in case of a simle message parses
+// the response.
 func ParseSubscribeData (t *testing.T, response []byte, testName string, cipherKey string){
     if(response != nil){
         var b interface{}
@@ -288,6 +321,11 @@ func ParseSubscribeData (t *testing.T, response []byte, testName string, cipherK
     }
 }
 
+// ParseSubscribeResponse reads the response from the go channel and unmarshal's it.
+// It is used by multiple test cases and acts according to the testcase names.
+// The idea is to parse each message in the response based on the type of message
+// and test against the sent message. If both match the test case is successful.
+// publishSuccessMessage is defined in the common.go file. 
 func ParseSubscribeResponse(pubnubInstance *pubnubMessaging.Pubnub, returnChannel chan []byte, t *testing.T, channel string, message string, testName string, cipherKey string){
     for {
         value, ok := <-returnChannel
@@ -343,42 +381,9 @@ func ParseSubscribeResponse(pubnubInstance *pubnubMessaging.Pubnub, returnChanne
     }
  }
 
-//TODO: merge with ParseSubscribeResponse
-func ParseMultiSubscribeResponse(pubnubInstance *pubnubMessaging.Pubnub, returnChannel chan []byte, t *testing.T, channels string, message string, testName string){
-    channelArray := strings.Split(channels, ",");
-    responsesReceived := 0
-    loops := 0
-    for {
-        value, ok := <-returnChannel
-        if !ok {
-            break
-        }
-        if (string(value) != "[]"){
-            loops++
-            response := fmt.Sprintf("%s", value)
-            if (testName == "MultiSubscriptionConnectStatus"){
-                for i:=0; i < len(channelArray); i++ {
-                    ch := strings.TrimSpace(channelArray[i])
-                    message = "'" + ch + "' connected"
-                    
-                    if(strings.Contains(response, message)){
-                        responsesReceived++
-                    }                
-                }
-            }
-        }
-        if(responsesReceived >= len(channelArray)){
-            fmt.Println("Test '" + testName + "': passed.")
-            break
-        }
-        if(loops>10){
-            t.Error("Test '" + testName + "': failed.");
-            break
-        }
-    }
- }
- 
- // End indicator
+// TestSubscribeEnd prints a message on the screen to mark the end of 
+// subscribe tests.
+// PrintTestMessage is defined in the common.go file.
 func TestSubscribeEnd(t *testing.T){
     PrintTestMessage("==========Subscribe tests end==========")
 }   

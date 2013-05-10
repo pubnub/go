@@ -1,3 +1,5 @@
+// Package pubnubMessaging has the unit tests of package pubnubMessaging.
+// pubnubDetailedHistory_test.go contains the tests related to the History requests on pubnub Api
 package pubnubTests
 
 import (
@@ -10,11 +12,16 @@ import (
     "time"
 )
 
-// Start indicator
+// TestDetailedHistoryStart prints a message on the screen to mark the beginning of 
+// detailed history tests.
+// PrintTestMessage is defined in the common.go file.
 func TestDetailedHistoryStart(t *testing.T){
     PrintTestMessage("==========DetailedHistory tests start==========")
 }
-    
+
+// TestDetailedHistory publish's a message to a pubnub channel and when the sent response is received,
+// calls the history method of the pubnubMessaging package to fetch 1 message. This received 
+// message is compared to the message sent and if both match test is successful.  
 func TestDetailedHistory(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "", false, "")    
     
@@ -25,6 +32,9 @@ func TestDetailedHistory(t *testing.T) {
     ParseResponse(returnPublishChannel, t, pubnubInstance, channel, message, "DetailedHistory", 1)
 }
 
+// TestEncryptedDetailedHistory publish's an encrypted message to a pubnub channel and when the 
+// sent response is received, calls the history method of the pubnubMessaging package to fetch 
+// 1 message. This received message is compared to the message sent and if both match test is successful.  
 func TestEncryptedDetailedHistory(t *testing.T) {
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", "enigma", false, "")    
     
@@ -35,16 +45,26 @@ func TestEncryptedDetailedHistory(t *testing.T) {
     ParseResponse(returnPublishChannel, t, pubnubInstance, channel, message, "EncryptedDetailedHistory", 1)
 }
 
+// TestDetailedHistoryFor10Messages publish's 10 unencrypted messages to a pubnub channel, and after that 
+// calls the history method of the pubnubMessaging package to fetch last 10 messages. These received 
+// messages are compared to the messages sent and if all match test is successful.  
 func TestDetailedHistoryFor10Messages(t *testing.T) {
     testName := "TestDetailedHistoryFor10Messages"
     DetailedHistoryFor10Messages(t, "", testName)
 }
 
+// TestDetailedHistoryFor10EncryptedMessages publish's 10 encrypted messages to a pubnub channel, and after that 
+// calls the history method of the pubnubMessaging package to fetch last 10 messages. These received 
+// messages are compared to the messages sent and if all match test is successful.  
 func TestDetailedHistoryFor10EncryptedMessages(t *testing.T) {
     testName := "TestDetailedHistoryFor10EncryptedMessages"
     DetailedHistoryFor10Messages(t, "enigma", testName)
 }
 
+// DetailedHistoryFor10Messages is a common method used by both TestDetailedHistoryFor10EncryptedMessages 
+// and TestDetailedHistoryFor10Messages to publish's 10 messages to a pubnub channel, and after that 
+// call the history method of the pubnubMessaging package to fetch last 10 messages. These received 
+// messages are compared to the messages sent and if all match test is successful.  
 func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName string) {
     numberOfMessages := 10
     startMessagesFrom := 0
@@ -64,26 +84,47 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
     }    
 }
 
+// TestDetailedHistoryParamsFor10MessagesWithSeretKey publish's 10 unencrypted secret keyed messages 
+// to a pubnub channel, and after that calls the history method of the pubnubMessaging package to fetch 
+// last 10 messages with time parameters between which the messages were sent. These received 
+// messages are compared to the messages sent and if all match test is successful.  
 func TestDetailedHistoryParamsFor10MessagesWithSeretKey(t *testing.T) {
     testName := "TestDetailedHistoryFor10MessagesWithSeretKey"
     DetailedHistoryParamsFor10Messages(t, "", "secret", testName)
 }
 
+// TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey publish's 10 encrypted secret keyed messages 
+// to a pubnub channel, and after that calls the history method of the pubnubMessaging package to fetch 
+// last 10 messages with time parameters between which the messages were sent. These received 
+// messages are compared to the messages sent and if all match test is successful.  
 func TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey(t *testing.T) {
     testName := "TestDetailedHistoryFor10EncryptedMessagesWithSeretKey"
     DetailedHistoryParamsFor10Messages(t, "enigma", "secret", testName)
 }
 
+// TestDetailedHistoryParamsFor10Messages publish's 10 unencrypted messages 
+// to a pubnub channel, and after that calls the history method of the pubnubMessaging package to fetch 
+// last 10 messages with time parameters between which the messages were sent. These received 
+// messages are compared to the messages sent and if all match test is successful.  
 func TestDetailedHistoryParamsFor10Messages(t *testing.T) {
     testName := "TestDetailedHistoryFor10Messages"
     DetailedHistoryParamsFor10Messages(t, "", "", testName)
 }
 
+// TestDetailedHistoryParamsFor10EncryptedMessages publish's 10 encrypted messages 
+// to a pubnub channel, and after that calls the history method of the pubnubMessaging package to fetch 
+// last 10 messages with time parameters between which the messages were sent. These received 
+// messages are compared to the messages sent and if all match test is successful.  
 func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
     testName := "TestDetailedHistoryFor10EncryptedMessages"
     DetailedHistoryParamsFor10Messages(t, "enigma", "", testName)
 }
 
+// DetailedHistoryFor10Messages is a common method used by both TestDetailedHistoryFor10EncryptedMessages 
+// and TestDetailedHistoryFor10Messages to publish's 10 messages to a pubnub channel, and after that 
+// call the history method of the pubnubMessaging package to fetch last 10 messages with time parameters 
+// between which the messages were sent. These received message is compared to the messages sent and 
+// if all match test is successful.  
 func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKey string, testName string) {
     numberOfMessages := 5
     pubnubInstance := pubnubMessaging.PubnubInit("demo", "demo", secretKey, cipherKey, false, "")    
@@ -119,12 +160,16 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
     }    
 }
 
+// GetServerTime calls the GetTime method of the pubnubMessaging, parses the response to get the
+// value and return it.
 func GetServerTime(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T, testName string) int64{
     returnTimeChannel := make(chan []byte)
     go pubnubInstance.GetTime(returnTimeChannel)
     return ParseServerTimeResponse(returnTimeChannel, t, testName)    
 }
 
+// ParseServerTimeResponse unmarshals the time response from the pubnub api and returns the int64 value.
+// On error the test fails.
 func ParseServerTimeResponse(returnChannel chan []byte,t *testing.T, testName string) int64 {
     for {
         value, ok := <-returnChannel
@@ -153,6 +198,18 @@ func ParseServerTimeResponse(returnChannel chan []byte,t *testing.T, testName st
     return 0
 }
 
+// PublishMessages calls the publish method of pubnubMessaging package numberOfMessages times 
+// and appends the count with the message to distinguish from the others.
+// 
+// Parameters:
+// pubnubInstance: a reference of *pubnubMessaging.Pubnub, 
+// channel: the pubnub channel to publish the messages, 
+// t: a reference to *testing.T,
+// startMessagesFrom: the message identifer, 
+// numberOfMessages: number of messages to send,
+// message: message to send.
+// 
+// returns a bool if the publish of all messages is successful.
 func PublishMessages(pubnubInstance *pubnubMessaging.Pubnub, channel string, t *testing.T, startMessagesFrom int, numberOfMessages int, message string) bool{
     messagesReceived := 0
     messageToSend := ""
@@ -171,25 +228,19 @@ func PublishMessages(pubnubInstance *pubnubMessaging.Pubnub, channel string, t *
     return false
 }
 
-func ParsePublishResponseForMultipleMessages(returnChannel chan []byte, t *testing.T, channel string, message string, testname string) bool{
-    for {
-        value, ok := <-returnChannel
-        if !ok {
-            break
-        }
-        if string(value) != "[]"{
-            response := fmt.Sprintf("%s", value)
-            if(strings.Contains(response, message)){
-                return true
-            } else {
-                return false
-            }
-        }
-    }
-    return false
-}
-
-
+// ParseHistoryResponseForMultipleMessages unmarshalls the response of the history call to the
+// pubnub api and compares the received messages to the sent messages. If the response match the 
+// test is successful.
+// 
+// Parameters:
+// returnChannel: channel to read the response from,
+// t: a reference to *testing.T, 
+// channel: the pubnub channel to publish the messages,
+// message: message to compare,
+// testname: the test name form where this method is called,
+// startMessagesFrom: the message identifer, 
+// numberOfMessages: number of messages to send,
+// cipherKey: the cipher key if used. Can be empty.
 func ParseHistoryResponseForMultipleMessages(returnChannel chan []byte, t *testing.T, channel string, message string, testName string, startMessagesFrom int, numberOfMessages int, cipherKey string){
     for {
         value, ok := <-returnChannel
@@ -230,6 +281,8 @@ func ParseHistoryResponseForMultipleMessages(returnChannel chan []byte, t *testi
     }
 }
 
+// ParseHistoryResponse parses the history response from the pubnub api on the returnChannel
+// and checks if the response contains the message. If true then the test is successful. 
 func ParseHistoryResponse(returnChannel chan []byte, t *testing.T, channel string, message string, testName string){
     for {
         value, ok := <-returnChannel
@@ -249,6 +302,9 @@ func ParseHistoryResponse(returnChannel chan []byte, t *testing.T, channel strin
     }
 }
 
+// ParseResponse parses the publish response from the pubnub api on the returnChannel and 
+// when the sent response is received, calls the history method of the pubnubMessaging 
+// package to fetch 1 message. 
 func ParseResponse(returnChannel chan []byte,t *testing.T, pubnubInstance *pubnubMessaging.Pubnub, channel string, message string, testName string, numberOfMessages int){
     for {
         value, ok := <-returnChannel
@@ -264,7 +320,9 @@ func ParseResponse(returnChannel chan []byte,t *testing.T, pubnubInstance *pubnu
     }
 }
 
-// End indicator
+// TestDetailedHistoryEnd prints a message on the screen to mark the end of 
+// detailed history tests.
+// PrintTestMessage is defined in the common.go file.
 func TestDetailedHistoryEnd(t *testing.T){
     PrintTestMessage("==========DetailedHistory tests end==========")
 }

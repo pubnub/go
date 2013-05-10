@@ -1,3 +1,5 @@
+// Package pubnubMessaging has the unit tests of package pubnubMessaging.
+// pubnubEncryption_test.go contains the tests related to the Encryption/Decryption of messages
 package pubnubTests
 
 import (
@@ -8,7 +10,9 @@ import (
     "unicode/utf16"
 )
 
-// Start indicator
+// TestEncryptionStart prints a message on the screen to mark the beginning of 
+// encryption tests.
+// PrintTestMessage is defined in the common.go file.
 func TestEncryptionStart(t *testing.T){
     PrintTestMessage("==========Encryption tests start==========")
 }
@@ -489,6 +493,8 @@ func TestGermanEncryption(t *testing.T) {
     }    
 }
 
+// TestComplexClassDecryption tests the complex struct decryption.
+// Decrypted string should match uu3hDKcmV5/5mym7sIPJaf+W3Uu1xJLZLYaEBJPbZut+uwGHV5QmMWCOTTSOuBwcNk4bldx+y1ZAaHFETwkfMOOCHvdwrw6YcoyuJDqPglD+DEwLjUes50nEfrw7aMwmsKP2BmbyM+0mL2Nw30X4QP6lCcOaaUgXGWuMPJXfhrutSpiDDvJhSG6/eqZUEVmpKilxVnbsCqYGRWHHIE5dbuWE1odOot6oW4OobspaQtK2bBj/MNwFWwoZjLgyRi6Rxm0PRhgcOgxWneSrIW5UUf6xan4i4UfSN0PevVu5iRxwg1yLSISQViYihwFkc6ncJaUQ6nY+fESwHAn8IYGTYtuHc4j/C9pQwB5WhnoUaXRiJKchjnCf+zS6hyU7hlDZm7XdXRI6dZIIHGfBI5o2H/DmT3DFQM/mUZQLqmyFGM72QXV4bRIr0zUulTMOQgDVL2khic8bEZ28ji68ogNSnRMDMW81IzRInpv14zWyADRcab2tnlcQosmVwhDSJtnd
 func TestComplexClassDecryption(t *testing.T) {
      message := "uu3hDKcmV5/5mym7sIPJaf+W3Uu1xJLZLYaEBJPbZut+uwGHV5QmMWCOTTSOuBwcNk4bldx+y1ZAaHFETwkfMOOCHvdwrw6YcoyuJDqPglD+DEwLjUes50nEfrw7aMwmsKP2BmbyM+0mL2Nw30X4QP6lCcOaaUgXGWuMPJXfhrutSpiDDvJhSG6/eqZUEVmpKilxVnbsCqYGRWHHIE5dbuWE1odOot6oW4OobspaQtK2bBj/MNwFWwoZjLgyRi6Rxm0PRhgcOgxWneSrIW5UUf6xan4i4UfSN0PevVu5iRxwg1yLSISQViYihwFkc6ncJaUQ6nY+fESwHAn8IYGTYtuHc4j/C9pQwB5WhnoUaXRiJKchjnCf+zS6hyU7hlDZm7XdXRI6dZIIHGfBI5o2H/DmT3DFQM/mUZQLqmyFGM72QXV4bRIr0zUulTMOQgDVL2khic8bEZ28ji68ogNSnRMDMW81IzRInpv14zWyADRcab2tnlcQosmVwhDSJtnd"
     //decrypt
@@ -512,6 +518,8 @@ func TestComplexClassDecryption(t *testing.T) {
     } 
 }
 
+// TestComplexClassEncryption tests the complex struct encryption.
+// Encrypted string should match uu3hDKcmV5/5mym7sIPJaf+W3Uu1xJLZLYaEBJPbZut+uwGHV5QmMWCOTTSOuBwcNk4bldx+y1ZAaHFETwkfMOOCHvdwrw6YcoyuJDqPglD+DEwLjUes50nEfrw7aMwmsKP2BmbyM+0mL2Nw30X4QP6lCcOaaUgXGWuMPJXfhrutSpiDDvJhSG6/eqZUEVmpKilxVnbsCqYGRWHHIE5dbuWE1odOot6oW4OobspaQtK2bBj/MNwFWwoZjLgyRi6Rxm0PRhgcOgxWneSrIW5UUf6xan4i4UfSN0PevVu5iRxwg1yLSISQViYihwFkc6ncJaUQ6nY+fESwHAn8IYGTYtuHc4j/C9pQwB5WhnoUaXRiJKchjnCf+zS6hyU7hlDZm7XdXRI6dZIIHGfBI5o2H/DmT3DFQM/mUZQLqmyFGM72QXV4bRIr0zUulTMOQgDVL2khic8bEZ28ji68ogNSnRMDMW81IzRInpv14zWyADRcab2tnlcQosmVwhDSJtnd
 func TestComplexClassEncryption(t *testing.T) {
     customComplexMessage := InitComplexMessage()
     //serialize
@@ -531,7 +539,9 @@ func TestComplexClassEncryption(t *testing.T) {
 }
 
 
-// End indicator
+// TestEncryptionEnd prints a message on the screen to mark the end of 
+// encryption tests.
+// PrintTestMessage is defined in the common.go file.
 func TestEncryptionEnd(t *testing.T){
     PrintTestMessage("==========Encryption tests end==========")
 }
