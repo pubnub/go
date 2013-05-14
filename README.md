@@ -36,6 +36,4 @@ This has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
 * Timeouts can be set by changing the default values of the constant
 * Retry on disconnect limit and interval can be set 
 * Naming convention consistency
-
-###Pending work: 
-* Documentation
+* Tested with Go 1.1

@@ -1,5 +1,5 @@
 // Package pubnubMessaging provides the implemetation to connect to pubnub api.
-// Build Date: May 8, 2013
+// Build Date: May 14, 2013
 // Version: 3.4
 package pubnubMessaging
 
@@ -523,10 +523,9 @@ func (pub *Pubnub) GetSubscribedChannels(channels string, c chan []byte, isPrese
 // Returns:
 // b: Bool variable true incase the connection is lost.
 func (pub *Pubnub) CheckForTimeoutAndRetries(err error) (bool){
-    if (_retryCount == 0) {
+    if (_retryCount >= 0) {
         //closedNetworkError :=strings.Contains(err.Error(), "closed network connection")
         errorInitConn :=strings.Contains(err.Error(), "Error in initializating connection")
-        
         if  (errorInitConn || (strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "no such host"))){
             pub.SendResponseToChannel(nil, pub.SubscribedChannels, 7, nil)
             SleepForAWhile(true)
