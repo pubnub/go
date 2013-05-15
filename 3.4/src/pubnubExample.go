@@ -52,7 +52,7 @@ func main() {
 //
 // returns: a bool, true if the user completed the initail settings.
 func Init() (b bool){
-	fmt.Println("PubNub Api for go;", pubnubMessaging.VersionInfo())
+    fmt.Println("PubNub Api for go;", pubnubMessaging.VersionInfo())
     fmt.Println("Please enter the channel name(s). Enter multiple channels separated by comma.")
     reader := bufio.NewReader(os.Stdin)
     
@@ -171,6 +171,26 @@ func AskPassword() (string){
     return proxyPassword
 }
 
+// AskChannel asks the user to channel name.
+// If the channel(s) are not provided the channel(s) provided by the user
+// at the beginning will be used.
+// returns the read channel(s), or error
+func AskChannel() (string, error){
+    fmt.Println("Please enter the channel name. Leave empty to use the channel(s) provided at the beginning.")
+    reader := bufio.NewReader(os.Stdin)
+    channels, _ , errReadingChannel := reader.ReadLine()
+    if(errReadingChannel != nil){
+        return "", errReadingChannel
+    } else {
+        if(strings.TrimSpace(string(channels)) == ""){
+            fmt.Println("Using channel(s): ", _connectChannels)
+            return _connectChannels, nil   
+        } else {
+            return string(channels), nil
+        }    
+    }
+}
+
 // UTF16BytesToString converts UTF-16 encoded bytes, in big or little endian byte order,
 // to a UTF-8 encoded string.
 func UTF16BytesToString(b []byte, o binary.ByteOrder) string {
@@ -207,25 +227,24 @@ func ReadLoop(){
         switch action {
             case "1":
                 fmt.Println("Running Subscribe")
-                go SubscribeRoutine()
+                channels, errReadingChannel := AskChannel()
+                if(errReadingChannel != nil){
+                    fmt.Println("errReadingChannel: ", errReadingChannel)
+                } else {                
+                    go SubscribeRoutine(channels)
+                }    
             case "2":
-                fmt.Println("Please enter the message")
-                message, _ , err := reader.ReadLine()
-                //unicodeCodePoints := bytes.Runes(message)
-                //fmt.Println(UTF16BytesToString(message, binary.BigEndian))
-                /*rn := ""
-                for _, c := range unicodeCodePoints {
-                    rn += string(c) 
-                    fmt.Println(string(c)) 
-                } */               
-                fmt.Println(string(message))
-                //fmt.Println(string(unicodeCodePoints))
-                
-                if err != nil {
-                    fmt.Println(err)
-                }else{
-                    go PublishRoutine(string(message))
-                    //go PublishRoutine(UTF16BytesToString(message, binary.LittleEndian))
+                channels, errReadingChannel := AskChannel()
+                if(errReadingChannel != nil){
+                    fmt.Println("errReadingChannel: ", errReadingChannel)
+                } else {
+                    fmt.Println("Please enter the message")
+                    message, _ , err := reader.ReadLine()
+                    if err != nil {
+                        fmt.Println(err)
+                    }else{
+                        go PublishRoutine(channels, string(message))
+                    }
                 }
             case "3":
                 fmt.Println("Running Presence")
@@ -238,7 +257,12 @@ func ReadLoop(){
                 go HereNowRoutine()            
             case "6":
                 fmt.Println("Running Unsubscribe")
-                go UnsubscribeRoutine()
+                channels, errReadingChannel := AskChannel()
+                if(errReadingChannel != nil){
+                    fmt.Println("errReadingChannel: ", errReadingChannel)
+                } else {                
+                    go UnsubscribeRoutine(channels)
+                }    
             case "7":
                 fmt.Println("Running Unsubscribe Presence")
                 go UnsubscribePresenceRoutine()
@@ -309,18 +333,18 @@ func ParseResponse(channel chan []byte){
 
 // SubscribeRoutine calls the Subscribe routine of the pubnubMessaging package
 // as a parallel process. 
-func SubscribeRoutine(){
+func SubscribeRoutine(channels string){
     var subscribeChannel = make(chan []byte)
-    go _pub.Subscribe(_connectChannels, subscribeChannel, false)
+    go _pub.Subscribe(channels, subscribeChannel, false)
     ParseResponseSubscribe(subscribeChannel)    
 }
 
 // PublishRoutine asks the user the message to send to the pubnub channel(s) and 
 // calls the Publish routine of the pubnubMessaging package as a parallel 
 // process. If we have multiple pubnub channels then this method will spilt the 
-// _connectChannels by comma and send the message on all the pubnub channels.
-func PublishRoutine(message string){
-    channelArray := strings.Split(_connectChannels, ",");
+// channel by comma and send the message on all the pubnub channels.
+func PublishRoutine(channels string, message string){
+    channelArray := strings.Split(channels, ",");
     
     for i:=0; i < len(channelArray); i++ {
         ch := strings.TrimSpace(channelArray[i])
@@ -370,13 +394,13 @@ func HereNowRoutine(){
         ParseResponse(channel)
     }
 }
-
+	
 // UnsubscribeRoutine calls the Unsubscribe routine of the pubnubMessaging package as a parallel 
 // process. All the channels in the _connectChannels string will be unsubscribed.
-func UnsubscribeRoutine(){
+func UnsubscribeRoutine(channels string){
     channel := make(chan []byte)
     
-    go _pub.Unsubscribe(_connectChannels, channel)
+    go _pub.Unsubscribe(channels, channel)
     ParseResponse(channel)
 }
 
