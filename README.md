@@ -4,7 +4,7 @@
 * Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc support
 
 ###Quick Start Video
-We've put together a quick HOWTO video here https://vimeo.com/66180487
+We've put together a quick HOWTO video here https://vimeo.com/66431136
 
 ###Build Instructions Summary
 * Built using Eclipse IDE (juno) 
