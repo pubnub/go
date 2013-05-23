@@ -1,19 +1,23 @@
-#PubNub clients for Go
-## Preview Release -- Beta 1
+#PubNub 3.4 client for Go 1.0.3, 1.1
 
-####Build Instructions
+###Features
+* Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc support
+
+###Quick Start Video
+We've put together a quick HOWTO video here https://vimeo.com/66431136
+
+###Build Instructions Summary
 * Built using Eclipse IDE (juno) 
 * Install golang plugin for Eclipse
-* Copy the src directory in the project
+* Use the command go get github.com/pubnub/go to download and install the package
 * Run the project
 * Look for the application in the "Console" of the Eclipse IDE
 
-This has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
+In addition to Eclipse, this has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
 
-###Flow
-* Runs as a console application
-* Asks for the channel name (multiple channels separated by comma can be entered), SSL, Cipher and Custom UUID
-####User then chooses the options to
+###Demo Console App
+We've included a demo console app which documents all the functionality of the client, for example:
+
 * Subscribe
 * Publish
 * Presence
@@ -23,17 +27,3 @@ This has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
 * Presence-Unsubscribe
 * Time
 * Exit
-
-###Features
-* Runs on the console similar to the C#, mac and linux example
-* Supports multiplexing
-* Custom UUID is working
-* SSL is working
-* Cipher is working
-* Subscribe and presence run in the background
-* Proxy is working for Basic Authentication with and without SSL
-* Reconnect on internet disruption is working
-* Timeouts can be set by changing the default values of the constant
-* Retry on disconnect limit and interval can be set 
-* Naming convention consistency
-* Tested with Go 1.1

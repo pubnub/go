@@ -7,7 +7,7 @@ import (
     "os"
     "fmt"
     "time"
-    "pubnubMessaging"
+    "github.com/pubnub/go/3.4/pubnubMessaging"
     "strings"
     "strconv"
     "unicode/utf16"
@@ -185,10 +185,9 @@ func AskChannel() (string, error){
         if(strings.TrimSpace(string(channels)) == ""){
             fmt.Println("Using channel(s): ", _connectChannels)
             return _connectChannels, nil   
-        } else {
-            return string(channels), nil
-        }    
+        }  
     }
+    return string(channels), nil
 }
 
 // UTF16BytesToString converts UTF-16 encoded bytes, in big or little endian byte order,
