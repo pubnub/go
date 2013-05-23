@@ -4,7 +4,7 @@ package pubnubTests
 
 import (
     "testing"
-    "pubnubMessaging"
+    "github.com/pubnub/go/3.4/pubnubMessaging"
     "fmt"
     "encoding/json"
     "unicode/utf16"
