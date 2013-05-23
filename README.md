@@ -1,4 +1,4 @@
-#PubNub 3.4 client for Go 1.0, 1.1
+#PubNub 3.4 client for Go 1.0.3, 1.1
 
 ###Features
 * Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc support
@@ -9,7 +9,7 @@ We've put together a quick HOWTO video here https://vimeo.com/66431136
 ###Build Instructions Summary
 * Built using Eclipse IDE (juno) 
 * Install golang plugin for Eclipse
-* Copy the src directory in the project
+* Use the command go get github.com/pubnub/go to download and install the package
 * Run the project
 * Look for the application in the "Console" of the Eclipse IDE
 
