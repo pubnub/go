@@ -3,7 +3,7 @@
 ###Features
 * Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc
 * This version is not backward compatible. The major change is in the func calls. A new parameter "error callback" is added to the major functions of the pubnub class.
-* The client now supports
+* The client now supports:
 * Error Callback: All the error messages are routed to this callback channel
 * Resume on reconnect
 * You can now "Subscribe with timetoken"
