@@ -147,11 +147,14 @@ Init pubnub instance
 ```
 
 * Disconnect/Retry
+```
         pubInstance.CloseExistingConnection() 
+```
 
 * Exit
+```
         pubInstance.Abort()  
-
+```
 
 * ParseResponse
 ```
