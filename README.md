@@ -4,12 +4,13 @@
 * Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc
 * This version is not backward compatible. The major change is in the func calls. A new parameter "error callback" is added to the major functions of the pubnub class.
 * The client now supports
-** Error Callback: All the error messages are routed to this callback channel
-** Resume on reconnect
-** You can now "Subscribe with timetoken"
-** An example of Disconnect/Retry has been added in the example 
-** Multiple messages received in a single response from the server will now be split into individual messages
-** Non 200 response will now be bubbled to the client
+* Error Callback: All the error messages are routed to this callback channel
+* Resume on reconnect
+* You can now "Subscribe with timetoken"
+* An example of Disconnect/Retry has been added in the example 
+* Multiple messages received in a single response from the server will now be split into individual messages
+* Non 200 response will now be bubbled to the client
+
 ###Quick Start Video
 We've put together a quick HOWTO video here https://vimeo.com/66431136
 
@@ -38,15 +39,16 @@ We've included a demo console app which documents all the functionality of the c
 * Exit
 
 ###Quick Implementation Examples
-*Init
+* Init
 ```
         pubInstance := pubnubMessaging.PubnubInit(<YOUR PUBLISH KEY>, <YOUR SUBSCRIBE KEY>, <SECRET KEY>, <CIPHER>, <SSL ON/OFF>, <UUID>)
 ```
 
 * Publish
 
-Init pubnub instance
 ```
+        //Init pubnub instance
+
         var errorChannel = make(chan []byte)
         var callbackChannel = make(chan []byte)
         go pubInstance.Publish(<pubnub channel>, <message to publish>, callbackChannel, errorChannel)
@@ -57,8 +59,9 @@ Init pubnub instance
 
 * Subsribe
 
-Init pubnub instance
 ```
+        //Init pubnub instance
+
         var errorChannel = make(chan []byte)
         var subscribeChannel = make(chan []byte)
         go pubInstance.Subscribe(<pubnub channels, multiple channels can be separated by comma>, <timetoken, should be an empty string in this case>, subscribeChannel, <this field is FALSE for subscribe requests>, errorChannel)
@@ -69,8 +72,9 @@ Init pubnub instance
 
 * Subscribe with timetoken
 
-Init pubnub instance
 ```
+        //Init pubnub instance
+
         var errorChannel = make(chan []byte)
         var subscribeChannel = make(chan []byte)
         go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>, <timetoken to init the request with>, subscribeChannel, <this field is FALSE for subscribe requests>, errorChannel)
@@ -80,8 +84,9 @@ Init pubnub instance
 ```
 
 * Presence
-Init pubnub instance
 ```
+        //Init pubnub instance
+
         var errorChannel = make(chan []byte)
         var presenceChannel = make(chan []byte)
         go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>, <timetoken, should be an empty string in this case>, presenceChannel, <this field is TRUE for subscribe requests>, errorChannel)
@@ -91,8 +96,9 @@ Init pubnub instance
 ```
 
 * Detailed History
-Init pubnub instance
 ```
+        //Init pubnub instance
+
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.History(<pubnub channel>, <no of items to fetch>, <start time>, <end time>, false, channelCallback, errorChannel)
@@ -103,8 +109,9 @@ Init pubnub instance
 ```
 
 * Here_Now
-Init pubnub instance
 ```
+        //Init pubnub instance
+
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.HereNow(<pubnub channel>, channelCallback, errorChannel)
@@ -114,8 +121,9 @@ Init pubnub instance
 ```
 
 * Unsubscribe
-Init pubnub instance
 ```
+        //Init pubnub instance
+
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.Unsubscribe(<pubnub channels, multiple channels can be separated by comma>, channelCallback, errorChannel)
@@ -125,8 +133,9 @@ Init pubnub instance
 ```
 
 * Presence-Unsubscribe
-Init pubnub instance
 ```
+        //Init pubnub instance
+
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.PresenceUnsubscribe(<pubnub channels, multiple channels can be separated by comma>, channelCallback, errorChannel)
@@ -136,8 +145,10 @@ Init pubnub instance
 ```
 
 * Time
-Init pubnub instance
+
 ```
+        //Init pubnub instance
+
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.GetTime(channelCallback, errorChannel)
@@ -148,11 +159,15 @@ Init pubnub instance
 
 * Disconnect/Retry
 ```
+        //Init pubnub instance
+
         pubInstance.CloseExistingConnection() 
 ```
 
 * Exit
 ```
+        //Init pubnub instance
+
         pubInstance.Abort()  
 ```
 
