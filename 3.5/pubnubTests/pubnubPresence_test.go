@@ -175,21 +175,21 @@ func ParseSubscribeResponseForPresence(pubnubInstance *pubnubMessaging.Pubnub, c
                     go ParseResponseDummy(returnSubscribeChannel)
                     go ParseResponseDummy(errorChannel2)
                 }else {
-                    //fmt.Println("Test3 '" + testName + "':" +response)
                     if(testName == "Presence") {
                         data, _, returnedChannel, err2 := pubnubMessaging.ParseJson(value, "")
+                        
                         var occupants []struct {
                             Action string
                             Uuid string
                             Timestamp float64
                             Occupancy int
                         }
-                        //fmt.Println("data '" + testName + "':",data)
+                        
                         if(err2 != nil){
                             responseChannel <- "Test '" + testName + "': failed. Message: 1 :" + err2.Error()
                             break
                         }
-                        
+                        //fmt.Println("Test3 '" + testName + "':" +data)
                         err := json.Unmarshal([]byte(data), &occupants)
                         if(err != nil) { 
                             //fmt.Println("err '" + testName + "':",err)

@@ -1,5 +1,5 @@
 // Package pubnubMessaging provides the implemetation to connect to pubnub api.
-// Build Date: Sep 2, 2013
+// Build Date: Sep 4, 2013
 // Version: 3.5
 package pubnubMessaging
 
@@ -25,9 +25,6 @@ import (
     "encoding/hex"
     "io"
 )
-
-// Root url value of pubnub api without the http/https protocol.
-const _origin = "pubsub.pubnub.com"
 
 // This string is appended to all presence channels 
 // to differentiate from the subscribe requests.
@@ -85,6 +82,9 @@ const _retryInterval = 10 //sec
 // In seconds.
 const _connectTimeout = 10 //sec
 
+// Root url value of pubnub api without the http/https protocol.
+var _origin = "pubsub.pubnub.com"
+
 // The time after which the Subscribe/Presence request will timeout.
 // In seconds.
 var _subscribeTimeout int64 = 310 //sec
@@ -133,6 +133,12 @@ var _proxyServerEnabled = false
 // 16 byte IV  
 var _IV = "0123456789012345"
 
+type ResponseStruct struct {
+    Message []interface{}
+    Timetoken string
+    ChannelName string
+}
+
 // Pubnub structure.  
 // Origin stores the root url value of pubnub api in the current instance.
 // PublishKey stores the user specific Publish Key in the current instance.
@@ -177,7 +183,7 @@ type Pubnub struct {
 
 // VersionInfo returns the version of the this code along with the build date. 
 func VersionInfo() string{
-    return "Version: 3.5; Build Date: Sep 2, 2013;"
+    return "Version: 3.5; Build Date: Sep 4, 2013;"
 }
 
 // PubnubInit initializes pubnub struct with the user provided values.
@@ -257,6 +263,11 @@ func SetResumeOnReconnect(val bool){
 // SetSubscribeTimeout sets the value of _subscribeTimeout.
 func SetSubscribeTimeout(val int64){
     _subscribeTimeout = val
+}
+
+// SetOrigin sets the value of _origin. Should be called before PubnubInit
+func SetOrigin(val string){
+    _origin = val
 }
 
 // Abort is the struct Pubnub's instance method that closes the open connections for both subscribe 
@@ -771,6 +782,8 @@ func (pub *Pubnub) StartSubscribeLoop(channels string, errorChannel chan []byte)
                 channelsModified = true
             }
             sentTimeToken := pub.TimeToken
+            //sentTimeToken = "13781873157176452"
+            //pub.TimeToken = "13781873157176452"
             subscribeUrl, sentTimeToken := pub.CreateSubscribeUrl(sentTimeToken)
             value, responseCode, err := pub.HttpRequest(subscribeUrl, true)
             
@@ -810,7 +823,7 @@ func (pub *Pubnub) StartSubscribeLoop(channels string, errorChannel chan []byte)
                         channelsModified = false
                     }
                     if(sentTimeToken == "0"){
-                        pub.SendResponseToChannel(nil, pub.NewSubscribedChannels, 2, "", "")
+                        pub.SendResponseToChannel(nil, pub.SubscribedChannels, 2, "", "")
                         pub.NewSubscribedChannels = ""
                     }
                     _retryCount = 0
@@ -880,15 +893,10 @@ func (pub *Pubnub) ParseHttpResponse(value []byte, data string, channelName stri
         SleepForAWhile(false)
     } else {
         _retryCount = 0
-        if (strings.Contains(channelName, _presenceSuffix)) {
-            pub.SendResponseToChannel(nil, channelName, 5, string(value), "")
-        } else {
-            //in case of single subscribe request the channelname will be empty
-            if (channelName == ""){                        
-                channelName = pub.GetSubscribedChannelName()
-            }
-            pub.SplitMessagesAndSendJsonResponse(data, returnTimeToken, channelName, errorChannel)
+        if (channelName == ""){                        
+            channelName = pub.SubscribedChannels
         }
+        pub.SplitMessagesAndSendJsonResponse(data, returnTimeToken, channelName, errorChannel)
     }                 
 }
 
@@ -900,26 +908,86 @@ func (pub *Pubnub) ParseHttpResponse(value []byte, data string, channelName stri
 // returnTimeToken: the return timetoken in the response
 // channels: pubnub channels in the response.
 func (pub *Pubnub) SplitMessagesAndSendJsonResponse (data string, returnTimeToken string, channels string, errorChannel chan []byte) {
-    var returnedMessages interface{}
-
-    errUnmarshalMessages := json.Unmarshal([]byte(data), &returnedMessages)
-    
-    if errUnmarshalMessages == nil {
-        v := returnedMessages.(interface{})
-        
-        switch vv := v.(type) {
-            case string:
-               length := len(vv)
-               if(length > 0){
-                      pub.SendJsonResponse(vv, returnTimeToken, channels)
-               }
-            case []interface{}:
-                  pub.CreateAndSendJsonResponse(vv, returnTimeToken, channels)
-        }
-    } else {
-        //send error response
-        pub.SendResponseToChannel(nil, channels, 9, _invalidJson, "")
+    channelSlice := strings.Split(channels, ",")
+    channelLen := len(channelSlice)
+    isPresence := false
+    if(channelLen == 1){
+        isPresence = strings.Contains(channels, _presenceSuffix)
     }
+    
+    if((channelLen == 1) && (isPresence)){
+        pub.SplitPresenceMessages([]byte(data), returnTimeToken, channelSlice[0], errorChannel)
+    } else if((channelLen == 1) && (!isPresence)) {
+        pub.SplitSubscribeMessages(data, returnTimeToken, channelSlice[0], errorChannel)
+    } else {
+        var returnedMessages interface{}
+        errUnmarshalMessages := json.Unmarshal([]byte(data), &returnedMessages)
+        
+        if errUnmarshalMessages == nil {
+            v := returnedMessages.(interface{})
+            
+            switch vv := v.(type) {
+                case string:
+                   length := len(vv)
+                   if(length > 0){
+                          pub.SendJsonResponse(vv, returnTimeToken, channels)
+                   }
+                case []interface{}:
+                      pub.CreateAndSendJsonResponse(vv, returnTimeToken, channels)
+            }
+        }
+    }
+}
+
+// SplitPresenceMessages splits the multiple messages 
+// unmarshals the data into the custom structure, 
+// calls the SendJsonResponse funstion to creates the json again.
+//
+// Parameters:
+// data: data to unmarshal,
+// returnTimeToken: the returned timetoken in the pubnub response, 
+// channel: pubnub channel,
+// errorChannel: error channel to send a error response back.
+func (pub *Pubnub) SplitPresenceMessages(data []byte, returnTimeToken string, channel string, errorChannel chan []byte){
+    var occupants []struct {
+        Action string `json:"action"`
+        Uuid string `json:"uuid"`
+        Timestamp float64 `json:"timestamp"`
+        Occupancy int `json:"occupancy"`
+    }
+    errUnmarshalMessages := json.Unmarshal(data, &occupants)
+    if(errUnmarshalMessages !=nil){    
+        pub.SendResponseToChannel(nil, channel, 9, _invalidJson, "")
+    } else {
+        for i := range occupants {
+            intf := make([]interface{}, 1)
+            intf[0] = occupants[i]
+            pub.SendJsonResponse(intf, returnTimeToken, channel)
+        }        
+    }    
+}
+    
+// SplitSubscribeMessages splits the multiple messages 
+// unmarshals the data into the custom structure, 
+// calls the SendJsonResponse funstion to creates the json again.
+//
+// Parameters:
+// data: data to unmarshal,
+// returnTimeToken: the returned timetoken in the pubnub response, 
+// channel: pubnub channel,
+// errorChannel: error channel to send a error response back.
+func (pub *Pubnub) SplitSubscribeMessages(data string, returnTimeToken string, channel string, errorChannel chan []byte){
+    var occupants []interface {}
+    errUnmarshalMessages := json.Unmarshal([]byte(data), &occupants)
+    if(errUnmarshalMessages !=nil){    
+        pub.SendResponseToChannel(nil, channel, 9, _invalidJson, "")
+    } else {
+        for i := range occupants {
+            intf := make([]interface{}, 1)
+            intf[0] = occupants[i]
+            pub.SendJsonResponse(intf, returnTimeToken, channel)           
+        }        
+    }    
 }
 
 // CreateAndSendJsonResponse marshals the data for each split message and calls
@@ -935,60 +1003,40 @@ func (pub *Pubnub) CreateAndSendJsonResponse(rawData interface{}, returnTimeToke
     switch vv := dataInterface.(type){
         case []interface{}:
             for i, u := range vv {
+                intf := make([]interface{}, 1)
                 if (reflect.TypeOf(u).Kind() == reflect.String){
-                    var intf interface{} 
-                    intf = u
-                    unescapeVal, unescapeErr := url.QueryUnescape(intf.(string))
-                    if(unescapeErr != nil){
-                        vv[i] = intf.(string)
-                    }else{
-                        vv[i] = unescapeVal
-                    }
+                    intf[0] = u
+                } else {
+                    intf[0] = vv[i]
                 }
-                jsonData, err := json.Marshal(vv[i])
-                message := ""
-                if (err == nil) {
-                    message = string(jsonData)
-                }else{ 
-                    message = fmt.Sprintf("%s", vv[i])
-                }    
-                
                 channel := ""
                 
                 if(i <= len(channelSlice)-1){
                     channel = channelSlice[i]
                 } else {
                     channel = channelSlice[0]
-                }    
+                } 
                 
-                pub.SendJsonResponse(message, returnTimeToken, channel)
+                pub.SendJsonResponse(intf, returnTimeToken, channel)
             }
     } 
 }
 
-// SendJsonResponse creates a json response and sends back to the respoctive channel
+// SendJsonResponse creates a json response and sends back to the response channel
 // 
 // Accepts:
 // message: response to send back, 
 // returnTimeToken: the timetoken for the response, 
 // channelName: the pubnub channel for the response.
-func (pub *Pubnub) SendJsonResponse (message string, returnTimeToken string, channelName string){
-    if (channelName == ""){                        
-        channelName = pub.GetSubscribedChannelName()
-    }
+func (pub *Pubnub) SendJsonResponse (message interface{}, returnTimeToken string, channelName string){
                         
     if(channelName != "") {
-        var buffer bytes.Buffer
-        buffer.WriteString("[")
-        buffer.WriteString(message)
-        buffer.WriteString(",\"")
-        buffer.WriteString(fmt.Sprintf("%s",pub.TimeToken))
-        buffer.WriteString("\",\"")
-        buffer.WriteString(channelName)
-        buffer.WriteString("\"]")
-                            
-        //pub.SendResponseToChannel(pub.SubscribeChannel, channelName, 5, buffer.Bytes(), "")
-        pub.SendResponseToChannel(nil, channelName, 5, buffer.String(), "")    
+        response := []interface{} {message, fmt.Sprintf("%s",pub.TimeToken), channelName}
+        jsonData, err := json.Marshal(response)
+        if (err != nil) {
+            pub.SendResponseToChannel(nil, channelName, 9, _invalidJson, err.Error())
+        }
+        pub.SendResponseToChannel(nil, channelName, 5, string(jsonData), "")    
     }
 }
 

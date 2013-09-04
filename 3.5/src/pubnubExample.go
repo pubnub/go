@@ -120,7 +120,7 @@ func Init() (b bool){
             } else {
                 pubnubMessaging.SetSubscribeTimeout(int64(val))
             }
-            
+            pubnubMessaging.SetOrigin ("pubsub.pubnub.com")
             pubInstance := pubnubMessaging.PubnubInit("demo", "demo", "", _cipher, _ssl, _uuid)
             
             _pub = pubInstance

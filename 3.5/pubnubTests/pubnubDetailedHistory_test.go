@@ -143,7 +143,7 @@ func TestDetailedHistoryParamsFor10Messages(t *testing.T) {
 // last 10 messages with time parameters between which the messages were sent. These received 
 // messages are compared to the messages sent and if all match test is successful.  
 func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
-    testName := "TestDetailedHistoryFor10EncryptedMessages"
+    testName := "TestDetailedHistoryParamsFor10EncryptedMessages"
     DetailedHistoryParamsFor10Messages(t, "enigma", "", testName)
     time.Sleep(2 * time.Second)
 }

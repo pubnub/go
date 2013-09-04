@@ -339,16 +339,21 @@ func ParseSubscribeData (t *testing.T, response []byte, testName string, cipherK
         if((testName == "SubscriptionConnectedForComplex") || (testName == "SubscriptionConnectedForComplexWithCipher")){            
             isValid = CheckComplexData(b)
         } else if((testName == "SubscriptionConnectedForSimple") || (testName == "SubscriptionConnectedForSimpleWithCipher")){
-            var arr []string
-            err := json.Unmarshal(response, &arr)
+            var arr []interface{}
             
+            err := json.Unmarshal(response, &arr)
+            //fmt.Println("response:", arr[1].(string))
             if(err != nil){
                 fmt.Println("err:", err)
             } else {    
                 if(len(arr)>0){
-                    if(arr[0] == "Test message"){
-                        isValid = true
-                    }
+                    if message, ok := arr[0].([]interface{}); ok{
+                        if messageT, ok2 := message[0].(string); ok2{
+                            if ((len(message)>0) && (messageT == "Test message")){
+                                isValid = true
+                            }
+                        }    
+                    }    
                 }
             }                    
         }
@@ -360,7 +365,7 @@ func ParseSubscribeData (t *testing.T, response []byte, testName string, cipherK
     }
     return true
 }
-
+    
 // ParseSubscribeResponse reads the response from the go channel and unmarshal's it.
 // It is used by multiple test cases and acts according to the testcase names.
 // The idea is to parse each message in the response based on the type of message
@@ -517,12 +522,18 @@ func ParseSubscribeMultiResponse(channel string, returnChannel chan []byte, mess
                 var s []interface{}
                 err := json.Unmarshal(value, &s)
                 if(err == nil){
-                    if(s[0].(string) == message1){
-                        messageCount++
-                    }   
-                    if(s[0].(string) == message2){
-                        messageCount++
-                    } 
+                    if(len(s)>0){
+                        if message, ok := s[0].([]interface{}); ok{
+                            if messageT, ok2 := message[0].(string); ok2{
+                                if ((len(message)>0) && (messageT == message1)){
+                                    messageCount++
+                                }
+                                if ((len(message)>0) && (messageT == message2)){
+                                    messageCount++
+                                }
+                            }    
+                        }
+                    }
                 }
                                 
                 if(messageCount >=2){
@@ -797,12 +808,18 @@ func ParseSubscribeMultiplexedResponse(pubnubInstance *pubnubMessaging.Pubnub, r
                 var s []interface{}
                 err := json.Unmarshal(value, &s)
                 if(err == nil){
-                    if ((s[0].(string) == message1) && (s[2].(string) == pubnubChannel1)){
-                        messageCount++
-                    }   
-                    if((s[0].(string) == message2) && (s[2].(string) == pubnubChannel2)){
-                        messageCount++
-                    } 
+                    if(len(s)>2){
+                        if message, ok := s[0].([]interface{}); ok{
+                            if messageT, ok2 := message[0].(string); ok2{
+                                if ((len(message)>0) && (messageT == message1) && (s[2].(string) == pubnubChannel1)){
+                                    messageCount++
+                                }
+                                if ((len(message)>0) && (messageT == message2) && (s[2].(string) == pubnubChannel2)){
+                                    messageCount++
+                                }
+                            }
+                        }    
+                    }
                 }
                                 
                 if(messageCount >=2){
