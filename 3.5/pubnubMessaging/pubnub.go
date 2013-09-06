@@ -1,5 +1,5 @@
 // Package pubnubMessaging provides the implemetation to connect to pubnub api.
-// Build Date: Sep 4, 2013
+// Build Date: Sep 6, 2013
 // Version: 3.5
 package pubnubMessaging
 
@@ -183,7 +183,7 @@ type Pubnub struct {
 
 // VersionInfo returns the version of the this code along with the build date. 
 func VersionInfo() string{
-    return "Version: 3.5; Build Date: Sep 4, 2013;"
+    return "Version: 3.5; Build Date: Sep 6, 2013;"
 }
 
 // PubnubInit initializes pubnub struct with the user provided values.
@@ -277,7 +277,13 @@ func SetOrigin(val string){
 // sets the pub.SubscribedChannels as empty to break the loop in the func StartSubscribeLoop  
 func (pub *Pubnub) Abort() {
     if(pub.SubscribedChannels != ""){
-        pub.SendLeaveRequest(pub.SubscribedChannels)
+        value, _, err := pub.SendLeaveRequest(pub.SubscribedChannels)
+        if err != nil {
+            pub.SendResponseToChannel(nil, pub.SubscribedChannels, 9, err.Error(), "")
+        }else{
+            pub.SendResponseToChannel(nil, pub.SubscribedChannels, 5, string(value), "")
+        }            
+        
         pub.SubscribedChannels = ""
     }
     
@@ -350,10 +356,28 @@ func (pub *Pubnub) SendPublishRequest(channel string, publishUrlString string, j
     } else {
         publishUrl.Path += string(jsonBytes)
         value, responseCode, err := pub.HttpRequest(publishUrl.String(), false)
-        if (responseCode != 200) {
-            pub.SendResponseToChannel(errorChannel, channel, 9, _publishFailed, strconv.Itoa(responseCode))
-        } else if err != nil {
-            pub.SendResponseToChannel(errorChannel, channel, 9, err.Error(), "")
+
+        if ((responseCode != 200) || (err != nil)) {
+            if ((value != nil) && (responseCode > 0)) {
+                var s []interface{}
+                errJson := json.Unmarshal(value, &s)
+                
+                if ((errJson==nil) && (len(s) >0)){
+                    if message, ok := s[1].(string); ok { 
+                        pub.SendResponseToChannel(errorChannel, channel, 9, message, strconv.Itoa(responseCode))
+                    } else {
+                        pub.SendResponseToChannel(errorChannel, channel, 9, string(value), strconv.Itoa(responseCode))
+                    }  
+                } else {                
+                    pub.SendResponseToChannel(errorChannel, channel, 9, string(value), strconv.Itoa(responseCode))
+                }    
+            } else if ((err != nil) && (responseCode > 0))  {
+                pub.SendResponseToChannel(errorChannel, channel, 9, err.Error(),  strconv.Itoa(responseCode))
+            } else if (err != nil) {
+                pub.SendResponseToChannel(errorChannel, channel, 9, err.Error(), "")    
+            } else {
+                pub.SendResponseToChannel(errorChannel, channel, 9, _publishFailed, strconv.Itoa(responseCode))
+            }    
         } else {
             _, _, _, errJson := ParseJson(value, pub.CipherKey)
             if(errJson != nil && strings.Contains(errJson.Error(), _invalidJson)){
@@ -782,18 +806,18 @@ func (pub *Pubnub) StartSubscribeLoop(channels string, errorChannel chan []byte)
                 channelsModified = true
             }
             sentTimeToken := pub.TimeToken
-            //sentTimeToken = "13781873157176452"
-            //pub.TimeToken = "13781873157176452"
             subscribeUrl, sentTimeToken := pub.CreateSubscribeUrl(sentTimeToken)
             value, responseCode, err := pub.HttpRequest(subscribeUrl, true)
             
             if ((responseCode != 200) || (err != nil)) {
-                pub.CloseExistingConnection()
+                
                 if(err!=nil){
                     bNonTimeout, bTimeOut := pub.CheckForTimeoutAndRetries(err, errorChannel)
                     if (strings.Contains(err.Error(), _connectionAborted)){
+                        pub.CloseExistingConnection()	
                         pub.SendResponseToChannel(nil, pub.SubscribedChannels, 9, err.Error(), strconv.Itoa(responseCode))
                     } else if(bNonTimeout){
+                        pub.CloseExistingConnection()
                         if(bTimeOut){
                             _, returnTimeToken, _, errJson := ParseJson(value, pub.CipherKey)
                             if(errJson == nil){
@@ -804,6 +828,7 @@ func (pub *Pubnub) StartSubscribeLoop(channels string, errorChannel chan []byte)
                             pub.ResetTimeToken = true
                         }
                     } else {
+                        pub.CloseExistingConnection()
                         pub.SendResponseToChannel(nil, pub.SubscribedChannels, 9, err.Error(), strconv.Itoa(responseCode))
                         SleepForAWhile(true)
                     }

@@ -357,6 +357,7 @@ func ReadLoop(){
             case "11":
                 fmt.Println("Exiting") 
                 _pub.Abort()   
+                time.Sleep(3*time.Second)
                 breakOut = true
             default: 
                 fmt.Println("Invalid choice!")            

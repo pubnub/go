@@ -8,6 +8,7 @@ import (
     "strings"
     "fmt"
     "time"
+    "encoding/json"
 )
 
 // TestPublishStart prints a message on the screen to mark the beginning of 
@@ -247,11 +248,44 @@ func ParsePublishResponse(returnChannel chan []byte, channel string, message str
     waitChannel := make(chan string)
     
     go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-    go ParseResponseDummy(returnChannel)
-        
-    go ParseErrorResponseForTestSuccess("Publish Failed", errorChannel, responseChannel)  
+    go ParseLargeResponse("Message Too Large", errorChannel, responseChannel)    
     go WaitForCompletion(responseChannel, waitChannel)
     ParseWaitResponse(waitChannel, t, "MessageTooLarge")
+ }
+ 
+ // ParseLargeResponse parses the returnChannel and matches the message m 
+ //
+ // Parameters:
+ // m: message to compare
+ // returnChannel: the channel to read
+ // responseChannel: the channel to send a response to.
+ func ParseLargeResponse(m string, returnChannel chan []byte, responseChannel chan string){
+ 	for {
+        value, ok := <-returnChannel
+        if !ok {      
+            break
+        }
+        returnVal := string(value)  
+        if returnVal != "[]"{
+			var s []interface{}
+			errJson := json.Unmarshal(value, &s)
+                
+			if ((errJson==nil) && (len(s) >0)){
+				if message, ok := s[1].(string); ok { 
+					if(message == m){
+						responseChannel <- "passed"
+					} else {
+						responseChannel <- "failed"
+					}
+				} else {
+					responseChannel <- "failed"
+				}  
+            } else {                
+        		responseChannel <- "failed"
+        	}	
+            break
+        }
+    }
  }
  
 // TestPublishEnd prints a message on the screen to mark the end of 

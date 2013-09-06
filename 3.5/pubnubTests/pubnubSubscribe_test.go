@@ -685,7 +685,6 @@ func ParseSubscribeForTimetoken(pubnubInstance *pubnubMessaging.Pubnub, pubnubCh
                             responseChannel <- "failed"
                         }
                     } else {
-                        //if(pubnubInstance.SentTimeToken == pubnubInstance.TimeToken) {
                         if(pubnubInstance.SentTimeToken != "0") {
                             responseChannel <- "failed"
                         } else {
