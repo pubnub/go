@@ -1,4 +1,4 @@
-#PubNub 3.5 client for Go 1.0.3, 1.1
+#PubNub 3.4.1 client for Go 1.0.3, 1.1
 
 ###Features
 * Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc
