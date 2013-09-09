@@ -4,7 +4,7 @@ package pubnubTests
 
 import (
     "testing"
-    "github.com/pubnub/go/3.4/pubnubMessaging"
+    "github.com/pubnub/go/3.5/pubnubMessaging"
     "strings"
     "fmt"
     "strconv"
