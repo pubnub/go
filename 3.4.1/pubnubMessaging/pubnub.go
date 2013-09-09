@@ -1,6 +1,6 @@
 // Package pubnubMessaging provides the implemetation to connect to pubnub api.
-// Build Date: Sep 6, 2013
-// Version: 3.5
+// Build Date: Sep 9, 2013
+// Version: 3.4.1
 package pubnubMessaging
 
 import (
@@ -183,7 +183,7 @@ type Pubnub struct {
 
 // VersionInfo returns the version of the this code along with the build date. 
 func VersionInfo() string{
-    return "Version: 3.5; Build Date: Sep 6, 2013;"
+    return "Version: 3.4.1; Build Date: Sep 9, 2013;"
 }
 
 // PubnubInit initializes pubnub struct with the user provided values.
