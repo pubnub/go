@@ -14,12 +14,24 @@
 ###Quick Start Video
 We've put together a quick HOWTO video here https://vimeo.com/66431136
 
-###Build Instructions Summary
+###Build Instructions Summary 
 * Built using Eclipse IDE (juno) 
 * Install golang plugin for Eclipse
 * Use the command go get github.com/pubnub/go to download and install the package
-* Run the project
+* Go to eclipse and create a new "go project". Enter the project name
+* Under the contents select "Create project from existing source"
+* Browse to the directory <eclipse-workspace>/src/github.com/pubnub/go/3.4.1, workspace <eclipse-workspace> is the workspaces directory of eclipse.
+* Click Finish
+* Under the project explorer expand the project name
+* Expand the src directory
+* Run "pubnubExample.go" as a "go application"
 * Look for the application in the "Console" of the Eclipse IDE
+
+###Running Unit tests (instructions for Mac/Linux, for other dev environments the instructions are similar)
+* Open Terminal
+* Change the directory to <eclipse-workspace>/src/github.com/pubnub/go/3.4.1/pubnubTests
+* Run the command "go test -i" to install the packages 
+* And then run the command "go test" to run test cases
 
 In addition to Eclipse, this has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
 
