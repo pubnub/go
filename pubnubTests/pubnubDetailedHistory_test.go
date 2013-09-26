@@ -4,7 +4,7 @@ package pubnubTests
 
 import (
     "testing"
-    "github.com/pubnub/go/3.4/pubnubMessaging"
+    "github.com/pubnub/go/pubnubMessaging"
     "strings"
     "fmt"
     "strconv"
@@ -27,9 +27,17 @@ func TestDetailedHistory(t *testing.T) {
     
     channel := "testChannel"
     message := "Test Message"
+
     returnPublishChannel := make(chan []byte)
-    go pubnubInstance.Publish(channel, message, returnPublishChannel)
-    ParseResponse(returnPublishChannel, t, pubnubInstance, channel, message, "DetailedHistory", 1)
+    errorChannel := make(chan []byte)
+    responseChannel := make(chan string)
+    waitChannel := make(chan string)
+    
+    go pubnubInstance.Publish(channel, message, returnPublishChannel, errorChannel)
+    go ParseResponse(returnPublishChannel, pubnubInstance, channel, message, "DetailedHistory", 1, responseChannel)
+    go ParseErrorResponse(errorChannel, responseChannel)  
+    go WaitForCompletion(responseChannel, waitChannel)
+    ParseWaitResponse(waitChannel, t, "DetailedHistory")    
 }
 
 // TestEncryptedDetailedHistory publish's an encrypted message to a pubnub channel and when the 
@@ -41,8 +49,15 @@ func TestEncryptedDetailedHistory(t *testing.T) {
     channel := "testChannel"
     message := "Test Message"
     returnPublishChannel := make(chan []byte)
-    go pubnubInstance.Publish(channel, message, returnPublishChannel)
-    ParseResponse(returnPublishChannel, t, pubnubInstance, channel, message, "EncryptedDetailedHistory", 1)
+    errorChannel := make(chan []byte)
+    responseChannel := make(chan string)
+    waitChannel := make(chan string)
+
+    go pubnubInstance.Publish(channel, message, returnPublishChannel, errorChannel)
+    go ParseResponse(returnPublishChannel, pubnubInstance, channel, message, "EncryptedDetailedHistory", 1, responseChannel)
+    go ParseErrorResponse(errorChannel, responseChannel)  
+    go WaitForCompletion(responseChannel, waitChannel)
+    ParseWaitResponse(waitChannel, t, "EncryptedDetailedHistory")
 }
 
 // TestDetailedHistoryFor10Messages publish's 10 unencrypted messages to a pubnub channel, and after that 
@@ -51,6 +66,7 @@ func TestEncryptedDetailedHistory(t *testing.T) {
 func TestDetailedHistoryFor10Messages(t *testing.T) {
     testName := "TestDetailedHistoryFor10Messages"
     DetailedHistoryFor10Messages(t, "", testName)
+    time.Sleep(2 * time.Second)
 }
 
 // TestDetailedHistoryFor10EncryptedMessages publish's 10 encrypted messages to a pubnub channel, and after that 
@@ -59,6 +75,7 @@ func TestDetailedHistoryFor10Messages(t *testing.T) {
 func TestDetailedHistoryFor10EncryptedMessages(t *testing.T) {
     testName := "TestDetailedHistoryFor10EncryptedMessages"
     DetailedHistoryFor10Messages(t, "enigma", testName)
+    time.Sleep(2 * time.Second)
 }
 
 // DetailedHistoryFor10Messages is a common method used by both TestDetailedHistoryFor10EncryptedMessages 
@@ -77,8 +94,15 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
     
     if(messagesSent){
         returnHistoryChannel := make(chan []byte)
-        go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, returnHistoryChannel)
-        ParseHistoryResponseForMultipleMessages(returnHistoryChannel, t, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey)
+        errorChannel := make(chan []byte)
+        responseChannel := make(chan string)
+        waitChannel := make(chan string)
+            
+        go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, returnHistoryChannel, errorChannel)
+        go ParseHistoryResponseForMultipleMessages(returnHistoryChannel, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey, responseChannel)
+        go ParseErrorResponse(errorChannel, responseChannel)  
+        go WaitForCompletion(responseChannel, waitChannel)
+        ParseWaitResponse(waitChannel, t, testName)
     }else{
         t.Error("Test '" + testName + "': failed.");
     }    
@@ -91,6 +115,7 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 func TestDetailedHistoryParamsFor10MessagesWithSeretKey(t *testing.T) {
     testName := "TestDetailedHistoryFor10MessagesWithSeretKey"
     DetailedHistoryParamsFor10Messages(t, "", "secret", testName)
+    time.Sleep(2 * time.Second)
 }
 
 // TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey publish's 10 encrypted secret keyed messages 
@@ -100,6 +125,7 @@ func TestDetailedHistoryParamsFor10MessagesWithSeretKey(t *testing.T) {
 func TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey(t *testing.T) {
     testName := "TestDetailedHistoryFor10EncryptedMessagesWithSeretKey"
     DetailedHistoryParamsFor10Messages(t, "enigma", "secret", testName)
+    time.Sleep(2 * time.Second)
 }
 
 // TestDetailedHistoryParamsFor10Messages publish's 10 unencrypted messages 
@@ -109,6 +135,7 @@ func TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey(t *testing.T) {
 func TestDetailedHistoryParamsFor10Messages(t *testing.T) {
     testName := "TestDetailedHistoryFor10Messages"
     DetailedHistoryParamsFor10Messages(t, "", "", testName)
+    time.Sleep(2 * time.Second)
 }
 
 // TestDetailedHistoryParamsFor10EncryptedMessages publish's 10 encrypted messages 
@@ -116,8 +143,9 @@ func TestDetailedHistoryParamsFor10Messages(t *testing.T) {
 // last 10 messages with time parameters between which the messages were sent. These received 
 // messages are compared to the messages sent and if all match test is successful.  
 func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
-    testName := "TestDetailedHistoryFor10EncryptedMessages"
+    testName := "TestDetailedHistoryParamsFor10EncryptedMessages"
     DetailedHistoryParamsFor10Messages(t, "enigma", "", testName)
+    time.Sleep(2 * time.Second)
 }
 
 // DetailedHistoryFor10Messages is a common method used by both TestDetailedHistoryFor10EncryptedMessages 
@@ -144,8 +172,15 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
     startMessagesFrom = 0
     if(messagesSent){
         returnHistoryChannel := make(chan []byte)
-        go pubnubInstance.History(channel, numberOfMessages, startTime, midTime, false, returnHistoryChannel)
-        ParseHistoryResponseForMultipleMessages(returnHistoryChannel, t, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey)
+        responseChannel := make(chan string)
+        errorChannel := make(chan []byte)
+        waitChannel := make(chan string)
+            
+        go pubnubInstance.History(channel, numberOfMessages, startTime, midTime, false, returnHistoryChannel, errorChannel)
+        go ParseHistoryResponseForMultipleMessages(returnHistoryChannel, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey, responseChannel)
+        go ParseErrorResponse(errorChannel, responseChannel)  
+        go WaitForCompletion(responseChannel, waitChannel)
+        ParseWaitResponse(waitChannel, t, testName)
     }else{
         t.Error("Test '" + testName + "': failed.");
     }
@@ -153,8 +188,15 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
     startMessagesFrom = 5
     if(messagesSent2){
         returnHistoryChannel2 := make(chan []byte)
-        go pubnubInstance.History(channel, numberOfMessages, midTime, endTime, false, returnHistoryChannel2)
-        ParseHistoryResponseForMultipleMessages(returnHistoryChannel2, t, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey)
+        errorChannel2 := make(chan []byte)
+        responseChannel2 := make(chan string)
+        waitChannel2 := make(chan string)
+            
+        go pubnubInstance.History(channel, numberOfMessages, midTime, endTime, false, returnHistoryChannel2, errorChannel2)
+        go ParseHistoryResponseForMultipleMessages(returnHistoryChannel2, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey, responseChannel2)
+        go ParseErrorResponse(errorChannel2, responseChannel2)  
+        go WaitForCompletion(responseChannel2, waitChannel2)
+        ParseWaitResponse(waitChannel2, t, testName)
     }else{
         t.Error("Test '" + testName + "': failed.");
     }    
@@ -164,7 +206,8 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 // value and return it.
 func GetServerTime(pubnubInstance *pubnubMessaging.Pubnub, t *testing.T, testName string) int64{
     returnTimeChannel := make(chan []byte)
-    go pubnubInstance.GetTime(returnTimeChannel)
+    errorChannel := make(chan []byte)
+    go pubnubInstance.GetTime(returnTimeChannel, errorChannel)
     return ParseServerTimeResponse(returnTimeChannel, t, testName)    
 }
 
@@ -217,7 +260,8 @@ func PublishMessages(pubnubInstance *pubnubMessaging.Pubnub, channel string, t *
         messageToSend = message + strconv.Itoa(i)
     
         returnPublishChannel := make(chan []byte)
-        go pubnubInstance.Publish(channel, messageToSend, returnPublishChannel)
+        errorChannel := make(chan []byte)
+        go pubnubInstance.Publish(channel, messageToSend, returnPublishChannel, errorChannel)
         messagesReceived++
         time.Sleep(500*time.Millisecond)
     }
@@ -241,7 +285,7 @@ func PublishMessages(pubnubInstance *pubnubMessaging.Pubnub, channel string, t *
 // startMessagesFrom: the message identifer, 
 // numberOfMessages: number of messages to send,
 // cipherKey: the cipher key if used. Can be empty.
-func ParseHistoryResponseForMultipleMessages(returnChannel chan []byte, t *testing.T, channel string, message string, testName string, startMessagesFrom int, numberOfMessages int, cipherKey string){
+func ParseHistoryResponseForMultipleMessages(returnChannel chan []byte, channel string, message string, testName string, startMessagesFrom int, numberOfMessages int, cipherKey string, responseChannel chan string){
     for {
         value, ok := <-returnChannel
         if !ok {
@@ -250,17 +294,20 @@ func ParseHistoryResponseForMultipleMessages(returnChannel chan []byte, t *testi
         if string(value) != "[]"{
             data, _, _, err := pubnubMessaging.ParseJson(value, cipherKey)
             if(err != nil) {
-                t.Error("Test '" + testName + "': failed.")
+                //t.Error("Test '" + testName + "': failed.")
+                responseChannel <- "Test '" + testName + "': failed. Message: " + err.Error()
             } else {
                 var arr []string
                 err2 := json.Unmarshal([]byte(data), &arr)
                 if(err2 != nil){
-                    t.Error("Test '" + testName + "': failed.");
+                    //t.Error("Test '" + testName + "': failed.");
+                    responseChannel <- "Test '" + testName + "': failed. Message: " + err2.Error()
                 }else {    
                     messagesReceived := 0
                     
                     if(len(arr) != numberOfMessages){
-                        t.Error("Test '" + testName + "': failed.");
+                        responseChannel <- "Test '" + testName + "': failed."
+                        //t.Error("Test '" + testName + "': failed.");
                         break
                     }
                     for i:=0; i < numberOfMessages; i++ {
@@ -271,8 +318,10 @@ func ParseHistoryResponseForMultipleMessages(returnChannel chan []byte, t *testi
                     }   
                     if(messagesReceived == numberOfMessages){
                         fmt.Println("Test '" + testName + "': passed.")
+                        responseChannel <- "Test '" + testName + "': passed."
                     } else {
-                        t.Error("Test '" + testName + "': failed.");
+                        responseChannel <- "Test '" + testName + "': failed. Returned message mismatch"
+                        //t.Error("Test '" + testName + "': failed.");
                     }
                 break
                 }
@@ -283,7 +332,7 @@ func ParseHistoryResponseForMultipleMessages(returnChannel chan []byte, t *testi
 
 // ParseHistoryResponse parses the history response from the pubnub api on the returnChannel
 // and checks if the response contains the message. If true then the test is successful. 
-func ParseHistoryResponse(returnChannel chan []byte, t *testing.T, channel string, message string, testName string){
+func ParseHistoryResponse(returnChannel chan []byte, channel string, message string, testName string, responseChannel chan string){
     for {
         value, ok := <-returnChannel
         if !ok {
@@ -292,11 +341,13 @@ func ParseHistoryResponse(returnChannel chan []byte, t *testing.T, channel strin
         if string(value) != "[]"{
             response := string(value)
             //fmt.Println("response", response)
+            
             if(strings.Contains(response, message)){
-                fmt.Println("Test '" + testName + "': passed.") 
+                //fmt.Println("Test '" + testName + "': passed.")
+                responseChannel <- "Test '" + testName + "': passed." 
                 break
             } else {
-                t.Error("Test '" + testName + "': failed.");
+                responseChannel <- "Test '" + testName + "': failed."                
             }
         }
     }
@@ -305,7 +356,7 @@ func ParseHistoryResponse(returnChannel chan []byte, t *testing.T, channel strin
 // ParseResponse parses the publish response from the pubnub api on the returnChannel and 
 // when the sent response is received, calls the history method of the pubnubMessaging 
 // package to fetch 1 message. 
-func ParseResponse(returnChannel chan []byte,t *testing.T, pubnubInstance *pubnubMessaging.Pubnub, channel string, message string, testName string, numberOfMessages int){
+func ParseResponse(returnChannel chan []byte, pubnubInstance *pubnubMessaging.Pubnub, channel string, message string, testName string, numberOfMessages int, responseChannel chan string){
     for {
         value, ok := <-returnChannel
         if !ok {
@@ -313,8 +364,10 @@ func ParseResponse(returnChannel chan []byte,t *testing.T, pubnubInstance *pubnu
         }
         if string(value) != "[]"{
             returnHistoryChannel := make(chan []byte)
-            go pubnubInstance.History(channel, 1, 0, 0, false, returnHistoryChannel)
-            ParseHistoryResponse(returnHistoryChannel, t, channel, message, testName)
+            var errorChannel = make(chan []byte)
+            go pubnubInstance.History(channel, 1, 0, 0, false, returnHistoryChannel, errorChannel)
+            go ParseHistoryResponse(returnHistoryChannel, channel, message, testName, responseChannel)
+            go ParseErrorResponse(errorChannel, responseChannel)  
             break
         }
     }
