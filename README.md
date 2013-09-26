@@ -18,19 +18,19 @@ We've put together a quick HOWTO video here https://vimeo.com/66431136
 * Built using Eclipse IDE (juno) 
 * Install golang plugin for Eclipse
 * Use the command `go get github.com/pubnub/go/pubnubMessaging` to download and install the PubNub messaging package under the $GOPATH. 
-* Go to eclipse and create a new "go project". Enter the project name.
+* Go to eclipse and create a new `go project`. Enter the project name.
 * Select the "Create new project in workspace".
 * Click Finish.
 * This will create a new project with the directories "bin", "src" and "pkg"
-* To run the demo example copy the "pubnubExample.go" file from the location $GOPATH/src/github.com/pubnub/go/pubnubExample to the "src" directory of the new project.
+* To run the demo example copy the `pubnubExample.go` file from the location `$GOPATH/src/github.com/pubnub/go/pubnubExample` to the "src" directory of the new project.
 * Under the eclipse project explorer expand the project name that you have created.
 * Expand the src directory.
-* Run "pubnubExample.go" as a "go application".
+* Run `pubnubExample.go` as a "go application".
 * Look for the application in the "Console" of the Eclipse IDE.
 
 ###Running Unit tests (instructions for Mac/Linux, for other dev environments the instructions are similar)
 * Open Terminal
-* Change the directory to $GOPATH/src/github.com/pubnub/go/pubnubTests
+* Change the directory to `$GOPATH/src/github.com/pubnub/go/pubnubTests`
 * And then run the command `go test` to run test cases
 
 ###Demo Console App
