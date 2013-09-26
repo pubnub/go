@@ -7,7 +7,7 @@ import (
     "os"
     "fmt"
     "time"
-    "github.com/pubnub/go/3.4.1/pubnubMessaging"
+    "github.com/pubnub/go/pubnubMessaging"
     "strings"
     "strconv"
     "unicode/utf16"

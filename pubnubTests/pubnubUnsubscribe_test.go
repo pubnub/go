@@ -6,7 +6,7 @@ import (
     "testing"
     "fmt"
     "strings"
-    "github.com/pubnub/go/3.4.1/pubnubMessaging"
+    "github.com/pubnub/go/pubnubMessaging"
     "time"
 )
 
