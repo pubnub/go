@@ -17,7 +17,7 @@ We've put together a quick HOWTO video here https://vimeo.com/66431136
 ###Build Instructions Summary 
 * Built using Eclipse IDE (juno) 
 * Install golang plugin for Eclipse
-* Use the command go get github.com/pubnub/go/pubnubMessaging to download and install the PubNub messaging package. This command will download and install the package under the go path. 
+* Use the command `go get github.com/pubnub/go/pubnubMessaging` to download and install the PubNub messaging package under the $GOPATH. 
 * Go to eclipse and create a new "go project". Enter the project name.
 * Select the "Create new project in workspace".
 * Click Finish.
@@ -31,7 +31,7 @@ We've put together a quick HOWTO video here https://vimeo.com/66431136
 ###Running Unit tests (instructions for Mac/Linux, for other dev environments the instructions are similar)
 * Open Terminal
 * Change the directory to $GOPATH/src/github.com/pubnub/go/pubnubTests
-* And then run the command "go test" to run test cases
+* And then run the command `go test` to run test cases
 
 ###Demo Console App
 We've included a demo console app which documents all the functionality of the client, for example:
