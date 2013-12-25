@@ -1,4 +1,4 @@
-#PubNub 3.4.1 client for Go 1.0.3, 1.1
+#PubNub 3.4.2 client for Go 1.0.3, 1.1
 
 ###Features
 * Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc
@@ -17,21 +17,23 @@ We've put together a quick HOWTO video here https://vimeo.com/66431136
 ###Build Instructions Summary 
 * Built using Eclipse IDE (juno) 
 * Install golang plugin for Eclipse
-* Use the command `go get github.com/pubnub/go/pubnubMessaging` to download and install the PubNub messaging package under the $GOPATH. 
-* Go to eclipse and create a new `go project`. Enter the project name.
-* Select the "Create new project in workspace".
-* Click Finish.
-* This will create a new project with the directories "bin", "src" and "pkg"
-* To run the demo example copy the `pubnubExample.go` file from the location `$GOPATH/src/github.com/pubnub/go/pubnubExample` to the "src" directory of the new project.
-* Under the eclipse project explorer expand the project name that you have created.
-* Expand the src directory.
-* Run `pubnubExample.go` as a "go application".
-* Look for the application in the "Console" of the Eclipse IDE.
+* Use the command go get github.com/pubnub/go to download and install the package
+* Go to eclipse and create a new "go project". Enter the project name
+* Under the contents select "Create project from existing source"
+* Browse to the directory <eclipse-workspace>/src/github.com/pubnub/go/messaging, workspace <eclipse-workspace> is the workspaces directory of eclipse.
+* Click Finish
+* Under the project explorer expand the project name
+* Expand the src directory
+* Run "pubnubExample.go" as a "go application"
+* Look for the application in the "Console" of the Eclipse IDE
 
 ###Running Unit tests (instructions for Mac/Linux, for other dev environments the instructions are similar)
 * Open Terminal
-* Change the directory to `$GOPATH/src/github.com/pubnub/go/pubnubTests`
-* And then run the command `go test` to run test cases
+* Change the directory to <eclipse-workspace>/src/github.com/pubnub/go/3.4.2/tests
+* Run the command "go test -i" to install the packages 
+* And then run the command "go test" to run test cases
+
+In addition to Eclipse, this has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
 
 ###Demo Console App
 We've included a demo console app which documents all the functionality of the client, for example:
@@ -51,7 +53,7 @@ We've included a demo console app which documents all the functionality of the c
 ###Quick Implementation Examples
 * Init
 ```
-        pubInstance := pubnubMessaging.PubnubInit(<YOUR PUBLISH KEY>, <YOUR SUBSCRIBE KEY>, <SECRET KEY>, <CIPHER>, <SSL ON/OFF>, <UUID>)
+        pubInstance := messaging.PubnubInit(<YOUR PUBLISH KEY>, <YOUR SUBSCRIBE KEY>, <SECRET KEY>, <CIPHER>, <SSL ON/OFF>, <UUID>)
 ```
 
 * Publish
