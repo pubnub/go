@@ -23,37 +23,54 @@ We've put together a quick HOWTO video here https://vimeo.com/66431136
 ###Run the example
 * Built using Eclipse IDE (juno) 
 * Install golang plugin for Eclipse
-* Using Eclipse Project Explorer browse to the directory <Go-workspace>/src/github.com/pubnub/go/messaging/example, workspace <Go-workspace> is the workspaces directory of go.
+* Using Eclipse Project Explorer browse to the directory 
+```
+<Go-workspace>/src/github.com/pubnub/go/messaging/example
+```, where ```<Go-workspace>``` is the workspaces directory of go.
 * Run "pubnubExample.go" as a "go application"
 * Look for the application in the "Console" of the Eclipse IDE
 
 ###Running Unit tests (instructions for Mac/Linux, for other dev environments the instructions are similar)
 * Open Terminal.
-* Change the directory to <eclipse-workspace>/src/github.com/pubnub/go/3.4.2/tests.
+* Change the directory to 
+```
+<eclipse-workspace>/src/github.com/pubnub/go/3.4.2/tests.
+```
 * Run the command "go test -i" to install the packages. 
 * And then run the command "go test" to run test cases.
 
 ###Use pubnub in your project
 * Install golang plugin for Eclipse.
 * Use the command go get github.com/pubnub/go/messaging to download and install the package.
-* Open terminal/command prompt. Browse to the directory <Go-workspace>/src/github.com/pubnub/go/messaging/
+* Open terminal/command prompt. Browse to the directory 
+```
+<Go-workspace>/src/github.com/pubnub/go/messaging/
+```
 * Run the command "go install".
 * Go to eclipse and create a new "go project". Enter the project name.
 * Create a new "go file" in the "src" directory of the new project. For this example choose the "Command Source File" under the "Source File Type" with "Empty Main Function".
 * Click Finish
 * On this file in eclipse.
 * Under import add the 2 lines
+
 ```
 "fmt"
+
 "github.com/pubnub/go/messaging"
 ```
+
 * And under main add the following line
+
 ```
 fmt.Println("PubNub Api for go;", messaging.VersionInfo())
 ```
+
 * Run the example as a "go application"
 * This application will print the version info of the PubNub Api.
-* For the detailed usage of the PunNub API, please refer to the rest of the ReadMe or the pubnubExample.go file under <Go-workspace>/src/github.com/pubnub/go/messaging/exampl
+* For the detailed usage of the PunNub API, please refer to the rest of the ReadMe or the pubnubExample.go file under 
+```
+<Go-workspace>/src/github.com/pubnub/go/messaging/example
+```
 
 
 In addition to Eclipse, this has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
