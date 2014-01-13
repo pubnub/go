@@ -1,5 +1,8 @@
 #PubNub 3.4.2 client for Go 1.0.3, 1.1
 
+###Important changes in this version:
+The package name has been modified to "messaging" from "pubnubMessaging". 
+
 ###Features
 * Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc
 * This version is not backward compatible. The major change is in the func calls. A new parameter "error callback" is added to the major functions of the pubnub class.
