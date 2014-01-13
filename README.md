@@ -18,7 +18,7 @@ The package name has been modified to "messaging" from "pubnubMessaging".
 We've put together a quick HOWTO video here https://vimeo.com/66431136
 
 ###Get Package
-* Use the command go get github.com/pubnub/go/messaging to download and install the package
+* Use the command ```go get github.com/pubnub/go/messaging``` to download and install the package
 
 ###Run the example
 * Built using Eclipse IDE (juno) 
@@ -36,8 +36,8 @@ We've put together a quick HOWTO video here https://vimeo.com/66431136
 ```
 <eclipse-workspace>/src/github.com/pubnub/go/3.4.2/tests.
 ```
-* Run the command "go test -i" to install the packages. 
-* And then run the command "go test" to run test cases.
+* Run the command ```go test -i``` to install the packages. 
+* And then run the command ```go test``` to run test cases.
 
 ###Use pubnub in your project
 * Install golang plugin for Eclipse.
@@ -46,7 +46,7 @@ We've put together a quick HOWTO video here https://vimeo.com/66431136
 ```
 <Go-workspace>/src/github.com/pubnub/go/messaging/
 ```
-* Run the command "go install".
+* Run the command ```go install```.
 * Go to eclipse and create a new "go project". Enter the project name.
 * Create a new "go file" in the "src" directory of the new project. For this example choose the "Command Source File" under the "Source File Type" with "Empty Main Function".
 * Click Finish
@@ -55,7 +55,6 @@ We've put together a quick HOWTO video here https://vimeo.com/66431136
 
 ```
 "fmt"
-
 "github.com/pubnub/go/messaging"
 ```
 
