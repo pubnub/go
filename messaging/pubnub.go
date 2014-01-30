@@ -337,6 +337,71 @@ func (pub *Pubnub) Abort() {
 	}
 }
 
+// Grant global access rights
+//
+func (pub *Pubnub) Grant_global(channel string, read_perm bool, write_perm bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+	pub._auth(channel, "", read_perm, write_perm, ttl, callbackChannel, errorChannel)
+}
+
+// Grant auth access rights
+func (pub *Pubnub) Grant(channel string, auth string, read_perm bool, write_perm bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+	pub._auth(channel, auth, read_perm, write_perm, ttl, callbackChannel, errorChannel)
+}
+
+// Revoke auth access rights
+func (pub *Pubnub) Revoke(channel string, auth string, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+	pub._auth(channel, auth, false, false, ttl, callbackChannel, errorChannel)
+}
+
+// Pubnub's auth call
+func (pub *Pubnub) _auth(channel string, auth string, read_perm bool, write_perm bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+
+	read_str := "0"
+	if read_perm {
+		read_str = "1"
+	}
+	write_str := "0"
+	if write_perm {
+		write_str = "1"
+	}
+
+	params := ""
+
+	if auth != "" {
+		params = "auth=" + auth
+		params += "&channel=" + channel
+	} else {
+		params += "channel=" + channel
+	}
+
+	params += "&r=" + read_str
+
+	params += "&timestamp=" + fmt.Sprintf("%d", time.Now().Unix())
+
+	if ttl > -1 {
+		params += "&ttl=" + strconv.Itoa(ttl)
+	}
+
+	params += "&w=" + write_str
+
+	// Sign request
+	raw_sig := pub.subscribeKey + "\n" + pub.publishKey + "\ngrant\n" + params
+	hmacSha256 := hmac.New(sha256.New, []byte(pub.secretKey))
+	io.WriteString(hmacSha256, raw_sig)
+	raw_sig = base64.StdEncoding.EncodeToString(hmacSha256.Sum(nil))
+	// Cleanup signature
+	signature := strings.Replace(strings.Replace(raw_sig, "+", "-", -1), "/", "_", -1)
+	// Add to params
+	params += "&signature=" + signature
+
+	value, _, err := pub.httpRequest("/v1/auth/grant/sub-key/"+pub.subscribeKey+"?"+params, false)
+	if err != nil {
+		pub.sendResponseToChannel(errorChannel, "", 10, err.Error(), "")
+	} else {
+		callbackChannel <- []byte(fmt.Sprintf("%s", value))
+	}
+}
+
 // GetTime is the struct Pubnub's instance method that calls the ExecuteTime
 // method to process the time request.
 //.
@@ -1867,7 +1932,6 @@ func unpadPKCS7(data []byte) []byte {
 func getHmacSha256(secretKey string, input string) string {
 	hmacSha256 := hmac.New(sha256.New, []byte(secretKey))
 	io.WriteString(hmacSha256, input)
-
 	return fmt.Sprintf("%x", hmacSha256.Sum(nil))
 }
 
