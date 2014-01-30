@@ -87,6 +87,9 @@ We've included a demo console app which documents all the functionality of the c
 * Presence-Unsubscribe
 * Time
 * Disconnect/Retry
+* Grant_global
+* Grant
+* Revoke
 * Exit
 
 ###Quick Implementation Examples
@@ -209,12 +212,51 @@ We've included a demo console app which documents all the functionality of the c
 ```
 
 * Disconnect/Retry
+
 ```
         //Init pubnub instance
 
         pubInstance.CloseExistingConnection() 
 ```
 
+* Grant_global
+
+```
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var callbackChannel = make(chan []byte)
+        go pubInstance.Grant_global(<pubnub channel>, <read_perm>, <write_perm>, <ttl>, callbackChannel, errorChannel)
+        go ParseResponse(callbackChannel)
+        go ParseErrorResponse(errorChannel) 
+        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+```
+
+* Grant
+
+```
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var callbackChannel = make(chan []byte)
+        go pubInstance.Grant(<pubnub channel>, <auth-key>, <read_perm>, <write_perm>, <ttl>, callbackChannel, errorChannel)
+        go ParseResponse(callbackChannel)
+        go ParseErrorResponse(errorChannel) 
+        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+```
+
+* Revoke
+
+```
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var callbackChannel = make(chan []byte)
+        go pubInstance.Revoke(<pubnub channel>, <auth-key>, <ttl>, callbackChannel, errorChannel)
+        go ParseResponse(callbackChannel)
+        go ParseErrorResponse(errorChannel) 
+        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+```
 * Exit
 ```
         //Init pubnub instance
