@@ -134,7 +134,7 @@ func ParseErrorResponse(channel chan []byte){
 Initialize a new Pubnub instance.
 
 ```go
-        pubInstance := messaging.PubnubInit(<YOUR PUBLISH KEY>, <YOUR SUBSCRIBE KEY>, <SECRET KEY>, <CIPHER>, <SSL ON/OFF>, <UUID>)
+        pubInstance := messaging.NewPubnub(<YOUR PUBLISH KEY>, <YOUR SUBSCRIBE KEY>, <SECRET KEY>, <CIPHER>, <SSL ON/OFF>, <UUID>)
 ```
 
 #### Publish
