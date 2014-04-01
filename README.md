@@ -51,8 +51,11 @@ We've put together a quick HOWTO video here https://vimeo.com/66431136
 * Under import add the 2 lines
 
 ```go
-"fmt"
-"github.com/pubnub/go/messaging"
+import (
+    // Other imports...
+    "fmt"
+    "github.com/pubnub/go/messaging"
+)
 ```
 
 * And under main add the following line
