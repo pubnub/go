@@ -153,7 +153,7 @@ Initialize a new Pubnub instance.
         // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
 ```
 
-#### Subsribe
+#### Subscribe
 
 ```go
         //Init pubnub instance
