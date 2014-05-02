@@ -17,7 +17,7 @@ The package name has been modified to "messaging" from "pubnubMessaging".
 
 ###Quick Start Video
 
-We've put together a quick HOWTO video here https://vimeo.com/66431136
+We've put together a quick HOWTO video here http://vimeo.com/93523019
 
 ###Get Package
 
