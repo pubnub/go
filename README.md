@@ -279,10 +279,10 @@ Initialize a new Pubnub instance.
         //Init pubnub instance
 
         var errorChannel = make(chan []byte)
-	var pamChannel = make(chan []byte)
-	go pub.GrantSubscribe(channels, true, true, 60, pamChannel, errorChannel)
-	go parseResponsePam(pamChannel)
-	go parseErrorResponse(errorChannel)
+        var pamChannel = make(chan []byte)
+        go pub.GrantSubscribe(channels, true, true, 60, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
 ```
 
 #### RevokeSubscribe
@@ -290,21 +290,21 @@ Initialize a new Pubnub instance.
         //Init pubnub instance
 
         var errorChannel = make(chan []byte)
-	var pamChannel = make(chan []byte)
-	go pub.GrantSubscribe(channels, false, false, -1, pamChannel, errorChannel)
-	go parseResponsePam(pamChannel)
-	go parseErrorResponse(errorChannel)
+        var pamChannel = make(chan []byte)
+        go pub.GrantSubscribe(channels, false, false, -1, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
 ```
 
 #### AuditSubscribe
 ```go
         //Init pubnub instance
 
-	var errorChannel = make(chan []byte)
-	var pamChannel = make(chan []byte)
-	go pub.AuditSubscribe(channels, pamChannel, errorChannel)
-	go parseResponsePam(pamChannel)
-	go parseErrorResponse(errorChannel)
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.AuditSubscribe(channels, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
 ```
 
 #### GrantPresence
@@ -312,10 +312,10 @@ Initialize a new Pubnub instance.
         //Init pubnub instance
 
         var errorChannel = make(chan []byte)
-	var pamChannel = make(chan []byte)
-	go pub.GrantPresence(channels, true, true, 60, pamChannel, errorChannel)
-	go parseResponsePam(pamChannel)
-	go parseErrorResponse(errorChannel)
+        var pamChannel = make(chan []byte)
+        go pub.GrantPresence(channels, true, true, 60, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
 ```
 
 #### RevokePresence
@@ -323,35 +323,35 @@ Initialize a new Pubnub instance.
         //Init pubnub instance
 
         var errorChannel = make(chan []byte)
-	var pamChannel = make(chan []byte)
-	go pub.GrantPresence(channels, false, false, -1, pamChannel, errorChannel)
-	go parseResponsePam(pamChannel)
-	go parseErrorResponse(errorChannel)
+        var pamChannel = make(chan []byte)
+        go pub.GrantPresence(channels, false, false, -1, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
 ```
 
 #### AuditPresence
 ```go
         //Init pubnub instance
 
-	var errorChannel = make(chan []byte)
-	var pamChannel = make(chan []byte)
-	go pub.AuditPresence(channels, pamChannel, errorChannel)
-	go parseResponsePam(pamChannel)
-	go parseErrorResponse(errorChannel)
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.AuditPresence(channels, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
 ```
 
 #### SetAuthKey
 ```go
         //Init pubnub instance
 
-	pub.SetAuthenticationKey("authkey")
+        pub.SetAuthenticationKey("authkey")
 ```
 
 #### GetAuthKey
 ```go
         //Init pubnub instance
 
-	fmt.Println(pub.GetAuthenticationKey())
+        fmt.Println(pub.GetAuthenticationKey())
 ```
 
 #### Exit
