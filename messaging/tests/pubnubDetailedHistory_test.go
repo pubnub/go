@@ -91,7 +91,6 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	channel := "testChannel"
 
 	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
-
 	if messagesSent {
 		returnHistoryChannel := make(chan []byte)
 		errorChannel := make(chan []byte)
