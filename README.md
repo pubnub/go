@@ -14,7 +14,7 @@ The package name has been modified to "messaging" from "pubnubMessaging".
 * An example of Disconnect/Retry has been added in the example 
 * Multiple messages received in a single response from the server will now be split into individual messages
 * Non 200 response will now be bubbled to the client
-* PAM
+* PAM: To use the PAM features in the example please enable PAM from the Pubnub admin console (https://admin.pubnub.com) and replace the publish, subscribe and secret keys in example/pubnubExample.go (line 124).
 
 ###Quick Start Video
 
