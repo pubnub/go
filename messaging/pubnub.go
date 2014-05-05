@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Build Date: Dec 25, 2013
-// Version: 3.4.2
+// Build Date: May 2, 2014
+// Version: 3.4.3
 package messaging
 
 //TODO:
@@ -145,7 +145,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "Version: 3.4.2; Build Date: Dec 25, 2013;"
+	return "Version: 3.4.3; Build Date: May 2, 2014;"
 }
 
 // Pubnub structure.
@@ -154,6 +154,7 @@ func VersionInfo() string {
 // subscribeKey stores the user specific Subscribe Key in the current instance.
 // secretKey stores the user specific Secret Key in the current instance.
 // cipherKey stores the user specific Cipher Key in the current instance.
+// authenticationKey stores the Authentication Key in the current instance.
 // isSSL is true if enabled, else is false for the current instance.
 // uuid is the unique identifier, it can be a custom value or is automatically generated.
 // subscribedChannels keeps a list of subscribed Pubnub channels by the user in the a comma separated string.
@@ -177,6 +178,7 @@ type Pubnub struct {
 	subscribeKey           string
 	secretKey              string
 	cipherKey              string
+	authenticationKey      string
 	isSSL                  bool
 	uuid                   string
 	subscribedChannels     string
@@ -267,6 +269,26 @@ func SetResumeOnReconnect(val bool) {
 	resumeOnReconnect = val
 }
 
+// SetAuthenticationKey sets the value of authentication key
+func (pub *Pubnub) SetAuthenticationKey(val string) {
+	pub.authenticationKey = val
+}
+
+// GetAuthenticationKey gets the value of authentication key
+func (pub *Pubnub) GetAuthenticationKey() string {
+	return pub.authenticationKey
+}
+
+// SetUUID sets the value of UUID
+func (pub *Pubnub) SetUUID(val string) {
+	pub.uuid = val
+}
+
+// GetUUID returns the value of UUID
+func (pub *Pubnub) GetUUID() string {
+	return pub.uuid
+}
+
 // SetSubscribeTimeout sets the value of subscribeTimeout.
 func SetSubscribeTimeout(val int64) {
 	subscribeTimeout = val
@@ -337,6 +359,170 @@ func (pub *Pubnub) Abort() {
 	}
 }
 
+// GrantSubscribe is used to give a subscribe channel read, write permissions
+// and set TTL values for it. To grant a permission set read or write as true
+// to revoke all perms set read and write false and ttl as -1
+//
+// channel is options and if not provided will set the permissions at subkey level
+func (pub *Pubnub) GrantSubscribe(channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+	pub.executePam(channel, read, write, ttl, callbackChannel, errorChannel, false)
+}
+
+// AuditSubscribe will make a call to display the permissions for a channel or subkey
+//
+// channel is options and if not provided will set the permissions at subkey level
+func (pub *Pubnub) AuditSubscribe(channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+	pub.executePam(channel, false, false, -1, callbackChannel, errorChannel, true)
+}
+
+// GrantPresence is used to give a presence channel read, write permissions
+// and set TTL values for it. To grant a permission set read or write as true
+// to revoke all perms set read and write false and ttl as -1
+//
+// channel is options and if not provided will set the permissions at subkey level
+func (pub *Pubnub) GrantPresence(channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+	channel2 := convertToPresenceChannel(channel)
+	pub.executePam(channel2, read, write, ttl, callbackChannel, errorChannel, false)
+}
+
+// AuditPresence will make a call to display the permissions for a channel or subkey
+//
+// channel is options and if not provided will set the permissions at subkey level
+func (pub *Pubnub) AuditPresence(channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+	channel2 := convertToPresenceChannel(channel)
+	pub.executePam(channel2, false, false, -1, callbackChannel, errorChannel, true)
+}
+
+// removeSpacesFromChannelNames will remove the empty spaces from the channels (sent as a comma separated string)
+// will return the channels in a comma separated stirng
+//
+func removeSpacesFromChannelNames(channel string) string {
+	var retChannel string
+	channelArray := strings.Split(channel, ",")
+	comma := ""
+	for i := 0; i < len(channelArray); i++ {
+		if i >= 1 {
+			comma = ","
+		}
+		if strings.TrimSpace(channelArray[i]) != "" {
+			retChannel = fmt.Sprintf("%s%s%s", retChannel, comma, channelArray[i])
+		}
+	}
+
+	return retChannel
+}
+
+// convertToPresenceChannel will add the presence suffix to the channel(s)
+// multiple channels are provided as a comma separated string
+// returns comma separated string
+func convertToPresenceChannel(channel string) string {
+	var retChannel string
+	channelArray := strings.Split(channel, ",")
+	comma := ""
+	for i := 0; i < len(channelArray); i++ {
+		if i >= 1 {
+			comma = ","
+		}
+		if strings.TrimSpace(channelArray[i]) != "" {
+			retChannel = fmt.Sprintf("%s%s%s%s", retChannel, comma, channelArray[i], presenceSuffix)
+		}
+	}
+
+	return retChannel
+}
+
+// executePam is the main method which is called for all PAM requests
+//
+// for audit request the isAudit parameter should be true
+func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte, isAudit bool) {
+	signature := ""
+	noChannel := true
+	grantOrAudit := "grant"
+	authParam := ""
+	channelParam := ""
+	readParam := ""
+	writeParam := ""
+	timestampParam := ""
+	ttlParam := ""
+
+	var params bytes.Buffer
+
+	if strings.TrimSpace(pub.secretKey) == "" {
+		message := "Secret key is required"
+		if noChannel {
+			pub.sendResponseToChannel(errorChannel, "", 10, message, "")
+		} else {
+			pub.sendResponseToChannel(errorChannel, channel, 9, message, "")
+		}
+		return
+	}
+
+	if strings.TrimSpace(pub.authenticationKey) != "" {
+		authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.authenticationKey))
+	}
+
+	if strings.TrimSpace(channel) != "" {
+		channelParam = fmt.Sprintf("channel=%s&", url.QueryEscape(channel))
+		noChannel = false
+	}
+
+	var pamURLBuffer bytes.Buffer
+	pamURLBuffer.WriteString("/v1/auth/")
+
+	if isAudit {
+		grantOrAudit = "audit"
+		timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
+	} else {
+		timestampParam = fmt.Sprintf("&timestamp=%s", getUnixTimeStamp())
+
+		if read {
+			readParam = "r=1"
+		} else {
+			readParam = "r=0"
+		}
+
+		if write {
+			writeParam = "&w=1"
+		} else {
+			writeParam = "&w=0"
+		}
+		if ttl != -1 {
+			ttlParam = fmt.Sprintf("&ttl=%s", strconv.Itoa(ttl))
+		}
+	}
+	pamURLBuffer.WriteString(grantOrAudit)
+	params.WriteString(fmt.Sprintf("%s%s%s%s%s%s", authParam, channelParam, readParam, timestampParam, ttlParam, writeParam))
+	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.subscribeKey, pub.publishKey, grantOrAudit, params.String())
+	signature = getHmacSha256(pub.secretKey, raw)
+
+	params.WriteString("&")
+	params.WriteString("signature=")
+	params.WriteString(signature)
+
+	pamURLBuffer.WriteString("/sub-key/")
+	pamURLBuffer.WriteString(pub.subscribeKey)
+	pamURLBuffer.WriteString("?")
+	pamURLBuffer.WriteString(params.String())
+
+	value, _, err := pub.httpRequest(pamURLBuffer.String(), false)
+	if err != nil {
+		message := err.Error()
+		if noChannel {
+			pub.sendResponseToChannel(errorChannel, "", 10, message, "")
+		} else {
+			pub.sendResponseToChannel(errorChannel, channel, 9, message, "")
+		}
+	} else {
+		callbackChannel <- []byte(fmt.Sprintf("%s", value))
+	}
+}
+
+// getUnixTimeStamp gets the unix timestamp
+//
+func getUnixTimeStamp() string {
+	return fmt.Sprintf("%d", time.Now().Unix())
+}
+
 // GetTime is the struct Pubnub's instance method that calls the ExecuteTime
 // method to process the time request.
 //.
@@ -396,7 +582,11 @@ func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, j
 	if urlErr != nil {
 		errorChannel <- []byte(fmt.Sprintf("%s", urlErr))
 	} else {
-		publishURL.Path += string(jsonBytes)
+		publishURL.Path = fmt.Sprintf("%s%s", publishURL.Path, string(jsonBytes))
+		q := publishURL.Query()
+		q = pub.addAuthParamToQuery(q)
+		publishURL.RawQuery = q.Encode()
+
 		value, responseCode, err := pub.httpRequest(publishURL.String(), false)
 
 		if (responseCode != 200) || (err != nil) {
@@ -626,6 +816,8 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string, action 
 			isPresence := false
 			if responseChannel == nil {
 				responseChannel, isPresence = pub.getChannelForPubnubChannel(channel, true)
+			} else {
+				isPresence = strings.Contains(channel, presenceSuffix)
 			}
 			if isPresence {
 				presence = "Presence notifications for channel "
@@ -646,6 +838,8 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string, action 
 			isPresence := false
 			if responseChannel == nil {
 				responseChannel, isPresence = pub.getChannelForPubnubChannel(channel, false)
+			} else {
+				isPresence = strings.Contains(channel, presenceSuffix)
 			}
 			if isPresence {
 				channel = strings.Replace(channel, presenceSuffix, "", -1)
@@ -819,6 +1013,36 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error, errChannel chan []byte) 
 	return bRet, bTimeOut
 }
 
+// resetRetryAndSendResponse resets the retryCount and sends the reconnection
+// message to all the channels
+func (pub *Pubnub) resetRetryAndSendResponse() bool {
+	if retryCount > 0 {
+		pub.sendResponseToChannel(nil, pub.subscribedChannels, 6, "", "")
+		retryCount = 0
+		return true
+	}
+	return false
+}
+
+// retryLoop checks for the internet connection and intiates the rety logic of
+// connection fails
+func (pub *Pubnub) retryLoop(errorChannel chan []byte) {
+	for {
+		if len(pub.subscribedChannels) > 0 {
+			_, responseCode, err := pub.httpRequest("", false)
+			if (err != nil) && (responseCode != 403) && (retryCount <= 0) {
+				pub.checkForTimeoutAndRetries(err, errorChannel)
+				pub.CloseExistingConnection()
+			} else if (err == nil) && (retryCount > 0) {
+				pub.resetRetryAndSendResponse()
+			}
+			sleepForAWhile(false)
+		} else {
+			break
+		}
+	}
+}
+
 // startSubscribeLoop starts a continuous loop that handles the reponse from pubnub
 // subscribe/presence subscriptions.
 //
@@ -841,6 +1065,9 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error, errChannel chan []byte) 
 func (pub *Pubnub) startSubscribeLoop(channels string, errorChannel chan []byte) {
 	channelCount := len(pub.subscribedChannels)
 	channelsModified := false
+
+	go pub.retryLoop(errorChannel)
+
 	for {
 		if len(pub.subscribedChannels) > 0 {
 			if len(pub.subscribedChannels) != channelCount {
@@ -851,7 +1078,6 @@ func (pub *Pubnub) startSubscribeLoop(channels string, errorChannel chan []byte)
 			value, responseCode, err := pub.httpRequest(subscribeURL, true)
 
 			if (responseCode != 200) || (err != nil) {
-
 				if err != nil {
 					bNonTimeout, bTimeOut := pub.checkForTimeoutAndRetries(err, errorChannel)
 					if strings.Contains(err.Error(), connectionAborted) {
@@ -873,9 +1099,17 @@ func (pub *Pubnub) startSubscribeLoop(channels string, errorChannel chan []byte)
 						pub.sendResponseToChannel(nil, pub.subscribedChannels, 9, err.Error(), strconv.Itoa(responseCode))
 						sleepForAWhile(true)
 					}
+				} else {
+					if responseCode != 403 {
+						pub.resetRetryAndSendResponse()
+					}
+					pub.CloseExistingConnection()
+					pub.sendResponseToChannel(nil, pub.subscribedChannels, 9, string(value), strconv.Itoa(responseCode))
+					sleepForAWhile(false)
 				}
 				continue
 			} else if string(value) != "" {
+				reconnected := pub.resetRetryAndSendResponse()
 				if string(value) == "[]" {
 					sleepForAWhile(false)
 					continue
@@ -889,10 +1123,12 @@ func (pub *Pubnub) startSubscribeLoop(channels string, errorChannel chan []byte)
 						channelsModified = false
 					}
 					if sentTimeToken == "0" {
-						pub.sendResponseToChannel(nil, pub.subscribedChannels, 2, "", "")
+						if !reconnected {
+							pub.sendResponseToChannel(nil, pub.subscribedChannels, 2, "", "")
+						}
 						pub.newSubscribedChannels = ""
 					}
-					retryCount = 0
+					//retryCount = 0
 					continue
 				}
 				pub.parseHTTPResponse(value, data, channelName, returnTimeToken, errJSON, errorChannel)
@@ -935,11 +1171,37 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 		subscribeURLBuffer.WriteString(pub.timeToken)
 	}
 
+	queryStringInit := false
 	if pub.uuid != "" {
 		subscribeURLBuffer.WriteString("?uuid=")
 		subscribeURLBuffer.WriteString(pub.uuid)
+		queryStringInit = true
 	}
+	subscribeURLBuffer.WriteString(pub.addAuthParam(queryStringInit))
+
 	return subscribeURLBuffer.String(), sentTimeToken
+}
+
+func (pub *Pubnub) addAuthParamToQuery(q url.Values) url.Values {
+	if strings.TrimSpace(pub.authenticationKey) != "" {
+		q.Set("auth", pub.authenticationKey)
+		return q
+	}
+	return q
+}
+
+func (pub *Pubnub) addAuthParam(queryStringInit bool) string {
+	if strings.TrimSpace(pub.authenticationKey) != "" {
+		return fmt.Sprintf("%sauth=%s", checkQuerystringInit(queryStringInit), url.QueryEscape(pub.authenticationKey))
+	}
+	return ""
+}
+
+func checkQuerystringInit(queryStringInit bool) string {
+	if queryStringInit {
+		return "&"
+	}
+	return "?"
 }
 
 // parseHttpResponse parses the http response from the orgin for the subscribe resquest
@@ -1350,6 +1612,7 @@ func (pub *Pubnub) sendLeaveRequest(channels string) ([]byte, int, error) {
 	subscribeURLBuffer.WriteString(channels)
 	subscribeURLBuffer.WriteString("/leave?uuid=")
 	subscribeURLBuffer.WriteString(pub.uuid)
+	subscribeURLBuffer.WriteString(pub.addAuthParam(true))
 
 	return pub.httpRequest(subscribeURLBuffer.String(), false)
 }
@@ -1410,6 +1673,7 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start int64, end in
 		parameters.WriteString("&end=")
 		parameters.WriteString(fmt.Sprintf("%d", end))
 	}
+	parameters.WriteString(pub.addAuthParam(true))
 
 	var historyURLBuffer bytes.Buffer
 	historyURLBuffer.WriteString("/v2/history")
@@ -1477,6 +1741,7 @@ func (pub *Pubnub) executeHereNow(channel string, callbackChannel chan []byte, e
 	hereNowURL.WriteString(pub.subscribeKey)
 	hereNowURL.WriteString("/channel/")
 	hereNowURL.WriteString(channel)
+	hereNowURL.WriteString(pub.addAuthParam(false))
 
 	value, _, err := pub.httpRequest(hereNowURL.String(), false)
 
@@ -1667,6 +1932,7 @@ func ParseInterfaceData(myInterface interface{}) string {
 // response error code if any.
 // error if any.
 func (pub *Pubnub) httpRequest(requestURL string, isSubscribe bool) ([]byte, int, error) {
+	//fmt.Println("orig+url:" + pub.origin + requestURL)
 	contents, responseStatusCode, err := connect(pub.origin+requestURL, isSubscribe)
 
 	if err != nil {
@@ -1680,10 +1946,6 @@ func (pub *Pubnub) httpRequest(requestURL string, isSubscribe bool) ([]byte, int
 			return nil, responseStatusCode, fmt.Errorf(connectionResetByPeerU)
 		} else {
 			return nil, responseStatusCode, err
-		}
-	} else {
-		if (retryCount > 0) && (isSubscribe) {
-			pub.sendResponseToChannel(nil, pub.subscribedChannels, 6, "", "")
 		}
 	}
 
@@ -1716,7 +1978,7 @@ func setOrGetTransport(isSubscribe bool) http.RoundTripper {
 					conn = c
 				}
 			} else {
-				err = fmt.Errorf(errorInInitializing, err.Error())
+				err = fmt.Errorf("%s%s", errorInInitializing, err.Error())
 			}
 
 			if err != nil {
@@ -1867,8 +2129,10 @@ func unpadPKCS7(data []byte) []byte {
 func getHmacSha256(secretKey string, input string) string {
 	hmacSha256 := hmac.New(sha256.New, []byte(secretKey))
 	io.WriteString(hmacSha256, input)
-
-	return fmt.Sprintf("%x", hmacSha256.Sum(nil))
+	rawSig := base64.StdEncoding.EncodeToString(hmacSha256.Sum(nil))
+	signature := strings.Replace(strings.Replace(rawSig, "+", "-", -1), "/", "_", -1)
+	return signature
+	//return fmt.Sprintf("%x", hmacSha256.Sum(nil))
 }
 
 // GenUuid generates a unique UUID

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 	"unicode/utf16"
-	"unicode/utf8"
+	"unicode/utf8" 
 )
 
 // connectChannels: the conected pubnub channels, multiple channels are stored separated by comma.
@@ -121,7 +121,7 @@ func Init() (b bool) {
 				messaging.SetSubscribeTimeout(int64(val))
 			}
 			messaging.SetOrigin("pubsub.pubnub.com")
-			var pubInstance = messaging.NewPubnub("demo", "demo", "", cipher, ssl, uuid)
+			var pubInstance = messaging.NewPubnub("demo", "demo", "demo", cipher, ssl, uuid)
 			pub = pubInstance
 
 			SetupProxy()
@@ -226,6 +226,30 @@ func askChannel() (string, error) {
 	return string(channels), nil
 }
 
+// AskChannel asks the user to channel name.
+// If the channel(s) are not provided the channel(s) provided by the user
+// at the beginning will be used.
+// returns the read channel(s), or error
+func askChannelOptional() (string, error) {
+	fmt.Println("Do you want to use the channels entered in the beginning, enter 'y' for yes. Default is no")
+	var enableRead = "n"
+	fmt.Scanln(&enableRead)
+	
+	if enableRead == "y" || enableRead == "Y" {
+		fmt.Println("Using channel(s): ", connectChannels)
+		return connectChannels, nil
+	} 
+
+	fmt.Println("Please enter the channel name. You can leave it blank.")
+	reader := bufio.NewReader(os.Stdin)
+	channels, _, errReadingChannel := reader.ReadLine()
+	if errReadingChannel != nil {
+		fmt.Println("Error channel: ", errReadingChannel.Error())
+		return "", errReadingChannel
+	}
+	return string(channels), nil
+}
+
 // AskPort asks the user to enter the proxy port number.
 // It validates the input and returns the value if validated.
 func askNumber(what string) int64 {
@@ -243,6 +267,48 @@ func askNumber(what string) int64 {
 	}
 	fmt.Println(bi.Int64())
 	return bi.Int64()
+}
+
+// askOtherPamInputs asks the user for read and write access
+// and the ttl values
+// returns read, write and ttl
+func askOtherPamInputs() (bool, bool, int) {
+	var read, write bool
+	var ttl int
+	
+	fmt.Println("Read access, enter 'y' for yes, default is no")
+	var enableRead = "n"
+	fmt.Scanln(&enableRead)
+	
+	if enableRead == "y" || enableRead == "Y" {
+		read = true;
+	} else {
+		read = false;
+	}
+
+	fmt.Println("Write access, enter 'y' for yes, default is no")
+	var enableWrite = "n"
+	fmt.Scanln(&enableWrite)
+	
+	if enableWrite == "y" || enableWrite == "Y" {
+		write = true;
+	} else {
+		write = false;
+	}	
+	
+	var input string
+
+	fmt.Println("Enter TTL in minutes. Default = 1440 minutes (24 hours)")
+	fmt.Scanln(&input)
+
+	if ival, err := strconv.Atoi(input); err == nil {
+		ttl = ival
+	} else {
+		ttl = 1440
+	}
+	
+	return read, write, ttl
+	
 }
 
 // UTF16BytesToString converts UTF-16 encoded bytes, in big or little endian byte order,
@@ -272,7 +338,15 @@ func ReadLoop() {
 	fmt.Println("ENTER 8 FOR Presence-Unsubscribe")
 	fmt.Println("ENTER 9 FOR Time")
 	fmt.Println("ENTER 10 FOR Disconnect/Retry")
-	fmt.Println("ENTER 11 FOR Exit")
+	fmt.Println("ENTER 11 FOR Grant Subscribe")
+	fmt.Println("ENTER 12 FOR Revoke Subscribe")
+	fmt.Println("ENTER 13 FOR Audit Subscribe")
+	fmt.Println("ENTER 14 FOR Grant Presence")
+	fmt.Println("ENTER 15 FOR Revoke Presence")
+	fmt.Println("ENTER 16 FOR Audit Presence")
+	fmt.Println("ENTER 17 FOR Auth key")
+	fmt.Println("ENTER 18 FOR Show Auth key")
+	fmt.Println("ENTER 99 FOR Exit")
 	fmt.Println("")
 	reader := bufio.NewReader(os.Stdin)
 
@@ -283,11 +357,11 @@ func ReadLoop() {
 		breakOut := false
 		switch action {
 		case "1":
-			fmt.Println("Running Subscribe")
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
+				fmt.Println("Running Subscribe")
 				go subscribeRoutine(channels, "")
 			}
 		case "2":
@@ -301,11 +375,11 @@ func ReadLoop() {
 			}
 		case "111":
 			//for test
-			fmt.Println("Running Subscribe2")
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
+				fmt.Println("Running Subscribe2")
 				go subscribeRoutine2(channels, "")
 			}
 		case "3":
@@ -322,29 +396,49 @@ func ReadLoop() {
 				}
 			}
 		case "4":
-			fmt.Println("Running Presence")
-			go presenceRoutine()
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Running Presence")
+				go presenceRoutine(channels)
+			}			
 		case "333":
 			//for test
 			fmt.Println("Running Presence2")
 			go presenceRoutine2()
 		case "5":
-			fmt.Println("Running detailed history")
-			go detailedHistoryRoutine()
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {		
+				fmt.Println("Running detailed history")
+				go detailedHistoryRoutine(channels)
+			}	
 		case "6":
-			fmt.Println("Running here now")
-			go hereNowRoutine()
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {		
+				fmt.Println("Running here now")
+				go hereNowRoutine(channels)
+			}
 		case "7":
-			fmt.Println("Running Unsubscribe")
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
+				fmt.Println("Running Unsubscribe")
 				go unsubscribeRoutine(channels)
 			}
 		case "8":
-			fmt.Println("Running Unsubscribe Presence")
-			go unsubscribePresenceRoutine()
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {		
+				fmt.Println("Running Unsubscribe Presence")
+				go unsubscribePresenceRoutine(channels)
+			}
 		case "9":
 			fmt.Println("Running Time")
 			go timeRoutine()
@@ -352,6 +446,71 @@ func ReadLoop() {
 			fmt.Println("Disconnect/Retry")
 			pub.CloseExistingConnection()
 		case "11":
+			fmt.Println("Running Grant Subscribe")
+			channels, errReadingChannel := askChannelOptional()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				read, write, ttl := askOtherPamInputs() 
+				go pamSubscribeRoutine(channels, read, write, ttl)
+			}			
+		case "12":
+			fmt.Println("Running Revoke Subscribe")
+			channels, errReadingChannel := askChannelOptional()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				go pamSubscribeRoutine(channels, false, false, -1)
+			}
+		case "13":
+			fmt.Println("Running Subscribe Audit")
+			channels, errReadingChannel := askChannelOptional()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				go pamAuditRoutine(channels, false)
+			}
+		case "14":
+			fmt.Println("Running Grant Presence")
+			channels, errReadingChannel := askChannelOptional()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				read, write, ttl := askOtherPamInputs() 
+				go pamPresenceRoutine(channels, read, write, ttl)
+			}
+		case "15":
+			fmt.Println("Running Revoke Presence")
+			channels, errReadingChannel := askChannelOptional()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				go pamPresenceRoutine(channels, false, false, -1)
+			}
+		case "16":
+			fmt.Println("Running Presence Audit")
+			channels, errReadingChannel := askChannelOptional()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				go pamAuditRoutine(channels, true)
+			}
+		case "17":
+			fmt.Println ("Enter Auth Key. Use comma to enter multiple Auth Keys.");
+			fmt.Println ("If you don't want to use Auth Key, Press ENTER Key");
+			reader := bufio.NewReader(os.Stdin)
+			authKey, _, errReadingChannel := reader.ReadLine()
+			if errReadingChannel != nil {
+				fmt.Println("Error channel: ", errReadingChannel.Error())
+			} else {
+				fmt.Println("Setting Authentication Key")
+				pub.SetAuthenticationKey(string(authKey))
+				fmt.Println("Authentication Key Set")
+			}
+		case "18":
+			fmt.Print("Authentication Key:")
+			fmt.Println(pub.GetAuthenticationKey())
+		case "99":
 			fmt.Println("Exiting")
 			pub.Abort()
 			time.Sleep(3 * time.Second)
@@ -363,6 +522,59 @@ func ReadLoop() {
 			break
 		} else {
 			time.Sleep(1000 * time.Millisecond)
+		}
+	}
+}
+
+// pamSubscribeRoutine calls the GrantSubscribe routine of the messaging package
+// as a parallel process. This is used to grant or revoke the R, W permissions
+// to revoke set read and write false and ttl as -1
+func pamSubscribeRoutine(channels string, read bool, write bool, ttl int) {
+	var errorChannel = make(chan []byte)
+	var pamChannel = make(chan []byte)
+	go pub.GrantSubscribe(channels, read, write, ttl, pamChannel, errorChannel)
+	go parseResponsePam(pamChannel)
+	go parseErrorResponse(errorChannel)
+}
+
+// pamPresenceRoutine calls the GrantPresence routine of the messaging package
+// as a parallel process. This is used to grant or revoke the R, W permissions
+// to revoke set read and write false and ttl as -1
+func pamPresenceRoutine(channels string, read bool, write bool, ttl int) {
+	var errorChannel = make(chan []byte)
+	var pamChannel = make(chan []byte)
+	go pub.GrantPresence(channels, read, write, ttl, pamChannel, errorChannel)
+	go parseResponsePam(pamChannel)
+	go parseErrorResponse(errorChannel)
+}
+
+// pamAuditRoutine calls the AuditPresence or AuditSubscribe routine of the messaging package
+// as a parallel process.
+func pamAuditRoutine(channels string, isPresence bool) {
+	var errorChannel = make(chan []byte)
+	var pamChannel = make(chan []byte)
+	if (isPresence){
+		go pub.AuditPresence(channels, pamChannel, errorChannel)
+	} else {
+		go pub.AuditSubscribe(channels, pamChannel, errorChannel)
+	}
+	
+	go parseResponsePam(pamChannel)
+	go parseErrorResponse(errorChannel)
+}
+
+// ParseResponseSubscribe parses the response of the Subscribed pubnub channel.
+// It prints the response as-is in the console.
+func parseResponsePam(channel chan []byte) {
+	for {
+		value, ok := <-channel
+		if !ok {
+			fmt.Println("")
+			break
+		}
+		if string(value) != "[]" {
+			fmt.Println(fmt.Sprintf("PAM: %s", value))
+			fmt.Println("")
 		}
 	}
 }
@@ -534,10 +746,10 @@ func publishRoutine(channels string, message string) {
 
 // PresenceRoutine calls the Subscribe routine of the messaging package,
 // by setting the last argument as true, as a parallel process.
-func presenceRoutine() {
+func presenceRoutine(channels string) {
 	var errorChannel = make(chan []byte)
 	var presenceChannel = make(chan []byte)
-	go pub.Subscribe(connectChannels, "", presenceChannel, true, errorChannel)
+	go pub.Subscribe(channels, "", presenceChannel, true, errorChannel)
 	go parseResponsePresence(presenceChannel)
 	go parseErrorResponse(errorChannel)
 }
@@ -554,9 +766,9 @@ func presenceRoutine2() {
 // DetailedHistoryRoutine calls the History routine of the messaging package as a parallel
 // process. If we have multiple pubnub channels then this method will spilt the _connectChannels
 // by comma and send the message on all the pubnub channels.
-func detailedHistoryRoutine() {
+func detailedHistoryRoutine(channels string) {
 	var errorChannel = make(chan []byte)
-	channelArray := strings.Split(connectChannels, ",")
+	channelArray := strings.Split(channels, ",")
 	for i := 0; i < len(channelArray); i++ {
 		ch := strings.TrimSpace(channelArray[i])
 		fmt.Println("DetailedHistory for channel: ", ch)
@@ -573,9 +785,9 @@ func detailedHistoryRoutine() {
 // HereNowRoutine calls the HereNow routine of the messaging package as a parallel
 // process. If we have multiple pubnub channels then this method will spilt the _connectChannels
 // by comma and send the message on all the pubnub channels.
-func hereNowRoutine() {
+func hereNowRoutine(channels string) {
 	var errorChannel = make(chan []byte)
-	channelArray := strings.Split(connectChannels, ",")
+	channelArray := strings.Split(channels, ",")
 	for i := 0; i < len(channelArray); i++ {
 		channel := make(chan []byte)
 		ch := strings.TrimSpace(channelArray[i])
@@ -599,11 +811,11 @@ func unsubscribeRoutine(channels string) {
 
 // UnsubscribePresenceRoutine calls the PresenceUnsubscribe routine of the messaging package as a parallel
 // process. All the channels in the _connectChannels string will be unsubscribed.
-func unsubscribePresenceRoutine() {
+func unsubscribePresenceRoutine(channels string) {
 	var errorChannel = make(chan []byte)
 	channel := make(chan []byte)
 
-	go pub.PresenceUnsubscribe(connectChannels, channel, errorChannel)
+	go pub.PresenceUnsubscribe(channels, channel, errorChannel)
 	parseResponse(channel)
 }
 

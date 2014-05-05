@@ -1,4 +1,4 @@
-#PubNub 3.4.2 client for Go 1.0.3, 1.1
+#PubNub 3.4.3 client for Go 1.0.3, 1.1
 
 ###Important changes in this version:
 The package name has been modified to "messaging" from "pubnubMessaging". 
@@ -14,6 +14,7 @@ The package name has been modified to "messaging" from "pubnubMessaging".
 * An example of Disconnect/Retry has been added in the example 
 * Multiple messages received in a single response from the server will now be split into individual messages
 * Non 200 response will now be bubbled to the client
+* PAM
 
 ###Quick Start Video
 
@@ -84,6 +85,14 @@ We've included a demo console app which documents all the functionality of the c
 * Presence-Unsubscribe
 * Time
 * Disconnect/Retry
+* GrantSubscribe
+* RevokeSubscribe
+* AuditSubscribe
+* GrantPresence
+* RevokePresence
+* AuditPresence
+* SetAuthKey
+* GetAuthKey
 * Exit
 
 ###Quick Implementation Examples
@@ -263,6 +272,86 @@ Initialize a new Pubnub instance.
         //Init pubnub instance
 
         pubInstance.CloseExistingConnection() 
+```
+
+#### GrantSubscribe
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.GrantSubscribe(channels, true, true, 60, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
+```
+
+#### RevokeSubscribe
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.GrantSubscribe(channels, false, false, -1, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
+```
+
+#### AuditSubscribe
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.AuditSubscribe(channels, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
+```
+
+#### GrantPresence
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.GrantPresence(channels, true, true, 60, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
+```
+
+#### RevokePresence
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.GrantPresence(channels, false, false, -1, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
+```
+
+#### AuditPresence
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.AuditPresence(channels, pamChannel, errorChannel)
+        go parseResponsePam(pamChannel)
+        go parseErrorResponse(errorChannel)
+```
+
+#### SetAuthKey
+```go
+        //Init pubnub instance
+
+        pub.SetAuthenticationKey("authkey")
+```
+
+#### GetAuthKey
+```go
+        //Init pubnub instance
+
+        fmt.Println(pub.GetAuthenticationKey())
 ```
 
 #### Exit
