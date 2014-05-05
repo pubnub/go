@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-var PamSubKey = "sub-c-a3d5a1c8-ae97-11e3-a952-02ee2ddab7fe"
-var PamPubKey = "pub-c-199e0a5c-8aa6-418b-bbca-3e90c20569a8"
-var PamSecKey = "sec-c-NGVlNmRkYjAtY2Q1OS00OWM2LWE4NzktNzM5YzIxNGQxZjg3"
+var PamSubKey = "demo-36"
+var PamPubKey = "demo-36"
+var PamSecKey = "demo-36"
 
 // timeoutMessage is the text message displayed when the
 // unit test times out
