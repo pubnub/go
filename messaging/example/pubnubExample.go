@@ -121,7 +121,7 @@ func Init() (b bool) {
 				messaging.SetSubscribeTimeout(int64(val))
 			}
 			messaging.SetOrigin("pubsub.pubnub.com")
-			var pubInstance = messaging.NewPubnub("demo", "demo", "demo", cipher, ssl, uuid)
+			var pubInstance = messaging.NewPubnub("demo-36", "demo-36", "demo-36", cipher, ssl, uuid)
 			pub = pubInstance
 
 			SetupProxy()
