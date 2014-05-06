@@ -1,4 +1,4 @@
-#PubNub 3.4.3 client for Go 1.0.3, 1.1
+#PubNub 3.5 client for Go 1.0.3, 1.1
 
 ###Important changes in this version:
 The package name has been modified to "messaging" from "pubnubMessaging". 
@@ -35,7 +35,7 @@ We've put together a quick HOWTO video here http://vimeo.com/93523019
 
 * Open Terminal.
 * Change the directory to 
-`<eclipse-workspace>/src/github.com/pubnub/go/3.4.2/tests.`
+`<eclipse-workspace>/src/github.com/pubnub/go/messaging/tests.`
 * Run the command `go test -i` to install the packages. 
 * And then run the command `go test` to run test cases.
 

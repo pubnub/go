@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Build Date: May 2, 2014
-// Version: 3.4.3
+// Build Date: May 6, 2014
+// Version: 3.5
 package messaging
 
 //TODO:
@@ -145,7 +145,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "Version: 3.4.3; Build Date: May 2, 2014;"
+	return "Version: 3.5; Build Date: May 6, 2014;"
 }
 
 // Pubnub structure.
