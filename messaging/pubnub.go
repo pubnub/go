@@ -614,7 +614,7 @@ func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, j
 			_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 			if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
 				pub.sendResponseToChannel(errorChannel, channel, 9, errJSON.Error(), "")
-			} else {
+			} else if callbackChannel != nil {
 				callbackChannel <- []byte(fmt.Sprintf("%s", value))
 			}
 		}
