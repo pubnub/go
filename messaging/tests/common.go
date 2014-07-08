@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-var PamSubKey = "demo-36"
-var PamPubKey = "demo-36"
-var PamSecKey = "demo-36"
+var PamSubKey = "pam"
+var PamPubKey = "pam"
+var PamSecKey = "pam"
 
 // timeoutMessage is the text message displayed when the
 // unit test times out

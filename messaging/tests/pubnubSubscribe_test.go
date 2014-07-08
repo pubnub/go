@@ -622,6 +622,8 @@ func TestResumeOnReconnectTrue(t *testing.T) {
 
 // ResumeOnReconnect contains the actual impementation of both TestResumeOnReconnectFalse and TestResumeOnReconnectTrue
 // the parameter b determines of resume on reconnect setting is true or false.
+//
+// The test contains a data race
 func ResumeOnReconnect(t *testing.T, b bool) {
 	testName := "ResumeOnReconnectFalse"
 	if b {

@@ -56,7 +56,9 @@ func main() {
 //
 // returns: a bool, true if the user completed the initail settings.
 func Init() (b bool) {
-	fmt.Println("PubNub Api for go;", messaging.VersionInfo())
+	fmt.Println("")
+	fmt.Println(messaging.VersionInfo())
+	fmt.Println("")
 	fmt.Println("Please enter the channel name(s). Enter multiple channels separated by comma without spaces.")
 	reader := bufio.NewReader(os.Stdin)
 
@@ -327,30 +329,35 @@ func utf16BytesToString(b []byte, o binary.ByteOrder) string {
 // ReadLoop starts an infinite loop to read the user's input.
 // Based on the input the respective go routine is called as a parallel process.
 func ReadLoop() {
-	fmt.Println("")
-	fmt.Println("ENTER 1 FOR Subscribe")
-	fmt.Println("ENTER 2 FOR Subscribe with timetoken")
-	fmt.Println("ENTER 3 FOR Publish")
-	fmt.Println("ENTER 4 FOR Presence")
-	fmt.Println("ENTER 5 FOR Detailed History")
-	fmt.Println("ENTER 6 FOR Here_Now")
-	fmt.Println("ENTER 7 FOR Unsubscribe")
-	fmt.Println("ENTER 8 FOR Presence-Unsubscribe")
-	fmt.Println("ENTER 9 FOR Time")
-	fmt.Println("ENTER 10 FOR Disconnect/Retry")
-	fmt.Println("ENTER 11 FOR Grant Subscribe")
-	fmt.Println("ENTER 12 FOR Revoke Subscribe")
-	fmt.Println("ENTER 13 FOR Audit Subscribe")
-	fmt.Println("ENTER 14 FOR Grant Presence")
-	fmt.Println("ENTER 15 FOR Revoke Presence")
-	fmt.Println("ENTER 16 FOR Audit Presence")
-	fmt.Println("ENTER 17 FOR Auth key")
-	fmt.Println("ENTER 18 FOR Show Auth key")
-	fmt.Println("ENTER 99 FOR Exit")
-	fmt.Println("")
+	showOptions := true
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
+		if(showOptions){
+			fmt.Println("")
+			fmt.Println("ENTER 1 FOR Subscribe")
+			fmt.Println("ENTER 2 FOR Subscribe with timetoken")
+			fmt.Println("ENTER 3 FOR Publish")
+			fmt.Println("ENTER 4 FOR Presence")
+			fmt.Println("ENTER 5 FOR Detailed History")
+			fmt.Println("ENTER 6 FOR Here_Now")
+			fmt.Println("ENTER 7 FOR Unsubscribe")
+			fmt.Println("ENTER 8 FOR Presence-Unsubscribe")
+			fmt.Println("ENTER 9 FOR Time")
+			fmt.Println("ENTER 10 FOR Disconnect/Retry")
+			fmt.Println("ENTER 11 FOR Grant Subscribe")
+			fmt.Println("ENTER 12 FOR Revoke Subscribe")
+			fmt.Println("ENTER 13 FOR Audit Subscribe")
+			fmt.Println("ENTER 14 FOR Grant Presence")
+			fmt.Println("ENTER 15 FOR Revoke Presence")
+			fmt.Println("ENTER 16 FOR Audit Presence")
+			fmt.Println("ENTER 17 FOR Auth key")
+			fmt.Println("ENTER 18 FOR Show Auth key")
+			fmt.Println("ENTER 99 FOR Exit")
+			fmt.Println("")
+			showOptions = false
+		}
+		
 		var action string
 		fmt.Scanln(&action)
 
@@ -382,6 +389,16 @@ func ReadLoop() {
 				fmt.Println("Running Subscribe2")
 				go subscribeRoutine2(channels, "")
 			}
+		case "333":
+			//for test
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				for i := 0; i < 100; i++ {
+					go publishRoutine(channels, fmt.Sprintf("%d",i))
+				}
+			}
 		case "3":
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
@@ -394,7 +411,7 @@ func ReadLoop() {
 				} else {
 					go publishRoutine(channels, string(message))
 				}
-			}
+			}			
 		case "4":
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
@@ -403,7 +420,7 @@ func ReadLoop() {
 				fmt.Println("Running Presence")
 				go presenceRoutine(channels)
 			}			
-		case "333":
+		case "444":
 			//for test
 			fmt.Println("Running Presence2")
 			go presenceRoutine2()
@@ -517,6 +534,7 @@ func ReadLoop() {
 			breakOut = true
 		default:
 			fmt.Println("Invalid choice!")
+			showOptions = true
 		}
 		if breakOut {
 			break
@@ -533,8 +551,7 @@ func pamSubscribeRoutine(channels string, read bool, write bool, ttl int) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
 	go pub.GrantSubscribe(channels, read, write, ttl, pamChannel, errorChannel)
-	go parseResponsePam(pamChannel)
-	go parseErrorResponse(errorChannel)
+	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Susbcribe Grant")
 }
 
 // pamPresenceRoutine calls the GrantPresence routine of the messaging package
@@ -544,8 +561,7 @@ func pamPresenceRoutine(channels string, read bool, write bool, ttl int) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
 	go pub.GrantPresence(channels, read, write, ttl, pamChannel, errorChannel)
-	go parseResponsePam(pamChannel)
-	go parseErrorResponse(errorChannel)
+	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Presence Grant")
 }
 
 // pamAuditRoutine calls the AuditPresence or AuditSubscribe routine of the messaging package
@@ -558,152 +574,7 @@ func pamAuditRoutine(channels string, isPresence bool) {
 	} else {
 		go pub.AuditSubscribe(channels, pamChannel, errorChannel)
 	}
-	
-	go parseResponsePam(pamChannel)
-	go parseErrorResponse(errorChannel)
-}
-
-// ParseResponseSubscribe parses the response of the Subscribed pubnub channel.
-// It prints the response as-is in the console.
-func parseResponsePam(channel chan []byte) {
-	for {
-		value, ok := <-channel
-		if !ok {
-			fmt.Println("")
-			break
-		}
-		if string(value) != "[]" {
-			fmt.Println(fmt.Sprintf("PAM: %s", value))
-			fmt.Println("")
-		}
-	}
-}
-
-// ParseResponseSubscribe parses the response of the Subscribed pubnub channel.
-// It prints the response as-is in the console.
-func parseErrorResponse(channel chan []byte) {
-	for {
-		value, ok := <-channel
-		if !ok {
-			fmt.Println("")
-			break
-		}
-		if string(value) != "[]" {
-			if displayError {
-				fmt.Println(fmt.Sprintf("Error Callback: %s", value))
-				fmt.Println("")
-			}
-		}
-	}
-}
-
-//for test
-func parseErrorResponse2(channel chan []byte) {
-	for {
-		value, ok := <-channel
-		if !ok {
-			fmt.Println("")
-			break
-		}
-		if string(value) != "[]" {
-			fmt.Println(fmt.Sprintf("Error Callback2: %s", value))
-			fmt.Println("")
-		}
-	}
-}
-
-// ParseResponseSubscribe parses the response of the Subscribed pubnub channel.
-// It prints the response as-is in the console.
-func parseResponseSubscribe(channel chan []byte) {
-	for {
-		value, ok := <-channel
-		if !ok {
-			fmt.Println("")
-			break
-		}
-		if string(value) != "[]" {
-			fmt.Println(fmt.Sprintf("Subscribe: %s", value))
-			fmt.Println("")
-		}
-	}
-}
-
-// ParseResponseSubscribe parses the response of the Subscribed pubnub channel.
-// It prints the response as-is in the console.
-func parseResponseSubscribe2(channel chan []byte) {
-	for {
-		value, ok := <-channel
-		if !ok {
-			fmt.Println("")
-			break
-		}
-		if string(value) != "[]" {
-			fmt.Println(fmt.Sprintf("Subscribe2: %s", value))
-			fmt.Println("")
-		}
-	}
-}
-
-// ParseResponsePresence parses the response of the presence subscription pubnub channel.
-// It prints the response as-is in the console.
-func parseResponsePresence(channel chan []byte) {
-	for {
-		value, ok := <-channel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			fmt.Println(fmt.Sprintf("Presence: %s ", value))
-			fmt.Println("")
-		}
-	}
-}
-
-// ParseResponsePresence parses the response of the presence subscription pubnub channel.
-// It prints the response as-is in the console.
-// for test
-func parseResponsePresence2(channel chan []byte) {
-	for {
-		value, ok := <-channel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			fmt.Println(fmt.Sprintf("Presence2: %s ", value))
-			fmt.Println("")
-		}
-	}
-}
-
-// ParseResponse parses the response of all the other activities apart
-// from subscribe and presence on the pubnub channel.
-// It prints the response as-is in the console.
-func parseResponse(channel chan []byte) {
-	for {
-		value, ok := <-channel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			fmt.Println(fmt.Sprintf("Response: %s ", value))
-			fmt.Println("")
-		}
-	}
-}
-
-// ParseUnsubResponse parses the response.
-// It prints the response as-is in the console.
-func parseUnsubResponse(channel chan []byte) {
-	for {
-		value, ok := <-channel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			fmt.Println(fmt.Sprintf("Unsub Response: %s ", value))
-			fmt.Println("")
-		}
-	}
+	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
 }
 
 // SubscribeRoutine calls the Subscribe routine of the messaging package
@@ -712,8 +583,7 @@ func subscribeRoutine(channels string, timetoken string) {
 	var errorChannel = make(chan []byte)
 	var subscribeChannel = make(chan []byte)
 	go pub.Subscribe(channels, timetoken, subscribeChannel, false, errorChannel)
-	go parseResponseSubscribe(subscribeChannel)
-	go parseErrorResponse(errorChannel)
+	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
 }
 
 // SubscribeRoutine calls the Subscribe routine of the messaging package
@@ -722,8 +592,7 @@ func subscribeRoutine2(channels string, timetoken string) {
 	var errorChannel = make(chan []byte)
 	var subscribeChannel = make(chan []byte)
 	go pub.Subscribe(channels, timetoken, subscribeChannel, false, errorChannel)
-	go parseResponseSubscribe2(subscribeChannel)
-	go parseErrorResponse2(errorChannel)
+	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe2")
 }
 
 // PublishRoutine asks the user the message to send to the pubnub channel(s) and
@@ -739,9 +608,69 @@ func publishRoutine(channels string, message string) {
 		fmt.Println("Publish to channel: ", ch)
 		channel := make(chan []byte)
 		go pub.Publish(ch, message, channel, errorChannel)
-		go parseResponse(channel)
-		go parseErrorResponse(errorChannel)
+		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
 	}
+}
+
+func handleResult(successChannel, errorChannel chan []byte, timeoutVal int64, action string) {
+    timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(time.Duration(timeoutVal) * time.Second)
+		timeout <- true
+	}()
+    for {
+        select {
+        case success, ok := <-successChannel:
+            if !ok {
+				break
+			}
+			if string(success) != "[]" {
+				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
+				fmt.Println("")
+			}
+            return
+        case failure, ok := <-errorChannel:
+            if !ok {
+				break
+			}
+            if string(failure) != "[]" {
+				if displayError {
+					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
+					fmt.Println("")
+				}
+			}
+            return
+        case <-timeout:
+            fmt.Println(fmt.Sprintf("%s Handler timeout after %d secs", action, timeoutVal))
+			fmt.Println("")            
+            return
+        }
+    }
+}
+
+func handleSubscribeResult(successChannel, errorChannel chan []byte, action string) {
+    for {
+        select {
+        case success, ok := <-successChannel:
+            if !ok {
+				break
+			}
+			if string(success) != "[]" {
+				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
+				fmt.Println("")
+			}
+        case failure, ok := <-errorChannel:
+            if !ok {
+				break
+			}
+            if string(failure) != "[]" {
+				if displayError {
+					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
+					fmt.Println("")
+				}
+			}
+        }
+    }
 }
 
 // PresenceRoutine calls the Subscribe routine of the messaging package,
@@ -750,17 +679,15 @@ func presenceRoutine(channels string) {
 	var errorChannel = make(chan []byte)
 	var presenceChannel = make(chan []byte)
 	go pub.Subscribe(channels, "", presenceChannel, true, errorChannel)
-	go parseResponsePresence(presenceChannel)
-	go parseErrorResponse(errorChannel)
+	go handleSubscribeResult(presenceChannel, errorChannel, "Presence")
 }
 
 // for test
 func presenceRoutine2() {
 	var errorChannel = make(chan []byte)
 	var presenceChannel = make(chan []byte)
-	go pub.Subscribe(connectChannels, "", presenceChannel, true, errorChannel)
-	go parseResponsePresence2(presenceChannel)
-	go parseErrorResponse2(errorChannel)
+	go pub.Subscribe(connectChannels, "", presenceChannel, true, errorChannel)	
+	go handleSubscribeResult(presenceChannel, errorChannel, "Presence2")
 }
 
 // DetailedHistoryRoutine calls the History routine of the messaging package as a parallel
@@ -777,8 +704,7 @@ func detailedHistoryRoutine(channels string) {
 
 		//go _pub.History(ch, 100, 13662867154115803, 13662867243518473, false, channel)
 		go pub.History(ch, 100, 0, 0, false, channel, errorChannel)
-		go parseResponse(channel)
-		go parseErrorResponse(errorChannel)
+		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Detailed History")
 	}
 }
 
@@ -794,8 +720,7 @@ func hereNowRoutine(channels string) {
 		fmt.Println("HereNow for channel: ", ch)
 
 		go pub.HereNow(ch, channel, errorChannel)
-		go parseResponse(channel)
-		go parseErrorResponse(errorChannel)
+		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "HereNow")
 	}
 }
 
@@ -806,7 +731,7 @@ func unsubscribeRoutine(channels string) {
 	channel := make(chan []byte)
 
 	go pub.Unsubscribe(channels, channel, errorChannel)
-	parseUnsubResponse(channel)
+	go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Unsubscribe")
 }
 
 // UnsubscribePresenceRoutine calls the PresenceUnsubscribe routine of the messaging package as a parallel
@@ -816,7 +741,7 @@ func unsubscribePresenceRoutine(channels string) {
 	channel := make(chan []byte)
 
 	go pub.PresenceUnsubscribe(channels, channel, errorChannel)
-	parseResponse(channel)
+	go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "UnsubscribePresence")
 }
 
 // TimeRoutine calls the GetTime routine of the messaging package as a parallel
@@ -825,6 +750,5 @@ func timeRoutine() {
 	var errorChannel = make(chan []byte)
 	channel := make(chan []byte)
 	go pub.GetTime(channel, errorChannel)
-	go parseResponse(channel)
-	go parseErrorResponse(errorChannel)
+	go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
 }
