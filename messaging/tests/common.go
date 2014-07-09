@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"math/rand"
 	"strings"
 	"testing"
 	"time"
@@ -60,6 +61,10 @@ type CustomComplexMessage struct {
 // PubnubDemoMessage is a struct to test a non-alphanumeric message
 type PubnubDemoMessage struct {
 	DefaultMessage string `json:",string"`
+}
+
+func GenRandom() *rand.Rand {
+	return rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
 // InitComplexMessage initializes a complex structure of the
@@ -148,12 +153,14 @@ func WaitForCompletion(responseChannel chan string, waitChannel chan string) {
 			if value != "[]" {
 				waitChannel <- value
 				timeout <- false
-				break
+				//break
 			}
-		case b, _ := <-timeout:
-			if b {
-				waitChannel <- timeoutMessage
-			}
+			break
+		case <-timeout:
+		//case b, _ := <-timeout:
+			//if b {
+			waitChannel <- timeoutMessage
+			//} 
 			break
 		}
 	}

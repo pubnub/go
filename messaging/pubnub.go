@@ -96,7 +96,7 @@ var (
 	// The time after which the Publish/HereNow/DetailedHitsory/Unsubscribe/
 	// UnsibscribePresence/Time  request will timeout.
 	// In seconds.
-	nonSubscribeTimeout int64 = 5 //sec
+	nonSubscribeTimeout int64 = 15 //sec
 	nonSubscribeTimeoutMu sync.RWMutex
 
 	// On Subscribe/Presence timeout, the number of times the reconnect attempts are made.
@@ -469,6 +469,9 @@ func (pub *Pubnub) Abort() {
 //
 // channel is options and if not provided will set the permissions at subkey level
 func (pub *Pubnub) GrantSubscribe(channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
+	checkCallbackNil(errorChannel, true, "GrantSubscribe")
+
 	pub.executePam(channel, read, write, ttl, callbackChannel, errorChannel, false)
 }
 
@@ -476,6 +479,9 @@ func (pub *Pubnub) GrantSubscribe(channel string, read bool, write bool, ttl int
 //
 // channel is options and if not provided will set the permissions at subkey level
 func (pub *Pubnub) AuditSubscribe(channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
+	checkCallbackNil(errorChannel, true, "AuditSubscribe")
+
 	pub.executePam(channel, false, false, -1, callbackChannel, errorChannel, true)
 }
 
@@ -485,6 +491,9 @@ func (pub *Pubnub) AuditSubscribe(channel string, callbackChannel chan []byte, e
 //
 // channel is options and if not provided will set the permissions at subkey level
 func (pub *Pubnub) GrantPresence(channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "GrantPresence")
+	checkCallbackNil(errorChannel, true, "GrantPresence")
+
 	channel2 := convertToPresenceChannel(channel)
 	pub.executePam(channel2, read, write, ttl, callbackChannel, errorChannel, false)
 }
@@ -493,6 +502,9 @@ func (pub *Pubnub) GrantPresence(channel string, read bool, write bool, ttl int,
 //
 // channel is options and if not provided will set the permissions at subkey level
 func (pub *Pubnub) AuditPresence(channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "AuditPresence")
+	checkCallbackNil(errorChannel, true, "AuditPresence")
+
 	channel2 := convertToPresenceChannel(channel)
 	pub.executePam(channel2, false, false, -1, callbackChannel, errorChannel, true)
 }
@@ -635,6 +647,9 @@ func getUnixTimeStamp() string {
 // callbackChannel on which to send the response.
 // errorChannel on which to send the error response.
 func (pub *Pubnub) GetTime(callbackChannel chan []byte, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "GetTime")
+	checkCallbackNil(errorChannel, true, "GetTime")
+
 	pub.executeTime(callbackChannel, errorChannel, 0)
 }
 
@@ -800,6 +815,9 @@ func invalidChannel(channel string, c chan []byte) bool {
 // callbackChannel: Channel on which to send the response back.
 // errorChannel on which the error response is sent.
 func (pub *Pubnub) Publish(channel string, message interface{}, callbackChannel chan []byte, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "Publish")
+	checkCallbackNil(errorChannel, true, "Publish")
+
 	if pub.publishKey == "" {
 		warnLogger.Println(fmt.Sprintf("Publish key empty"))
 		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, "Publish key required.", "")
@@ -1575,6 +1593,18 @@ func (pub *Pubnub) CloseExistingConnection() {
 	}
 }
 
+func checkCallbackNil(channelToCheck chan []byte, isErrChannel bool, funcName string){
+	if(channelToCheck == nil){
+		message2 := "" 
+		if(isErrChannel){
+			message2 = "Error "
+		}
+		message := fmt.Sprintf("%sCallback is nil for %s", message2, funcName)
+		errorLogger.Println(message)
+		panic(message)
+	}
+}
+
 // Subscribe is the struct Pubnub's instance method which checks for the InvalidChannels
 // and returns if true.
 // Initaiates the presence and subscribe response channels.
@@ -1593,6 +1623,8 @@ func (pub *Pubnub) CloseExistingConnection() {
 // isPresenceSubscribe: tells the method that presence subscription is requested.
 // errorChannel: channel to send an error response to.
 func (pub *Pubnub) Subscribe(channels string, timetoken string, callbackChannel chan []byte, isPresenceSubscribe bool, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "Subscribe")
+	checkCallbackNil(errorChannel, true, "Subscribe")
 	if invalidChannel(channels, callbackChannel) {
 		return
 	}
@@ -1722,6 +1754,9 @@ func (pub *Pubnub) removeFromSubscribeList(c chan []byte, channel string) (b boo
 // callbackChannel: Channel on which to send the response back.
 // errorChannel: channel to send an error response to.
 func (pub *Pubnub) Unsubscribe(channels string, callbackChannel chan []byte, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "Unsubscribe")
+	checkCallbackNil(errorChannel, true, "Unsubscribe")
+
 	channelArray := strings.Split(channels, ",")
 	unsubscribeChannels := ""
 	channelRemoved := false
@@ -1773,6 +1808,9 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel chan []byte, err
 // callbackChannel: Channel on which to send the response back.
 // errorChannel: channel to send an error response to.
 func (pub *Pubnub) PresenceUnsubscribe(channels string, callbackChannel chan []byte, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "PresenceUnsubscribe")
+	checkCallbackNil(errorChannel, true, "PresenceUnsubscribe")
+
 	channelArray := strings.Split(channels, ",")
 	presenceChannels := ""
 	channelRemoved := false
@@ -1846,6 +1884,9 @@ func (pub *Pubnub) sendLeaveRequest(channels string) ([]byte, int, error) {
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 func (pub *Pubnub) History(channel string, limit int, start int64, end int64, reverse bool, callbackChannel chan []byte, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "History")
+	checkCallbackNil(errorChannel, true, "History")
+
 	pub.executeHistory(channel, limit, start, end, reverse, callbackChannel, errorChannel, 0)
 }
 
@@ -1932,6 +1973,9 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start int64, end in
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 func (pub *Pubnub) HereNow(channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "HereNow")
+	checkCallbackNil(errorChannel, true, "HereNow")
+
 	pub.executeHereNow(channel, callbackChannel, errorChannel, 0)
 }
 

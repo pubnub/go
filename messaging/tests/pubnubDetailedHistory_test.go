@@ -24,8 +24,8 @@ func TestDetailedHistoryStart(t *testing.T) {
 // message is compared to the message sent and if both match test is successful.
 func TestDetailedHistory(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
-
-	channel := "testChannel"
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
 	message := "Test Message"
 
 	returnPublishChannel := make(chan []byte)
@@ -46,7 +46,9 @@ func TestDetailedHistory(t *testing.T) {
 func TestEncryptedDetailedHistory(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "enigma", false, "")
 
-	channel := "testChannel"
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
+
 	message := "Test Message"
 	returnPublishChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -88,7 +90,8 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", cipherKey, false, "")
 
 	message := "Test Message "
-	channel := "testChannel"
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
 
 	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
 	if messagesSent {
@@ -157,7 +160,8 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 	pubnubInstance := messaging.NewPubnub("demo", "demo", secretKey, cipherKey, false, "")
 
 	message := "Test Message "
-	channel := "testChannel"
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
 
 	startTime := GetServerTime(pubnubInstance, t, testName)
 	startMessagesFrom := 0
@@ -213,8 +217,14 @@ func GetServerTime(pubnubInstance *messaging.Pubnub, t *testing.T, testName stri
 // ParseServerTimeResponse unmarshals the time response from the pubnub api and returns the int64 value.
 // On error the test fails.
 func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName string) int64 {
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(15 * time.Second)
+		timeout <- true
+	}()
 	for {
-		value, ok := <-returnChannel
+	select {
+		case value, ok := <-returnChannel:
 		if !ok {
 			break
 		}
@@ -236,6 +246,11 @@ func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName s
 				break
 			}
 		}
+		case <- timeout:
+			fmt.Println("timeout")
+			t.Error("Test '" + testName + "': failed.")
+			break
+		}
 	}
 	return 0
 }
@@ -255,6 +270,8 @@ func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName s
 func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testing.T, startMessagesFrom int, numberOfMessages int, message string) bool {
 	messagesReceived := 0
 	messageToSend := ""
+	tOut := messaging.GetNonSubscribeTimeout()  
+	messaging.SetNonSubscribeTimeout(30)
 	for i := startMessagesFrom; i < startMessagesFrom+numberOfMessages; i++ {
 		messageToSend = message + strconv.Itoa(i)
 
@@ -267,7 +284,7 @@ func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testin
 	if messagesReceived == numberOfMessages {
 		return true
 	}
-
+	messaging.SetNonSubscribeTimeout(tOut)
 	return false
 }
 
