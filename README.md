@@ -99,9 +99,7 @@ We've included a demo console app which documents all the functionality of the c
 
 #### handleSubscribeResult
 
-This function is a utility function used in the examples below to parse
-a message received from a Pubnub channel. You will want to adapt it to
-your own needs.
+This function is a utility function used in the examples below to handle the Subscribe/Presence response. You will want to adapt it to your own needs.
 
 ```go
 func handleSubscribeResult(successChannel, errorChannel chan []byte, action string) {
@@ -132,8 +130,7 @@ func handleSubscribeResult(successChannel, errorChannel chan []byte, action stri
 
 #### handleResult
 
-This is a utility function to parse an error response and display it.
-You will want to adapt it to your own needs.
+This function is a utility function used in the examples below to handle the non Subscribe/Presence response. You will want to adapt it to your own needs.
 
 ```go
 func handleResult(successChannel, errorChannel chan []byte, timeoutVal int64, action string) {
@@ -274,7 +271,7 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.PresenceUnsubscribe(<pubnub channels, multiple channels can be separated by comma>, channelCallback, errorChannel)
-       go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "UnsubscribePresence")
+        go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "UnsubscribePresence")
         // please goto the top of this file see the implementation of handleResult
 ```
 
@@ -286,7 +283,7 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.GetTime(channelCallback, errorChannel)
-	go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
+        go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
         // please goto the top of this file see the implementation of handleResult
 ```
 
@@ -305,7 +302,7 @@ Initialize a new Pubnub instance.
         var pamChannel = make(chan []byte)
         go pub.GrantSubscribe(channels, true, true, 60, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Susbcribe Grant")
-	// please goto the top of this file see the implementation of handleResult
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### RevokeSubscribe
@@ -316,7 +313,7 @@ Initialize a new Pubnub instance.
         var pamChannel = make(chan []byte)
         go pub.GrantSubscribe(channels, false, false, -1, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
-	// please goto the top of this file see the implementation of handleResult
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### AuditSubscribe
@@ -327,7 +324,7 @@ Initialize a new Pubnub instance.
         var pamChannel = make(chan []byte)
         go pub.AuditSubscribe(channels, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
-	// please goto the top of this file see the implementation of handleResult
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### GrantPresence
@@ -338,7 +335,7 @@ Initialize a new Pubnub instance.
         var pamChannel = make(chan []byte)
         go pub.GrantPresence(channels, true, true, 60, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Presence Grant")
-	// please goto the top of this file see the implementation of handleResult
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### RevokePresence
@@ -349,7 +346,7 @@ Initialize a new Pubnub instance.
         var pamChannel = make(chan []byte)
         go pub.GrantPresence(channels, false, false, -1, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
-	// please goto the top of this file see the implementation of handleResult
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### AuditPresence
@@ -360,7 +357,7 @@ Initialize a new Pubnub instance.
         var pamChannel = make(chan []byte)
         go pub.AuditPresence(channels, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
-	// please goto the top of this file see the implementation of handleResult
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### SetAuthKey
