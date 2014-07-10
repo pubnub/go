@@ -181,6 +181,7 @@ func ParseWaitResponse(waitChannel chan string, t *testing.T, testName string) {
 		}
 		returnVal := string(value)
 		if returnVal != "[]" {
+			//fmt.Println("wait:", returnVal)
 			if strings.Contains(returnVal, "passed") {
 				fmt.Println("Test '" + testName + "': passed.")
 			} else {
@@ -202,6 +203,7 @@ func ParseErrorResponse(channel chan []byte, responseChannel chan string) {
 		}
 		returnVal := string(value)
 		if returnVal != "[]" {
+			//fmt.Println("error:", returnVal)
 			responseChannel <- returnVal
 			break
 		}

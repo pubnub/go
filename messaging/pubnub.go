@@ -1351,13 +1351,14 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 	pub.Lock()
 	defer pub.Unlock()
 	if pub.resetTimeToken {
-		infoLogger.Println("resetTimeToken")
+		infoLogger.Println("resetTimeToken=true")
 		subscribeURLBuffer.WriteString("/0")
 		sentTimeToken = "0"
 		pub.sentTimeToken = "0"
 		pub.resetTimeToken = false
 	} else {
 		subscribeURLBuffer.WriteString("/")
+		infoLogger.Println("resetTimeToken=false")
 		if strings.TrimSpace(pub.timeToken) == "" {
 			pub.timeToken = "0"
 			pub.sentTimeToken = "0"
@@ -1781,15 +1782,12 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel chan []byte, err
 		subscribedCh := pub.subscribedChannels
 		pub.RUnlock()*/
 		
-		infoLogger.Println("leave")
 		if strings.TrimSpace(channels) != "" {
-			infoLogger.Println("leaving")
 			value, _, err := pub.sendLeaveRequest(channels)
 			if err != nil {
 				errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 				pub.sendResponseToChannel(errorChannel, channels, responseAsIsError, err.Error(), "")
 			} else {
-				infoLogger.Println("leaving"+string(value))
 				pub.sendResponseToChannel(callbackChannel, channels, responseAsIs, string(value), "")
 			}
 		}

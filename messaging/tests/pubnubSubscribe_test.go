@@ -24,8 +24,8 @@ func TestSubscribeStart(t *testing.T) {
 // and validates the response for the connect status.
 func TestSubscriptionConnectStatus(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
-
-	channel := "testChannel"
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
 
 	returnSubscribeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -37,6 +37,7 @@ func TestSubscriptionConnectStatus(t *testing.T) {
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectStatus")
+	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
 }
 
 // TestSubscriptionAlreadySubscribed sends out a subscribe request to a pubnub channel
@@ -44,7 +45,8 @@ func TestSubscriptionConnectStatus(t *testing.T) {
 func TestSubscriptionAlreadySubscribed(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
 
-	channel := "testChannel"
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
 	testName := "SubscriptionAlreadySubscribed"
 
 	returnSubscribeChannel := make(chan []byte)
@@ -57,6 +59,7 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
+	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
 }
 
 // TestMultiSubscriptionConnectStatus send out a pubnub multi channel subscribe request and
@@ -64,7 +67,10 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
 	testName := "TestMultiSubscriptionConnectStatus"
-	channels := "testChannel1,testChannel2"
+	r := GenRandom()
+	channels := fmt.Sprintf("testChannel_sub_%d,testChannel_sub_%d", r.Intn(20), r.Intn(20))
+	
+	//channels := "testChannel1,testChannel2"
 
 	returnSubscribeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -77,6 +83,7 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
+	go pubnubInstance.Unsubscribe(channels, returnSubscribeChannel, errorChannel)
 }
 
 // ParseSubscribeResponseForMultipleChannels parses the pubnub multi channel response
@@ -110,7 +117,8 @@ func ParseSubscribeResponseForMultipleChannels(returnChannel chan []byte, channe
 func TestSubscriptionForSimpleMessage(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
 
-	channel := "testChannel"
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
 
 	returnSubscribeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -122,6 +130,7 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimple")
+	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
 }
 
 // TestSubscriptionForSimpleMessageWithCipher first subscribes to a pubnub channel and then publishes
@@ -130,7 +139,8 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "enigma", false, "")
 
-	channel := "testChannel"
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
 
 	returnSubscribeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -142,6 +152,7 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimpleWithCipher")
+	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
 }
 
 // TestSubscriptionForComplexMessage first subscribes to a pubnub channel and then publishes
@@ -150,7 +161,8 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 func TestSubscriptionForComplexMessage(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
 
-	channel := "testChannel"
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
 
 	returnSubscribeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -162,6 +174,7 @@ func TestSubscriptionForComplexMessage(t *testing.T) {
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplex")
+	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
 }
 
 // TestSubscriptionForComplexMessageWithCipher first subscribes to a pubnub channel and then publishes
@@ -170,7 +183,8 @@ func TestSubscriptionForComplexMessage(t *testing.T) {
 func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "enigma", false, "")
 
-	channel := "testChannel"
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
 
 	returnSubscribeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -182,6 +196,7 @@ func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplexWithCipher")
+	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
 }
 
 // PublishComplexMessage publises a complex message on a pubnub channel and
@@ -461,7 +476,10 @@ func SendMultipleResponse(t *testing.T, encrypted bool) {
 		testName = "TestMultipleResponseEncrypted"
 	}
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", cipher, false, "")
-	pubnubChannel := "testChannel"
+	//pubnubChannel := "testChannel"
+	r := GenRandom()
+	pubnubChannel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	
 	returnTimeChannel := make(chan []byte)
 	errorChannelTime := make(chan []byte)
 
@@ -495,6 +513,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool) {
 			go ParseErrorResponse(errorChannelSub, responseChannelSub)
 			go WaitForCompletion(responseChannelSub, waitChannelSub)
 			ParseWaitResponse(waitChannelSub, t, testName)
+			go pubnubInstance.Unsubscribe(pubnubChannel, returnSubscribeChannel, errorChannelSub)
 		}
 	}
 }
@@ -632,7 +651,9 @@ func ResumeOnReconnect(t *testing.T, b bool) {
 	} else {
 		messaging.SetResumeOnReconnect(false)
 	}
-	pubnubChannel := "testChannel"
+	r := GenRandom()
+	pubnubChannel := fmt.Sprintf("testChannel_subror_%d", r.Intn(20))
+
 
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
 	returnSubscribeChannel := make(chan []byte)
@@ -646,6 +667,7 @@ func ResumeOnReconnect(t *testing.T, b bool) {
 	go WaitForCompletion(responseChannelSub, waitChannelSub)
 	ParseWaitResponse(waitChannelSub, t, testName)
 	messaging.SetSubscribeTimeout(310)
+	go pubnubInstance.Unsubscribe(pubnubChannel, returnSubscribeChannel, errorChannelSub)
 }
 
 // ParseSubscribeForTimetoken retrieves the last timetoken and matches with the senttimetoken
@@ -677,12 +699,14 @@ func ParseSubscribeForTimetoken(pubnubInstance *messaging.Pubnub, pubnubChannel 
 			if string(value) != "[]" {
 				newPubnubTest := &messaging.PubnubUnitTest{}
 				if testName == "ResumeOnReconnectTrue" {
+					fmt.Println(fmt.Sprintf("SentTimeToken %s TimeToken %s", newPubnubTest.GetSentTimeToken(pubnubInstance), newPubnubTest.GetTimeToken(pubnubInstance)))
 					if newPubnubTest.GetSentTimeToken(pubnubInstance) == newPubnubTest.GetTimeToken(pubnubInstance) {
 						responseChannel <- "passed"
 					} else {
 						responseChannel <- "failed"
 					}
 				} else {
+					fmt.Println(fmt.Sprintf("SentTimeToken %s", newPubnubTest.GetSentTimeToken(pubnubInstance)))
 					if newPubnubTest.GetSentTimeToken(pubnubInstance) != "0" {
 						responseChannel <- "failed"
 					} else {
@@ -733,8 +757,10 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 	}
 	message1 := "message1"
 	message2 := "message2"
-	pubnubChannel1 := "testChannel1"
-	pubnubChannel2 := "testChannel2"
+	r := GenRandom()
+	
+	pubnubChannel1 := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	pubnubChannel2 := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
 
 	pubnubChannel := pubnubChannel1 + "," + pubnubChannel2
 
@@ -749,6 +775,7 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 	go ParseErrorResponse(errorChannelSub, responseChannelSub)
 	go WaitForCompletion(responseChannelSub, waitChannelSub)
 	ParseWaitResponse(waitChannelSub, t, testName)
+	go pubnubInstance.Unsubscribe(pubnubChannel, returnSubscribeChannel, errorChannelSub)
 }
 
 // ParseSubscribeMultiplexedResponse publishes 2 messages on 2 different channels and

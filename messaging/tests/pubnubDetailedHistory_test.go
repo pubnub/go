@@ -252,6 +252,7 @@ func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName s
 			break
 		}
 	}
+	t.Error("Test '" + testName + "': failed.")
 	return 0
 }
 
