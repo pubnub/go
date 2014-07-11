@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 	"unicode/utf16"
-	"unicode/utf8" 
+	"unicode/utf8"
 )
 
 // connectChannels: the conected pubnub channels, multiple channels are stored separated by comma.
@@ -58,7 +58,7 @@ func main() {
 func Init() (b bool) {
 	fmt.Println("")
 	fmt.Println(messaging.VersionInfo())
-	
+
 	fmt.Println("")
 	fmt.Println("Please enter the channel name(s). Enter multiple channels separated by comma without spaces.")
 	reader := bufio.NewReader(os.Stdin)
@@ -124,7 +124,7 @@ func Init() (b bool) {
 				messaging.SetSubscribeTimeout(int64(val))
 			}
 			messaging.SetOrigin("pubsub.pubnub.com")
-			var pubInstance = messaging.NewPubnub("pam", "pam", "pam", cipher, ssl, uuid)
+			var pubInstance = messaging.NewPubnub("demo", "demo", "demo", cipher, ssl, uuid)
 			pub = pubInstance
 
 			SetupProxy()
@@ -237,11 +237,11 @@ func askChannelOptional() (string, error) {
 	fmt.Println("Do you want to use the channels entered in the beginning, enter 'y' for yes. Default is no")
 	var enableRead = "n"
 	fmt.Scanln(&enableRead)
-	
+
 	if enableRead == "y" || enableRead == "Y" {
 		fmt.Println("Using channel(s): ", connectChannels)
 		return connectChannels, nil
-	} 
+	}
 
 	fmt.Println("Please enter the channel name. You can leave it blank.")
 	reader := bufio.NewReader(os.Stdin)
@@ -278,27 +278,27 @@ func askNumber(what string) int64 {
 func askOtherPamInputs() (bool, bool, int) {
 	var read, write bool
 	var ttl int
-	
+
 	fmt.Println("Read access, enter 'y' for yes, default is no")
 	var enableRead = "n"
 	fmt.Scanln(&enableRead)
-	
+
 	if enableRead == "y" || enableRead == "Y" {
-		read = true;
+		read = true
 	} else {
-		read = false;
+		read = false
 	}
 
 	fmt.Println("Write access, enter 'y' for yes, default is no")
 	var enableWrite = "n"
 	fmt.Scanln(&enableWrite)
-	
+
 	if enableWrite == "y" || enableWrite == "Y" {
-		write = true;
+		write = true
 	} else {
-		write = false;
-	}	
-	
+		write = false
+	}
+
 	var input string
 
 	fmt.Println("Enter TTL in minutes. Default = 1440 minutes (24 hours)")
@@ -309,9 +309,9 @@ func askOtherPamInputs() (bool, bool, int) {
 	} else {
 		ttl = 1440
 	}
-	
+
 	return read, write, ttl
-	
+
 }
 
 // UTF16BytesToString converts UTF-16 encoded bytes, in big or little endian byte order,
@@ -334,7 +334,7 @@ func ReadLoop() {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		if(showOptions){
+		if showOptions {
 			fmt.Println("")
 			fmt.Println("ENTER 1 FOR Subscribe")
 			fmt.Println("ENTER 2 FOR Subscribe with timetoken")
@@ -358,7 +358,7 @@ func ReadLoop() {
 			fmt.Println("")
 			showOptions = false
 		}
-		
+
 		var action string
 		fmt.Scanln(&action)
 
@@ -397,7 +397,7 @@ func ReadLoop() {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
 				for i := 0; i < 100; i++ {
-					go publishRoutine(channels, fmt.Sprintf("%d",i))
+					go publishRoutine(channels, fmt.Sprintf("%d", i))
 				}
 			}
 		case "3":
@@ -412,7 +412,7 @@ func ReadLoop() {
 				} else {
 					go publishRoutine(channels, string(message))
 				}
-			}			
+			}
 		case "4":
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
@@ -420,7 +420,7 @@ func ReadLoop() {
 			} else {
 				fmt.Println("Running Presence")
 				go presenceRoutine(channels)
-			}			
+			}
 		case "444":
 			//for test
 			fmt.Println("Running Presence2")
@@ -429,15 +429,15 @@ func ReadLoop() {
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
-			} else {		
+			} else {
 				fmt.Println("Running detailed history")
 				go detailedHistoryRoutine(channels)
-			}	
+			}
 		case "6":
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
-			} else {		
+			} else {
 				fmt.Println("Running here now")
 				go hereNowRoutine(channels)
 			}
@@ -453,7 +453,7 @@ func ReadLoop() {
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
-			} else {		
+			} else {
 				fmt.Println("Running Unsubscribe Presence")
 				go unsubscribePresenceRoutine(channels)
 			}
@@ -469,9 +469,9 @@ func ReadLoop() {
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
-				read, write, ttl := askOtherPamInputs() 
+				read, write, ttl := askOtherPamInputs()
 				go pamSubscribeRoutine(channels, read, write, ttl)
-			}			
+			}
 		case "12":
 			fmt.Println("Running Revoke Subscribe")
 			channels, errReadingChannel := askChannelOptional()
@@ -494,7 +494,7 @@ func ReadLoop() {
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
-				read, write, ttl := askOtherPamInputs() 
+				read, write, ttl := askOtherPamInputs()
 				go pamPresenceRoutine(channels, read, write, ttl)
 			}
 		case "15":
@@ -514,8 +514,8 @@ func ReadLoop() {
 				go pamAuditRoutine(channels, true)
 			}
 		case "17":
-			fmt.Println ("Enter Auth Key. Use comma to enter multiple Auth Keys.");
-			fmt.Println ("If you don't want to use Auth Key, Press ENTER Key");
+			fmt.Println("Enter Auth Key. Use comma to enter multiple Auth Keys.")
+			fmt.Println("If you don't want to use Auth Key, Press ENTER Key")
 			reader := bufio.NewReader(os.Stdin)
 			authKey, _, errReadingChannel := reader.ReadLine()
 			if errReadingChannel != nil {
@@ -570,7 +570,7 @@ func pamPresenceRoutine(channels string, read bool, write bool, ttl int) {
 func pamAuditRoutine(channels string, isPresence bool) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
-	if (isPresence){
+	if isPresence {
 		go pub.AuditPresence(channels, pamChannel, errorChannel)
 	} else {
 		go pub.AuditSubscribe(channels, pamChannel, errorChannel)
@@ -614,64 +614,64 @@ func publishRoutine(channels string, message string) {
 }
 
 func handleResult(successChannel, errorChannel chan []byte, timeoutVal int64, action string) {
-    timeout := make(chan bool, 1)
+	timeout := make(chan bool, 1)
 	go func() {
 		time.Sleep(time.Duration(timeoutVal) * time.Second)
 		timeout <- true
 	}()
-    for {
-        select {
-        case success, ok := <-successChannel:
-            if !ok {
+	for {
+		select {
+		case success, ok := <-successChannel:
+			if !ok {
 				break
 			}
 			if string(success) != "[]" {
 				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
 				fmt.Println("")
 			}
-            return
-        case failure, ok := <-errorChannel:
-            if !ok {
+			return
+		case failure, ok := <-errorChannel:
+			if !ok {
 				break
 			}
-            if string(failure) != "[]" {
+			if string(failure) != "[]" {
 				if displayError {
 					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
 					fmt.Println("")
 				}
 			}
-            return
-        case <-timeout:
-            fmt.Println(fmt.Sprintf("%s Handler timeout after %d secs", action, timeoutVal))
-			fmt.Println("")            
-            return
-        }
-    }
+			return
+		case <-timeout:
+			fmt.Println(fmt.Sprintf("%s Handler timeout after %d secs", action, timeoutVal))
+			fmt.Println("")
+			return
+		}
+	}
 }
 
 func handleSubscribeResult(successChannel, errorChannel chan []byte, action string) {
-    for {
-        select {
-        case success, ok := <-successChannel:
-            if !ok {
+	for {
+		select {
+		case success, ok := <-successChannel:
+			if !ok {
 				break
 			}
 			if string(success) != "[]" {
 				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
 				fmt.Println("")
 			}
-        case failure, ok := <-errorChannel:
-            if !ok {
+		case failure, ok := <-errorChannel:
+			if !ok {
 				break
 			}
-            if string(failure) != "[]" {
+			if string(failure) != "[]" {
 				if displayError {
 					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
 					fmt.Println("")
 				}
 			}
-        }
-    }
+		}
+	}
 }
 
 // PresenceRoutine calls the Subscribe routine of the messaging package,
@@ -687,7 +687,7 @@ func presenceRoutine(channels string) {
 func presenceRoutine2() {
 	var errorChannel = make(chan []byte)
 	var presenceChannel = make(chan []byte)
-	go pub.Subscribe(connectChannels, "", presenceChannel, true, errorChannel)	
+	go pub.Subscribe(connectChannels, "", presenceChannel, true, errorChannel)
 	go handleSubscribeResult(presenceChannel, errorChannel, "Presence2")
 }
 

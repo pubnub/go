@@ -505,7 +505,7 @@ func TestComplexClassDecryption(t *testing.T) {
 		customComplexMessage := InitComplexMessage()
 
 		b, err := json.Marshal(customComplexMessage)
-		
+
 		if err != nil {
 			fmt.Println("error:", err)
 			t.Error("Custom complex decryption: failed.")

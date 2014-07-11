@@ -12,8 +12,11 @@ import (
 	"time"
 )
 
+// PamSubKey: key for pam tests
 var PamSubKey = "pam"
+// PamPubKey: key for pam tests
 var PamPubKey = "pam"
+// PamSecKey: key for pam tests
 var PamSecKey = "pam"
 
 // timeoutMessage is the text message displayed when the
@@ -63,6 +66,7 @@ type PubnubDemoMessage struct {
 	DefaultMessage string `json:",string"`
 }
 
+// GenRandom gets a random instance
 func GenRandom() *rand.Rand {
 	return rand.New(rand.NewSource(time.Now().UnixNano()))
 }
@@ -157,10 +161,10 @@ func WaitForCompletion(responseChannel chan string, waitChannel chan string) {
 			}
 			break
 		case <-timeout:
-		//case b, _ := <-timeout:
+			//case b, _ := <-timeout:
 			//if b {
 			waitChannel <- timeoutMessage
-			//} 
+			//}
 			break
 		}
 	}

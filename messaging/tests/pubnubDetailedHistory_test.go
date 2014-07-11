@@ -223,30 +223,30 @@ func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName s
 		timeout <- true
 	}()
 	for {
-	select {
+		select {
 		case value, ok := <-returnChannel:
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := string(value)
-			if response != "" {
-				var arr []int64
-				err2 := json.Unmarshal(value, &arr)
-				if err2 != nil {
-					fmt.Println("err2 time", err2)
-					t.Error("Test '" + testName + "': failed.")
-					break
-				} else {
-					return arr[0]
-				}
-			} else {
-				fmt.Println("response", response)
-				t.Error("Test '" + testName + "': failed.")
+			if !ok {
 				break
 			}
-		}
-		case <- timeout:
+			if string(value) != "[]" {
+				response := string(value)
+				if response != "" {
+					var arr []int64
+					err2 := json.Unmarshal(value, &arr)
+					if err2 != nil {
+						fmt.Println("err2 time", err2)
+						t.Error("Test '" + testName + "': failed.")
+						break
+					} else {
+						return arr[0]
+					}
+				} else {
+					fmt.Println("response", response)
+					t.Error("Test '" + testName + "': failed.")
+					break
+				}
+			}
+		case <-timeout:
 			fmt.Println("timeout")
 			t.Error("Test '" + testName + "': failed.")
 			break
@@ -271,7 +271,7 @@ func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName s
 func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testing.T, startMessagesFrom int, numberOfMessages int, message string) bool {
 	messagesReceived := 0
 	messageToSend := ""
-	tOut := messaging.GetNonSubscribeTimeout()  
+	tOut := messaging.GetNonSubscribeTimeout()
 	messaging.SetNonSubscribeTimeout(30)
 	for i := startMessagesFrom; i < startMessagesFrom+numberOfMessages; i++ {
 		messageToSend = message + strconv.Itoa(i)

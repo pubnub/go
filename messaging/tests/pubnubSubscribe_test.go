@@ -69,7 +69,7 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	testName := "TestMultiSubscriptionConnectStatus"
 	r := GenRandom()
 	channels := fmt.Sprintf("testChannel_sub_%d,testChannel_sub_%d", r.Intn(20), r.Intn(20))
-	
+
 	//channels := "testChannel1,testChannel2"
 
 	returnSubscribeChannel := make(chan []byte)
@@ -479,7 +479,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool) {
 	//pubnubChannel := "testChannel"
 	r := GenRandom()
 	pubnubChannel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
-	
+
 	returnTimeChannel := make(chan []byte)
 	errorChannelTime := make(chan []byte)
 
@@ -654,7 +654,6 @@ func ResumeOnReconnect(t *testing.T, b bool) {
 	r := GenRandom()
 	pubnubChannel := fmt.Sprintf("testChannel_subror_%d", r.Intn(20))
 
-
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
 	returnSubscribeChannel := make(chan []byte)
 	errorChannelSub := make(chan []byte)
@@ -758,7 +757,7 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 	message1 := "message1"
 	message2 := "message2"
 	r := GenRandom()
-	
+
 	pubnubChannel1 := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
 	pubnubChannel2 := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
 
