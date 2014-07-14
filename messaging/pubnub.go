@@ -1,5 +1,5 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Build Date: Jul 8, 2014
+// Build Date: Jul 14, 2014
 // Version: 3.5
 package messaging
 
@@ -200,7 +200,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go client SDK Version: 3.5; Build Date: Jul 8, 2014;"
+	return "PubNub Go client SDK Version: 3.5; Build Date: Jul 14, 2014;"
 }
 
 // Pubnub structure.
@@ -2347,28 +2347,32 @@ func createHTTPClient(isSubscribe bool) (*http.Client, error) {
 	var transport http.RoundTripper
 
 	if isSubscribe {
-		if subscribeTransport == nil {
+		subscribeTransportMu.RLock()
+		sTrans := subscribeTransport
+		subscribeTransportMu.RUnlock()
+	
+		if sTrans == nil {
 			trans := setOrGetTransport(isSubscribe)
 			subscribeTransportMu.Lock()
 			defer subscribeTransportMu.Unlock()
 			subscribeTransport = trans
 			transport = subscribeTransport
 		} else {
-			subscribeTransportMu.RLock()
-			defer subscribeTransportMu.RUnlock()
-			transport = subscribeTransport
+			transport = sTrans
 		}
 	} else {
-		if nonSubscribeTransport == nil {
+		nonSubscribeTransportMu.RLock()
+		nsTrans := nonSubscribeTransport
+		nonSubscribeTransportMu.RUnlock()
+		
+		if nsTrans == nil {
 			trans := setOrGetTransport(isSubscribe)
 			nonSubscribeTransportMu.Lock()
 			defer nonSubscribeTransportMu.Unlock()
 			nonSubscribeTransport = trans
 			transport = nonSubscribeTransport
 		} else {
-			nonSubscribeTransportMu.RLock()
-			defer nonSubscribeTransportMu.RUnlock()
-			transport = nonSubscribeTransport
+			transport = nsTrans
 		}
 	}
 
