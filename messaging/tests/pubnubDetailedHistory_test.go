@@ -373,7 +373,7 @@ func ParseHistoryResponse(returnChannel chan []byte, channel string, message str
 // ParseResponse parses the publish response from the pubnub api on the returnChannel and
 // when the sent response is received, calls the history method of the messaging
 // package to fetch 1 message.
-func ParseResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnub, channel string, message string, testName string, numberOfMessages int, responseChannel chan string) {
+/*func ParseResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnub, channel string, message string, testName string, numberOfMessages int, responseChannel chan string) {
 	for {
 		value, ok := <-returnChannel
 		if !ok {
@@ -390,7 +390,7 @@ func ParseResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnub, 
 			break
 		}
 	}
-}
+}*/
 
 // TestDetailedHistoryEnd prints a message on the screen to mark the end of
 // detailed history tests.
