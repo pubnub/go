@@ -97,45 +97,74 @@ We've included a demo console app which documents all the functionality of the c
 
 ###Quick Implementation Examples
 
-#### ParseResponse
+#### handleSubscribeResult
 
-This function is a utility function used in the examples below to parse
-a message received from a Pubnub chanel. You will want to adapt it to
-your own needs.
+This function is a utility function used in the examples below to handle the Subscribe/Presence response. You will want to adapt it to your own needs.
 
 ```go
-func ParseResponse(channel chan []byte){
+func handleSubscribeResult(successChannel, errorChannel chan []byte, action string) {
     for {
-        value, ok := <-channel
-        if !ok {
-            break
-        }
-        if string(value) != "[]"{
-            fmt.Println(fmt.Sprintf("Response: %s ", value))
-            fmt.Println("");
+        select {
+        case success, ok := <-successChannel:
+            if !ok {
+				break
+			}
+			if string(success) != "[]" {
+				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
+				fmt.Println("")
+			}
+        case failure, ok := <-errorChannel:
+            if !ok {
+				break
+			}
+            if string(failure) != "[]" {
+				if displayError {
+					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
+					fmt.Println("")
+				}
+			}
         }
     }
 }
 ```
 
-#### ParseErrorResponse
+#### handleResult
 
-This is a utility function to parse an error response and display it.
-You will want to adapt it to your own needs.
+This function is a utility function used in the examples below to handle the non Subscribe/Presence response. You will want to adapt it to your own needs.
 
 ```go
-func ParseErrorResponse(channel chan []byte){
+func handleResult(successChannel, errorChannel chan []byte, timeoutVal int64, action string) {
+    timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(time.Duration(timeoutVal) * time.Second)
+		timeout <- true
+	}()
     for {
-        value, ok := <-channel
-        if !ok {  
-            fmt.Println("")            
-            break
-        }
-        if string(value) != "[]"{
-            if(_displayError){
-                fmt.Println(fmt.Sprintf("Error Callback: %s", value))
-                fmt.Println("")
-            }
+        select {
+        case success, ok := <-successChannel:
+            if !ok {
+				break
+			}
+			if string(success) != "[]" {
+				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
+				fmt.Println("")
+			}
+            return
+        case failure, ok := <-errorChannel:
+            if !ok {
+				break
+			}
+            if string(failure) != "[]" {
+				if displayError {
+					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
+					fmt.Println("")
+				}
+			}
+            return
+        case <-timeout:
+            fmt.Println(fmt.Sprintf("%s Handler timeout after %d secs", action, timeoutVal))
+			fmt.Println("")            
+            return
         }
     }
 }
@@ -157,9 +186,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var callbackChannel = make(chan []byte)
         go pubInstance.Publish(<pubnub channel>, <message to publish>, callbackChannel, errorChannel)
-        go ParseResponse(callbackChannel)
-        go ParseErrorResponse(errorChannel) 
-        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+        go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### Subscribe
@@ -170,9 +198,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var subscribeChannel = make(chan []byte)
         go pubInstance.Subscribe(<pubnub channels, multiple channels can be separated by comma>, <timetoken, should be an empty string in this case>, subscribeChannel, <this field is FALSE for subscribe requests>, errorChannel)
-        go ParseResponse(subscribeChannel)  
-        go ParseErrorResponse(errorChannel)  
-        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+        go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+        // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
 #### Subscribe with timetoken
@@ -183,9 +210,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var subscribeChannel = make(chan []byte)
         go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>, <timetoken to init the request with>, subscribeChannel, <this field is FALSE for subscribe requests>, errorChannel)
-        go ParseResponse(subscribeChannel)  
-        go ParseErrorResponse(errorChannel)  
-        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+        go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+        // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
 #### Presence
@@ -196,9 +222,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var presenceChannel = make(chan []byte)
         go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>, <timetoken, should be an empty string in this case>, presenceChannel, <this field is TRUE for subscribe requests>, errorChannel)
-        go ParseResponse(subscribeChannel)  
-        go ParseErrorResponse(errorChannel)  
-        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+        go handleSubscribeResult(presenceChannel, errorChannel, "Presence")  
+        // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
 #### Detailed History
@@ -210,9 +235,8 @@ Initialize a new Pubnub instance.
         var channelCallback = make(chan []byte)
         go pubInstance.History(<pubnub channel>, <no of items to fetch>, <start time>, <end time>, false, channelCallback, errorChannel)
         //example: go _pub.History(<pubnub channel>, 100, 0, 0, false, channelCallback, errorChannel)
-        go ParseResponse(channel)
-        go ParseErrorResponse(errorChannel)  
-        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+        go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Detailed History") 
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### Here_Now
@@ -223,9 +247,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.HereNow(<pubnub channel>, channelCallback, errorChannel)
-        go ParseResponse(channelCallback)
-        go ParseErrorResponse(errorChannel) 
-        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+        go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "HereNow")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 ####  Unsubscribe
@@ -236,9 +259,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.Unsubscribe(<pubnub channels, multiple channels can be separated by comma>, channelCallback, errorChannel)
-        go ParseUnsubResponse(channelCallback)
-        go ParseErrorResponse(errorChannel) 
-        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+        go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Unsubscribe")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### Presence-Unsubscribe
@@ -249,9 +271,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.PresenceUnsubscribe(<pubnub channels, multiple channels can be separated by comma>, channelCallback, errorChannel)
-        go ParseUnsubResponse(channelCallback)
-        go ParseErrorResponse(errorChannel) 
-        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+        go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "UnsubscribePresence")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### Time
@@ -262,9 +283,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
         go pubInstance.GetTime(channelCallback, errorChannel)
-        go ParseResponse(channelCallback)
-        go ParseErrorResponse(errorChannel) 
-        // please goto the end of this file see the implementations of ParseResponse and ParseErrorResponse
+        go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### Disconnect/Retry
@@ -281,8 +301,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
         go pub.GrantSubscribe(channels, true, true, 60, pamChannel, errorChannel)
-        go parseResponsePam(pamChannel)
-        go parseErrorResponse(errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Susbcribe Grant")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### RevokeSubscribe
@@ -292,8 +312,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
         go pub.GrantSubscribe(channels, false, false, -1, pamChannel, errorChannel)
-        go parseResponsePam(pamChannel)
-        go parseErrorResponse(errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### AuditSubscribe
@@ -303,8 +323,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
         go pub.AuditSubscribe(channels, pamChannel, errorChannel)
-        go parseResponsePam(pamChannel)
-        go parseErrorResponse(errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### GrantPresence
@@ -314,8 +334,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
         go pub.GrantPresence(channels, true, true, 60, pamChannel, errorChannel)
-        go parseResponsePam(pamChannel)
-        go parseErrorResponse(errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Presence Grant")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### RevokePresence
@@ -325,8 +345,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
         go pub.GrantPresence(channels, false, false, -1, pamChannel, errorChannel)
-        go parseResponsePam(pamChannel)
-        go parseErrorResponse(errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### AuditPresence
@@ -336,8 +356,8 @@ Initialize a new Pubnub instance.
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
         go pub.AuditPresence(channels, pamChannel, errorChannel)
-        go parseResponsePam(pamChannel)
-        go parseErrorResponse(errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### SetAuthKey

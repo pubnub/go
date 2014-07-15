@@ -66,6 +66,7 @@ func HereNow(t *testing.T, cipherKey string, customUuid string, testName string)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
+	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
 }
 
 // ParseHereNowResponse parses the herenow response on the go channel.
@@ -135,6 +136,7 @@ func TestPresence(t *testing.T) {
 	go ParseResponseDummy(errorChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
+	go pubnubInstance.Unsubscribe(channel, returnPresenceChannel, errorChannel)
 }
 
 // ParseSubscribeResponseForPresence will look for the connection status in the response

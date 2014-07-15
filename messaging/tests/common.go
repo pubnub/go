@@ -6,14 +6,18 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"math/rand"
 	"strings"
 	"testing"
 	"time"
 )
 
-var PamSubKey = "demo-36"
-var PamPubKey = "demo-36"
-var PamSecKey = "demo-36"
+// PamSubKey: key for pam tests
+var PamSubKey = "pam"
+// PamPubKey: key for pam tests
+var PamPubKey = "pam"
+// PamSecKey: key for pam tests
+var PamSecKey = "pam"
 
 // timeoutMessage is the text message displayed when the
 // unit test times out
@@ -60,6 +64,11 @@ type CustomComplexMessage struct {
 // PubnubDemoMessage is a struct to test a non-alphanumeric message
 type PubnubDemoMessage struct {
 	DefaultMessage string `json:",string"`
+}
+
+// GenRandom gets a random instance
+func GenRandom() *rand.Rand {
+	return rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
 // InitComplexMessage initializes a complex structure of the
@@ -148,12 +157,14 @@ func WaitForCompletion(responseChannel chan string, waitChannel chan string) {
 			if value != "[]" {
 				waitChannel <- value
 				timeout <- false
-				break
+				//break
 			}
-		case b, _ := <-timeout:
-			if b {
-				waitChannel <- timeoutMessage
-			}
+			break
+		case <-timeout:
+			//case b, _ := <-timeout:
+			//if b {
+			waitChannel <- timeoutMessage
+			//}
 			break
 		}
 	}
@@ -174,6 +185,7 @@ func ParseWaitResponse(waitChannel chan string, t *testing.T, testName string) {
 		}
 		returnVal := string(value)
 		if returnVal != "[]" {
+			//fmt.Println("wait:", returnVal)
 			if strings.Contains(returnVal, "passed") {
 				fmt.Println("Test '" + testName + "': passed.")
 			} else {
@@ -195,6 +207,7 @@ func ParseErrorResponse(channel chan []byte, responseChannel chan string) {
 		}
 		returnVal := string(value)
 		if returnVal != "[]" {
+			//fmt.Println("error:", returnVal)
 			responseChannel <- returnVal
 			break
 		}
