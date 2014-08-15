@@ -8,20 +8,18 @@ The package name has been modified to "messaging" from "pubnubMessaging".
 * SetLogOutput added, you can customize the log output now 
 * Support to change uuid
 * 3.6 features 
-
-** HereNow with state
-** WhereNow
-** Global Here Now
-** User State (Set, Get, Delete)
-** Presence heartbeat 
-** Presence heartbeat interval
+ * HereNow with state
+ * WhereNow
+ * Global Here Now
+ * User State (Set, Get, Delete)
+ * Presence heartbeat 
+ * Presence heartbeat interval
 
 * These are converted to uint16
-
-** nonSubscribeTimeout
-** retryInterval
-** connectTimeout
-** subscribeTimeout
+ * nonSubscribeTimeout
+ * retryInterval
+ * connectTimeout
+ * subscribeTimeout
 
 * Optimizations
 
