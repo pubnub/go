@@ -1,9 +1,28 @@
-#PubNub 3.5 client for Go 1.0.3, 1.1
+#PubNub 3.6 client for Go 1.0.3, 1.1
 
 ###Important changes in this version:
 The package name has been modified to "messaging" from "pubnubMessaging". 
 
-###Features
+###Change log
+* SetLogging method name changed to LogginEnabled
+* SetLogOutput added, you can customize the log output now 
+* Support to change uuid
+* 3.6 features 
+** HereNow with state
+** WhereNow
+** Global Here Now
+** User State (Set, Get, Delete)
+** Presence heartbeat 
+** Presence heartbeat interval
+* These are converted to uint16
+** nonSubscribeTimeout
+** retryInterval
+** connectTimeout
+** subscribeTimeout
+* Optimizations
+
+
+###Earlier Features
 
 * Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc
 * This version is not backward compatible. The major change is in the func calls. A new parameter "error callback" is added to the major functions of the pubnub class.
