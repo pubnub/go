@@ -4,11 +4,11 @@
 The package name has been modified to "messaging" from "pubnubMessaging". 
 
 ###Change log
-* SetLogging method name changed to LogginEnabled
+* SetLogging method name changed to LoggingEnabled
 * SetLogOutput added, you can customize the log output now 
 * Support to change uuid
 * 3.6 features 
- * HereNow with state
+ * HereNow with state (here now's signature has changed, the response has also changed)
  * WhereNow
  * Global Here Now
  * User State (Set, Get, Delete)
