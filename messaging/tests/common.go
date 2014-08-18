@@ -14,8 +14,10 @@ import (
 
 // PamSubKey: key for pam tests
 var PamSubKey = "pam"
+
 // PamPubKey: key for pam tests
 var PamPubKey = "pam"
+
 // PamSecKey: key for pam tests
 var PamSecKey = "pam"
 
@@ -187,7 +189,7 @@ func ParseWaitResponse(waitChannel chan string, t *testing.T, testName string) {
 		if returnVal != "[]" {
 			//fmt.Println("wait:", returnVal)
 			if strings.Contains(returnVal, "passed") {
-				fmt.Println("Test '" + testName + "': passed.")
+				//fmt.Println("Test '" + testName + "': passed.")
 			} else {
 				fmt.Println("Test '" + testName + "': failed. Message: " + returnVal)
 				t.Error("Test '" + testName + "': failed.")

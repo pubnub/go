@@ -280,7 +280,8 @@ func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testin
 		errorChannel := make(chan []byte)
 		go pubnubInstance.Publish(channel, messageToSend, returnPublishChannel, errorChannel)
 		messagesReceived++
-		time.Sleep(500 * time.Millisecond)
+		//time.Sleep(500 * time.Millisecond)
+		time.Sleep(1500 * time.Millisecond)
 	}
 	if messagesReceived == numberOfMessages {
 		return true

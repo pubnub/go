@@ -47,9 +47,9 @@ func TestUniqueGuid(t *testing.T) {
 		t.Error("Test 'UniqueGuid': failed.")
 	} else if guid == "" {
 		t.Error("Test 'UniqueGuid': failed.")
-	} else {
-		fmt.Println("Test 'UniqueGuid': passed.")
-	}
+	} /*else {
+		//fmt.Println("Test 'UniqueGuid': passed.")
+	}*/
 }
 
 // TestSuccessCodeAndInfo sends out a message to the pubnub channel
