@@ -353,9 +353,9 @@ func initLogging() {
 	if (loggingEnabled) && (logfileWriter != nil) {
 		once.Do(onceBody)
 	} else {
-		if loggingEnabled {
+		/*if loggingEnabled {
 			infoLogger = log.New(os.Stdout, "logfile writer not initialized", log.Ldate|log.Ltime|log.Lshortfile)
-		}
+		}*/
 		infoLogger = log.New(ioutil.Discard, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
 		errorLogger = log.New(ioutil.Discard, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 		warnLogger = log.New(ioutil.Discard, "WARN: ", log.Ldate|log.Ltime|log.Lshortfile)
