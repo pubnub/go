@@ -16,7 +16,7 @@ func TestPamStart(t *testing.T) {
 	PrintTestMessage("==========PAM tests start==========")
 }
 
-/*func TestSecretKeyRequired(t *testing.T) {
+func TestSecretKeyRequired(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
 	channel := "testChannel"
 
@@ -30,7 +30,7 @@ func TestPamStart(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SecretKeyRequired")
 
-}*/
+}
 
 func ParsePamErrorResponse(channel chan []byte, testName string, message string, responseChannel chan string) {
 	for {
@@ -78,7 +78,7 @@ func ParsePamResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnu
 	}
 }
 
-/*func TestSubscribeGrantPositive(t *testing.T) {
+func TestSubscribeGrantPositive(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelSubscribeGrantPositive"
 	ttl := 1
@@ -180,7 +180,7 @@ func TestPresenceGrantNegative(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, returnPamChannel2, errorChannel2)
 	pubnubInstance.CloseExistingConnection()
-}*/
+}
 
 func TestSubscribeAudit(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
@@ -426,7 +426,7 @@ func TestPresenceAudit(t *testing.T) {
 	pubnubInstance.CloseExistingConnection()
 }
 
-/*func TestAuthSubscribe(t *testing.T) {
+func TestAuthSubscribe(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	pubnubInstance.SetAuthenticationKey("authkey")
 	channel := "testChannelSubscribeAuth"
@@ -716,7 +716,7 @@ func TestAuthHistory(t *testing.T) {
 	go ParseErrorResponse(errorChannel5, responseChannel5)
 	go WaitForCompletion(responseChannel5, waitChannel5)
 
-}*/
+}
 
 func TestPamEnd(t *testing.T) {
 	PrintTestMessage("==========PAM tests End==========")
