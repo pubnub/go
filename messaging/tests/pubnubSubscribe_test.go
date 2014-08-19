@@ -38,6 +38,7 @@ func TestSubscriptionConnectStatus(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectStatus")
 	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionAlreadySubscribed sends out a subscribe request to a pubnub channel
@@ -60,6 +61,7 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
 	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	pubnubInstance.CloseExistingConnection()
 }
 
 // TestMultiSubscriptionConnectStatus send out a pubnub multi channel subscribe request and
@@ -84,6 +86,7 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
 	go pubnubInstance.Unsubscribe(channels, returnSubscribeChannel, errorChannel)
+	pubnubInstance.CloseExistingConnection()
 }
 
 // ParseSubscribeResponseForMultipleChannels parses the pubnub multi channel response
@@ -131,6 +134,7 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimple")
 	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForSimpleMessageWithCipher first subscribes to a pubnub channel and then publishes
@@ -153,6 +157,7 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimpleWithCipher")
 	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForComplexMessage first subscribes to a pubnub channel and then publishes
@@ -175,6 +180,7 @@ func TestSubscriptionForComplexMessage(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplex")
 	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForComplexMessageWithCipher first subscribes to a pubnub channel and then publishes
@@ -197,6 +203,7 @@ func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplexWithCipher")
 	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	pubnubInstance.CloseExistingConnection()
 }
 
 // PublishComplexMessage publises a complex message on a pubnub channel and
@@ -514,6 +521,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool) {
 			go WaitForCompletion(responseChannelSub, waitChannelSub)
 			ParseWaitResponse(waitChannelSub, t, testName)
 			go pubnubInstance.Unsubscribe(pubnubChannel, returnSubscribeChannel, errorChannelSub)
+			pubnubInstance.CloseExistingConnection()
 		}
 	}
 }
@@ -667,6 +675,7 @@ func ResumeOnReconnect(t *testing.T, b bool) {
 	ParseWaitResponse(waitChannelSub, t, testName)
 	messaging.SetSubscribeTimeout(310)
 	go pubnubInstance.Unsubscribe(pubnubChannel, returnSubscribeChannel, errorChannelSub)
+	pubnubInstance.CloseExistingConnection()
 }
 
 // ParseSubscribeForTimetoken retrieves the last timetoken and matches with the senttimetoken
@@ -775,6 +784,7 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 	go WaitForCompletion(responseChannelSub, waitChannelSub)
 	ParseWaitResponse(waitChannelSub, t, testName)
 	go pubnubInstance.Unsubscribe(pubnubChannel, returnSubscribeChannel, errorChannelSub)
+	pubnubInstance.CloseExistingConnection()
 }
 
 // ParseSubscribeMultiplexedResponse publishes 2 messages on 2 different channels and

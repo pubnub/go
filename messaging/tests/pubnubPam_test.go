@@ -226,6 +226,7 @@ func TestSubscribeAudit(t *testing.T) {
 	responseChannel3 := make(chan string)
 	waitChannel3 := make(chan string)
 
+	time.Sleep(time.Duration(1) * time.Second)
 	//grant
 	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, returnPamChannel3, errorChannel3)
 	//fmt.Println("message2:", message2)
