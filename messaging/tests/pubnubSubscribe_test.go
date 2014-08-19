@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 // TestSubscribeStart prints a message on the screen to mark the beginning of
@@ -504,6 +505,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool) {
 
 		returnPublishChannel2 := make(chan []byte)
 		errorChannelPub2 := make(chan []byte)
+		time.Sleep(time.Duration(2) * time.Second)
 
 		go pubnubInstance.Publish(pubnubChannel, message2, returnPublishChannel2, errorChannelPub2)
 		b2, _ := ParsePublishResponseFromServer(returnPublishChannel2, errorChannelPub2)

@@ -105,7 +105,7 @@ var (
 	// The time after which the Publish/HereNow/DetailedHitsory/Unsubscribe/
 	// UnsibscribePresence/Time  request will timeout.
 	// In seconds.
-	nonSubscribeTimeout uint16 = 15 //sec
+	nonSubscribeTimeout uint16 = 20 //sec
 
 	// On Subscribe/Presence timeout, the number of times the reconnect attempts are made.
 	maxRetries = 50 //times
