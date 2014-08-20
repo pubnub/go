@@ -50,7 +50,7 @@ func TestHereNowWithCipher(t *testing.T) {
 
 func TestPresenceHeartbeat(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-	pubnubInstance.SetPresenceHeartbeat(20)
+	pubnubInstance.SetPresenceHeartbeat(15)
 	channel := fmt.Sprintf("presence_hb")
 	
 	returnSubscribeChannel := make(chan []byte)
@@ -74,7 +74,7 @@ func TestPresenceHeartbeat(t *testing.T) {
 func ParsePresenceResponseForTimeout(returnChannel chan []byte, responseChannel chan string, testName string) {
 	timeout := make(chan bool, 1)
 	go func() {
-		time.Sleep(25 * time.Second)
+		time.Sleep(20 * time.Second)
 		timeout <- true
 	}()
 	for {
