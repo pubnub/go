@@ -184,6 +184,14 @@ func Init() (b bool) {
 			pub = pubInstance
 
 			SetupProxy()
+			
+			presenceHeartbeat := askNumber16("Presence Heartbeat", true)
+			pub.SetPresenceHeartbeat(presenceHeartbeat)
+			fmt.Println(fmt.Sprintf("Presence Heartbeat set to :%d", pub.GetPresenceHeartbeat()))
+			
+			presenceHeartbeatInterval := askNumber16("Presence Heartbeat Interval", true)
+			pub.SetPresenceHeartbeat(presenceHeartbeatInterval)
+			fmt.Println(fmt.Sprintf("Presence Heartbeat set to :%d", pub.GetPresenceHeartbeat()))
 
 			fmt.Println("Pubnub instance initialized")
 
@@ -268,6 +276,25 @@ func askPassword() string {
 	return proxyPassword
 }
 
+// AskOneChannel asks the user to channel name.
+// If the channel(s) are not provided the channel(s) provided by the user
+// at the beginning will be used.
+// returns the read channel(s), or error
+func askOneChannel() (string, error) {
+	fmt.Println("Please enter a channel name.")
+	reader := bufio.NewReader(os.Stdin)
+	channels, _, errReadingChannel := reader.ReadLine()
+	if errReadingChannel != nil {
+		fmt.Println("Error channel: ", errReadingChannel.Error())
+		return "", errReadingChannel
+	}
+	if strings.TrimSpace(string(channels)) == "" {
+		fmt.Print("Channel empty. ")
+		return askOneChannel()
+	}
+	return string(channels), nil
+}
+
 // AskChannel asks the user to channel name.
 // If the channel(s) are not provided the channel(s) provided by the user
 // at the beginning will be used.
@@ -347,18 +374,47 @@ func askNumber(what string) int64 {
 
 // askNumber
 //
-func askNumber16(what string) uint16 {
+func askNumber16(what string, optional bool) uint16 {
 	var input string
 
-	fmt.Println("Enter " + what)
+	if optional {
+		fmt.Println("Enter " + what + " (optional)")
+	} else {
+		fmt.Println("Enter " + what)
+	}
 	fmt.Scanln(&input)
-
-	val, err := strconv.ParseUint(input, 10, 16)
-
+	if (optional) && (strings.TrimSpace(input) == ""){
+		input = "0"
+	}
+	
+	
+	/*reader := bufio.NewReader(os.Stdin)
+	input, _, errReadingChannel := reader.ReadLine()
+	if errReadingChannel != nil {
+		fmt.Println("Error: ", errReadingChannel.Error())
+		return 0
+	}
+	input1 := string(input)
+	if (optional) && (strings.TrimSpace(input1) == ""){
+		input1 = "0"
+	}
+	
+	//return string(channels), nil
+	
+	/*bi := big.NewInt(0)
+	if _, ok := bi.SetString(input, 10); !ok {
+		//if (err != nil) {
+		fmt.Println(what + " is invalid. Please enter numerals.")
+		return askNumber16(what, optional)
+	}*/
+	
+	val, err := strconv.Atoi(strings.TrimSpace(input))
+	//fmt.Println("Input " + input)
 	if err != nil {
 		fmt.Println(what + " is invalid. Please enter numerals.")
-		return askNumber16(what)
+		return askNumber16(what, optional)
 	}
+
 	return uint16(val)
 }
 
@@ -649,17 +705,15 @@ func ReadLoop() {
 			fmt.Print("Authentication Key:")
 			fmt.Println(pub.GetAuthenticationKey())
 		case "19":
-			fmt.Println("Setting Presence Heartbeat:")
-			presenceHeartbeat := askNumber16("Presence Heartbeat")
+			presenceHeartbeat := askNumber16("Presence Heartbeat", false)
 			pub.SetPresenceHeartbeat(presenceHeartbeat)
-			fmt.Println(fmt.Sprintf("Set Presence Heartbeat to :%d", pub.GetPresenceHeartbeat()))
+			fmt.Println(fmt.Sprintf("Presence Heartbeat set to :%d", pub.GetPresenceHeartbeat()))
 		case "20":
-			fmt.Println("Setting Presence Heartbeat Interval:")
-			presenceHeartbeatInterval := askNumber16("Presence Heartbeat Interval")
+			presenceHeartbeatInterval := askNumber16("Presence Heartbeat Interval", false)
 			pub.SetPresenceHeartbeatInterval(presenceHeartbeatInterval)
-			fmt.Println(fmt.Sprintf("Set Presence Heartbeat Interval to :%d", pub.GetPresenceHeartbeatInterval()))
+			fmt.Println(fmt.Sprintf("Presence Heartbeat Interval set to :%d", pub.GetPresenceHeartbeatInterval()))
 		case "21":
-			channel, errReadingChannel := askChannel()
+			channel, errReadingChannel := askOneChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
@@ -669,7 +723,7 @@ func ReadLoop() {
 				go setUserState(channel, key, val)
 			}
 		case "22":
-			channel, errReadingChannel := askChannel()
+			channel, errReadingChannel := askOneChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
@@ -678,7 +732,7 @@ func ReadLoop() {
 				go delUserState(channel, key)
 			}
 		case "23":
-			channel, errReadingChannel := askChannel()
+			channel, errReadingChannel := askOneChannel()
 
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
@@ -688,7 +742,7 @@ func ReadLoop() {
 				go setUserStateJSON(channel, jsonString)
 			}
 		case "24":
-			channel, errReadingChannel := askChannel()
+			channel, errReadingChannel := askOneChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {

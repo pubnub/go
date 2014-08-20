@@ -48,11 +48,66 @@ func TestHereNowWithCipher(t *testing.T) {
 	HereNow(t, cipherKey, customUuid, testName)
 }
 
+func TestPresenceHeartbeat(t *testing.T) {
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance.SetPresenceHeartbeat(20)
+	channel := fmt.Sprintf("presence_hb")
+	
+	returnSubscribeChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	responseChannel := make(chan string)
+	waitChannel := make(chan string)
+	
+	testName := "Presence Heartbeat"
+	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
+	time.Sleep(time.Duration(3) * time.Second)
+	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, true, errorChannel)
+	go ParsePresenceResponseForTimeout(returnSubscribeChannel, responseChannel, testName)
+	go ParseErrorResponse(errorChannel, responseChannel)
+	go WaitForCompletion(responseChannel, waitChannel)
+	ParseWaitResponse(waitChannel, t, testName)
+	go pubnubInstance.PresenceUnsubscribe(channel, returnSubscribeChannel, errorChannel)
+	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	pubnubInstance.CloseExistingConnection()	
+}
+
+func ParsePresenceResponseForTimeout(returnChannel chan []byte, responseChannel chan string, testName string) {
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(25 * time.Second)
+		timeout <- true
+	}()
+	for {
+	select {
+		case value, ok := <-returnChannel:
+			if !ok {
+				break
+			}
+			if string(value) != "[]" {
+				response := string(value)
+				//fmt.Println("response:", response)
+				//fmt.Println("message:",message);
+				if strings.Contains(response, "connected") || strings.Contains(response, "join") || strings.Contains(response, "leave"){
+					continue
+				}else if strings.Contains(response, "timeout") {
+					responseChannel <- "Test '" + testName + "': failed."
+				} else {
+					responseChannel <- "Test '" + testName + "': passed."
+				}
+				break
+			}
+		case <-timeout:
+			responseChannel <- "Test '" + testName + "': passed."
+			break
+		}
+	}
+}
+
 // HereNow is a common method used by the tests TestHereNow, HereNowWithCipher, CustomUuid
 // It subscribes to a pubnub channel and then
 // makes a call to the herenow method of the pubnub api.
 func HereNow(t *testing.T, cipherKey string, customUuid string, testName string) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", cipherKey, false, customUuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, customUuid)
 
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_hn_%d", r.Intn(100))
@@ -147,7 +202,7 @@ func ParseHereNowResponse(returnChannel chan []byte, channel string, message str
 func TestPresence(t *testing.T) {
 	customUuid := "customuuid"
 	testName := "Presence"
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, customUuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, customUuid)
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_pres_%d", r.Intn(100))
 
@@ -181,7 +236,7 @@ func TestWhereNow(t *testing.T) {
 // It subscribes to a pubnub channel and then
 // makes a call to the herenow method of the pubnub api.
 func WhereNow(t *testing.T, cipherKey string, customUuid string, testName string) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", cipherKey, false, customUuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, customUuid)
 
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_wn_%d", r.Intn(100))
@@ -217,7 +272,7 @@ func TestGlobalHereNow(t *testing.T) {
 // It subscribes to a pubnub channel and then
 // makes a call to the herenow method of the pubnub api.
 func GlobalHereNow(t *testing.T, cipherKey string, customUuid string, testName string) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", cipherKey, false, customUuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, customUuid)
 
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_ghn_%d", r.Intn(100))
@@ -356,7 +411,7 @@ func TestSetGetUserState(t *testing.T) {
 	cipherKey := ""
 	testName := "SetGetUserState"
 
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", cipherKey, false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
 
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_us_%d", r.Intn(100))
@@ -369,7 +424,7 @@ func TestSetUserStateHereNow(t *testing.T) {
 	cipherKey := ""
 	testName := "SetGetUserStateHereNow"
 
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", cipherKey, false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
 
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_us_%d", r.Intn(100))
@@ -383,7 +438,7 @@ func TestSetUserStateGlobalHereNow(t *testing.T) {
 	cipherKey := ""
 	testName := "SetGetUserStateGlobalHereNow"
 
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", cipherKey, false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
 
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_us_%d", r.Intn(100))
@@ -496,7 +551,7 @@ func TestSetUserStateJSON(t *testing.T) {
 	cipherKey := ""
 	testName := "SetGetUserStateJSON"
 
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", cipherKey, false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
 
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_us_%d", r.Intn(100))

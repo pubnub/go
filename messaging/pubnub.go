@@ -1,5 +1,5 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Build Date: Aug 15, 2014
+// Build Date: Aug 20, 2014
 // Version: 3.6
 package messaging
 
@@ -236,7 +236,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go client SDK Version: 3.6; Build Date: Aug 15, 2014;"
+	return "PubNub Go client SDK Version: 3.6; Build Date: Aug 20, 2014;"
 }
 
 // Pubnub structure.
@@ -459,15 +459,14 @@ func (pub *Pubnub) SetPresenceHeartbeat(val uint16) {
 	defer presenceHeartbeatMu.Unlock()
 	//set presenceHeartbeatInterval
 	presenceHeartbeat = val
-
 	if val <= 0 || val > 320 {
 		presenceHeartbeat = 0
 		presenceHeartbeatInterval = 0
 	} else {
 		presenceHeartbeat = val
-		presenceHeartbeatInterval = (presenceHeartbeat / 2) - 1
+		presenceHeartbeatInterval = uint16((presenceHeartbeat / 2) - 1)
 	}
-	pub.runPresenceHeartbeat()
+	go pub.runPresenceHeartbeat()
 }
 
 // GetPresenceHeartbeat gets the value of presenceHeartbeat
@@ -491,7 +490,7 @@ func (pub *Pubnub) SetPresenceHeartbeatInterval(val uint16) {
 	if (presenceHeartbeatInterval >= presenceHeartbeat) && (presenceHeartbeat > 0) {
 		presenceHeartbeatInterval = (presenceHeartbeat / 2) - 1
 	}
-	pub.runPresenceHeartbeat()
+	go pub.runPresenceHeartbeat()
 }
 
 // GetPresenceHeartbeatInterval gets the value of presenceHeartbeatInterval
@@ -1505,7 +1504,7 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 		pub.RLock()
 		hasPresenceChannels := strings.Contains(pub.subscribedChannels, presenceSuffix)
 		pub.RUnlock()
-		if !hasPresenceChannels || (presenceHeartbeatInterval <= 0) || (presenceHeartbeat <= 0) {
+		if !hasPresenceChannels || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeat <= 0) {
 			pub.Lock()
 			pub.isPresenceHeartbeatRunning = false
 			pub.Unlock()
@@ -1535,7 +1534,7 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 			infoLogger.Println(fmt.Sprintf("Presence Heartbeat %s", string(value)))
 			logMu.Unlock()
 		}
-		time.Sleep(time.Duration(presenceHeartbeatInterval) * time.Second)
+		time.Sleep(time.Duration(pub.GetPresenceHeartbeatInterval()) * time.Second)
 	}
 }
 
@@ -2973,7 +2972,7 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 	infoLogger.Println(fmt.Sprintf("url: %s", requrl))
 	logMu.Unlock()
 	
-	contents, responseStatusCode, err := connect(requrl, action)
+	contents, responseStatusCode, err := pub.connect(requrl, action)
 
 	if err != nil {
 		logMu.Lock()
@@ -3006,7 +3005,7 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 //
 // returns:
 // the transport.
-func setOrGetTransport(action int) http.RoundTripper {
+func (pub *Pubnub) setOrGetTransport(action int) http.RoundTripper {
 	var transport http.RoundTripper
 	switch action {
 	case subscribeTrans:
@@ -3014,7 +3013,7 @@ func setOrGetTransport(action int) http.RoundTripper {
 		transport = subscribeTransport
 		subscribeTransportMu.RUnlock()
 		if transport == nil {
-			transport = initTrans(action)
+			transport = pub.initTrans(action)
 			subscribeTransportMu.Lock()
 			subscribeTransport = transport
 			subscribeTransportMu.Unlock()
@@ -3024,7 +3023,7 @@ func setOrGetTransport(action int) http.RoundTripper {
 		transport = nonSubscribeTransport
 		nonSubscribeTransportMu.RUnlock()
 		if transport == nil {
-			transport = initTrans(action)
+			transport = pub.initTrans(action)
 			nonSubscribeTransportMu.Lock()
 			nonSubscribeTransport = transport
 			nonSubscribeTransportMu.Unlock()
@@ -3034,7 +3033,7 @@ func setOrGetTransport(action int) http.RoundTripper {
 		transport = retryTransport
 		retryTransportMu.RUnlock()
 		if transport == nil {
-			transport = initTrans(action)
+			transport = pub.initTrans(action)
 			retryTransportMu.Lock()
 			retryTransport = transport
 			retryTransportMu.Unlock()
@@ -3044,7 +3043,7 @@ func setOrGetTransport(action int) http.RoundTripper {
 		transport = presenceHeartbeatTransport
 		presenceHeartbeatTransportMu.RUnlock()
 		if transport == nil {
-			transport = initTrans(action)
+			transport = pub.initTrans(action)
 			presenceHeartbeatTransportMu.Lock()
 			presenceHeartbeatTransport = transport
 			presenceHeartbeatTransportMu.Unlock()
@@ -3067,7 +3066,7 @@ func setOrGetTransport(action int) http.RoundTripper {
 //
 // returns:
 // the transport.
-func initTrans(action int) http.RoundTripper {
+func (pub *Pubnub) initTrans(action int) http.RoundTripper {
 	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		Dial: func(netw, addr string) (net.Conn, error) {
 			c, err := net.DialTimeout(netw, addr, time.Duration(connectTimeout)*time.Second)
@@ -3104,7 +3103,7 @@ func initTrans(action int) http.RoundTripper {
 				case presenceHeartbeatTrans:
 					presenceHeartbeatTransportMu.Lock()
 					defer presenceHeartbeatTransportMu.Unlock()
-					deadline := time.Now().Add(time.Duration(presenceHeartbeatInterval) * time.Second)
+					deadline := time.Now().Add(time.Duration(pub.GetPresenceHeartbeatInterval()) * time.Second)
 					c.SetDeadline(deadline)
 					presenceHeartbeatConn = c
 					logMu.Lock()
@@ -3155,9 +3154,9 @@ func initTrans(action int) http.RoundTripper {
 // returns:
 // the pointer to the http.Client
 // error is any.
-func createHTTPClient(action int) (*http.Client, error) {
+func(pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
 	var transport http.RoundTripper
-	transport = setOrGetTransport(action)
+	transport = pub.setOrGetTransport(action)
 
 	var err error
 	var httpClient *http.Client
@@ -3185,9 +3184,9 @@ func createHTTPClient(action int) (*http.Client, error) {
 // the response as byte array.
 // response errorcode if any.
 // error if any.
-func connect(requestURL string, action int) ([]byte, int, error) {
+func (pub *Pubnub) connect(requestURL string, action int) ([]byte, int, error) {
 	var contents []byte
-	httpClient, err := createHTTPClient(action)
+	httpClient, err := pub.createHTTPClient(action)
 
 	if err == nil {
 		req, err := http.NewRequest("GET", requestURL, nil)
