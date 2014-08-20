@@ -210,7 +210,9 @@ func TestPresence(t *testing.T) {
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
-
+	
+	time.Sleep(time.Duration(3) * time.Second)
+	
 	go pubnubInstance.Subscribe(channel, "", returnPresenceChannel, true, errorChannel)
 	go ParseSubscribeResponseForPresence(pubnubInstance, customUuid, returnPresenceChannel, channel, testName, responseChannel)
 	go ParseResponseDummy(errorChannel)
