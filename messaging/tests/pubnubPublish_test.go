@@ -21,7 +21,7 @@ func TestPublishStart(t *testing.T) {
 // TestNullMessage sends out a null message to a pubnub channel. The response should
 // be an "Invalid Message".
 func TestNullMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	channel := "testChannel"
 	var message interface{}
 	message = nil
@@ -47,16 +47,16 @@ func TestUniqueGuid(t *testing.T) {
 		t.Error("Test 'UniqueGuid': failed.")
 	} else if guid == "" {
 		t.Error("Test 'UniqueGuid': failed.")
-	} else {
-		fmt.Println("Test 'UniqueGuid': passed.")
-	}
+	} /*else {
+		//fmt.Println("Test 'UniqueGuid': passed.")
+	}*/
 }
 
 // TestSuccessCodeAndInfo sends out a message to the pubnub channel
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfo(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	channel := "testChannel"
 	message := "Pubnub API Usage Example"
 	returnChannel := make(chan []byte)
@@ -78,7 +78,7 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "enigma", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
 	channel := "testChannel"
 	message := "Pubnub API Usage Example"
 	returnChannel := make(chan []byte)
@@ -100,7 +100,7 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "secret", "enigma", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "enigma", false, "")
 	channel := "testChannel"
 	message := "Pubnub API Usage Example"
 	returnChannel := make(chan []byte)
@@ -121,7 +121,7 @@ func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and customstruct is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	channel := "testChannel"
 
 	customStruct := CustomStruct{
@@ -147,7 +147,7 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	channel := "testChannel"
 
 	customComplexMessage := InitComplexMessage()
@@ -171,7 +171,7 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "secret", "enigma", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "secret", "enigma", false, "")
 	channel := "testChannel"
 
 	customComplexMessage := InitComplexMessage()
@@ -195,7 +195,7 @@ func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "enigma", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
 	channel := "testChannel"
 
 	customComplexMessage := InitComplexMessage()
@@ -239,7 +239,7 @@ func ParsePublishResponse(returnChannel chan []byte, channel string, message str
 // TestLargeMessage tests the client by publshing a large message
 // An error "message to large" should be returned from the server
 /*func TestLargeMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 	channel := "testChannel"
 	message := "This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. "
 	returnChannel := make(chan []byte)

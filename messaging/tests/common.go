@@ -14,10 +14,21 @@ import (
 
 // PamSubKey: key for pam tests
 var PamSubKey = "pam"
+
 // PamPubKey: key for pam tests
 var PamPubKey = "pam"
+
 // PamSecKey: key for pam tests
 var PamSecKey = "pam"
+
+// SubKey: key for pam tests
+var SubKey = "demo-36"
+
+// PubKey: key for pam tests
+var PubKey = "demo-36"
+
+// SecKey: key for pam tests
+var SecKey = "demo-36"
 
 // timeoutMessage is the text message displayed when the
 // unit test times out
@@ -187,7 +198,7 @@ func ParseWaitResponse(waitChannel chan string, t *testing.T, testName string) {
 		if returnVal != "[]" {
 			//fmt.Println("wait:", returnVal)
 			if strings.Contains(returnVal, "passed") {
-				fmt.Println("Test '" + testName + "': passed.")
+				//fmt.Println("Test '" + testName + "': passed.")
 			} else {
 				fmt.Println("Test '" + testName + "': failed. Message: " + returnVal)
 				t.Error("Test '" + testName + "': failed.")

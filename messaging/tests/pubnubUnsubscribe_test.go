@@ -20,7 +20,7 @@ func TestUnsubscribeStart(t *testing.T) {
 // TestUnsubscribeNotSubscribed will try to unsubscribe a non subscribed pubnub channel.
 // The response should contain 'not subscribed'
 func TestUnsubscribeNotSubscribed(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
 	currentTime := time.Now()
 	channel := "testChannel" + currentTime.Format("20060102150405")
@@ -40,7 +40,7 @@ func TestUnsubscribeNotSubscribed(t *testing.T) {
 // TestUnsubscribe will subscribe to a pubnub channel and then send an unsubscribe request
 // The response should contain 'unsubscribed'
 func TestUnsubscribe(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
 	channel := "testChannel"
 

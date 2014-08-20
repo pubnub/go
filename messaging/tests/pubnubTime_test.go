@@ -17,7 +17,7 @@ func TestTimeStart(t *testing.T) {
 
 // TestServerTime calls the GetTime method of the messaging to test the time
 func TestServerTime(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
 	returnTimeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)

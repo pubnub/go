@@ -23,7 +23,7 @@ func TestDetailedHistoryStart(t *testing.T) {
 // calls the history method of the messaging package to fetch 1 message. This received
 // message is compared to the message sent and if both match test is successful.
 /*func TestDetailedHistory(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
 	message := "Test Message"
@@ -44,7 +44,7 @@ func TestDetailedHistoryStart(t *testing.T) {
 // sent response is received, calls the history method of the messaging package to fetch
 // 1 message. This received message is compared to the message sent and if both match test is successful.
 func TestEncryptedDetailedHistory(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "enigma", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "enigma", false, "")
 
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
@@ -87,7 +87,7 @@ func TestDetailedHistoryFor10EncryptedMessages(t *testing.T) {
 func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName string) {
 	numberOfMessages := 10
 	startMessagesFrom := 0
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", cipherKey, false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
 
 	message := "Test Message "
 	r := GenRandom()
@@ -157,7 +157,7 @@ func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
 // if all match test is successful.
 func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKey string, testName string) {
 	numberOfMessages := 5
-	pubnubInstance := messaging.NewPubnub("demo", "demo", secretKey, cipherKey, false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, secretKey, cipherKey, false, "")
 
 	message := "Test Message "
 	r := GenRandom()
@@ -280,7 +280,8 @@ func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testin
 		errorChannel := make(chan []byte)
 		go pubnubInstance.Publish(channel, messageToSend, returnPublishChannel, errorChannel)
 		messagesReceived++
-		time.Sleep(500 * time.Millisecond)
+		//time.Sleep(500 * time.Millisecond)
+		time.Sleep(1500 * time.Millisecond)
 	}
 	if messagesReceived == numberOfMessages {
 		return true
