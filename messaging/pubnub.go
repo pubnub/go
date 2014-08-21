@@ -1,5 +1,5 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Build Date: Aug 20, 2014
+// Build Date: Aug 21, 2014
 // Version: 3.6
 package messaging
 
@@ -57,6 +57,10 @@ const (
 )
 
 const (
+	//Sdk Identification Param appended to each request
+	sdkIdentificationParamKey = "pnsdk"
+	sdkIdentificationParamVal = "PubNub-Go/3.6"
+	
 	// This string is appended to all presence channels
 	// to differentiate from the subscribe requests.
 	presenceSuffix = "-pnpres"
@@ -102,6 +106,7 @@ const (
 )
 
 var (
+	sdkIdentificationParam = fmt.Sprintf("%s=%s", sdkIdentificationParamKey, url.QueryEscape(sdkIdentificationParamVal))
 	// The time after which the Publish/HereNow/DetailedHitsory/Unsubscribe/
 	// UnsibscribePresence/Time  request will timeout.
 	// In seconds.
@@ -236,7 +241,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go client SDK Version: 3.6; Build Date: Aug 20, 2014;"
+	return "PubNub Go client SDK Version: 3.6; Build Date: Aug 21, 2014;"
 }
 
 // Pubnub structure.
@@ -433,14 +438,14 @@ func (pub *Pubnub) SetUUID(val string) {
 	if strings.TrimSpace(val) == "" {
 		uuid, err := GenUuid()
 		if err == nil {
-			pub.uuid = uuid
+			pub.uuid = url.QueryEscape(uuid)
 		} else {
 			logMu.Lock()
 			errorLogger.Println(err.Error())
 			logMu.Unlock()
 		}
 	} else {
-		pub.uuid = val
+		pub.uuid = url.QueryEscape(val)
 	}
 }
 
@@ -723,6 +728,20 @@ func convertToPresenceChannel(channel string) string {
 	return retChannel
 }
 
+func queryEscapeMultiple (q string, splitter string) string{
+	channelArray := strings.Split(q, splitter)
+	var pBuffer bytes.Buffer
+	count := 0
+	for i := 0; i < len(channelArray); i++ {
+		if count > 0 {
+			pBuffer.WriteString(splitter)
+		}
+		count++
+		pBuffer.WriteString(url.QueryEscape(channelArray[i]))
+	}
+	return pBuffer.String()
+}
+
 // executePam is the main method which is called for all PAM requests
 //
 // for audit request the isAudit parameter should be true
@@ -754,7 +773,7 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 	}
 
 	if strings.TrimSpace(channel) != "" {
-		channelParam = fmt.Sprintf("channel=%s&", url.QueryEscape(channel))
+		channelParam = fmt.Sprintf("channel=%s&", queryEscapeMultiple(channel, ","))
 		noChannel = false
 	}
 
@@ -795,6 +814,12 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 	pamURLBuffer.WriteString(pub.subscribeKey)
 	pamURLBuffer.WriteString("?")
 	pamURLBuffer.WriteString(params.String())
+
+	pamURLBuffer.WriteString("&")
+	pamURLBuffer.WriteString(sdkIdentificationParam)
+	pamURLBuffer.WriteString("&uuid=")
+	pamURLBuffer.WriteString(pub.GetUUID())
+	
 
 	value, _, err := pub.httpRequest(pamURLBuffer.String(), nonSubscribeTrans)
 	if err != nil {
@@ -849,6 +874,11 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 	timeURL += "/time"
 	timeURL += "/0"
 
+	timeURL += "?"
+	timeURL += sdkIdentificationParam
+	timeURL += "&uuid="
+	timeURL += pub.GetUUID()
+
 	value, _, err := pub.httpRequest(timeURL, nonSubscribeTrans)
 
 	if err != nil {
@@ -883,7 +913,7 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 // callbackChannel: Channel on which to send the response.
 // errorChannel on which the error response is sent.
 func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, jsonBytes []byte, callbackChannel chan []byte, errorChannel chan []byte) {
-	var publishURL *url.URL
+	/*var publishURL *url.URL
 	publishURL, urlErr := url.Parse(publishURLString)
 	if urlErr != nil {
 		logMu.Lock()
@@ -891,12 +921,16 @@ func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, j
 		logMu.Unlock()
 		errorChannel <- []byte(fmt.Sprintf("%s", urlErr))
 	} else {
-		publishURL.Path = fmt.Sprintf("%s%s", publishURL.Path, string(jsonBytes))
-		q := publishURL.Query()
+		publishURL.Path = fmt.Sprintf("%s%s", publishURL.Path, string(jsonBytes))*/
+		publishURL := fmt.Sprintf("%s%s", publishURLString, url.QueryEscape(string(jsonBytes)))
+		publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL, sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
+		/*q := publishURL.Query()
+		q.Set(sdkIdentificationParamKey, sdkIdentificationParamVal)
+		q.Set("uuid", pub.GetUUID())
 		q = pub.addAuthParamToQuery(q)
-		publishURL.RawQuery = q.Encode()
+		publishURL.RawQuery = q*/
 
-		value, responseCode, err := pub.httpRequest(publishURL.String(), nonSubscribeTrans)
+		value, responseCode, err := pub.httpRequest(publishURL, nonSubscribeTrans)
 
 		if (responseCode != 200) || (err != nil) {
 			if (value != nil) && (responseCode > 0) {
@@ -942,7 +976,21 @@ func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, j
 				callbackChannel <- []byte(fmt.Sprintf("%s", value))
 			}
 		}
+	//}
+}
+
+func encodeURL (urlString string) string{
+	var reqURL *url.URL
+	reqURL, urlErr := url.Parse(urlString)
+	if urlErr != nil {
+		logMu.Lock()
+		errorLogger.Println(fmt.Sprintf("Url encoding error: %s", urlErr.Error()))
+		logMu.Unlock()
+		return urlString
 	}
+	q := reqURL.Query()
+	reqURL.RawQuery = q.Encode()
+	return reqURL.String()
 }
 
 // invalidMessage takes the message in form of a interface and checks if the message is nil or empty.
@@ -1052,7 +1100,7 @@ func (pub *Pubnub) Publish(channel string, message interface{}, callbackChannel 
 	publishURLBuffer.WriteString("/")
 	publishURLBuffer.WriteString(signature)
 	publishURLBuffer.WriteString("/")
-	publishURLBuffer.WriteString(channel)
+	publishURLBuffer.WriteString(url.QueryEscape(channel))
 	publishURLBuffer.WriteString("/0/")
 
 	jsonSerialized, err := json.Marshal(message)
@@ -1455,7 +1503,7 @@ func (pub *Pubnub) createPresenceHeartbeatURL() string {
 			presenceChannelsBuffer.WriteString(",")
 		}
 		count++
-		presenceChannelsBuffer.WriteString(i)
+		presenceChannelsBuffer.WriteString(url.QueryEscape(i))
 	}
 	//presenceURLBuffer.WriteString(pub.subscribedChannels)
 	presenceURLBuffer.WriteString(presenceChannelsBuffer.String())
@@ -1477,10 +1525,12 @@ func (pub *Pubnub) createPresenceHeartbeatURL() string {
 		userState := string(jsonSerialized)
 		if (strings.TrimSpace(userState) != "") && (userState != "null") {
 			presenceURLBuffer.WriteString("&state=")
-			presenceURLBuffer.WriteString(userState)
+			presenceURLBuffer.WriteString(url.QueryEscape(userState))
 		}
 	}
-
+	presenceURLBuffer.WriteString("&")
+	presenceURLBuffer.WriteString(sdkIdentificationParam)
+	
 	return presenceURLBuffer.String()
 }
 
@@ -1675,7 +1725,7 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 	subscribeURLBuffer.WriteString("/")
 	pub.Lock()
 	defer pub.Unlock()
-	subscribeURLBuffer.WriteString(pub.subscribedChannels)
+	subscribeURLBuffer.WriteString(queryEscapeMultiple(pub.subscribedChannels, ","))
 	subscribeURLBuffer.WriteString("/0")
 
 	if pub.resetTimeToken {
@@ -1700,13 +1750,14 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 		subscribeURLBuffer.WriteString(pub.timeToken)
 	}
 
-	queryStringInit := false
-	if pub.uuid != "" {
-		subscribeURLBuffer.WriteString("?uuid=")
-		subscribeURLBuffer.WriteString(pub.uuid)
-		queryStringInit = true
-	}
-	subscribeURLBuffer.WriteString(pub.addAuthParam(queryStringInit))
+	//queryStringInit := false
+	//if pub.uuid != "" {
+	subscribeURLBuffer.WriteString("?uuid=")
+	subscribeURLBuffer.WriteString(pub.GetUUID())
+	//queryStringInit = true
+	//}
+	//subscribeURLBuffer.WriteString(pub.addAuthParam(queryStringInit))
+	subscribeURLBuffer.WriteString(pub.addAuthParam(true))
 	if presenceHeartbeat > 0 {
 		subscribeURLBuffer.WriteString("&heartbeat=")
 		subscribeURLBuffer.WriteString(strconv.Itoa(int(presenceHeartbeat)))
@@ -1720,9 +1771,11 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 		userState := string(jsonSerialized)
 		if (strings.TrimSpace(userState) != "") && (userState != "null") {
 			subscribeURLBuffer.WriteString("&state=")
-			subscribeURLBuffer.WriteString(userState)
+			subscribeURLBuffer.WriteString(url.QueryEscape(userState))
 		}
 	}
+	subscribeURLBuffer.WriteString("&")
+	subscribeURLBuffer.WriteString(sdkIdentificationParam)
 
 	return subscribeURLBuffer.String(), sentTimeToken
 }
@@ -2246,14 +2299,16 @@ func (pub *Pubnub) sendLeaveRequest(channels string) ([]byte, int, error) {
 	subscribeURLBuffer.WriteString("/sub-key/")
 	subscribeURLBuffer.WriteString(pub.subscribeKey)
 	subscribeURLBuffer.WriteString("/channel/")
-	subscribeURLBuffer.WriteString(channels)
+	subscribeURLBuffer.WriteString(queryEscapeMultiple(channels, ","))
 	subscribeURLBuffer.WriteString("/leave?uuid=")
-	subscribeURLBuffer.WriteString(pub.uuid)
+	subscribeURLBuffer.WriteString(pub.GetUUID())
 	subscribeURLBuffer.WriteString(pub.addAuthParam(true))
 	if presenceHeartbeat > 0 {
 		subscribeURLBuffer.WriteString("&heartbeat=")
 		subscribeURLBuffer.WriteString(strconv.Itoa(int(presenceHeartbeat)))
 	}
+	subscribeURLBuffer.WriteString("&")
+	subscribeURLBuffer.WriteString(sdkIdentificationParam)
 
 	return pub.httpRequest(subscribeURLBuffer.String(), nonSubscribeTrans)
 }
@@ -2325,10 +2380,14 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start int64, end in
 	historyURLBuffer.WriteString("/sub-key/")
 	historyURLBuffer.WriteString(pub.subscribeKey)
 	historyURLBuffer.WriteString("/channel/")
-	historyURLBuffer.WriteString(channel)
+	historyURLBuffer.WriteString(url.QueryEscape(channel))
 	historyURLBuffer.WriteString("?count=")
 	historyURLBuffer.WriteString(fmt.Sprintf("%d", limit))
 	historyURLBuffer.WriteString(parameters.String())
+	historyURLBuffer.WriteString("&")
+	historyURLBuffer.WriteString(sdkIdentificationParam)
+	historyURLBuffer.WriteString("&uuid=")
+	historyURLBuffer.WriteString(pub.GetUUID())
 
 	value, _, err := pub.httpRequest(historyURLBuffer.String(), nonSubscribeTrans)
 
@@ -2394,11 +2453,17 @@ func (pub *Pubnub) executeWhereNow(uuid string, callbackChannel chan []byte, err
 	whereNowURL.WriteString(pub.subscribeKey)
 	whereNowURL.WriteString("/uuid/")
 	if strings.TrimSpace(uuid) == "" {
-		uuid = pub.uuid
+		uuid = pub.GetUUID()
+	} else {
+		uuid = url.QueryEscape(uuid)
 	}
 	whereNowURL.WriteString(uuid)
+	whereNowURL.WriteString("?")
+	whereNowURL.WriteString(sdkIdentificationParam)
+	whereNowURL.WriteString("&uuid=")
+	whereNowURL.WriteString(pub.GetUUID())
 
-	whereNowURL.WriteString(pub.addAuthParam(false))
+	whereNowURL.WriteString(pub.addAuthParam(true))
 
 	value, _, err := pub.httpRequest(whereNowURL.String(), nonSubscribeTrans)
 
@@ -2474,6 +2539,10 @@ func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, ca
 	hereNowURL.WriteString(params.String())
 
 	hereNowURL.WriteString(pub.addAuthParam(true))
+	hereNowURL.WriteString("&")
+	hereNowURL.WriteString(sdkIdentificationParam)
+	hereNowURL.WriteString("&uuid=")
+	hereNowURL.WriteString(pub.GetUUID())
 
 	value, _, err := pub.httpRequest(hereNowURL.String(), nonSubscribeTrans)
 
@@ -2537,7 +2606,7 @@ func (pub *Pubnub) executeHereNow(channel string, showUuid bool, includeUserStat
 	hereNowURL.WriteString("/sub-key/")
 	hereNowURL.WriteString(pub.subscribeKey)
 	hereNowURL.WriteString("/channel/")
-	hereNowURL.WriteString(channel)
+	hereNowURL.WriteString(url.QueryEscape(channel))
 
 	showUuidParam := "1"
 	if showUuid {
@@ -2554,6 +2623,10 @@ func (pub *Pubnub) executeHereNow(channel string, showUuid bool, includeUserStat
 	hereNowURL.WriteString(params.String())
 
 	hereNowURL.WriteString(pub.addAuthParam(true))
+	hereNowURL.WriteString("&")
+	hereNowURL.WriteString(sdkIdentificationParam)
+	hereNowURL.WriteString("&uuid=")
+	hereNowURL.WriteString(pub.GetUUID())
 
 	value, _, err := pub.httpRequest(hereNowURL.String(), nonSubscribeTrans)
 
@@ -2613,11 +2686,16 @@ func (pub *Pubnub) executeGetUserState(channel string, callbackChannel chan []by
 	userStateURL.WriteString("/sub-key/")
 	userStateURL.WriteString(pub.subscribeKey)
 	userStateURL.WriteString("/channel/")
-	userStateURL.WriteString(channel)
+	userStateURL.WriteString(url.QueryEscape(channel))
 	userStateURL.WriteString("/uuid/")
-	userStateURL.WriteString(pub.uuid)
+	userStateURL.WriteString(pub.GetUUID())
+	userStateURL.WriteString("?")
+	userStateURL.WriteString(sdkIdentificationParam)
+	userStateURL.WriteString("&uuid=")
+	userStateURL.WriteString(pub.GetUUID())
 
 	userStateURL.WriteString(pub.addAuthParam(true))
+	
 	value, _, err := pub.httpRequest(userStateURL.String(), nonSubscribeTrans)
 
 	if err != nil {
@@ -2750,14 +2828,21 @@ func (pub *Pubnub) executeSetUserState(channel string, jsonState string, callbac
 	userStateURL.WriteString("/sub-key/")
 	userStateURL.WriteString(pub.subscribeKey)
 	userStateURL.WriteString("/channel/")
-	userStateURL.WriteString(channel)
+	userStateURL.WriteString(url.QueryEscape(channel))
 	userStateURL.WriteString("/uuid/")
-	userStateURL.WriteString(pub.uuid)
+	userStateURL.WriteString(pub.GetUUID())
 	userStateURL.WriteString("/data")
 	userStateURL.WriteString("?state=")
 	userStateURL.WriteString(url.QueryEscape(jsonState))
 
 	userStateURL.WriteString(pub.addAuthParam(true))
+	
+	userStateURL.WriteString("&")
+	userStateURL.WriteString(sdkIdentificationParam)
+	userStateURL.WriteString("&uuid=")
+	userStateURL.WriteString(pub.GetUUID())
+	
+	
 	value, _, err := pub.httpRequest(userStateURL.String(), nonSubscribeTrans)
 
 	if err != nil {
@@ -2972,7 +3057,7 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 	infoLogger.Println(fmt.Sprintf("url: %s", requrl))
 	logMu.Unlock()
 	
-	contents, responseStatusCode, err := pub.connect(requrl, action)
+	contents, responseStatusCode, err := pub.connect(requrl, action, requestURL)
 
 	if err != nil {
 		logMu.Lock()
@@ -3184,12 +3269,21 @@ func(pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
 // the response as byte array.
 // response errorcode if any.
 // error if any.
-func (pub *Pubnub) connect(requestURL string, action int) ([]byte, int, error) {
+func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]byte, int, error) {
 	var contents []byte
 	httpClient, err := pub.createHTTPClient(action)
 
 	if err == nil {
 		req, err := http.NewRequest("GET", requestURL, nil)
+		scheme := "http"
+		if(pub.isSSL){
+			scheme = "https"	
+		}
+		req.URL = &url.URL{
+			Scheme: scheme,
+    		Host:   origin,
+    		Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
+		}
 		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/3.6", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
@@ -3203,6 +3297,7 @@ func (pub *Pubnub) connect(requestURL string, action int) ([]byte, int, error) {
 				bodyContents, e := ioutil.ReadAll(response.Body)
 				if e == nil {
 					contents = bodyContents
+					infoLogger.Println(string(contents), requestURL, opaqueURL)
 					return contents, response.StatusCode, nil
 				}
 				return nil, response.StatusCode, e
