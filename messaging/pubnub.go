@@ -2944,6 +2944,10 @@ func parseInterface(vv []interface{}, cipherKey string) string {
 				intf = u
 				unescapeVal, unescapeErr := url.QueryUnescape(intf.(string))
 				if unescapeErr != nil {
+					logMu.Lock()
+					errorLogger.Println(fmt.Sprintf("unescape :%s", unescapeErr.Error()))
+					logMu.Unlock()
+					
 					vv[i] = intf
 				} else {
 					vv[i] = unescapeVal
@@ -2959,7 +2963,7 @@ func parseInterface(vv []interface{}, cipherKey string) string {
 			return string(jsonData)
 		}
 		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
+		errorLogger.Println(fmt.Sprintf("parseInterface: %s", err.Error()))
 		logMu.Unlock()
 
 		return fmt.Sprintf("%s", vv)
