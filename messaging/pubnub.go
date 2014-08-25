@@ -1524,11 +1524,15 @@ func (pub *Pubnub) createPresenceHeartbeatURL() string {
 	presenceURLBuffer.WriteString("?uuid=")
 	presenceURLBuffer.WriteString(pub.GetUUID())
 	presenceURLBuffer.WriteString(pub.addAuthParam(true))
+	presenceHeartbeatMu.RLock()
 	if presenceHeartbeat > 0 {
 		presenceURLBuffer.WriteString("&heartbeat=")
 		presenceURLBuffer.WriteString(strconv.Itoa(int(presenceHeartbeat)))
 	}
+	presenceHeartbeatMu.RUnlock()
+	pub.RLock()
 	jsonSerialized, err := json.Marshal(pub.userState)
+	pub.RUnlock()
 	if err != nil {
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("createPresenceHeartbeatURL %s", err.Error()))
@@ -1569,7 +1573,10 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 			fmt.Println("channel:" +i)
 		}*/
 		pub.RUnlock()
-		if (l<=0) || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeat <= 0) {
+		presenceHeartbeatMu.RLock()
+		presenceHeartbeatLoc := presenceHeartbeat
+		presenceHeartbeatMu.RUnlock()
+		if (l<=0) || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeatLoc <= 0) {
 			pub.Lock()
 			pub.isPresenceHeartbeatRunning = false
 			pub.Unlock()
@@ -1768,10 +1775,12 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 	subscribeURLBuffer.WriteString("?uuid=")
 	subscribeURLBuffer.WriteString(pub.GetUUID())
 	subscribeURLBuffer.WriteString(pub.addAuthParam(true))
+	presenceHeartbeatMu.RLock()
 	if presenceHeartbeat > 0 {
 		subscribeURLBuffer.WriteString("&heartbeat=")
 		subscribeURLBuffer.WriteString(strconv.Itoa(int(presenceHeartbeat)))
 	}
+	presenceHeartbeatMu.RUnlock()
 	jsonSerialized, err := json.Marshal(pub.userState)
 	if err != nil {
 		logMu.Lock()
@@ -2311,10 +2320,12 @@ func (pub *Pubnub) sendLeaveRequest(channels string) ([]byte, int, error) {
 	subscribeURLBuffer.WriteString("/leave?uuid=")
 	subscribeURLBuffer.WriteString(pub.GetUUID())
 	subscribeURLBuffer.WriteString(pub.addAuthParam(true))
+	presenceHeartbeatMu.RLock()
 	if presenceHeartbeat > 0 {
 		subscribeURLBuffer.WriteString("&heartbeat=")
 		subscribeURLBuffer.WriteString(strconv.Itoa(int(presenceHeartbeat)))
 	}
+	presenceHeartbeatMu.RUnlock()
 	subscribeURLBuffer.WriteString("&")
 	subscribeURLBuffer.WriteString(sdkIdentificationParam)
 
