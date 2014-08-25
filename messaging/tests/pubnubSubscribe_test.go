@@ -7,7 +7,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/pubnub/go/messaging"
-	"net/url"
+	//"net/url"
 	"strconv"
 	"strings"
 	"testing"
@@ -250,30 +250,33 @@ func ValidateComplexData(m map[string]interface{}) bool {
 			if m["OperationName"].(string) == customComplexMessage.OperationName {
 				valid = true
 			} else {
+				//fmt.Println("OperationName")
 				return false
 			}
 		} else if k == "VersionID" {
 			if a, ok := v.(string); ok {
 				verID, convErr := strconv.ParseFloat(a, 64)
 				if convErr != nil {
-					fmt.Println(convErr)
+					//fmt.Println(convErr)
 					return false
 				}
 				if float32(verID) == customComplexMessage.VersionID {
 					valid = true
 				} else {
+					//fmt.Println("VersionID")
 					return false
 				}
 			}
 		} else if k == "TimeToken" {
 			i, convErr := strconv.ParseInt(v.(string), 10, 64)
 			if convErr != nil {
-				fmt.Println(convErr)
+				//fmt.Println(convErr)
 				return false
 			}
 			if i == customComplexMessage.TimeToken {
 				valid = true
 			} else {
+				//fmt.Println("TimeToken")
 				return false
 			}
 		} else if k == "DemoMessage" {
@@ -281,38 +284,43 @@ func ValidateComplexData(m map[string]interface{}) bool {
 			jsonData, _ := json.Marshal(customComplexMessage.DemoMessage.DefaultMessage)
 			if val, ok := b1["DefaultMessage"]; ok {
 				if val.(string) != string(jsonData) {
+					//fmt.Println("DefaultMessage")
 					return false
 				}
 				valid = true
 			}
 		} else if k == "SampleXML" {
 			data := &Data{}
-			s1, _ := url.QueryUnescape(m["SampleXML"].(string))
+			//s1, _ := url.QueryUnescape(m["SampleXML"].(string))
+			s1, _ := m["SampleXML"].(string)
 
 			reader := strings.NewReader(ReplaceEncodedChars(s1))
 			err := xml.NewDecoder(reader).Decode(&data)
 
 			if err != nil {
-				fmt.Println(err)
+				//fmt.Println(err)
 				return false
 			}
 			jsonData, _ := json.Marshal(customComplexMessage.SampleXML)
 			if s1 == string(jsonData) {
 				valid = true
-			} else {
+			} else {	
+				//fmt.Println("SampleXML")
 				return false
 			}
 		} else if k == "Channels" {
 			strSlice1, _ := json.Marshal(v)
 			strSlice2, _ := json.Marshal(customComplexMessage.Channels)
-			s1, err := url.QueryUnescape(string(strSlice1))
-			if err != nil {
+			//s1, err := url.QueryUnescape(string(strSlice1))
+			s1 := string(strSlice1)
+			/*if err != nil {
 				fmt.Println(err)
 				return false
-			}
+			}*/
 			if s1 == string(strSlice2) {
 				valid = true
 			} else {
+				//fmt.Println("Channels")
 				return false
 			}
 		}
@@ -782,7 +790,8 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 
 	go pubnubInstance.Subscribe(pubnubChannel, "", returnSubscribeChannel, false, errorChannelSub)
 	go ParseSubscribeMultiplexedResponse(pubnubInstance, returnSubscribeChannel, message1, message2, pubnubChannel1, pubnubChannel2, testName, responseChannelSub)
-	go ParseErrorResponse(errorChannelSub, responseChannelSub)
+	//go ParseErrorResponse(errorChannelSub, responseChannelSub)
+	go ParseResponseDummyMessage(errorChannelSub, "aborted", responseChannelSub)
 	go WaitForCompletion(responseChannelSub, waitChannelSub)
 	ParseWaitResponse(waitChannelSub, t, testName)
 	go pubnubInstance.Unsubscribe(pubnubChannel, returnSubscribeChannel, errorChannelSub)

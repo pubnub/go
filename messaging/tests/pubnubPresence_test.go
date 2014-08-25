@@ -50,7 +50,7 @@ func TestHereNowWithCipher(t *testing.T) {
 
 func TestPresenceHeartbeat(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-	pubnubInstance.SetPresenceHeartbeat(15)
+	pubnubInstance.SetPresenceHeartbeat(10)
 	channel := fmt.Sprintf("presence_hb")
 	
 	returnSubscribeChannel := make(chan []byte)
@@ -63,7 +63,8 @@ func TestPresenceHeartbeat(t *testing.T) {
 	time.Sleep(time.Duration(3) * time.Second)
 	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, true, errorChannel)
 	go ParsePresenceResponseForTimeout(returnSubscribeChannel, responseChannel, testName)
-	go ParseErrorResponse(errorChannel, responseChannel)
+	//go ParseErrorResponse(errorChannel, responseChannel)
+	go ParseResponseDummyMessage(errorChannel, "aborted", responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
 	go pubnubInstance.PresenceUnsubscribe(channel, returnSubscribeChannel, errorChannel)
@@ -199,7 +200,7 @@ func ParseHereNowResponse(returnChannel chan []byte, channel string, message str
 // the subscribe call. The method that parses the presence response sets the global
 // variable _endPresenceTestAsSuccess to true if the presence contains a join info
 // on the channel and _endPresenceTestAsFailure is otherwise.
-func TestPresence(t *testing.T) {
+func Test0Presence(t *testing.T) {
 	customUuid := "customuuid"
 	testName := "Presence"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, customUuid)
@@ -215,7 +216,8 @@ func TestPresence(t *testing.T) {
 	
 	go pubnubInstance.Subscribe(channel, "", returnPresenceChannel, true, errorChannel)
 	go ParseSubscribeResponseForPresence(pubnubInstance, customUuid, returnPresenceChannel, channel, testName, responseChannel)
-	go ParseResponseDummy(errorChannel)
+	//go ParseResponseDummy(errorChannel)
+	go ParseResponseDummyMessage(errorChannel, "aborted", responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
 	go pubnubInstance.Unsubscribe(channel, returnPresenceChannel, errorChannel)

@@ -1,5 +1,5 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Build Date: Aug 21, 2014
+// Build Date: Aug 25, 2014
 // Version: 3.6
 package messaging
 
@@ -107,6 +107,8 @@ const (
 
 var (
 	sdkIdentificationParam = fmt.Sprintf("%s=%s", sdkIdentificationParamKey, url.QueryEscape(sdkIdentificationParamVal))
+	//sdkIdentificationParam = fmt.Sprintf("%s=%s", sdkIdentificationParamKey, sdkIdentificationParamVal)
+	
 	// The time after which the Publish/HereNow/DetailedHitsory/Unsubscribe/
 	// UnsibscribePresence/Time  request will timeout.
 	// In seconds.
@@ -241,7 +243,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go client SDK Version: 3.6; Build Date: Aug 21, 2014;"
+	return "PubNub Go client SDK Version: 3.6; Build Date: Aug 25, 2014;"
 }
 
 // Pubnub structure.
@@ -757,6 +759,15 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 	ttlParam := ""
 
 	var params bytes.Buffer
+	
+	if strings.TrimSpace(channel) != "" {
+		if(isAudit){
+			channelParam = fmt.Sprintf("channel=%s", queryEscapeMultiple(channel, ","))
+		} else {
+			channelParam = fmt.Sprintf("channel=%s&", queryEscapeMultiple(channel, ","))
+		}
+		noChannel = false
+	}
 
 	if strings.TrimSpace(pub.secretKey) == "" {
 		message := "Secret key is required"
@@ -769,27 +780,33 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 	}
 
 	if strings.TrimSpace(pub.authenticationKey) != "" {
-		authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.authenticationKey))
-	}
-
-	if strings.TrimSpace(channel) != "" {
-		channelParam = fmt.Sprintf("channel=%s&", queryEscapeMultiple(channel, ","))
-		noChannel = false
+		if(isAudit){
+			if(!noChannel){
+				authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.authenticationKey))
+			} else {
+				authParam = fmt.Sprintf("auth=%s", url.QueryEscape(pub.authenticationKey))
+			}
+		} else {
+			authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.authenticationKey))
+		}
 	}
 
 	var pamURLBuffer bytes.Buffer
 	pamURLBuffer.WriteString("/v1/auth/")
-
+	filler:="&"
+	if (noChannel) && (strings.TrimSpace(pub.authenticationKey) == "") {
+		filler = ""
+	}
 	if isAudit {
-		grantOrAudit = "audit"
+		grantOrAudit = "audit"		
 		timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
 	} else {
-		timestampParam = fmt.Sprintf("&timestamp=%s", getUnixTimeStamp())
+		timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
 
 		if read {
-			readParam = "r=1"
+			readParam = "r=1&"
 		} else {
-			readParam = "r=0"
+			readParam = "r=0&"
 		}
 
 		if write {
@@ -798,14 +815,26 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 			writeParam = "&w=0"
 		}
 		if ttl != -1 {
-			ttlParam = fmt.Sprintf("&ttl=%s", strconv.Itoa(ttl))
-		}
+			if(isAudit){
+				ttlParam = fmt.Sprintf("&ttl=%s", strconv.Itoa(ttl))
+			} else {
+				ttlParam = fmt.Sprintf("ttl=%s", strconv.Itoa(ttl))
+			}	
+		} 
 	}
 	pamURLBuffer.WriteString(grantOrAudit)
-	params.WriteString(fmt.Sprintf("%s%s%s%s%s%s", authParam, channelParam, readParam, timestampParam, ttlParam, writeParam))
+	if(isAudit){
+		params.WriteString(fmt.Sprintf("%s%s%s%s&%s%s&uuid=%s%s%s", authParam, channelParam, filler, sdkIdentificationParam, readParam, timestampParam, pub.GetUUID(), ttlParam, writeParam))
+	} else {
+		if ttl != -1 {
+			params.WriteString(fmt.Sprintf("%s%s%s&%s%s&%s&uuid=%s%s", authParam, channelParam, sdkIdentificationParam, readParam, timestampParam, ttlParam, pub.GetUUID(), writeParam))
+		} else {
+			params.WriteString(fmt.Sprintf("%s%s%s&%s%s&uuid=%s%s", authParam, channelParam, sdkIdentificationParam, readParam, timestampParam, pub.GetUUID(), writeParam))
+		}
+	}
 	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.subscribeKey, pub.publishKey, grantOrAudit, params.String())
 	signature = getHmacSha256(pub.secretKey, raw)
-
+	
 	params.WriteString("&")
 	params.WriteString("signature=")
 	params.WriteString(signature)
@@ -814,12 +843,6 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 	pamURLBuffer.WriteString(pub.subscribeKey)
 	pamURLBuffer.WriteString("?")
 	pamURLBuffer.WriteString(params.String())
-
-	pamURLBuffer.WriteString("&")
-	pamURLBuffer.WriteString(sdkIdentificationParam)
-	pamURLBuffer.WriteString("&uuid=")
-	pamURLBuffer.WriteString(pub.GetUUID())
-	
 
 	value, _, err := pub.httpRequest(pamURLBuffer.String(), nonSubscribeTrans)
 	if err != nil {
@@ -913,70 +936,61 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 // callbackChannel: Channel on which to send the response.
 // errorChannel on which the error response is sent.
 func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, jsonBytes []byte, callbackChannel chan []byte, errorChannel chan []byte) {
-	/*var publishURL *url.URL
-	publishURL, urlErr := url.Parse(publishURLString)
-	if urlErr != nil {
-		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("Publish Error: %s", urlErr.Error()))
-		logMu.Unlock()
-		errorChannel <- []byte(fmt.Sprintf("%s", urlErr))
-	} else {
-		publishURL.Path = fmt.Sprintf("%s%s", publishURL.Path, string(jsonBytes))*/
-		publishURL := fmt.Sprintf("%s%s", publishURLString, url.QueryEscape(string(jsonBytes)))
-		publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL, sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
-		/*q := publishURL.Query()
-		q.Set(sdkIdentificationParamKey, sdkIdentificationParamVal)
-		q.Set("uuid", pub.GetUUID())
-		q = pub.addAuthParamToQuery(q)
-		publishURL.RawQuery = q*/
+	u := &url.URL{Path: string(jsonBytes)}
+	encodedPath := u.String()
+	logMu.Lock()
+	infoLogger.Println(fmt.Sprintf("Publish: json: %s, encoded: %s", string(jsonBytes), encodedPath))
+	logMu.Unlock()
+	
+	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
+	publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL, sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
+	
+	value, responseCode, err := pub.httpRequest(publishURL, nonSubscribeTrans)
 
-		value, responseCode, err := pub.httpRequest(publishURL, nonSubscribeTrans)
+	if (responseCode != 200) || (err != nil) {
+		if (value != nil) && (responseCode > 0) {
+			var s []interface{}
+			errJSON := json.Unmarshal(value, &s)
 
-		if (responseCode != 200) || (err != nil) {
-			if (value != nil) && (responseCode > 0) {
-				var s []interface{}
-				errJSON := json.Unmarshal(value, &s)
-
-				if (errJSON == nil) && (len(s) > 0) {
-					if message, ok := s[1].(string); ok {
-						pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, message, strconv.Itoa(responseCode))
-					} else {
-						pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, string(value), strconv.Itoa(responseCode))
-					}
+			if (errJSON == nil) && (len(s) > 0) {
+				if message, ok := s[1].(string); ok {
+					pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, message, strconv.Itoa(responseCode))
 				} else {
-					logMu.Lock()
-					errorLogger.Println(fmt.Sprintf("Publish Error: %s", errJSON.Error()))
-					logMu.Unlock()
 					pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, string(value), strconv.Itoa(responseCode))
 				}
-			} else if (err != nil) && (responseCode > 0) {
-				logMu.Lock()
-				errorLogger.Println(fmt.Sprintf("Publish Failed: %s, ResponseCode: %d", err.Error(), responseCode))
-				logMu.Unlock()
-				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), strconv.Itoa(responseCode))
-			} else if err != nil {
-				logMu.Lock()
-				errorLogger.Println(fmt.Sprintf("Publish Failed: %s", err.Error()))
-				logMu.Unlock()
-				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), "")
 			} else {
-				logMu.Lock()
-				errorLogger.Println(fmt.Sprintf("Publish Failed: ResponseCode: %d", responseCode))
-				logMu.Unlock()
-				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, publishFailed, strconv.Itoa(responseCode))
-			}
-		} else {
-			_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
-			if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
 				logMu.Lock()
 				errorLogger.Println(fmt.Sprintf("Publish Error: %s", errJSON.Error()))
 				logMu.Unlock()
-				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, errJSON.Error(), "")
-			} else {
-				callbackChannel <- []byte(fmt.Sprintf("%s", value))
+				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, string(value), strconv.Itoa(responseCode))
 			}
+		} else if (err != nil) && (responseCode > 0) {
+			logMu.Lock()
+			errorLogger.Println(fmt.Sprintf("Publish Failed: %s, ResponseCode: %d", err.Error(), responseCode))
+			logMu.Unlock()
+			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), strconv.Itoa(responseCode))
+		} else if err != nil {
+			logMu.Lock()
+			errorLogger.Println(fmt.Sprintf("Publish Failed: %s", err.Error()))
+			logMu.Unlock()
+			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), "")
+		} else {
+			logMu.Lock()
+			errorLogger.Println(fmt.Sprintf("Publish Failed: ResponseCode: %d", responseCode))
+			logMu.Unlock()
+			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, publishFailed, strconv.Itoa(responseCode))
 		}
-	//}
+	} else {
+		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
+		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
+			logMu.Lock()
+			errorLogger.Println(fmt.Sprintf("Publish Error: %s", errJSON.Error()))
+			logMu.Unlock()
+			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, errJSON.Error(), "")
+		} else {
+			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+		}
+	}
 }
 
 func encodeURL (urlString string) string{
@@ -1185,7 +1199,6 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string, action 
 		intResponse = "0"
 		sendErrorResponse = true
 	}
-
 	var value string
 	channelArray := strings.Split(channels, ",")
 
@@ -1200,7 +1213,6 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string, action 
 		if response == "" {
 			response = message
 		}
-
 		if sendErrorResponse {
 			isPresence := false
 			if responseChannel == nil {
@@ -1498,7 +1510,7 @@ func (pub *Pubnub) createPresenceHeartbeatURL() string {
 	//get only sub channels
 	var presenceChannelsBuffer bytes.Buffer
 	count := 0
-	for i := range pub.presenceChannels {
+	for i := range pub.subscribeChannels {
 		if count > 0 {
 			presenceChannelsBuffer.WriteString(",")
 		}
@@ -1552,9 +1564,12 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 	pub.Unlock()
 	for {
 		pub.RLock()
-		hasPresenceChannels := strings.Contains(pub.subscribedChannels, presenceSuffix)
+		l := len(pub.subscribeChannels)
+		/*for i := range pub.subscribeChannels {
+			fmt.Println("channel:" +i)
+		}*/
 		pub.RUnlock()
-		if !hasPresenceChannels || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeat <= 0) {
+		if (l<=0) || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeat <= 0) {
 			pub.Lock()
 			pub.isPresenceHeartbeatRunning = false
 			pub.Unlock()
@@ -1750,13 +1765,8 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 		subscribeURLBuffer.WriteString(pub.timeToken)
 	}
 
-	//queryStringInit := false
-	//if pub.uuid != "" {
 	subscribeURLBuffer.WriteString("?uuid=")
 	subscribeURLBuffer.WriteString(pub.GetUUID())
-	//queryStringInit = true
-	//}
-	//subscribeURLBuffer.WriteString(pub.addAuthParam(queryStringInit))
 	subscribeURLBuffer.WriteString(pub.addAuthParam(true))
 	if presenceHeartbeat > 0 {
 		subscribeURLBuffer.WriteString("&heartbeat=")
@@ -2068,7 +2078,7 @@ func (pub *Pubnub) Subscribe(channels string, timetoken string, callbackChannel 
 	existingSubscribedChannels := pub.subscribedChannels
 	isPresenceHeartbeatRunning := pub.isPresenceHeartbeatRunning
 	pub.Unlock()
-	if (isPresenceSubscribe) && ((!strings.Contains(existingSubscribedChannels, presenceSuffix)) || (!isPresenceHeartbeatRunning)) {
+	if (!isPresenceSubscribe) && ((existingSubscribedChannels == "") || (!isPresenceHeartbeatRunning)) {
 		go pub.runPresenceHeartbeat()
 	}
 	if existingSubscribedChannels == "" {
@@ -2193,28 +2203,26 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel chan []byte, err
 		if i > 0 {
 			unsubscribeChannels += ","
 		}
-		channelToUnsub := strings.TrimSpace(channelArray[i])
-		unsubscribeChannels += channelToUnsub
+		channelToUnsub := strings.TrimSpace(channelArray[i])		
 		removed := pub.removeFromSubscribeList(callbackChannel, channelToUnsub)
 		if !removed {
-			pub.sendResponseToChannel(callbackChannel, channelToUnsub, responseNotSubscribed, "", "")
+			pub.sendResponseToChannel(errorChannel, channelToUnsub, responseNotSubscribed, "", "")
 		} else {
+			unsubscribeChannels += channelToUnsub
 			channelRemoved = true
 		}
 	}
 
 	if channelRemoved {
-		pub.CloseExistingConnection()
-
-		if strings.TrimSpace(channels) != "" {
-			value, _, err := pub.sendLeaveRequest(channels)
+		if strings.TrimSpace(unsubscribeChannels) != "" {
+			value, _, err := pub.sendLeaveRequest(unsubscribeChannels)
 			if err != nil {
 				logMu.Lock()
 				errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 				logMu.Unlock()
-				pub.sendResponseToChannel(errorChannel, channels, responseAsIsError, err.Error(), "")
+				pub.sendResponseToChannel(errorChannel, unsubscribeChannels, responseAsIsError, err.Error(), "")
 			} else {
-				pub.sendResponseToChannel(callbackChannel, channels, responseAsIs, string(value), "")
+				pub.sendResponseToChannel(callbackChannel, unsubscribeChannels, responseAsIs, string(value), "")
 			}
 		}
 		pub.Lock()
@@ -2223,6 +2231,7 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel chan []byte, err
 			delete(pub.subscribeErrorChannels, channelArray[i])
 		}
 		pub.Unlock()
+		pub.CloseExistingConnection()
 	}
 }
 
@@ -2262,8 +2271,6 @@ func (pub *Pubnub) PresenceUnsubscribe(channels string, callbackChannel chan []b
 	}
 
 	if channelRemoved {
-		pub.CloseExistingConnection()
-
 		if strings.TrimSpace(channels) != "" {
 			value, _, err := pub.sendLeaveRequest(presenceChannels)
 			if err != nil {
@@ -2281,6 +2288,7 @@ func (pub *Pubnub) PresenceUnsubscribe(channels string, callbackChannel chan []b
 			delete(pub.presenceErrorChannels, channelArray[i])
 		}
 		pub.Unlock()
+		pub.CloseExistingConnection()
 	}
 }
 
@@ -2929,6 +2937,7 @@ func parseInterface(vv []interface{}, cipherKey string) string {
 				} else {
 					vv[i] = unescapeVal
 				}
+				//vv[i] = intf
 			}
 		}
 	}
@@ -3055,6 +3064,7 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 	requrl := pub.origin + requestURL
 	logMu.Lock()
 	infoLogger.Println(fmt.Sprintf("url: %s", requrl))
+	//fmt.Println(fmt.Sprintf("url: %s", requrl))
 	logMu.Unlock()
 	
 	contents, responseStatusCode, err := pub.connect(requrl, action, requestURL)
@@ -3272,7 +3282,7 @@ func(pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
 func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]byte, int, error) {
 	var contents []byte
 	httpClient, err := pub.createHTTPClient(action)
-
+	
 	if err == nil {
 		req, err := http.NewRequest("GET", requestURL, nil)
 		scheme := "http"
@@ -3287,9 +3297,6 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/3.6", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
-		//TODO: test using netstat
-		// default is true
-		//req.Header.Set("Connection", "Keep-Alive")
 		if err == nil {
 			response, err := httpClient.Do(req)
 			if err == nil {
@@ -3297,7 +3304,10 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 				bodyContents, e := ioutil.ReadAll(response.Body)
 				if e == nil {
 					contents = bodyContents
-					infoLogger.Println(string(contents), requestURL, opaqueURL)
+					logMu.Lock()
+					infoLogger.Println(fmt.Sprintf("opaqueURL %s", opaqueURL))
+					infoLogger.Println(fmt.Sprintf("response: %s", string(contents)))
+					logMu.Unlock()
 					return contents, response.StatusCode, nil
 				}
 				return nil, response.StatusCode, e
@@ -3378,11 +3388,10 @@ func unpadPKCS7(data []byte) []byte {
 // returns the hash.
 func getHmacSha256(secretKey string, input string) string {
 	hmacSha256 := hmac.New(sha256.New, []byte(secretKey))
-	io.WriteString(hmacSha256, input)
+	hmacSha256.Write([]byte(input))
 	rawSig := base64.StdEncoding.EncodeToString(hmacSha256.Sum(nil))
 	signature := strings.Replace(strings.Replace(rawSig, "+", "-", -1), "/", "_", -1)
 	return signature
-	//return fmt.Sprintf("%x", hmacSha256.Sum(nil))
 }
 
 // GenUuid generates a unique UUID
