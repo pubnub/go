@@ -261,3 +261,25 @@ func ParseResponseDummy(channel chan []byte) {
 		}
 	}
 }
+
+// ParseResponseDummy is a methods that reads the response on the channel
+// but does notthing on it.
+func ParseResponseDummyMessage(channel chan []byte, message string,  responseChannel chan string) {
+	for {
+		value, ok := <-channel
+		if !ok {
+			break
+		}
+		returnVal := string(value)
+		if returnVal != "[]" {
+			//fmt.Println ("ParseSubscribeResponseDummy", returnVal)
+			response := fmt.Sprintf("%s", value)
+			if strings.Contains(response, "aborted") {
+				continue
+			}
+			
+			responseChannel <- returnVal
+			break
+		}
+	}
+}

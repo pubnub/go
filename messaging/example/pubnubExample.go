@@ -876,6 +876,53 @@ func publishRoutine(channels string, message string) {
 	}
 }
 
+func handleUnsubscribeResult(successChannel, errorChannel chan []byte, timeoutVal uint16, action string, noOfResponsesOnChannel int) {
+	timeout := make(chan bool, 1)
+	var timeoutValInt int
+	multipleResponsesExpected := false
+	if(noOfResponsesOnChannel>1){
+		timeoutValInt = int(timeoutVal) * noOfResponsesOnChannel
+		multipleResponsesExpected = true
+	}
+	
+	go func() {
+		time.Sleep(time.Duration(timeoutValInt) * time.Second)
+		timeout <- true
+	}()
+	for {
+		select {
+		case success, ok := <-successChannel:
+			if !ok {
+				break
+			}
+			if string(success) != "[]" {
+				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
+				fmt.Println("")
+			}
+			if(!multipleResponsesExpected){
+				return
+			}
+		case failure, ok := <-errorChannel:
+			if !ok {
+				break
+			}
+			if string(failure) != "[]" {
+				if displayError {
+					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
+					fmt.Println("")
+				}
+			}
+			if(!multipleResponsesExpected){
+				return
+			}
+		case <-timeout:
+			fmt.Println(fmt.Sprintf("%s Handler timeout after %d secs", action, timeoutValInt))
+			fmt.Println("")
+			return
+		}
+	}
+}
+
 func handleResult(successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
 	timeout := make(chan bool, 1)
 	go func() {
@@ -1010,9 +1057,9 @@ func hereNowRoutine(channels string, showUuid bool, includeUserState bool) {
 func unsubscribeRoutine(channels string) {
 	var errorChannel = make(chan []byte)
 	channel := make(chan []byte)
-
+	channelArray := strings.Split(channels, ",")
 	go pub.Unsubscribe(channels, channel, errorChannel)
-	go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Unsubscribe")
+	go handleUnsubscribeResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Unsubscribe", len(channelArray)*2)
 }
 
 // UnsubscribePresenceRoutine calls the PresenceUnsubscribe routine of the messaging package as a parallel
@@ -1020,9 +1067,9 @@ func unsubscribeRoutine(channels string) {
 func unsubscribePresenceRoutine(channels string) {
 	var errorChannel = make(chan []byte)
 	channel := make(chan []byte)
-
+	channelArray := strings.Split(channels, ",")
 	go pub.PresenceUnsubscribe(channels, channel, errorChannel)
-	go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "UnsubscribePresence")
+	go handleUnsubscribeResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "UnsubscribePresence", len(channelArray)*2)
 }
 
 // TimeRoutine calls the GetTime routine of the messaging package as a parallel
