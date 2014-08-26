@@ -1,9 +1,30 @@
-#PubNub 3.5 client for Go 1.0.3, 1.1
+#PubNub 3.6 client for Go 1.0.3, 1.1, 1.3, 1.3.1
 
 ###Important changes in this version:
 The package name has been modified to "messaging" from "pubnubMessaging". 
 
-###Features
+###Change log
+* SetLogging method name changed to LoggingEnabled
+* SetLogOutput added, you can customize the log output now 
+* Support to change uuid
+* 3.6 features 
+ * HereNow with state (here now's signature has changed, the response has also changed)
+ * WhereNow
+ * Global Here Now
+ * User State (Set, Get, Delete)
+ * Presence heartbeat 
+ * Presence heartbeat interval
+
+* These are converted to uint16
+ * nonSubscribeTimeout
+ * retryInterval
+ * connectTimeout
+ * subscribeTimeout
+
+* Optimizations
+
+
+###Earlier Features
 
 * Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc
 * This version is not backward compatible. The major change is in the func calls. A new parameter "error callback" is added to the major functions of the pubnub class.
@@ -246,7 +267,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
-        go pubInstance.HereNow(<pubnub channel>, channelCallback, errorChannel)
+        go pubInstance.HereNow(<pubnub channel>, showUuid, includeUserState, channelCallback, errorChannel)
         go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "HereNow")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -300,7 +321,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantSubscribe(channels, true, true, 60, pamChannel, errorChannel)
+        go pub.GrantSubscribe(<pubnub channels>, true, true, 60, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Susbcribe Grant")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -311,7 +332,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantSubscribe(channels, false, false, -1, pamChannel, errorChannel)
+        go pub.GrantSubscribe(<pubnub channels>, false, false, -1, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -322,7 +343,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.AuditSubscribe(channels, pamChannel, errorChannel)
+        go pub.AuditSubscribe(<pubnub channels>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -333,7 +354,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantPresence(channels, true, true, 60, pamChannel, errorChannel)
+        go pub.GrantPresence(<pubnub channels>, true, true, 60, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Presence Grant")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -344,7 +365,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantPresence(channels, false, false, -1, pamChannel, errorChannel)
+        go pub.GrantPresence(<pubnub channels>, false, false, -1, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -355,7 +376,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.AuditPresence(channels, pamChannel, errorChannel)
+        go pub.AuditPresence(<pubnub channels>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -372,6 +393,95 @@ Initialize a new Pubnub instance.
         //Init pubnub instance
 
         fmt.Println(pub.GetAuthenticationKey())
+```
+
+#### Set Presence Heartbeat
+```go
+        //Init pubnub instance
+
+        pub.SetPresenceHeartbeat(<presenceHeartbeat>)
+```
+
+#### Set Presence Heartbeat Interval
+```go
+        //Init pubnub instance
+
+        pub.SetPresenceHeartbeatInterval(<presenceHeartbeatInterval>)
+```
+
+#### Set User State using Key-Pair
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var successChannel = make(chan []byte)
+        go pub.SetUserStateKeyVal(<pubnub channel>, <key>, <val>, successChannel, errorChannel)
+        go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Set User State")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### Delete User State
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var successChannel = make(chan []byte)
+        go pub.SetUserStateKeyVal(<pubnub channel>, <key>, "", successChannel, errorChannel)
+        go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Del User State")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### Set User State using JSON
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var successChannel = make(chan []byte)
+        go pub.SetUserStateJSON(<pubnub channel>, <jsonString>, successChannel, errorChannel)
+        go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Set User State JSON")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### Get User State
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var successChannel = make(chan []byte)
+        go pub.GetUserState(<pubnub channel>, successChannel, errorChannel)
+        go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Get User State")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### Where Now
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var successChannel = make(chan []byte)
+        go pub.WhereNow(<uuid>, successChannel, errorChannel)
+        go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "WhereNow")
+
+	// please goto the top of this file see the implementation of handleResult
+```
+
+#### Global Here Now
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var successChannel = make(chan []byte)
+        go pub.GlobalHereNow(showUuid, includeUserState, successChannel, errorChannel)
+        go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Global here now")
+
+	// please goto the top of this file see the implementation of handleResult
+```
+
+#### Change UUID
+```go
+        //Init pubnub instance
+
+        pub.SetUUID(<uuid>)
 ```
 
 #### Exit

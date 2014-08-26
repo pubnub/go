@@ -20,7 +20,7 @@ func TestUnsubscribeStart(t *testing.T) {
 // TestUnsubscribeNotSubscribed will try to unsubscribe a non subscribed pubnub channel.
 // The response should contain 'not subscribed'
 func TestUnsubscribeNotSubscribed(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
 	currentTime := time.Now()
 	channel := "testChannel" + currentTime.Format("20060102150405")
@@ -31,8 +31,8 @@ func TestUnsubscribeNotSubscribed(t *testing.T) {
 	waitChannel := make(chan string)
 
 	go pubnubInstance.Unsubscribe(channel, returnUnsubscribeChannel, errorChannel)
-	go ParseUnsubscribeResponse(returnUnsubscribeChannel, channel, "not subscribed", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
+	go ParseUnsubscribeResponse(errorChannel, channel, "not subscribed", responseChannel)
+	go ParseErrorResponse(returnUnsubscribeChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "UnsubscribeNotSubscribed")
 }
@@ -40,7 +40,7 @@ func TestUnsubscribeNotSubscribed(t *testing.T) {
 // TestUnsubscribe will subscribe to a pubnub channel and then send an unsubscribe request
 // The response should contain 'unsubscribed'
 func TestUnsubscribe(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo", "demo", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
 	channel := "testChannel"
 
@@ -69,6 +69,9 @@ func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *messaging.Pubnub, 
 			response := fmt.Sprintf("%s", value)
 			message = "'" + channel + "' " + message
 			//messageAbort := "'" + channel + "' aborted"
+			//fmt.Printf("response:",response);
+			//fmt.Printf("message:", message);
+			
 			if strings.Contains(response, message) {
 				returnUnsubscribeChannel := make(chan []byte)
 				errorChannel := make(chan []byte)
@@ -99,6 +102,8 @@ func ParseUnsubscribeResponse(returnChannel chan []byte, channel string, message
 		}
 		if string(value) != "[]" {
 			response := fmt.Sprintf("%s", value)
+			//fmt.Printf("response:",response);
+			//fmt.Printf("message:", message);
 			if strings.Contains(response, message) {
 				responseChannel <- "Test '" + message + "': passed."
 				break
