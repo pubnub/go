@@ -115,6 +115,15 @@ We've included a demo console app which documents all the functionality of the c
 * SetAuthKey
 * GetAuthKey
 * Exit
+* Set Presence Heartbeat
+* Set Presence Heartbeat Interval
+* Set User State by adding or modifying the Key-Pair
+* Delete an existing Key-Pair
+* Set User State with JSON string
+* Get User State
+* WhereNow
+* GlobalHereNow
+* Change UUID 
 
 ###Quick Implementation Examples
 
