@@ -1,0 +1,853 @@
+<html>
+<head>
+<title>PubNub GAE example using GO</title>
+<script type="text/javascript" src="/_ah/channel/jsapi"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src=http://cdn.pubnub.com/pubnub.min.js ></script>
+<style>
+body{
+   font-size: .8em !important;
+   color: #000 !important;
+   font-family: Verdana !important;
+   line-height:2em;
+}
+.OverlayEffect
+{
+    background-color: black;
+    filter: alpha(opacity=70);
+    opacity: 0.7;
+    width: 100%;
+    height: 100%;
+    z-index: 400;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 99;
+}
+
+.PopupBox  
+{
+    position:absolute;
+    top: 40%;
+    left: 35%;
+    position: absolute;        
+    width:30em;
+    height:14em;
+    margin-top: -5em; /*set to a negative number 1/2 of your height*/
+    margin-left: -5em; /*set to a negative number 1/2 of your width*/
+    border: 1px solid #ccc;
+    border:  2px solid black;
+    z-index:100; 
+    padding:10;
+    background-color: #ccc;
+}
+
+#center{
+    width:100%;
+    height:40px; 
+    marigin: 0 auto;
+}
+    
+div.leftdivs{
+    height:30px;
+    width:150px;
+}
+input.disabled{
+    background:red;
+}
+ 
+</style>
+</head>
+<body>
+<script>
+    $(document).ready(function () {
+        $("#hider").hide();
+        $("#popup_box_herenow").hide();
+        $("#popup_box_wherenow").hide();
+        $('#popup_box_globalherenow').hide();
+        $('#popup_box_publish').hide();
+        $('#popup_box_setauthkey').hide();
+        $('#popup_box_grantsubscribe').hide();
+        $('#popup_box_revokesubscribe').hide();
+        $('#popup_box_auditsubscribe').hide();
+        $('#popup_box_grantpresence').hide();
+        $('#popup_box_revokepresence').hide();
+        $('#popup_box_auditpresence').hide();
+        $('#popup_box_setuserstate').hide();
+        $('#popup_box_setuserstatejson').hide();                 
+        $('#popup_box_getuserstate').hide();                 
+        $('#popup_box_deluserstate').hide();        
+    });
+</script>
+<script>
+var uuid= "{{.uuid}}";
+console.log(uuid);
+channel = new goog.appengine.Channel('{{.token}}');
+socket = channel.open();
+socket.onopen = function() {
+    addMessage('Channel established.');
+    addMessage("Using uuid:" + uuid);
+    txtUuid.value = uuid;
+};    
+socket.onmessage = onMessage;
+socket.onerror = function(error) {
+    addMessage('Channel error: ' + error.description);
+};
+socket.onclose = function() {
+    //signout
+    sendMessage('/signout', '&uuid='+uuid);
+    addMessage('Channel closed.');
+};
+    
+function sendMessage(path, opt_param) {
+    path += '?g=a';
+    if (opt_param) {
+        path += opt_param;
+    }
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', path, true);
+    xhr.send();
+}
+
+function onMessage(data) {
+    addMessage(data.data.toString());
+    //var data = jQuery.parseJSON(data.data)        
+}
+
+function addMessage(message){
+    output.value= output.value + "\n" + message;
+}
+
+function updateBoard(){
+    
+}
+
+</script>
+<script>
+var pubnub;
+function askChannel(){
+    channel = prompt("Enter Channel");
+    if(channel.trim() == ""){
+        alert("Channel empty! Please subscribe again");
+        return "";
+    } else {
+        return channel;
+    }    
+}
+
+function initPubnub(){
+    if(pubnub == null){
+        pubnub = PUBNUB.init({
+            publish_key   : '{{.publishKey}}',
+            subscribe_key : '{{.subscribeKey}}',
+            uuid: '{{.uuid}}',
+        });
+     }
+}
+
+function subscribeJs(){
+    initPubnub();
+    channel = askChannel(); 
+    if(channel != ""){
+        pubnub.subscribe({
+            channel : channel,
+            message : function(m){ addMessage(m); },
+            connect : function(){ addMessage("connected"); },
+        })
+        addMessage("Subscribing using JS SDK to channel: " + channel);
+    }
+}
+
+function presenceJs(){
+    initPubnub();
+    channel = askChannel(); 
+    
+    if(channel != ""){
+        pubnub.subscribe({
+            channel : channel + "-pnpres",
+            message : function(m){ addMessage(m); },
+            connect : function(){ addMessage("connected"); },
+        })
+        addMessage("Subscribing using JS SDK to channel: " + channel+ "-pnpres");
+    }
+}
+
+function showModal(action){
+    $("#hider").show();
+    if(action == "HereNow"){
+        $('#popup_box_herenow').show();        
+    }else if(action == "WhereNow"){
+        $('#popup_box_wherenow').show();        
+    }else if(action == "GlobalHereNow"){
+        $('#popup_box_globalherenow').show();        
+    }else if(action == "Publish"){
+        $('#popup_box_publish').show();            
+    }else if(action == "SetAuthKey"){
+        $('#popup_box_setauthkey').show();            
+    }else if(action == "ChangeUuid"){
+        $('#popup_box_changeuuid').show();
+    }else if(action == "GrantSubscribe"){
+        $('#popup_box_grantsubscribe').show();
+    }else if(action == "RevokeSubscribe"){
+        $('#popup_box_revokesubscribe').show();
+    }else if(action == "AuditSubscribe"){
+        $('#popup_box_auditsubscribe').show();
+    }else if(action == "GrantPresence"){
+        $('#popup_box_grantpresence').show();
+    }else if(action == "RevokePresence"){
+        $('#popup_box_revokepresence').show();
+    }else if(action == "AuditPresence"){
+        $('#popup_box_auditpresence').show();
+    }else if(action == "SetUserState"){
+        $('#popup_box_setuserstate').show();
+    }else if(action == "SetUserStateJson"){
+        $('#popup_box_setuserstatejson').show();
+    }else if(action == "GetUserState"){
+        $('#popup_box_getuserstate').show();                 
+    }else if(action == "DeleteUserState"){
+        $('#popup_box_deluserstate').show();                 
+                    
+    }
+}
+ 
+function onClose(action){
+    $("#hider").hide();
+    if(action=="HereNow"){
+        $('#popup_box_herenow').hide();
+    }else if(action == "WhereNow"){
+        $('#popup_box_wherenow').hide();        
+    }else if(action == "GlobalHereNow"){
+        $('#popup_box_globalherenow').hide();        
+    }else if(action == "Publish"){
+        $('#popup_box_publish').hide();        
+    }else if(action == "SetAuthKey"){
+        $('#popup_box_setauthkey').hide();  
+    }else if(action == "ChangeUuid"){
+        $('#popup_box_changeuuid').hide();   
+    }else if(action == "GrantSubscribe"){
+        $('#popup_box_grantsubscribe').hide();
+    }else if(action == "RevokeSubscribe"){
+        $('#popup_box_revokesubscribe').hide();
+    }else if(action == "AuditSubscribe"){
+        $('#popup_box_auditsubscribe').hide();
+    }else if(action == "GrantPresence"){
+        $('#popup_box_grantpresence').hide();
+    }else if(action == "RevokePresence"){
+        $('#popup_box_revokepresence').hide();
+    }else if(action == "AuditPresence"){
+        $('#popup_box_auditpresence').hide();
+    }else if(action == "SetUserState"){
+        $('#popup_box_setuserstate').hide();
+    }else if(action == "SetUserStateJson"){
+        $('#popup_box_setuserstatejson').hide();                 
+    }else if(action == "GetUserState"){
+        $('#popup_box_getuserstate').hide();                 
+    }else if(action == "DeleteUserState"){
+        $('#popup_box_deluserstate').hide();                 
+    }
+    
+}
+
+function doHereNow(){
+    if($("#hereNowChannel").val() == ""){
+        alert("Please enter a channel name");
+        return;
+    } else {
+        hereNowShowUUID = 0
+        hereNowIncludeUserState = 0
+        if ($('#hereNowShowUUID').is(":checked")){
+            hereNowShowUUID = 1
+        }
+        if ($('#hereNowIncludeUserState').is(":checked")){
+            hereNowIncludeUserState = 1
+        }
+        addMessage("uuid:"+uuid);
+        sendMessage('/hereNow', '&uuid='+uuid+'&ch='+$("#hereNowChannel").val()+'&showUUID='+hereNowShowUUID+'&includeUserState='+hereNowIncludeUserState);
+        onClose("HereNow")
+    }
+} 
+
+function doWhereNow(){
+    addMessage("uuid:"+uuid);
+    sendMessage('/whereNow', '&uuid='+uuid+'&whereNowUUID='+$("#whereNowUUID").val());
+    onClose("WhereNow")
+}
+
+function doGlobalHereNow(){
+    globalHereNowShowUUID = 0
+    globalHereNowIncludeUserState = 0
+    if ($('#globalHereNowShowUUID').is(":checked")){
+        globalHereNowShowUUID = 1
+    }
+    if ($('#globalHereNowIncludeUserState').is(":checked")){
+            globalHereNowIncludeUserState = 1
+    }
+    addMessage("uuid:"+uuid);
+    sendMessage('/globalHereNow', '&uuid='+uuid+'&showUUID='+globalHereNowShowUUID+'&includeUserState='+globalHereNowIncludeUserState);
+    onClose("GlobalHereNow")
+}
+
+function doPublish(){
+    if($("#publishChannel").val() == ""){
+        alert("Please enter a channel name");
+        return;
+    } else if($("#publishMessage").val() == ""){
+        alert("Please enter a message");
+        return;
+    } else {
+        sendMessage('/publish', '&uuid='+uuid+'&ch='+$("#publishChannel").val() +'&m='+$("#publishMessage").val() );
+    }  
+    onClose("Publish")  
+}
+
+function doSetAuthKey(){
+    if($("#authKey").val() == ""){
+        alert("Please enter a channel name");
+        return;
+    } else {
+        sendMessage('/setAuthKey', '&uuid='+uuid+'&authkey='+$("#authKey").val());
+    }  
+    onClose("SetAuthKey")  
+}
+
+function doDeleteUserState(){
+    if($("#delUserStateChannel").val() == ""){
+        alert("Please enter a channel name");
+        return;
+    } else if($("#delUserStateKey").val() == ""){
+        alert("Please enter a key");
+        return;
+    } else {
+        sendMessage('/deleteUserState', '&uuid='+uuid+'&ch='+$("#delUserStateChannel").val()+'&k='+$("#delUserStateKey").val());
+    }  
+    onClose("DeleteUserState") 
+}
+
+function doGetUserState(){
+    if($("#getUserStateChannel").val() == ""){
+        alert("Please enter a channel name");
+        return;
+    } else {
+        sendMessage('/getUserState', '&uuid='+uuid+'&ch='+$("#getUserStateChannel").val());
+    } 
+    onClose("GetUserState") 
+}
+
+function doSetUserStateJson(){
+    if($("#setUserStateJsonChannel").val() == ""){
+        alert("Please enter a channel name");
+        return;
+    } else if($("#setUserStateJsonText").val() == ""){
+        alert("Please enter a the user state");
+        return;
+    } else {
+        sendMessage('/setUserStateJson', '&uuid='+uuid+'&ch='+$("#setUserStateJsonChannel").val() +'&j='+$("#setUserStateJsonText").val() );
+    } 
+    onClose("SetUserStateJson")
+}
+
+function doSetUserState(){
+    if($("#setUserStateChannel").val() == ""){
+        alert("Please enter a channel name");
+        return;
+    } else if($("#setUserStateKey").val() == ""){
+        alert("Please enter a message");
+        return;
+    } else if($("#setUserStateValue").val() == ""){
+        alert("Please enter a message");
+        return;
+    } else {
+        sendMessage('/setUserState', '&uuid='+uuid+'&ch='+$("#setUserStateChannel").val() +'&k='+$("#setUserStateKey").val() +'&v='+$("#setUserStateValue").val() );
+    } 
+    onClose("SetUserState")
+}
+
+function doAuditPresence(){
+    sendMessage('/auditPresence', '&uuid='+uuid+'&ch='+$("#auditPresenceChannel").val());
+    onClose("AuditPresence")
+}
+
+function doRevokePresence(){
+    sendMessage('/revokePresence', '&uuid='+uuid+'&ch='+$("#revokePresenceChannel").val());
+    onClose("RevokePresence")
+}
+
+function doGrantPresence(){
+    grantPresenceRead = 0
+    grantPresenceWrite = 0
+    grantSubscribeTtl = 1440
+    if ($('#grantPresenceRead').is(":checked")){
+        grantPresenceRead = 1
+    }
+    if ($('#grantPresenceWrite').is(":checked")){
+        grantPresenceWrite = 1
+    }
+    
+    if ($('#grantPresenceTtl').val() != ""){
+        grantPresenceTtl = $("#grantPresenceTtl").val()
+    }
+
+    sendMessage('/grantPresence', '&uuid='+uuid+'&ch='+$("#grantPresenceChannel").val() +'&r='+grantPresenceRead+'&w='+grantPresenceWrite + '&ttl='+grantPresenceTtl);
+    onClose("GrantPresence")
+}
+
+function doAuditSubscribe(){
+    sendMessage('/auditSubscribe', '&uuid='+uuid+'&ch='+$("#auditSubscribeChannel").val());
+    onClose("AuditSubscribe")
+}
+
+function doRevokeSubscribe(){
+    sendMessage('/revokeSubscribe', '&uuid='+uuid+'&ch='+$("#revokeSubscribeChannel").val());
+    onClose("RevokeSubscribe")
+}
+
+function doGrantSubscribe(){
+    grantSubscribeRead = 0
+    grantSubscribeWrite = 0
+    grantSubscribeTtl = 1440
+    if ($('#grantSubscribeRead').is(":checked")){
+        grantSubscribeRead = 1
+    }
+    if ($('#grantSubscribeWrite').is(":checked")){
+        grantSubscribeWrite = 1
+    }
+    
+    if ($('#grantSubscribeTtl').val() != ""){
+        grantSubscribeTtl = $("#grantSubscribeTtl").val()
+    }
+
+    sendMessage('/grantSubscribe', '&uuid='+uuid+'&ch='+$("#grantSubscribeChannel").val() +'&r='+grantSubscribeRead+'&w='+grantSubscribeWrite + '&ttl='+grantSubscribeTtl);
+    onClose("GrantSubscribe") 
+}
+
+function doChangeUuid(){
+    if($("#newUuid").val() == ""){
+        alert("Please enter a UUID");
+        return;
+    } else {
+        sendMessage('/changeUuid', '&uuid='+uuid+'&newUuid='+$("#newUuid").val());
+    }  
+    onClose("SetAuthKey")  
+}
+</script>
+<div id="hider" class ="OverlayEffect"></div>
+<div id="popup_box_deluserstate" class="PopupBox">
+     <div> 
+        <a id="buttonClose" href="javascript:onClose('DeleteUserState');" style="float:right">Close</a>
+        Delete User State<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+            Enter Key
+            <br />
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="delUserStateChannel" >
+            <br />
+            <input type="text" id="delUserStateKey" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Delete User State" onClick="doDeleteUserState();"/></div>
+    </div> 
+</div> 
+<div id="popup_box_getuserstate" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('GetUserState');" style="float:right">Close</a>
+        Get User State<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="getUserStateChannel" >
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Get User State" onClick="doGetUserState();"/></div>
+    </div> 
+</div> 
+<div id="popup_box_setuserstatejson" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('SetUserStateJson');" style="float:right">Close</a>
+        Set User State Json<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+            Enter JSON
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="setUserStateJsonChannel" >
+            <br />
+            <textarea cols="20" rows="4" id="setUserStateJsonText"></textarea>
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Set User State" onClick="doSetUserStateJson();"/></div>
+    </div> 
+</div> 
+<div id="popup_box_setuserstate" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('SetUserState');" style="float:right">Close</a>
+        Set User State<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+            Key
+            <br />
+            Value
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="setUserStateChannel" >
+            <br />
+            <input type="text" id="setUserStateKey">
+            <br />
+            <input type="text" id="setUserStateValue" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Set User State" onClick="doSetUserState();"/></div>
+    </div> 
+</div> 
+<div id="popup_box_auditpresence" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('AuditPresence');" style="float:right">Close</a>
+        Audit Presence<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="auditPresenceChannel" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Audit Presence" onClick="doAuditPresence();"/></div>
+    </div> 
+</div>
+</div> 
+<div id="popup_box_revokepresence" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('RevokePresence');" style="float:right">Close</a>
+        Revoke Presence<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="revokePresenceChannel" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Revoke Presence" onClick="doRevokePresence();"/></div>
+    </div>  
+</div> 
+<div id="popup_box_grantpresence" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('GrantPresence');" style="float:right">Close</a>
+        Grant Presence<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+            Read Access
+            <br />
+            Write Access
+            <br />
+            Enter TTL in mins (default 1440 mins)
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="grantPresenceChannel" >
+            <br />
+            <input type="checkbox" id="grantPresenceRead" >
+            <br />
+            <input type="checkbox" id="grantPresenceWrite" >
+            <br />
+            <input type="text" id="grantPresenceTtl" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Grant Presence" onClick="doGrantPresence();"/></div>
+    </div>
+</div> 
+<div id="popup_box_auditsubscribe" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('AuditSubscribe');" style="float:right">Close</a>
+        Audit Subscribe<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="auditSubscribeChannel" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Audit Subscribe" onClick="doAuditSubscribe();"/></div>
+    </div> 
+</div> 
+<div id="popup_box_revokesubscribe" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('RevokeSubscribe');" style="float:right">Close</a>
+        Revoke Subscribe<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="revokeSubscribeChannel" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Revoke Subscribe" onClick="doRevokeSubscribe();"/></div>
+    </div> 
+</div> 
+<div id="popup_box_grantsubscribe" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('GrantSubscribe');" style="float:right">Close</a>
+        Grant Subscribe<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+            Read Access
+            <br />
+            Write Access
+            <br />
+            Enter TTL in mins (default 1440 mins)
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="grantSubscribeChannel" >
+            <br />
+            <input type="checkbox" id="grantSubscribeRead" >
+            <br />
+            <input type="checkbox" id="grantSubscribeWrite" >
+            <br />
+            <input type="text" id="grantSubscribeTtl" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Grant Subscribe" onClick="doGrantSubscribe();"/></div>
+    </div> 
+</div> 
+<div id="popup_box_setauthkey" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('SetAuthKey');" style="float:right">Close</a>
+        Auth Key<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter AuthKey
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="authKey" >
+        </div>
+    </div>        
+    <div style="width:100%;height:20px;">
+        <div id="center"><input type="button" value="Set Auth Key" onClick="doSetAuthKey();"/></div>
+    </div> 
+</div>
+
+<div id="popup_box_wherenow" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('WhereNow');" style="float:right">Close</a>
+        Where Now<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter UUID
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="whereNowUUID" >
+        </div>
+    </div>        
+    <div style="width:100%;height:20px;">
+        <div id="center"><input type="button" value="Run Where Now" onClick="doWhereNow();"/></div>
+    </div> 
+</div>
+<div id="popup_box_herenow" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('HereNow');" style="float:right">Close</a>
+        Here Now<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+            Show UUID
+            <br />
+            Include User State
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="hereNowChannel" >
+            <br />
+            <input type="checkbox" id="hereNowShowUUID" checked>
+            <br />
+            <input type="checkbox" id="hereNowIncludeUserState" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Run Here Now" onClick="doHereNow();"/></div>
+    </div> 
+</div>   
+<div id="popup_box_globalherenow" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('GlobalHereNow');" style="float:right">Close</a>
+        Here Now<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Show UUID
+            <br />
+            Include User State
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="checkbox" id="globalHereNowShowUUID" checked>
+            <br />
+            <input type="checkbox" id="globalHereNowIncludeUserState" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="Run Global Here Now" onClick="doGlobalHereNow();"/></div>
+    </div> 
+</div> 
+<div id="popup_box_publish" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('Publish');" style="float:right">Close</a>
+        Publish<br />
+    </div>
+    <div> 
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+            Enter message
+            <br /> 
+        </div> 
+        <div style="float:left; width:50%">
+            <input type="text" id="publishChannel" >
+            <br />
+            <input type="text" id="publishMessage" >
+            <br />
+        </div> 
+        <div style="width:100%;text-align:center;height:20px;">
+            <div id="center"><input type="button" value="Run Publish" onClick="doPublish();"/></div>
+        </div>                       
+    </div> 
+</div>     
+<p>PubNub GAE example using GO</p>
+    <div style="float:none">
+        <div style="float:left;width:18%;">
+            <div class="leftdivs">
+                <input type="button" value="Time" onClick="sendMessage('/time', '&uuid='+uuid);">
+                <input type="button" class="disabled" disabled value="Subscribe" onClick="sendMessage('/subscribe', '&uuid='+uuid+);">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Presence using JS SDK" onClick="presenceJs();">
+            </div>                        
+            <div class="leftdivs">
+                <input type="button" value="Subscribe using JS SDK" onClick="subscribeJs();">
+            </div>
+            <div class="leftdivs">
+                <input type="button" class="disabled" disabled value="Set Presence heartbeat" onClick="">
+            </div>
+            <div class="leftdivs">
+                <input type="button" class="disabled" disabled value="Set Presence heartbeat interval" onClick="">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="HereNow" onClick="showModal('HereNow')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="WhereNow" onClick="showModal('WhereNow')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="GlobalHereNow" onClick="showModal('GlobalHereNow')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Publish" onClick="showModal('Publish')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Set Auth Key" onClick="showModal('SetAuthKey')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Get Auth Key" onClick="sendMessage('/getAuthKey', '&uuid='+uuid);">
+            </div>
+       </div>
+       <div style="float:left;width:18%;">     
+            <div class="leftdivs">
+                <input type="button" value="Grant Subscribe" onClick="showModal('GrantSubscribe')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Revoke Subscribe" onClick="showModal('RevokeSubscribe')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Audit Subscribe" onClick="showModal('AuditSubscribe')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Grant Presence" onClick="showModal('GrantPresence')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Revoke Presence" onClick="showModal('RevokePresence')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Audit Presence" onClick="showModal('AuditPresence')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Set User State" onClick="showModal('SetUserState')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Get User State" onClick="showModal('GetUserState')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Delete User State" onClick="showModal('DeleteUserState')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" value="Set User State JSON" onClick="showModal('SetUserStateJson')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" class="disabled" disabled value="Change UUID" onClick="showModal('ChangeUuid')">
+            </div>
+        </div>
+        <div style="float:left;width:64%;">
+            <div style="float:left;width:15%;">
+                <input type="button" value="Clear" onClick="output.value='';">
+            </div>
+            <div style="float:left;width:50%;">
+                UUID
+                <input type="text" id="txtUuid" size="50" readonly>
+            </div>
+            <div>            
+            <textarea rows="40" cols="100" id="output" readonly></textarea>
+            <div>
+        </div>
+    </div>
+    
+</body>
+</html>
