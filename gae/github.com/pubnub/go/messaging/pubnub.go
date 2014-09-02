@@ -929,6 +929,7 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 				pub.executeTime(callbackChannel, errorChannel, count)
 			}
 		} else {
+			context.Infof(fmt.Sprintf("TIme: %s", value));
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
 		}
 	}
@@ -2634,7 +2635,7 @@ func (pub *Pubnub) executeHereNow(channel string, showUuid bool, includeUserStat
 	hereNowURL.WriteString(pub.subscribeKey)
 	hereNowURL.WriteString("/channel/")
 	hereNowURL.WriteString(url.QueryEscape(channel))
-
+	
 	showUuidParam := "1"
 	if showUuid {
 		showUuidParam = "0"
@@ -3088,6 +3089,7 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 	
 	logMu.Lock()
 	infoLogger.Println(fmt.Sprintf("url: %s", requrl))
+	context.Infof(fmt.Sprintf("url: %s", requrl))
 	log.Println(fmt.Sprintf("url: %s", requrl))
 	logMu.Unlock()
 	
@@ -3109,7 +3111,8 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 			return nil, responseStatusCode, err
 		}
 	}
-	log.Println(fmt.Sprintf("contents2 %s", contents))
+	//log.Println(fmt.Sprintf("contents2 %s", contents))
+	context.Infof(fmt.Sprintf("contents2 %s", contents))
 	return contents, responseStatusCode, err
 }
 
@@ -3128,9 +3131,9 @@ func (pub *Pubnub) setOrGetTransport(action int) http.RoundTripper {
 	var transport http.RoundTripper
 	switch action {
 	case subscribeTrans:
-		subscribeTransportMu.RLock()
+		/*subscribeTransportMu.RLock()
 		transport = subscribeTransport
-		subscribeTransportMu.RUnlock()
+		subscribeTransportMu.RUnlock()*/
 		if transport == nil {
 			transport = pub.initTrans(action)
 			subscribeTransportMu.Lock()
@@ -3138,9 +3141,9 @@ func (pub *Pubnub) setOrGetTransport(action int) http.RoundTripper {
 			subscribeTransportMu.Unlock()
 		}
 	case nonSubscribeTrans:
-		nonSubscribeTransportMu.RLock()
+		/*nonSubscribeTransportMu.RLock()
 		transport = nonSubscribeTransport
-		nonSubscribeTransportMu.RUnlock()
+		nonSubscribeTransportMu.RUnlock()*/
 		if transport == nil {
 			transport = pub.initTrans(action)
 			nonSubscribeTransportMu.Lock()
@@ -3307,14 +3310,15 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 			}
 			if response != nil {
 				logMu.Lock()
-				errorLogger.Println(fmt.Sprintf("httpRequest: %s, response.StatusCode: %d", err.Error(), response.StatusCode))
+				errorLogger.Println(fmt.Sprintf("httpRequest: %s, response.StatusCode: %d", err2.Error(), response.StatusCode))
 				logMu.Unlock()
-				return nil, response.StatusCode, err
+				return nil, response.StatusCode, err2
 			}
+			
 			logMu.Lock()
-			errorLogger.Println(fmt.Sprintf("httpRequest: %s", err.Error()))
+			errorLogger.Println(fmt.Sprintf("httpRequest: %s", err2.Error()))
 			logMu.Unlock()
-			return nil, 0, err
+			return nil, 0, err2
 		} else {
 			log.Println(fmt.Sprintf("err %s", err.Error()))
 		}

@@ -23,9 +23,9 @@ import (
 var mainTemplate = template.Must(template.ParseFiles("main.html"))
 var Store = sessions.NewCookieStore([]byte("sess-secret-key"))
 var pubnubInstMap map[string]interface{}
-var subscribeKey = "pam"
-var publishKey = "pam"
-var secretKey = "pam"
+var subscribeKey = "demo"
+var publishKey = "demo"
+var secretKey = "demo"
 
 func GetSessionsOptionsObject(age int) (* sessions.Options){
 	return &sessions.Options{
@@ -36,10 +36,10 @@ func GetSessionsOptionsObject(age int) (* sessions.Options){
 }
 
 func init() {
-	router := mux.NewRouter()
-	router = router.StrictSlash(true)
-	router.HandleFunc("/", Handler)
-	router.HandleFunc("/subscribe", Subscribe)
+    router := mux.NewRouter()
+    router = router.StrictSlash(true)
+    router.HandleFunc("/", Handler)
+    router.HandleFunc("/subscribe", Subscribe)
     router.HandleFunc("/publish", Publish)
     router.HandleFunc("/globalHereNow", GlobalHereNow)
     router.HandleFunc("/hereNow", HereNow)
@@ -57,10 +57,15 @@ func init() {
     router.HandleFunc("/revokeSubscribe", RevokeSubscribe)
     router.HandleFunc("/grantSubscribe", GrantSubscribe)
     router.HandleFunc("/getUserState", GetUserState)	
-    router.HandleFunc("/signout", Signout)	
+    router.HandleFunc("/signout", Signout)
+    router.HandleFunc("/keepAlive", KeepAlive)	
     router.HandleFunc(`/{rest:[a-zA-Z0-9=\-\/]+}`, Handler)
     
     http.Handle("/", router)
+}
+
+func KeepAlive(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func Signout(w http.ResponseWriter, r *http.Request) {
@@ -246,14 +251,16 @@ func SetAuthKey(w http.ResponseWriter, r *http.Request) {
 	uuid := q.Get("uuid")
 	pubInstance := initPubnub(uuid, w, r) 
 	pubInstance.SetAuthenticationKey(authKey)
-	SendResponseToChannel("Auth key set", r, uuid);
+	//SendResponseToChannel("Auth key set", r, uuid);
+	SendResponseToChannel(w, "Auth key set", r, uuid);
 }
 
 func GetAuthKey(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	uuid := q.Get("uuid")
 	pubInstance := initPubnub(uuid, w, r) 
-	SendResponseToChannel("Auth key: "+pubInstance.GetAuthenticationKey(), r, uuid);
+	//SendResponseToChannel("Auth key: "+pubInstance.GetAuthenticationKey(), r, uuid);
+	SendResponseToChannel(w, "Auth key: "+pubInstance.GetAuthenticationKey(), r, uuid);
 }
 
 func Publish(w http.ResponseWriter, r *http.Request) {
@@ -337,7 +344,7 @@ func Time(w http.ResponseWriter, r *http.Request) {
 	
 	pubInstance := initPubnub(uuid, w, r) 
 	go pubInstance.GetTime(successChannel, errorChannel)
-	handleResult(w, r, uuid, successChannel, successChannel, messaging.GetNonSubscribeTimeout(), "Time")
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
 }
 
 func initPubnub(uuid string, w http.ResponseWriter, r *http.Request) *messaging.Pubnub{
@@ -355,12 +362,13 @@ func initPubnub(uuid string, w http.ResponseWriter, r *http.Request) *messaging.
     	
     	if val, ok := session.Values["uuid"].(string); ok {
     		c.Infof("Session ok1 %s", val)
-    		var pubInst2 = pubnubInstMap[val]
+    		uuid = val
+    		/*var pubInst2 = pubnubInstMap[val]
     		if(pubInst2 != nil){
     			return pubInst2.(*messaging.Pubnub)
     		} else {
 	    		c.Errorf("pubInst2 val nil")
-    		}
+    		}*/
 	/*var pubInst3 *messaging.Pubnub
 	pubInst3 = session.Values["pubInst"].(*messaging.Pubnub)
 	
@@ -519,6 +527,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
         "uuid":       nuuid,
         "subscribeKey": subscribeKey,
         "publishKey": publishKey,
+        "secretKey": secretKey,
     })
     if err1 != nil {
         c.Errorf("mainTemplate: %v", err1)
@@ -537,7 +546,13 @@ func flush(w http.ResponseWriter) {
 	
 }
 
-func SendResponseToChannel(message string, r *http.Request, uuid string){
+/*func SendResponseToChannel(w http.ResponseWriter, message string, r *http.Request, uuid string){
+	c := appengine.NewContext(r)
+	c.Infof(message);
+	fmt.Fprintf(w, fmt.Sprintf(message))
+}*/
+
+func SendResponseToChannel(w http.ResponseWriter, message string, r *http.Request, uuid string){
 	c := appengine.NewContext(r)
 	err := channel.SendJSON(c, uuid, message)
 	c.Infof("json");
@@ -553,9 +568,11 @@ func handleResultSubscribe(w http.ResponseWriter, r *http.Request, uuid string, 
 		case success, ok := <-successChannel:
 			if !ok {
 				log.Println(fmt.Sprintf("success!OK"))
+				
 			}
 			if string(success) != "[]" {
-				SendResponseToChannel(string(success), r, uuid);
+				//SendResponseToChannel(string(success), r, uuid);
+				SendResponseToChannel(w, string(success), r, uuid);
 			}
 			flush(w)
 		case failure, ok := <-errorChannel:
@@ -563,39 +580,50 @@ func handleResultSubscribe(w http.ResponseWriter, r *http.Request, uuid string, 
 				log.Println(fmt.Sprintf("failure!OK"))
 			}
 			if string(failure) != "[]" {
-				SendResponseToChannel(string(failure), r, uuid);
+				//SendResponseToChannel(string(failure), r, uuid);
+				SendResponseToChannel(w, string(failure), r, uuid);
 			}
 		}
 	}
 }
 
 func handleResult(w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
+	c := appengine.NewContext(r)
+	c.Infof("handleResultq")
 	for {
+		c.Infof("handleResult")
 		select {
 		
 		case success, ok := <-successChannel:
 			if !ok {
 				log.Println(fmt.Sprintf("success!OK"))
+				c.Infof("success!OK");
+				
 				break
 			}
 			if string(success) != "[]" {
-				SendResponseToChannel(string(success), r, uuid);
+				//SendResponseToChannel(string(success), r, uuid);
+				c.Infof("success:",string(success));
+				SendResponseToChannel(w, string(success), r, uuid);
 			}
-			if f, ok := w.(http.Flusher); ok {
+			/*if f, ok := w.(http.Flusher); ok {
 			    f.Flush()
 			} else {
    				// Response writer does not support flush.
-   				//fmt.Fprintf(w, fmt.Sprintf("<p> Response writer does not support flush.:</p>"))
-			}
+   				fmt.Fprintf(w, fmt.Sprintf("<p> Response writer does not support flush.:</p>"))
+			}*/
 			
 			return
 		case failure, ok := <-errorChannel:
 			if !ok {
 				log.Println(fmt.Sprintf("failure!OK"))
+				c.Infof("fail1:",string("failure"));
 				break
 			}
 			if string(failure) != "[]" {
-				SendResponseToChannel(string(failure), r, uuid);
+				c.Infof("fail:",string(failure));
+				//SendResponseToChannel(string(failure), r, uuid);
+				SendResponseToChannel(w, string(failure), r, uuid);
 			}
 			return
 		}

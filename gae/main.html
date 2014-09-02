@@ -52,13 +52,13 @@ div.leftdivs{
     height:30px;
     width:150px;
 }
-input.disabled{
+input.disabled1{
     background:red;
 }
  
 </style>
 </head>
-<body>
+<body onload="txtUuid.value = uuid;">
 <script>
     $(document).ready(function () {
         $("#hider").hide();
@@ -76,28 +76,44 @@ input.disabled{
         $('#popup_box_setuserstate').hide();
         $('#popup_box_setuserstatejson').hide();                 
         $('#popup_box_getuserstate').hide();                 
-        $('#popup_box_deluserstate').hide();        
+        $('#popup_box_deluserstate').hide();    
+        $('.disabled').prop('disabled', true);    
     });
 </script>
 <script>
 var uuid= "{{.uuid}}";
+
 console.log(uuid);
-channel = new goog.appengine.Channel('{{.token}}');
-socket = channel.open();
-socket.onopen = function() {
-    addMessage('Channel established.');
-    addMessage("Using uuid:" + uuid);
-    txtUuid.value = uuid;
-};    
-socket.onmessage = onMessage;
-socket.onerror = function(error) {
-    addMessage('Channel error: ' + error.description);
-};
-socket.onclose = function() {
-    //signout
+/*setInterval(function(){
+    sendMessage('/keepAlive', '&uuid='+uuid);
+},60000);*/
+
+function disconnect(){
     sendMessage('/signout', '&uuid='+uuid);
-    addMessage('Channel closed.');
-};
+    
+    $('.disabled').prop('disabled', true); 
+    $('.connect').prop('disabled', false);
+}
+
+function connect(){
+    channel = new goog.appengine.Channel('{{.token}}');
+    socket = channel.open();
+    socket.onopen = function() {
+        addMessage('Channel established.');
+        addMessage("Using uuid:" + uuid);
+        $('.disabled').prop('disabled', false);
+        $('.connect').prop('disabled', true);   
+    };    
+    socket.onmessage = onMessage;
+    socket.onerror = function(error) {
+        addMessage('Channel error: ' + error.description);
+    };
+    socket.onclose = function() {
+        //signout
+        disconnect();
+        addMessage('Channel closed.');
+    };
+}
     
 function sendMessage(path, opt_param) {
     path += '?g=a';
@@ -105,6 +121,12 @@ function sendMessage(path, opt_param) {
         path += opt_param;
     }
     var xhr = new XMLHttpRequest();
+    /*xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            //alert(xhr.responseText);
+            addMessage(xhr.responseText)
+        }
+    } */  
     xhr.open('POST', path, true);
     xhr.send();
 }
@@ -115,7 +137,29 @@ function onMessage(data) {
 }
 
 function addMessage(message){
-    output.value= output.value + "\n" + message;
+    output.value= output.value + "\n" + removeBackslashes(message) + "\n";
+    
+    var textarea = document.getElementById("output");
+    moveCaretToEnd(textarea);
+    window.setTimeout(function() {
+        moveCaretToEnd(textarea);
+    }, 1);
+}
+
+function moveCaretToEnd(el) {
+    if (typeof el.selectionStart == "number") {
+        el.selectionStart = el.selectionEnd = el.value.length;
+    } else if (typeof el.createTextRange != "undefined") {
+        el.focus();
+        var range = el.createTextRange();
+        range.collapse(false);
+        range.select();
+    }
+}
+
+function removeBackslashes(x){
+    x = x.replace(/\\"/g, '"');
+    return x
 }
 
 function updateBoard(){
@@ -138,11 +182,19 @@ function askChannel(){
 function initPubnub(){
     if(pubnub == null){
         pubnub = PUBNUB.init({
-            publish_key   : '{{.publishKey}}',
-            subscribe_key : '{{.subscribeKey}}',
+            publish_key   : $('#publishKey').val(),
+            subscribe_key : $('#subscribeKey').val(),
             uuid: '{{.uuid}}',
         });
      }
+}
+
+function presenceUnsubcribeJs(){
+    initPubnub();
+}
+
+function unsubcribeJs(){
+    initPubnub();
 }
 
 function subscribeJs(){
@@ -151,11 +203,20 @@ function subscribeJs(){
     if(channel != ""){
         pubnub.subscribe({
             channel : channel,
-            message : function(m){ addMessage(m); },
+            message : function(m){ addMessage(JSON.stringify(m)); },
             connect : function(){ addMessage("connected"); },
         })
         addMessage("Subscribing using JS SDK to channel: " + channel);
     }
+}
+
+function unsubscribeJs(){
+    initPubnub();
+    channel = askChannel(); 
+    pubnub.unsubscribe({
+        channel : channel,
+        callback : function(m){ addMessage(JSON.stringify(m)); },
+    });
 }
 
 function presenceJs(){
@@ -165,7 +226,7 @@ function presenceJs(){
     if(channel != ""){
         pubnub.subscribe({
             channel : channel + "-pnpres",
-            message : function(m){ addMessage(m); },
+            message : function(m){ addMessage(JSON.stringify(m)); },
             connect : function(){ addMessage("connected"); },
         })
         addMessage("Subscribing using JS SDK to channel: " + channel+ "-pnpres");
@@ -762,80 +823,119 @@ function doChangeUuid(){
         </div>                       
     </div> 
 </div>     
-<p>PubNub GAE example using GO</p>
+<h3>PubNub GAE example using GO</h3>
+    <div style="float:left;width:100%;height:13%">
+        <div style="float:left;width:30%;">
+            <div style="float:left;width:30%;">
+                Publish Key
+            </div>
+            <div style="float:left;width:20%;">
+                <input type="text" id="publishKey" value="{{.publishKey}}">
+            </div>
+            <br />
+            <div style="float:left;width:30%;">
+                Subscribe Key
+            </div>
+            <div style="float:left;width:20%;">
+                <input type="text" id="subscribeKey" value="{{.subscribeKey}}">
+            </div>
+            <br />
+            <div style="float:left;width:30%;">
+                Secret Key
+            </div>
+            <div style="float:left;width:20%;">    
+                <input type="text" id="secretKey" value="{{.secretKey}}">
+            </div>
+            <br />
+        </div>
+        <div style="float:left;width:10%;">
+            <input type="button" id="connect" class="connect" value="Connect to enable buttons" onClick="connect();">
+            <br />
+            <input type="button" id="connect" class="disabled" value="Disconnect" onClick="disconnect();">
+        </div>
+        <br />
+    </div>
+    <div><hr /><br /></div>
+    
     <div style="float:none">
         <div style="float:left;width:18%;">
             <div class="leftdivs">
-                <input type="button" value="Time" onClick="sendMessage('/time', '&uuid='+uuid);">
-                <input type="button" class="disabled" disabled value="Subscribe" onClick="sendMessage('/subscribe', '&uuid='+uuid+);">
+                <input type="button" class="disabled" id="time" value="Time" onClick="sendMessage('/time', '&uuid='+uuid);">
+                <!--<input type="button" class="disabled" disabled value="Subscribe" onClick="sendMessage('/subscribe', '&uuid='+uuid+);">-->
             </div>
             <div class="leftdivs">
-                <input type="button" value="Presence using JS SDK" onClick="presenceJs();">
+                <input type="button" class="disabled" id="presenceJS" value="Presence using JS SDK" onClick="presenceJs();">
             </div>                        
             <div class="leftdivs">
-                <input type="button" value="Subscribe using JS SDK" onClick="subscribeJs();">
+                <input type="button" class="disabled" id="subscribeJS" value="Subscribe using JS SDK" onClick="subscribeJs();">
+            </div>
+            <div class="leftdivs">
+                <input type="button" class="disabled" id="unsubscribeJS" value="Unsubscribe using JS SDK" onClick="unsubscribeJs();">
+            </div>
+            <!--<div class="leftdivs">
+                <input type="button" class="disabled" disabled value="Presence Unsubscribe using JS SDK" onClick="presenceUnsubcribeJs();">
             </div>
             <div class="leftdivs">
                 <input type="button" class="disabled" disabled value="Set Presence heartbeat" onClick="">
             </div>
             <div class="leftdivs">
                 <input type="button" class="disabled" disabled value="Set Presence heartbeat interval" onClick="">
+            </div>-->
+            <div class="leftdivs">
+                <input type="button" class="disabled" id="hereNow" value="HereNow" onClick="showModal('HereNow')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="HereNow" onClick="showModal('HereNow')">
+                <input type="button" class="disabled" id="whereNow" value="WhereNow" onClick="showModal('WhereNow')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="WhereNow" onClick="showModal('WhereNow')">
+                <input type="button" class="disabled" id="globalHereNow" value="GlobalHereNow" onClick="showModal('GlobalHereNow')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="GlobalHereNow" onClick="showModal('GlobalHereNow')">
+                <input type="button" class="disabled" id="publish" value="Publish" onClick="showModal('Publish')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Publish" onClick="showModal('Publish')">
+                <input type="button" class="disabled" id="setAuthKey" value="Set Auth Key" onClick="showModal('SetAuthKey')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Set Auth Key" onClick="showModal('SetAuthKey')">
-            </div>
-            <div class="leftdivs">
-                <input type="button" value="Get Auth Key" onClick="sendMessage('/getAuthKey', '&uuid='+uuid);">
+                <input type="button" class="disabled" id="getAuthKey" value="Get Auth Key" onClick="sendMessage('/getAuthKey', '&uuid='+uuid);">
             </div>
        </div>
        <div style="float:left;width:18%;">     
             <div class="leftdivs">
-                <input type="button" value="Grant Subscribe" onClick="showModal('GrantSubscribe')">
+                <input type="button" class="disabled" id="grantSubscribe" value="Grant Subscribe" onClick="showModal('GrantSubscribe')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Revoke Subscribe" onClick="showModal('RevokeSubscribe')">
+                <input type="button" class="disabled" id="revokeSubscribe" value="Revoke Subscribe" onClick="showModal('RevokeSubscribe')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Audit Subscribe" onClick="showModal('AuditSubscribe')">
+                <input type="button" class="disabled" id="auditSubscribe" value="Audit Subscribe" onClick="showModal('AuditSubscribe')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Grant Presence" onClick="showModal('GrantPresence')">
+                <input type="button" class="disabled" id="grantPresence" value="Grant Presence" onClick="showModal('GrantPresence')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Revoke Presence" onClick="showModal('RevokePresence')">
+                <input type="button" class="disabled" id="revokePresence" value="Revoke Presence" onClick="showModal('RevokePresence')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Audit Presence" onClick="showModal('AuditPresence')">
+                <input type="button" class="disabled" id="auditPresence" value="Audit Presence" onClick="showModal('AuditPresence')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Set User State" onClick="showModal('SetUserState')">
+                <input type="button" class="disabled" id="setUserState" value="Set User State" onClick="showModal('SetUserState')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Get User State" onClick="showModal('GetUserState')">
+                <input type="button" class="disabled" id="getUserState" value="Get User State" onClick="showModal('GetUserState')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Delete User State" onClick="showModal('DeleteUserState')">
+                <input type="button" class="disabled" id="delUserState" value="Delete User State" onClick="showModal('DeleteUserState')">
             </div>
             <div class="leftdivs">
-                <input type="button" value="Set User State JSON" onClick="showModal('SetUserStateJson')">
+                <input type="button" class="disabled" id="setUserStateJson" value="Set User State JSON" onClick="showModal('SetUserStateJson')">
             </div>
-            <div class="leftdivs">
+            <!--<div class="leftdivs">
                 <input type="button" class="disabled" disabled value="Change UUID" onClick="showModal('ChangeUuid')">
-            </div>
+            </div>-->
         </div>
-        <div style="float:left;width:64%;">
+        <div style="float:left;width:60%;">
             <div style="float:left;width:15%;">
                 <input type="button" value="Clear" onClick="output.value='';">
             </div>
@@ -844,7 +944,7 @@ function doChangeUuid(){
                 <input type="text" id="txtUuid" size="50" readonly>
             </div>
             <div>            
-            <textarea rows="40" cols="100" id="output" readonly></textarea>
+            <textarea rows="25" cols="60" id="output" readonly></textarea>
             <div>
         </div>
     </div>
