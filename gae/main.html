@@ -58,7 +58,7 @@ input.disabled1{
  
 </style>
 </head>
-<body onload="txtUuid.value = uuid;">
+<body onload="txtUuid.value = uuid;connect();">
 <script>
     $(document).ready(function () {
         $("#hider").hide();
@@ -76,43 +76,62 @@ input.disabled1{
         $('#popup_box_setuserstate').hide();
         $('#popup_box_setuserstatejson').hide();                 
         $('#popup_box_getuserstate').hide();                 
-        $('#popup_box_deluserstate').hide();    
+        $('#popup_box_deluserstate').hide();   
+        $('#popup_box_detailedHistory').hide(); 
         $('.disabled').prop('disabled', true);    
     });
 </script>
 <script>
 var uuid= "{{.uuid}}";
-
+var socket;
 console.log(uuid);
 /*setInterval(function(){
     sendMessage('/keepAlive', '&uuid='+uuid);
 },60000);*/
 
-function disconnect(){
-    sendMessage('/signout', '&uuid='+uuid);
-    
-    $('.disabled').prop('disabled', true); 
-    $('.connect').prop('disabled', false);
-}
-
 function connect(){
     channel = new goog.appengine.Channel('{{.token}}');
     socket = channel.open();
     socket.onopen = function() {
-        addMessage('Channel established.');
+        addMessage('AppEngine Channel established.');
         addMessage("Using uuid:" + uuid);
+        
         $('.disabled').prop('disabled', false);
         $('.connect').prop('disabled', true);   
     };    
     socket.onmessage = onMessage;
     socket.onerror = function(error) {
-        addMessage('Channel error: ' + error.description);
+        addMessage('AppEngine Channel error: ' + error.description);
     };
     socket.onclose = function() {
         //signout
-        disconnect();
-        addMessage('Channel closed.');
+        addMessage('AppEngine Channel closed.');
+        signoutAndEnableConnect();
     };
+}
+
+function connectWithKeys(){
+    ssl = 0;
+    if ($('#ssl').is(":checked")){
+        ssl = 1;
+    }
+
+    sendMessage('/connect', '&subKey='+$('#subscribeKey').val()+'&pubKey='+$('#publishKey').val()+'&secKey='+$('#secretKey').val()+'&cipher='+$('#cipher').val()+'&ssl='+ssl);
+    connect();
+}
+
+function signoutAndEnableConnect(){
+    sendMessage('/signout', '&uuid='+uuid);
+    $('.disabled').prop('disabled', true); 
+    $('.connect').prop('disabled', false);
+}
+
+function disconnect(){
+    if(socket != null){
+        socket.close();
+    } else {
+        signoutAndEnableConnect()
+    }
 }
     
 function sendMessage(path, opt_param) {
@@ -137,13 +156,7 @@ function onMessage(data) {
 }
 
 function addMessage(message){
-    output.value= output.value + "\n" + removeBackslashes(message) + "\n";
-    
-    var textarea = document.getElementById("output");
-    moveCaretToEnd(textarea);
-    window.setTimeout(function() {
-        moveCaretToEnd(textarea);
-    }, 1);
+    output.value= "\n" + removeBackslashes(message) + "\n" + output.value;    
 }
 
 function moveCaretToEnd(el) {
@@ -181,9 +194,17 @@ function askChannel(){
 
 function initPubnub(){
     if(pubnub == null){
-        pubnub = PUBNUB.init({
+        var isSsl = false;
+        if ($('#ssl').is(":checked")){
+            isSsl = true;
+        }
+        
+        pubnub = PUBNUB.init({            
+        
             publish_key   : $('#publishKey').val(),
             subscribe_key : $('#subscribeKey').val(),
+            cipher_key : $('#cipher').val(),
+            ssl : isSsl,
             uuid: '{{.uuid}}',
         });
      }
@@ -267,6 +288,8 @@ function showModal(action){
         $('#popup_box_getuserstate').show();                 
     }else if(action == "DeleteUserState"){
         $('#popup_box_deluserstate').show();                 
+    }else if(action == "DetailedHistory"){
+        $('#popup_box_detailedHistory').show();                 
                     
     }
 }
@@ -304,7 +327,10 @@ function onClose(action){
     }else if(action == "GetUserState"){
         $('#popup_box_getuserstate').hide();                 
     }else if(action == "DeleteUserState"){
-        $('#popup_box_deluserstate').hide();                 
+        $('#popup_box_deluserstate').hide();  
+    }else if(action == "DetailedHistory"){
+        $('#popup_box_detailedHistory').hide();                 
+                       
     }
     
 }
@@ -490,8 +516,59 @@ function doChangeUuid(){
     }  
     onClose("SetAuthKey")  
 }
+
+function doDetailedHistory(){
+    if($("#detailedHistoryChannel").val() == ""){
+        alert("Please enter a channel name");
+        return;
+    } else {
+        detailedHistoryReverse = 0
+        if ($('#detailedHistoryReverse').is(":checked")){
+            detailedHistoryReverse = 1
+        }
+        addMessage("uuid:"+uuid);
+        sendMessage('/detailedHistory', '&uuid='+uuid+'&ch='+$("#detailedHistoryChannel").val()+'&reverse='+detailedHistoryReverse+'&limit='+$("#detailedHistoryLimit").val()+'&end='+$("#detailedHistoryEnd").val()+'&start='+$("#detailedHistoryStart").val());
+        onClose("DetailedHistory")
+    }
+} 
+
 </script>
 <div id="hider" class ="OverlayEffect"></div>
+<div id="popup_box_detailedHistory" class="PopupBox">
+     <div> 
+        <a id="buttonClose" href="javascript:onClose('DetailedHistory');" style="float:right">Close</a>
+        Detailed History<br />
+    </div>
+    <div style="padding:10;">
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+            Enter limit
+            <br />
+            Start
+            <br />
+            End
+            <br />
+            Reverse
+            <br />
+        </div>    
+        <div style="float:left; width:50%">
+            <input type="text" id="detailedHistoryChannel" >
+            <br />
+            <input type="text" id="detailedHistoryLimit" >
+            <br />
+            <input type="text" id="detailedHistoryStart" value="0">
+            <br />
+            <input type="text" id="detailedHistoryEnd" value="0" >
+            <br />
+            <input type="checkbox" id="detailedHistoryReverse" >
+            <br />
+        </div>
+    </div>        
+    <div style="width:100%;text-align:center;height:20px;">
+        <div id="center"><input type="button" value="DetailedHistory" onClick="doDetailedHistory();"/></div>
+    </div> 
+</div> 
 <div id="popup_box_deluserstate" class="PopupBox">
      <div> 
         <a id="buttonClose" href="javascript:onClose('DeleteUserState');" style="float:right">Close</a>
@@ -824,7 +901,7 @@ function doChangeUuid(){
     </div> 
 </div>     
 <h3>PubNub GAE example using GO</h3>
-    <div style="float:left;width:100%;height:13%">
+    <div style="float:left;width:100%;height:20%">
         <div style="float:left;width:30%;">
             <div style="float:left;width:30%;">
                 Publish Key
@@ -847,9 +924,23 @@ function doChangeUuid(){
                 <input type="text" id="secretKey" value="{{.secretKey}}">
             </div>
             <br />
+            <div style="float:left;width:30%;">
+                Cipher
+            </div>
+            <div style="float:left;width:20%;">    
+                <input type="text" id="cipher" value="">
+            </div>
+            <br />
+            <div style="float:left;width:30%;">
+                SSL
+            </div>
+            <div style="float:left;width:20%;">    
+                <input type="checkbox" id="ssl">
+            </div>
+            <br />
         </div>
         <div style="float:left;width:10%;">
-            <input type="button" id="connect" class="connect" value="Connect to enable buttons" onClick="connect();">
+            <input type="button" id="connect" class="connect" value="Connect" onClick="connectWithKeys();">
             <br />
             <input type="button" id="connect" class="disabled" value="Disconnect" onClick="disconnect();">
         </div>
@@ -898,6 +989,9 @@ function doChangeUuid(){
             </div>
             <div class="leftdivs">
                 <input type="button" class="disabled" id="getAuthKey" value="Get Auth Key" onClick="sendMessage('/getAuthKey', '&uuid='+uuid);">
+            </div>
+            <div class="leftdivs">
+                <input type="button" class="disabled" id="detailedHistory" value="DetailedHistory" onClick="showModal('DetailedHistory')">
             </div>
        </div>
        <div style="float:left;width:18%;">     
