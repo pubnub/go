@@ -84,13 +84,14 @@ input.disabled1{
 <script>
 var uuid= "{{.uuid}}";
 var socket;
+var tok = '{{.token}}';
 console.log(uuid);
 /*setInterval(function(){
     sendMessage('/keepAlive', '&uuid='+uuid);
 },60000);*/
 
 function connect(){
-    channel = new goog.appengine.Channel('{{.token}}');
+    channel = new goog.appengine.Channel(tok);
     socket = channel.open();
     socket.onopen = function() {
         addMessage('AppEngine Channel established.');
@@ -116,8 +117,25 @@ function connectWithKeys(){
         ssl = 1;
     }
 
-    sendMessage('/connect', '&subKey='+$('#subscribeKey').val()+'&pubKey='+$('#publishKey').val()+'&secKey='+$('#secretKey').val()+'&cipher='+$('#cipher').val()+'&ssl='+ssl);
-    connect();
+    sendMessageAndGetToken('/connect', '&uuid='+uuid+'&subKey='+$('#subscribeKey').val()+'&pubKey='+$('#publishKey').val()+'&secKey='+$('#secretKey').val()+'&cipher='+$('#cipher').val()+'&ssl='+ssl);
+}
+
+function sendMessageAndGetToken(path, opt_param) {
+    path += '?g=a';
+    if (opt_param) {
+        path += opt_param;
+    }
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            //alert(xhr.responseText);
+            //addMessage(xhr.responseText);
+            tok = xhr.responseText;
+            connect();
+        }
+    }  
+    xhr.open('POST', path, true);
+    xhr.send();
 }
 
 function signoutAndEnableConnect(){
