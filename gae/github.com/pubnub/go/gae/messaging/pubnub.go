@@ -24,7 +24,7 @@ import (
 	"github.com/gorilla/sessions"
 	//"io"
 	"io/ioutil"
-	"log"
+	//"log"
 	mathrand "math/rand"
 	"net"
 	"net/http"
@@ -114,7 +114,8 @@ var Store *sessions.CookieStore;
 //var Store = sessions.NewCookieStore([]byte("secret"))
 
 var (
-	sdkIdentificationParam = fmt.Sprintf("%s=%s", sdkIdentificationParamKey, url.QueryEscape(sdkIdentificationParamVal))
+	//sdkIdentificationParam = fmt.Sprintf("%s=%s", sdkIdentificationParamKey, url.QueryEscape(sdkIdentificationParamVal))
+	sdkIdentificationParam =  sdkIdentificationParamKey + "=" + url.QueryEscape(sdkIdentificationParamVal)
 	//sdkIdentificationParam = fmt.Sprintf("%s=%s", sdkIdentificationParamKey, sdkIdentificationParamVal)
 	
 	// The time after which the Publish/HereNow/DetailedHitsory/Unsubscribe/
@@ -240,25 +241,9 @@ func SetSessionKeys(w http.ResponseWriter, r *http.Request, pubKey string, subKe
 	
 	if(err == nil){
 		pubInstance := NewPubnub(w, r, pubKey, subKey, secKey, cipher, ssl, uuid)
-		session.Values["pubInstance"] = pubInstance
-		session.Options = GetSessionsOptionsObject(60*20)
-		gob.Register (pubInstance)
-		err1 := session.Save(r, w)
-		if(err1!=nil){
-			c.Errorf("error1, %s", err1.Error())
-		}		
-	
-		/*session.Values["pubKey"] = pubKey
-		session.Values["subKey"] = subKey
-		session.Values["secKey"] = secKey
-		session.Values["cipher"] = cipher
-		session.Values["ssl"] = ssl
-		err1 := session.Save(r, w)
-		if(err1 != nil){
-			c.Errorf("error1, %s", err1.Error())
-		}*/
+		writeSession(w, r, pubInstance, session)
 	} else {
-		c.Errorf("error, %s", err.Error())
+		c.Errorf("error in set session , %s", err.Error())
 	}
 }
 
@@ -270,10 +255,6 @@ func DeleteSession(w http.ResponseWriter, r *http.Request, secKey string){
     	session !=nil && 
     	session.Values["pubInstance"] != nil) {
 		session.Values["pubInstance"] = ""
-		/*session.Values["pubKey"] = ""
-		session.Values["subKey"] = ""
-		session.Values["secKey"] = ""
-		session.Values["authKey"] = ""*/
 		session.Options = GetSessionsOptionsObject(-1)
 		session.Save(r, w)
 		c.Infof("Deleted Session %s")
@@ -295,70 +276,22 @@ func InitPubnub(uuid string, w http.ResponseWriter, r *http.Request, publishKey 
 	c := appengine.NewContext(r)
 	
 	initStore(secretKey);
+	
 	session, err := Store.Get(r, "user-session")
-    /*if(err == nil && 
-    	session !=nil ) {
-    	if(session.Values["uuid"] != nil){
-	    	if val, ok := session.Values["uuid"].(string); ok {
-	    		c.Infof("Session ok1 %s", val)
-	    		uuid = val		
-	    	} else {
-	    		c.Errorf("Session val nil")
-	    	}
-    	} else {
-    		c.Errorf("uuid nil")
-    	}
-	} else {
-		if(err != nil){
-			c.Errorf("Session error:", err.Error())
-		}
-		if(session == nil){
-			c.Errorf("Session nil")
-		}
-	}*/
 	
-	/*if(session.Values["pubKey"] == nil){
-		session.Values["pubKey"] = publishKey
-	} else {
-		if val, ok := session.Values["pubKey"].(string); ok {
-			pubKey = val
-		}
-	}	
-	
-	if(session.Values["subKey"] == nil){
-		session.Values["subKey"] = subscribeKey
-	} else {
-		if val, ok := session.Values["subKey"].(string); ok {
-			subKey = val
-		}
-	}	
-	
-	if(session.Values["secKey"] == nil){
-		session.Values["secKey"] = secretKey
-	} else {
-		if val, ok := session.Values["secKey"].(string); ok {
-			secKey = val
-		}
-	}	
-
-	if session.Values["cipher"] != nil {
-	    if val, ok := session.Values["cipher"].(string); ok {
-			cipher = val 
-		}	
-	}
-	if session.Values["ssl"] != nil {
-	    if val, ok := session.Values["ssl"].(bool); ok {
-			ssl = val 
-		}	
-	}*/
 	var pubInstance *Pubnub
+	gob.Register (pubInstance)
+	
+	//message := "" 
+	
 	if(err == nil && 
     	session !=nil &&
 			session.Values["pubInstance"] != nil){
 			if val, ok := session.Values["pubInstance"].(*Pubnub); ok {
 				pubInstance = val
 				uuidn1 := pubInstance.GetUUID()			
-				c.Infof("retrieved instance %s", uuidn1); 
+				c.Infof("retrieved instance %s", uuidn1);
+				//message = "Session Valid" 
 			}	
 	} else {
 		if(err != nil){
@@ -370,61 +303,44 @@ func InitPubnub(uuid string, w http.ResponseWriter, r *http.Request, publishKey 
 		if(session.Values["pubInstance"] == nil){
 			c.Errorf("pubInstance nil")
 		}
+		
 	}
 	 
 	if(pubInstance == nil){
 		pubKey := publishKey
 		subKey := subscribeKey
 		secKey := secretKey
-		
+		c.Infof("Creating NEW session");
 		pubInstance = NewPubnub(w, r, pubKey, subKey, secKey, cipher, ssl, uuid)
-		session.Values["pubInstance"] = pubInstance
-		session.Options = GetSessionsOptionsObject(60*20)
-		gob.Register (pubInstance)
-		gob.Register (pubInstance.UserState)
-		err1 := session.Save(r, w)
-		if(err1!=nil){
-			c.Errorf("error1, %s", err1.Error())
-		}		
+		writeSession(w, r, pubInstance, session)		
 	}	
 	 
-	/*if(session.Values["uuid"] == nil){
-		uuidn := pubInstance.GetUUID()	
-		session.Values["uuid"] = uuidn
-		session.Options = GetSessionsOptionsObject(60*20)
-		err1 := session.Save(r, w)
-		if(err1!=nil){
-			c.Errorf("error1, %s", err1.Error())
-		}		
-	}*/
-	
-	/*if(session.Values["authKey"] != nil){
-		if val, ok := session.Values["authKey"].(string); ok {
-	    	c.Infof("authkey ok1 %s", val)
-	    	pubInstance.SetAuthenticationKey(val)
-	    } else {
-	    	c.Errorf("authkey val nil")
-	    }
-	}*/
-
 	return pubInstance
+}
+
+func writeSession(w http.ResponseWriter, r *http.Request, pubInstance *Pubnub, session *sessions.Session){
+	context := appengine.NewContext(r)
+	session.Values["pubInstance"] = pubInstance
+	session.Options = GetSessionsOptionsObject(60*20)
+	gob.Register (pubInstance)
+	gob.Register (pubInstance.UserState)		
+	err := session.Save(r, w)
+	if(err!=nil){
+		context.Errorf("error in saving session, %s", err.Error())
+	} 
 }
 
 func saveSession(w http.ResponseWriter, r *http.Request, pubInstance *Pubnub){
 	context := appengine.NewContext(r)
 	
 	initStore(pubInstance.SecretKey);
-	
+	//context.Infof("saving session");
+	gob.Register (pubInstance)
 	session, err := Store.Get(r, "user-session")
     if(err == nil && 
     	session !=nil ) {
-    	session.Values["pubInstance"] = pubInstance
-    	gob.Register (pubInstance)
-    	gob.Register (pubInstance.UserState)
-		err1 := session.Save(r, w)
-		if(err1!=nil){
-			context.Errorf("errorin saving pubInstance, %s", err1.Error())
-		}
+    	    session.Values["pubInstance"] = pubInstance
+    	    writeSession(w, r, pubInstance, session)
 	} else {
 		if(err != nil){
 			context.Errorf("Session error save session : %s", err.Error())
@@ -432,7 +348,7 @@ func saveSession(w http.ResponseWriter, r *http.Request, pubInstance *Pubnub){
 		if(session == nil){
 			context.Errorf("Session nil")
 		}
-	}		
+	}	
 }
 
 // Pubnub structure.
@@ -567,6 +483,28 @@ func (pub *Pubnub) SetAuthenticationKey(w http.ResponseWriter, r *http.Request, 
 	//defer pub.Unlock()
 	pub.AuthenticationKey = val
 	saveSession(w, r, pub)
+	context := appengine.NewContext(r)
+	
+	session, err := Store.Get(r, "user-session")
+	//c := appengine.NewContext(r)
+    if(err == nil && 
+    	session !=nil && 
+    	session.Values["pubInstance"] != nil) {
+			if val, ok := session.Values["pubInstance"].(*Pubnub); ok {
+				pubInstance := val
+				uuidn1 := pubInstance.GetUUID()			
+				context.Infof("retrieved instance %s", uuidn1);
+				context.Infof("retrieved instance %s", pubInstance.AuthenticationKey); 
+			}	
+    		
+	}	else {
+		if(err != nil){
+			context.Errorf("Session error save session : %s", err.Error())
+		}
+		if(session == nil){
+			context.Errorf("Session nil")
+		}
+	}
 }
 
 // GetAuthenticationKey gets the value of authentication key
@@ -2844,8 +2782,14 @@ func (pub *Pubnub) SetUserStateKeyVal(w http.ResponseWriter, r *http.Request, ch
 		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, invalidUserStateMap, err.Error())
 		return
 	}
+	stateJSON := string(jsonSerialized)
+	if(stateJSON == "null"){
+		stateJSON = "{}"	
+	}
+	context.Infof(fmt.Sprintf("SetUserStateKeyVal jsonSerialized: %s %s", jsonSerialized, stateJSON))
 	saveSession(w, r, pub)
-	pub.executeSetUserState(w, r, channel, string(jsonSerialized), callbackChannel, errorChannel, 0)
+	//pub.executeSetUserState(w, r, channel, string(jsonSerialized), callbackChannel, errorChannel, 0)
+	pub.executeSetUserState(w, r, channel, stateJSON, callbackChannel, errorChannel, 0)
 }
 
 // SetUserStateJSON is the struct Pubnub's instance method which creates and posts the User state
@@ -3170,7 +3114,6 @@ func (pub *Pubnub) initTrans(w http.ResponseWriter, r *http.Request, action int)
 		case presenceHeartbeatTrans:
 			deadline = time.Duration(pub.GetPresenceHeartbeatInterval()) * time.Second
 	}
-	log.Println(fmt.Sprintf("initTrans:"))
     transport := &urlfetch.Transport{
                         Context:  context,
                         Deadline: deadline,
@@ -3248,34 +3191,33 @@ func (pub *Pubnub) connect(w http.ResponseWriter, r *http.Request, requestURL st
 		//req.Header.Set("Connection", "Keep-Alive")
 		if err == nil {
 			if(req == nil){
-				log.Println(fmt.Sprintf("req nil: %s", requestURL))
+				context.Errorf(fmt.Sprintf("req nil: %s", requestURL))
 			}
 			if(httpClient == nil){
-				log.Println(fmt.Sprintf("httpClient nil"))
+				context.Errorf(fmt.Sprintf("httpClient nil"))
 			}
 			if(context == nil){
-				log.Println(fmt.Sprintf("context nil"))
+				context.Errorf(fmt.Sprintf("context nil"))
 			}
 			if(httpClient.Transport == nil){
-				log.Println(fmt.Sprintf("httpClient Transport nil"))
+				context.Errorf(fmt.Sprintf("httpClient Transport nil"))
 			}
 			response, err2 := httpClient.Do(req)
 			if err2 == nil {
-				log.Println(fmt.Sprintf("err nil"))
 				defer response.Body.Close()
 				bodyContents, e := ioutil.ReadAll(response.Body)
 				if e == nil {
 					contents = bodyContents
 					context.Infof(fmt.Sprintf("opaqueURL %s", opaqueURL))
 					context.Infof(fmt.Sprintf("response: %s", string(contents)))
-					log.Println(fmt.Sprintf("contents %s", contents))
+					context.Infof(fmt.Sprintf("contents %s", contents))
 					return contents, response.StatusCode, nil
 				} else {
-					log.Println(fmt.Sprintf("err %s", e.Error()))
+					context.Errorf(fmt.Sprintf("err %s", e.Error()))
 				}
 				return nil, response.StatusCode, e
 			} else {
-				log.Println(fmt.Sprintf("err %s", err2.Error()))
+				context.Errorf(fmt.Sprintf("err %s", err2.Error()))
 			}
 			if response != nil {
 				context.Errorf(fmt.Sprintf("httpRequest: %s, response.StatusCode: %d", err2.Error(), response.StatusCode))
@@ -3284,7 +3226,7 @@ func (pub *Pubnub) connect(w http.ResponseWriter, r *http.Request, requestURL st
 			context.Errorf(fmt.Sprintf("httpRequest: %s", err2.Error()))
 			return nil, 0, err2
 		} else {
-			log.Println(fmt.Sprintf("err %s", err.Error()))
+			context.Errorf(fmt.Sprintf("err %s", err.Error()))
 		}
 		context.Errorf(fmt.Sprintf("httpRequest: %s", err.Error()))
 		return nil, 0, err

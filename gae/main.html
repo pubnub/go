@@ -55,7 +55,7 @@ div.leftdivs{
 input.disabled1{
     background:red;
 }
- 
+
 </style>
 </head>
 <body onload="txtUuid.value = uuid;connect();">
@@ -103,6 +103,7 @@ function connect(){
     socket.onmessage = onMessage;
     socket.onerror = function(error) {
         addMessage('AppEngine Channel error: ' + error.description);
+        signoutAndEnableConnect();
     };
     socket.onclose = function() {
         //signout
@@ -158,12 +159,6 @@ function sendMessage(path, opt_param) {
         path += opt_param;
     }
     var xhr = new XMLHttpRequest();
-    /*xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-            //alert(xhr.responseText);
-            addMessage(xhr.responseText)
-        }
-    } */  
     xhr.open('POST', path, true);
     xhr.send();
 }
@@ -234,6 +229,10 @@ function presenceUnsubcribeJs(){
 
 function unsubcribeJs(){
     initPubnub();
+}
+
+function subs(){
+    sendMessage('/subscribe', '&uuid='+uuid)//+'&ch='+$("#hereNowChannel").val()+'&showUUID='+hereNowShowUUID+'&includeUserState='+hereNowIncludeUserState);
 }
 
 function subscribeJs(){
@@ -919,8 +918,9 @@ function doDetailedHistory(){
     </div> 
 </div>     
 <h3>PubNub GAE example using GO</h3>
-    <div style="float:left;width:100%;height:20%">
-        <div style="float:left;width:30%;">
+    <div style="float:left;width:100%;height:25%;">
+    <div style="float:left;width:100%;height:85%;border-top:0px dotted black;border-bottom:2px solid black;">
+        <div style="float:left;width:30%;height:20%;">
             <div style="float:left;width:30%;">
                 Publish Key
             </div>
@@ -961,12 +961,14 @@ function doDetailedHistory(){
             <input type="button" id="connect" class="connect" value="Connect" onClick="connectWithKeys();">
             <br />
             <input type="button" id="connect" class="disabled" value="Disconnect" onClick="disconnect();">
+            <!--<br />
+            <input type="button" id="sub"  value="Subscribe" onClick="subs();">-->
         </div>
         <br />
     </div>
-    <div><hr /><br /></div>
+    </div>
     
-    <div style="float:none">
+    <div style="float:none;">
         <div style="float:left;width:18%;">
             <div class="leftdivs">
                 <input type="button" class="disabled" id="time" value="Time" onClick="sendMessage('/time', '&uuid='+uuid);">

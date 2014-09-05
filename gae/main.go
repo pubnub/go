@@ -3,31 +3,23 @@ package home
 import (
     "net/http"
     "fmt"
-    //"encoding/gob"
-    //"encoding/json"
     "math/big"
     "strconv"
     "strings"
     "github.com/pubnub/go/gae/messaging"
     "github.com/gorilla/mux"
     "github.com/gorilla/sessions"
-    //"time"
     "html/template"
-    //"math/rand"
     "log"
     "appengine"
     "appengine/channel"
-    
-    //"time"
-    //"appengine/module"
-    //"appengine/runtime"
-    //"appengine/delay"
+    "time"
+    "appengine/taskqueue"
 )
 
 var mainTemplate = template.Must(template.ParseFiles("main.html"))
-
-//var pubnubInstMap map[string]interface{}
 var subscribeKey = "demo"
+
 var publishKey = "demo"
 var secretKey = "demo"
 var Store = sessions.NewCookieStore([]byte(secretKey))
@@ -37,6 +29,7 @@ func init() {
     router = router.StrictSlash(true)
     router.HandleFunc("/", Handler)
     router.HandleFunc("/subscribe", Subscribe)
+    router.HandleFunc("/worker", worker)
     router.HandleFunc("/publish", Publish)
     router.HandleFunc("/globalHereNow", GlobalHereNow)
     router.HandleFunc("/hereNow", HereNow)
@@ -313,24 +306,11 @@ func GrantSubscribe(w http.ResponseWriter, r *http.Request) {
 
 func SetAuthKey(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	//authKey := q.Get("authkey")
+	authKey := q.Get("authkey")
 	uuid := q.Get("uuid")
 	
-	//c := appengine.NewContext(r)
-	
-	messaging.InitPubnub(uuid, w, r, publishKey, subscribeKey, secretKey) 
-	//pubInstance.SetAuthenticationKey(authKey)
-	/*session, err := Store.Get(r, "user-session")
-	if(err == nil){
-		session.Values["authKey"] = authKey
-		err1 := session.Save(r, w)
-		if(err1 != nil){
-			c.Errorf("error1, %s", err1.Error())
-		}
-	} else {
-		c.Errorf("session error: %s ", err.Error());
-	}*/
-		
+	pubInstance := messaging.InitPubnub(uuid, w, r, publishKey, subscribeKey, secretKey) 
+	pubInstance.SetAuthenticationKey(w, r, authKey)
 	SendResponseToChannel(w, "Auth key set", r, uuid);
 }
 
@@ -338,7 +318,6 @@ func GetAuthKey(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	uuid := q.Get("uuid")
 	pubInstance := messaging.InitPubnub(uuid, w, r, publishKey, subscribeKey, secretKey) 
-	//SendResponseToChannel("Auth key: "+pubInstance.GetAuthenticationKey(), r, uuid);
 	SendResponseToChannel(w, "Auth key: "+pubInstance.GetAuthenticationKey(), r, uuid);
 }
 
@@ -426,37 +405,28 @@ func Time(w http.ResponseWriter, r *http.Request) {
 	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
 }
 
+func worker(w http.ResponseWriter, r *http.Request) {
+	uuid := r.FormValue("uuid")
+	
+    c := appengine.NewContext(r)
+    for i:=0; i<10; i++{
+    	time.Sleep(time.Duration(1) * time.Second)
+    	c.Infof("looping:" + uuid)
+    }
+    c.Infof("message: %s", uuid)
+    SendResponseToChannel(w, "message:" + uuid, r, uuid);
+}
+
 func Subscribe(w http.ResponseWriter, r *http.Request) {
-	
-	/*errorChannel := make(chan []byte)
-	successChannel := make(chan []byte)
-	
-	c := appengine.NewContext(r)*/
-	/*t := taskqueue.NewPOSTTask("/worker", url.Values{
-            // ...
-        })
-        // Use the transaction's context when invoking taskqueue.Add.
-        _, err := taskqueue.Add(c, t, "")
-t := &taskqueue.Task{Name: "foo"}
-err := taskqueue.Delete(c, t, "queue1")	
-	
-	//err := runtime.RunInBackground(c, func(c appengine.Context) {
-	err := runtime.RunInBackground(c, func(c appengine.Context) {*/
-/*var laterFunc = delay.Func("key", func(c appengine.Context, x string) {
-    // ...
-    pubInstance := messaging.InitPubnub("customuuid") 
-   	pubInstance.Subscribe("test", "", successChannel, false, errorChannel)
-	handleResultSubscribe(w, r, successChannel, errorChannel, 310, "Subscribe")
-    
-})	
-laterFunc.Call(c, "")*/
-	  //go 
-	//})		
-	/*if err != nil {
-        c.Errorf("Background process: %v", err)
+	q := r.URL.Query()
+	uuid := q.Get("uuid")
+
+	c := appengine.NewContext(r)
+    t := taskqueue.NewPOSTTask("/worker", map[string][]string{"uuid": {uuid}})
+    if _, err := taskqueue.Add(c, t, ""); err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
         return
-    }*/	
-	    
+    }
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -478,8 +448,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 		
  	tok, err := channel.Create(c, nuuid)
- 	
-	//tok, err := channel.Create(c, session.Values["token"])
     if err != nil {
         http.Error(w, "Couldn't create Channel", http.StatusInternalServerError)
         c.Errorf("channel.Create: %v", err)
@@ -537,7 +505,6 @@ func handleResultSubscribe(w http.ResponseWriter, r *http.Request, uuid string, 
 				
 			}
 			if string(success) != "[]" {
-				//SendResponseToChannel(string(success), r, uuid);
 				SendResponseToChannel(w, string(success), r, uuid);
 			}
 			flush(w)
@@ -546,7 +513,6 @@ func handleResultSubscribe(w http.ResponseWriter, r *http.Request, uuid string, 
 				log.Println(fmt.Sprintf("failure!OK"))
 			}
 			if string(failure) != "[]" {
-				//SendResponseToChannel(string(failure), r, uuid);
 				SendResponseToChannel(w, string(failure), r, uuid);
 			}
 		}
@@ -555,40 +521,27 @@ func handleResultSubscribe(w http.ResponseWriter, r *http.Request, uuid string, 
 
 func handleResult(w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
 	c := appengine.NewContext(r)
-	c.Infof("handleResultq")
 	for {
-		c.Infof("handleResult")
 		select {
 		
 		case success, ok := <-successChannel:
 			if !ok {
-				log.Println(fmt.Sprintf("success!OK"))
-				c.Infof("success!OK");
-				
+				c.Infof("success!OK");				
 				break
 			}
 			if string(success) != "[]" {
-				//SendResponseToChannel(string(success), r, uuid);
 				c.Infof("success:",string(success));
 				SendResponseToChannel(w, string(success), r, uuid);
 			}
-			/*if f, ok := w.(http.Flusher); ok {
-			    f.Flush()
-			} else {
-   				// Response writer does not support flush.
-   				fmt.Fprintf(w, fmt.Sprintf("<p> Response writer does not support flush.:</p>"))
-			}*/
 			
 			return
 		case failure, ok := <-errorChannel:
 			if !ok {
-				log.Println(fmt.Sprintf("failure!OK"))
 				c.Infof("fail1:",string("failure"));
 				break
 			}
 			if string(failure) != "[]" {
 				c.Infof("fail:",string(failure));
-				//SendResponseToChannel(string(failure), r, uuid);
 				SendResponseToChannel(w, string(failure), r, uuid);
 			}
 			return
