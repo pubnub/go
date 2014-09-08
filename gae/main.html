@@ -87,7 +87,7 @@ var socket;
 var tok = '{{.token}}';
 console.log(uuid);
 /*setInterval(function(){
-    sendMessage('/keepAlive', '&uuid='+uuid);
+    sendMessage('/keepAlive', 'uuid='+uuid);
 },60000);*/
 
 function connect(){
@@ -113,24 +113,23 @@ function connect(){
 }
 
 function connectWithKeys(){
+    changeKeys = true;
     ssl = 0;
     if ($('#ssl').is(":checked")){
         ssl = 1;
     }
 
-    sendMessageAndGetToken('/connect', '&uuid='+uuid+'&subKey='+$('#subscribeKey').val()+'&pubKey='+$('#publishKey').val()+'&secKey='+$('#secretKey').val()+'&cipher='+$('#cipher').val()+'&ssl='+ssl);
+    sendMessageAndGetToken('/connect', 'uuid='+uuid+'&subKey='+$('#subscribeKey').val()+'&pubKey='+$('#publishKey').val()+'&secKey='+$('#secretKey').val()+'&cipher='+$('#cipher').val()+'&ssl='+ssl);
 }
 
 function sendMessageAndGetToken(path, opt_param) {
-    path += '?g=a';
+    path += '?';
     if (opt_param) {
         path += opt_param;
     }
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
-            //alert(xhr.responseText);
-            //addMessage(xhr.responseText);
             tok = xhr.responseText;
             connect();
         }
@@ -140,7 +139,7 @@ function sendMessageAndGetToken(path, opt_param) {
 }
 
 function signoutAndEnableConnect(){
-    sendMessage('/signout', '&uuid='+uuid);
+    sendMessage('/signout', 'uuid='+uuid);
     $('.disabled').prop('disabled', true); 
     $('.connect').prop('disabled', false);
 }
@@ -154,7 +153,7 @@ function disconnect(){
 }
     
 function sendMessage(path, opt_param) {
-    path += '?g=a';
+    path += '?';
     if (opt_param) {
         path += opt_param;
     }
@@ -195,6 +194,7 @@ function updateBoard(){
 </script>
 <script>
 var pubnub;
+var changeKeys = false;
 function askChannel(){
     channel = prompt("Enter Channel");
     if(channel.trim() == ""){
@@ -206,7 +206,7 @@ function askChannel(){
 }
 
 function initPubnub(){
-    if(pubnub == null){
+    if((pubnub == null) || (changeKeys)){
         var isSsl = false;
         if ($('#ssl').is(":checked")){
             isSsl = true;
@@ -231,8 +231,25 @@ function unsubcribeJs(){
     initPubnub();
 }
 
-function subs(){
-    sendMessage('/subscribe', '&uuid='+uuid)//+'&ch='+$("#hereNowChannel").val()+'&showUUID='+hereNowShowUUID+'&includeUserState='+hereNowIncludeUserState);
+function subs(channel, timestamp){
+    path = '/subscribe?uuid='+uuid +'&ch='+'test';
+    if (timestamp) {
+        path += '&ts=' + timestamp;
+    }
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            //alert(xhr.responseText);
+            //addMessage(xhr.responseText);
+            tok = xhr.responseText;
+            timestamp = readTimeStampAndDisplay();
+            subs(timestamp);
+        }
+    }  
+    xhr.open('POST', path, true);
+    xhr.send();
+
+    //sendMessage('/subscribe', 'uuid='+uuid)//+'&ch='+$("#hereNowChannel").val()+'&showUUID='+hereNowShowUUID+'&includeUserState='+hereNowIncludeUserState);
 }
 
 function subscribeJs(){
@@ -366,14 +383,14 @@ function doHereNow(){
             hereNowIncludeUserState = 1
         }
         addMessage("uuid:"+uuid);
-        sendMessage('/hereNow', '&uuid='+uuid+'&ch='+$("#hereNowChannel").val()+'&showUUID='+hereNowShowUUID+'&includeUserState='+hereNowIncludeUserState);
+        sendMessage('/hereNow', 'uuid='+uuid+'&ch='+$("#hereNowChannel").val()+'&showUUID='+hereNowShowUUID+'&includeUserState='+hereNowIncludeUserState);
         onClose("HereNow")
     }
 } 
 
 function doWhereNow(){
     addMessage("uuid:"+uuid);
-    sendMessage('/whereNow', '&uuid='+uuid+'&whereNowUUID='+$("#whereNowUUID").val());
+    sendMessage('/whereNow', 'uuid='+uuid+'&whereNowUUID='+$("#whereNowUUID").val());
     onClose("WhereNow")
 }
 
@@ -387,7 +404,7 @@ function doGlobalHereNow(){
             globalHereNowIncludeUserState = 1
     }
     addMessage("uuid:"+uuid);
-    sendMessage('/globalHereNow', '&uuid='+uuid+'&showUUID='+globalHereNowShowUUID+'&includeUserState='+globalHereNowIncludeUserState);
+    sendMessage('/globalHereNow', 'uuid='+uuid+'&showUUID='+globalHereNowShowUUID+'&includeUserState='+globalHereNowIncludeUserState);
     onClose("GlobalHereNow")
 }
 
@@ -399,7 +416,7 @@ function doPublish(){
         alert("Please enter a message");
         return;
     } else {
-        sendMessage('/publish', '&uuid='+uuid+'&ch='+$("#publishChannel").val() +'&m='+$("#publishMessage").val() );
+        sendMessage('/publish', 'uuid='+uuid+'&ch='+$("#publishChannel").val() +'&m='+$("#publishMessage").val() );
     }  
     onClose("Publish")  
 }
@@ -409,7 +426,7 @@ function doSetAuthKey(){
         alert("Please enter a channel name");
         return;
     } else {
-        sendMessage('/setAuthKey', '&uuid='+uuid+'&authkey='+$("#authKey").val());
+        sendMessage('/setAuthKey', 'uuid='+uuid+'&authkey='+$("#authKey").val());
     }  
     onClose("SetAuthKey")  
 }
@@ -422,7 +439,7 @@ function doDeleteUserState(){
         alert("Please enter a key");
         return;
     } else {
-        sendMessage('/deleteUserState', '&uuid='+uuid+'&ch='+$("#delUserStateChannel").val()+'&k='+$("#delUserStateKey").val());
+        sendMessage('/deleteUserState', 'uuid='+uuid+'&ch='+$("#delUserStateChannel").val()+'&k='+$("#delUserStateKey").val());
     }  
     onClose("DeleteUserState") 
 }
@@ -432,7 +449,7 @@ function doGetUserState(){
         alert("Please enter a channel name");
         return;
     } else {
-        sendMessage('/getUserState', '&uuid='+uuid+'&ch='+$("#getUserStateChannel").val());
+        sendMessage('/getUserState', 'uuid='+uuid+'&ch='+$("#getUserStateChannel").val());
     } 
     onClose("GetUserState") 
 }
@@ -445,7 +462,7 @@ function doSetUserStateJson(){
         alert("Please enter a the user state");
         return;
     } else {
-        sendMessage('/setUserStateJson', '&uuid='+uuid+'&ch='+$("#setUserStateJsonChannel").val() +'&j='+$("#setUserStateJsonText").val() );
+        sendMessage('/setUserStateJson', 'uuid='+uuid+'&ch='+$("#setUserStateJsonChannel").val() +'&j='+$("#setUserStateJsonText").val() );
     } 
     onClose("SetUserStateJson")
 }
@@ -461,18 +478,18 @@ function doSetUserState(){
         alert("Please enter a message");
         return;
     } else {
-        sendMessage('/setUserState', '&uuid='+uuid+'&ch='+$("#setUserStateChannel").val() +'&k='+$("#setUserStateKey").val() +'&v='+$("#setUserStateValue").val() );
+        sendMessage('/setUserState', 'uuid='+uuid+'&ch='+$("#setUserStateChannel").val() +'&k='+$("#setUserStateKey").val() +'&v='+$("#setUserStateValue").val() );
     } 
     onClose("SetUserState")
 }
 
 function doAuditPresence(){
-    sendMessage('/auditPresence', '&uuid='+uuid+'&ch='+$("#auditPresenceChannel").val());
+    sendMessage('/auditPresence', 'uuid='+uuid+'&ch='+$("#auditPresenceChannel").val());
     onClose("AuditPresence")
 }
 
 function doRevokePresence(){
-    sendMessage('/revokePresence', '&uuid='+uuid+'&ch='+$("#revokePresenceChannel").val());
+    sendMessage('/revokePresence', 'uuid='+uuid+'&ch='+$("#revokePresenceChannel").val());
     onClose("RevokePresence")
 }
 
@@ -491,17 +508,17 @@ function doGrantPresence(){
         grantPresenceTtl = $("#grantPresenceTtl").val()
     }
 
-    sendMessage('/grantPresence', '&uuid='+uuid+'&ch='+$("#grantPresenceChannel").val() +'&r='+grantPresenceRead+'&w='+grantPresenceWrite + '&ttl='+grantPresenceTtl);
+    sendMessage('/grantPresence', 'uuid='+uuid+'&ch='+$("#grantPresenceChannel").val() +'&r='+grantPresenceRead+'&w='+grantPresenceWrite + '&ttl='+grantPresenceTtl);
     onClose("GrantPresence")
 }
 
 function doAuditSubscribe(){
-    sendMessage('/auditSubscribe', '&uuid='+uuid+'&ch='+$("#auditSubscribeChannel").val());
+    sendMessage('/auditSubscribe', 'uuid='+uuid+'&ch='+$("#auditSubscribeChannel").val());
     onClose("AuditSubscribe")
 }
 
 function doRevokeSubscribe(){
-    sendMessage('/revokeSubscribe', '&uuid='+uuid+'&ch='+$("#revokeSubscribeChannel").val());
+    sendMessage('/revokeSubscribe', 'uuid='+uuid+'&ch='+$("#revokeSubscribeChannel").val());
     onClose("RevokeSubscribe")
 }
 
@@ -520,7 +537,7 @@ function doGrantSubscribe(){
         grantSubscribeTtl = $("#grantSubscribeTtl").val()
     }
 
-    sendMessage('/grantSubscribe', '&uuid='+uuid+'&ch='+$("#grantSubscribeChannel").val() +'&r='+grantSubscribeRead+'&w='+grantSubscribeWrite + '&ttl='+grantSubscribeTtl);
+    sendMessage('/grantSubscribe', 'uuid='+uuid+'&ch='+$("#grantSubscribeChannel").val() +'&r='+grantSubscribeRead+'&w='+grantSubscribeWrite + '&ttl='+grantSubscribeTtl);
     onClose("GrantSubscribe") 
 }
 
@@ -529,7 +546,7 @@ function doChangeUuid(){
         alert("Please enter a UUID");
         return;
     } else {
-        sendMessage('/changeUuid', '&uuid='+uuid+'&newUuid='+$("#newUuid").val());
+        sendMessage('/changeUuid', 'uuid='+uuid+'&newUuid='+$("#newUuid").val());
     }  
     onClose("SetAuthKey")  
 }
@@ -544,7 +561,7 @@ function doDetailedHistory(){
             detailedHistoryReverse = 1
         }
         addMessage("uuid:"+uuid);
-        sendMessage('/detailedHistory', '&uuid='+uuid+'&ch='+$("#detailedHistoryChannel").val()+'&reverse='+detailedHistoryReverse+'&limit='+$("#detailedHistoryLimit").val()+'&end='+$("#detailedHistoryEnd").val()+'&start='+$("#detailedHistoryStart").val());
+        sendMessage('/detailedHistory', 'uuid='+uuid+'&ch='+$("#detailedHistoryChannel").val()+'&reverse='+detailedHistoryReverse+'&limit='+$("#detailedHistoryLimit").val()+'&end='+$("#detailedHistoryEnd").val()+'&start='+$("#detailedHistoryStart").val());
         onClose("DetailedHistory")
     }
 } 
@@ -971,8 +988,8 @@ function doDetailedHistory(){
     <div style="float:none;">
         <div style="float:left;width:18%;">
             <div class="leftdivs">
-                <input type="button" class="disabled" id="time" value="Time" onClick="sendMessage('/time', '&uuid='+uuid);">
-                <!--<input type="button" class="disabled" disabled value="Subscribe" onClick="sendMessage('/subscribe', '&uuid='+uuid+);">-->
+                <input type="button" class="disabled" id="time" value="Time" onClick="sendMessage('/time', 'uuid='+uuid);">
+                <!--<input type="button" class="disabled" disabled value="Subscribe" onClick="sendMessage('/subscribe', 'uuid='+uuid+);">-->
             </div>
             <div class="leftdivs">
                 <input type="button" class="disabled" id="presenceJS" value="Presence using JS SDK" onClick="presenceJs();">
@@ -1008,7 +1025,7 @@ function doDetailedHistory(){
                 <input type="button" class="disabled" id="setAuthKey" value="Set Auth Key" onClick="showModal('SetAuthKey')">
             </div>
             <div class="leftdivs">
-                <input type="button" class="disabled" id="getAuthKey" value="Get Auth Key" onClick="sendMessage('/getAuthKey', '&uuid='+uuid);">
+                <input type="button" class="disabled" id="getAuthKey" value="Get Auth Key" onClick="sendMessage('/getAuthKey', 'uuid='+uuid);">
             </div>
             <div class="leftdivs">
                 <input type="button" class="disabled" id="detailedHistory" value="DetailedHistory" onClick="showModal('DetailedHistory')">

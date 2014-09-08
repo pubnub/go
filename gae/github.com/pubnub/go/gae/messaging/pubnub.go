@@ -234,30 +234,30 @@ func initStore(secKey string){
 	}
 }
 
-func SetSessionKeys(w http.ResponseWriter, r *http.Request, pubKey string, subKey string, secKey string, cipher string, ssl bool, uuid string){
+func SetSessionKeys(context appengine.Context, w http.ResponseWriter, r *http.Request, pubKey string, subKey string, secKey string, cipher string, ssl bool, uuid string){
 	initStore(secKey);
 	session, err := Store.Get(r, "user-session")
-	c := appengine.NewContext(r)
+	//c := appengine.NewContext(r)
 	
 	if(err == nil){
-		pubInstance := NewPubnub(w, r, pubKey, subKey, secKey, cipher, ssl, uuid)
-		writeSession(w, r, pubInstance, session)
+		pubInstance := NewPubnub(context, w, r, pubKey, subKey, secKey, cipher, ssl, uuid)
+		writeSession(context, w, r, pubInstance, session)
 	} else {
-		c.Errorf("error in set session , %s", err.Error())
+		context.Errorf("error in set session , %s", err.Error())
 	}
 }
 
-func DeleteSession(w http.ResponseWriter, r *http.Request, secKey string){
+func DeleteSession(context appengine.Context, w http.ResponseWriter, r *http.Request, secKey string){
 	initStore(secKey);
 	session, err := Store.Get(r, "user-session")
-	c := appengine.NewContext(r)
+	//c := appengine.NewContext(r)
     if(err == nil && 
     	session !=nil && 
     	session.Values["pubInstance"] != nil) {
 		session.Values["pubInstance"] = ""
 		session.Options = GetSessionsOptionsObject(-1)
 		session.Save(r, w)
-		c.Infof("Deleted Session %s")
+		context.Infof("Deleted Session %s")
 	} 
 }
 
@@ -269,11 +269,8 @@ func GetSessionsOptionsObject(age int) (* sessions.Options){
 			}		    
 }
 
-func InitPubnub(uuid string, w http.ResponseWriter, r *http.Request, publishKey string, subscribeKey string, secretKey string) *Pubnub{
-	cipher:= ""
-	ssl:= false
-
-	c := appengine.NewContext(r)
+func New(context appengine.Context, uuid string, w http.ResponseWriter, r *http.Request, publishKey string, subscribeKey string, secretKey string, cipher string, ssl bool) *Pubnub{
+	//c := appengine.NewContext(r)
 	
 	initStore(secretKey);
 	
@@ -290,18 +287,18 @@ func InitPubnub(uuid string, w http.ResponseWriter, r *http.Request, publishKey 
 			if val, ok := session.Values["pubInstance"].(*Pubnub); ok {
 				pubInstance = val
 				uuidn1 := pubInstance.GetUUID()			
-				c.Infof("retrieved instance %s", uuidn1);
+				context.Infof("retrieved instance %s", uuidn1);
 				//message = "Session Valid" 
 			}	
 	} else {
 		if(err != nil){
-			c.Errorf("Session error:", err.Error())
+			context.Errorf("Session error:", err.Error())
 		}
 		if(session == nil){
-			c.Errorf("Session nil")
+			context.Errorf("Session nil")
 		}	
 		if(session.Values["pubInstance"] == nil){
-			c.Errorf("pubInstance nil")
+			context.Errorf("pubInstance nil")
 		}
 		
 	}
@@ -310,16 +307,16 @@ func InitPubnub(uuid string, w http.ResponseWriter, r *http.Request, publishKey 
 		pubKey := publishKey
 		subKey := subscribeKey
 		secKey := secretKey
-		c.Infof("Creating NEW session");
-		pubInstance = NewPubnub(w, r, pubKey, subKey, secKey, cipher, ssl, uuid)
-		writeSession(w, r, pubInstance, session)		
+		context.Infof("Creating NEW session");
+		pubInstance = NewPubnub(context, w, r, pubKey, subKey, secKey, cipher, ssl, uuid)
+		writeSession(context, w, r, pubInstance, session)		
 	}	
 	 
 	return pubInstance
 }
 
-func writeSession(w http.ResponseWriter, r *http.Request, pubInstance *Pubnub, session *sessions.Session){
-	context := appengine.NewContext(r)
+func writeSession(context appengine.Context, w http.ResponseWriter, r *http.Request, pubInstance *Pubnub, session *sessions.Session){
+	//context := appengine.NewContext(r)
 	session.Values["pubInstance"] = pubInstance
 	session.Options = GetSessionsOptionsObject(60*20)
 	gob.Register (pubInstance)
@@ -330,8 +327,8 @@ func writeSession(w http.ResponseWriter, r *http.Request, pubInstance *Pubnub, s
 	} 
 }
 
-func saveSession(w http.ResponseWriter, r *http.Request, pubInstance *Pubnub){
-	context := appengine.NewContext(r)
+func saveSession(context appengine.Context, w http.ResponseWriter, r *http.Request, pubInstance *Pubnub){
+	//context := appengine.NewContext(r)
 	
 	initStore(pubInstance.SecretKey);
 	//context.Infof("saving session");
@@ -340,7 +337,7 @@ func saveSession(w http.ResponseWriter, r *http.Request, pubInstance *Pubnub){
     if(err == nil && 
     	session !=nil ) {
     	    session.Values["pubInstance"] = pubInstance
-    	    writeSession(w, r, pubInstance, session)
+    	    writeSession(context, w, r, pubInstance, session)
 	} else {
 		if(err != nil){
 			context.Errorf("Session error save session : %s", err.Error())
@@ -417,8 +414,8 @@ type PubnubUnitTest struct {
 // customUuid is the unique identifier, it can be a custom value or sent as empty for automatic generation.
 //
 // returns the pointer to Pubnub instance.
-func NewPubnub(w http.ResponseWriter, r *http.Request, publishKey string, subscribeKey string, secretKey string, cipherKey string, sslOn bool, customUuid string) *Pubnub {
-	context := appengine.NewContext(r)
+func NewPubnub(context appengine.Context, w http.ResponseWriter, r *http.Request, publishKey string, subscribeKey string, secretKey string, cipherKey string, sslOn bool, customUuid string) *Pubnub {
+	//context := appengine.NewContext(r)
 	context.Infof(fmt.Sprintf("Pubnub Init, %s", VersionInfo()))
 	context.Infof(fmt.Sprintf("OS: %s", runtime.GOOS))
 	
@@ -449,7 +446,7 @@ func NewPubnub(w http.ResponseWriter, r *http.Request, publishKey string, subscr
 
 	context.Infof(fmt.Sprintf("Origin: %s", newPubnub.Origin))
 	//Generate the uuid is custmUuid is not provided
-	newPubnub.SetUUID(w, r, customUuid)
+	newPubnub.SetUUID(context, w, r, customUuid)
 	
 	return newPubnub
 }
@@ -478,12 +475,12 @@ func SetResumeOnReconnect(val bool) {
 }
 
 // SetAuthenticationKey sets the value of authentication key
-func (pub *Pubnub) SetAuthenticationKey(w http.ResponseWriter, r *http.Request, val string) {
+func (pub *Pubnub) SetAuthenticationKey(context appengine.Context, w http.ResponseWriter, r *http.Request, val string) {
 	//pub.Lock()
 	//defer pub.Unlock()
 	pub.AuthenticationKey = val
-	saveSession(w, r, pub)
-	context := appengine.NewContext(r)
+	saveSession(context, w, r, pub)
+	//context := appengine.NewContext(r)
 	
 	session, err := Store.Get(r, "user-session")
 	//c := appengine.NewContext(r)
@@ -513,10 +510,10 @@ func (pub *Pubnub) GetAuthenticationKey() string {
 }
 
 // SetUUID sets the value of UUID
-func (pub *Pubnub) SetUUID(w http.ResponseWriter, r *http.Request, val string) {
+func (pub *Pubnub) SetUUID(context appengine.Context, w http.ResponseWriter, r *http.Request, val string) {
 	//pub.Lock()
 	//defer pub.Unlock()
-	context := appengine.NewContext(r)
+	//context := appengine.NewContext(r)
 	if strings.TrimSpace(val) == "" {
 		uuid, err := GenUuid()
 		if err == nil {
@@ -527,7 +524,7 @@ func (pub *Pubnub) SetUUID(w http.ResponseWriter, r *http.Request, val string) {
 	} else {
 		pub.Uuid = url.QueryEscape(val)
 	}
-	saveSession(w, r, pub)
+	saveSession(context, w, r, pub)
 }
 
 // GetUUID returns the value of UUID
@@ -714,11 +711,11 @@ func (pub *Pubnub) closeRetryConnection() {
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GrantSubscribe(w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GrantSubscribe(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 	checkCallbackNil(errorChannel, true, "GrantSubscribe")
 
-	pub.executePam(w, r, channel, read, write, ttl, callbackChannel, errorChannel, false)
+	pub.executePam(context, w, r, channel, read, write, ttl, callbackChannel, errorChannel, false)
 }
 
 // AuditSubscribe will make a call to display the permissions for a channel or subkey
@@ -726,11 +723,11 @@ func (pub *Pubnub) GrantSubscribe(w http.ResponseWriter, r *http.Request, channe
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) AuditSubscribe(w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) AuditSubscribe(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
 	checkCallbackNil(errorChannel, true, "AuditSubscribe")
 
-	pub.executePam(w, r, channel, false, false, -1, callbackChannel, errorChannel, true)
+	pub.executePam(context, w, r, channel, false, false, -1, callbackChannel, errorChannel, true)
 }
 
 // GrantPresence is used to give a presence channel read, write permissions
@@ -740,12 +737,12 @@ func (pub *Pubnub) AuditSubscribe(w http.ResponseWriter, r *http.Request, channe
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GrantPresence(w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GrantPresence(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GrantPresence")
 	checkCallbackNil(errorChannel, true, "GrantPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(w, r, channel2, read, write, ttl, callbackChannel, errorChannel, false)
+	pub.executePam(context, w, r, channel2, read, write, ttl, callbackChannel, errorChannel, false)
 }
 
 // AuditPresence will make a call to display the permissions for a channel or subkey
@@ -753,12 +750,12 @@ func (pub *Pubnub) GrantPresence(w http.ResponseWriter, r *http.Request, channel
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) AuditPresence(w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) AuditPresence(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditPresence")
 	checkCallbackNil(errorChannel, true, "AuditPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(w, r, channel2, false, false, -1, callbackChannel, errorChannel, true)
+	pub.executePam(context, w, r, channel2, false, false, -1, callbackChannel, errorChannel, true)
 }
 
 // removeSpacesFromChannelNames will remove the empty spaces from the channels (sent as a comma separated string)
@@ -816,8 +813,8 @@ func queryEscapeMultiple (q string, splitter string) string{
 // executePam is the main method which is called for all PAM requests
 //
 // for audit request the isAudit parameter should be true
-func (pub *Pubnub) executePam(w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte, isAudit bool) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) executePam(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte, isAudit bool) {
+	//context := appengine.NewContext(r)
 	signature := ""
 	noChannel := true
 	grantOrAudit := "grant"
@@ -914,7 +911,7 @@ func (pub *Pubnub) executePam(w http.ResponseWriter, r *http.Request, channel st
 	pamURLBuffer.WriteString("?")
 	pamURLBuffer.WriteString(params.String())
 
-	value, _, err := pub.httpRequest(w, r, pamURLBuffer.String(), nonSubscribeTrans)
+	value, _, err := pub.httpRequest(context, w, r, pamURLBuffer.String(), nonSubscribeTrans)
 	if err != nil {
 		message := err.Error()
 		context.Errorf(fmt.Sprintf("PAM Error: %s", message))
@@ -942,11 +939,11 @@ func getUnixTimeStamp() string {
 // errorChannel on which to send the error response.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GetTime(w http.ResponseWriter, r *http.Request, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GetTime(context appengine.Context, w http.ResponseWriter, r *http.Request, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GetTime")
 	checkCallbackNil(errorChannel, true, "GetTime")
 	
-	pub.executeTime(w, r, callbackChannel, errorChannel, 0)
+	pub.executeTime(context, w, r, callbackChannel, errorChannel, 0)
 }
 
 // executeTime is the struct Pubnub's instance method that creates a time request and sends back the
@@ -958,8 +955,8 @@ func (pub *Pubnub) GetTime(w http.ResponseWriter, r *http.Request, callbackChann
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
-func (pub *Pubnub) executeTime(w http.ResponseWriter, r *http.Request, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) executeTime(context appengine.Context, w http.ResponseWriter, r *http.Request, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
+	//context := appengine.NewContext(r)
 	
 	count := retryCount
 
@@ -972,7 +969,7 @@ func (pub *Pubnub) executeTime(w http.ResponseWriter, r *http.Request, callbackC
 	timeURL += "&uuid="
 	timeURL += pub.GetUUID()
 
-	value, _, err := pub.httpRequest(w, r, timeURL, nonSubscribeTrans)
+	value, _, err := pub.httpRequest(context, w, r, timeURL, nonSubscribeTrans)
 
 	if err != nil {
 		context.Errorf(fmt.Sprintf("Time Error: %s", err.Error()))
@@ -984,7 +981,7 @@ func (pub *Pubnub) executeTime(w http.ResponseWriter, r *http.Request, callbackC
 			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, errJSON.Error(), "")
 			if count < maxRetries {
 				count++
-				pub.executeTime(w, r, callbackChannel, errorChannel, count)
+				pub.executeTime(context, w, r, callbackChannel, errorChannel, count)
 			}
 		} else {
 			context.Infof(fmt.Sprintf("TIme: %s", value));
@@ -1002,8 +999,8 @@ func (pub *Pubnub) executeTime(w http.ResponseWriter, r *http.Request, callbackC
 // jsonBytes: the message to be sent.
 // callbackChannel: Channel on which to send the response.
 // errorChannel on which the error response is sent.
-func (pub *Pubnub) sendPublishRequest(w http.ResponseWriter, r *http.Request, channel string, publishURLString string, jsonBytes []byte, callbackChannel chan []byte, errorChannel chan []byte) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) sendPublishRequest(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, publishURLString string, jsonBytes []byte, callbackChannel chan []byte, errorChannel chan []byte) {
+	//context := appengine.NewContext(r)
 	
 	u := &url.URL{Path: string(jsonBytes)}
 	encodedPath := u.String()
@@ -1012,7 +1009,7 @@ func (pub *Pubnub) sendPublishRequest(w http.ResponseWriter, r *http.Request, ch
 	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
 	publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL, sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
 	
-	value, responseCode, err := pub.httpRequest(w, r, publishURL, nonSubscribeTrans)
+	value, responseCode, err := pub.httpRequest(context, w, r, publishURL, nonSubscribeTrans)
 
 	if (responseCode != 200) || (err != nil) {
 		if (value != nil) && (responseCode > 0) {
@@ -1129,8 +1126,8 @@ func invalidChannel(channel string, c chan []byte) bool {
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) Publish(w http.ResponseWriter, r *http.Request, channel string, message interface{}, callbackChannel chan []byte, errorChannel chan []byte) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) Publish(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, message interface{}, callbackChannel chan []byte, errorChannel chan []byte) {
+	//context := appengine.NewContext(r)
 	
 	checkCallbackNil(callbackChannel, false, "Publish")
 	checkCallbackNil(errorChannel, true, "Publish")
@@ -1179,10 +1176,10 @@ func (pub *Pubnub) Publish(w http.ResponseWriter, r *http.Request, channel strin
 				context.Errorf(fmt.Sprintf("Publish error: %s", errEnc.Error()))
 				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, fmt.Sprintf("error in serializing: %s", errEnc), "")
 			} else {
-				pub.sendPublishRequest(w, r, channel, publishURLBuffer.String(), jsonEncBytes, callbackChannel, errorChannel)
+				pub.sendPublishRequest(context, w, r, channel, publishURLBuffer.String(), jsonEncBytes, callbackChannel, errorChannel)
 			}
 		} else {
-			pub.sendPublishRequest(w, r, channel, publishURLBuffer.String(), jsonSerialized, callbackChannel, errorChannel)
+			pub.sendPublishRequest(context, w, r, channel, publishURLBuffer.String(), jsonSerialized, callbackChannel, errorChannel)
 		}
 	}
 }
@@ -2310,7 +2307,7 @@ func (pub *Pubnub) PresenceUnsubscribe(channels string, callbackChannel chan []b
 // the HttpRequest response contents as byte array.
 // response error code,
 // error if any.
-func (pub *Pubnub) sendLeaveRequest(w http.ResponseWriter, r *http.Request, channels string) ([]byte, int, error) {
+func (pub *Pubnub) sendLeaveRequest(context appengine.Context, w http.ResponseWriter, r *http.Request, channels string) ([]byte, int, error) {
 	var subscribeURLBuffer bytes.Buffer
 	subscribeURLBuffer.WriteString("/v2/presence")
 	subscribeURLBuffer.WriteString("/sub-key/")
@@ -2329,7 +2326,7 @@ func (pub *Pubnub) sendLeaveRequest(w http.ResponseWriter, r *http.Request, chan
 	subscribeURLBuffer.WriteString("&")
 	subscribeURLBuffer.WriteString(sdkIdentificationParam)
 
-	return pub.httpRequest(w, r, subscribeURLBuffer.String(), nonSubscribeTrans)
+	return pub.httpRequest(context, w, r, subscribeURLBuffer.String(), nonSubscribeTrans)
 }
 
 // History is the struct Pubnub's instance method which creates and post the History request
@@ -2347,11 +2344,11 @@ func (pub *Pubnub) sendLeaveRequest(w http.ResponseWriter, r *http.Request, chan
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) History(w http.ResponseWriter, r *http.Request, channel string, limit int, start int64, end int64, reverse bool, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) History(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, limit int, start int64, end int64, reverse bool, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "History")
 	checkCallbackNil(errorChannel, true, "History")
 
-	pub.executeHistory(w, r, channel, limit, start, end, reverse, callbackChannel, errorChannel, 0)
+	pub.executeHistory(context, w, r, channel, limit, start, end, reverse, callbackChannel, errorChannel, 0)
 }
 
 // executeHistory is the struct Pubnub's instance method which creates and post the History request
@@ -2370,8 +2367,8 @@ func (pub *Pubnub) History(w http.ResponseWriter, r *http.Request, channel strin
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
-func (pub *Pubnub) executeHistory(w http.ResponseWriter, r *http.Request, channel string, limit int, start int64, end int64, reverse bool, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) executeHistory(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, limit int, start int64, end int64, reverse bool, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
+	//context := appengine.NewContext(r)
 	count := retryCount
 	if invalidChannel(channel, callbackChannel) {
 		return
@@ -2409,7 +2406,7 @@ func (pub *Pubnub) executeHistory(w http.ResponseWriter, r *http.Request, channe
 	historyURLBuffer.WriteString("&uuid=")
 	historyURLBuffer.WriteString(pub.GetUUID())
 
-	value, _, err := pub.httpRequest(w, r, historyURLBuffer.String(), nonSubscribeTrans)
+	value, _, err := pub.httpRequest(context, w, r, historyURLBuffer.String(), nonSubscribeTrans)
 
 	if err != nil {
 		context.Errorf(fmt.Sprintf("%s", err.Error()))
@@ -2422,7 +2419,7 @@ func (pub *Pubnub) executeHistory(w http.ResponseWriter, r *http.Request, channe
 			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, errJSON.Error(), "")
 			if count < maxRetries {
 				count++
-				pub.executeHistory(w, r, channel, limit, start, end, reverse, callbackChannel, errorChannel, count)
+				pub.executeHistory(context, w, r, channel, limit, start, end, reverse, callbackChannel, errorChannel, count)
 			}
 		} else {
 			var buffer bytes.Buffer
@@ -2444,11 +2441,11 @@ func (pub *Pubnub) executeHistory(w http.ResponseWriter, r *http.Request, channe
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) WhereNow(w http.ResponseWriter, r *http.Request, uuid string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) WhereNow(context appengine.Context, w http.ResponseWriter, r *http.Request, uuid string, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "WhereNow")
 	checkCallbackNil(errorChannel, true, "WhereNow")
 
-	pub.executeWhereNow(w, r, uuid, callbackChannel, errorChannel, 0)
+	pub.executeWhereNow(context, w, r, uuid, callbackChannel, errorChannel, 0)
 }
 
 // executeWhereNow  is the struct Pubnub's instance method that creates a wherenow request and sends back the
@@ -2461,8 +2458,8 @@ func (pub *Pubnub) WhereNow(w http.ResponseWriter, r *http.Request, uuid string,
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
-func (pub *Pubnub) executeWhereNow(w http.ResponseWriter, r *http.Request, uuid string, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) executeWhereNow(context appengine.Context, w http.ResponseWriter, r *http.Request, uuid string, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
+	//context := appengine.NewContext(r)
 	count := retryCount
 
 	var whereNowURL bytes.Buffer
@@ -2483,7 +2480,7 @@ func (pub *Pubnub) executeWhereNow(w http.ResponseWriter, r *http.Request, uuid 
 
 	whereNowURL.WriteString(pub.addAuthParam(true))
 
-	value, _, err := pub.httpRequest(w, r, whereNowURL.String(), nonSubscribeTrans)
+	value, _, err := pub.httpRequest(context, w, r, whereNowURL.String(), nonSubscribeTrans)
 
 	if err != nil {
 		context.Errorf(fmt.Sprintf("%s", err.Error()))
@@ -2496,7 +2493,7 @@ func (pub *Pubnub) executeWhereNow(w http.ResponseWriter, r *http.Request, uuid 
 			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
 			if count < maxRetries {
 				count++
-				pub.executeWhereNow(w, r, uuid, callbackChannel, errorChannel, count)
+				pub.executeWhereNow(context, w, r, uuid, callbackChannel, errorChannel, count)
 			}
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
@@ -2514,11 +2511,11 @@ func (pub *Pubnub) executeWhereNow(w http.ResponseWriter, r *http.Request, uuid 
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GlobalHereNow(w http.ResponseWriter, r *http.Request, showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GlobalHereNow(context appengine.Context, w http.ResponseWriter, r *http.Request, showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GlobalHereNow")
 	checkCallbackNil(errorChannel, true, "GlobalHereNow")
 
-	pub.executeGlobalHereNow(w, r, showUuid, includeUserState, callbackChannel, errorChannel, 0)
+	pub.executeGlobalHereNow(context, w, r, showUuid, includeUserState, callbackChannel, errorChannel, 0)
 }
 
 // executeGlobalHereNow  is the struct Pubnub's instance method that creates a globalhernow request and sends back the
@@ -2530,8 +2527,8 @@ func (pub *Pubnub) GlobalHereNow(w http.ResponseWriter, r *http.Request, showUui
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
-func (pub *Pubnub) executeGlobalHereNow(w http.ResponseWriter, r *http.Request, showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) executeGlobalHereNow(context appengine.Context, w http.ResponseWriter, r *http.Request, showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
+	//context := appengine.NewContext(r)
 	count := retryCount
 
 	var hereNowURL bytes.Buffer
@@ -2559,7 +2556,7 @@ func (pub *Pubnub) executeGlobalHereNow(w http.ResponseWriter, r *http.Request, 
 	hereNowURL.WriteString("&uuid=")
 	hereNowURL.WriteString(pub.GetUUID())
 
-	value, _, err := pub.httpRequest(w, r, hereNowURL.String(), nonSubscribeTrans)
+	value, _, err := pub.httpRequest(context, w, r, hereNowURL.String(), nonSubscribeTrans)
 
 	if err != nil {
 		context.Errorf(fmt.Sprintf("%s", err.Error()))
@@ -2572,7 +2569,7 @@ func (pub *Pubnub) executeGlobalHereNow(w http.ResponseWriter, r *http.Request, 
 			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
 			if count < maxRetries {
 				count++
-				pub.executeGlobalHereNow(w, r, showUuid, includeUserState, callbackChannel, errorChannel, count)
+				pub.executeGlobalHereNow(context, w, r, showUuid, includeUserState, callbackChannel, errorChannel, count)
 			}
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
@@ -2589,11 +2586,11 @@ func (pub *Pubnub) executeGlobalHereNow(w http.ResponseWriter, r *http.Request, 
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) HereNow(w http.ResponseWriter, r *http.Request, channel string, showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) HereNow(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "HereNow")
 	checkCallbackNil(errorChannel, true, "HereNow")
 
-	pub.executeHereNow(w, r, channel, showUuid, includeUserState, callbackChannel, errorChannel, 0)
+	pub.executeHereNow(context, w, r, channel, showUuid, includeUserState, callbackChannel, errorChannel, 0)
 }
 
 // executeHereNow  is the struct Pubnub's instance method that creates a time request and sends back the
@@ -2605,8 +2602,8 @@ func (pub *Pubnub) HereNow(w http.ResponseWriter, r *http.Request, channel strin
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
-func (pub *Pubnub) executeHereNow(w http.ResponseWriter, r *http.Request, channel string, showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) executeHereNow(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
+	//context := appengine.NewContext(r)
 	count := retryCount
 
 	if invalidChannel(channel, callbackChannel) {
@@ -2640,7 +2637,7 @@ func (pub *Pubnub) executeHereNow(w http.ResponseWriter, r *http.Request, channe
 	hereNowURL.WriteString("&uuid=")
 	hereNowURL.WriteString(pub.GetUUID())
 	
-	value, _, err := pub.httpRequest(w, r, hereNowURL.String(), nonSubscribeTrans)
+	value, _, err := pub.httpRequest(context, w, r, hereNowURL.String(), nonSubscribeTrans)
 
 	if err != nil {
 		context.Errorf(fmt.Sprintf("%s", err.Error()))
@@ -2655,7 +2652,7 @@ func (pub *Pubnub) executeHereNow(w http.ResponseWriter, r *http.Request, channe
 			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, errJSON.Error(), "")
 			if count < maxRetries {
 				count++
-				pub.executeHereNow(w, r, channel, showUuid, includeUserState, callbackChannel, errorChannel, count)
+				pub.executeHereNow(context, w, r, channel, showUuid, includeUserState, callbackChannel, errorChannel, count)
 			}
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
@@ -2672,10 +2669,10 @@ func (pub *Pubnub) executeHereNow(w http.ResponseWriter, r *http.Request, channe
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GetUserState(w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GetUserState(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GetUserState")
 	checkCallbackNil(errorChannel, true, "GetUserState")
-	pub.executeGetUserState(w, r, channel, callbackChannel, errorChannel, 0)
+	pub.executeGetUserState(context, w, r, channel, callbackChannel, errorChannel, 0)
 }
 
 // executeGetUserState  is the struct Pubnub's instance method that creates a executeGetUserState request and sends back the
@@ -2688,8 +2685,8 @@ func (pub *Pubnub) GetUserState(w http.ResponseWriter, r *http.Request, channel 
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
-func (pub *Pubnub) executeGetUserState(w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) executeGetUserState(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
+	//context := appengine.NewContext(r)
 	count := retryCount
 
 	var userStateURL bytes.Buffer
@@ -2707,7 +2704,7 @@ func (pub *Pubnub) executeGetUserState(w http.ResponseWriter, r *http.Request, c
 	
 	userStateURL.WriteString(pub.addAuthParam(true))
 	
-	value, _, err := pub.httpRequest(w, r, userStateURL.String(), nonSubscribeTrans)
+	value, _, err := pub.httpRequest(context, w, r, userStateURL.String(), nonSubscribeTrans)
 
 	if err != nil {
 		context.Errorf(fmt.Sprintf("%s", err.Error()))
@@ -2720,7 +2717,7 @@ func (pub *Pubnub) executeGetUserState(w http.ResponseWriter, r *http.Request, c
 			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
 			if count < maxRetries {
 				count++
-				pub.executeGetUserState(w, r, channel, callbackChannel, errorChannel, count)
+				pub.executeGetUserState(context, w, r, channel, callbackChannel, errorChannel, count)
 			}
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
@@ -2739,8 +2736,8 @@ func (pub *Pubnub) executeGetUserState(w http.ResponseWriter, r *http.Request, c
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) SetUserStateKeyVal(w http.ResponseWriter, r *http.Request, channel string, key string, val string, callbackChannel chan []byte, errorChannel chan []byte) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) SetUserStateKeyVal(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, key string, val string, callbackChannel chan []byte, errorChannel chan []byte) {
+	//context := appengine.NewContext(r)
 	checkCallbackNil(callbackChannel, false, "SetUserState")
 	checkCallbackNil(errorChannel, true, "SetUserState")
 	
@@ -2787,9 +2784,9 @@ func (pub *Pubnub) SetUserStateKeyVal(w http.ResponseWriter, r *http.Request, ch
 		stateJSON = "{}"	
 	}
 	context.Infof(fmt.Sprintf("SetUserStateKeyVal jsonSerialized: %s %s", jsonSerialized, stateJSON))
-	saveSession(w, r, pub)
+	saveSession(context, w, r, pub)
 	//pub.executeSetUserState(w, r, channel, string(jsonSerialized), callbackChannel, errorChannel, 0)
-	pub.executeSetUserState(w, r, channel, stateJSON, callbackChannel, errorChannel, 0)
+	pub.executeSetUserState(context, w, r, channel, stateJSON, callbackChannel, errorChannel, 0)
 }
 
 // SetUserStateJSON is the struct Pubnub's instance method which creates and posts the User state
@@ -2802,7 +2799,7 @@ func (pub *Pubnub) SetUserStateKeyVal(w http.ResponseWriter, r *http.Request, ch
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) SetUserStateJSON(w http.ResponseWriter, r *http.Request, channel string, jsonString string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) SetUserStateJSON(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, jsonString string, callbackChannel chan []byte, errorChannel chan []byte) {
 	//context := appengine.NewContext(r)
 	checkCallbackNil(callbackChannel, false, "SetUserState")
 	checkCallbackNil(errorChannel, true, "SetUserState")
@@ -2819,8 +2816,8 @@ func (pub *Pubnub) SetUserStateJSON(w http.ResponseWriter, r *http.Request, chan
 		pub.UserState = make(map[string]map[string]interface{})
 	}
 	pub.UserState[channel] = s.(map[string]interface{})
-	saveSession(w, r, pub)
-	pub.executeSetUserState(w, r, channel, jsonString, callbackChannel, errorChannel, 0)
+	saveSession(context, w, r, pub)
+	pub.executeSetUserState(context, w, r, channel, jsonString, callbackChannel, errorChannel, 0)
 }
 
 // executeSetUserState  is the struct Pubnub's instance method that creates a user state request and sends back the
@@ -2834,8 +2831,8 @@ func (pub *Pubnub) SetUserStateJSON(w http.ResponseWriter, r *http.Request, chan
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
-func (pub *Pubnub) executeSetUserState(w http.ResponseWriter, r *http.Request, channel string, jsonState string, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) executeSetUserState(context appengine.Context, w http.ResponseWriter, r *http.Request, channel string, jsonState string, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
+	//context := appengine.NewContext(r)
 	count := retryCount
 
 	var userStateURL bytes.Buffer
@@ -2858,7 +2855,7 @@ func (pub *Pubnub) executeSetUserState(w http.ResponseWriter, r *http.Request, c
 	userStateURL.WriteString(pub.GetUUID())	
 	
 	
-	value, _, err := pub.httpRequest(w, r, userStateURL.String(), nonSubscribeTrans)
+	value, _, err := pub.httpRequest(context, w, r, userStateURL.String(), nonSubscribeTrans)
 
 	if err != nil {
 		context.Errorf(fmt.Sprintf("%s", err.Error()))
@@ -2871,7 +2868,7 @@ func (pub *Pubnub) executeSetUserState(w http.ResponseWriter, r *http.Request, c
 			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
 			if count < maxRetries {
 				count++
-				pub.executeSetUserState(w, r, channel, jsonState, callbackChannel, errorChannel, count)
+				pub.executeSetUserState(context, w, r, channel, jsonState, callbackChannel, errorChannel, count)
 			}
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
@@ -3059,14 +3056,14 @@ func ParseInterfaceData(myInterface interface{}) string {
 // the response contents as byte array.
 // response error code if any.
 // error if any.
-func (pub *Pubnub) httpRequest(w http.ResponseWriter, r *http.Request, requestURL string, action int) ([]byte, int, error) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) httpRequest(context appengine.Context, w http.ResponseWriter, r *http.Request, requestURL string, action int) ([]byte, int, error) {
+	//context := appengine.NewContext(r)
 	
 	requrl := pub.Origin + requestURL
 	
 	context.Infof(fmt.Sprintf("url: %s", requrl))
 	
-	contents, responseStatusCode, err := pub.connect(w, r, requrl, action, requestURL)
+	contents, responseStatusCode, err := pub.connect(context, w, r, requrl, action, requestURL)
 
 	if err != nil {
 		context.Errorf(fmt.Sprintf("httpRequest error: %s", err.Error()))
@@ -3101,8 +3098,8 @@ func (pub *Pubnub) httpRequest(w http.ResponseWriter, r *http.Request, requestUR
 //
 // returns:
 // the transport.
-func (pub *Pubnub) initTrans(w http.ResponseWriter, r *http.Request, action int) http.RoundTripper {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) initTrans(context appengine.Context, w http.ResponseWriter, r *http.Request, action int) http.RoundTripper {
+	//context := appengine.NewContext(r)
 	deadline := time.Duration(connectTimeout)*time.Second
 	switch action {
 		case subscribeTrans:
@@ -3135,10 +3132,10 @@ func (pub *Pubnub) initTrans(w http.ResponseWriter, r *http.Request, action int)
 // returns:
 // the pointer to the http.Client
 // error is any.
-func(pub *Pubnub) createHTTPClient(w http.ResponseWriter, r *http.Request, action int) (*http.Client, error) {
+func(pub *Pubnub) createHTTPClient(context appengine.Context, w http.ResponseWriter, r *http.Request, action int) (*http.Client, error) {
 	//context := appengine.NewContext(r)
 	var transport http.RoundTripper
-	transport = pub.initTrans(w, r, action)
+	transport = pub.initTrans(context, w, r, action)
 	var err error
 	var httpClient *http.Client
 	if transport != nil {
@@ -3165,10 +3162,10 @@ func(pub *Pubnub) createHTTPClient(w http.ResponseWriter, r *http.Request, actio
 // the response as byte array.
 // response errorcode if any.
 // error if any.
-func (pub *Pubnub) connect(w http.ResponseWriter, r *http.Request, requestURL string, action int, opaqueURL string) ([]byte, int, error) {
-	context := appengine.NewContext(r)
+func (pub *Pubnub) connect(context appengine.Context, w http.ResponseWriter, r *http.Request, requestURL string, action int, opaqueURL string) ([]byte, int, error) {
+	//context := appengine.NewContext(r)
 	var contents []byte
-	httpClient, err := pub.createHTTPClient(w, r, action)
+	httpClient, err := pub.createHTTPClient(context, w, r, action)
 
 	if err == nil {
 		//log.Println(fmt.Sprintf("new request"))
