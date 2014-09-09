@@ -1,5 +1,5 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Build Date: Aug 25, 2014
+// Build Date: Sep 5, 2014
 // Version: 3.6
 package messaging
 
@@ -243,7 +243,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go client SDK Version: 3.6; Build Date: Aug 25, 2014;"
+	return "PubNub Go client SDK Version: 3.6; Build Date: Sep 5, 2014;"
 }
 
 // Pubnub structure.
@@ -2795,8 +2795,12 @@ func (pub *Pubnub) SetUserStateKeyVal(channel string, key string, val string, ca
 		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, invalidUserStateMap, err.Error())
 		return
 	}
+	stateJSON := string(jsonSerialized)
+	if(stateJSON == "null"){
+		stateJSON = "{}"	
+	}
 
-	pub.executeSetUserState(channel, string(jsonSerialized), callbackChannel, errorChannel, 0)
+	pub.executeSetUserState(channel, stateJSON, callbackChannel, errorChannel, 0)
 }
 
 // SetUserStateJSON is the struct Pubnub's instance method which creates and posts the User state
