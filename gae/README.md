@@ -307,7 +307,7 @@ Initialize a new Pubnub instance.
         var successChannel = make(chan []byte)
         go pubInstance.WhereNow(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, whereNowUUID, successChannel, errorChannel)
         handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "WhereNow")
-	// please goto the top of this file see the implementation of handleResult
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 #### Global Here Now
@@ -319,7 +319,7 @@ Initialize a new Pubnub instance.
         go pubInstance.GlobalHereNow(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, disableUUID, includeUserState, successChannel, errorChannel)
         handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Global Here Now")
 
-	// please goto the top of this file see the implementation of handleResult
+        // please goto the top of this file see the implementation of handleResult
 ```
 
 
