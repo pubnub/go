@@ -164,11 +164,12 @@ function sendMessage(path, opt_param) {
 
 function onMessage(data) {
     addMessage(data.data.toString());
-    //var data = jQuery.parseJSON(data.data)        
 }
 
 function addMessage(message){
-    output.value= "\n" + removeBackslashes(message) + "\n" + output.value;    
+    if(message.trim()!= ""){
+        output.value= "\n" + removeBackslashes(message) + "\n" + output.value;
+    }    
 }
 
 function moveCaretToEnd(el) {
@@ -239,17 +240,13 @@ function subs(channel, timestamp){
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
-            //alert(xhr.responseText);
-            //addMessage(xhr.responseText);
+            addMessage(xhr.responseText);
             tok = xhr.responseText;
-            timestamp = readTimeStampAndDisplay();
             subs(timestamp);
         }
     }  
     xhr.open('POST', path, true);
     xhr.send();
-
-    //sendMessage('/subscribe', 'uuid='+uuid)//+'&ch='+$("#hereNowChannel").val()+'&showUUID='+hereNowShowUUID+'&includeUserState='+hereNowIncludeUserState);
 }
 
 function subscribeJs(){
@@ -978,8 +975,6 @@ function doDetailedHistory(){
             <input type="button" id="connect" class="connect" value="Connect" onClick="connectWithKeys();">
             <br />
             <input type="button" id="connect" class="disabled" value="Disconnect" onClick="disconnect();">
-            <!--<br />
-            <input type="button" id="sub"  value="Subscribe" onClick="subs();">-->
         </div>
         <br />
     </div>
@@ -989,7 +984,6 @@ function doDetailedHistory(){
         <div style="float:left;width:18%;">
             <div class="leftdivs">
                 <input type="button" class="disabled" id="time" value="Time" onClick="sendMessage('/time', 'uuid='+uuid);">
-                <!--<input type="button" class="disabled" disabled value="Subscribe" onClick="sendMessage('/subscribe', 'uuid='+uuid+);">-->
             </div>
             <div class="leftdivs">
                 <input type="button" class="disabled" id="presenceJS" value="Presence using JS SDK" onClick="presenceJs();">
@@ -1000,15 +994,6 @@ function doDetailedHistory(){
             <div class="leftdivs">
                 <input type="button" class="disabled" id="unsubscribeJS" value="Unsubscribe using JS SDK" onClick="unsubscribeJs();">
             </div>
-            <!--<div class="leftdivs">
-                <input type="button" class="disabled" disabled value="Presence Unsubscribe using JS SDK" onClick="presenceUnsubcribeJs();">
-            </div>
-            <div class="leftdivs">
-                <input type="button" class="disabled" disabled value="Set Presence heartbeat" onClick="">
-            </div>
-            <div class="leftdivs">
-                <input type="button" class="disabled" disabled value="Set Presence heartbeat interval" onClick="">
-            </div>-->
             <div class="leftdivs">
                 <input type="button" class="disabled" id="hereNow" value="HereNow" onClick="showModal('HereNow')">
             </div>
@@ -1062,9 +1047,6 @@ function doDetailedHistory(){
             <div class="leftdivs">
                 <input type="button" class="disabled" id="setUserStateJson" value="Set User State JSON" onClick="showModal('SetUserStateJson')">
             </div>
-            <!--<div class="leftdivs">
-                <input type="button" class="disabled" disabled value="Change UUID" onClick="showModal('ChangeUuid')">
-            </div>-->
         </div>
         <div style="float:left;width:60%;">
             <div style="float:left;width:15%;">

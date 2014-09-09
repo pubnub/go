@@ -3,18 +3,17 @@
 package tests
 
 import (
+	"appengine"
 	"encoding/json"
-	"fmt"	
+	"fmt"
 	"github.com/pubnub/go/gae/messaging"
+	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
-	"appengine"
-	"net/http"
-    //"net/http/httptest"
-    "appengine/aetest"
-	
+	//"net/http/httptest"
+	"appengine/aetest"
 )
 
 // TestDetailedHistoryStart prints a message on the screen to mark the beginning of
@@ -91,24 +90,24 @@ func TestDetailedHistoryFor10EncryptedMessages(t *testing.T) {
 // messages are compared to the messages sent and if all match test is successful.
 func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName string) {
 	numberOfMessages := 10
-	
+
 	startMessagesFrom := 0
-	
+
 	/*context, err := aetest.NewContext(nil)
-    if err != nil {
-		t.Fatal(err)
-    }
-    defer context.Close()
-    w := httptest.NewRecorder()
-    req, _ := http.NewRequest("GET", "/", nil)*/
+	    if err != nil {
+			t.Fatal(err)
+	    }
+	    defer context.Close()
+	    w := httptest.NewRecorder()
+	    req, _ := http.NewRequest("GET", "/", nil)*/
 	context, err := aetest.NewContext(nil)
-    if err != nil {
+	if err != nil {
 		t.Fatal(err)
-    }
-    defer context.Close()	
+	}
+	defer context.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
-		
+
 	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
 	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, SecKey, "", false)
 
@@ -181,18 +180,18 @@ func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
 // if all match test is successful.
 func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKey string, testName string) {
 	numberOfMessages := 5
-	
+
 	context, err := aetest.NewContext(nil)
-    if err != nil {
+	if err != nil {
 		t.Fatal(err)
-    }
-    defer context.Close()	
+	}
+	defer context.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
-		
+
 	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
 	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, SecKey, "", false)
-	
+
 	message := "Test Message "
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
@@ -248,7 +247,7 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 func GetServerTime(c appengine.Context, w http.ResponseWriter, r *http.Request, pubnubInstance *messaging.Pubnub, t *testing.T, testName string) int64 {
 	returnTimeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	
+
 	//go pubnubInstance.GetTime(returnTimeChannel, errorChannel)
 	go pubnubInstance.GetTime(c, w, r, returnTimeChannel, errorChannel)
 	return ParseServerTimeResponse(returnTimeChannel, t, testName)
@@ -292,8 +291,8 @@ func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName s
 			break
 		}
 	}
-	t.Error("Test '" + testName + "': failed.")
-	return 0
+	//t.Error("Test '" + testName + "': failed.")
+	//return 0
 }
 
 // PublishMessages calls the publish method of messaging package numberOfMessages times
@@ -319,7 +318,7 @@ func PublishMessages(context appengine.Context, w http.ResponseWriter, r *http.R
 		returnPublishChannel := make(chan []byte)
 		errorChannel := make(chan []byte)
 		go pubnubInstance.Publish(context, w, r, channel, messageToSend, returnPublishChannel, errorChannel)
-			
+
 		messagesReceived++
 		//time.Sleep(500 * time.Millisecond)
 		time.Sleep(1500 * time.Millisecond)

@@ -3,11 +3,11 @@
 package tests
 
 import (
+	"appengine/aetest"
 	"encoding/json"
 	"fmt"
-    "appengine/aetest"
-    "github.com/pubnub/go/gae/messaging"
-    "strings"
+	"github.com/pubnub/go/gae/messaging"
+	"strings"
 	"testing"
 	"time"
 )
@@ -23,13 +23,13 @@ func TestPublishStart(t *testing.T) {
 // be an "Invalid Message".
 func TestNullMessage(t *testing.T) {
 	context, err := aetest.NewContext(nil)
-    if err != nil {
+	if err != nil {
 		t.Fatal(err)
-    }
-    defer context.Close()	
+	}
+	defer context.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
-		
+
 	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "", false)
 
 	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
@@ -69,13 +69,13 @@ func TestUniqueGuid(t *testing.T) {
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfo(t *testing.T) {
 	context, err := aetest.NewContext(nil)
-    if err != nil {
+	if err != nil {
 		t.Fatal(err)
-    }
-    defer context.Close()	
+	}
+	defer context.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
-		
+
 	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "", false)
 	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	channel := "testChannel"
@@ -101,13 +101,13 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 	context, err := aetest.NewContext(nil)
-    if err != nil {
+	if err != nil {
 		t.Fatal(err)
-    }
-    defer context.Close()	
+	}
+	defer context.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
-		
+
 	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "enigma", false)
 
 	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "", "", false)
@@ -134,13 +134,13 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
 	context, err := aetest.NewContext(nil)
-    if err != nil {
+	if err != nil {
 		t.Fatal(err)
-    }
-    defer context.Close()	
+	}
+	defer context.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
-		
+
 	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, SecKey, "enigma", false)
 	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "enigma", false, "", "", false)
 	channel := "testChannel"
@@ -165,13 +165,13 @@ func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
 // _publishSuccessMessage and customstruct is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 	context, err := aetest.NewContext(nil)
-    if err != nil {
+	if err != nil {
 		t.Fatal(err)
-    }
-    defer context.Close()	
+	}
+	defer context.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
-		
+
 	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "", false)
 
 	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", "", false)
@@ -202,13 +202,13 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 	context, err := aetest.NewContext(nil)
-    if err != nil {
+	if err != nil {
 		t.Fatal(err)
-    }
-    defer context.Close()	
+	}
+	defer context.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
-		
+
 	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "", false)
 
 	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", "", false)
@@ -237,15 +237,15 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.T) {
 	context, err := aetest.NewContext(nil)
-    if err != nil {
+	if err != nil {
 		t.Fatal(err)
-    }
-    defer context.Close()	
+	}
+	defer context.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
-		
+
 	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, SecKey, "enigma", false)
-	
+
 	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "secret", "enigma", false, "", "", false)
 	channel := "testChannel"
 
@@ -272,13 +272,13 @@ func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
 	context, err := aetest.NewContext(nil)
-    if err != nil {
+	if err != nil {
 		t.Fatal(err)
-    }
-    defer context.Close()	
+	}
+	defer context.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
-		
+
 	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "enigma", false)
 	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "", "", false)
 	channel := "testChannel"
