@@ -14,9 +14,9 @@
 * Error Callback: All the error messages are routed to this callback channel
 * Subscribe/Presence is under development for GO App engine. In the example we have demonstarted Subscribe and Presence using the PubNub JavaScript SDK
 
-###Get Package
+###Get Code
 
-* Use the command `go get github.com/pubnub/go/gae/messaging` to download and install the package.
+* Clone the PubNub Go repo using `git clone https://github.com/pubnub/go.git`
 
 ###Example
 * Please see [gae-example](../gae-example)
@@ -24,7 +24,7 @@
 ###Running Unit tests (instructions for Mac/Linux, for other dev environments the instructions are similar)
 
 * Open Terminal.
-* Make sure that `github.com/pubnub/go/gae/messaging` is in the GOPATH.
+* Make sure that `<go-workspace>/github.com/pubnub/go/gae/messaging` is in the GOPATH.
 * Change the directory to 
 `<Path-to-PubNub-GAE-Folder>github.com/pubnub/go/gae/tests`
 * Run the command `goapp test`. 
@@ -33,9 +33,9 @@
 * Built using Eclipse IDE (Luna).
 * Install golang plugin for Eclipse.
 * Insatll Google App Engine SDK for Go.
-* Download `github.com/pubnub/go/gae/messaging`.
+* Clone https://github.com/pubnub/go.git
 * Create a new folder for your project.
-* Copy `github.com/pubnub/go/gae/messaging` to your project maintaining the folder structure.
+* Copy `<pubnub-go-repo-clone-path>/github.com/pubnub/go/gae/messaging` to your project maintaining the folder structure.
 * Import `github.com/pubnub/go/gae/messaging` in your project.
 
 ```go
