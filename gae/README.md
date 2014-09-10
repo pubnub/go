@@ -1,11 +1,6 @@
 #PubNub 3.6 client for Go 1.0.3, 1.1, 1.3, 1.3.1
 
 ### Features
-* The client now supports:
-* Error Callback: All the error messages are routed to this callback channel
-* Multiple messages received in a single response from the server will now be split into individual messages
-* Non 200 response will now be bubbled to the client
-* PAM: To use the PAM features in the example please enable PAM from the Pubnub admin console (https://admin.pubnub.com) and replace the publish, subscribe and secret keys in the example.
 * 3.6 features 
  * HereNow with state (here now's signature has changed, the response has also changed)
  * WhereNow
@@ -13,6 +8,10 @@
  * User State (Set, Get, Delete)
  * Presence heartbeat 
  * Presence heartbeat interval
+* PAM: To use the PAM features in the example please enable PAM from the Pubnub admin console (https://admin.pubnub.com) and replace the publish, subscribe and secret keys in the example.
+* Multiple messages received in a single response from the server will now be split into individual messages
+* Non 200 response will now be bubbled to the client
+* Error Callback: All the error messages are routed to this callback channel
 * Subscribe/Presence is under development for GO App engine. In the example we have demonstarted Subscribe and Presence using the PubNub JavaScript SDK
 
 ###Get Package
