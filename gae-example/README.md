@@ -32,7 +32,7 @@ We've included a demo console app which documents all the functionality of the c
 * Run http://localhost:<port-number-same-as-above>.
 * The example includes the dependencies under the folder `github.com`
 
-###Use pubnub in your project and Quick Implementation Examples
+###Using pubnub in your project and Quick Implementation Examples
 * Please see [gae](../gae)
 
 

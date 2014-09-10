@@ -7,9 +7,9 @@ Learn more at http://www.pubnub.com
 
 ### For Google App Engine
 
-[gae](gae) (3.6)
-[gae-example](gae-example) (3.6)
+* [gae](gae) (3.6)
+* [gae-example](gae-example) (3.6)
 
 ### For Non Google App Engine
 
-[messaging](messaging) (3.6)
+* [messaging](messaging) (3.6)
