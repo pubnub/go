@@ -1,4 +1,4 @@
-#PubNub 3.6 client for Go 1.0.3, 1.1, 1.3, 1.3.1
+#PubNub 3.6 client for Google App Engine using Go 
 
 ### Features
 * 3.6 features 
@@ -18,13 +18,8 @@
 
 * Use the command `go get github.com/pubnub/go/gae/messaging` to download and install the package.
 
-###Run the example
-* Built using Eclipse IDE (Luna).
-* Install golang plugin for Eclipse.
-* Insatll Google App Engine SDK for Go.
-* Run the PubNub GAE example using GO on the dev app server using the command  
-`<PATH-to-go_appengine/dev_appserver.py> <Path-to-PubNub-GAE-Folder> --port <port-number-of-your-choice>`
-* Run http://localhost:<port-number-same-as-above>.
+###Example
+* Please see [gae-example](../gae-example)
 
 ###Running Unit tests (instructions for Mac/Linux, for other dev environments the instructions are similar)
 
@@ -35,7 +30,9 @@
 * Run the command `goapp test`. 
 
 ###Use pubnub in your project
+* Built using Eclipse IDE (Luna).
 * Install golang plugin for Eclipse.
+* Insatll Google App Engine SDK for Go.
 * Download `github.com/pubnub/go/gae/messaging`.
 * Create a new folder for your project.
 * Copy `github.com/pubnub/go/gae/messaging` to your project maintaining the folder structure.
@@ -48,31 +45,8 @@ import (
 )
 ```
 
-* For the detailed usage of the PunNub API, please refer to the rest of the ReadMe or the main.go file.
-* The SDK has a dependency on Gorilla web toolkit, for sessions (http://www.gorillatoolkit.org)
-
-###Demo Console App
-We've included a demo console app which documents all the functionality of the client, for example:
-
-* Publish
-* Detailed History
-* Here_Now
-* Time
-* GrantSubscribe
-* RevokeSubscribe
-* AuditSubscribe
-* GrantPresence
-* RevokePresence
-* AuditPresence
-* SetAuthKey
-* GetAuthKey
-* Set User State by adding or modifying the Key-Pair
-* Delete an existing Key-Pair
-* Set User State with JSON string
-* Get User State
-* WhereNow
-* GlobalHereNow
-* Subscribe/Presence/Unsubscribe using PubNub Javascript SDK
+* For the detailed usage of the PunNub API, please refer to the rest of the ReadMe 
+* The SDK has a dependency on Gorilla web toolkit, for sessions (http://www.gorillatoolkit.org). You need to download Gorilla web toolkit from the git repo using `go get github.com/gorilla/sessions` and copy it to `github.com/gorilla/sessions` in your project maintaining the folder structure
 
 ###Quick Implementation Examples
 
