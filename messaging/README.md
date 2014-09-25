@@ -1,3 +1,5 @@
+## Contact support@pubnub.com for all questions
+
 #PubNub 3.6 client for Go 1.0.3, 1.1, 1.3, 1.3.1
 
 ###Important changes in this version:
@@ -501,3 +503,5 @@ Initialize a new Pubnub instance.
         pubInstance.Abort()  
 ```
 
+
+## Contact support@pubnub.com for all questions
