@@ -1,3 +1,5 @@
+## Contact support@pubnub.com for all questions
+
 #PubNub 3.6 client for Google App Engine using Go 
 
 ### Features
@@ -296,3 +298,4 @@ Initialize a new Pubnub instance.
 ```
 
 
+## Contact support@pubnub.com for all questions
