@@ -3356,6 +3356,16 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 // data: data to pad as byte array.
 // returns the padded data as byte array.
 func padWithPKCS7(data []byte) []byte {
+    blocklen := 16
+    padlen := 1
+    for ((len(data) + padlen) % blocklen) != 0 {
+        padlen = padlen + 1
+    }
+
+    pad := bytes.Repeat([]byte{byte(padlen)}, padlen)
+    return append(data, pad...)
+}
+/*func padWithPKCS7(data []byte) []byte {
 	dataLen := len(data)
 	var bit16 int
 	if dataLen%16 == 0 {
@@ -3372,16 +3382,35 @@ func padWithPKCS7(data []byte) []byte {
 		padding[i] = bitCode
 	}
 	return append(data, padding...)
-}
+}*/
 
 // unpadPKCS7 unpads the data as per the PKCS7 standard
 // It accepts the following parameters:
 // data: data to unpad as byte array.
 // returns the unpadded data as byte array.
-func unpadPKCS7(data []byte) []byte {
+func unpadPKCS7(data []byte) ([]byte, error) {
+	blocklen := 16
+    if len(data)%blocklen != 0 || len(data) == 0 {
+        return nil, fmt.Errorf("invalid data len %d", len(data))
+    }
+    padlen := int(data[len(data)-1])
+    if padlen > blocklen || padlen == 0 {
+        return nil, fmt.Errorf("padding is invalid")
+    }
+    // check padding
+    pad := data[len(data)-padlen:]
+    for i := 0; i < padlen; i++ {
+        if pad[i] != byte(padlen) {
+            return nil, fmt.Errorf("padding is invalid")
+        }
+    }
+
+    return data[:len(data)-padlen], nil
+}
+/*func unpadPKCS7(data []byte) ([]byte, error) {
 	dataLen := len(data)
 	if dataLen == 0 {
-		return data
+		return data, nil
 	}
 	endIndex := int(data[dataLen-1])
 	if 16 > endIndex {
@@ -3394,10 +3423,10 @@ func unpadPKCS7(data []byte) []byte {
 				}
 			}
 		}
-		return data[:dataLen-endIndex]
+		return data[:dataLen-endIndex], nil
 	}
-	return data
-}
+	return data, nil
+}*/
 
 // getHmacSha256 creates the cipher key hashed against SHA256.
 // It accepts the following parameters:
@@ -3501,7 +3530,11 @@ func DecryptString(cipherKey string, message string) (retVal interface{}, err er
 	}()
 	decrypted := make([]byte, len(value))
 	decrypter.CryptBlocks(decrypted, value)
-	return fmt.Sprintf("%s", string(unpadPKCS7(decrypted))), nil
+	val, err := unpadPKCS7(decrypted) 
+	if(err != nil){
+		return "***decrypt error***", fmt.Errorf("decrypt error: %s", err)
+	}
+	return fmt.Sprintf("%s", string(val)), nil
 }
 
 // aesCipher returns the cipher block
