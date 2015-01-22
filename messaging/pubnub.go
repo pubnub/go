@@ -3365,24 +3365,6 @@ func padWithPKCS7(data []byte) []byte {
     pad := bytes.Repeat([]byte{byte(padlen)}, padlen)
     return append(data, pad...)
 }
-/*func padWithPKCS7(data []byte) []byte {
-	dataLen := len(data)
-	var bit16 int
-	if dataLen%16 == 0 {
-		bit16 = dataLen
-	} else {
-		bit16 = int(dataLen/16+1) * 16
-	}
-
-	paddingNum := bit16 - dataLen
-	bitCode := byte(paddingNum)
-
-	padding := make([]byte, paddingNum)
-	for i := 0; i < paddingNum; i++ {
-		padding[i] = bitCode
-	}
-	return append(data, padding...)
-}*/
 
 // unpadPKCS7 unpads the data as per the PKCS7 standard
 // It accepts the following parameters:
@@ -3407,26 +3389,6 @@ func unpadPKCS7(data []byte) ([]byte, error) {
 
     return data[:len(data)-padlen], nil
 }
-/*func unpadPKCS7(data []byte) ([]byte, error) {
-	dataLen := len(data)
-	if dataLen == 0 {
-		return data, nil
-	}
-	endIndex := int(data[dataLen-1])
-	if 16 > endIndex {
-		if 1 < endIndex {
-			for i := dataLen - endIndex; i < dataLen; i++ {
-				if data[dataLen-1] != data[i] {
-					logMu.Lock()
-					infoLogger.Println(" : ", data[dataLen-1], " ：", i, "  ：", data[i])
-					logMu.Unlock()
-				}
-			}
-		}
-		return data[:dataLen-endIndex], nil
-	}
-	return data, nil
-}*/
 
 // getHmacSha256 creates the cipher key hashed against SHA256.
 // It accepts the following parameters:
