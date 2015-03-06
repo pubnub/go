@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api on google appengine.
-// Build Date: Sep 4, 2014
-// Version: 3.6
+// Build Date: Jan 20, 2015
+// Version: 3.6.1
 package messaging
 
 //TODO:
@@ -215,7 +215,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go GAE client SDK Version: 3.6; Build Date: Sep 4, 2014;"
+	return "PubNub Go GAE client SDK Version: 3.6.1; Build Date: Jan 20, 2015;"
 }
 
 // initStore initializes the cookie store using the secret key
@@ -2300,45 +2300,38 @@ func (pub *Pubnub) connect(context appengine.Context, w http.ResponseWriter, r *
 // data: data to pad as byte array.
 // returns the padded data as byte array.
 func padWithPKCS7(data []byte) []byte {
-	dataLen := len(data)
-	var bit16 int
-	if dataLen%16 == 0 {
-		bit16 = dataLen
-	} else {
-		bit16 = int(dataLen/16+1) * 16
-	}
+    blocklen := 16
+    padlen := 1
+    for ((len(data) + padlen) % blocklen) != 0 {
+        padlen = padlen + 1
+    }
 
-	paddingNum := bit16 - dataLen
-	bitCode := byte(paddingNum)
-
-	padding := make([]byte, paddingNum)
-	for i := 0; i < paddingNum; i++ {
-		padding[i] = bitCode
-	}
-	return append(data, padding...)
+    pad := bytes.Repeat([]byte{byte(padlen)}, padlen)
+    return append(data, pad...)
 }
 
 // unpadPKCS7 unpads the data as per the PKCS7 standard
 // It accepts the following parameters:
 // data: data to unpad as byte array.
 // returns the unpadded data as byte array.
-func unpadPKCS7(data []byte) []byte {
-	dataLen := len(data)
-	if dataLen == 0 {
-		return data
-	}
-	endIndex := int(data[dataLen-1])
-	if 16 > endIndex {
-		if 1 < endIndex {
-			for i := dataLen - endIndex; i < dataLen; i++ {
-				if data[dataLen-1] != data[i] {
-					//context.Infof(" : ", data[dataLen-1], " ：", i, "  ：", data[i])
-				}
-			}
-		}
-		return data[:dataLen-endIndex]
-	}
-	return data
+func unpadPKCS7(data []byte) ([]byte, error) {
+	blocklen := 16
+    if len(data)%blocklen != 0 || len(data) == 0 {
+        return nil, fmt.Errorf("invalid data len %d", len(data))
+    }
+    padlen := int(data[len(data)-1])
+    if padlen > blocklen || padlen == 0 {
+        return nil, fmt.Errorf("padding is invalid")
+    }
+    // check padding
+    pad := data[len(data)-padlen:]
+    for i := 0; i < padlen; i++ {
+        if pad[i] != byte(padlen) {
+            return nil, fmt.Errorf("padding is invalid")
+        }
+    }
+
+    return data[:len(data)-padlen], nil
 }
 
 // getHmacSha256 creates the cipher key hashed against SHA256.
@@ -2443,7 +2436,11 @@ func DecryptString(cipherKey string, message string) (retVal interface{}, err er
 	}()
 	decrypted := make([]byte, len(value))
 	decrypter.CryptBlocks(decrypted, value)
-	return fmt.Sprintf("%s", string(unpadPKCS7(decrypted))), nil
+	val, err := unpadPKCS7(decrypted) 
+	if(err != nil){
+		return "***decrypt error***", fmt.Errorf("decrypt error: %s", err)
+	}
+	return fmt.Sprintf("%s", string(val)), nil
 }
 
 // aesCipher returns the cipher block

@@ -65,8 +65,8 @@ func ParsePamResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnu
 		}
 		if string(value) != "[]" {
 			response := string(value)
-			//fmt.Println("response:", response)
-			//fmt.Println("message:",message);
+			//fmt.Println(testName, " response:", response)
+			//fmt.Println(testName, " message:",message);
 			if strings.Contains(response, message) {
 
 				responseChannel <- "Test '" + testName + "': passed."
@@ -78,12 +78,13 @@ func ParsePamResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnu
 	}
 }
 
+
 func TestSubscribeGrantPositive(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelSubscribeGrantPositive"
 	ttl := 1
-	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"m":0,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 
 	time.Sleep(time.Duration(5) * time.Second)
 	
@@ -111,7 +112,7 @@ func TestSubscribeGrantPositive(t *testing.T) {
 
 }
 
-/*func TestSubscribeGrantNegative(t *testing.T) {
+func TestSubscribeGrantNegative(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelSubscribeGrantNegative"
 	message := fmt.Sprintf(`{"status":403,"service":"Access Manager","error":true,"message":"Forbidden","payload":{"channels":["%s"]}}`, channel)
@@ -132,14 +133,14 @@ func TestSubscribeGrantPositive(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, returnPamChannel2, errorChannel2)
 	pubnubInstance.CloseExistingConnection()
-}*/
+}
 
 func TestPresenceGrantPositive(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelPresenceGrantPositive"
 	ttl := 1
-	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":1,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":1,"m":0,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 
 	time.Sleep(time.Duration(5) * time.Second)
 	
@@ -167,7 +168,7 @@ func TestPresenceGrantPositive(t *testing.T) {
 	pubnubInstance.CloseExistingConnection()
 }
 
-/*func TestPresenceGrantNegative(t *testing.T) {
+func TestPresenceGrantNegative(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelPresenceGrantNegative"
 	message := fmt.Sprintf(`{"status":403,"service":"Access Manager","error":true,"message":"Forbidden","payload":{"channels":["%s-pnpres"]}}`, channel)
@@ -188,23 +189,23 @@ func TestPresenceGrantPositive(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, returnPamChannel2, errorChannel2)
 	pubnubInstance.CloseExistingConnection()
-}*/
+}
 
 func TestSubscribeAudit(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelSubscribeAudit"
 	time.Sleep(time.Duration(5) * time.Second)
-	ttl := 1
+	ttl := 2
 	//message1 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"%s","level":"subkey"}}`, PamSubKey)
 	//message1 := fmt.Sprintf(`"subscribe_key":"%s","level":"subkey"`, PamSubKey)
 	//message1 := fmt.Sprintf(`"subscribe_key":"%s","objects":{},"level":"subkey"`, PamSubKey)
 	//	{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"sub-c-a3d5a1c8-ae97-11e3-a952-02ee2ddab7fe","level":"channel"}}
 	//message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"%s","level":"channel"}}`, PamSubKey)
 	message := fmt.Sprintf(`"subscribe_key":"%s","level":"channel"`, PamSubKey)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"m":0,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	//{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"testChannelSubscribeAudit":{"r":1,"w":1}},"subscribe_key":"sub-c-a3d5a1c8-ae97-11e3-a952-02ee2ddab7fe","ttl":1,"level":"channel"}}
-	message3 := fmt.Sprintf(`"%s":{"r":1,"w":1,"ttl":%d}`, channel, ttl)
-	message4 := fmt.Sprintf(`"%s":{"r":1,"w":1,"ttl":%d}`, channel, ttl)
+	message3 := fmt.Sprintf(`"%s":{"r":1,"m":0,"w":1,"ttl":%d}`, channel, ttl)
+	message4 := fmt.Sprintf(`"%s":{"r":1,"m":0,"w":1,"ttl":%d}`, channel, ttl)
 	message5 := fmt.Sprintf(`[1, "Subscription to channel '%s' connected", "%s"]`, channel, channel)
 	message6 := fmt.Sprintf(`[1, "Subscription to channel '%s' unsubscribed", "%s"]`, channel, channel)
 
@@ -318,9 +319,10 @@ func TestPresenceAudit(t *testing.T) {
 	e97-11e3-a952-02ee2ddab7fe","level":"channel"}}*/
 
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
+	pubnubInstance.SetAuthenticationKey ("")
 	channel := "testChannelPresenceAudit"
 	time.Sleep(time.Duration(10) * time.Second)
-	ttl := 1
+	ttl := 2
 	//message1 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"%s","level":"subkey"}}`, PamSubKey)
 	//message1 := fmt.Sprintf(`"subscribe_key":"%s","level":"subkey"`, PamSubKey)
 	//message1 := fmt.Sprintf(`"subscribe_key":"%s","objects":{},"level":"subkey"`, PamSubKey)
@@ -328,10 +330,10 @@ func TestPresenceAudit(t *testing.T) {
 	//	{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"sub-c-a3d5a1c8-ae97-11e3-a952-02ee2ddab7fe","level":"channel"}}
 	//message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"%s","level":"channel"}}`, PamSubKey)
 	message := fmt.Sprintf(`"subscribe_key":"%s","level":"channel"`, PamSubKey)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":1,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":1,"m":0,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	//{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"testChannelSubscribeAudit":{"r":1,"w":1}},"subscribe_key":"sub-c-a3d5a1c8-ae97-11e3-a952-02ee2ddab7fe","ttl":1,"level":"channel"}}
-	message3 := fmt.Sprintf(`"%s-pnpres":{"r":1,"w":1,"ttl":%d}`, channel, ttl)
-	message4 := fmt.Sprintf(`"%s-pnpres":{"r":1,"w":1,"ttl":%d}`, channel, ttl)
+	message3 := fmt.Sprintf(`"%s-pnpres":{"r":1,"m":0,"w":1,"ttl":%d}`, channel, ttl)
+	message4 := fmt.Sprintf(`"%s-pnpres":{"r":1,"m":0,"w":1,"ttl":%d}`, channel, ttl)
 	//"testChannelPresenceAudit-pnpres":{"r":1,"w":1,"ttl":1}
 	//"testChannelPresenceAudit-pnpres":{"r":1,"w":1,"ttl":1}
 	message5 := fmt.Sprintf(`"Presence notifications for channel '%s' connected", "%s"`, channel, channel)
@@ -441,8 +443,8 @@ func TestAuthSubscribe(t *testing.T) {
 
 	time.Sleep(time.Duration(10) * time.Second)
 	ttl := 1
-	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"w":1}}`)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}`)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message5 := fmt.Sprintf(`'%s' connected`, channel)
 	message6 := fmt.Sprintf(`'%s' unsubscribed`, channel)
 
@@ -505,8 +507,8 @@ func TestAuthPresence(t *testing.T) {
 
 	time.Sleep(time.Duration(10) * time.Second)
 	ttl := 1
-	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"w":1}}`)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}`)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message5 := fmt.Sprintf(`'%s' connected`, channel)
 	message6 := fmt.Sprintf(`'%s' unsubscribed`, channel)
 
@@ -567,8 +569,8 @@ func TestAuthHereNow(t *testing.T) {
 
 	time.Sleep(time.Duration(10) * time.Second)
 	ttl := 1
-	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"w":1}}`)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}`)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message5 := fmt.Sprintf(`'%s' connected`, channel)
 	message4 := pubnubInstance.GetUUID()
 	message6 := fmt.Sprintf(`'%s' unsubscribed`, channel)
@@ -655,9 +657,9 @@ func TestAuthHistory(t *testing.T) {
 	channel := "testChannelHistoryAuth"
 
 	time.Sleep(time.Duration(10) * time.Second)
-	ttl := 1
-	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"w":1}}`)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	ttl := 2
+	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}`)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message5 := "Test Message"
 
 	returnPamChannel := make(chan []byte)
