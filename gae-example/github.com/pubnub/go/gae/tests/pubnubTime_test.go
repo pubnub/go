@@ -3,8 +3,9 @@
 package tests
 
 import (
+	"appengine/aetest"
 	"fmt"
-	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/gae/messaging"
 	"testing"
 )
 
@@ -17,14 +18,24 @@ func TestTimeStart(t *testing.T) {
 
 // TestServerTime calls the GetTime method of the messaging to test the time
 func TestServerTime(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "", false)
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
 	returnTimeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
 
-	go pubnubInstance.GetTime(returnTimeChannel, errorChannel)
+	//go pubnubInstance.GetTime(returnTimeChannel, errorChannel)
+	go pubnubInstance.GetTime(context, w, req, returnTimeChannel, errorChannel)
 	go ParseTimeResponse(returnTimeChannel, responseChannel)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)

@@ -3,13 +3,17 @@
 package tests
 
 import (
+	"appengine"
 	"encoding/json"
 	"fmt"
-	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/gae/messaging"
+	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+	//"net/http/httptest"
+	"appengine/aetest"
 )
 
 // TestDetailedHistoryStart prints a message on the screen to mark the beginning of
@@ -86,21 +90,40 @@ func TestDetailedHistoryFor10EncryptedMessages(t *testing.T) {
 // messages are compared to the messages sent and if all match test is successful.
 func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName string) {
 	numberOfMessages := 10
+
 	startMessagesFrom := 0
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
+
+	/*context, err := aetest.NewContext(nil)
+	    if err != nil {
+			t.Fatal(err)
+	    }
+	    defer context.Close()
+	    w := httptest.NewRecorder()
+	    req, _ := http.NewRequest("GET", "/", nil)*/
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, SecKey, "", false)
 
 	message := "Test Message "
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
 
-	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
+	messagesSent := PublishMessages(context, w, req, pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
 	if messagesSent {
 		returnHistoryChannel := make(chan []byte)
 		errorChannel := make(chan []byte)
 		responseChannel := make(chan string)
 		waitChannel := make(chan string)
 
-		go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, returnHistoryChannel, errorChannel)
+		//go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, returnHistoryChannel, errorChannel)
+		go pubnubInstance.History(context, w, req, channel, numberOfMessages, 0, 0, false, returnHistoryChannel, errorChannel)
 		go ParseHistoryResponseForMultipleMessages(returnHistoryChannel, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey, responseChannel)
 		go ParseErrorResponse(errorChannel, responseChannel)
 		go WaitForCompletion(responseChannel, waitChannel)
@@ -157,20 +180,32 @@ func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
 // if all match test is successful.
 func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKey string, testName string) {
 	numberOfMessages := 5
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, secretKey, cipherKey, false, "")
+
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, SecKey, "", false)
 
 	message := "Test Message "
 	r := GenRandom()
 	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
 
-	startTime := GetServerTime(pubnubInstance, t, testName)
+	startTime := GetServerTime(context, w, req, pubnubInstance, t, testName)
 	startMessagesFrom := 0
-	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
+	//messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
+	messagesSent := PublishMessages(context, w, req, pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
 
-	midTime := GetServerTime(pubnubInstance, t, testName)
+	midTime := GetServerTime(context, w, req, pubnubInstance, t, testName)
 	startMessagesFrom = 5
-	messagesSent2 := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
-	endTime := GetServerTime(pubnubInstance, t, testName)
+	//messagesSent2 := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
+	messagesSent2 := PublishMessages(context, w, req, pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
+	endTime := GetServerTime(context, w, req, pubnubInstance, t, testName)
 
 	startMessagesFrom = 0
 	if messagesSent {
@@ -179,7 +214,8 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 		errorChannel := make(chan []byte)
 		waitChannel := make(chan string)
 
-		go pubnubInstance.History(channel, numberOfMessages, startTime, midTime, false, returnHistoryChannel, errorChannel)
+		//go pubnubInstance.History(channel, numberOfMessages, startTime, midTime, false, returnHistoryChannel, errorChannel)
+		go pubnubInstance.History(context, w, req, channel, numberOfMessages, startTime, midTime, false, returnHistoryChannel, errorChannel)
 		go ParseHistoryResponseForMultipleMessages(returnHistoryChannel, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey, responseChannel)
 		go ParseErrorResponse(errorChannel, responseChannel)
 		go WaitForCompletion(responseChannel, waitChannel)
@@ -195,7 +231,8 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 		responseChannel2 := make(chan string)
 		waitChannel2 := make(chan string)
 
-		go pubnubInstance.History(channel, numberOfMessages, midTime, endTime, false, returnHistoryChannel2, errorChannel2)
+		//go pubnubInstance.History(channel, numberOfMessages, midTime, endTime, false, returnHistoryChannel2, errorChannel2)
+		go pubnubInstance.History(context, w, req, channel, numberOfMessages, midTime, endTime, false, returnHistoryChannel2, errorChannel2)
 		go ParseHistoryResponseForMultipleMessages(returnHistoryChannel2, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey, responseChannel2)
 		go ParseErrorResponse(errorChannel2, responseChannel2)
 		go WaitForCompletion(responseChannel2, waitChannel2)
@@ -207,10 +244,12 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 
 // GetServerTime calls the GetTime method of the messaging, parses the response to get the
 // value and return it.
-func GetServerTime(pubnubInstance *messaging.Pubnub, t *testing.T, testName string) int64 {
+func GetServerTime(c appengine.Context, w http.ResponseWriter, r *http.Request, pubnubInstance *messaging.Pubnub, t *testing.T, testName string) int64 {
 	returnTimeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	go pubnubInstance.GetTime(returnTimeChannel, errorChannel)
+
+	//go pubnubInstance.GetTime(returnTimeChannel, errorChannel)
+	go pubnubInstance.GetTime(c, w, r, returnTimeChannel, errorChannel)
 	return ParseServerTimeResponse(returnTimeChannel, t, testName)
 }
 
@@ -252,8 +291,8 @@ func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName s
 			break
 		}
 	}
-	t.Error("Test '" + testName + "': failed.")
-	return 0
+	//t.Error("Test '" + testName + "': failed.")
+	//return 0
 }
 
 // PublishMessages calls the publish method of messaging package numberOfMessages times
@@ -268,7 +307,7 @@ func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName s
 // message: message to send.
 //
 // returns a bool if the publish of all messages is successful.
-func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testing.T, startMessagesFrom int, numberOfMessages int, message string) bool {
+func PublishMessages(context appengine.Context, w http.ResponseWriter, r *http.Request, pubnubInstance *messaging.Pubnub, channel string, t *testing.T, startMessagesFrom int, numberOfMessages int, message string) bool {
 	messagesReceived := 0
 	messageToSend := ""
 	tOut := messaging.GetNonSubscribeTimeout()
@@ -278,7 +317,8 @@ func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testin
 
 		returnPublishChannel := make(chan []byte)
 		errorChannel := make(chan []byte)
-		go pubnubInstance.Publish(channel, messageToSend, returnPublishChannel, errorChannel)
+		go pubnubInstance.Publish(context, w, r, channel, messageToSend, returnPublishChannel, errorChannel)
+
 		messagesReceived++
 		//time.Sleep(500 * time.Millisecond)
 		time.Sleep(1500 * time.Millisecond)

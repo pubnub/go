@@ -3,9 +3,10 @@
 package tests
 
 import (
+	"appengine/aetest"
 	"encoding/json"
 	"fmt"
-	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/gae/messaging"
 	"strings"
 	"testing"
 	"time"
@@ -21,7 +22,17 @@ func TestPublishStart(t *testing.T) {
 // TestNullMessage sends out a null message to a pubnub channel. The response should
 // be an "Invalid Message".
 func TestNullMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "", false)
+
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	channel := "testChannel"
 	var message interface{}
 	message = nil
@@ -30,7 +41,8 @@ func TestNullMessage(t *testing.T) {
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
+	//go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
+	go pubnubInstance.Publish(context, w, req, channel, message, returnChannel, errorChannel)
 	//go ParsePublishResponse(returnChannel, channel, "Invalid Message", "NullMessage", responseChannel)
 	go ParseResponseDummy(returnChannel)
 	go ParseErrorResponseForTestSuccess("Invalid Message", errorChannel, responseChannel)
@@ -56,7 +68,16 @@ func TestUniqueGuid(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfo(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "", false)
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	channel := "testChannel"
 	message := "Pubnub API Usage Example"
 	returnChannel := make(chan []byte)
@@ -64,7 +85,8 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
+	//go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
+	go pubnubInstance.Publish(context, w, req, channel, message, returnChannel, errorChannel)
 	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfo", responseChannel)
 
 	go ParseErrorResponse(errorChannel, responseChannel)
@@ -78,7 +100,17 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "enigma", false)
+
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "", "", false)
 	channel := "testChannel"
 	message := "Pubnub API Usage Example"
 	returnChannel := make(chan []byte)
@@ -86,7 +118,8 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
+	//go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
+	go pubnubInstance.Publish(context, w, req, channel, message, returnChannel, errorChannel)
 	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoWithEncryption", responseChannel)
 
 	go ParseErrorResponse(errorChannel, responseChannel)
@@ -100,7 +133,16 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "enigma", false, "")
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, SecKey, "enigma", false)
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "enigma", false, "", "", false)
 	channel := "testChannel"
 	message := "Pubnub API Usage Example"
 	returnChannel := make(chan []byte)
@@ -108,7 +150,8 @@ func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
+	//go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
+	go pubnubInstance.Publish(context, w, req, channel, message, returnChannel, errorChannel)
 	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoWithSecretAndEncryption", responseChannel)
 
 	go ParseErrorResponse(errorChannel, responseChannel)
@@ -121,7 +164,17 @@ func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and customstruct is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "", false)
+
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", "", false)
 	channel := "testChannel"
 
 	customStruct := CustomStruct{
@@ -134,7 +187,8 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, customStruct, returnChannel, errorChannel)
+	//go pubnubInstance.Publish(channel, customStruct, returnChannel, errorChannel)
+	go pubnubInstance.Publish(context, w, req, channel, customStruct, returnChannel, errorChannel)
 	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage", responseChannel)
 
 	go ParseErrorResponse(errorChannel, responseChannel)
@@ -147,7 +201,17 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "", false)
+
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", "", false)
 	channel := "testChannel"
 
 	customComplexMessage := InitComplexMessage()
@@ -157,7 +221,8 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
+	//go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
+	go pubnubInstance.Publish(context, w, req, channel, customComplexMessage, returnChannel, errorChannel)
 	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2", responseChannel)
 
 	go ParseErrorResponse(errorChannel, responseChannel)
@@ -171,7 +236,17 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "secret", "enigma", false, "")
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, SecKey, "enigma", false)
+
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "secret", "enigma", false, "", "", false)
 	channel := "testChannel"
 
 	customComplexMessage := InitComplexMessage()
@@ -181,7 +256,8 @@ func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
+	//go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
+	go pubnubInstance.Publish(context, w, req, channel, customComplexMessage, returnChannel, errorChannel)
 	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption", responseChannel)
 
 	go ParseErrorResponse(errorChannel, responseChannel)
@@ -195,7 +271,16 @@ func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
+	context, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer context.Close()
+	uuid := ""
+	w, req := InitAppEngineContext(t)
+
+	pubnubInstance := messaging.New(context, uuid, w, req, PubKey, SubKey, "", "enigma", false)
+	//pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "", "", false)
 	channel := "testChannel"
 
 	customComplexMessage := InitComplexMessage()
@@ -205,7 +290,8 @@ func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
+	//go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
+	go pubnubInstance.Publish(context, w, req, channel, customComplexMessage, returnChannel, errorChannel)
 	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2WithEncryption", responseChannel)
 
 	go ParseErrorResponse(errorChannel, responseChannel)

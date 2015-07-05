@@ -17,7 +17,7 @@ func TestPamStart(t *testing.T) {
 }
 
 func TestSecretKeyRequired(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub("demo-36", "demo-36", "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	channel := "testChannel"
 
 	returnPamChannel := make(chan []byte)
@@ -39,8 +39,12 @@ func ParsePamErrorResponse(channel chan []byte, testName string, message string,
 			break
 		}
 		returnVal := string(value)
-		//fmt.Println("returnVal:",returnVal);
+		//fmt.Println("returnValErr:",returnVal);
+		//fmt.Println("messageErr:",message);
 		if returnVal != "[]" {
+			if strings.Contains(returnVal, "aborted") || strings.Contains(returnVal, "reset"){
+				continue;
+			}
 			if strings.Contains(returnVal, message) {
 				responseChannel <- "Test '" + testName + "': passed."
 				break
@@ -61,7 +65,8 @@ func ParsePamResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnu
 		}
 		if string(value) != "[]" {
 			response := string(value)
-			//fmt.Println("response:", response)
+			//fmt.Println(testName, " response:", response)
+			//fmt.Println(testName, " message:",message);
 			if strings.Contains(response, message) {
 
 				responseChannel <- "Test '" + testName + "': passed."
@@ -73,13 +78,16 @@ func ParsePamResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnu
 	}
 }
 
+
 func TestSubscribeGrantPositive(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelSubscribeGrantPositive"
 	ttl := 1
-	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"m":0,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 
+	time.Sleep(time.Duration(5) * time.Second)
+	
 	returnPamChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
@@ -109,6 +117,8 @@ func TestSubscribeGrantNegative(t *testing.T) {
 	channel := "testChannelSubscribeGrantNegative"
 	message := fmt.Sprintf(`{"status":403,"service":"Access Manager","error":true,"message":"Forbidden","payload":{"channels":["%s"]}}`, channel)
 
+	time.Sleep(time.Duration(5) * time.Second)
+	
 	returnPamChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
@@ -122,15 +132,18 @@ func TestSubscribeGrantNegative(t *testing.T) {
 	errorChannel2 := make(chan []byte)
 
 	go pubnubInstance.Unsubscribe(channel, returnPamChannel2, errorChannel2)
+	pubnubInstance.CloseExistingConnection()
 }
 
 func TestPresenceGrantPositive(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelPresenceGrantPositive"
 	ttl := 1
-	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":1,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":1,"m":0,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 
+	time.Sleep(time.Duration(5) * time.Second)
+	
 	returnPamChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
@@ -152,14 +165,16 @@ func TestPresenceGrantPositive(t *testing.T) {
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
 	ParseWaitResponse(waitChannel2, t, "PresenceGrantPositiveRevoke")
-
+	pubnubInstance.CloseExistingConnection()
 }
 
 func TestPresenceGrantNegative(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelPresenceGrantNegative"
 	message := fmt.Sprintf(`{"status":403,"service":"Access Manager","error":true,"message":"Forbidden","payload":{"channels":["%s-pnpres"]}}`, channel)
-
+	
+	time.Sleep(time.Duration(5) * time.Second)
+	
 	returnPamChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
@@ -173,24 +188,26 @@ func TestPresenceGrantNegative(t *testing.T) {
 	errorChannel2 := make(chan []byte)
 
 	go pubnubInstance.Unsubscribe(channel, returnPamChannel2, errorChannel2)
-
+	pubnubInstance.CloseExistingConnection()
 }
 
 func TestSubscribeAudit(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelSubscribeAudit"
 	time.Sleep(time.Duration(5) * time.Second)
-	ttl := 1
+	ttl := 2
 	//message1 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"%s","level":"subkey"}}`, PamSubKey)
-	message1 := fmt.Sprintf(`"subscribe_key":"%s","level":"subkey"`, PamSubKey)
+	//message1 := fmt.Sprintf(`"subscribe_key":"%s","level":"subkey"`, PamSubKey)
+	//message1 := fmt.Sprintf(`"subscribe_key":"%s","objects":{},"level":"subkey"`, PamSubKey)
 	//	{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"sub-c-a3d5a1c8-ae97-11e3-a952-02ee2ddab7fe","level":"channel"}}
 	//message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"%s","level":"channel"}}`, PamSubKey)
 	message := fmt.Sprintf(`"subscribe_key":"%s","level":"channel"`, PamSubKey)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"m":0,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	//{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"testChannelSubscribeAudit":{"r":1,"w":1}},"subscribe_key":"sub-c-a3d5a1c8-ae97-11e3-a952-02ee2ddab7fe","ttl":1,"level":"channel"}}
-	message3 := fmt.Sprintf(`"%s":{"r":1,"w":1,"ttl":%d}`, channel, ttl)
-	message4 := fmt.Sprintf(`"%s":{"r":1,"w":1,"ttl":%d}`, channel, ttl)
+	message3 := fmt.Sprintf(`"%s":{"r":1,"m":0,"w":1,"ttl":%d}`, channel, ttl)
+	message4 := fmt.Sprintf(`"%s":{"r":1,"m":0,"w":1,"ttl":%d}`, channel, ttl)
 	message5 := fmt.Sprintf(`[1, "Subscription to channel '%s' connected", "%s"]`, channel, channel)
+	message6 := fmt.Sprintf(`[1, "Subscription to channel '%s' unsubscribed", "%s"]`, channel, channel)
 
 	returnPamChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -205,10 +222,12 @@ func TestSubscribeAudit(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscribeAuditChannel")
 
-	returnPamChannel2 := make(chan []byte)
+	/*returnPamChannel2 := make(chan []byte)
 	errorChannel2 := make(chan []byte)
 	responseChannel2 := make(chan string)
 	waitChannel2 := make(chan string)
+
+	time.Sleep(time.Duration(2) * time.Second)
 
 	//audit
 	go pubnubInstance.AuditSubscribe("", returnPamChannel2, errorChannel2)
@@ -216,13 +235,14 @@ func TestSubscribeAudit(t *testing.T) {
 	go ParsePamResponse(returnPamChannel2, pubnubInstance, message1, "", "SubscribeAuditSubKey", responseChannel2)
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
-	ParseWaitResponse(waitChannel2, t, "SubscribeAuditSubKey")
+	ParseWaitResponse(waitChannel2, t, "SubscribeAuditSubKey")*/
 
 	returnPamChannel3 := make(chan []byte)
 	errorChannel3 := make(chan []byte)
 	responseChannel3 := make(chan string)
 	waitChannel3 := make(chan string)
 
+	time.Sleep(time.Duration(1) * time.Second)
 	//grant
 	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, returnPamChannel3, errorChannel3)
 	//fmt.Println("message2:", message2)
@@ -276,7 +296,7 @@ func TestSubscribeAudit(t *testing.T) {
 	waitChannel7 := make(chan string)
 
 	go pubnubInstance.Unsubscribe(channel, returnPamChannel7, errorChannel7)
-	go ParsePamResponse(returnPamChannel7, pubnubInstance, message5, channel, "SubscribeAuditUnsub", responseChannel7)
+	go ParsePamResponse(returnPamChannel7, pubnubInstance, message6, channel, "SubscribeAuditUnsub", responseChannel7)
 	go ParseErrorResponse(errorChannel7, responseChannel7)
 	go WaitForCompletion(responseChannel7, waitChannel7)
 
@@ -284,7 +304,7 @@ func TestSubscribeAudit(t *testing.T) {
 	go ParsePamResponse(returnPamChannel7, pubnubInstance, message5, channel, "SubscribeAuditRevoke", responseChannel7)
 	go ParseErrorResponse(errorChannel7, responseChannel7)
 	go WaitForCompletion(responseChannel7, waitChannel7)
-
+	pubnubInstance.CloseExistingConnection()
 }
 
 func TestPresenceAudit(t *testing.T) {
@@ -299,21 +319,25 @@ func TestPresenceAudit(t *testing.T) {
 	e97-11e3-a952-02ee2ddab7fe","level":"channel"}}*/
 
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
+	pubnubInstance.SetAuthenticationKey ("")
 	channel := "testChannelPresenceAudit"
 	time.Sleep(time.Duration(10) * time.Second)
-	ttl := 1
+	ttl := 2
 	//message1 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"%s","level":"subkey"}}`, PamSubKey)
-	message1 := fmt.Sprintf(`"subscribe_key":"%s","level":"subkey"`, PamSubKey)
+	//message1 := fmt.Sprintf(`"subscribe_key":"%s","level":"subkey"`, PamSubKey)
+	//message1 := fmt.Sprintf(`"subscribe_key":"%s","objects":{},"level":"subkey"`, PamSubKey)
+
 	//	{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"sub-c-a3d5a1c8-ae97-11e3-a952-02ee2ddab7fe","level":"channel"}}
 	//message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{},"subscribe_key":"%s","level":"channel"}}`, PamSubKey)
 	message := fmt.Sprintf(`"subscribe_key":"%s","level":"channel"`, PamSubKey)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":1,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":1,"m":0,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	//{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"testChannelSubscribeAudit":{"r":1,"w":1}},"subscribe_key":"sub-c-a3d5a1c8-ae97-11e3-a952-02ee2ddab7fe","ttl":1,"level":"channel"}}
-	message3 := fmt.Sprintf(`"%s-pnpres":{"r":1,"w":1,"ttl":%d}`, channel, ttl)
-	message4 := fmt.Sprintf(`"%s-pnpres":{"r":1,"w":1,"ttl":%d}`, channel, ttl)
+	message3 := fmt.Sprintf(`"%s-pnpres":{"r":1,"m":0,"w":1,"ttl":%d}`, channel, ttl)
+	message4 := fmt.Sprintf(`"%s-pnpres":{"r":1,"m":0,"w":1,"ttl":%d}`, channel, ttl)
 	//"testChannelPresenceAudit-pnpres":{"r":1,"w":1,"ttl":1}
 	//"testChannelPresenceAudit-pnpres":{"r":1,"w":1,"ttl":1}
 	message5 := fmt.Sprintf(`"Presence notifications for channel '%s' connected", "%s"`, channel, channel)
+	message6 := fmt.Sprintf(`"Presence notifications for channel '%s' unsubscribed", "%s"`, channel, channel)
 
 	returnPamChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -328,10 +352,12 @@ func TestPresenceAudit(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "PresenceAuditChannel")
 
-	returnPamChannel2 := make(chan []byte)
+	/*returnPamChannel2 := make(chan []byte)
 	errorChannel2 := make(chan []byte)
 	responseChannel2 := make(chan string)
 	waitChannel2 := make(chan string)
+
+	time.Sleep(time.Duration(2) * time.Second)
 
 	//audit
 	go pubnubInstance.AuditPresence("", returnPamChannel2, errorChannel2)
@@ -339,7 +365,7 @@ func TestPresenceAudit(t *testing.T) {
 	go ParsePamResponse(returnPamChannel2, pubnubInstance, message1, "", "PresenceAuditSubKey", responseChannel2)
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
-	ParseWaitResponse(waitChannel2, t, "PresenceAuditSubKey")
+	ParseWaitResponse(waitChannel2, t, "PresenceAuditSubKey")*/
 
 	returnPamChannel3 := make(chan []byte)
 	errorChannel3 := make(chan []byte)
@@ -399,15 +425,15 @@ func TestPresenceAudit(t *testing.T) {
 	waitChannel7 := make(chan string)
 
 	go pubnubInstance.PresenceUnsubscribe(channel, returnPamChannel7, errorChannel7)
-	go ParsePamResponse(returnPamChannel7, pubnubInstance, message5, channel, "PresenceAuditUnsub", responseChannel7)
-	go ParseErrorResponse(errorChannel7, responseChannel7)
+	go ParsePamResponse(returnPamChannel7, pubnubInstance, message6, channel, "PresenceAuditUnsub", responseChannel7)
+	//go ParseErrorResponse(errorChannel7, responseChannel7)
 	go WaitForCompletion(responseChannel7, waitChannel7)
 
 	go pubnubInstance.GrantPresence(channel, false, false, -1, returnPamChannel7, errorChannel7)
 	go ParsePamResponse(returnPamChannel7, pubnubInstance, message5, channel, "PresenceAuditRevoke", responseChannel7)
-	go ParseErrorResponse(errorChannel7, responseChannel7)
+	//go ParseErrorResponse(errorChannel7, responseChannel7)
 	go WaitForCompletion(responseChannel7, waitChannel7)
-
+	pubnubInstance.CloseExistingConnection()
 }
 
 func TestAuthSubscribe(t *testing.T) {
@@ -417,8 +443,8 @@ func TestAuthSubscribe(t *testing.T) {
 
 	time.Sleep(time.Duration(10) * time.Second)
 	ttl := 1
-	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"w":1}}`)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}`)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message5 := fmt.Sprintf(`'%s' connected`, channel)
 	message6 := fmt.Sprintf(`'%s' unsubscribed`, channel)
 
@@ -438,6 +464,8 @@ func TestAuthSubscribe(t *testing.T) {
 	errorChannel2 := make(chan []byte)
 	responseChannel2 := make(chan string)
 	waitChannel2 := make(chan string)
+	
+	time.Sleep(time.Duration(2) * time.Second)
 
 	//subscribe
 	go pubnubInstance.Subscribe(channel, "", returnPamChannel2, false, errorChannel2)
@@ -468,6 +496,8 @@ func TestAuthSubscribe(t *testing.T) {
 	go ParsePamResponse(returnPamChannel4, pubnubInstance, message2, channel, "SubscribeAuthRevoke", responseChannel4)
 	go ParseErrorResponse(errorChannel4, responseChannel4)
 	go WaitForCompletion(responseChannel4, waitChannel4)
+	
+	pubnubInstance.CloseExistingConnection()
 }
 
 func TestAuthPresence(t *testing.T) {
@@ -477,8 +507,8 @@ func TestAuthPresence(t *testing.T) {
 
 	time.Sleep(time.Duration(10) * time.Second)
 	ttl := 1
-	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"w":1}}`)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}`)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message5 := fmt.Sprintf(`'%s' connected`, channel)
 	message6 := fmt.Sprintf(`'%s' unsubscribed`, channel)
 
@@ -498,6 +528,8 @@ func TestAuthPresence(t *testing.T) {
 	errorChannel2 := make(chan []byte)
 	responseChannel2 := make(chan string)
 	waitChannel2 := make(chan string)
+	
+	time.Sleep(time.Duration(1) * time.Second)
 
 	//subscribe
 	go pubnubInstance.Subscribe(channel, "", returnPamChannel2, true, errorChannel2)
@@ -537,8 +569,8 @@ func TestAuthHereNow(t *testing.T) {
 
 	time.Sleep(time.Duration(10) * time.Second)
 	ttl := 1
-	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"w":1}}`)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}`)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message5 := fmt.Sprintf(`'%s' connected`, channel)
 	message4 := pubnubInstance.GetUUID()
 	message6 := fmt.Sprintf(`'%s' unsubscribed`, channel)
@@ -588,7 +620,7 @@ func TestAuthHereNow(t *testing.T) {
 	waitChannel4 := make(chan string)
 
 	//herenow
-	go pubnubInstance.HereNow(channel, returnPamChannel4, errorChannel4)
+	go pubnubInstance.HereNow(channel, true, true, returnPamChannel4, errorChannel4)
 	go ParsePamResponse(returnPamChannel4, pubnubInstance, message4, channel, "HereNowAuthHereNow", responseChannel4)
 	go ParseErrorResponse(errorChannel4, responseChannel4)
 	go WaitForCompletion(responseChannel4, waitChannel4)
@@ -625,9 +657,9 @@ func TestAuthHistory(t *testing.T) {
 	channel := "testChannelHistoryAuth"
 
 	time.Sleep(time.Duration(10) * time.Second)
-	ttl := 1
-	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"w":1}}`)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
+	ttl := 2
+	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}`)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message5 := "Test Message"
 
 	returnPamChannel := make(chan []byte)

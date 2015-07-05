@@ -7,9 +7,13 @@ import (
 	"encoding/xml"
 	"fmt"
 	"math/rand"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+	//"appengine/aetest"
+	//"appengine"
 )
 
 // PamSubKey: key for pam tests
@@ -262,9 +266,9 @@ func ParseResponseDummy(channel chan []byte) {
 	}
 }
 
-// ParseResponseDummy is a methods that reads the response on the channel
+// ParseResponseDummyMessage is a methods that reads the response on the channel
 // but does notthing on it.
-func ParseResponseDummyMessage(channel chan []byte, message string,  responseChannel chan string) {
+func ParseResponseDummyMessage(channel chan []byte, message string, responseChannel chan string) {
 	for {
 		value, ok := <-channel
 		if !ok {
@@ -277,9 +281,21 @@ func ParseResponseDummyMessage(channel chan []byte, message string,  responseCha
 			if strings.Contains(response, "aborted") {
 				continue
 			}
-			
+
 			responseChannel <- returnVal
 			break
 		}
 	}
+}
+
+// InitAppEngineContext initializes the httptest responsewriter and request
+// To be used with unit tests
+func InitAppEngineContext(t *testing.T) (http.ResponseWriter, *http.Request) {
+
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return w, r
 }

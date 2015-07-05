@@ -5,7 +5,7 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/gae/messaging"
 	"strings"
 	"testing"
 	"unicode/utf16"
