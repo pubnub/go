@@ -8,7 +8,6 @@ package messaging
 
 import (
 	"golang.org/x/net/context"
-	// "google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 	"google.golang.org/appengine/log"
 	"bytes"
