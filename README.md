@@ -18,6 +18,6 @@ Learn more at http://www.pubnub.com
 
 ### For Managed VMs (Beta)
 
-* [https://github.com/pubnub/go/tree/pt98645266/gae/messaging](messaging) (3.6)
+* [messaging](https://github.com/pubnub/go/tree/pt98645266/gae/messaging) (3.6)
 
 ## Contact support@pubnub.com for all questions
