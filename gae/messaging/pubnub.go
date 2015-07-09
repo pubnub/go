@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api on google appengine.
-// Build Date: Jan 20, 2015
-// Version: 3.6.1
+// Build Date: Jul 9, 2015
+// Version: 3.6.2
 package messaging
 
 //TODO:
