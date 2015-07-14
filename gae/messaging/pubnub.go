@@ -305,7 +305,7 @@ func New(context context.Context, uuid string, w http.ResponseWriter, r *http.Re
 		session.Values["pubInstance"] != nil {
 		if val, ok := session.Values["pubInstance"].(*Pubnub); ok {
 			pubInstance = val
-			uuidn1 := pubInstance.GetUUID()
+			// uuidn1 := pubInstance.GetUUID()
 			// log.Infof(context, "retrieved instance %s", uuidn1)
 		}
 	} else {
