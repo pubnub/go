@@ -11,6 +11,7 @@ Learn more at http://www.pubnub.com
 
 * [gae](gae) (3.6)
 * [gae-example](gae-example) (3.6)
+* [Support for GAE Managed VMs Beta - branch pt98645266](https://github.com/pubnub/go/tree/pt98645266)
 
 ### For Non Google App Engine
 
