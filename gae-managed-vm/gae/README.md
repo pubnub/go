@@ -3,6 +3,8 @@
 #PubNub 3.6 client for Google App Engine using Go 
 
 ### Features
+* 3.6.1 changes
+ * Modified to work with the the app engine run on Managed VMs (https://github.com/golang/appengine)
 * 3.6 features 
  * HereNow with state (here now's signature has changed, the response has also changed)
  * WhereNow
@@ -57,8 +59,7 @@ import (
 This function is a utility function used in the examples below to handle the non Subscribe/Presence response. You will want to adapt it to your own needs.
 
 ```go
-func handleResult(c appengine.Context, w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
-	//c := appengine.NewContext(r)
+func handleResult(c context.Context, w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
 	for {
 		select {
 

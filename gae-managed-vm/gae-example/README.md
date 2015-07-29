@@ -26,11 +26,10 @@ We've included a demo console app which documents all the functionality of the c
 ###Run the example
 * Built using Eclipse IDE (Luna).
 * Install golang plugin for Eclipse.
-* Insatll Google App Engine SDK for Go.
-* Run the PubNub GAE example using GO on the dev app server using the command  
-`<PATH-to-go_appengine/dev_appserver.py> <Path-to-PubNub-GAE-Folder> --port <port-number-of-your-choice>`
-* Run http://localhost:<port-number-same-as-above>.
-* The example includes the dependencies under the folder `github.com`
+* Install Google Cloud SDK for Go. Follow the steps from here (https://cloud.google.com/appengine/docs/managed-vms/getting-started)
+* Run the PubNub GAE example using GO on the dev app server using the command `gcloud --verbosity debug preview app run app.yaml`
+from inside the `<Path-to-PubNub-GAE-Folder>`
+* Run http://localhost:8080.
 
 ###Using pubnub in your project and Quick Implementation Examples
 * Please see [gae](../gae)
