@@ -18,7 +18,7 @@ Learn more at http://www.pubnub.com
 
 ### For Managed VMs (Beta)
 
-* [gae](https://github.com/pubnub/go/tree/develop/gae-managed-vm/gae) (3.6)
-* [gae-example](https://github.com/pubnub/go/tree/develop/gae-managed-vm/gae-example) (3.6)
+* [gae](gae-managed-vm/gae) (3.6)
+* [gae-example](gae-managed-vm/gae-example) (3.6)
 
 ## Contact support@pubnub.com for all questions
