@@ -9,13 +9,13 @@ Learn more at http://www.pubnub.com
 
 ### For Google App Engine
 
-* [gae](gae) (3.6)
-* [GAE Example](gae-example) (3.6)
-* [Managed VM Example](gae-managed-vm-example) (3.6)
+* [PubNub SDK for GAE-GO](gae) (3.6)
+ * [GAE Example](gae-example) (3.6)
+ * [Managed VM Example](gae-managed-vm-example) (3.6)
 
 ### For Non Google App Engine
 
-* [messaging](messaging) (3.6)
-* [Example](messaging/example) (3.6)
+* [PubNub SDK for GO](messaging) (3.6)
+ * [Example](messaging/example) (3.6)
 
 ## Contact support@pubnub.com for all questions
