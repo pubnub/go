@@ -1,6 +1,6 @@
 ## Contact support@pubnub.com for all questions
 
-#PubNub 3.6 client for Go 1.0.3, 1.1, 1.3, 1.3.1
+#PubNub 3.6 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2
 
 ###Important changes in this version:
 The package name has been modified to "messaging" from "pubnubMessaging". 
