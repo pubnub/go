@@ -1,8 +1,13 @@
 ## Contact support@pubnub.com for all questions
 
-#PubNub 3.6 client for Google App Engine using Go 
+#PubNub 3.6 client for Google App Engine SDK (1.9.24 - 2015-07-08) and Managed VMs (Google Cloud SDK 0.9.68) using Go
 
 ### Features
+* 3.6.3 changes
+ * GAE and Managed VM use the same code now.
+ * PAM operations (grant, revoke, audit) now return 403 errors in the Error Callback
+* 3.6.1 changes
+ * Modified to work with the the app engine run on Managed VMs (https://github.com/golang/appengine)
 * 3.6 features 
  * HereNow with state (here now's signature has changed, the response has also changed)
  * WhereNow
@@ -21,7 +26,8 @@
 * Clone the PubNub Go repo using `git clone https://github.com/pubnub/go.git`
 
 ###Example
-* Please see [gae-example](../gae-example)
+* For GAE example please see [gae-example](../gae-example)
+* For Managed VM example please see [gae-managed-vm-example](../gae-managed-vm-example)
 
 ###Running Unit tests (instructions for Mac/Linux, for other dev environments the instructions are similar)
 
@@ -37,7 +43,6 @@
 * Insatll Google App Engine SDK for Go.
 * Clone https://github.com/pubnub/go.git
 * Create a new folder for your project.
-* Copy `<pubnub-go-repo-clone-path>/github.com/pubnub/go/gae/messaging` to your project maintaining the folder structure.
 * Import `github.com/pubnub/go/gae/messaging` in your project.
 
 ```go
@@ -57,8 +62,7 @@ import (
 This function is a utility function used in the examples below to handle the non Subscribe/Presence response. You will want to adapt it to your own needs.
 
 ```go
-func handleResult(c appengine.Context, w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
-	//c := appengine.NewContext(r)
+func handleResult(c context.Context, w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
 	for {
 		select {
 
