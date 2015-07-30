@@ -3,7 +3,7 @@
 package tests
 
 import (
-	"appengine/aetest"
+	//"appengine/aetest"
 	"encoding/json"
 	"fmt"
 	"github.com/pubnub/go/gae/messaging"
@@ -22,11 +22,12 @@ func TestPublishStart(t *testing.T) {
 // TestNullMessage sends out a null message to a pubnub channel. The response should
 // be an "Invalid Message".
 func TestNullMessage(t *testing.T) {
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	context := CreateContext()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -68,11 +69,12 @@ func TestUniqueGuid(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfo(t *testing.T) {
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	context := CreateContext()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -100,11 +102,12 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	context := CreateContext()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -133,11 +136,12 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	context := CreateContext()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -164,11 +168,12 @@ func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and customstruct is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	context := CreateContext()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -201,11 +206,12 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	context := CreateContext()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -236,11 +242,12 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.T) {
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	context := CreateContext()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -271,11 +278,12 @@ func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	context := CreateContext()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 

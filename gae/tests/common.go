@@ -3,17 +3,18 @@
 package tests
 
 import (
+	"appengine/aetest"
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
-	//"appengine/aetest"
-	//"appengine"
 )
 
 // PamSubKey: key for pam tests
@@ -79,6 +80,17 @@ type CustomComplexMessage struct {
 // PubnubDemoMessage is a struct to test a non-alphanumeric message
 type PubnubDemoMessage struct {
 	DefaultMessage string `json:",string"`
+}
+
+func CreateContext() context.Context {
+	//parent := context.TODO()
+	//ctx := context.WithValue(parent, "request", r)
+	//ctx := appengine.NewContext(r)
+	inst, _ := aetest.NewInstance(&aetest.Options{StronglyConsistentDatastore: true})
+	r, _ := inst.NewRequest("GET", "/", nil)
+	ctx := appengine.NewContext(r)
+	//defer inst.Close()
+	return ctx
 }
 
 // GenRandom gets a random instance

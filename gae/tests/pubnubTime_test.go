@@ -3,7 +3,7 @@
 package tests
 
 import (
-	"appengine/aetest"
+	//"appengine/aetest"
 	"fmt"
 	"github.com/pubnub/go/gae/messaging"
 	"testing"
@@ -18,11 +18,12 @@ func TestTimeStart(t *testing.T) {
 
 // TestServerTime calls the GetTime method of the messaging to test the time
 func TestServerTime(t *testing.T) {
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	context := CreateContext()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
