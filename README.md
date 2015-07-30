@@ -11,9 +11,9 @@ Learn more at http://www.pubnub.com
 
 * [gae](gae) (3.6)
 * GAE Example
- *[gae-example](gae-example) (3.6)
+ * [gae-example](gae-example) (3.6)
 * Managed VM Example
- *[gae-managed-vm-example](gae-managed-vm-example) (3.6)
+ * [gae-managed-vm-example](gae-managed-vm-example) (3.6)
 
 ### For Non Google App Engine
 
