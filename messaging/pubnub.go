@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Build Date: Jan 20, 2015
-// Version: 3.6.1
+// Build Date: Jul 29, 2015
+// Version: 3.6.3
 package messaging
 
 //TODO:
@@ -59,8 +59,8 @@ const (
 const (
 	//Sdk Identification Param appended to each request
 	sdkIdentificationParamKey = "pnsdk"
-	sdkIdentificationParamVal = "PubNub-Go/3.6"
-	
+	sdkIdentificationParamVal = "PubNub-Go/3.6.3"
+
 	// This string is appended to all presence channels
 	// to differentiate from the subscribe requests.
 	presenceSuffix = "-pnpres"
@@ -108,7 +108,7 @@ const (
 var (
 	sdkIdentificationParam = fmt.Sprintf("%s=%s", sdkIdentificationParamKey, url.QueryEscape(sdkIdentificationParamVal))
 	//sdkIdentificationParam = fmt.Sprintf("%s=%s", sdkIdentificationParamKey, sdkIdentificationParamVal)
-	
+
 	// The time after which the Publish/HereNow/DetailedHitsory/Unsubscribe/
 	// UnsibscribePresence/Time  request will timeout.
 	// In seconds.
@@ -174,10 +174,9 @@ var (
 
 	// Logger for warn messages
 	warnLogger *log.Logger
-	
+
 	//logMutex
 	logMu sync.Mutex
-	
 )
 
 var (
@@ -243,7 +242,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go client SDK Version: 3.6.1; Build Date: Jan 20, 2015;"
+	return "PubNub Go client SDK Version: 3.6.3; Build Date: Jul 29, 2015;"
 }
 
 // Pubnub structure.
@@ -318,7 +317,7 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	infoLogger.Println(fmt.Sprintf("Pubnub Init, %s", VersionInfo()))
 	infoLogger.Println(fmt.Sprintf("OS: %s", runtime.GOOS))
 	logMu.Unlock()
-	
+
 	newPubnub := &Pubnub{}
 	newPubnub.origin = origin
 	newPubnub.publishKey = publishKey
@@ -608,10 +607,11 @@ func (pub *Pubnub) Abort() {
 	}
 
 	pub.CloseExistingConnection()
-
+	infoLogger.Println(fmt.Sprintf("CloseExistingConnection "))
 	pub.closePresenceHeartbeatConnection()
-
+	infoLogger.Println(fmt.Sprintf("closePresenceHeartbeatConnection"))
 	pub.closeRetryConnection()
+	infoLogger.Println(fmt.Sprintf("closeRetryConnection"))
 }
 
 // closePresenceHeartbeatConnection closes the presence heartbeat connection
@@ -730,7 +730,7 @@ func convertToPresenceChannel(channel string) string {
 	return retChannel
 }
 
-func queryEscapeMultiple (q string, splitter string) string{
+func queryEscapeMultiple(q string, splitter string) string {
 	channelArray := strings.Split(q, splitter)
 	var pBuffer bytes.Buffer
 	count := 0
@@ -759,9 +759,9 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 	ttlParam := ""
 
 	var params bytes.Buffer
-	
+
 	if strings.TrimSpace(channel) != "" {
-		if(isAudit){
+		if isAudit {
 			channelParam = fmt.Sprintf("channel=%s", queryEscapeMultiple(channel, ","))
 		} else {
 			channelParam = fmt.Sprintf("channel=%s&", queryEscapeMultiple(channel, ","))
@@ -780,8 +780,8 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 	}
 
 	if strings.TrimSpace(pub.authenticationKey) != "" {
-		if(isAudit){
-			if(!noChannel){
+		if isAudit {
+			if !noChannel {
 				authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.authenticationKey))
 			} else {
 				authParam = fmt.Sprintf("auth=%s", url.QueryEscape(pub.authenticationKey))
@@ -793,12 +793,12 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 
 	var pamURLBuffer bytes.Buffer
 	pamURLBuffer.WriteString("/v1/auth/")
-	filler:="&"
+	filler := "&"
 	if (noChannel) && (strings.TrimSpace(pub.authenticationKey) == "") {
 		filler = ""
 	}
 	if isAudit {
-		grantOrAudit = "audit"		
+		grantOrAudit = "audit"
 		timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
 	} else {
 		timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
@@ -815,15 +815,15 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 			writeParam = "&w=0"
 		}
 		if ttl != -1 {
-			if(isAudit){
+			if isAudit {
 				ttlParam = fmt.Sprintf("&ttl=%s", strconv.Itoa(ttl))
 			} else {
 				ttlParam = fmt.Sprintf("ttl=%s", strconv.Itoa(ttl))
-			}	
-		} 
+			}
+		}
 	}
 	pamURLBuffer.WriteString(grantOrAudit)
-	if(isAudit){
+	if isAudit {
 		params.WriteString(fmt.Sprintf("%s%s%s%s&%s%s&uuid=%s%s%s", authParam, channelParam, filler, sdkIdentificationParam, readParam, timestampParam, pub.GetUUID(), ttlParam, writeParam))
 	} else {
 		if ttl != -1 {
@@ -834,7 +834,7 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 	}
 	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.subscribeKey, pub.publishKey, grantOrAudit, params.String())
 	signature = getHmacSha256(pub.secretKey, raw)
-	
+
 	params.WriteString("&")
 	params.WriteString("signature=")
 	params.WriteString(signature)
@@ -844,12 +844,20 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 	pamURLBuffer.WriteString("?")
 	pamURLBuffer.WriteString(params.String())
 
-	value, _, err := pub.httpRequest(pamURLBuffer.String(), nonSubscribeTrans)
-	if err != nil {
-		message := err.Error()
-		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("PAM Error: %s", message))
-		logMu.Unlock()
+	value, responseCode, err := pub.httpRequest(pamURLBuffer.String(), nonSubscribeTrans)
+	if (responseCode != 200) || (err != nil) {
+		var message = ""
+		if err != nil {
+			message = err.Error()
+			logMu.Lock()
+			errorLogger.Println(fmt.Sprintf("PAM Error: %s", message))
+			logMu.Unlock()
+		} else {
+			message = fmt.Sprintf("%s", value)
+			logMu.Lock()
+			errorLogger.Println(fmt.Sprintf("PAM Error: responseCode %d, message %s", responseCode, message))
+			logMu.Unlock()
+		}
 		if noChannel {
 			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
 		} else {
@@ -941,10 +949,10 @@ func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, j
 	logMu.Lock()
 	infoLogger.Println(fmt.Sprintf("Publish: json: %s, encoded: %s", string(jsonBytes), encodedPath))
 	logMu.Unlock()
-	
+
 	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
 	publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL, sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
-	
+
 	value, responseCode, err := pub.httpRequest(publishURL, nonSubscribeTrans)
 
 	if (responseCode != 200) || (err != nil) {
@@ -993,7 +1001,7 @@ func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, j
 	}
 }
 
-func encodeURL (urlString string) string{
+func encodeURL(urlString string) string {
 	var reqURL *url.URL
 	reqURL, urlErr := url.Parse(urlString)
 	if urlErr != nil {
@@ -1267,7 +1275,7 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string, action 
 		responseChannel := c
 		value = fmt.Sprintf("[%s, \"%s\"]", intResponse, response)
 		logMu.Lock()
-		infoLogger.Println(fmt.Sprintf("Response value: %s", value))
+		infoLogger.Println(fmt.Sprintf("Response value without channel: %s", value))
 		logMu.Unlock()
 		if responseChannel != nil {
 			responseChannel <- []byte(value)
@@ -1546,7 +1554,7 @@ func (pub *Pubnub) createPresenceHeartbeatURL() string {
 	}
 	presenceURLBuffer.WriteString("&")
 	presenceURLBuffer.WriteString(sdkIdentificationParam)
-	
+
 	return presenceURLBuffer.String()
 }
 
@@ -1576,7 +1584,7 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 		presenceHeartbeatMu.RLock()
 		presenceHeartbeatLoc := presenceHeartbeat
 		presenceHeartbeatMu.RUnlock()
-		if (l<=0) || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeatLoc <= 0) {
+		if (l <= 0) || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeatLoc <= 0) {
 			pub.Lock()
 			pub.isPresenceHeartbeatRunning = false
 			pub.Unlock()
@@ -2212,7 +2220,7 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel chan []byte, err
 		if i > 0 {
 			unsubscribeChannels += ","
 		}
-		channelToUnsub := strings.TrimSpace(channelArray[i])		
+		channelToUnsub := strings.TrimSpace(channelArray[i])
 		removed := pub.removeFromSubscribeList(callbackChannel, channelToUnsub)
 		if !removed {
 			pub.sendResponseToChannel(errorChannel, channelToUnsub, responseNotSubscribed, "", "")
@@ -2714,7 +2722,7 @@ func (pub *Pubnub) executeGetUserState(channel string, callbackChannel chan []by
 	userStateURL.WriteString(pub.GetUUID())
 
 	userStateURL.WriteString(pub.addAuthParam(true))
-	
+
 	value, _, err := pub.httpRequest(userStateURL.String(), nonSubscribeTrans)
 
 	if err != nil {
@@ -2754,7 +2762,7 @@ func (pub *Pubnub) executeGetUserState(channel string, callbackChannel chan []by
 func (pub *Pubnub) SetUserStateKeyVal(channel string, key string, val string, callbackChannel chan []byte, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "SetUserState")
 	checkCallbackNil(errorChannel, true, "SetUserState")
-	
+
 	pub.Lock()
 	defer pub.Unlock()
 	if pub.userState == nil {
@@ -2796,8 +2804,8 @@ func (pub *Pubnub) SetUserStateKeyVal(channel string, key string, val string, ca
 		return
 	}
 	stateJSON := string(jsonSerialized)
-	if(stateJSON == "null"){
-		stateJSON = "{}"	
+	if stateJSON == "null" {
+		stateJSON = "{}"
 	}
 
 	pub.executeSetUserState(channel, stateJSON, callbackChannel, errorChannel, 0)
@@ -2824,7 +2832,7 @@ func (pub *Pubnub) SetUserStateJSON(channel string, jsonString string, callbackC
 	}
 	pub.Lock()
 	defer pub.Unlock()
-	
+
 	if pub.userState == nil {
 		pub.userState = make(map[string]map[string]interface{})
 	}
@@ -2859,13 +2867,12 @@ func (pub *Pubnub) executeSetUserState(channel string, jsonState string, callbac
 	userStateURL.WriteString(url.QueryEscape(jsonState))
 
 	userStateURL.WriteString(pub.addAuthParam(true))
-	
+
 	userStateURL.WriteString("&")
 	userStateURL.WriteString(sdkIdentificationParam)
 	userStateURL.WriteString("&uuid=")
 	userStateURL.WriteString(pub.GetUUID())
-	
-	
+
 	value, _, err := pub.httpRequest(userStateURL.String(), nonSubscribeTrans)
 
 	if err != nil {
@@ -2951,7 +2958,7 @@ func parseInterface(vv []interface{}, cipherKey string) string {
 					logMu.Lock()
 					errorLogger.Println(fmt.Sprintf("unescape :%s", unescapeErr.Error()))
 					logMu.Unlock()
-					
+
 					vv[i] = intf
 				} else {
 					vv[i] = unescapeVal
@@ -3085,12 +3092,13 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 	infoLogger.Println(fmt.Sprintf("url: %s", requrl))
 	//fmt.Println(fmt.Sprintf("url: %s", requrl))
 	logMu.Unlock()
-	
+
 	contents, responseStatusCode, err := pub.connect(requrl, action, requestURL)
 
 	if err != nil {
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("httpRequest error: %s", err.Error()))
+		//errorLogger.Println(fmt.Sprintf("httpRequest responseStatusCode: %d", responseStatusCode))
 		logMu.Unlock()
 		if strings.Contains(err.Error(), timeout) {
 			return nil, responseStatusCode, fmt.Errorf(operationTimeout)
@@ -3193,7 +3201,7 @@ func (pub *Pubnub) initTrans(action int) http.RoundTripper {
 					deadline := time.Now().Add(time.Duration(subscribeTimeout) * time.Second)
 					c.SetDeadline(deadline)
 					subscribeConn = c
-					logMu.Lock()	
+					logMu.Lock()
 					infoLogger.Println(fmt.Sprintf("subscribeConn set"))
 					logMu.Unlock()
 				case nonSubscribeTrans:
@@ -3248,7 +3256,7 @@ func (pub *Pubnub) initTrans(action int) http.RoundTripper {
 		} else {
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("Error in connecting to proxy: %s", err.Error()))
-			logMu.Unlock()	
+			logMu.Unlock()
 		}
 	}
 
@@ -3268,7 +3276,7 @@ func (pub *Pubnub) initTrans(action int) http.RoundTripper {
 // returns:
 // the pointer to the http.Client
 // error is any.
-func(pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
+func (pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
 	var transport http.RoundTripper
 	transport = pub.setOrGetTransport(action)
 
@@ -3301,19 +3309,19 @@ func(pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
 func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]byte, int, error) {
 	var contents []byte
 	httpClient, err := pub.createHTTPClient(action)
-	
+
 	if err == nil {
 		req, err := http.NewRequest("GET", requestURL, nil)
 		scheme := "http"
-		if(pub.isSSL){
-			scheme = "https"	
+		if pub.isSSL {
+			scheme = "https"
 		}
 		req.URL = &url.URL{
 			Scheme: scheme,
-    		Host:   origin,
-    		Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
+			Host:   origin,
+			Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
 		}
-		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/3.6", runtime.GOOS)
+		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/3.6.3", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
 		if err == nil {
@@ -3356,14 +3364,14 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 // data: data to pad as byte array.
 // returns the padded data as byte array.
 func padWithPKCS7(data []byte) []byte {
-    blocklen := 16
-    padlen := 1
-    for ((len(data) + padlen) % blocklen) != 0 {
-        padlen = padlen + 1
-    }
+	blocklen := 16
+	padlen := 1
+	for ((len(data) + padlen) % blocklen) != 0 {
+		padlen = padlen + 1
+	}
 
-    pad := bytes.Repeat([]byte{byte(padlen)}, padlen)
-    return append(data, pad...)
+	pad := bytes.Repeat([]byte{byte(padlen)}, padlen)
+	return append(data, pad...)
 }
 
 // unpadPKCS7 unpads the data as per the PKCS7 standard
@@ -3372,22 +3380,22 @@ func padWithPKCS7(data []byte) []byte {
 // returns the unpadded data as byte array.
 func unpadPKCS7(data []byte) ([]byte, error) {
 	blocklen := 16
-    if len(data)%blocklen != 0 || len(data) == 0 {
-        return nil, fmt.Errorf("invalid data len %d", len(data))
-    }
-    padlen := int(data[len(data)-1])
-    if padlen > blocklen || padlen == 0 {
-        return nil, fmt.Errorf("padding is invalid")
-    }
-    // check padding
-    pad := data[len(data)-padlen:]
-    for i := 0; i < padlen; i++ {
-        if pad[i] != byte(padlen) {
-            return nil, fmt.Errorf("padding is invalid")
-        }
-    }
+	if len(data)%blocklen != 0 || len(data) == 0 {
+		return nil, fmt.Errorf("invalid data len %d", len(data))
+	}
+	padlen := int(data[len(data)-1])
+	if padlen > blocklen || padlen == 0 {
+		return nil, fmt.Errorf("padding is invalid")
+	}
+	// check padding
+	pad := data[len(data)-padlen:]
+	for i := 0; i < padlen; i++ {
+		if pad[i] != byte(padlen) {
+			return nil, fmt.Errorf("padding is invalid")
+		}
+	}
 
-    return data[:len(data)-padlen], nil
+	return data[:len(data)-padlen], nil
 }
 
 // getHmacSha256 creates the cipher key hashed against SHA256.
@@ -3492,8 +3500,8 @@ func DecryptString(cipherKey string, message string) (retVal interface{}, err er
 	}()
 	decrypted := make([]byte, len(value))
 	decrypter.CryptBlocks(decrypted, value)
-	val, err := unpadPKCS7(decrypted) 
-	if(err != nil){
+	val, err := unpadPKCS7(decrypted)
+	if err != nil {
 		return "***decrypt error***", fmt.Errorf("decrypt error: %s", err)
 	}
 	return fmt.Sprintf("%s", string(val)), nil

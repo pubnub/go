@@ -1,6 +1,6 @@
 #PubNub 3.6 example Google App Engine using Go
 
-###Demo Console App
+###Demo Console App (Tested on Google App Engine SDK 1.9.24 - 2015-07-08)
 We've included a demo console app which documents all the functionality of the client, for example:
 
 * Publish
@@ -26,11 +26,10 @@ We've included a demo console app which documents all the functionality of the c
 ###Run the example
 * Built using Eclipse IDE (Luna).
 * Install golang plugin for Eclipse.
-* Insatll Google App Engine SDK for Go.
+* Download and install Google App Engine SDK from here: https://cloud.google.com/appengine/downloads#Google_App_Engine_SDK_for_Go
 * Run the PubNub GAE example using GO on the dev app server using the command  
-`<PATH-to-go_appengine/dev_appserver.py> <Path-to-PubNub-GAE-Folder> --port <port-number-of-your-choice>`
-* Run http://localhost:<port-number-same-as-above>.
-* The example includes the dependencies under the folder `github.com`
+`<PATH-to-go_appengine-folder>/goapp serve <Path-to-PubNub-GAE-Example-Folder>/main.go`
+* Run http://localhost:8080.
 
 ###Using pubnub in your project and Quick Implementation Examples
 * Please see [gae](../gae)

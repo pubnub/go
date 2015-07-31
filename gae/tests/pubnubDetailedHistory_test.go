@@ -3,10 +3,10 @@
 package tests
 
 import (
-	"appengine"
 	"encoding/json"
 	"fmt"
 	"github.com/pubnub/go/gae/messaging"
+	"golang.org/x/net/context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -100,11 +100,16 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	    defer context.Close()
 	    w := httptest.NewRecorder()
 	    req, _ := http.NewRequest("GET", "/", nil)*/
-	context, err := aetest.NewContext(nil)
+	//context, err := aetest.NewContext(nil)
+	//req, _ := http.NewRequest("GET", "/", nil)
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	//defer context.Close()
+	defer inst.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -181,11 +186,20 @@ func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
 func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKey string, testName string) {
 	numberOfMessages := 5
 
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	//context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -244,7 +258,7 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 
 // GetServerTime calls the GetTime method of the messaging, parses the response to get the
 // value and return it.
-func GetServerTime(c appengine.Context, w http.ResponseWriter, r *http.Request, pubnubInstance *messaging.Pubnub, t *testing.T, testName string) int64 {
+func GetServerTime(c context.Context, w http.ResponseWriter, r *http.Request, pubnubInstance *messaging.Pubnub, t *testing.T, testName string) int64 {
 	returnTimeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 
@@ -307,7 +321,7 @@ func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName s
 // message: message to send.
 //
 // returns a bool if the publish of all messages is successful.
-func PublishMessages(context appengine.Context, w http.ResponseWriter, r *http.Request, pubnubInstance *messaging.Pubnub, channel string, t *testing.T, startMessagesFrom int, numberOfMessages int, message string) bool {
+func PublishMessages(context context.Context, w http.ResponseWriter, r *http.Request, pubnubInstance *messaging.Pubnub, channel string, t *testing.T, startMessagesFrom int, numberOfMessages int, message string) bool {
 	messagesReceived := 0
 	messageToSend := ""
 	tOut := messaging.GetNonSubscribeTimeout()
