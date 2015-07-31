@@ -23,10 +23,10 @@ var secretKey = "demo"
 
 var store = sessions.NewCookieStore([]byte(secretKey))
 
-//func main(){
-//appengine.Main()
-//init();
-//}
+func main() {
+	appengine.Main()
+	//init();
+}
 
 func init() {
 	router := mux.NewRouter()

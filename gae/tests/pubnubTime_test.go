@@ -18,11 +18,19 @@ func TestTimeStart(t *testing.T) {
 
 // TestServerTime calls the GetTime method of the messaging to test the time
 func TestServerTime(t *testing.T) {
-	context, err := aetest.NewContext(nil)
+	/*context, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer context.Close()
+	defer context.Close()*/
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
