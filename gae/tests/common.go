@@ -82,14 +82,9 @@ type PubnubDemoMessage struct {
 	DefaultMessage string `json:",string"`
 }
 
-func CreateContext() context.Context {
-	//parent := context.TODO()
-	//ctx := context.WithValue(parent, "request", r)
-	//ctx := appengine.NewContext(r)
-	inst, _ := aetest.NewInstance(&aetest.Options{StronglyConsistentDatastore: true})
+func CreateContext(inst aetest.Instance) context.Context {
 	r, _ := inst.NewRequest("GET", "/", nil)
 	ctx := appengine.NewContext(r)
-	//defer inst.Close()
 	return ctx
 }
 

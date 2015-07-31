@@ -3,7 +3,7 @@
 package tests
 
 import (
-	//"appengine/aetest"
+	"appengine/aetest"
 	"fmt"
 	"github.com/pubnub/go/gae/messaging"
 	"testing"
@@ -23,7 +23,14 @@ func TestServerTime(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer context.Close()*/
-	context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 

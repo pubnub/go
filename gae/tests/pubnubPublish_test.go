@@ -3,7 +3,7 @@
 package tests
 
 import (
-	//"appengine/aetest"
+	"appengine/aetest"
 	"encoding/json"
 	"fmt"
 	"github.com/pubnub/go/gae/messaging"
@@ -27,7 +27,14 @@ func TestNullMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer context.Close()*/
-	context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -74,7 +81,14 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer context.Close()*/
-	context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -107,7 +121,14 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer context.Close()*/
-	context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -141,7 +162,14 @@ func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer context.Close()*/
-	context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -173,7 +201,14 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer context.Close()*/
-	context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -211,7 +246,14 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer context.Close()*/
-	context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -247,7 +289,14 @@ func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.
 		t.Fatal(err)
 	}
 	defer context.Close()*/
-	context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -283,7 +332,14 @@ func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer context.Close()*/
-	context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 

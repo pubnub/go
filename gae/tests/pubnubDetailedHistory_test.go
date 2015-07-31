@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 	//"net/http/httptest"
-	//"appengine/aetest"
+	"appengine/aetest"
 )
 
 // TestDetailedHistoryStart prints a message on the screen to mark the beginning of
@@ -102,11 +102,14 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	    req, _ := http.NewRequest("GET", "/", nil)*/
 	//context, err := aetest.NewContext(nil)
 	//req, _ := http.NewRequest("GET", "/", nil)
-	context := CreateContext()
-	//if err != nil {
-	//	t.Fatal(err)
-	//}
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
 	//defer context.Close()
+	defer inst.Close()
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
@@ -188,7 +191,15 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 		t.Fatal(err)
 	}
 	defer context.Close()*/
-	context := CreateContext()
+	//context := CreateContext()
+	inst, err := aetest.NewInstance(&aetest.Options{"", true})
+	context := CreateContext(inst)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
 	uuid := ""
 	w, req := InitAppEngineContext(t)
 
