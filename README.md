@@ -18,9 +18,4 @@ Learn more at http://www.pubnub.com
 * [PubNub SDK for GO](messaging) (3.6)
  * [Example](messaging/example)
 
-### For GAE Managed VMs (Beta) - branch 'develop'
-
-* [gae](https://github.com/pubnub/go/tree/develop/gae-managed-vm/gae) (3.6)
-* [gae-example](https://github.com/pubnub/go/tree/develop/gae-managed-vm/gae-example) (3.6)
-
 ## Contact support@pubnub.com for all questions
