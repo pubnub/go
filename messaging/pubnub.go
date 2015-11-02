@@ -649,7 +649,7 @@ func (pub *Pubnub) GrantSubscribe(channel string, read bool, write bool, ttl int
 	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 	checkCallbackNil(errorChannel, true, "GrantSubscribe")
 
-	pub.executePam(channel, read, write, ttl, callbackChannel, errorChannel, false)
+	pub.executePam(channel, read, write, ttl, "", callbackChannel, errorChannel, false)
 }
 
 // AuditSubscribe will make a call to display the permissions for a channel or subkey
@@ -661,7 +661,7 @@ func (pub *Pubnub) AuditSubscribe(channel string, callbackChannel chan []byte, e
 	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
 	checkCallbackNil(errorChannel, true, "AuditSubscribe")
 
-	pub.executePam(channel, false, false, -1, callbackChannel, errorChannel, true)
+	pub.executePam(channel, false, false, -1, "", callbackChannel, errorChannel, true)
 }
 
 // GrantPresence is used to give a presence channel read, write permissions
@@ -676,7 +676,7 @@ func (pub *Pubnub) GrantPresence(channel string, read bool, write bool, ttl int,
 	checkCallbackNil(errorChannel, true, "GrantPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(channel2, read, write, ttl, callbackChannel, errorChannel, false)
+	pub.executePam(channel2, read, write, ttl, "", callbackChannel, errorChannel, false)
 }
 
 // AuditPresence will make a call to display the permissions for a channel or subkey
@@ -689,7 +689,7 @@ func (pub *Pubnub) AuditPresence(channel string, callbackChannel chan []byte, er
 	checkCallbackNil(errorChannel, true, "AuditPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(channel2, false, false, -1, callbackChannel, errorChannel, true)
+	pub.executePam(channel2, false, false, -1, "", callbackChannel, errorChannel, true)
 }
 
 // removeSpacesFromChannelNames will remove the empty spaces from the channels (sent as a comma separated string)
@@ -747,7 +747,8 @@ func queryEscapeMultiple(q string, splitter string) string {
 // executePam is the main method which is called for all PAM requests
 //
 // for audit request the isAudit parameter should be true
-func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte, isAudit bool) {
+func (pub *Pubnub) executePam(channel string, read, write bool, ttl int,
+	authKey string, callbackChannel, errorChannel chan []byte, isAudit bool) {
 	signature := ""
 	noChannel := true
 	grantOrAudit := "grant"
@@ -779,22 +780,22 @@ func (pub *Pubnub) executePam(channel string, read bool, write bool, ttl int, ca
 		return
 	}
 
-	if strings.TrimSpace(pub.authenticationKey) != "" {
+	if strings.TrimSpace(authKey) != "" {
 		if isAudit {
 			if !noChannel {
-				authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.authenticationKey))
+				authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(authKey))
 			} else {
-				authParam = fmt.Sprintf("auth=%s", url.QueryEscape(pub.authenticationKey))
+				authParam = fmt.Sprintf("auth=%s", url.QueryEscape(authKey))
 			}
 		} else {
-			authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.authenticationKey))
+			authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(authKey))
 		}
 	}
 
 	var pamURLBuffer bytes.Buffer
 	pamURLBuffer.WriteString("/v1/auth/")
 	filler := "&"
-	if (noChannel) && (strings.TrimSpace(pub.authenticationKey) == "") {
+	if (noChannel) && (strings.TrimSpace(authKey) == "") {
 		filler = ""
 	}
 	if isAudit {
