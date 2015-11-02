@@ -2977,6 +2977,106 @@ func (pub *Pubnub) executeSetUserState(channel string, jsonState string, callbac
 	}
 }
 
+func (pub *Pubnub) ChannelGroupAddChannel(group, channel string,
+	callbackChannel, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "ChannelGroupAddChannel")
+	checkCallbackNil(errorChannel, true, "ChannelGroupAddChannel")
+
+	var middleURL bytes.Buffer
+
+	middleURL.WriteString(url.QueryEscape(group))
+	middleURL.WriteString("?add=")
+	middleURL.WriteString(url.QueryEscape(channel))
+	middleURL.WriteString(pub.addAuthParam(true))
+
+	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
+}
+
+func (pub *Pubnub) ChannelGroupRemoveChannel(group, channel string,
+	callbackChannel, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveChannel")
+	checkCallbackNil(errorChannel, true, "ChannelGroupRemoveChannel")
+
+	var middleURL bytes.Buffer
+
+	middleURL.WriteString(url.QueryEscape(group))
+	middleURL.WriteString("?remove=")
+	middleURL.WriteString(url.QueryEscape(channel))
+	middleURL.WriteString(pub.addAuthParam(true))
+
+	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
+}
+
+func (pub *Pubnub) ChannelGroupListChannels(group string,
+	callbackChannel, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "ChannelGroupListChannels")
+	checkCallbackNil(errorChannel, true, "ChannelGroupListChannels")
+
+	var middleURL bytes.Buffer
+
+	middleURL.WriteString(url.QueryEscape(group))
+	middleURL.WriteString(pub.addAuthParam(false))
+
+	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
+}
+
+func (pub *Pubnub) ChannelGroupRemoveGroup(group string,
+	callbackChannel, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveGroup")
+	checkCallbackNil(errorChannel, true, "ChannelGroupRemoveGroup")
+
+	var middleURL bytes.Buffer
+
+	middleURL.WriteString(url.QueryEscape(group))
+	middleURL.WriteString("/remove")
+	middleURL.WriteString(pub.addAuthParam(false))
+
+	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
+}
+
+func (pub *Pubnub) executeChannelGroup(middleURL *bytes.Buffer,
+	callbackChannel, errorChannel chan []byte, retryCount int) {
+	count := retryCount
+
+	var cgURL bytes.Buffer
+
+	cgURL.WriteString("/v1/channel-registration")
+	cgURL.WriteString("/sub-key/")
+	cgURL.WriteString(pub.subscribeKey)
+	cgURL.WriteString("/channel-group/")
+
+	cgURL.WriteString(middleURL.String())
+
+	cgURL.WriteString("&")
+	cgURL.WriteString(sdkIdentificationParam)
+	cgURL.WriteString("&uuid=")
+	cgURL.WriteString(pub.GetUUID())
+
+	value, _, err := pub.httpRequest(cgURL.String(), nonSubscribeTrans)
+
+	if err != nil {
+		logMu.Lock()
+		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
+		logMu.Unlock()
+		pub.sendResponseToChannel(errorChannel, "", responseAsIsError, err.Error(), "")
+	} else {
+		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
+		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
+			logMu.Lock()
+			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
+			logMu.Unlock()
+			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
+			if count < maxRetries {
+				count++
+				pub.executeChannelGroup(middleURL, callbackChannel, errorChannel, count)
+			}
+		} else {
+			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			pub.CloseExistingConnection()
+		}
+	}
+}
+
 // getData parses the interface data and decrypts the messages if the cipher key is provided.
 //
 // It accepts the following parameters:
