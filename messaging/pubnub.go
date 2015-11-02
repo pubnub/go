@@ -645,11 +645,12 @@ func (pub *Pubnub) closeRetryConnection() {
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GrantSubscribe(channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GrantSubscribe(channel string, read, write bool,
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 	checkCallbackNil(errorChannel, true, "GrantSubscribe")
 
-	pub.executePam(channel, read, write, ttl, "", callbackChannel, errorChannel, false)
+	pub.executePam(channel, read, write, ttl, authKey, callbackChannel, errorChannel, false)
 }
 
 // AuditSubscribe will make a call to display the permissions for a channel or subkey
@@ -657,11 +658,12 @@ func (pub *Pubnub) GrantSubscribe(channel string, read bool, write bool, ttl int
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) AuditSubscribe(channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) AuditSubscribe(channel, authKey string,
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
 	checkCallbackNil(errorChannel, true, "AuditSubscribe")
 
-	pub.executePam(channel, false, false, -1, "", callbackChannel, errorChannel, true)
+	pub.executePam(channel, false, false, -1, authKey, callbackChannel, errorChannel, true)
 }
 
 // GrantPresence is used to give a presence channel read, write permissions
@@ -671,12 +673,13 @@ func (pub *Pubnub) AuditSubscribe(channel string, callbackChannel chan []byte, e
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GrantPresence(channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GrantPresence(channel string, read, write bool, ttl int,
+	authKey string, callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GrantPresence")
 	checkCallbackNil(errorChannel, true, "GrantPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(channel2, read, write, ttl, "", callbackChannel, errorChannel, false)
+	pub.executePam(channel2, read, write, ttl, authKey, callbackChannel, errorChannel, false)
 }
 
 // AuditPresence will make a call to display the permissions for a channel or subkey
@@ -684,12 +687,13 @@ func (pub *Pubnub) GrantPresence(channel string, read bool, write bool, ttl int,
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) AuditPresence(channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) AuditPresence(channel, authKey string,
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditPresence")
 	checkCallbackNil(errorChannel, true, "AuditPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(channel2, false, false, -1, "", callbackChannel, errorChannel, true)
+	pub.executePam(channel2, false, false, -1, authKey, callbackChannel, errorChannel, true)
 }
 
 // removeSpacesFromChannelNames will remove the empty spaces from the channels (sent as a comma separated string)
