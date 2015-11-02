@@ -763,9 +763,9 @@ func (pub *Pubnub) executePam(channel string, read, write bool, ttl int,
 
 	if strings.TrimSpace(channel) != "" {
 		if isAudit {
-			channelParam = fmt.Sprintf("channel=%s", queryEscapeMultiple(channel, ","))
+			channelParam = fmt.Sprintf("channel=%s", url.QueryEscape(channel))
 		} else {
-			channelParam = fmt.Sprintf("channel=%s&", queryEscapeMultiple(channel, ","))
+			channelParam = fmt.Sprintf("channel=%s&", url.QueryEscape(channel))
 		}
 		noChannel = false
 	}
