@@ -650,7 +650,8 @@ func (pub *Pubnub) GrantSubscribe(channel string, read, write bool,
 	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 	checkCallbackNil(errorChannel, true, "GrantSubscribe")
 
-	pub.executePam(channel, read, write, ttl, authKey, callbackChannel, errorChannel, false)
+	pub.executePam(channel, "", read, write, false, ttl, authKey,
+		callbackChannel, errorChannel, false, false)
 }
 
 // AuditSubscribe will make a call to display the permissions for a channel or subkey
@@ -663,7 +664,8 @@ func (pub *Pubnub) AuditSubscribe(channel, authKey string,
 	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
 	checkCallbackNil(errorChannel, true, "AuditSubscribe")
 
-	pub.executePam(channel, false, false, -1, authKey, callbackChannel, errorChannel, true)
+	pub.executePam(channel, "", false, false, false, -1, authKey,
+		callbackChannel, errorChannel, true, false)
 }
 
 // GrantPresence is used to give a presence channel read, write permissions
@@ -679,7 +681,8 @@ func (pub *Pubnub) GrantPresence(channel string, read, write bool, ttl int,
 	checkCallbackNil(errorChannel, true, "GrantPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(channel2, read, write, ttl, authKey, callbackChannel, errorChannel, false)
+	pub.executePam(channel2, "", read, write, false,
+		ttl, authKey, callbackChannel, errorChannel, false, false)
 }
 
 // AuditPresence will make a call to display the permissions for a channel or subkey
@@ -693,7 +696,30 @@ func (pub *Pubnub) AuditPresence(channel, authKey string,
 	checkCallbackNil(errorChannel, true, "AuditPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(channel2, false, false, -1, authKey, callbackChannel, errorChannel, true)
+	pub.executePam(channel2, "", false, false, false, -1, authKey,
+		callbackChannel, errorChannel, true, false)
+}
+
+// GrantChannelGroup is used to give a channel group read or manage permissions
+// and set TTL values for it.
+func (pub *Pubnub) GrantChannelGroup(group string, read, manage bool,
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "GrantChannelGroup")
+	checkCallbackNil(errorChannel, true, "GrantChannelGroup")
+
+	pub.executePam("", group, read, false, manage, ttl, authKey,
+		callbackChannel, errorChannel, false, true)
+}
+
+// AuditChannelGroup will make a call to display the permissions for a channel
+// group or subkey
+func (pub *Pubnub) AuditChannelGroup(group, authKey string,
+	callbackChannel, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "AuditChannelGroup")
+	checkCallbackNil(errorChannel, true, "AuditChannelGroup")
+
+	pub.executePam("", group, false, false, false, -1, authKey,
+		callbackChannel, errorChannel, true, true)
 }
 
 // removeSpacesFromChannelNames will remove the empty spaces from the channels (sent as a comma separated string)
@@ -751,15 +777,20 @@ func queryEscapeMultiple(q string, splitter string) string {
 // executePam is the main method which is called for all PAM requests
 //
 // for audit request the isAudit parameter should be true
-func (pub *Pubnub) executePam(channel string, read, write bool, ttl int,
-	authKey string, callbackChannel, errorChannel chan []byte, isAudit bool) {
+func (pub *Pubnub) executePam(channel, channelGroup string,
+	read, write, manage bool, ttl int, authKey string,
+	callbackChannel, errorChannel chan []byte,
+	isAudit, isChannelGroupCall bool) {
+
 	signature := ""
 	noChannel := true
 	grantOrAudit := "grant"
 	authParam := ""
 	channelParam := ""
+	channelGroupParam := ""
 	readParam := ""
 	writeParam := ""
+	manageParam := ""
 	timestampParam := ""
 	ttlParam := ""
 
@@ -774,6 +805,16 @@ func (pub *Pubnub) executePam(channel string, read, write bool, ttl int,
 		noChannel = false
 	}
 
+	if strings.TrimSpace(channelGroup) != "" {
+		if isAudit || isChannelGroupCall {
+			channelGroupParam = fmt.Sprintf("channel-group=%s",
+				url.QueryEscape(channelGroup))
+		} else {
+			channelGroupParam = fmt.Sprintf("channel-group=%s&",
+				url.QueryEscape(channelGroup))
+		}
+	}
+
 	if strings.TrimSpace(pub.secretKey) == "" {
 		message := "Secret key is required"
 		if noChannel {
@@ -786,7 +827,7 @@ func (pub *Pubnub) executePam(channel string, read, write bool, ttl int,
 
 	if strings.TrimSpace(authKey) != "" {
 		if isAudit {
-			if !noChannel {
+			if !noChannel && !isChannelGroupCall {
 				authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(authKey))
 			} else {
 				authParam = fmt.Sprintf("auth=%s", url.QueryEscape(authKey))
@@ -819,6 +860,13 @@ func (pub *Pubnub) executePam(channel string, read, write bool, ttl int,
 		} else {
 			writeParam = "&w=0"
 		}
+
+		if manage {
+			manageParam = "&m=1"
+		} else {
+			manageParam = "&m=0"
+		}
+
 		if ttl != -1 {
 			if isAudit {
 				ttlParam = fmt.Sprintf("&ttl=%s", strconv.Itoa(ttl))
@@ -827,17 +875,42 @@ func (pub *Pubnub) executePam(channel string, read, write bool, ttl int,
 			}
 		}
 	}
+
 	pamURLBuffer.WriteString(grantOrAudit)
-	if isAudit {
-		params.WriteString(fmt.Sprintf("%s%s%s%s&%s%s&uuid=%s%s%s", authParam, channelParam, filler, sdkIdentificationParam, readParam, timestampParam, pub.GetUUID(), ttlParam, writeParam))
+
+	if isAudit && isChannelGroupCall {
+		params.WriteString(fmt.Sprintf("%s%s%s%s%s&%s%s&uuid=%s", authParam,
+			channelGroupParam, filler, manageParam, sdkIdentificationParam, readParam,
+			timestampParam, pub.GetUUID()))
+
+	} else if isAudit && !isChannelGroupCall {
+		params.WriteString(fmt.Sprintf("%s%s%s%s&%s%s&uuid=%s%s", authParam,
+			channelParam, filler, sdkIdentificationParam, readParam,
+			timestampParam, pub.GetUUID(), writeParam))
+
+	} else if !isAudit && ttl != -1 && isChannelGroupCall {
+		params.WriteString(fmt.Sprintf("%s%s%s&%s&%s%s&%s&uuid=%s", authParam,
+			channelGroupParam, manageParam, sdkIdentificationParam, readParam,
+			timestampParam, ttlParam, pub.GetUUID()))
+
+	} else if !isAudit && ttl != -1 && !isChannelGroupCall {
+		params.WriteString(fmt.Sprintf("%s%s%s&%s%s&%s&uuid=%s%s", authParam,
+			channelParam, sdkIdentificationParam, readParam, timestampParam,
+			ttlParam, pub.GetUUID(), writeParam))
+
+	} else if !isAudit && isChannelGroupCall {
+		params.WriteString(fmt.Sprintf("%s%s%s&%s&%s%s&uuid=%s", authParam,
+			channelGroupParam, manageParam, sdkIdentificationParam, readParam,
+			timestampParam, pub.GetUUID()))
+
 	} else {
-		if ttl != -1 {
-			params.WriteString(fmt.Sprintf("%s%s%s&%s%s&%s&uuid=%s%s", authParam, channelParam, sdkIdentificationParam, readParam, timestampParam, ttlParam, pub.GetUUID(), writeParam))
-		} else {
-			params.WriteString(fmt.Sprintf("%s%s%s&%s%s&uuid=%s%s", authParam, channelParam, sdkIdentificationParam, readParam, timestampParam, pub.GetUUID(), writeParam))
-		}
+		params.WriteString(fmt.Sprintf("%s%s%s&%s%s&uuid=%s%s", authParam,
+			channelParam, sdkIdentificationParam, readParam, timestampParam,
+			pub.GetUUID(), writeParam))
 	}
-	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.subscribeKey, pub.publishKey, grantOrAudit, params.String())
+
+	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.subscribeKey, pub.publishKey,
+		grantOrAudit, params.String())
 	signature = getHmacSha256(pub.secretKey, raw)
 
 	params.WriteString("&")
