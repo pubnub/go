@@ -6,7 +6,7 @@
 The package name has been modified to "messaging" from "pubnubMessaging". 
 
 ###Change log
-*3.6.4
+* 3.6.4
  * Exposed MaxIdleConnsPerHost of the transport
 * 3.6.3
  * PAM operations (grant, revoke, audit) now return 403 errors in the Error Callback
