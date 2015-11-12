@@ -813,7 +813,7 @@ func delUserState(channel string, key string) {
 func pamSubscribeRoutine(channels string, read bool, write bool, ttl int) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
-	go pub.GrantSubscribe(channels, read, write, ttl, pamChannel, errorChannel)
+	go pub.GrantSubscribe(channels, read, write, ttl, "", pamChannel, errorChannel)
 	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Susbcribe Grant")
 }
 
@@ -823,7 +823,7 @@ func pamSubscribeRoutine(channels string, read bool, write bool, ttl int) {
 func pamPresenceRoutine(channels string, read bool, write bool, ttl int) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
-	go pub.GrantPresence(channels, read, write, ttl, pamChannel, errorChannel)
+	go pub.GrantPresence(channels, read, write, ttl, "", pamChannel, errorChannel)
 	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Presence Grant")
 }
 
@@ -833,9 +833,9 @@ func pamAuditRoutine(channels string, isPresence bool) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
 	if isPresence {
-		go pub.AuditPresence(channels, pamChannel, errorChannel)
+		go pub.AuditPresence(channels, "", pamChannel, errorChannel)
 	} else {
-		go pub.AuditSubscribe(channels, pamChannel, errorChannel)
+		go pub.AuditSubscribe(channels, "", pamChannel, errorChannel)
 	}
 	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
 }
