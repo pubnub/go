@@ -3,10 +3,10 @@
 package main
 
 import (
+	".."
 	"bufio"
 	"encoding/binary"
 	"fmt"
-	"github.com/pubnub/go/messaging"
 	"math/big"
 	"os"
 	"strconv"
@@ -184,11 +184,11 @@ func Init() (b bool) {
 			pub = pubInstance
 
 			SetupProxy()
-			
+
 			presenceHeartbeat := askNumber16("Presence Heartbeat", true)
 			pub.SetPresenceHeartbeat(presenceHeartbeat)
 			fmt.Println(fmt.Sprintf("Presence Heartbeat set to :%d", pub.GetPresenceHeartbeat()))
-			
+
 			presenceHeartbeatInterval := askNumber16("Presence Heartbeat Interval", true)
 			pub.SetPresenceHeartbeat(presenceHeartbeatInterval)
 			fmt.Println(fmt.Sprintf("Presence Heartbeat set to :%d", pub.GetPresenceHeartbeat()))
@@ -383,11 +383,10 @@ func askNumber16(what string, optional bool) uint16 {
 		fmt.Println("Enter " + what)
 	}
 	fmt.Scanln(&input)
-	if (optional) && (strings.TrimSpace(input) == ""){
+	if (optional) && (strings.TrimSpace(input) == "") {
 		input = "0"
 	}
-	
-	
+
 	/*reader := bufio.NewReader(os.Stdin)
 	input, _, errReadingChannel := reader.ReadLine()
 	if errReadingChannel != nil {
@@ -398,16 +397,16 @@ func askNumber16(what string, optional bool) uint16 {
 	if (optional) && (strings.TrimSpace(input1) == ""){
 		input1 = "0"
 	}
-	
+
 	//return string(channels), nil
-	
+
 	/*bi := big.NewInt(0)
 	if _, ok := bi.SetString(input, 10); !ok {
 		//if (err != nil) {
 		fmt.Println(what + " is invalid. Please enter numerals.")
 		return askNumber16(what, optional)
 	}*/
-	
+
 	val, err := strconv.Atoi(strings.TrimSpace(input))
 	//fmt.Println("Input " + input)
 	if err != nil {
@@ -880,11 +879,11 @@ func handleUnsubscribeResult(successChannel, errorChannel chan []byte, timeoutVa
 	timeout := make(chan bool, 1)
 	var timeoutValInt int
 	multipleResponsesExpected := false
-	if(noOfResponsesOnChannel>1){
+	if noOfResponsesOnChannel > 1 {
 		timeoutValInt = int(timeoutVal) * noOfResponsesOnChannel
 		multipleResponsesExpected = true
 	}
-	
+
 	go func() {
 		time.Sleep(time.Duration(timeoutValInt) * time.Second)
 		timeout <- true
@@ -899,7 +898,7 @@ func handleUnsubscribeResult(successChannel, errorChannel chan []byte, timeoutVa
 				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
 				fmt.Println("")
 			}
-			if(!multipleResponsesExpected){
+			if !multipleResponsesExpected {
 				return
 			}
 		case failure, ok := <-errorChannel:
@@ -912,7 +911,7 @@ func handleUnsubscribeResult(successChannel, errorChannel chan []byte, timeoutVa
 					fmt.Println("")
 				}
 			}
-			if(!multipleResponsesExpected){
+			if !multipleResponsesExpected {
 				return
 			}
 		case <-timeout:

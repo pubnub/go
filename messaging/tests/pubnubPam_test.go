@@ -4,8 +4,8 @@ package tests
 
 import (
 	//"encoding/json"
+	".."
 	"fmt"
-	"github.com/pubnub/go/messaging"
 	"strings"
 	"testing"
 	"time"
@@ -42,8 +42,8 @@ func ParsePamErrorResponse(channel chan []byte, testName string, message string,
 		//fmt.Println("returnValErr:",returnVal);
 		//fmt.Println("messageErr:",message);
 		if returnVal != "[]" {
-			if strings.Contains(returnVal, "aborted") || strings.Contains(returnVal, "reset"){
-				continue;
+			if strings.Contains(returnVal, "aborted") || strings.Contains(returnVal, "reset") {
+				continue
 			}
 			if strings.Contains(returnVal, message) {
 				responseChannel <- "Test '" + testName + "': passed."
@@ -78,7 +78,6 @@ func ParsePamResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnu
 	}
 }
 
-
 func TestSubscribeGrantPositive(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelSubscribeGrantPositive"
@@ -87,7 +86,7 @@ func TestSubscribeGrantPositive(t *testing.T) {
 	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 
 	time.Sleep(time.Duration(5) * time.Second)
-	
+
 	returnPamChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
@@ -118,7 +117,7 @@ func TestSubscribeGrantNegative(t *testing.T) {
 	message := fmt.Sprintf(`{"status":403,"service":"Access Manager","error":true,"message":"Forbidden","payload":{"channels":["%s"]}}`, channel)
 
 	time.Sleep(time.Duration(5) * time.Second)
-	
+
 	returnPamChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
@@ -143,7 +142,7 @@ func TestPresenceGrantPositive(t *testing.T) {
 	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s-pnpres":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 
 	time.Sleep(time.Duration(5) * time.Second)
-	
+
 	returnPamChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
@@ -172,9 +171,9 @@ func TestPresenceGrantNegative(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelPresenceGrantNegative"
 	message := fmt.Sprintf(`{"status":403,"service":"Access Manager","error":true,"message":"Forbidden","payload":{"channels":["%s-pnpres"]}}`, channel)
-	
+
 	time.Sleep(time.Duration(5) * time.Second)
-	
+
 	returnPamChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
@@ -319,7 +318,7 @@ func TestPresenceAudit(t *testing.T) {
 	e97-11e3-a952-02ee2ddab7fe","level":"channel"}}*/
 
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
-	pubnubInstance.SetAuthenticationKey ("")
+	pubnubInstance.SetAuthenticationKey("")
 	channel := "testChannelPresenceAudit"
 	time.Sleep(time.Duration(10) * time.Second)
 	ttl := 2
@@ -464,7 +463,7 @@ func TestAuthSubscribe(t *testing.T) {
 	errorChannel2 := make(chan []byte)
 	responseChannel2 := make(chan string)
 	waitChannel2 := make(chan string)
-	
+
 	time.Sleep(time.Duration(2) * time.Second)
 
 	//subscribe
@@ -496,7 +495,7 @@ func TestAuthSubscribe(t *testing.T) {
 	go ParsePamResponse(returnPamChannel4, pubnubInstance, message2, channel, "SubscribeAuthRevoke", responseChannel4)
 	go ParseErrorResponse(errorChannel4, responseChannel4)
 	go WaitForCompletion(responseChannel4, waitChannel4)
-	
+
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -528,7 +527,7 @@ func TestAuthPresence(t *testing.T) {
 	errorChannel2 := make(chan []byte)
 	responseChannel2 := make(chan string)
 	waitChannel2 := make(chan string)
-	
+
 	time.Sleep(time.Duration(1) * time.Second)
 
 	//subscribe

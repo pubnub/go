@@ -3,8 +3,8 @@
 package tests
 
 import (
+	".."
 	"fmt"
-	"github.com/pubnub/go/messaging"
 	"strings"
 	"testing"
 	"time"
@@ -71,7 +71,7 @@ func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *messaging.Pubnub, 
 			//messageAbort := "'" + channel + "' aborted"
 			//fmt.Printf("response:",response);
 			//fmt.Printf("message:", message);
-			
+
 			if strings.Contains(response, message) {
 				returnUnsubscribeChannel := make(chan []byte)
 				errorChannel := make(chan []byte)
