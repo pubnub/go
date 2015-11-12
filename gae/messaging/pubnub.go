@@ -582,11 +582,14 @@ func (pub *Pubnub) closeRetryConnection() {
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GrantSubscribe(context context.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GrantSubscribe(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel string, read, write bool,
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 	checkCallbackNil(errorChannel, true, "GrantSubscribe")
 
-	pub.executePam(context, w, r, channel, read, write, ttl, "",
+	pub.executePam(context, w, r, channel, read, write, ttl, authKey,
 		callbackChannel, errorChannel, false)
 }
 
@@ -595,11 +598,14 @@ func (pub *Pubnub) GrantSubscribe(context context.Context, w http.ResponseWriter
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) AuditSubscribe(context context.Context, w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) AuditSubscribe(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel, authKey string,
+	callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
 	checkCallbackNil(errorChannel, true, "AuditSubscribe")
 
-	pub.executePam(context, w, r, channel, false, false, -1, "",
+	pub.executePam(context, w, r, channel, false, false, -1, authKey,
 		callbackChannel, errorChannel, true)
 }
 
@@ -610,12 +616,15 @@ func (pub *Pubnub) AuditSubscribe(context context.Context, w http.ResponseWriter
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GrantPresence(context context.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GrantPresence(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel string, read, write bool,
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "GrantPresence")
 	checkCallbackNil(errorChannel, true, "GrantPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(context, w, r, channel2, read, write, ttl, "",
+	pub.executePam(context, w, r, channel2, read, write, ttl, authKey,
 		callbackChannel, errorChannel, false)
 }
 
@@ -624,12 +633,14 @@ func (pub *Pubnub) GrantPresence(context context.Context, w http.ResponseWriter,
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) AuditPresence(context context.Context, w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) AuditPresence(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel, authKey string,
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditPresence")
 	checkCallbackNil(errorChannel, true, "AuditPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(context, w, r, channel2, false, false, -1, "",
+	pub.executePam(context, w, r, channel2, false, false, -1, authKey,
 		callbackChannel, errorChannel, true)
 }
 
