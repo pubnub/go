@@ -67,7 +67,7 @@ func main() {
 func Init() (b bool) {
 	fmt.Println("")
 	fmt.Println(messaging.VersionInfo())
-
+	messaging.SetMaxIdleConnsPerHost(20)
 	fmt.Println("")
 	fmt.Println("Please enter the channel name(s). Enter multiple channels separated by comma without spaces.")
 	reader := bufio.NewReader(os.Stdin)

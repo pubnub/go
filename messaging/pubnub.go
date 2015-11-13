@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Build Date: Jul 29, 2015
 // Version: 3.7.0
+// Build Date: Nov 6, 2015
 package messaging
 
 //TODO:
@@ -238,11 +238,14 @@ var (
 
 	// Global variable to check if the proxy server if used.
 	proxyServerEnabled = false
+
+	// Used to set the value of HTTP Transport's MaxIdleConnsPerHost.
+	maxIdleConnsPerHost = 2
 )
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go client SDK Version: 3.7.0; Build Date: Jul 29, 2015;"
+	return "PubNub Go client SDK Version: 3.7.0; Build Date: Nov 6, 2015;"
 }
 
 // Pubnub structure.
@@ -375,6 +378,13 @@ func initLogging() {
 		errorLogger = log.New(ioutil.Discard, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 		warnLogger = log.New(ioutil.Discard, "WARN: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
+}
+
+// SetMaxIdleConnsPerHost is used to set the value of HTTP Transport's MaxIdleConnsPerHost.
+// It restricts how many connections there are which are not actively serving requests, but which the client has not closed.
+// Be careful when increasing MaxIdleConnsPerHost to a large number. It only makes sense to increase idle connections if you are seeing many connections in a short period from the same clients.
+func SetMaxIdleConnsPerHost(maxIdleConnsPerHostVal int) {
+	maxIdleConnsPerHost = maxIdleConnsPerHostVal
 }
 
 // SetProxy sets the global variables for the parameters.
@@ -3513,7 +3523,8 @@ func (pub *Pubnub) initTrans(action int) http.RoundTripper {
 			logMu.Unlock()
 		}
 	}
-
+	transport.MaxIdleConnsPerHost = maxIdleConnsPerHost
+	infoLogger.Println(fmt.Sprintf("MaxIdleConnsPerHost set to: %d", transport.MaxIdleConnsPerHost))
 	return transport
 }
 
