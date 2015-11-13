@@ -157,7 +157,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
-        go pubInstance.GrantSubscribe(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, true, true, 60, channelCallback, errorChannel)
+        go pubInstance.GrantSubscribe(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, true, true, 60, <authKey>, channelCallback, errorChannel)
         handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, channelCallback, errorChannel, messaging.GetNonSubscribeTimeout(), "Grant Susbcribe")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -168,7 +168,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
-        go pubInstance.GrantSubscribe(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, false, false, 1, channelCallback, errorChannel)
+        go pubInstance.GrantSubscribe(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, false, false, 1, <authKey>, channelCallback, errorChannel)
         handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, channelCallback, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Susbcribe")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -179,7 +179,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
-        go pub.AuditSubscribe(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, channelCallback, errorChannel)
+        go pub.AuditSubscribe(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, <authKey>, channelCallback, errorChannel)
         handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, channelCallback, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Subscribe")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -190,7 +190,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
-        go pubInstance.GrantPresence(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, true, true, 60, channelCallback, errorChannel)
+        go pubInstance.GrantPresence(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, true, true, 60, <authKey>, channelCallback, errorChannel)
         handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, channelCallback, errorChannel, messaging.GetNonSubscribeTimeout(), "Grant Presence")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -201,7 +201,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
-        go pubInstance.GrantPresence(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, false, false, 1, channelCallback, errorChannel)
+        go pubInstance.GrantPresence(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, false, false, 1, <authKey>, channelCallback, errorChannel)
         handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, channelCallback, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Presence")
 
         // please goto the top of this file see the implementation of handleResult
@@ -213,7 +213,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var channelCallback = make(chan []byte)
-        go pub.AuditPresence(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, channelCallback, errorChannel)
+        go pub.AuditPresence(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, <authKey>, channelCallback, errorChannel)
         handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, channelCallback, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Presence")
         // please goto the top of this file see the implementation of handleResult
 ```
