@@ -1,8 +1,12 @@
 ## Contact support@pubnub.com for all questions
 
-#PubNub 3.6 client for Google App Engine SDK (1.9.24 - 2015-07-08) and Managed VMs (Google Cloud SDK 0.9.68) using Go
+#PubNub 3.7 client for Google App Engine SDK (1.9.28 - 2015-10-29) and Managed VMs (Google Cloud SDK 0.9.70) using Go
 
 ### Features
+* 3.7.0 changes
+ * Add authKey argument to all PAM methods
+ * Add Channel Group Methods
+ * Fix multiple channels encoding in PAM methods
 * 3.6.3 changes
  * GAE and Managed VM use the same code now.
  * PAM operations (grant, revoke, audit) now return 403 errors in the Error Callback
@@ -215,6 +219,40 @@ Initialize a new Pubnub instance.
         var channelCallback = make(chan []byte)
         go pub.AuditPresence(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channels>, <authKey>, channelCallback, errorChannel)
         handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, channelCallback, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Presence")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### GrantChannelGroup
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var channelCallback = make(chan []byte)
+        go pubInstance.GrantChannelGroup(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channel groups>, true, true, 60, <authKey>, channelCallback, errorChannel)
+        handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, channelCallback, errorChannel, messaging.GetNonSubscribeTimeout(), "Grant Channel Group")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### RevokeChannelGroup
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var channelCallback = make(chan []byte)
+        go pubInstance.GrantChannelGroup(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channel groups>, false, false, 1, <authKey>, channelCallback, errorChannel)
+        handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, channelCallback, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Channel Group")
+
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### AuditChannelGroup
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var channelCallback = make(chan []byte)
+        go pub.AuditChannelGroup(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <pubnub channel groups>, <authKey>, channelCallback, errorChannel)
+        handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>, channelCallback, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Channel Group")
         // please goto the top of this file see the implementation of handleResult
 ```
 
