@@ -7,13 +7,6 @@ import (
 	"time"
 )
 
-const (
-	CHANNEL = "testchannel"
-	GROUP   = "testgroup"
-)
-
-var pubnub = NewPubnub("demo", "demo", "demo", "", false, "")
-
 // AUDIT CHANNELS
 func TestPamChGenerateParamsStringAudit(t *testing.T) {
 	params := pubnub.pamGenerateParamsForChannel("audit", "testc", true,
