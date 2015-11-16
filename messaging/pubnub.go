@@ -1990,19 +1990,6 @@ func (pub *Pubnub) addAuthParam(queryStringInit bool) string {
 	return ""
 }
 
-// addAuthParamAsFirst return a string with authentication key
-// as the first element of params string
-// If an authentication key is an empty string the "?" sign will be returned
-func (pub *Pubnub) addAuthParamAsFirst() string {
-	authKey := pub.addAuthParam(true)
-
-	if authKey != "" {
-		return authKey
-	} else {
-		return "?"
-	}
-}
-
 // checkQuerystringInit
 // if queryStringInit is true then the query stirng already has the ?
 // and the new query stirng val is appended with &
@@ -3081,15 +3068,7 @@ func (pub *Pubnub) ChannelGroupAddChannel(group, channel string,
 	checkCallbackNil(callbackChannel, false, "ChannelGroupAddChannel")
 	checkCallbackNil(errorChannel, true, "ChannelGroupAddChannel")
 
-	var middleURL bytes.Buffer
-
-	middleURL.WriteString(url.QueryEscape(group))
-	middleURL.WriteString("?add=")
-	middleURL.WriteString(url.QueryEscape(channel))
-	middleURL.WriteString(pub.addAuthParam(true))
-	middleURL.WriteString("&")
-
-	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
+	pub.executeChannelGroup("add", group, channel, callbackChannel, errorChannel)
 }
 
 func (pub *Pubnub) ChannelGroupRemoveChannel(group, channel string,
@@ -3097,15 +3076,7 @@ func (pub *Pubnub) ChannelGroupRemoveChannel(group, channel string,
 	checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveChannel")
 	checkCallbackNil(errorChannel, true, "ChannelGroupRemoveChannel")
 
-	var middleURL bytes.Buffer
-
-	middleURL.WriteString(url.QueryEscape(group))
-	middleURL.WriteString("?remove=")
-	middleURL.WriteString(url.QueryEscape(channel))
-	middleURL.WriteString(pub.addAuthParam(true))
-	middleURL.WriteString("&")
-
-	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
+	pub.executeChannelGroup("remove", group, channel, callbackChannel, errorChannel)
 }
 
 func (pub *Pubnub) ChannelGroupListChannels(group string,
@@ -3113,12 +3084,7 @@ func (pub *Pubnub) ChannelGroupListChannels(group string,
 	checkCallbackNil(callbackChannel, false, "ChannelGroupListChannels")
 	checkCallbackNil(errorChannel, true, "ChannelGroupListChannels")
 
-	var middleURL bytes.Buffer
-
-	middleURL.WriteString(url.QueryEscape(group))
-	middleURL.WriteString(pub.addAuthParamAsFirst())
-
-	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
+	pub.executeChannelGroup("list_group", group, "", callbackChannel, errorChannel)
 }
 
 func (pub *Pubnub) ChannelGroupRemoveGroup(group string,
@@ -3126,33 +3092,47 @@ func (pub *Pubnub) ChannelGroupRemoveGroup(group string,
 	checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveGroup")
 	checkCallbackNil(errorChannel, true, "ChannelGroupRemoveGroup")
 
-	var middleURL bytes.Buffer
-
-	middleURL.WriteString(url.QueryEscape(group))
-	middleURL.WriteString("/remove")
-	middleURL.WriteString(pub.addAuthParamAsFirst())
-
-	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
+	pub.executeChannelGroup("remove_group", group, "", callbackChannel, errorChannel)
 }
 
-func (pub *Pubnub) executeChannelGroup(middleURL *bytes.Buffer,
-	callbackChannel, errorChannel chan []byte, retryCount int) {
-	count := retryCount
+func (pub *Pubnub) generateStringforCGRequest(action, group,
+	channel string) (requestURL bytes.Buffer) {
+	params := url.Values{}
 
-	var cgURL bytes.Buffer
+	requestURL.WriteString("/v1/channel-registration")
+	requestURL.WriteString("/sub-key/")
+	requestURL.WriteString(pub.subscribeKey)
+	requestURL.WriteString("/channel-group/")
+	requestURL.WriteString(group)
 
-	cgURL.WriteString("/v1/channel-registration")
-	cgURL.WriteString("/sub-key/")
-	cgURL.WriteString(pub.subscribeKey)
-	cgURL.WriteString("/channel-group/")
+	switch action {
+	case "add":
+		fallthrough
+	case "remove":
+		params.Add(action, channel)
+	case "remove_group":
+		requestURL.WriteString("/remove")
+	}
 
-	cgURL.WriteString(middleURL.String())
+	if strings.TrimSpace(pub.authenticationKey) != "" {
+		params.Set("auth", pub.authenticationKey)
+	}
 
-	cgURL.WriteString(sdkIdentificationParam)
-	cgURL.WriteString("&uuid=")
-	cgURL.WriteString(pub.GetUUID())
+	params.Set("uuid", pub.GetUUID())
+	params.Set(sdkIdentificationParamKey, sdkIdentificationParamVal)
 
-	value, _, err := pub.httpRequest(cgURL.String(), nonSubscribeTrans)
+	requestURL.WriteString("?")
+	requestURL.WriteString(params.Encode())
+
+	return requestURL
+}
+
+func (pub *Pubnub) executeChannelGroup(action, group, channel string,
+	callbackChannel, errorChannel chan []byte) {
+
+	requestURL := pub.generateStringforCGRequest(action, group, channel)
+
+	value, _, err := pub.httpRequest(requestURL.String(), nonSubscribeTrans)
 
 	if err != nil {
 		logMu.Lock()
@@ -3166,10 +3146,6 @@ func (pub *Pubnub) executeChannelGroup(middleURL *bytes.Buffer,
 			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 			logMu.Unlock()
 			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
-			if count < maxRetries {
-				count++
-				pub.executeChannelGroup(middleURL, callbackChannel, errorChannel, count)
-			}
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
 			pub.CloseExistingConnection()
