@@ -338,6 +338,22 @@ func askChannelOptional() (string, error) {
 	return string(channels), nil
 }
 
+// askChannelGroupOptional asks the user for a channel group name.
+// If the channel group(s) are not provided an empty string will be returned
+// returns the read channel(s), or error
+func askChannelGroupOptional() (string, error) {
+	fmt.Println("Please enter the channel group name. You can leave it blank.")
+	reader := bufio.NewReader(os.Stdin)
+	channel_groups, _, errReadingChannel := reader.ReadLine()
+
+	if errReadingChannel != nil {
+		fmt.Println("Error channel group: ", errReadingChannel.Error())
+		return "", errReadingChannel
+	} else {
+		return string(channel_groups), nil
+	}
+}
+
 func askQuestionBool(what string, defaultYes bool) bool {
 	enable := "n"
 	if defaultYes {
@@ -477,6 +493,47 @@ func askOtherPamInputs() (bool, bool, int) {
 
 }
 
+// askOtherPamCGInputs asks the user for read and manage access
+// and the ttl values on channel group
+// returns read, manage and ttl
+func askOtherPamCGInputs() (bool, bool, int) {
+	var read, manage bool
+	var ttl int
+
+	fmt.Println("Read access, enter 'y' for yes, default is no")
+	var enableRead = "n"
+	fmt.Scanln(&enableRead)
+
+	if enableRead == "y" || enableRead == "Y" {
+		read = true
+	} else {
+		read = false
+	}
+
+	fmt.Println("Manage access, enter 'y' for yes, default is no")
+	var enableManage = "n"
+	fmt.Scanln(&enableManage)
+
+	if enableManage == "y" || enableManage == "Y" {
+		manage = true
+	} else {
+		manage = false
+	}
+
+	var input string
+
+	fmt.Println("Enter TTL in minutes. Default = 1440 minutes (24 hours)")
+	fmt.Scanln(&input)
+
+	if ival, err := strconv.Atoi(input); err == nil {
+		ttl = ival
+	} else {
+		ttl = 1440
+	}
+
+	return read, manage, ttl
+}
+
 // UTF16BytesToString converts UTF-16 encoded bytes, in big or little endian byte order,
 // to a UTF-8 encoded string.
 func utf16BytesToString(b []byte, o binary.ByteOrder) string {
@@ -515,17 +572,20 @@ func ReadLoop() {
 			fmt.Println("ENTER 14 TO GRANT Presence")
 			fmt.Println("ENTER 15 TO REVOKE Presence")
 			fmt.Println("ENTER 16 TO Audit Presence")
-			fmt.Println("ENTER 17 TO SET Auth key")
-			fmt.Println("ENTER 18 TO SHOW Auth key")
-			fmt.Println(fmt.Sprintf("ENTER 19 TO SET Presence Heartbeat, current val: %d", pub.GetPresenceHeartbeat()))
-			fmt.Println(fmt.Sprintf("ENTER 20 TO SET Presence Heartbeat Interval, current val:%d", pub.GetPresenceHeartbeatInterval()))
-			fmt.Println("ENTER 21 TO SET User State by adding or modifying the Key-Pair")
-			fmt.Println("ENTER 22 TO DELETE an existing Key-Pair")
-			fmt.Println("ENTER 23 TO SET User State with JSON string")
-			fmt.Println("ENTER 24 TO GET User State")
-			fmt.Println("ENTER 25 FOR WhereNow")
-			fmt.Println("ENTER 26 FOR GlobalHereNow")
-			fmt.Println("ENTER 27 TO CHANGE UUID (" + pub.GetUUID() + ")")
+			fmt.Println("ENTER 17 TO GRANT Channel Group")
+			fmt.Println("ENTER 18 TO REVOKE Channel Group")
+			fmt.Println("ENTER 19 TO Audit Channel Group")
+			fmt.Println("ENTER 20 TO SET Auth key")
+			fmt.Println("ENTER 21 TO SHOW Auth key")
+			fmt.Println(fmt.Sprintf("ENTER 22 TO SET Presence Heartbeat, current val: %d", pub.GetPresenceHeartbeat()))
+			fmt.Println(fmt.Sprintf("ENTER 23 TO SET Presence Heartbeat Interval, current val:%d", pub.GetPresenceHeartbeatInterval()))
+			fmt.Println("ENTER 24 TO SET User State by adding or modifying the Key-Pair")
+			fmt.Println("ENTER 25 TO DELETE an existing Key-Pair")
+			fmt.Println("ENTER 26 TO SET User State with JSON string")
+			fmt.Println("ENTER 27 TO GET User State")
+			fmt.Println("ENTER 28 FOR WhereNow")
+			fmt.Println("ENTER 29 FOR GlobalHereNow")
+			fmt.Println("ENTER 30 TO CHANGE UUID (" + pub.GetUUID() + ")")
 			fmt.Println("ENTER 99 FOR Exit")
 			fmt.Println("")
 			showOptions = false
@@ -689,6 +749,33 @@ func ReadLoop() {
 				go pamAuditRoutine(channels, true)
 			}
 		case "17":
+			fmt.Println("Running Grant Channel Ggroup")
+			groups, errReadingChannelGroup := askChannelGroupOptional()
+
+			if errReadingChannelGroup != nil {
+				fmt.Println("errReadingChannelGroup: ", errReadingChannelGroup)
+			} else {
+				read, write, ttl := askOtherPamCGInputs()
+				go pamGrantChannelGroupRoutine(groups, read, write, ttl)
+			}
+		case "18":
+			fmt.Println("Running Revoke Channel Ggroup")
+			groups, errReadingChannelGroup := askChannelGroupOptional()
+
+			if errReadingChannelGroup != nil {
+				fmt.Println("errReadingChannelGroup: ", errReadingChannelGroup)
+			} else {
+				go pamGrantChannelGroupRoutine(groups, false, false, -1)
+			}
+		case "19":
+			fmt.Println("Running Audit Channel Group")
+			groups, errReadingChannelGroup := askChannelGroupOptional()
+			if errReadingChannelGroup != nil {
+				fmt.Println("errReadingChannelGroup: ", errReadingChannelGroup)
+			} else {
+				go pamAuditChannelGroupRoutine(groups)
+			}
+		case "20":
 			fmt.Println("Enter Auth Key. Use comma to enter multiple Auth Keys.")
 			fmt.Println("If you don't want to use Auth Key, Press ENTER Key")
 			reader := bufio.NewReader(os.Stdin)
@@ -700,18 +787,18 @@ func ReadLoop() {
 				pub.SetAuthenticationKey(string(authKey))
 				fmt.Println("Authentication Key Set")
 			}
-		case "18":
+		case "21":
 			fmt.Print("Authentication Key:")
 			fmt.Println(pub.GetAuthenticationKey())
-		case "19":
+		case "22":
 			presenceHeartbeat := askNumber16("Presence Heartbeat", false)
 			pub.SetPresenceHeartbeat(presenceHeartbeat)
 			fmt.Println(fmt.Sprintf("Presence Heartbeat set to :%d", pub.GetPresenceHeartbeat()))
-		case "20":
+		case "23":
 			presenceHeartbeatInterval := askNumber16("Presence Heartbeat Interval", false)
 			pub.SetPresenceHeartbeatInterval(presenceHeartbeatInterval)
 			fmt.Println(fmt.Sprintf("Presence Heartbeat Interval set to :%d", pub.GetPresenceHeartbeatInterval()))
-		case "21":
+		case "24":
 			channel, errReadingChannel := askOneChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
@@ -721,7 +808,7 @@ func ReadLoop() {
 				fmt.Println("Setting User State")
 				go setUserState(channel, key, val)
 			}
-		case "22":
+		case "25":
 			channel, errReadingChannel := askOneChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
@@ -730,7 +817,7 @@ func ReadLoop() {
 				fmt.Println("Deleting User State")
 				go delUserState(channel, key)
 			}
-		case "23":
+		case "26":
 			channel, errReadingChannel := askOneChannel()
 
 			if errReadingChannel != nil {
@@ -740,7 +827,7 @@ func ReadLoop() {
 				fmt.Println("Setting User State using JSON")
 				go setUserStateJSON(channel, jsonString)
 			}
-		case "24":
+		case "27":
 			channel, errReadingChannel := askOneChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
@@ -748,17 +835,17 @@ func ReadLoop() {
 				fmt.Println("Running Get User State")
 				go getUserState(channel)
 			}
-		case "25":
+		case "28":
 			uuid := askString("uuid", true)
 			fmt.Println("Running Where now")
 			go whereNowRoutine(uuid)
-		case "26":
+		case "29":
 			showUuid := askQuestionBool("Show UUID list", true)
 			includeUserState := askQuestionBool("Include user state", false)
 			fmt.Println("Running Global here now")
 
 			go globalHereNowRoutine(showUuid, includeUserState)
-		case "27":
+		case "30":
 			uuid := askString("uuid", true)
 			pub.SetUUID(uuid)
 			fmt.Println("UUID set to " + pub.GetUUID())
@@ -838,6 +925,25 @@ func pamAuditRoutine(channels string, isPresence bool) {
 		go pub.AuditSubscribe(channels, "", pamChannel, errorChannel)
 	}
 	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
+}
+
+func pamGrantChannelGroupRoutine(groups string, read, manage bool, ttl int) {
+	var errorChannel = make(chan []byte)
+	var pamChannel = make(chan []byte)
+
+	go pub.GrantChannelGroup(groups, read, manage, ttl, "",
+		pamChannel, errorChannel)
+	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(),
+		"Channel Group Grant")
+}
+
+func pamAuditChannelGroupRoutine(groups string) {
+	var errorChannel = make(chan []byte)
+	var pamChannel = make(chan []byte)
+
+	go pub.AuditChannelGroup(groups, "", pamChannel, errorChannel)
+	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(),
+		"Channel Group Audit")
 }
 
 // SubscribeRoutine calls the Subscribe routine of the messaging package
