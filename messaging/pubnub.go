@@ -1990,6 +1990,19 @@ func (pub *Pubnub) addAuthParam(queryStringInit bool) string {
 	return ""
 }
 
+// addAuthParamAsFirst return a string with authentication key
+// as the first element of params string
+// If an authentication key is an empty string the "?" sign will be returned
+func (pub *Pubnub) addAuthParamAsFirst() string {
+	authKey := pub.addAuthParam(true)
+
+	if authKey != "" {
+		return authKey
+	} else {
+		return "?"
+	}
+}
+
 // checkQuerystringInit
 // if queryStringInit is true then the query stirng already has the ?
 // and the new query stirng val is appended with &
@@ -3074,6 +3087,7 @@ func (pub *Pubnub) ChannelGroupAddChannel(group, channel string,
 	middleURL.WriteString("?add=")
 	middleURL.WriteString(url.QueryEscape(channel))
 	middleURL.WriteString(pub.addAuthParam(true))
+	middleURL.WriteString("&")
 
 	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
 }
@@ -3089,6 +3103,7 @@ func (pub *Pubnub) ChannelGroupRemoveChannel(group, channel string,
 	middleURL.WriteString("?remove=")
 	middleURL.WriteString(url.QueryEscape(channel))
 	middleURL.WriteString(pub.addAuthParam(true))
+	middleURL.WriteString("&")
 
 	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
 }
@@ -3101,7 +3116,7 @@ func (pub *Pubnub) ChannelGroupListChannels(group string,
 	var middleURL bytes.Buffer
 
 	middleURL.WriteString(url.QueryEscape(group))
-	middleURL.WriteString(pub.addAuthParam(false))
+	middleURL.WriteString(pub.addAuthParamAsFirst())
 
 	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
 }
@@ -3115,7 +3130,7 @@ func (pub *Pubnub) ChannelGroupRemoveGroup(group string,
 
 	middleURL.WriteString(url.QueryEscape(group))
 	middleURL.WriteString("/remove")
-	middleURL.WriteString(pub.addAuthParam(false))
+	middleURL.WriteString(pub.addAuthParamAsFirst())
 
 	pub.executeChannelGroup(&middleURL, callbackChannel, errorChannel, 0)
 }
@@ -3133,7 +3148,6 @@ func (pub *Pubnub) executeChannelGroup(middleURL *bytes.Buffer,
 
 	cgURL.WriteString(middleURL.String())
 
-	cgURL.WriteString("&")
 	cgURL.WriteString(sdkIdentificationParam)
 	cgURL.WriteString("&uuid=")
 	cgURL.WriteString(pub.GetUUID())
