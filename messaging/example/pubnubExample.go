@@ -338,6 +338,24 @@ func askChannelOptional() (string, error) {
 	return string(channels), nil
 }
 
+// AskChannelGroup asks the user for a channel group name.
+// If the channel group(s) are not provided an error will be returned
+// returns the read channel(s), or error
+func askChannelGroup() (string, error) {
+	fmt.Println("Please enter the channel group name.")
+	reader := bufio.NewReader(os.Stdin)
+	channelGroups, _, errReadingChannel := reader.ReadLine()
+
+	if errReadingChannel != nil {
+		fmt.Println("Error channel group: ", errReadingChannel.Error())
+		return "", errReadingChannel
+	} else if string(channelGroups) == "" {
+		return "", fmt.Errorf("Channel Group cannot be an empty string")
+	} else {
+		return string(channelGroups), nil
+	}
+}
+
 // askChannelGroupOptional asks the user for a channel group name.
 // If the channel group(s) are not provided an empty string will be returned
 // returns the read channel(s), or error
@@ -586,6 +604,10 @@ func ReadLoop() {
 			fmt.Println("ENTER 28 FOR WhereNow")
 			fmt.Println("ENTER 29 FOR GlobalHereNow")
 			fmt.Println("ENTER 30 TO CHANGE UUID (" + pub.GetUUID() + ")")
+			fmt.Println("ENTER 31 TO Add Channel to Channel Group ")
+			fmt.Println("ENTER 32 TO Remove Channel from Channel Group ")
+			fmt.Println("ENTER 33 TO List Channel Group ")
+			fmt.Println("ENTER 34 TO Remove Channel Group ")
 			fmt.Println("ENTER 99 FOR Exit")
 			fmt.Println("")
 			showOptions = false
@@ -849,6 +871,46 @@ func ReadLoop() {
 			uuid := askString("uuid", true)
 			pub.SetUUID(uuid)
 			fmt.Println("UUID set to " + pub.GetUUID())
+		case "31":
+			fmt.Println("Running Add Chanel to Channel Group")
+			group, errReadingChannelGroup := askChannelGroup()
+
+			if errReadingChannelGroup != nil {
+				fmt.Println("errReadingChannelGroup: ", errReadingChannelGroup)
+				break
+			}
+
+			channels := askString("channel names separated by comma", false)
+			go addChannelToChannelGroupRoutine(group, channels)
+		case "32":
+			fmt.Println("Running Remove Chanel from Channel Group")
+			group, errReadingChannelGroup := askChannelGroup()
+
+			if errReadingChannelGroup != nil {
+				fmt.Println("errReadingChannelGroup: ", errReadingChannelGroup)
+				break
+			}
+
+			channels := askString("channel names separated by comma", false)
+			go removeChannelFromChannelGroupRoutine(group, channels)
+		case "33":
+			fmt.Println("Listing a Channel Group")
+			group, errReadingChannelGroup := askChannelGroup()
+
+			if errReadingChannelGroup != nil {
+				fmt.Println("errReadingChannelGroup: ", errReadingChannelGroup)
+			} else {
+				go listChannelGroupRoutine(group)
+			}
+		case "34":
+			fmt.Println("Remove a Channel Group")
+			group, errReadingChannelGroup := askChannelGroup()
+
+			if errReadingChannelGroup != nil {
+				fmt.Println("errReadingChannelGroup: ", errReadingChannelGroup)
+			} else {
+				go removeChannelGroupRoutine(group)
+			}
 		case "99":
 			fmt.Println("Exiting")
 			pub.Abort()
@@ -1184,4 +1246,40 @@ func timeRoutine() {
 	channel := make(chan []byte)
 	go pub.GetTime(channel, errorChannel)
 	go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
+}
+
+func addChannelToChannelGroupRoutine(group, channels string) {
+	errorChannel := make(chan []byte)
+	successChannel := make(chan []byte)
+
+	go pub.ChannelGroupAddChannel(group, channels, successChannel, errorChannel)
+	go handleResult(successChannel, errorChannel,
+		messaging.GetNonSubscribeTimeout(), "Channel Group Add Channel")
+}
+
+func removeChannelFromChannelGroupRoutine(group, channels string) {
+	errorChannel := make(chan []byte)
+	successChannel := make(chan []byte)
+
+	go pub.ChannelGroupRemoveChannel(group, channels, successChannel, errorChannel)
+	go handleResult(successChannel, errorChannel,
+		messaging.GetNonSubscribeTimeout(), "Channel Group Remove Channel")
+}
+
+func listChannelGroupRoutine(group string) {
+	errorChannel := make(chan []byte)
+	successChannel := make(chan []byte)
+
+	go pub.ChannelGroupListChannels(group, successChannel, errorChannel)
+	go handleResult(successChannel, errorChannel,
+		messaging.GetNonSubscribeTimeout(), "Channel Group List")
+}
+
+func removeChannelGroupRoutine(group string) {
+	errorChannel := make(chan []byte)
+	successChannel := make(chan []byte)
+
+	go pub.ChannelGroupRemoveGroup(group, successChannel, errorChannel)
+	go handleResult(successChannel, errorChannel,
+		messaging.GetNonSubscribeTimeout(), "Channel Group Remove")
 }
