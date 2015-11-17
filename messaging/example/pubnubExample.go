@@ -514,9 +514,11 @@ func askOtherPamInputs() (bool, bool, int) {
 // askOtherPamCGInputs asks the user for read and manage access
 // and the ttl values on channel group
 // returns read, manage and ttl
-func askOtherPamCGInputs() (bool, bool, int) {
+func askOtherPamCGInputs() (bool, bool, string, int) {
 	var read, manage bool
 	var ttl int
+
+	var authKey = askString("authentication key", true)
 
 	fmt.Println("Read access, enter 'y' for yes, default is no")
 	var enableRead = "n"
@@ -549,7 +551,7 @@ func askOtherPamCGInputs() (bool, bool, int) {
 		ttl = 1440
 	}
 
-	return read, manage, ttl
+	return read, manage, authKey, ttl
 }
 
 // UTF16BytesToString converts UTF-16 encoded bytes, in big or little endian byte order,
@@ -777,8 +779,8 @@ func ReadLoop() {
 			if errReadingChannelGroup != nil {
 				fmt.Println("errReadingChannelGroup: ", errReadingChannelGroup)
 			} else {
-				read, write, ttl := askOtherPamCGInputs()
-				go pamGrantChannelGroupRoutine(groups, read, write, ttl)
+				read, write, auth, ttl := askOtherPamCGInputs()
+				go pamGrantChannelGroupRoutine(groups, auth, read, write, ttl)
 			}
 		case "18":
 			fmt.Println("Running Revoke Channel Ggroup")
@@ -787,7 +789,8 @@ func ReadLoop() {
 			if errReadingChannelGroup != nil {
 				fmt.Println("errReadingChannelGroup: ", errReadingChannelGroup)
 			} else {
-				go pamGrantChannelGroupRoutine(groups, false, false, -1)
+				auth := askString("authentication key", true)
+				go pamGrantChannelGroupRoutine(groups, auth, false, false, -1)
 			}
 		case "19":
 			fmt.Println("Running Audit Channel Group")
@@ -795,7 +798,8 @@ func ReadLoop() {
 			if errReadingChannelGroup != nil {
 				fmt.Println("errReadingChannelGroup: ", errReadingChannelGroup)
 			} else {
-				go pamAuditChannelGroupRoutine(groups)
+				auth := askString("authentication key", true)
+				go pamAuditChannelGroupRoutine(groups, auth)
 			}
 		case "20":
 			fmt.Println("Enter Auth Key. Use comma to enter multiple Auth Keys.")
@@ -989,21 +993,22 @@ func pamAuditRoutine(channels string, isPresence bool) {
 	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit")
 }
 
-func pamGrantChannelGroupRoutine(groups string, read, manage bool, ttl int) {
+func pamGrantChannelGroupRoutine(groups, auth string,
+	read, manage bool, ttl int) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
 
-	go pub.GrantChannelGroup(groups, read, manage, ttl, "",
+	go pub.GrantChannelGroup(groups, read, manage, ttl, auth,
 		pamChannel, errorChannel)
 	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(),
 		"Channel Group Grant")
 }
 
-func pamAuditChannelGroupRoutine(groups string) {
+func pamAuditChannelGroupRoutine(groups, auth string) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
 
-	go pub.AuditChannelGroup(groups, "", pamChannel, errorChannel)
+	go pub.AuditChannelGroup(groups, auth, pamChannel, errorChannel)
 	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(),
 		"Channel Group Audit")
 }
