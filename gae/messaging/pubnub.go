@@ -591,10 +591,10 @@ func (pub *Pubnub) GrantSubscribe(context context.Context,
 
 	pub.pamValidateSecretKey(channel, errorChannel)
 
-	params := pub.pamGenerateParamsForChannel("grant", channel, read, write,
+	requestURL := pub.pamGenerateParamsForChannel("grant", channel, read, write,
 		ttl, authKey)
 
-	pub.executePam(context, w, r, channel, "grant", params,
+	pub.executePam(context, w, r, channel, requestURL,
 		callbackChannel, errorChannel)
 }
 
@@ -612,10 +612,10 @@ func (pub *Pubnub) AuditSubscribe(context context.Context,
 
 	pub.pamValidateSecretKey(channel, errorChannel)
 
-	params := pub.pamGenerateParamsForChannel("audit", channel, false, false,
+	requestURL := pub.pamGenerateParamsForChannel("audit", channel, false, false,
 		-1, authKey)
 
-	pub.executePam(context, w, r, channel, "audit", params,
+	pub.executePam(context, w, r, channel, requestURL,
 		callbackChannel, errorChannel)
 }
 
@@ -637,10 +637,10 @@ func (pub *Pubnub) GrantPresence(context context.Context,
 
 	pub.pamValidateSecretKey(channel2, errorChannel)
 
-	params := pub.pamGenerateParamsForChannel("grant", channel2, read, write,
+	requestURL := pub.pamGenerateParamsForChannel("grant", channel2, read, write,
 		ttl, authKey)
 
-	pub.executePam(context, w, r, channel2, "grant", params,
+	pub.executePam(context, w, r, channel2, requestURL,
 		callbackChannel, errorChannel)
 }
 
@@ -659,10 +659,10 @@ func (pub *Pubnub) AuditPresence(context context.Context,
 
 	pub.pamValidateSecretKey(channel2, errorChannel)
 
-	params := pub.pamGenerateParamsForChannel("audit", channel2, false, false,
+	requestURL := pub.pamGenerateParamsForChannel("audit", channel2, false, false,
 		-1, authKey)
 
-	pub.executePam(context, w, r, channel2, "grant", params,
+	pub.executePam(context, w, r, channel2, requestURL,
 		callbackChannel, errorChannel)
 }
 
@@ -676,10 +676,10 @@ func (pub *Pubnub) GrantChannelGroup(context context.Context,
 
 	pub.pamValidateSecretKey(group, errorChannel)
 
-	params := pub.pamGenerateParamsForChannelGroup("grant", group, read, manage,
+	requestURL := pub.pamGenerateParamsForChannelGroup("grant", group, read, manage,
 		ttl, authKey)
 
-	pub.executePam(context, w, r, group, "grant", params,
+	pub.executePam(context, w, r, group, requestURL,
 		callbackChannel, errorChannel)
 }
 
@@ -694,10 +694,10 @@ func (pub *Pubnub) AuditChannelGroup(context context.Context,
 
 	pub.pamValidateSecretKey(group, errorChannel)
 
-	params := pub.pamGenerateParamsForChannelGroup("audit", group, false, false,
+	requestURL := pub.pamGenerateParamsForChannelGroup("audit", group, false, false,
 		-1, authKey)
 
-	pub.executePam(context, w, r, group, "audit", params,
+	pub.executePam(context, w, r, group, requestURL,
 		callbackChannel, errorChannel)
 }
 
@@ -778,6 +778,9 @@ func (pub *Pubnub) pamGenerateParamsForChannel(action, channel string,
 	filler := "&"
 	isAudit := action == "audit"
 
+	var params bytes.Buffer
+	var pamURLBuffer bytes.Buffer
+
 	if strings.TrimSpace(channel) != "" {
 		if isAudit {
 			channelParam = fmt.Sprintf("channel=%s", url.QueryEscape(channel))
@@ -824,20 +827,36 @@ func (pub *Pubnub) pamGenerateParamsForChannel(action, channel string,
 	}
 
 	if isAudit {
-		return fmt.Sprintf("%s%s%s%s&%s%s&uuid=%s%s", authParam,
+		params.WriteString(fmt.Sprintf("%s%s%s%s&%s%s&uuid=%s%s", authParam,
 			channelParam, filler, sdkIdentificationParam, readParam,
-			timestampParam, pub.GetUUID(), writeParam)
+			timestampParam, pub.GetUUID(), writeParam))
 
 	} else if !isAudit && ttl != -1 {
-		return fmt.Sprintf("%s%s%s&%s%s&%s&uuid=%s%s", authParam,
+		params.WriteString(fmt.Sprintf("%s%s%s&%s%s&%s&uuid=%s%s", authParam,
 			channelParam, sdkIdentificationParam, readParam, timestampParam,
-			ttlParam, pub.GetUUID(), writeParam)
+			ttlParam, pub.GetUUID(), writeParam))
 
 	} else {
-		return fmt.Sprintf("%s%s%s&%s%s&uuid=%s%s", authParam,
+		params.WriteString(fmt.Sprintf("%s%s%s&%s%s&uuid=%s%s", authParam,
 			channelParam, sdkIdentificationParam, readParam, timestampParam,
-			pub.GetUUID(), writeParam)
+			pub.GetUUID(), writeParam))
 	}
+
+	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey,
+		action, params)
+	signature := getHmacSha256(pub.SecretKey, raw)
+
+	pamURLBuffer.WriteString("/v1/auth/")
+	pamURLBuffer.WriteString(action)
+	pamURLBuffer.WriteString("/sub-key/")
+	pamURLBuffer.WriteString(pub.SubscribeKey)
+	pamURLBuffer.WriteString("?")
+	pamURLBuffer.WriteString(params.String())
+	pamURLBuffer.WriteString("&")
+	pamURLBuffer.WriteString("signature=")
+	pamURLBuffer.WriteString(signature)
+
+	return pamURLBuffer.String()
 }
 
 //  generate params string for channel groups pam request
@@ -852,10 +871,10 @@ func (pub *Pubnub) pamGenerateParamsForChannelGroup(action, channelGroup string,
 	timestampParam := ""
 	ttlParam := ""
 	filler := "&"
-
 	isAudit := action == "audit"
 
 	var params bytes.Buffer
+	var pamURLBuffer bytes.Buffer
 
 	if strings.TrimSpace(channelGroup) != "" {
 		if isAudit {
@@ -920,39 +939,31 @@ func (pub *Pubnub) pamGenerateParamsForChannelGroup(action, channelGroup string,
 			timestampParam, pub.GetUUID()))
 	}
 
-	return params.String()
+	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey,
+		action, params)
+	signature := getHmacSha256(pub.SecretKey, raw)
+
+	pamURLBuffer.WriteString("/v1/auth/")
+	pamURLBuffer.WriteString(action)
+	pamURLBuffer.WriteString("/sub-key/")
+	pamURLBuffer.WriteString(pub.SubscribeKey)
+	pamURLBuffer.WriteString("?")
+	pamURLBuffer.WriteString(params.String())
+	pamURLBuffer.WriteString("&")
+	pamURLBuffer.WriteString("signature=")
+	pamURLBuffer.WriteString(signature)
+
+	return pamURLBuffer.String()
 }
 
 // executePam is the main method which is called for all PAM requests
 //
 // for audit request the isAudit parameter should be true
 func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter,
-	r *http.Request, action, entity, params string,
+	r *http.Request, entity, requestURL string,
 	callbackChannel, errorChannel chan []byte) {
 
-	signature := ""
-
-	var paramsBuffer bytes.Buffer
-	var pamURLBuffer bytes.Buffer
-
-	pamURLBuffer.WriteString("/v1/auth/")
-	pamURLBuffer.WriteString(action)
-
-	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey,
-		action, params)
-	signature = getHmacSha256(pub.SecretKey, raw)
-
-	paramsBuffer.WriteString(params)
-	paramsBuffer.WriteString("&")
-	paramsBuffer.WriteString("signature=")
-	paramsBuffer.WriteString(signature)
-
-	pamURLBuffer.WriteString("/sub-key/")
-	pamURLBuffer.WriteString(pub.SubscribeKey)
-	pamURLBuffer.WriteString("?")
-	pamURLBuffer.WriteString(paramsBuffer.String())
-
-	value, responseCode, err := pub.httpRequest(context, w, r, pamURLBuffer.String(), nonSubscribeTrans)
+	value, responseCode, err := pub.httpRequest(context, w, r, requestURL, nonSubscribeTrans)
 	if (responseCode != 200) || (err != nil) {
 		var message = ""
 		if err != nil {
