@@ -843,7 +843,7 @@ func (pub *Pubnub) pamGenerateParamsForChannel(action, channel string,
 	}
 
 	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey,
-		action, params)
+		action, params.String())
 	signature := getHmacSha256(pub.SecretKey, raw)
 
 	pamURLBuffer.WriteString("/v1/auth/")
@@ -940,7 +940,7 @@ func (pub *Pubnub) pamGenerateParamsForChannelGroup(action, channelGroup string,
 	}
 
 	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey,
-		action, params)
+		action, params.String())
 	signature := getHmacSha256(pub.SecretKey, raw)
 
 	pamURLBuffer.WriteString("/v1/auth/")

@@ -4,8 +4,9 @@ package tests
 
 import (
 	//"encoding/json"
-	".."
 	"fmt"
+	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
@@ -57,18 +58,37 @@ func ParsePamErrorResponse(channel chan []byte, testName string, message string,
 	}
 }
 
-func ParsePamResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnub, message string, channel string, testName string, responseChannel chan string) {
+func ParsePamResponseEqual(returnChannel chan []byte, pubnubInstance *messaging.Pubnub, message string, channel string, testName string, responseChannel chan string, t *testing.T) {
 	for {
 		value, ok := <-returnChannel
 		if !ok {
 			break
 		}
+
 		if string(value) != "[]" {
 			response := string(value)
-			//fmt.Println(testName, " response:", response)
-			//fmt.Println(testName, " message:",message);
-			if strings.Contains(response, message) {
 
+			if assert.JSONEq(t, message, response) {
+				responseChannel <- "Test '" + testName + "': passed."
+				break
+			} else {
+				responseChannel <- "Test '" + testName + "': failed."
+			}
+		}
+	}
+}
+
+func ParsePamResponseContain(returnChannel chan []byte, pubnubInstance *messaging.Pubnub, message string, channel string, testName string, responseChannel chan string, t *testing.T) {
+	for {
+		value, ok := <-returnChannel
+		if !ok {
+			break
+		}
+
+		if string(value) != "[]" {
+			response := string(value)
+
+			if assert.Contains(t, message, response) {
 				responseChannel <- "Test '" + testName + "': passed."
 				break
 			} else {
@@ -93,7 +113,7 @@ func TestSubscribeGrantPositive(t *testing.T) {
 	waitChannel := make(chan string)
 
 	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, "", returnPamChannel, errorChannel)
-	go ParsePamResponse(returnPamChannel, pubnubInstance, message, channel, "SubscribeGrantPositiveGrant", responseChannel)
+	go ParsePamResponseEqual(returnPamChannel, pubnubInstance, message, channel, "SubscribeGrantPositiveGrant", responseChannel, t)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscribeGrantPositiveGrant")
@@ -104,7 +124,7 @@ func TestSubscribeGrantPositive(t *testing.T) {
 	waitChannel2 := make(chan string)
 
 	go pubnubInstance.GrantSubscribe(channel, false, false, -1, "", returnPamChannel2, errorChannel2)
-	go ParsePamResponse(returnPamChannel2, pubnubInstance, message2, channel, "SubscribeGrantPositiveRevoke", responseChannel2)
+	go ParsePamResponseEqual(returnPamChannel2, pubnubInstance, message2, channel, "SubscribeGrantPositiveRevoke", responseChannel2, t)
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
 	ParseWaitResponse(waitChannel2, t, "SubscribeGrantPositiveRevoke")
@@ -149,7 +169,7 @@ func TestPresenceGrantPositive(t *testing.T) {
 	waitChannel := make(chan string)
 
 	go pubnubInstance.GrantPresence(channel, true, true, ttl, "", returnPamChannel, errorChannel)
-	go ParsePamResponse(returnPamChannel, pubnubInstance, message, channel, "PresenceGrantPositiveGrant", responseChannel)
+	go ParsePamResponseEqual(returnPamChannel, pubnubInstance, message, channel, "PresenceGrantPositiveGrant", responseChannel, t)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "PresenceGrantPositiveGrant")
@@ -160,7 +180,7 @@ func TestPresenceGrantPositive(t *testing.T) {
 	waitChannel2 := make(chan string)
 
 	go pubnubInstance.GrantPresence(channel, false, false, -1, "", returnPamChannel2, errorChannel2)
-	go ParsePamResponse(returnPamChannel2, pubnubInstance, message2, channel, "PresenceGrantPositiveRevoke", responseChannel2)
+	go ParsePamResponseEqual(returnPamChannel2, pubnubInstance, message2, channel, "PresenceGrantPositiveRevoke", responseChannel2, t)
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
 	ParseWaitResponse(waitChannel2, t, "PresenceGrantPositiveRevoke")
@@ -216,7 +236,7 @@ func TestSubscribeAudit(t *testing.T) {
 	//audit
 	go pubnubInstance.AuditSubscribe(channel, "", returnPamChannel, errorChannel)
 	//fmt.Println("message:", message)
-	go ParsePamResponse(returnPamChannel, pubnubInstance, message, channel, "SubscribeAuditChannel", responseChannel)
+	go ParsePamResponseEqual(returnPamChannel, pubnubInstance, message, channel, "SubscribeAuditChannel", responseChannel, t)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscribeAuditChannel")
@@ -231,7 +251,7 @@ func TestSubscribeAudit(t *testing.T) {
 	//audit
 	go pubnubInstance.AuditSubscribe("", returnPamChannel2, errorChannel2)
 	//fmt.Println("message1:", message1)
-	go ParsePamResponse(returnPamChannel2, pubnubInstance, message1, "", "SubscribeAuditSubKey", responseChannel2)
+	go ParsePamResponseEqual(returnPamChannel2, pubnubInstance, message1, "", "SubscribeAuditSubKey", responseChannel2)
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
 	ParseWaitResponse(waitChannel2, t, "SubscribeAuditSubKey")*/
@@ -245,7 +265,7 @@ func TestSubscribeAudit(t *testing.T) {
 	//grant
 	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, "", returnPamChannel3, errorChannel3)
 	//fmt.Println("message2:", message2)
-	go ParsePamResponse(returnPamChannel3, pubnubInstance, message2, channel, "SubscribeAuditGrantPositiveGrant", responseChannel3)
+	go ParsePamResponseEqual(returnPamChannel3, pubnubInstance, message2, channel, "SubscribeAuditGrantPositiveGrant", responseChannel3, t)
 	go ParseErrorResponse(errorChannel3, responseChannel3)
 	go WaitForCompletion(responseChannel3, waitChannel3)
 	ParseWaitResponse(waitChannel3, t, "SubscribeAuditGrantPositiveGrant")
@@ -256,7 +276,7 @@ func TestSubscribeAudit(t *testing.T) {
 	waitChannel4 := make(chan string)
 
 	go pubnubInstance.Subscribe(channel, "", returnPamChannel4, false, errorChannel4)
-	go ParsePamResponse(returnPamChannel4, pubnubInstance, message5, channel, "SubscribeAudit", responseChannel4)
+	go ParsePamResponseEqual(returnPamChannel4, pubnubInstance, message5, channel, "SubscribeAudit", responseChannel4, t)
 	go ParseErrorResponse(errorChannel4, responseChannel4)
 	go WaitForCompletion(responseChannel4, waitChannel4)
 	ParseWaitResponse(waitChannel4, t, "SubscribeAudit")
@@ -271,7 +291,7 @@ func TestSubscribeAudit(t *testing.T) {
 	//audit
 	go pubnubInstance.AuditSubscribe(channel, "", returnPamChannel5, errorChannel5)
 	//fmt.Println("message3:", message3)
-	go ParsePamResponse(returnPamChannel5, pubnubInstance, message3, channel, "SubscribeAuditChannel2", responseChannel5)
+	go ParsePamResponseEqual(returnPamChannel5, pubnubInstance, message3, channel, "SubscribeAuditChannel2", responseChannel5, t)
 	go ParseErrorResponse(errorChannel5, responseChannel5)
 	go WaitForCompletion(responseChannel5, waitChannel5)
 	ParseWaitResponse(waitChannel5, t, "SubscribeAuditChannel2")
@@ -284,7 +304,7 @@ func TestSubscribeAudit(t *testing.T) {
 	//audit
 	go pubnubInstance.AuditSubscribe("", "", returnPamChannel6, errorChannel6)
 	//fmt.Println("message4:", message4)
-	go ParsePamResponse(returnPamChannel6, pubnubInstance, message4, channel, "SubscribeAuditSubKey2", responseChannel6)
+	go ParsePamResponseEqual(returnPamChannel6, pubnubInstance, message4, channel, "SubscribeAuditSubKey2", responseChannel6, t)
 	go ParseErrorResponse(errorChannel6, responseChannel6)
 	go WaitForCompletion(responseChannel6, waitChannel6)
 	ParseWaitResponse(waitChannel6, t, "SubscribeAuditSubKey2")
@@ -295,12 +315,12 @@ func TestSubscribeAudit(t *testing.T) {
 	waitChannel7 := make(chan string)
 
 	go pubnubInstance.Unsubscribe(channel, returnPamChannel7, errorChannel7)
-	go ParsePamResponse(returnPamChannel7, pubnubInstance, message6, channel, "SubscribeAuditUnsub", responseChannel7)
+	go ParsePamResponseEqual(returnPamChannel7, pubnubInstance, message6, channel, "SubscribeAuditUnsub", responseChannel7, t)
 	go ParseErrorResponse(errorChannel7, responseChannel7)
 	go WaitForCompletion(responseChannel7, waitChannel7)
 
 	go pubnubInstance.GrantSubscribe(channel, false, false, -1, "", returnPamChannel7, errorChannel7)
-	go ParsePamResponse(returnPamChannel7, pubnubInstance, message5, channel, "SubscribeAuditRevoke", responseChannel7)
+	go ParsePamResponseEqual(returnPamChannel7, pubnubInstance, message5, channel, "SubscribeAuditRevoke", responseChannel7, t)
 	go ParseErrorResponse(errorChannel7, responseChannel7)
 	go WaitForCompletion(responseChannel7, waitChannel7)
 	pubnubInstance.CloseExistingConnection()
@@ -346,7 +366,7 @@ func TestPresenceAudit(t *testing.T) {
 	//audit
 	go pubnubInstance.AuditPresence(channel, "", returnPamChannel, errorChannel)
 	//fmt.Println("message:", message)
-	go ParsePamResponse(returnPamChannel, pubnubInstance, message, channel, "PresenceAuditChannel", responseChannel)
+	go ParsePamResponseEqual(returnPamChannel, pubnubInstance, message, channel, "PresenceAuditChannel", responseChannel, t)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "PresenceAuditChannel")
@@ -361,7 +381,7 @@ func TestPresenceAudit(t *testing.T) {
 	//audit
 	go pubnubInstance.AuditPresence("", returnPamChannel2, errorChannel2)
 	//fmt.Println("message1:", message1)
-	go ParsePamResponse(returnPamChannel2, pubnubInstance, message1, "", "PresenceAuditSubKey", responseChannel2)
+	go ParsePamResponseEqual(returnPamChannel2, pubnubInstance, message1, "", "PresenceAuditSubKey", responseChannel2)
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
 	ParseWaitResponse(waitChannel2, t, "PresenceAuditSubKey")*/
@@ -374,7 +394,7 @@ func TestPresenceAudit(t *testing.T) {
 	//grant
 	go pubnubInstance.GrantPresence(channel, true, true, ttl, "", returnPamChannel3, errorChannel3)
 	//fmt.Println("message2:", message2)
-	go ParsePamResponse(returnPamChannel3, pubnubInstance, message2, channel, "PresenceAuditGrant", responseChannel3)
+	go ParsePamResponseEqual(returnPamChannel3, pubnubInstance, message2, channel, "PresenceAuditGrant", responseChannel3, t)
 	go ParseErrorResponse(errorChannel3, responseChannel3)
 	go WaitForCompletion(responseChannel3, waitChannel3)
 	ParseWaitResponse(waitChannel3, t, "PresenceAuditGrant")
@@ -385,7 +405,7 @@ func TestPresenceAudit(t *testing.T) {
 	waitChannel4 := make(chan string)
 
 	go pubnubInstance.Subscribe(channel, "", returnPamChannel4, true, errorChannel4)
-	go ParsePamResponse(returnPamChannel4, pubnubInstance, message5, channel, "PresenceAudit", responseChannel4)
+	go ParsePamResponseEqual(returnPamChannel4, pubnubInstance, message5, channel, "PresenceAudit", responseChannel4, t)
 	go ParseErrorResponse(errorChannel4, responseChannel4)
 	go WaitForCompletion(responseChannel4, waitChannel4)
 	ParseWaitResponse(waitChannel4, t, "PresenceAudit")
@@ -400,7 +420,7 @@ func TestPresenceAudit(t *testing.T) {
 	//audit
 	go pubnubInstance.AuditPresence(channel, "", returnPamChannel5, errorChannel5)
 	//fmt.Println("message3:", message3)
-	go ParsePamResponse(returnPamChannel5, pubnubInstance, message3, channel, "PresenceAuditChannel2", responseChannel5)
+	go ParsePamResponseEqual(returnPamChannel5, pubnubInstance, message3, channel, "PresenceAuditChannel2", responseChannel5, t)
 	go ParseErrorResponse(errorChannel5, responseChannel5)
 	go WaitForCompletion(responseChannel5, waitChannel5)
 	ParseWaitResponse(waitChannel5, t, "PresenceAuditChannel2")
@@ -413,7 +433,7 @@ func TestPresenceAudit(t *testing.T) {
 	//audit
 	go pubnubInstance.AuditPresence("", "", returnPamChannel6, errorChannel6)
 	//fmt.Println("message4:", message4)
-	go ParsePamResponse(returnPamChannel6, pubnubInstance, message4, channel, "PresenceAuditSubKey2", responseChannel6)
+	go ParsePamResponseEqual(returnPamChannel6, pubnubInstance, message4, channel, "PresenceAuditSubKey2", responseChannel6, t)
 	go ParseErrorResponse(errorChannel6, responseChannel6)
 	go WaitForCompletion(responseChannel6, waitChannel6)
 	ParseWaitResponse(waitChannel6, t, "PresenceAuditSubKey2")
@@ -424,12 +444,12 @@ func TestPresenceAudit(t *testing.T) {
 	waitChannel7 := make(chan string)
 
 	go pubnubInstance.PresenceUnsubscribe(channel, returnPamChannel7, errorChannel7)
-	go ParsePamResponse(returnPamChannel7, pubnubInstance, message6, channel, "PresenceAuditUnsub", responseChannel7)
+	go ParsePamResponseEqual(returnPamChannel7, pubnubInstance, message6, channel, "PresenceAuditUnsub", responseChannel7, t)
 	//go ParseErrorResponse(errorChannel7, responseChannel7)
 	go WaitForCompletion(responseChannel7, waitChannel7)
 
 	go pubnubInstance.GrantPresence(channel, false, false, -1, "", returnPamChannel7, errorChannel7)
-	go ParsePamResponse(returnPamChannel7, pubnubInstance, message5, channel, "PresenceAuditRevoke", responseChannel7)
+	go ParsePamResponseEqual(returnPamChannel7, pubnubInstance, message5, channel, "PresenceAuditRevoke", responseChannel7, t)
 	//go ParseErrorResponse(errorChannel7, responseChannel7)
 	go WaitForCompletion(responseChannel7, waitChannel7)
 	pubnubInstance.CloseExistingConnection()
@@ -454,7 +474,7 @@ func TestAuthSubscribe(t *testing.T) {
 
 	//grant
 	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, "", returnPamChannel, errorChannel)
-	go ParsePamResponse(returnPamChannel, pubnubInstance, message, channel, "SubscribeAuthGrant", responseChannel)
+	go ParsePamResponseEqual(returnPamChannel, pubnubInstance, message, channel, "SubscribeAuthGrant", responseChannel, t)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscribeAuthGrant")
@@ -468,7 +488,7 @@ func TestAuthSubscribe(t *testing.T) {
 
 	//subscribe
 	go pubnubInstance.Subscribe(channel, "", returnPamChannel2, false, errorChannel2)
-	go ParsePamResponse(returnPamChannel2, pubnubInstance, message5, channel, "SubscribeAuthSubscribe", responseChannel2)
+	go ParsePamResponseEqual(returnPamChannel2, pubnubInstance, message5, channel, "SubscribeAuthSubscribe", responseChannel2, t)
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
 	//check connect
@@ -480,7 +500,7 @@ func TestAuthSubscribe(t *testing.T) {
 	waitChannel3 := make(chan string)
 
 	go pubnubInstance.Unsubscribe(channel, returnPamChannel3, errorChannel3)
-	go ParsePamResponse(returnPamChannel3, pubnubInstance, message6, channel, "SubscribeAuthUnsubscribe", responseChannel3)
+	go ParsePamResponseEqual(returnPamChannel3, pubnubInstance, message6, channel, "SubscribeAuthUnsubscribe", responseChannel3, t)
 	go ParseErrorResponse(errorChannel3, responseChannel3)
 	go WaitForCompletion(responseChannel3, waitChannel3)
 	ParseWaitResponse(waitChannel3, t, "SubscribeAuthUnsubscribe")
@@ -492,7 +512,7 @@ func TestAuthSubscribe(t *testing.T) {
 
 	//revoke
 	go pubnubInstance.GrantSubscribe(channel, false, false, -1, "", returnPamChannel4, errorChannel4)
-	go ParsePamResponse(returnPamChannel4, pubnubInstance, message2, channel, "SubscribeAuthRevoke", responseChannel4)
+	go ParsePamResponseEqual(returnPamChannel4, pubnubInstance, message2, channel, "SubscribeAuthRevoke", responseChannel4, t)
 	go ParseErrorResponse(errorChannel4, responseChannel4)
 	go WaitForCompletion(responseChannel4, waitChannel4)
 
@@ -518,7 +538,7 @@ func TestAuthPresence(t *testing.T) {
 
 	//grant
 	go pubnubInstance.GrantPresence(channel, true, true, ttl, "", returnPamChannel, errorChannel)
-	go ParsePamResponse(returnPamChannel, pubnubInstance, message, channel, "PresenceAuthGrant", responseChannel)
+	go ParsePamResponseEqual(returnPamChannel, pubnubInstance, message, channel, "PresenceAuthGrant", responseChannel, t)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "PresenceAuthGrant")
@@ -532,7 +552,7 @@ func TestAuthPresence(t *testing.T) {
 
 	//subscribe
 	go pubnubInstance.Subscribe(channel, "", returnPamChannel2, true, errorChannel2)
-	go ParsePamResponse(returnPamChannel2, pubnubInstance, message5, channel, "PresenceAuthSubscribe", responseChannel2)
+	go ParsePamResponseEqual(returnPamChannel2, pubnubInstance, message5, channel, "PresenceAuthSubscribe", responseChannel2, t)
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
 	//check connect
@@ -544,7 +564,7 @@ func TestAuthPresence(t *testing.T) {
 	waitChannel3 := make(chan string)
 
 	go pubnubInstance.PresenceUnsubscribe(channel, returnPamChannel3, errorChannel3)
-	go ParsePamResponse(returnPamChannel3, pubnubInstance, message6, channel, "PresenceAuthUnsubscribe", responseChannel3)
+	go ParsePamResponseEqual(returnPamChannel3, pubnubInstance, message6, channel, "PresenceAuthUnsubscribe", responseChannel3, t)
 	go ParseErrorResponse(errorChannel3, responseChannel3)
 	go WaitForCompletion(responseChannel3, waitChannel3)
 	ParseWaitResponse(waitChannel3, t, "PresenceAuthUnsubscribe")
@@ -556,7 +576,7 @@ func TestAuthPresence(t *testing.T) {
 
 	//revoke
 	go pubnubInstance.GrantSubscribe(channel, false, false, -1, "", returnPamChannel4, errorChannel4)
-	go ParsePamResponse(returnPamChannel4, pubnubInstance, message2, channel, "PresenceAuthRevoke", responseChannel4)
+	go ParsePamResponseEqual(returnPamChannel4, pubnubInstance, message2, channel, "PresenceAuthRevoke", responseChannel4, t)
 	go ParseErrorResponse(errorChannel4, responseChannel4)
 	go WaitForCompletion(responseChannel4, waitChannel4)
 }
@@ -568,23 +588,23 @@ func TestAuthHereNow(t *testing.T) {
 
 	time.Sleep(time.Duration(10) * time.Second)
 	ttl := 1
-	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}`)
+	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}}`)
 	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message5 := fmt.Sprintf(`'%s' connected`, channel)
 	message4 := pubnubInstance.GetUUID()
 	message6 := fmt.Sprintf(`'%s' unsubscribed`, channel)
 
-	returnPamChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
+	//returnPamChannel := make(chan []byte)
+	//errorChannel := make(chan []byte)
+	//responseChannel := make(chan string)
+	//waitChannel := make(chan string)
 
 	//grant
-	go pubnubInstance.GrantPresence(channel, true, true, ttl, "", returnPamChannel, errorChannel)
-	go ParsePamResponse(returnPamChannel, pubnubInstance, message, channel, "HereNowAuthGrant", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "HereNowAuthGrant")
+	//go pubnubInstance.GrantPresence(channel, true, true, ttl, "", returnPamChannel, errorChannel)
+	//go ParsePamResponseContain(returnPamChannel, pubnubInstance, message, channel, "HereNowAuthGrant", responseChannel, t)
+	//go ParseErrorResponse(errorChannel, responseChannel)
+	//go WaitForCompletion(responseChannel, waitChannel)
+	//ParseWaitResponse(waitChannel, t, "HereNowAuthGrant")
 
 	returnPamChannel2 := make(chan []byte)
 	errorChannel2 := make(chan []byte)
@@ -593,7 +613,7 @@ func TestAuthHereNow(t *testing.T) {
 
 	//grant
 	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, "", returnPamChannel2, errorChannel2)
-	go ParsePamResponse(returnPamChannel2, pubnubInstance, message, channel, "HereNowAuthSubscribe", responseChannel2)
+	go ParsePamResponseEqual(returnPamChannel2, pubnubInstance, message, channel, "HereNowAuthSubscribe", responseChannel2, t)
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
 	ParseWaitResponse(waitChannel2, t, "HereNowAuthSubscribe")
@@ -605,7 +625,7 @@ func TestAuthHereNow(t *testing.T) {
 
 	//subscribe
 	go pubnubInstance.Subscribe(channel, "", returnPamChannel3, false, errorChannel3)
-	go ParsePamResponse(returnPamChannel3, pubnubInstance, message5, channel, "HereNowAuthSubscribe", responseChannel3)
+	go ParsePamResponseEqual(returnPamChannel3, pubnubInstance, message5, channel, "HereNowAuthSubscribe", responseChannel3, t)
 	go ParseErrorResponse(errorChannel3, responseChannel3)
 	go WaitForCompletion(responseChannel3, waitChannel3)
 	//check connect
@@ -620,7 +640,7 @@ func TestAuthHereNow(t *testing.T) {
 
 	//herenow
 	go pubnubInstance.HereNow(channel, true, true, returnPamChannel4, errorChannel4)
-	go ParsePamResponse(returnPamChannel4, pubnubInstance, message4, channel, "HereNowAuthHereNow", responseChannel4)
+	go ParsePamResponseEqual(returnPamChannel4, pubnubInstance, message4, channel, "HereNowAuthHereNow", responseChannel4, t)
 	go ParseErrorResponse(errorChannel4, responseChannel4)
 	go WaitForCompletion(responseChannel4, waitChannel4)
 	//check connect
@@ -632,7 +652,7 @@ func TestAuthHereNow(t *testing.T) {
 	waitChannel5 := make(chan string)
 
 	go pubnubInstance.Unsubscribe(channel, returnPamChannel5, errorChannel5)
-	go ParsePamResponse(returnPamChannel5, pubnubInstance, message6, channel, "HereNowAuthUnsubscribe", responseChannel5)
+	go ParsePamResponseEqual(returnPamChannel5, pubnubInstance, message6, channel, "HereNowAuthUnsubscribe", responseChannel5, t)
 	go ParseErrorResponse(errorChannel5, responseChannel5)
 	go WaitForCompletion(responseChannel5, waitChannel5)
 	ParseWaitResponse(waitChannel5, t, "HereNowAuthUnsubscribe")
@@ -644,7 +664,7 @@ func TestAuthHereNow(t *testing.T) {
 
 	//revoke
 	go pubnubInstance.GrantSubscribe(channel, false, false, -1, "", returnPamChannel6, errorChannel6)
-	go ParsePamResponse(returnPamChannel6, pubnubInstance, message2, channel, "HereNowAuthHereNow", responseChannel6)
+	go ParsePamResponseEqual(returnPamChannel6, pubnubInstance, message2, channel, "HereNowAuthHereNow", responseChannel6, t)
 	go ParseErrorResponse(errorChannel6, responseChannel6)
 	go WaitForCompletion(responseChannel6, waitChannel6)
 
@@ -657,7 +677,7 @@ func TestAuthHistory(t *testing.T) {
 
 	time.Sleep(time.Duration(10) * time.Second)
 	ttl := 2
-	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}}`)
+	message := fmt.Sprintf(`{"auths":{"authkey":{"r":1,"m":0,"w":1}`)
 	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message5 := "Test Message"
 
@@ -668,7 +688,7 @@ func TestAuthHistory(t *testing.T) {
 
 	//grant
 	go pubnubInstance.GrantPresence(channel, true, true, ttl, "", returnPamChannel, errorChannel)
-	go ParsePamResponse(returnPamChannel, pubnubInstance, message, channel, "HistoryAuthGrant", responseChannel)
+	go ParsePamResponseContain(returnPamChannel, pubnubInstance, message, channel, "HistoryAuthGrant", responseChannel, t)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "HistoryAuthGrant")
@@ -680,7 +700,7 @@ func TestAuthHistory(t *testing.T) {
 
 	//grant
 	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, "", returnPamChannel2, errorChannel2)
-	go ParsePamResponse(returnPamChannel2, pubnubInstance, message, channel, "HistoryAuthSubscribe", responseChannel2)
+	go ParsePamResponseEqual(returnPamChannel2, pubnubInstance, message, channel, "HistoryAuthSubscribe", responseChannel2, t)
 	go ParseErrorResponse(errorChannel2, responseChannel2)
 	go WaitForCompletion(responseChannel2, waitChannel2)
 	ParseWaitResponse(waitChannel2, t, "HistoryAuthSubscribe")
@@ -692,7 +712,7 @@ func TestAuthHistory(t *testing.T) {
 
 	//publish
 	go pubnubInstance.Publish(channel, message5, returnPamChannel3, errorChannel3)
-	go ParsePamResponse(returnPamChannel3, pubnubInstance, "Sent", channel, "HistoryAuthPublish", responseChannel3)
+	go ParsePamResponseEqual(returnPamChannel3, pubnubInstance, "Sent", channel, "HistoryAuthPublish", responseChannel3, t)
 	go ParseErrorResponse(errorChannel3, responseChannel3)
 	go WaitForCompletion(responseChannel3, waitChannel3)
 	ParseWaitResponse(waitChannel3, t, "HistoryAuthPublish")
@@ -704,7 +724,7 @@ func TestAuthHistory(t *testing.T) {
 
 	//history
 	go pubnubInstance.History(channel, 1, 0, 0, false, returnPamChannel4, errorChannel4)
-	go ParsePamResponse(returnPamChannel4, pubnubInstance, message5, channel, "HistoryAuthHistory", responseChannel4)
+	go ParsePamResponseEqual(returnPamChannel4, pubnubInstance, message5, channel, "HistoryAuthHistory", responseChannel4, t)
 	go ParseErrorResponse(errorChannel4, responseChannel4)
 	go WaitForCompletion(responseChannel4, waitChannel4)
 	//check connect
@@ -717,13 +737,13 @@ func TestAuthHistory(t *testing.T) {
 
 	//revoke
 	go pubnubInstance.GrantSubscribe(channel, false, false, -1, "", returnPamChannel5, errorChannel5)
-	go ParsePamResponse(returnPamChannel5, pubnubInstance, message2, channel, "HistoryAuthHistory", responseChannel5)
+	go ParsePamResponseEqual(returnPamChannel5, pubnubInstance, message2, channel, "HistoryAuthHistory", responseChannel5, t)
 	go ParseErrorResponse(errorChannel5, responseChannel5)
 	go WaitForCompletion(responseChannel5, waitChannel5)
 
 	//revoke
 	go pubnubInstance.GrantSubscribe(channel, false, false, -1, "", returnPamChannel5, errorChannel5)
-	go ParsePamResponse(returnPamChannel5, pubnubInstance, message2, channel, "HistoryAuthHereNow", responseChannel5)
+	go ParsePamResponseEqual(returnPamChannel5, pubnubInstance, message2, channel, "HistoryAuthHereNow", responseChannel5, t)
 	go ParseErrorResponse(errorChannel5, responseChannel5)
 	go WaitForCompletion(responseChannel5, waitChannel5)
 
