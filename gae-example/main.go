@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/anovikov1984/go/gae/messaging"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/pubnub/go/gae/messaging"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/channel"
