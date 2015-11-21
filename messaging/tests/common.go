@@ -129,6 +129,13 @@ type Entry struct {
 	Age  int    `xml:"age"`
 }
 
+type PamResponse struct {
+	Payload interface{}
+	Status  int
+	Service string
+	Message string
+}
+
 // PrintTestMessage is  common method to print the message on the screen.
 func PrintTestMessage(message string) {
 	fmt.Println(" ")
@@ -264,7 +271,7 @@ func ParseResponseDummy(channel chan []byte) {
 
 // ParseResponseDummy is a methods that reads the response on the channel
 // but does notthing on it.
-func ParseResponseDummyMessage(channel chan []byte, message string,  responseChannel chan string) {
+func ParseResponseDummyMessage(channel chan []byte, message string, responseChannel chan string) {
 	for {
 		value, ok := <-channel
 		if !ok {
@@ -277,7 +284,7 @@ func ParseResponseDummyMessage(channel chan []byte, message string,  responseCha
 			if strings.Contains(response, "aborted") {
 				continue
 			}
-			
+
 			responseChannel <- returnVal
 			break
 		}
