@@ -3,8 +3,8 @@
 package tests
 
 import (
-	".."
 	"fmt"
+	"github.com/pubnub/go/messaging"
 	"testing"
 )
 

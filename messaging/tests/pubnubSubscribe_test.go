@@ -3,10 +3,10 @@
 package tests
 
 import (
-	".."
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/pubnub/go/messaging"
 	//"net/url"
 	"strconv"
 	"strings"

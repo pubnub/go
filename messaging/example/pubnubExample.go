@@ -3,10 +3,10 @@
 package main
 
 import (
-	".."
 	"bufio"
 	"encoding/binary"
 	"fmt"
+	"github.com/pubnub/go/messaging"
 	"math/big"
 	"os"
 	"strconv"

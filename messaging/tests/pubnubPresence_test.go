@@ -3,9 +3,9 @@
 package tests
 
 import (
-	".."
 	"encoding/json"
 	"fmt"
+	"github.com/pubnub/go/messaging"
 	"strings"
 	"testing"
 	"time"
