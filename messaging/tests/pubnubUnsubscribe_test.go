@@ -3,9 +3,9 @@
 package tests
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/pubnub/go/messaging"
-	"strings"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -25,16 +25,20 @@ func TestUnsubscribeNotSubscribed(t *testing.T) {
 	currentTime := time.Now()
 	channel := "testChannel" + currentTime.Format("20060102150405")
 
-	returnUnsubscribeChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
-	go pubnubInstance.Unsubscribe(channel, returnUnsubscribeChannel, errorChannel)
-	go ParseUnsubscribeResponse(errorChannel, channel, "not subscribed", responseChannel)
-	go ParseErrorResponse(returnUnsubscribeChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "UnsubscribeNotSubscribed")
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	select {
+	case <-unsubscribeSuccessChannel:
+		assert.Fail(t, "Received message on success callback while error expected")
+	case err := <-unsubscribeErrorChannel:
+		assert.Contains(t, string(err), "not subscribed")
+		assert.Contains(t, string(err), "channel")
+	case <-timeout():
+		assert.Fail(t, "Timed out")
+	}
 }
 
 // TestUnsubscribe will subscribe to a pubnub channel and then send an unsubscribe request
@@ -44,74 +48,31 @@ func TestUnsubscribe(t *testing.T) {
 
 	channel := "testChannel"
 
-	returnSubscribeChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
+	successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance, returnSubscribeChannel, channel, "connected", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "Unsubscribe")
-}
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
-// ParseSubscribeResponseAndCallUnsubscribe will parse the response on the go channel.
-// It will check the subscribe connection status and when connected
-// it will initiate the unsubscribe request.
-func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *messaging.Pubnub, returnChannel chan []byte, channel string, message string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
+	go pubnubInstance.Subscribe(channel, successChannel, errorChannel, eventsChannel)
+	ExpectConnectedEvent(t, channel, "", eventsChannel)
+	go LogErrors(errorChannel)
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	go ExpectDisconnectedEvent(t, channel, "", eventsChannel)
+
+	select {
+	case msg := <-unsubscribeSuccessChannel:
+		var response map[string]interface{}
+		err := json.Unmarshal(msg, &response)
+		if err != nil {
+			assert.Fail(t, err.Error())
 		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			message = "'" + channel + "' " + message
-			//messageAbort := "'" + channel + "' aborted"
-			//fmt.Printf("response:",response);
-			//fmt.Printf("message:", message);
-
-			if strings.Contains(response, message) {
-				returnUnsubscribeChannel := make(chan []byte)
-				errorChannel := make(chan []byte)
-
-				go pubnubInstance.Unsubscribe(channel, returnUnsubscribeChannel, errorChannel)
-				go ParseUnsubscribeResponse(returnUnsubscribeChannel, channel, "unsubscribed", responseChannel)
-				go ParseResponseDummy(errorChannel)
-
-				break
-			} /*else if (strings.Contains(response, messageAbort)){
-			      responseChannel <- "Test unsubscribed: failed."
-			      break
-			  } else {
-			      responseChannel <- "Test unsubscribed: failed."
-			      break
-			  }*/
-		}
-	}
-}
-
-// ParseUnsubscribeResponse will parse the unsubscribe response on the go channel.
-// If it contains unsubscribed the test will pass.
-func ParseUnsubscribeResponse(returnChannel chan []byte, channel string, message string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			//fmt.Printf("response:",response);
-			//fmt.Printf("message:", message);
-			if strings.Contains(response, message) {
-				responseChannel <- "Test '" + message + "': passed."
-				break
-			} else {
-				responseChannel <- "Test '" + message + "': failed."
-				break
-			}
-		}
+		assert.Equal(t, "leave", response["action"])
+		assert.Equal(t, "Presence", response["service"])
+	case err := <-unsubscribeErrorChannel:
+		assert.Fail(t, string(err))
+	case <-timeout():
+		assert.Fail(t, "Timed out")
 	}
 }
 

@@ -6,6 +6,8 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"strings"
 	"testing"
@@ -33,6 +35,12 @@ var SecKey = "demo-36"
 // timeoutMessage is the text message displayed when the
 // unit test times out
 var timeoutMessage = "Test timed out."
+
+// testTimeout in seconds
+var testTimeout int = 5
+
+// prefix for presence channels
+var presenceSuffix string = "-pnpres"
 
 // publishSuccessMessage: the reponse that is received when a message is
 // successfully published on a pubnub channel.
@@ -289,4 +297,140 @@ func ParseResponseDummyMessage(channel chan []byte, message string, responseChan
 			break
 		}
 	}
+}
+
+func ExpectConnectedEvent(t *testing.T,
+	channels, groups string, eventsChannel <-chan messaging.ConnectionEvent) {
+
+	var initialChannelsArray, initialGroupsArray []string
+
+	if len(channels) > 0 {
+		initialChannelsArray = strings.Split(channels, ",")
+	}
+
+	if len(groups) > 0 {
+		initialGroupsArray = strings.Split(groups, ",")
+	}
+
+	select {
+	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray, messaging.ConnectionConnected, eventsChannel):
+		//fmt.Println("Connected event")
+	case <-timeout():
+		assert.Fail(t, "Timeout occured while waiting for Connected event")
+	}
+}
+
+func ExpectDisconnectedEvent(t *testing.T,
+	channels, groups string, eventsChannel <-chan messaging.ConnectionEvent) {
+
+	var initialChannelsArray, initialGroupsArray []string
+
+	if len(channels) > 0 {
+		initialChannelsArray = strings.Split(channels, ",")
+	}
+
+	if len(groups) > 0 {
+		initialGroupsArray = strings.Split(groups, ",")
+	}
+
+	select {
+	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray, messaging.ConnectionDisconnected, eventsChannel):
+		//fmt.Println("Disconnected event")
+	case <-timeout():
+		assert.Fail(t, "Timeout occured while waiting for Disconnected event")
+	}
+}
+
+func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
+	action messaging.ConnectionAction, eventsChannel <-chan messaging.ConnectionEvent) <-chan bool {
+
+	var triggeredChannels []string
+	var triggeredGroups []string
+
+	channel := make(chan bool)
+
+	go func() {
+		for {
+			select {
+			case event := <-eventsChannel:
+				assert.Equal(t, action, event.Action)
+
+				switch event.Type {
+				case messaging.ChannelResponse:
+					triggeredChannels = append(triggeredChannels, event.Channel)
+				case messaging.ChannelGroupResponse:
+					triggeredGroups = append(triggeredGroups, event.Group)
+				}
+
+				if AssertStringSliceElementsEqual(triggeredChannels, channels) &&
+					AssertStringSliceElementsEqual(triggeredGroups, groups) {
+					channel <- true
+					return
+				}
+			case <-timeout():
+				assert.Fail(t, "Timeout occured")
+				channel <- false
+				return
+			}
+		}
+	}()
+
+	return channel
+}
+
+func timeout() <-chan time.Time {
+	return time.After(time.Second * time.Duration(testTimeout*2))
+}
+
+func GenerateTwoRandomChannelStrings(length int) (channels1, channels2 string) {
+	var channelsArray []string
+
+	r := GenRandom()
+	channelsMap := make(map[string]struct{})
+
+	for len(channelsMap) < length*2 {
+		channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+
+		if _, found := channelsMap[channel]; !found {
+			channelsMap[channel] = struct{}{}
+		}
+	}
+
+	for channel := range channelsMap {
+		channelsArray = append(channelsArray, channel)
+	}
+
+	return strings.Join(channelsArray[:length], ","), strings.Join(channelsArray[length:], ",")
+}
+
+func AssertStringSliceElementsEqual(first, second []string) bool {
+	if len(first) != len(second) {
+		return false
+	}
+
+	if len(first) == 0 && len(second) == 0 {
+		return true
+	}
+
+	for _, f := range first {
+		firstFound := false
+
+		for _, s := range second {
+			if f == s {
+				firstFound = true
+			}
+		}
+
+		if firstFound == false {
+			return false
+		}
+	}
+
+	return true
+}
+
+func LogErrors(errorsChannel <-chan messaging.ErrorResponse) {
+	err := <-errorsChannel
+
+	fmt.Println("ERROR:", err.Error())
 }
