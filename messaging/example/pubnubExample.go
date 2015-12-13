@@ -1200,7 +1200,7 @@ func presenceRoutine2() {
 	successChannel, errorChannel, eventsChannel :=
 		messaging.CreateSubscriptionChannels()
 
-	go pub.Presence(connectChannelts, successChannel, errorChannel, eventsChannel)
+	go pub.Presence(connectChannels, successChannel, errorChannel, eventsChannel)
 	go handleSubscribeResult(successChannel, errorChannel, eventsChannel, "Presence2")
 }
 
