@@ -1515,7 +1515,7 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string,
 // response: can be nil, is used only in the case action is '5'.
 // response2: Additional error info.
 
-func (pub *Pubnub) sendSubscribeResponse(channel, source string,
+func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	tp ResponseType, action ResponseStatus, response []byte) {
 
 	var (
@@ -1553,12 +1553,11 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source string,
 	infoLogger.Println(fmt.Sprintf("Response value: %#v", value))
 	logMu.Unlock()
 
-	// TODO: add timetoken
 	item.SuccessChannel <- SuccessResponse{
 		Data:      response,
 		Channel:   channel,
 		Source:    source,
-		Timetoken: "",
+		Timetoken: timetoken,
 		Type:      ChannelResponse,
 		Error:     false,
 		Presence:  isPresence,
@@ -2334,8 +2333,8 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 				pub.handleFourElementsSubscribeResponse(message, channelNames[i],
 					groupNames[i], newTimetoken)
 			} else {
-				pub.sendSubscribeResponse(channelNames[i], "", ChannelResponse,
-					responseAsIs, message)
+				pub.sendSubscribeResponse(channelNames[i], "", newTimetoken,
+					ChannelResponse, responseAsIs, message)
 			}
 		}
 	}
@@ -2352,21 +2351,21 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 	subscribedGroups := pub.groups.ConnectedNamesString()
 
 	if third == fourth && fourthChannelExist {
-		pub.sendSubscribeResponse(fourth, "", ChannelResponse, responseAsIs, message)
+		pub.sendSubscribeResponse(fourth, "", timetoken, ChannelResponse, responseAsIs, message)
 	} else if strings.HasSuffix(third, wildcardSuffix) {
 		if fourthChannelExist && strings.HasSuffix(fourth, presenceSuffix) {
-			pub.sendSubscribeResponse(fourth, third, WildcardResponse, responseAsIs, message)
+			pub.sendSubscribeResponse(fourth, third, timetoken, WildcardResponse, responseAsIs, message)
 		} else if thirdChannelGroupExist && !strings.HasSuffix(fourth, presenceSuffix) {
-			pub.sendSubscribeResponse(fourth, third, ChannelGroupResponse, responseAsIs, message)
+			pub.sendSubscribeResponse(fourth, third, timetoken, ChannelGroupResponse, responseAsIs, message)
 		} else if thirdChannelExist && strings.HasSuffix(third, wildcardSuffix) {
-			pub.sendSubscribeResponse(fourth, third, WildcardResponse, responseAsIs, message)
+			pub.sendSubscribeResponse(fourth, third, timetoken, WildcardResponse, responseAsIs, message)
 		} else {
 			pub.sendClientSideSubscribeError(subscribedChannels, subscribedGroups,
 				"Unable to handle four-element response (case #1), please contact PubNub support with error description",
 				0)
 		}
 	} else if third != fourth && thirdChannelGroupExist {
-		pub.sendSubscribeResponse(fourth, third, ChannelGroupResponse, responseAsIs, message)
+		pub.sendSubscribeResponse(fourth, third, timetoken, ChannelGroupResponse, responseAsIs, message)
 	} else {
 		pub.sendClientSideSubscribeError(subscribedChannels, subscribedGroups,
 			"Unable to handle four-element response (case #2), please contact PubNub support with error description",
