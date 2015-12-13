@@ -79,3 +79,16 @@ func (e ClientSideErrorResponse) Error() string {
 	return fmt.Sprintf("Client-Side Error reason: %s %s",
 		getResponseReasonString(e.Reason), e.Message)
 }
+
+func StringResponseType(responseType ResponseType) string {
+	switch responseType {
+	case ChannelResponse:
+		return "channel"
+	case ChannelGroupResponse:
+		return "channel group"
+	case WildcardResponse:
+		return "wildcard channel"
+	default:
+		return ""
+	}
+}
