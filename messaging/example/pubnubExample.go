@@ -1016,19 +1016,33 @@ func pamAuditChannelGroupRoutine(groups, auth string) {
 // SubscribeRoutine calls the Subscribe routine of the messaging package
 // as a parallel process.
 func subscribeRoutine(channels string, timetoken string) {
-	var errorChannel = make(chan []byte)
-	var subscribeChannel = make(chan []byte)
-	go pub.Subscribe(channels, timetoken, subscribeChannel, false, errorChannel)
-	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+	successChannel, errorChannel, eventsChannel :=
+		messaging.CreateSubscriptionChannels()
+
+	if timetoken == "" {
+		go pub.Subscribe(channels, successChannel, errorChannel, eventsChannel)
+	} else {
+		go pub.SubscribeWithTimetoken(channels, timetoken, successChannel,
+			errorChannel, eventsChannel)
+	}
+
+	go handleSubscribeResult(successChannel, errorChannel, eventsChannel, "Subscribe")
 }
 
 // SubscribeRoutine calls the Subscribe routine of the messaging package
 // as a parallel process.
 func subscribeRoutine2(channels string, timetoken string) {
-	var errorChannel = make(chan []byte)
-	var subscribeChannel = make(chan []byte)
-	go pub.Subscribe(channels, timetoken, subscribeChannel, false, errorChannel)
-	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe2")
+	successChannel, errorChannel, eventsChannel :=
+		messaging.CreateSubscriptionChannels()
+
+	if timetoken == "" {
+		go pub.Subscribe(channels, successChannel, errorChannel, eventsChannel)
+	} else {
+		go pub.SubscribeWithTimetoken(channels, timetoken, successChannel,
+			errorChannel, eventsChannel)
+	}
+
+	go handleSubscribeResult(successChannel, errorChannel, eventsChannel, "Subscribe2")
 }
 
 // PublishRoutine asks the user the message to send to the pubnub channel(s) and
@@ -1131,25 +1145,40 @@ func handleResult(successChannel, errorChannel chan []byte, timeoutVal uint16, a
 	}
 }
 
-func handleSubscribeResult(successChannel, errorChannel chan []byte, action string) {
+func handleSubscribeResult(successChannel chan messaging.SuccessResponse,
+	errorChannel chan messaging.ErrorResponse,
+	eventsChannel chan messaging.ConnectionEvent, action string) {
+
 	for {
 		select {
-		case success, ok := <-successChannel:
-			if !ok {
-				break
+		case event := <-eventsChannel:
+			fmt.Printf("Connection event: %s\n",
+				messaging.StringConnectionAction(event.Action))
+		case response := <-successChannel:
+			var name string
+
+			switch response.Type {
+			case messaging.ChannelResponse:
+				name = response.Channel
+			case messaging.ChannelGroupResponse:
+				name = response.Source
+			case messaging.WildcardResponse:
+				name = response.Source
 			}
-			if string(success) != "[]" {
-				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
-				fmt.Println("")
-			}
-		case failure, ok := <-errorChannel:
-			if !ok {
-				break
-			}
-			if string(failure) != "[]" {
-				if displayError {
-					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
-					fmt.Println("")
+
+			fmt.Printf("New %s message on %s %s \n", action, name,
+				messaging.StringResponseType(response.Type))
+
+			fmt.Printf("Received raw data: %s\n\n", response.Data)
+
+		case err := <-errorChannel:
+			if displayError {
+				switch er := err.(type) {
+				case messaging.ServerSideErrorResponse:
+					fmt.Printf("Server-side error on %s service: %s\n", er.Data.Service,
+						err.Error())
+				case messaging.ClientSideErrorResponse:
+					fmt.Printf("Client-side error: %s\n", err.Error())
 				}
 			}
 		}
@@ -1159,18 +1188,20 @@ func handleSubscribeResult(successChannel, errorChannel chan []byte, action stri
 // PresenceRoutine calls the Subscribe routine of the messaging package,
 // by setting the last argument as true, as a parallel process.
 func presenceRoutine(channels string) {
-	var errorChannel = make(chan []byte)
-	var presenceChannel = make(chan []byte)
-	go pub.Subscribe(channels, "", presenceChannel, true, errorChannel)
-	go handleSubscribeResult(presenceChannel, errorChannel, "Presence")
+	successChannel, errorChannel, eventsChannel :=
+		messaging.CreateSubscriptionChannels()
+
+	go pub.Presence(channels, successChannel, errorChannel, eventsChannel)
+	go handleSubscribeResult(successChannel, errorChannel, eventsChannel, "Presence")
 }
 
 // for test
 func presenceRoutine2() {
-	var errorChannel = make(chan []byte)
-	var presenceChannel = make(chan []byte)
-	go pub.Subscribe(connectChannels, "", presenceChannel, true, errorChannel)
-	go handleSubscribeResult(presenceChannel, errorChannel, "Presence2")
+	successChannel, errorChannel, eventsChannel :=
+		messaging.CreateSubscriptionChannels()
+
+	go pub.Presence(connectChannelts, successChannel, errorChannel, eventsChannel)
+	go handleSubscribeResult(successChannel, errorChannel, eventsChannel, "Presence2")
 }
 
 // DetailedHistoryRoutine calls the History routine of the messaging package as a parallel
