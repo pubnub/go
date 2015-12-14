@@ -20,9 +20,7 @@ type SuccessResponse struct {
 	Source    string
 	Timetoken string
 	Presence  bool
-	Error     bool
 	Type      ResponseType
-	Info      string
 }
 
 type ServerSideErrorData struct {
