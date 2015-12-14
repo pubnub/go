@@ -2285,7 +2285,6 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	pub.timeToken = newTimetoken
 	pub.Unlock()
 
-	// FEATURE: invoke connected event when subscribed with non-zero timetoken
 	if len(data) == 0 && sentTimetoken == "0" && !reconnected {
 		pub.Lock()
 		changedChannels := pub.channels.SetConnected()
