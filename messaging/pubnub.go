@@ -1915,13 +1915,27 @@ func (pub *Pubnub) createPresenceHeartbeatURL() string {
 	presenceURLBuffer.WriteString("/channel/")
 
 	pub.RLock()
-	// TODO: CG???
-	presenceURLBuffer.WriteString(pub.channels.NamesString())
+	if !pub.channels.Empty() {
+		presenceURLBuffer.WriteString(queryEscapeMultiple(
+			pub.channels.NamesString(), ","))
+	} else {
+		presenceURLBuffer.WriteString(",")
+	}
 	pub.RUnlock()
 
 	presenceURLBuffer.WriteString("/heartbeat")
-	presenceURLBuffer.WriteString("?uuid=")
+	presenceURLBuffer.WriteString("?")
+
+	if !pub.groups.Empty() {
+		presenceURLBuffer.WriteString("channel-group=")
+		presenceURLBuffer.WriteString(
+			queryEscapeMultiple(pub.groups.NamesString(), ","))
+		presenceURLBuffer.WriteString("&")
+	}
+
+	presenceURLBuffer.WriteString("uuid=")
 	presenceURLBuffer.WriteString(pub.GetUUID())
+
 	presenceURLBuffer.WriteString(pub.addAuthParam(true))
 
 	presenceHeartbeatMu.RLock()
@@ -1934,6 +1948,7 @@ func (pub *Pubnub) createPresenceHeartbeatURL() string {
 	pub.RLock()
 	jsonSerialized, err := json.Marshal(pub.userState)
 	pub.RUnlock()
+
 	if err != nil {
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("createPresenceHeartbeatURL %s", err.Error()))
@@ -1958,44 +1973,46 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 	pub.RLock()
 	isPresenceHeartbeatRunning := pub.isPresenceHeartbeatRunning
 	pub.RUnlock()
+
 	if isPresenceHeartbeatRunning {
 		logMu.Lock()
 		infoLogger.Println(fmt.Sprintf("Presence heartbeat already running"))
 		logMu.Unlock()
+
 		return
 	}
+
 	pub.Lock()
 	pub.isPresenceHeartbeatRunning = true
 	pub.Unlock()
+
 	for {
 		pub.RLock()
-		// TODO: CG???
 		l := pub.channels.Length()
-		//l := len(pub.subscribeChannels)
-		/*for i := range pub.subscribeChannels {
-			fmt.Println("channel:" +i)
-		}*/
+		cgl := pub.groups.Length()
 		pub.RUnlock()
 
 		presenceHeartbeatMu.RLock()
 		presenceHeartbeatLoc := presenceHeartbeat
 		presenceHeartbeatMu.RUnlock()
 
-		if (l <= 0) || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeatLoc <= 0) {
+		if (l <= 0 && cgl <= 0) || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeatLoc <= 0) {
 			pub.Lock()
 			pub.isPresenceHeartbeatRunning = false
 			pub.Unlock()
+
 			logMu.Lock()
 			infoLogger.Println(fmt.Sprintf("Breaking out of presence heartbeat loop"))
 			logMu.Unlock()
+
 			pub.closePresenceHeartbeatConnection()
 			break
 		}
 
 		presenceHeartbeatURL := pub.createPresenceHeartbeatURL()
-		//fmt.Println("presenceHeartbeatUrl ", presenceHeartbeatURL);
 
 		value, responseCode, err := pub.httpRequest(presenceHeartbeatURL, presenceHeartbeatTrans)
+
 		if (responseCode != 200) || (err != nil) {
 			if err != nil {
 				logMu.Lock()
@@ -2150,7 +2167,6 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 	pub.Lock()
 	defer pub.Unlock()
 
-	//if len(pub.subscribedChannels) > 0 {
 	if !pub.channels.Empty() {
 		subscribeURLBuffer.WriteString(queryEscapeMultiple(
 			pub.channels.NamesString(), ","))
@@ -2184,7 +2200,6 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 
 	subscribeURLBuffer.WriteString("?")
 
-	//if len(pub.subscribedChannelGroups) > 0 {
 	if !pub.groups.Empty() {
 		subscribeURLBuffer.WriteString("channel-group=")
 		subscribeURLBuffer.WriteString(
@@ -2517,7 +2532,14 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 		pub.groups.Add(u, callbackChannel, errorChannel, eventsChannel)
 	}
 
+	isPresenceHeartbeatRunning := pub.isPresenceHeartbeatRunning
 	pub.Unlock()
+
+	if hasNonPresenceChannels(groups) &&
+		(!pub.channels.HasConnected() && !pub.groups.HasConnected() ||
+			!isPresenceHeartbeatRunning) {
+		go pub.runPresenceHeartbeat()
+	}
 
 	if existingChannelsEmpty || existingGroupsEmpty {
 		pub.Lock()
@@ -2620,14 +2642,12 @@ func (pub *Pubnub) SubscribeWithTimetoken(channels, timetoken string,
 		pub.channels.Add(u, callbackChannel, errorChannel, eventsChannel)
 	}
 
-	existingSubscribedChannels := pub.channels.ConnectedNamesString()
 	isPresenceHeartbeatRunning := pub.isPresenceHeartbeatRunning
 	pub.Unlock()
 
-	// HACK: value is hardcoded
-	isPresenceSubscribe := false
-	// TODO: check should presence heartbeat be started
-	if (!isPresenceSubscribe) && ((existingSubscribedChannels == "") || (!isPresenceHeartbeatRunning)) {
+	if hasNonPresenceChannels(channels) &&
+		(!pub.channels.HasConnected() && !pub.groups.HasConnected() ||
+			!isPresenceHeartbeatRunning) {
 		go pub.runPresenceHeartbeat()
 	}
 
@@ -4042,6 +4062,19 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 	}
 
 	return nil, 0, err
+}
+
+// Check does passed in string contain at least one non preesnce name
+func hasNonPresenceChannels(channelsString string) bool {
+	channels := strings.Split(channelsString, ",")
+
+	for _, channel := range channels {
+		if !strings.HasSuffix(channel, presenceSuffix) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // padWithPKCS7 pads the data as per the PKCS7 standard

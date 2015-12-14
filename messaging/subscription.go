@@ -124,6 +124,19 @@ func (e *SubscriptionEntity) NamesString() string {
 	return strings.Join(names, ",")
 }
 
+func (e *SubscriptionEntity) HasConnected() bool {
+	e.RLock()
+	defer e.RUnlock()
+
+	for _, item := range e.items {
+		if item.Connected {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (e *SubscriptionEntity) ConnectedNames() []string {
 	e.RLock()
 	defer e.RUnlock()

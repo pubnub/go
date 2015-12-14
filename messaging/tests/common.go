@@ -379,7 +379,11 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 }
 
 func timeout() <-chan time.Time {
-	return time.After(time.Second * time.Duration(testTimeout*2))
+	return time.After(time.Second * time.Duration(testTimeout))
+}
+
+func timeouts(seconds int) <-chan time.Time {
+	return time.After(time.Second * time.Duration(seconds))
 }
 
 func GenerateTwoRandomChannelStrings(length int) (channels1, channels2 string) {

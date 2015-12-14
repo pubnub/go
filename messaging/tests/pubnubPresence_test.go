@@ -29,9 +29,6 @@ func TestPresence(t *testing.T) {
 	successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
 	successChannelP, errorChannelP, eventsChannelP := messaging.CreateSubscriptionChannels()
 
-	// unsubscribeSuccessChannel := make(chan []byte)
-	// unsubscribeErrorChannel := make(chan []byte)
-
 	go pubnubInstance.Presence(channel, successChannelP, errorChannelP, eventsChannelP)
 	ExpectConnectedEvent(t, channel+presenceSuffix, "", eventsChannelP)
 
@@ -54,12 +51,43 @@ func TestPresence(t *testing.T) {
 		assert.Fail(t, "Timeout occured")
 	}
 
-	fmt.Println("Messages channel subscribed")
-	// go pubnubInstance.PresenceUnsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	// ExpectDisconnectedEvent(t, channel, "", eventsChannelP)
-	//
-	// go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	// ExpectDisconnectedEvent(t, channel, "", eventsChannel)
+	pubnubInstance.CloseExistingConnection()
+}
+
+func TestPresenceHeartbeat(t *testing.T) {
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance.SetPresenceHeartbeat(6)
+	pubnubInstance.SetPresenceHeartbeatInterval(2)
+
+	channel := fmt.Sprintf("presence_hb")
+
+	successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+	successChannelP, errorChannelP, eventsChannelP := messaging.CreateSubscriptionChannels()
+
+	go pubnubInstance.Presence(channel, successChannelP, errorChannelP, eventsChannelP)
+	go ExpectConnectedEvent(t, fmt.Sprintf("%s%s", channel, presenceSuffix), "", eventsChannelP)
+
+	go pubnubInstance.Subscribe(channel, successChannel, errorChannel, eventsChannel)
+	go ExpectConnectedEvent(t, channel, "", eventsChannel)
+
+	select {
+	case msg := <-successChannelP:
+		var event messaging.PresenceEvent
+		err := json.Unmarshal(msg.Data, &event)
+		if err != nil {
+			assert.Fail(t, err.Error())
+		}
+
+		if event.Action == "leave" && event.Uuid == pubnubInstance.GetUUID() {
+			assert.Equal(t, event.Uuid, pubnubInstance.GetUUID())
+		}
+	case <-errorChannelP:
+		assert.Fail(t, "Received Error first instead of presence event")
+	case <-timeout():
+		assert.Fail(t, "Timeout occured")
+	}
+
+	<-timeouts(7)
 
 	pubnubInstance.CloseExistingConnection()
 }
