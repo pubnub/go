@@ -9,7 +9,7 @@ type ConnectionAction int
 
 type ConnectionEvent struct {
 	Channel string
-	Group   string
+	Source  string
 	Action  ConnectionAction
 	Type    ResponseType
 }

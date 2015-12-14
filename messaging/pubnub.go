@@ -1596,7 +1596,7 @@ func (pub *Pubnub) sendConnectionEvent(channels, groups string,
 			if item, found = pub.groups.Get(group); found {
 				//fmt.Printf("Sending CG action %d to %s\n", action, item.Name)
 				item.EventsChannel <- ConnectionEvent{
-					Group:  item.Name,
+					Source: item.Name,
 					Action: action,
 					Type:   ChannelGroupResponse,
 				}
