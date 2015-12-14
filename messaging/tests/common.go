@@ -359,7 +359,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 				case messaging.ChannelResponse:
 					triggeredChannels = append(triggeredChannels, event.Channel)
 				case messaging.ChannelGroupResponse:
-					triggeredGroups = append(triggeredGroups, event.Group)
+					triggeredGroups = append(triggeredGroups, event.Source)
 				}
 
 				if AssertStringSliceElementsEqual(triggeredChannels, channels) &&

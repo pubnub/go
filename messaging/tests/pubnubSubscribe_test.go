@@ -118,6 +118,88 @@ func TestChannelSubscriptionConnectAndDisconnect(t *testing.T) {
 	pubnubInstance.CloseExistingConnection()
 }
 
+func TestChannelGroupSubscriptionMessage(t *testing.T) {
+	assert := assert.New(t)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	group := fmt.Sprintf("testChannelGroup_sub_%d", r.Intn(20))
+
+	populateChannelGroup(pubnubInstance, group, channel)
+	defer removeChannelGroups(pubnubInstance, []string{group})
+
+	await := make(chan bool)
+	await2 := make(chan bool)
+
+	successChannel, errorChannel, eventsChannel :=
+		messaging.CreateSubscriptionChannels()
+
+	publishSuccessChannel := make(chan []byte)
+	publishErrorChannel := make(chan []byte)
+
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+
+	go func() {
+		var messages []string
+
+		for {
+			select {
+			case msg := <-successChannel:
+				assert.Equal(channel, msg.Channel)
+				assert.Equal(group, msg.Source)
+				assert.Equal(messaging.ChannelGroupResponse, msg.Type)
+				assert.False(msg.Presence)
+
+				messages = append(messages, string(msg.Data))
+			case err := <-errorChannel:
+				assert.Fail("Subscribe error", err.Error())
+			case <-eventsChannel:
+				await <- true
+			case <-timeout():
+				assert.Fail("For looop timed out")
+				break
+			}
+
+			if len(messages) == 2 {
+				break
+			}
+		}
+
+		assert.Equal([]string{"\"hello\"", "\"blah\""}, messages)
+		await2 <- true
+	}()
+
+	go pubnubInstance.ChannelGroupSubscribe(group, successChannel, errorChannel, eventsChannel)
+
+	<-await
+
+	go pubnubInstance.Publish(channel, "hello", publishSuccessChannel, publishErrorChannel)
+	select {
+	case <-publishSuccessChannel:
+	case err := <-publishErrorChannel:
+		assert.Fail("Publish error", string(err))
+	case <-timeout():
+		assert.Fail("Publish#2 timed out")
+	}
+
+	go pubnubInstance.Publish(channel, "blah", publishSuccessChannel, publishErrorChannel)
+	select {
+	case <-publishSuccessChannel:
+	case err := <-publishErrorChannel:
+		assert.Fail("Publish error", string(err))
+	case <-timeout():
+		assert.Fail("Publish#2 timed out")
+	}
+
+	<-await2
+
+	go pubnubInstance.ChannelGroupUnsubscribe(group, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectDisconnectedEvent(t, "", group, eventsChannel)
+
+	pubnubInstance.CloseExistingConnection()
+}
+
 func TestChannelSubscriptionMessage(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	r := GenRandom()
@@ -141,7 +223,6 @@ func TestChannelSubscriptionMessage(t *testing.T) {
 		for {
 			select {
 			case msg := <-successChannel:
-				fmt.Println("got:", string(msg.Data))
 				messages = append(messages, string(msg.Data))
 			case err := <-errorChannel:
 				assert.Fail(t, "Subscribe error", err.Error())
@@ -164,7 +245,6 @@ func TestChannelSubscriptionMessage(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, successChannel, errorChannel, eventsChannel)
 
 	<-await
-	fmt.Println("passed await")
 
 	go pubnubInstance.Publish(channel, "hello", publishSuccessChannel, publishErrorChannel)
 	select {
@@ -184,7 +264,6 @@ func TestChannelSubscriptionMessage(t *testing.T) {
 		assert.Fail(t, "Publish#2 timed out")
 	}
 
-	fmt.Println("messages published")
 	<-await2
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
@@ -278,7 +357,7 @@ func TestChannelGroupSubscriptionConnectAndDisconnect(t *testing.T) {
 	select {
 	case event := <-eventsChannel:
 		assert.Equal(t, messaging.ConnectionConnected, event.Action)
-		assert.Equal(t, group, event.Group)
+		assert.Equal(t, group, event.Source)
 		assert.Equal(t, messaging.ChannelGroupResponse, event.Type)
 	case err := <-errorChannel:
 		assert.Fail(t, "Received Error first instead of 'connected' event ", err.Error())
@@ -293,7 +372,7 @@ func TestChannelGroupSubscriptionConnectAndDisconnect(t *testing.T) {
 	select {
 	case event := <-eventsChannel:
 		assert.Equal(t, messaging.ConnectionDisconnected, event.Action)
-		assert.Equal(t, group, event.Group)
+		assert.Equal(t, group, event.Source)
 		assert.Equal(t, messaging.ChannelGroupResponse, event.Type)
 	case <-errorChannel:
 		assert.Fail(t, "Received Error first instead of 'connected' event")
@@ -487,6 +566,23 @@ func createChannelGroups(pubnub *messaging.Pubnub, groups []string) {
 		case <-timeout():
 			fmt.Println("Channel group creation timeout")
 		}
+	}
+}
+
+func populateChannelGroup(pubnub *messaging.Pubnub, group, channels string) {
+
+	successChannel := make(chan []byte, 1)
+	errorChannel := make(chan []byte, 1)
+
+	pubnub.ChannelGroupAddChannel(group, channels, successChannel, errorChannel)
+
+	select {
+	case <-successChannel:
+		fmt.Println("Group created")
+	case <-errorChannel:
+		fmt.Println("Channel group creation error")
+	case <-timeout():
+		fmt.Println("Channel group creation timeout")
 	}
 }
 

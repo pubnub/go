@@ -1558,7 +1558,7 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 		Channel:   channel,
 		Source:    source,
 		Timetoken: timetoken,
-		Type:      ChannelResponse,
+		Type:      tp,
 		Error:     false,
 		Presence:  isPresence,
 	}
