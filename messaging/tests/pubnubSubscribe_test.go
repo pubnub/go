@@ -18,6 +18,60 @@ func TestSubscribeStart(t *testing.T) {
 	PrintTestMessage("==========Subscribe tests start==========")
 }
 
+func TestChannelSubscriptionWithTimetoken(t *testing.T) {
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	timestamp := ""
+
+	successChannel, errorChannel, eventsChannel :=
+		messaging.CreateSubscriptionChannels()
+
+	timeSuccessChannel := make(chan []byte)
+	timeErrorChannel := make(chan []byte)
+
+	go pubnubInstance.GetTime(timeSuccessChannel, timeErrorChannel)
+
+	select {
+	case response := <-timeSuccessChannel:
+		timestamp = strings.Trim(string(response), "[]")
+	case err := <-timeErrorChannel:
+		assert.Fail(t, "Error while getting server timestamp:", string(err))
+	}
+
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+
+	publishSuccessChannel := make(chan []byte)
+	publishErrorChannel := make(chan []byte)
+
+	go pubnubInstance.SubscribeWithTimetoken(channel, timestamp, successChannel, errorChannel, eventsChannel)
+	go pubnubInstance.Publish(channel, 123, publishSuccessChannel, publishErrorChannel)
+	go func() {
+		select {
+		case <-publishSuccessChannel:
+		case <-publishErrorChannel:
+		}
+	}()
+
+	<-timeouts(1)
+
+	select {
+	case <-eventsChannel:
+	case <-errorChannel:
+		assert.Fail(t, "Received Error first instead of message")
+	case msg := <-successChannel:
+		assert.Equal(t, "123", string(msg.Data))
+	case <-time.After(time.Second * time.Duration(testTimeout)):
+		assert.Fail(t, "Timeout occured")
+	}
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectDisconnectedEvent(t, channel, "", eventsChannel)
+
+	pubnubInstance.CloseExistingConnection()
+}
+
 // TestSubscriptionConnectStatus sends out a subscribe request to a pubnub
 // channel and validates the response for the connect status.
 func TestChannelSubscriptionConnectAndDisconnect(t *testing.T) {
@@ -35,7 +89,6 @@ func TestChannelSubscriptionConnectAndDisconnect(t *testing.T) {
 
 	select {
 	case event := <-eventsChannel:
-		fmt.Println("CONNEVENT")
 		assert.Equal(t, messaging.ConnectionConnected, event.Action)
 		assert.Equal(t, channel, event.Channel)
 		assert.Equal(t, messaging.ChannelResponse, event.Type)

@@ -2525,11 +2525,17 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 	channelGroupsModified :=
 		pub.getSubscribedChannelGroups(groups, errorChannel)
 
+	timetokenIsZero := timetoken == "" || timetoken == "0"
+
 	pub.Lock()
 	var groupsArr = strings.Split(groups, ",")
 
 	for _, u := range groupsArr {
-		pub.groups.Add(u, callbackChannel, errorChannel, eventsChannel)
+		if timetokenIsZero {
+			pub.groups.Add(u, callbackChannel, errorChannel, eventsChannel)
+		} else {
+			pub.groups.AddConnected(u, callbackChannel, errorChannel, eventsChannel)
+		}
 	}
 
 	isPresenceHeartbeatRunning := pub.isPresenceHeartbeatRunning
@@ -2635,11 +2641,17 @@ func (pub *Pubnub) SubscribeWithTimetoken(channels, timetoken string,
 	channelsModified :=
 		pub.getSubscribedChannels(channels, errorChannel)
 
+	timetokenIsZero := timetoken == "" || timetoken == "0"
+
 	pub.Lock()
 	var channelArr = strings.Split(channels, ",")
 
 	for _, u := range channelArr {
-		pub.channels.Add(u, callbackChannel, errorChannel, eventsChannel)
+		if timetokenIsZero {
+			pub.channels.Add(u, callbackChannel, errorChannel, eventsChannel)
+		} else {
+			pub.channels.AddConnected(u, callbackChannel, errorChannel, eventsChannel)
+		}
 	}
 
 	isPresenceHeartbeatRunning := pub.isPresenceHeartbeatRunning

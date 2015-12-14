@@ -53,6 +53,18 @@ func NewSubscriptionEntity() *SubscriptionEntity {
 func (e *SubscriptionEntity) Add(name string,
 	successChannel chan<- SuccessResponse, errorChannel chan<- ErrorResponse,
 	eventsChannel chan<- ConnectionEvent) {
+	e.add(name, false, successChannel, errorChannel, eventsChannel)
+}
+
+func (e *SubscriptionEntity) AddConnected(name string,
+	successChannel chan<- SuccessResponse, errorChannel chan<- ErrorResponse,
+	eventsChannel chan<- ConnectionEvent) {
+	e.add(name, true, successChannel, errorChannel, eventsChannel)
+}
+
+func (e *SubscriptionEntity) add(name string, connected bool,
+	successChannel chan<- SuccessResponse, errorChannel chan<- ErrorResponse,
+	eventsChannel chan<- ConnectionEvent) {
 
 	e.Lock()
 	defer e.Unlock()
@@ -62,7 +74,7 @@ func (e *SubscriptionEntity) Add(name string,
 		SuccessChannel: successChannel,
 		ErrorChannel:   errorChannel,
 		EventsChannel:  eventsChannel,
-		Connected:      false,
+		Connected:      connected,
 	}
 
 	e.items[name] = item
