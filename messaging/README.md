@@ -1,12 +1,14 @@
 ## Contact support@pubnub.com for all questions
 
-#PubNub 3.7 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2, 1.5.1
+#PubNub 3.7 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2, 1.5.2
 
 ###Important changes in this version:
-The authKey argument was added to all PAM method.
+* The authKey argument was added to all PAM method.
+* Subscribe method arguments changed
 
 ###Change log
 * 3.7.0
+ * Subscribe method arguments changed
  * Add authKey argument to all PAM methods
  * Add Channel Group Methods
  * Fix multiple channels encoding in PAM methods
@@ -142,29 +144,79 @@ We've included a demo console app which documents all the functionality of the c
 This function is a utility function used in the examples below to handle the Subscribe/Presence response. You will want to adapt it to your own needs.
 
 ```go
-func handleSubscribeResult(successChannel, errorChannel chan []byte, action string) {
-    for {
-        select {
-        case success, ok := <-successChannel:
-            if !ok {
-				break
-			}
-			if string(success) != "[]" {
-				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
-				fmt.Println("")
-			}
-        case failure, ok := <-errorChannel:
-            if !ok {
-				break
-			}
-            if string(failure) != "[]" {
-				if displayError {
-					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
-					fmt.Println("")
-				}
-			}
+func handleSubscribeResult(
+        successChannel chan messaging.SuccessResponse,
+        errorChannel chan messaging.ErrorResponse,
+        eventsChannel chan messaging.ConnectionEvent) {
+
+        for {
+                select {
+                case response := <-successChannel:
+                        var name string
+
+                        switch response.Type {
+                        case messaging.ChannelResponse:
+                                name = response.Channel
+                        case messaging.ChannelGroupResponse:
+                                name = response.Source
+                        case messaging.WildcardResponse:
+                                name = response.Source
+                        }
+
+                        if response.Presence {
+                                fmt.Printf("New presence event on %s %s (%s)\n", name,
+                                        messaging.StringResponseType(response.Type), response.Timetoken)
+
+                                var presenceEvent messaging.PresenceEvent
+
+                                err := json.Unmarshal(response.Data, &presenceEvent)
+                                if err != nil {
+                                        fmt.Println(err.Error())
+                                        continue
+                                }
+
+                                fmt.Printf("%s action of %s user. New occupancy %d\n\n",
+                                        presenceEvent.Action, presenceEvent.Uuid, presenceEvent.Occupancy)
+                        } else {
+                                fmt.Printf("New message on %s %s (%s)\n", name,
+                                        messaging.StringResponseType(response.Type), response.Timetoken)
+                                fmt.Printf("Received raw data: %s\n\n", response.Data)
+                        }
+
+                case err := <-errorChannel:
+                        switch er := err.(type) {
+                        case messaging.ServerSideErrorResponse:
+                                fmt.Printf("Server-side error: %s", err.Error())
+                                if er.Data.Payload != nil {
+                                        payload, err := json.Marshal(er.Data.Payload)
+                                        if err != nil {
+                                                fmt.Println(err.Error())
+                                                continue
+                                        }
+
+                                        fmt.Printf("Additional payload: %s", payload)
+                                }
+                        case messaging.ClientSideErrorResponse:
+                                fmt.Printf("Client-side error: %s\n", err.Error())
+                        }
+
+                case event := <-eventsChannel:
+                        fmt.Printf("%s event on",
+                                messaging.StringConnectionAction(event.Action))
+
+                        switch event.Type {
+                        case messaging.ChannelResponse:
+                                fmt.Printf("%s channel", event.Channel)
+                        case messaging.ChannelGroupResponse:
+                                fmt.Printf("%s channel group", event.Source)
+                        case messaging.WildcardResponse:
+                                fmt.Printf("%s wildcard channel", event.Source)
+                        }
+
+                case <-messaging.SubscribeTimeout():
+                        fmt.Printf("Subscirbe request timeout")
+                }
         }
-    }
 }
 ```
 
@@ -235,10 +287,10 @@ Initialize a new Pubnub instance.
 ```go
         //Init pubnub instance
 
-        var errorChannel = make(chan []byte)
-        var subscribeChannel = make(chan []byte)
-        go pubInstance.Subscribe(<pubnub channels, multiple channels can be separated by comma>, <timetoken, should be an empty string in this case>, subscribeChannel, <this field is FALSE for subscribe requests>, errorChannel)
-        go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>,
+        	successChannel, errorChannel, eventsChannel)
+        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
@@ -247,10 +299,10 @@ Initialize a new Pubnub instance.
 ```go
         //Init pubnub instance
 
-        var errorChannel = make(chan []byte)
-        var subscribeChannel = make(chan []byte)
-        go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>, <timetoken to init the request with>, subscribeChannel, <this field is FALSE for subscribe requests>, errorChannel)
-        go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.SubscribeWithTimetoken(<pubnub channel, multiple channels can be separated by comma>,
+        	<timetoken to init the request with>, successChannel, errorChannel, eventsChannel)
+        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
@@ -259,10 +311,35 @@ Initialize a new Pubnub instance.
 ```go
         //Init pubnub instance
 
-        var errorChannel = make(chan []byte)
-        var presenceChannel = make(chan []byte)
-        go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>, <timetoken, should be an empty string in this case>, presenceChannel, <this field is TRUE for subscribe requests>, errorChannel)
-        go handleSubscribeResult(presenceChannel, errorChannel, "Presence")  
+        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.Subscribe(<pubnub channels, multiple channels can be separated by comma>,
+        	successChannel, errorChannel, eventsChannel)
+        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
+        // please goto the top of this file see the implementation of handleSubscribeResult
+```
+#### Channel Group Subscribe
+
+```go
+        //Init pubnub instance
+
+        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.ChannelGroupSubscribe(
+        	<pubnub channel group, multiple channel groupss can be separated by comma>,
+        	successChannel, errorChannel, eventsChannel)
+        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
+        // please goto the top of this file see the implementation of handleSubscribeResult
+```
+
+#### Channel Group Subscribe with timetoken
+
+```go
+        //Init pubnub instance
+
+        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.ChannelGroupSubscribeWithTimetoken(
+        	<pubnub channel group, multiple channel groupss can be separated by comma>,
+        	<timetoken to init the request with>, successChannel, errorChannel, eventsChannel)
+        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
