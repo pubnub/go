@@ -2342,52 +2342,6 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 	}
 }
 
-// splitPresenceMessages splits the multiple messages
-// unmarshals the data into the custom structure,
-// calls the SendJsonResponse funstion to creates the json again.
-//
-// Parameters:
-// data: data to unmarshal,
-// returnTimeToken: the returned timetoken in the pubnub response,
-// channel: pubnub channel,
-// errorChannel: error channel to send a error response back.
-func (pub *Pubnub) sendPresenceMessage(data []byte, returnTimeToken string, channel string) {
-	var occupants struct {
-		Action    string  `json:"action"`
-		Uuid      string  `json:"uuid"`
-		Timestamp float64 `json:"timestamp"`
-		Occupancy int     `json:"occupancy"`
-	}
-
-	errUnmarshalMessages := json.Unmarshal(data, &occupants)
-
-	if errUnmarshalMessages != nil {
-		pub.sendResponseToChannel(nil, channel, responseAsIsError, invalidJSON, "")
-	} else {
-		pub.sendJSONResponse(occupants, returnTimeToken, channel)
-	}
-}
-
-// sendJSONResponse creates a json response and sends back to the response channel
-//
-// Accepts:
-// message: response to send back,
-// returnTimeToken: the timetoken for the response,
-// channelName: the pubnub channel for the response.
-func (pub *Pubnub) sendJSONResponse(message interface{}, returnTimeToken string, channelName string) {
-	if channelName != "" {
-		response := []interface{}{message, fmt.Sprintf("%s", pub.timeToken), channelName}
-		jsonData, err := json.Marshal(response)
-		if err != nil {
-			logMu.Lock()
-			errorLogger.Println(fmt.Sprintf("%s", err.Error()))
-			logMu.Unlock()
-			pub.sendResponseToChannel(nil, channelName, responseAsIsError, invalidJSON, err.Error())
-		}
-		pub.sendResponseToChannel(nil, channelName, responseAsIs, string(jsonData), "")
-	}
-}
-
 // CloseExistingConnection closes the open subscribe/presence connection.
 func (pub *Pubnub) CloseExistingConnection() {
 	subscribeTransportMu.Lock()
