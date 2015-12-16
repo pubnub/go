@@ -21,7 +21,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	//"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -292,23 +291,6 @@ type Pubnub struct {
 	channels SubscriptionEntity
 	groups   SubscriptionEntity
 
-	//===================
-	//presenceChannels  map[string]chan []byte
-	//subscribeChannels map[string]chan []byte
-
-	//presenceErrorChannels  map[string]chan []byte
-	//subscribeErrorChannels map[string]chan []byte
-
-	//channelGroupChannels      map[string]chan []byte
-	//channelGroupErrorChannels map[string]chan []byte
-
-	// get rid of these string values
-	//subscribedChannels    string
-	//newSubscribedChannels string
-
-	//subscribedChannelGroups    string
-	//newSubscribedChannelGroups string
-
 	userState map[string]map[string]interface{}
 
 	isPresenceHeartbeatRunning bool
@@ -347,15 +329,9 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.cipherKey = cipherKey
 	newPubnub.isSSL = sslOn
 	newPubnub.uuid = ""
-	//newPubnub.subscribedChannels = ""
 	newPubnub.resetTimeToken = true
 	newPubnub.timeToken = "0"
 	newPubnub.sentTimeToken = "0"
-	//newPubnub.newSubscribedChannels = ""
-	//newPubnub.subscribeChannels = make(map[string]chan []byte)
-	//newPubnub.subscribeErrorChannels = make(map[string]chan []byte)
-	//newPubnub.channelGroupChannels = make(map[string]chan []byte)
-	//newPubnub.channelGroupErrorChannels = make(map[string]chan []byte)
 	newPubnub.channels = *NewSubscriptionEntity()
 	newPubnub.groups = *NewSubscriptionEntity()
 
