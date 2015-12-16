@@ -3733,16 +3733,18 @@ func ParseSubscribeResponse(rawResponse []byte, cipherKey string) (
 		var messagesArray []interface{}
 
 		// REFACTOR: unmarshaling/marshaling response againg is expensive
-		err := json.Unmarshal([]byte(getData(vv[0], cipherKey)), &messagesArray)
-		if err != nil {
-			// TODO: handle error
+		er := json.Unmarshal([]byte(getData(vv[0], cipherKey)), &messagesArray)
+		if er != nil {
+			err = fmt.Errorf(invalidJSON)
+			return
 		}
 
 		for _, msg := range messagesArray {
-			message, err := json.Marshal(msg)
+			message, er := json.Marshal(msg)
 
-			if err != nil {
-				// TODO handle error
+			if er != nil {
+				err = fmt.Errorf(invalidJSON)
+				return
 			}
 
 			messages = append(messages, message)
