@@ -32,6 +32,7 @@ import (
 type ResponseStatus int
 
 // Enums for send response.
+// REVIEW: about a half of them are not used anywhere
 const (
 	responseAlreadySubscribed  ResponseStatus = 1 << iota //1
 	responseConnected                                     //2
@@ -258,21 +259,12 @@ func VersionInfo() string {
 // authenticationKey stores the Authentication Key in the current instance.
 // isSSL is true if enabled, else is false for the current instance.
 // uuid is the unique identifier, it can be a custom value or is automatically generated.
-// subscribedChannels keeps a list of subscribed Pubnub channels by the user in the a comma separated string.
 // timeToken is the current value of the servertime. This will be used to appened in each request.
 // sentTimeToken: This is the timetoken sent to the server with the request
 // resetTimeToken: In case of a new request or an error this variable is set to true so that the
-// timeToken will be set to 0 in the next request.
-// presenceChannels: All the presence responses will be routed to this channel. It stores the response channels for
-// each pubnub channel as map using the pubnub channel name as the key.
-// subscribeChannels: All the subscribe responses will be routed to this channel. It stores the response channels for
-// each pubnub channel as map using the pubnub channel name as the key.
-// presenceErrorChannels: All the presence error responses will be routed to this channel. It stores the response channels for
-// each pubnub channel as map using the pubnub channel name as the key.
-// subscribeErrorChannels: All the subscribe error responses will be routed to this channel. It stores the response channels for
-// each pubnub channel as map using the pubnub channel name as the key.
-// newSubscribedChannels keeps a list of the new subscribed Pubnub channels by the user in the a comma
-// separated string, before they are appended to the Pubnub SubscribedChannels.
+//     timeToken will be set to 0 in the next request.
+// channels: container for channels
+// groups: container for channels groups
 // isPresenceHeartbeatRunning a variable to keep a check on the presence heartbeat's status
 // Mutex to lock the operations on the instance
 type Pubnub struct {
@@ -1474,22 +1466,15 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string,
 	}
 }
 
-// sendResponseToChannel is the struct Pubnub's instance method that sends a reponse on the channel
-// provided as an argument or to the subscribe / presence channel is the argument is nil.
-//
-// Constructs the response based on the action (1-9). In case the action is 5 sends the response
-// as in the parameter response.
+// sendSubscribeResponse is the struct Pubnub's instance method that sends
+// a reponse to subsribed channels or groups
 //
 // It accepts the following parameters:
-// c: Channel on which to send the response back. Can be nil. If nil, assumes that if the channel name
-// is suffixed with "-pnpres" it is a presence channel else subscribe channel and sends the response to all the
-// respective channels. Then it fetches the corresonding channel from the pub.PresenceChannels or pub.SubscribeChannels
-// in case of callback and pub.PresenceErrorChannels or pub.SubscribeErrorChannels in case of error
-//
-// channels: Pubnub Channels to send a response to. Comma separated string for multiple channels.
-// action: (1-9)
-// response: can be nil, is used only in the case action is '5'.
-// response2: Additional error info.
+// channel: Channel on which to send the response back.
+// source: Channel Group or Wildcard Channel on which to send the response back.
+// tp: response type
+// action: additional information about action
+// response: message as bytes
 
 func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	tp ResponseType, action ResponseStatus, response []byte) {
@@ -1691,21 +1676,13 @@ func (pub *Pubnub) getSubscribedChannelGroups(groups string,
 //
 // It splits the Pubnub channels in the parameter by a comma and compares them to the existing
 // subscribed Pubnub channels.
-// If a new Pubnub channels is found it is appended to the Pubnub SubscribedChannels. The return
-// parameter channelsModified is set to true
-// If an subscribed pubnub channel is already present in the Pubnub SubscribedChannels it is added to
-// the alreadySubscribedChannels string and a response is sent back to the channel
 //
 // It accepts the following parameters:
 // channels: Pubnub Channels to send a response to. Comma separated string for multiple channels.
-// is suffixed with "-pnpres" it is a presence channel else subscribe channel and send the response to
-// the respective channel.
 // errorChannel: channel to send the error response to.
 //
 // Returns:
-// subChannels: the Pubnub subscribed channels as a comma separated string.
-// newSubChannels: the new Pubnub subscribed channels as a comma separated string.
-// newChannelsAdded: The return parameter channelsModified is set to true if new channels are added.
+// channelsModified: The return parameter channelsModified is set to true if new channels are added.
 func (pub *Pubnub) getSubscribedChannels(channels string,
 	errorChannel chan<- ErrorResponse) bool {
 
@@ -2025,6 +2002,7 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 //
 // It accepts the following parameters:
 // channels: channels to subscribe.
+// groups: channel groups to subscribe.
 // errorChannel: Channel to send the error response to.
 func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 	errorChannel chan<- ErrorResponse) {
@@ -2549,24 +2527,6 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 	}
 }
 
-// Subscribe is the struct Pubnub's instance method which checks for the InvalidChannels
-// and returns if true.
-// Initaiates the presence and subscribe response channels.
-// It creates a map for callback and error response channels for
-// each pubnub channel using the pubnub channel name as the key.
-// If muliple channels are passed then the same callback or error channel is used.
-//
-// If there is no existing subscribe/presence loop running then it starts a
-// new loop with the new pubnub channels.
-// Else closes the existing connections and starts a new loop
-//
-// It accepts the following parameters:
-// channels: comma separated pubnub channel list.
-// timetoken: if timetoken is present the subscribe request is sent using this timetoken
-// callbackChannel: Channel on which to send the response back.
-// errorChannel: channel to send an error response to.
-//
-// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) Subscribe(channels string,
 	callbackChannel chan<- SuccessResponse, errorChannel chan<- ErrorResponse,
 	eventsChannel chan<- ConnectionEvent) {
@@ -2599,6 +2559,20 @@ func (pub *Pubnub) Presence(channels string,
 		eventsChannel)
 }
 
+// Subscribe is the struct Pubnub's instance method which checks for the InvalidChannels
+// and returns if true.
+// Initaiates the presence and subscribe response channels.
+//
+// If there is no existing subscribe/presence loop running then it starts a
+// new loop with the new pubnub channels.
+// Else closes the existing connections and starts a new loop
+//
+// It accepts the following parameters:
+// channels: comma separated pubnub channel list.
+// timetoken: if timetoken is present the subscribe request is sent using this timetoken
+// successChannel: Channel on which to send the success response back.
+// errorChannel: channel to send an error response to.
+// eventsChannel: Channel on which to send events like connect/disconnect/reconnect.
 func (pub *Pubnub) SubscribeWithTimetoken(channels, timetoken string,
 	callbackChannel chan<- SuccessResponse, errorChannel chan<- ErrorResponse,
 	eventsChannel chan<- ConnectionEvent) {
@@ -3675,10 +3649,11 @@ func ParseJSON(contents []byte,
 // cipherKey: the key to decrypt the messages (can be empty).
 //
 // returns:
-// messages: as []interface.
+// messages: as [][]byte.
+// channels: as string.
+// groups: as string.
 // Timetoken/from time in case of detailed history as string.
-// pubnub channelname/timetoken/to time in case of detailed history (value 2).
-// error if any.
+// error: if any.
 func ParseSubscribeResponse(rawResponse []byte, cipherKey string) (
 	messages [][]byte, channels, groups []string, timetoken string, err error) {
 
