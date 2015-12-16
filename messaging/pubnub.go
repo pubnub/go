@@ -1532,14 +1532,17 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	isPresence = strings.HasSuffix(channel, presenceSuffix)
 
 	switch tp {
-	case WildcardResponse:
-		fallthrough
 	case ChannelResponse:
 		item, found = pub.channels.Get(channel)
 		itemName = channel
 	case ChannelGroupResponse:
 		item, found = pub.groups.Get(source)
 		itemName = source
+	case WildcardResponse:
+		item, found = pub.channels.Get(source)
+		itemName = source
+	default:
+		panic(fmt.Sprintf("Response type #%d is unknown", tp))
 	}
 
 	if !found {

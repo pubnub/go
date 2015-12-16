@@ -200,6 +200,86 @@ func TestChannelGroupSubscriptionMessage(t *testing.T) {
 	pubnubInstance.CloseExistingConnection()
 }
 
+func TestWildcardChannelSubscription(t *testing.T) {
+	assert := assert.New(t)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	r := GenRandom()
+	str := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	channel := fmt.Sprintf("%s.a%d", str, r.Intn(20))
+	wildcardChannel := fmt.Sprintf("%s.*", str)
+
+	await := make(chan bool)
+	await2 := make(chan bool)
+
+	successChannel, errorChannel, eventsChannel :=
+		messaging.CreateSubscriptionChannels()
+
+	publishSuccessChannel := make(chan []byte)
+	publishErrorChannel := make(chan []byte)
+
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+
+	go func() {
+		var messages []string
+
+		for {
+			select {
+			case msg := <-successChannel:
+				assert.Equal(channel, msg.Channel)
+				assert.Equal(wildcardChannel, msg.Source)
+				assert.Equal(messaging.WildcardResponse, msg.Type)
+				assert.False(msg.Presence)
+
+				messages = append(messages, string(msg.Data))
+			case err := <-errorChannel:
+				assert.Fail("Subscribe error", err.Error())
+			case event := <-eventsChannel:
+				await <- true
+			case <-timeout():
+				assert.Fail("For looop timed out")
+				break
+			}
+
+			if len(messages) == 2 {
+				break
+			}
+		}
+
+		assert.Equal([]string{"\"hello\"", "\"blah\""}, messages)
+		await2 <- true
+	}()
+
+	go pubnubInstance.Subscribe(wildcardChannel, successChannel, errorChannel, eventsChannel)
+
+	<-await
+
+	go pubnubInstance.Publish(channel, "hello", publishSuccessChannel, publishErrorChannel)
+	select {
+	case <-publishSuccessChannel:
+	case err := <-publishErrorChannel:
+		assert.Fail("Publish error", string(err))
+	case <-timeout():
+		assert.Fail("Publish#2 timed out")
+	}
+
+	go pubnubInstance.Publish(channel, "blah", publishSuccessChannel, publishErrorChannel)
+	select {
+	case <-publishSuccessChannel:
+	case err := <-publishErrorChannel:
+		assert.Fail("Publish error", string(err))
+	case <-timeout():
+		assert.Fail("Publish#2 timed out")
+	}
+
+	<-await2
+
+	go pubnubInstance.Unsubscribe(wildcardChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectDisconnectedEvent(t, wildcardChannel, "", eventsChannel)
+
+	pubnubInstance.CloseExistingConnection()
+}
+
 func TestChannelSubscriptionMessage(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	r := GenRandom()
