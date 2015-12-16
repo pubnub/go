@@ -234,7 +234,7 @@ func TestWildcardChannelSubscription(t *testing.T) {
 				messages = append(messages, string(msg.Data))
 			case err := <-errorChannel:
 				assert.Fail("Subscribe error", err.Error())
-			case event := <-eventsChannel:
+			case <-eventsChannel:
 				await <- true
 			case <-timeout():
 				assert.Fail("For looop timed out")
