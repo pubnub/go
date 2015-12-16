@@ -1583,7 +1583,6 @@ func (pub *Pubnub) sendConnectionEvent(channels, groups string,
 		for _, channel := range channelsArray {
 			if item, found = pub.channels.Get(channel); found {
 				//fmt.Printf("Sending action %d to %s\n", action, item.Name)
-				// TODO: add wildcard channel response support
 				item.EventsChannel <- ConnectionEvent{
 					Channel: item.Name,
 					Action:  action,
