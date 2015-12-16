@@ -274,6 +274,100 @@ func TestWereNow(t *testing.T) {
 	ExpectDisconnectedEvent(t, channel, "", eventsChannel)
 }
 
+// TestSetGetUserState subscribes to a pubnub channel and then
+// makes a call to the herenow method of the pubnub api. The occupancy should
+// be greater than one.
+func TestSetGetUserState(t *testing.T) {
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_us_%d", r.Intn(100))
+	key := "testkey"
+	val := "testval"
+
+	assert := assert.New(t)
+	setStateSuccessChannel := make(chan []byte)
+	setStateErrorChannel := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+
+	successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+
+	go pubnubInstance.Subscribe(channel, successChannel, errorChannel, eventsChannel)
+	ExpectConnectedEvent(t, channel, "", eventsChannel)
+
+	go pubnubInstance.SetUserStateKeyVal(channel, key, val, setStateSuccessChannel, setStateErrorChannel)
+	select {
+	case msg := <-setStateSuccessChannel:
+		var state struct {
+			Payload map[string]interface{}
+		}
+
+		err := json.Unmarshal(msg, &state)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+		assert.Equal(val, state.Payload[key])
+	case err := <-setStateErrorChannel:
+		assert.Fail(string(err))
+	}
+
+	time.Sleep(2 * time.Second)
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectDisconnectedEvent(t, channel, "", eventsChannel)
+
+	pubnubInstance.CloseExistingConnection()
+}
+
+func TestSetUserStateJSON(t *testing.T) {
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+
+	r := GenRandom()
+	channel := fmt.Sprintf("testChannel_us_%d", r.Intn(100))
+	key1 := "testkey"
+	val1 := "testval"
+	key2 := "testkey2"
+	val2 := "testval2"
+
+	assert := assert.New(t)
+
+	jsonString := fmt.Sprintf("{\"%s\": \"%s\",\"%s\": \"%s\"}", key1, val1, key2, val2)
+	setStateSuccessChannel := make(chan []byte)
+	setStateErrorChannel := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+
+	successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+
+	go pubnubInstance.Subscribe(channel, successChannel, errorChannel, eventsChannel)
+	ExpectConnectedEvent(t, channel, "", eventsChannel)
+
+	go pubnubInstance.SetUserStateJSON(channel, jsonString, setStateSuccessChannel, setStateErrorChannel)
+	select {
+	case msg := <-setStateSuccessChannel:
+		var state struct {
+			Payload map[string]interface{}
+		}
+
+		err := json.Unmarshal(msg, &state)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+		assert.Equal(val1, state.Payload[key1])
+		assert.Equal(val2, state.Payload[key2])
+	case err := <-setStateErrorChannel:
+		assert.Fail(string(err))
+	}
+
+	time.Sleep(2 * time.Second)
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectDisconnectedEvent(t, channel, "", eventsChannel)
+
+	pubnubInstance.CloseExistingConnection()
+}
+
 // TestPresenceEnd prints a message on the screen to mark the end of
 // presence tests.
 // PrintTestMessage is defined in the common.go file.
