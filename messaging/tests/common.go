@@ -4,9 +4,9 @@ package tests
 
 import (
 	"bytes"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"strings"
@@ -300,7 +300,7 @@ func ParseResponseDummyMessage(channel chan []byte, message string, responseChan
 }
 
 func ExpectConnectedEvent(t *testing.T,
-	channels, groups string, eventsChannel <-chan messaging.ConnectionEvent) {
+	channels, groups string, successChannel <-chan []byte) {
 
 	var initialChannelsArray, initialGroupsArray []string
 
@@ -313,15 +313,15 @@ func ExpectConnectedEvent(t *testing.T,
 	}
 
 	select {
-	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray, messaging.ConnectionConnected, eventsChannel):
+	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray, "connected", successChannel):
 		//fmt.Println("Connected event")
 	case <-timeout():
 		assert.Fail(t, "Timeout occured while waiting for Connected event")
 	}
 }
 
-func ExpectDisconnectedEvent(t *testing.T,
-	channels, groups string, eventsChannel <-chan messaging.ConnectionEvent) {
+func ExpectUnsubscribedEvent(t *testing.T,
+	channels, groups string, successChannel <-chan []byte) {
 
 	var initialChannelsArray, initialGroupsArray []string
 
@@ -334,7 +334,7 @@ func ExpectDisconnectedEvent(t *testing.T,
 	}
 
 	select {
-	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray, messaging.ConnectionDisconnected, eventsChannel):
+	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray, "unsubscribed", successChannel):
 		//fmt.Println("Disconnected event")
 	case <-timeout():
 		assert.Fail(t, "Timeout occured while waiting for Disconnected event")
@@ -342,7 +342,7 @@ func ExpectDisconnectedEvent(t *testing.T,
 }
 
 func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
-	action messaging.ConnectionAction, eventsChannel <-chan messaging.ConnectionEvent) <-chan bool {
+	action string, eventsChannel <-chan []byte) <-chan bool {
 
 	var triggeredChannels []string
 	var triggeredGroups []string
@@ -353,13 +353,20 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 		for {
 			select {
 			case event := <-eventsChannel:
-				assert.Equal(t, action, event.Action)
+				var ary []string
 
-				switch event.Type {
-				case messaging.ChannelResponse:
-					triggeredChannels = append(triggeredChannels, event.Channel)
-				case messaging.ChannelGroupResponse:
-					triggeredGroups = append(triggeredGroups, event.Source)
+				eventString := string(event)
+				assert.Contains(t, action, eventString)
+
+				err := json.Unmarshal(event, &ary)
+				if err != nil {
+					assert.Fail(t, err.Error())
+				}
+
+				if strings.Contains(eventString, "chanel group") {
+					triggeredGroups = append(triggeredGroups, ary[3])
+				} else if strings.Contains(eventString, "chanel") {
+					triggeredChannels = append(triggeredChannels, ary[2])
 				}
 
 				if AssertStringSliceElementsEqual(triggeredChannels, channels) &&
@@ -433,8 +440,6 @@ func AssertStringSliceElementsEqual(first, second []string) bool {
 	return true
 }
 
-func LogErrors(errorsChannel <-chan messaging.ErrorResponse) {
-	err := <-errorsChannel
-
-	fmt.Println("ERROR:", err.Error())
+func LogErrors(errorsChannel <-chan []byte) {
+	fmt.Printf("ERROR: %s", <-errorsChannel)
 }
