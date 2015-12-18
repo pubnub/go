@@ -23,6 +23,12 @@ type SuccessResponse struct {
 	Type      ResponseType
 }
 
+func (r SuccessResponse) Bytes() []byte {
+	// TODO: add cases for Channel Group and Wildcard responses
+	return []byte(fmt.Sprintf(
+		"[[%s], \"%s\", \"%s\"]", r.Data, r.Timetoken, r.Channel))
+}
+
 type ServerSideErrorData struct {
 	Message string      `json:"message"`
 	Payload interface{} `json:"payload"`
@@ -32,7 +38,8 @@ type ServerSideErrorData struct {
 }
 
 type ErrorResponse interface {
-	error
+	StringForSource(string) string
+	BytesForSource(string) []byte
 }
 
 type ServerSideErrorResponse struct {
@@ -41,12 +48,16 @@ type ServerSideErrorResponse struct {
 	Data ServerSideErrorData
 }
 
-func (e ServerSideErrorResponse) Error() string {
+func (e ServerSideErrorResponse) StringForSource(source string) string {
 	if val, err := json.Marshal(e.Data.Payload); err != nil || string(val) == "null" {
 		return fmt.Sprintf("%s\n", e.Data.Message)
 	} else {
 		return fmt.Sprintf("%s(%d): %s\n", e.Data.Service, e.Data.Status, val)
 	}
+}
+
+func (e ServerSideErrorResponse) BytesForSource(source string) []byte {
+	return []byte(e.StringForSource(source))
 }
 
 func NewPlainServerSideErrorResponse(response interface{}, status int) *ServerSideErrorResponse {
@@ -66,16 +77,37 @@ func NewPlainServerSideErrorResponse(response interface{}, status int) *ServerSi
 	}
 }
 
-type ClientSideErrorResponse struct {
+type clientSideErrorResponse struct {
 	ErrorResponse
 
 	Message string
 	Reason  ResponseStatus
 }
 
-func (e ClientSideErrorResponse) Error() string {
-	return fmt.Sprintf("Client-Side Error reason: %s %s",
-		getResponseReasonString(e.Reason), e.Message)
+func newClientSideErrorResponse(msg string) *clientSideErrorResponse {
+	return &clientSideErrorResponse{
+		Message: msg,
+	}
+}
+
+func (e clientSideErrorResponse) StringForSource(source string) string {
+	if e.Reason != 0 {
+		return fmt.Sprintf("[0, \"%s channel '%s' %s\", \"%s\"]",
+			stringPresenceOrSubscribe(source),
+			source,
+			stringResponseReason(e.Reason),
+			source)
+	} else {
+		return fmt.Sprintf("Client-Side Error reason: %s", e.Message)
+	}
+}
+
+func (e clientSideErrorResponse) BytesForSource(source string) []byte {
+	return []byte(e.StringForSource(source))
+}
+
+func (e clientSideErrorResponse) Bytes(source string) []byte {
+	return []byte(e.StringForSource(source))
 }
 
 func StringResponseType(responseType ResponseType) string {

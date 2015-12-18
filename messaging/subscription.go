@@ -1,8 +1,15 @@
 package messaging
 
 import (
+	"fmt"
 	"strings"
 	"sync"
+)
+
+const (
+	ConnectionConnected ConnectionAction = 1 << iota
+	ConnectionUnsubscribed
+	ConnectionReconnected
 )
 
 type ConnectionAction int
@@ -14,17 +21,40 @@ type ConnectionEvent struct {
 	Type    ResponseType
 }
 
-const (
-	ConnectionConnected ConnectionAction = 1 << iota
-	ConnectionDisconnected
-	ConnectionReconnected
-)
+func (e ConnectionEvent) Bytes() []byte {
+	switch e.Type {
+	case ChannelResponse:
+		return []byte(fmt.Sprintf(
+			"[1, \"%s channel '%s' %sed\", \"%s\"]",
+			stringPresenceOrSubscribe(e.Channel),
+			e.Channel, StringConnectionAction(e.Action),
+			strings.Replace(e.Channel, presenceSuffix, "", -1)))
+
+	case ChannelGroupResponse:
+		return []byte(fmt.Sprintf(
+			"[1, \"%s channel group '%s' %sed\", \"%s\"]",
+			stringPresenceOrSubscribe(e.Source),
+			e.Source, StringConnectionAction(e.Action),
+			strings.Replace(e.Source, presenceSuffix, "", -1)))
+
+	case WildcardResponse:
+		// TODO: unsure about wildcard presence
+		return []byte(fmt.Sprintf(
+			"[1, \"%s channel '%s' %sed\", \"%s\"]",
+			stringPresenceOrSubscribe(e.Source),
+			e.Source, StringConnectionAction(e.Action),
+			strings.Replace(e.Source, presenceSuffix, "", -1)))
+
+	default:
+		// TODO: log error
+		return []byte{}
+	}
+}
 
 type SubscriptionItem struct {
 	Name           string
-	SuccessChannel chan<- SuccessResponse
-	ErrorChannel   chan<- ErrorResponse
-	EventsChannel  chan<- ConnectionEvent
+	SuccessChannel chan<- []byte
+	ErrorChannel   chan<- []byte
 	Connected      bool
 }
 
@@ -51,20 +81,17 @@ func NewSubscriptionEntity() *SubscriptionEntity {
 }
 
 func (e *SubscriptionEntity) Add(name string,
-	successChannel chan<- SuccessResponse, errorChannel chan<- ErrorResponse,
-	eventsChannel chan<- ConnectionEvent) {
-	e.add(name, false, successChannel, errorChannel, eventsChannel)
+	successChannel chan<- []byte, errorChannel chan<- []byte) {
+	e.add(name, false, successChannel, errorChannel)
 }
 
 func (e *SubscriptionEntity) AddConnected(name string,
-	successChannel chan<- SuccessResponse, errorChannel chan<- ErrorResponse,
-	eventsChannel chan<- ConnectionEvent) {
-	e.add(name, true, successChannel, errorChannel, eventsChannel)
+	successChannel chan<- []byte, errorChannel chan<- []byte) {
+	e.add(name, true, successChannel, errorChannel)
 }
 
 func (e *SubscriptionEntity) add(name string, connected bool,
-	successChannel chan<- SuccessResponse, errorChannel chan<- ErrorResponse,
-	eventsChannel chan<- ConnectionEvent) {
+	successChannel chan<- []byte, errorChannel chan<- []byte) {
 
 	e.Lock()
 	defer e.Unlock()
@@ -73,7 +100,6 @@ func (e *SubscriptionEntity) add(name string, connected bool,
 		Name:           name,
 		SuccessChannel: successChannel,
 		ErrorChannel:   errorChannel,
-		EventsChannel:  eventsChannel,
 		Connected:      connected,
 	}
 
@@ -199,21 +225,19 @@ func (e *SubscriptionEntity) SetConnected() (changedItemNames []string) {
 	return changedItemNames
 }
 
-func CreateSubscriptionChannels() (chan SuccessResponse, chan ErrorResponse,
-	chan ConnectionEvent) {
+func CreateSubscriptionChannels() (chan []byte, chan []byte) {
 
-	successResponse := make(chan SuccessResponse)
-	errorResponse := make(chan ErrorResponse)
-	connectionEvent := make(chan ConnectionEvent)
+	successResponse := make(chan []byte)
+	errorResponse := make(chan []byte)
 
-	return successResponse, errorResponse, connectionEvent
+	return successResponse, errorResponse
 }
 
 func StringConnectionAction(status ConnectionAction) string {
 	switch status {
 	case ConnectionConnected:
 		return "connect"
-	case ConnectionDisconnected:
+	case ConnectionUnsubscribed:
 		return "disconnect"
 	case ConnectionReconnected:
 		return "reconnect"

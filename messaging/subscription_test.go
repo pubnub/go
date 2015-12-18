@@ -8,13 +8,12 @@ import (
 func TestSubscriptionEntity(t *testing.T) {
 	channels := *NewSubscriptionEntity()
 
-	successChannel := make(chan SuccessResponse)
-	errorChannel := make(chan ErrorResponse)
-	eventChannel := make(chan ConnectionEvent)
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
 
-	channels.Add("qwer", successChannel, errorChannel, eventChannel)
-	channels.Add("asdf", successChannel, errorChannel, eventChannel)
-	channels.Add("zxcv", successChannel, errorChannel, eventChannel)
+	channels.Add("qwer", successChannel, errorChannel)
+	channels.Add("asdf", successChannel, errorChannel)
+	channels.Add("zxcv", successChannel, errorChannel)
 
 	assert.Equal(t, "", channels.ConnectedNamesString(), "should be equal")
 	assert.Len(t, channels.NamesString(), 14, "should be 14")

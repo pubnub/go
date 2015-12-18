@@ -49,9 +49,8 @@ var (
 		uuid:         "my_uuid",
 	}
 
-	successChannel = make(chan SuccessResponse)
-	errorChannel   = make(chan ErrorResponse)
-	eventChannel   = make(chan ConnectionEvent)
+	successChannel = make(chan []byte)
+	errorChannel   = make(chan []byte)
 )
 
 var signatureRegexp, _ = regexp.Compile("&signature=.*$")

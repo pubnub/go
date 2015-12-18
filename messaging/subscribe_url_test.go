@@ -7,20 +7,20 @@ import (
 )
 
 func init() {
-	channelsSingleChannel.Add("blah", successChannel, errorChannel, eventChannel)
+	channelsSingleChannel.Add("blah", successChannel, errorChannel)
 
-	channelsThreeChannels.Add("qwer", successChannel, errorChannel, eventChannel)
-	channelsThreeChannels.Add("asdf", successChannel, errorChannel, eventChannel)
-	channelsThreeChannels.Add("zxcv", successChannel, errorChannel, eventChannel)
+	channelsThreeChannels.Add("qwer", successChannel, errorChannel)
+	channelsThreeChannels.Add("asdf", successChannel, errorChannel)
+	channelsThreeChannels.Add("zxcv", successChannel, errorChannel)
 
-	channelsSingleCG.Add("qwer", successChannel, errorChannel, eventChannel)
+	channelsSingleCG.Add("qwer", successChannel, errorChannel)
 
-	channelsThreeCG.Add("qwer", successChannel, errorChannel, eventChannel)
-	channelsThreeCG.Add("asdf", successChannel, errorChannel, eventChannel)
-	channelsThreeCG.Add("zxcv", successChannel, errorChannel, eventChannel)
+	channelsThreeCG.Add("qwer", successChannel, errorChannel)
+	channelsThreeCG.Add("asdf", successChannel, errorChannel)
+	channelsThreeCG.Add("zxcv", successChannel, errorChannel)
 
-	channelsChannelAndGroupC.Add("asdf", successChannel, errorChannel, eventChannel)
-	channelsChannelAndGroupG.Add("qwer", successChannel, errorChannel, eventChannel)
+	channelsChannelAndGroupC.Add("asdf", successChannel, errorChannel)
+	channelsChannelAndGroupG.Add("qwer", successChannel, errorChannel)
 }
 
 func TestCreateSubscribeURLWithoutTimetoken(t *testing.T) {
