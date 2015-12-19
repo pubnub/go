@@ -4140,21 +4140,3 @@ func encryptCipherKey(cipherKey string) []byte {
 	sha256String := hash.Sum(nil)[:16]
 	return []byte(hex.EncodeToString(sha256String))
 }
-
-// TODO: move to string_getters file
-func stringResponseReason(status ResponseStatus) string {
-	switch status {
-	case responseAlreadySubscribed:
-		return "already subscribed"
-	case responseNotSubscribed:
-		return "not subscribed"
-	case responseInternetConnIssues:
-		return "internet connection issues"
-	case reponseAbortMaxRetry:
-		return "max retries exceeded"
-	case responseTimedOut:
-		return "time out"
-	default:
-		return "unknown error"
-	}
-}

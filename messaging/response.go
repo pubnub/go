@@ -109,16 +109,3 @@ func (e clientSideErrorResponse) BytesForSource(source string) []byte {
 func (e clientSideErrorResponse) Bytes(source string) []byte {
 	return []byte(e.StringForSource(source))
 }
-
-func StringResponseType(responseType ResponseType) string {
-	switch responseType {
-	case ChannelResponse:
-		return "channel"
-	case ChannelGroupResponse:
-		return "channel group"
-	case WildcardResponse:
-		return "wildcard channel"
-	default:
-		return ""
-	}
-}

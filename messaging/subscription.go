@@ -232,16 +232,3 @@ func CreateSubscriptionChannels() (chan []byte, chan []byte) {
 
 	return successResponse, errorResponse
 }
-
-func StringConnectionAction(status ConnectionAction) string {
-	switch status {
-	case ConnectionConnected:
-		return "connect"
-	case ConnectionUnsubscribed:
-		return "disconnect"
-	case ConnectionReconnected:
-		return "reconnect"
-	default:
-		return ""
-	}
-}
