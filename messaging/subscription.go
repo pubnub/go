@@ -21,6 +21,24 @@ type ConnectionEvent struct {
 	Type    ResponseType
 }
 
+func newConnectionEventForChannel(channel string,
+	action ConnectionAction) *ConnectionEvent {
+	return &ConnectionEvent{
+		Channel: channel,
+		Action:  action,
+		Type:    ChannelResponse,
+	}
+}
+
+func newConnectionEventForChannelGroup(group string,
+	action ConnectionAction) *ConnectionEvent {
+	return &ConnectionEvent{
+		Source: group,
+		Action: action,
+		Type:   ChannelGroupResponse,
+	}
+}
+
 func (e ConnectionEvent) Bytes() []byte {
 	switch e.Type {
 	case ChannelResponse:

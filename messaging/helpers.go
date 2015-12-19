@@ -40,3 +40,11 @@ func stringPresenceOrSubscribe(channel string) string {
 		return subscribeMessage
 	}
 }
+
+func splitItems(items string) []string {
+	if items == "" {
+		return []string{}
+	} else {
+		return strings.Split(items, ",")
+	}
+}

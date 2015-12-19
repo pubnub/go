@@ -1567,6 +1567,21 @@ func (pub *Pubnub) sendConnectionEvent(channels, groups string,
 	}
 }
 
+func (pub *Pubnub) sendConnectionEventTo(channel chan []byte,
+	source string, tp ResponseType, action ConnectionAction) {
+
+	for _, item := range splitItems(source) {
+		switch tp {
+		case ChannelResponse:
+			fallthrough
+		case WildcardResponse:
+			channel <- newConnectionEventForChannel(item, action).Bytes()
+		case ChannelGroupResponse:
+			channel <- newConnectionEventForChannelGroup(item, action).Bytes()
+		}
+	}
+}
+
 func sendClientSideErrorAboutSources(errorChannel chan<- []byte,
 	sources []string, status ResponseStatus) {
 	for _, source := range sources {
@@ -2600,7 +2615,8 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 		channelToUnsub := strings.TrimSpace(channelArray[i])
 
 		if pub.channels.Exist(channelToUnsub) {
-			pub.sendConnectionEvent(channelToUnsub, "", ConnectionUnsubscribed)
+			pub.sendConnectionEventTo(callbackChannel, channelToUnsub, ChannelResponse,
+				ConnectionUnsubscribed)
 
 			pub.Lock()
 			pub.channels.Remove(channelToUnsub)
@@ -2650,8 +2666,8 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 		groupToUnsub := strings.TrimSpace(groupsArray[i])
 
 		if pub.groups.Exist(groupToUnsub) {
-
-			pub.sendConnectionEvent("", groupToUnsub, ConnectionUnsubscribed)
+			pub.sendConnectionEventTo(callbackChannel, groupToUnsub, ChannelGroupResponse,
+				ConnectionUnsubscribed)
 
 			pub.Lock()
 			pub.groups.Remove(groupToUnsub)
