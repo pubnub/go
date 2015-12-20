@@ -45,14 +45,14 @@ func (e ConnectionEvent) Bytes() []byte {
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Channel),
-			e.Channel, StringConnectionAction(e.Action),
-			strings.Replace(e.Channel, presenceSuffix, "", -1)))
+			removePnpres(e.Channel), StringConnectionAction(e.Action),
+			removePnpres(e.Channel)))
 
 	case ChannelGroupResponse:
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel group '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Source),
-			e.Source, StringConnectionAction(e.Action),
+			removePnpres(e.Source), StringConnectionAction(e.Action),
 			strings.Replace(e.Source, presenceSuffix, "", -1)))
 
 	case WildcardResponse:
@@ -60,7 +60,7 @@ func (e ConnectionEvent) Bytes() []byte {
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Source),
-			e.Source, StringConnectionAction(e.Action),
+			removePnpres(e.Source), StringConnectionAction(e.Action),
 			strings.Replace(e.Source, presenceSuffix, "", -1)))
 
 	default:

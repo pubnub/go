@@ -26,7 +26,7 @@ type SuccessResponse struct {
 func (r SuccessResponse) Bytes() []byte {
 	// TODO: add cases for Channel Group and Wildcard responses
 	return []byte(fmt.Sprintf(
-		"[[%s], \"%s\", \"%s\"]", r.Data, r.Timetoken, r.Channel))
+		"[[%s], \"%s\", \"%s\"]", r.Data, r.Timetoken, removePnpres(r.Channel)))
 }
 
 type ServerSideErrorData struct {

@@ -35,7 +35,7 @@ func stringPresenceOrSubscribe(channel string) string {
 	)
 
 	if strings.HasSuffix(channel, presenceSuffix) {
-		return presenceSuffix
+		return presenceMessage
 	} else {
 		return subscribeMessage
 	}
@@ -47,4 +47,8 @@ func splitItems(items string) []string {
 	} else {
 		return strings.Split(items, ",")
 	}
+}
+
+func removePnpres(initial string) string {
+	return strings.TrimSuffix(initial, presenceSuffix)
 }
