@@ -2388,49 +2388,6 @@ func checkCallbackNil(channelToCheck chan<- []byte, isErrChannel bool, funcName 
 	}
 }
 
-// TODO: remove validators
-// validateSubscribeSuccessChannel checks if the subscribe success channel is nil
-// if nil then the code wil panic as callbacks are mandatory
-func validateSubscribeSuccessChannel(channelToCheck chan<- SuccessResponse, funcName string) {
-	if channelToCheck == nil {
-		message := fmt.Sprintf("%s success channel is nil", funcName)
-
-		logMu.Lock()
-		errorLogger.Println(message)
-		logMu.Unlock()
-
-		panic(message)
-	}
-}
-
-// validateSubscribeErrorChannel checks if the subscribe error channel is nil
-// if nil then the code wil panic as callbacks are mandatory
-func validateSubscribeErrorChannel(channelToCheck chan<- ErrorResponse, funcName string) {
-	if channelToCheck == nil {
-		message := fmt.Sprintf("%s error channel is nil", funcName)
-
-		logMu.Lock()
-		errorLogger.Println(message)
-		logMu.Unlock()
-
-		panic(message)
-	}
-}
-
-// validateSubscribeEventsChannel checks if the subscribe events channel is nil
-// if nil then the code wil panic as callbacks are mandatory
-func validateSubscribeEventsChannel(channelToCheck chan<- ConnectionEvent, funcName string) {
-	if channelToCheck == nil {
-		message := fmt.Sprintf("%s event channel is nil", funcName)
-
-		logMu.Lock()
-		errorLogger.Println(message)
-		logMu.Unlock()
-
-		panic(message)
-	}
-}
-
 func (pub *Pubnub) ChannelGroupSubscribe(groups string,
 	callbackChannel chan<- []byte, errorChannel chan<- []byte) {
 	pub.ChannelGroupSubscribeWithTimetoken(groups, "", callbackChannel,
