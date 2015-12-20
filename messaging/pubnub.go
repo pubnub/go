@@ -1227,7 +1227,7 @@ func invalidMessage(message interface{}) bool {
 // Returns true if any one of the channel is empty. And sends a response on the Pubnub channel stating
 // that there is an "Invalid Channel".
 // Returns false if all the channels is acceptable.
-func invalidChannel(channel string, c chan []byte) bool {
+func invalidChannel(channel string, c chan<- []byte) bool {
 	if strings.TrimSpace(channel) == "" {
 		return true
 	}
@@ -2388,6 +2388,7 @@ func checkCallbackNil(channelToCheck chan<- []byte, isErrChannel bool, funcName 
 	}
 }
 
+// TODO: remove validators
 // validateSubscribeSuccessChannel checks if the subscribe success channel is nil
 // if nil then the code wil panic as callbacks are mandatory
 func validateSubscribeSuccessChannel(channelToCheck chan<- SuccessResponse, funcName string) {
@@ -2513,9 +2514,8 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 func (pub *Pubnub) Subscribe(channels, timetoken string,
 	callbackChannel chan<- []byte, isPresence bool, errorChannel chan<- []byte) {
 
-	// TODO: handle presence
-	if len(channels) == 0 {
-		panic("Presence() call: empty channels list")
+	if invalidChannel(channels, callbackChannel) {
+		return
 	}
 
 	checkCallbackNil(callbackChannel, false, "Subscribe")
@@ -2523,6 +2523,10 @@ func (pub *Pubnub) Subscribe(channels, timetoken string,
 
 	existingChannelsEmpty := pub.channels.Empty()
 	existingGroupsEmpty := pub.groups.Empty()
+
+	if isPresence {
+		channels = convertToPresenceChannel(channels)
+	}
 
 	channelsModified :=
 		pub.getSubscribedChannels(channels, errorChannel)
