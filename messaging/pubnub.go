@@ -581,9 +581,9 @@ func (pub *Pubnub) Abort() {
 	subscribedChannels := pub.channels.ConnectedNamesString()
 	subscribedGroups := pub.groups.ConnectedNamesString()
 
-	if subscribedChannels != "" {
+	if subscribedChannels != "" || subscribedGroups != "" {
 		// REVIEW: handle responseCode error case
-		_, _, err := pub.sendLeaveRequest(subscribedChannels, subscribedGroups)
+		value, _, err := pub.sendLeaveRequest(subscribedChannels, subscribedGroups)
 
 		if err != nil {
 			logMu.Lock()
@@ -593,8 +593,7 @@ func (pub *Pubnub) Abort() {
 			pub.sendClientSideSubscribeError(subscribedChannels, subscribedGroups,
 				err.Error(), 0)
 		} else {
-			pub.sendConnectionEvent(subscribedChannels, subscribedGroups,
-				ConnectionUnsubscribed)
+			pub.sendSuccessResponse(subscribedChannels, subscribedGroups, value)
 		}
 
 		logMu.Lock()
@@ -602,7 +601,8 @@ func (pub *Pubnub) Abort() {
 		logMu.Unlock()
 
 		pub.Lock()
-		pub.channels.Clear()
+		pub.channels.Abort()
+		pub.groups.Abort()
 		pub.Unlock()
 	}
 
@@ -1462,7 +1462,6 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string,
 // tp: response type
 // action: additional information about action
 // response: message as bytes
-
 func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	tp ResponseType, action ResponseStatus, response []byte) {
 
@@ -1515,6 +1514,26 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	}.Bytes()
 }
 
+func (pub *Pubnub) sendSuccessResponse(channels, groups string, response []byte) {
+	for _, itemName := range splitItems(channels) {
+		channel, found := pub.channels.Get(itemName)
+		if !found {
+			//TODO: log error
+		}
+
+		channel.SuccessChannel <- response
+	}
+
+	for _, itemName := range splitItems(groups) {
+		group, found := pub.channels.Get(itemName)
+		if !found {
+			//TODO: log error
+		}
+
+		group.SuccessChannel <- response
+	}
+}
+
 func (pub *Pubnub) sendConnectionEvent(channels, groups string,
 	action ConnectionAction) {
 
@@ -1523,32 +1542,28 @@ func (pub *Pubnub) sendConnectionEvent(channels, groups string,
 
 	pub.Lock()
 
-	channelsArray := strings.Split(channels, ",")
-	groupsArray := strings.Split(groups, ",")
+	channelsArray := splitItems(channels)
+	groupsArray := splitItems(groups)
 
 	pub.Unlock()
 
-	if len(channelsArray) > 0 {
-		for _, channel := range channelsArray {
-			if item, found = pub.channels.Get(channel); found {
-				item.SuccessChannel <- ConnectionEvent{
-					Channel: item.Name,
-					Action:  action,
-					Type:    ChannelResponse,
-				}.Bytes()
-			}
+	for _, channel := range channelsArray {
+		if item, found = pub.channels.Get(channel); found {
+			item.SuccessChannel <- ConnectionEvent{
+				Channel: item.Name,
+				Action:  action,
+				Type:    ChannelResponse,
+			}.Bytes()
 		}
 	}
 
-	if len(groupsArray) > 0 {
-		for _, group := range groupsArray {
-			if item, found = pub.groups.Get(group); found {
-				item.SuccessChannel <- ConnectionEvent{
-					Source: item.Name,
-					Action: action,
-					Type:   ChannelGroupResponse,
-				}.Bytes()
-			}
+	for _, group := range groupsArray {
+		if item, found = pub.groups.Get(group); found {
+			item.SuccessChannel <- ConnectionEvent{
+				Source: item.Name,
+				Action: action,
+				Type:   ChannelGroupResponse,
+			}.Bytes()
 		}
 	}
 }
@@ -1585,17 +1600,6 @@ func (pub *Pubnub) sendServerSideError(channels, groups string,
 	})
 }
 
-func (pub *Pubnub) sendPlainServerSideError(channels, groups, message string,
-	status int) {
-
-	pub.sendSubscribeError(channels, groups, ServerSideErrorResponse{
-		Data: ServerSideErrorData{
-			Message: message,
-			Status:  status,
-		},
-	})
-}
-
 func (pub *Pubnub) sendClientSideSubscribeError(channels, groups, message string,
 	reason ResponseStatus) {
 
@@ -1615,27 +1619,18 @@ func (pub *Pubnub) sendSubscribeError(channels, groups string,
 		groupsArray   []string
 	)
 
-	if len(channels) > 0 {
-		channelsArray = strings.Split(channels, ",")
-	}
+	channelsArray = splitItems(channels)
+	groupsArray = splitItems(groups)
 
-	if len(groups) > 0 {
-		groupsArray = strings.Split(groups, ",")
-	}
-
-	if len(channelsArray) > 0 {
-		for _, channel := range channelsArray {
-			if item, found = pub.channels.Get(channel); found {
-				item.ErrorChannel <- errorResponse.BytesForSource(channel)
-			}
+	for _, channel := range channelsArray {
+		if item, found = pub.channels.Get(channel); found {
+			item.ErrorChannel <- errorResponse.BytesForSource(channel)
 		}
 	}
 
-	if len(groupsArray) > 0 {
-		for _, group := range groupsArray {
-			if item, found = pub.groups.Get(group); found {
-				item.ErrorChannel <- errorResponse.BytesForSource(group)
-			}
+	for _, group := range groupsArray {
+		if item, found = pub.groups.Get(group); found {
+			item.ErrorChannel <- errorResponse.BytesForSource(group)
 		}
 	}
 }
@@ -2035,8 +2030,11 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					if strings.Contains(err.Error(), connectionAborted) {
 						pub.CloseExistingConnection()
 
-						pub.sendPlainServerSideError(alreadySubscribedChannels,
-							alreadySubscribedChannelGroups, err.Error(), responseCode)
+						pub.sendClientSideSubscribeError(alreadySubscribedChannels,
+							alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
+
+						pub.channels.ApplyAbort()
+						pub.groups.ApplyAbort()
 					} else if bNonTimeout {
 						pub.CloseExistingConnection()
 
@@ -2057,8 +2055,8 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					} else {
 						pub.CloseExistingConnection()
 
-						pub.sendPlainServerSideError(alreadySubscribedChannels,
-							alreadySubscribedChannelGroups, err.Error(), responseCode)
+						pub.sendClientSideSubscribeError(alreadySubscribedChannels,
+							alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
 
 						sleepForAWhile(true)
 					}

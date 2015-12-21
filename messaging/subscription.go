@@ -87,7 +87,8 @@ func (e *SubscriptionItem) SetConnected() (changed bool) {
 
 type SubscriptionEntity struct {
 	sync.RWMutex
-	items map[string]*SubscriptionItem
+	items         map[string]*SubscriptionItem
+	abortedMarker bool
 }
 
 func NewSubscriptionEntity() *SubscriptionEntity {
@@ -219,6 +220,22 @@ func (e *SubscriptionEntity) Clear() {
 	defer e.Unlock()
 
 	e.items = make(map[string]*SubscriptionItem)
+}
+
+func (e *SubscriptionEntity) Abort() {
+	e.Lock()
+	defer e.Unlock()
+
+	e.abortedMarker = true
+}
+
+func (e *SubscriptionEntity) ApplyAbort() {
+	e.Lock()
+	defer e.Unlock()
+
+	if e.abortedMarker == true {
+		e.Clear()
+	}
 }
 
 func (e *SubscriptionEntity) ResetConnected() {

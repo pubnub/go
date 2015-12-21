@@ -101,14 +101,17 @@ func newClientSideErrorResponse(msg string) *clientSideErrorResponse {
 }
 
 func (e clientSideErrorResponse) StringForSource(source string) string {
-	if e.Reason != 0 {
+	switch e.Reason {
+	case responseAsIsError:
+		return fmt.Sprintf("[0, \"%s\", \"%s\"]", e.Message, source)
+	case responseAlreadySubscribed:
+		fallthrough
+	default:
 		return fmt.Sprintf("[0, \"%s channel '%s' %s\", \"%s\"]",
 			stringPresenceOrSubscribe(source),
 			source,
 			stringResponseReason(e.Reason),
 			source)
-	} else {
-		return fmt.Sprintf("Client-Side Error reason: %s", e.Message)
 	}
 }
 
