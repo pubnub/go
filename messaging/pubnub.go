@@ -1518,7 +1518,9 @@ func (pub *Pubnub) sendSuccessResponse(channels, groups string, response []byte)
 	for _, itemName := range splitItems(channels) {
 		channel, found := pub.channels.Get(itemName)
 		if !found {
-			//TODO: log error
+			logMu.Lock()
+			errorLogger.Printf("Channel '%s' not found\n", itemName)
+			logMu.Unlock()
 		}
 
 		channel.SuccessChannel <- response
@@ -1527,7 +1529,9 @@ func (pub *Pubnub) sendSuccessResponse(channels, groups string, response []byte)
 	for _, itemName := range splitItems(groups) {
 		group, found := pub.channels.Get(itemName)
 		if !found {
-			//TODO: log error
+			logMu.Lock()
+			errorLogger.Printf("Group '%s' not found\n", itemName)
+			logMu.Unlock()
 		}
 
 		group.SuccessChannel <- response
