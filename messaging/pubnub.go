@@ -2676,15 +2676,7 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 func (pub *Pubnub) PresenceUnsubscribe(channels string, callbackChannel,
 	errorChannel chan []byte) {
 
-	var presenceChannels []string
-
-	channelArray := strings.Split(channels, ",")
-
-	for _, v := range channelArray {
-		presenceChannels = append(presenceChannels, v)
-	}
-
-	pub.Unsubscribe(strings.Join(presenceChannels, ","), callbackChannel,
+	pub.Unsubscribe(addPnpresToString(channels), callbackChannel,
 		errorChannel)
 }
 

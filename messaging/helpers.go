@@ -1,6 +1,7 @@
 package messaging
 
 import (
+	"fmt"
 	"strings"
 	"time"
 )
@@ -47,6 +48,20 @@ func splitItems(items string) []string {
 	} else {
 		return strings.Split(items, ",")
 	}
+}
+
+func addPnpresToString(items string) string {
+
+	var presenceItems []string
+
+	itemsSlice := splitItems(items)
+
+	for _, v := range itemsSlice {
+		presenceItems = append(presenceItems,
+			fmt.Sprintf("%s%s", v, presenceSuffix))
+	}
+
+	return strings.Join(presenceItems, ",")
 }
 
 func removePnpres(initial string) string {
