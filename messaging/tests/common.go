@@ -353,22 +353,21 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 		for {
 			select {
 			case event := <-eventsChannel:
-				var ary []string
+				var ary []interface{}
 
 				eventString := string(event)
-				assert.Contains(t, action, eventString)
+				assert.Contains(t, eventString, action)
 
 				err := json.Unmarshal(event, &ary)
 				if err != nil {
 					assert.Fail(t, err.Error())
 				}
 
-				if strings.Contains(eventString, "chanel group") {
-					triggeredGroups = append(triggeredGroups, ary[3])
-				} else if strings.Contains(eventString, "chanel") {
-					triggeredChannels = append(triggeredChannels, ary[2])
+				if strings.Contains(eventString, "channel group") {
+					triggeredGroups = append(triggeredGroups, ary[2].(string))
+				} else if strings.Contains(eventString, "channel") {
+					triggeredChannels = append(triggeredChannels, ary[2].(string))
 				}
-
 				if AssertStringSliceElementsEqual(triggeredChannels, channels) &&
 					AssertStringSliceElementsEqual(triggeredGroups, groups) {
 					channel <- true

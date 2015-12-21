@@ -24,9 +24,19 @@ type SuccessResponse struct {
 }
 
 func (r SuccessResponse) Bytes() []byte {
-	// TODO: add cases for Channel Group and Wildcard responses
-	return []byte(fmt.Sprintf(
-		"[[%s], \"%s\", \"%s\"]", r.Data, r.Timetoken, removePnpres(r.Channel)))
+	// TODO: add cases for Wildcard responses
+	switch r.Type {
+	case ChannelResponse:
+		return []byte(fmt.Sprintf(
+			"[[%s], \"%s\", \"%s\"]", r.Data, r.Timetoken, removePnpres(r.Channel)))
+	case ChannelGroupResponse:
+		return []byte(fmt.Sprintf(
+			"[[%s], \"%s\", \"%s\", \"%s\"]", r.Data, r.Timetoken,
+			removePnpres(r.Channel), removePnpres(r.Source)))
+	default:
+		// TODO: log error
+		return []byte{}
+	}
 }
 
 type ServerSideErrorData struct {
