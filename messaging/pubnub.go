@@ -660,8 +660,6 @@ func (pub *Pubnub) GrantSubscribe(channel string, read, write bool,
 	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 	checkCallbackNil(errorChannel, true, "GrantSubscribe")
 
-	pub.pamValidateSecretKey(channel, errorChannel)
-
 	requestURL := pub.pamGenerateParamsForChannel("grant", channel, read, write,
 		ttl, authKey)
 
@@ -677,8 +675,6 @@ func (pub *Pubnub) AuditSubscribe(channel, authKey string,
 	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
 	checkCallbackNil(errorChannel, true, "AuditSubscribe")
-
-	pub.pamValidateSecretKey(channel, errorChannel)
 
 	requestURL := pub.pamGenerateParamsForChannel("audit", channel, false, false, -1,
 		authKey)
@@ -700,8 +696,6 @@ func (pub *Pubnub) GrantPresence(channel string, read, write bool, ttl int,
 
 	channel2 := convertToPresenceChannel(channel)
 
-	pub.pamValidateSecretKey(channel2, errorChannel)
-
 	requestURL := pub.pamGenerateParamsForChannel("grant", channel2, read, write,
 		ttl, authKey)
 
@@ -720,8 +714,6 @@ func (pub *Pubnub) AuditPresence(channel, authKey string,
 
 	channel2 := convertToPresenceChannel(channel)
 
-	pub.pamValidateSecretKey(channel2, errorChannel)
-
 	requestURL := pub.pamGenerateParamsForChannel("audit", channel2, false, false, -1,
 		authKey)
 
@@ -735,8 +727,6 @@ func (pub *Pubnub) GrantChannelGroup(group string, read, manage bool,
 	checkCallbackNil(callbackChannel, false, "GrantChannelGroup")
 	checkCallbackNil(errorChannel, true, "GrantChannelGroup")
 
-	pub.pamValidateSecretKey(group, errorChannel)
-
 	requestURL := pub.pamGenerateParamsForChannelGroup("grant", group, read, manage,
 		ttl, authKey)
 
@@ -749,8 +739,6 @@ func (pub *Pubnub) AuditChannelGroup(group, authKey string,
 	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditChannelGroup")
 	checkCallbackNil(errorChannel, true, "AuditChannelGroup")
-
-	pub.pamValidateSecretKey(group, errorChannel)
 
 	requestURL := pub.pamGenerateParamsForChannelGroup("audit", group, false, false,
 		-1, authKey)
@@ -808,18 +796,6 @@ func queryEscapeMultiple(q string, splitter string) string {
 		pBuffer.WriteString(url.QueryEscape(channelArray[i]))
 	}
 	return pBuffer.String()
-}
-
-func (pub *Pubnub) pamValidateSecretKey(entity string, errorChannel chan []byte) {
-	message := "Secret key is required"
-
-	if strings.TrimSpace(pub.secretKey) == "" {
-		if strings.TrimSpace(entity) == "" {
-			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
-		} else {
-			pub.sendResponseToChannel(errorChannel, entity, responseAsIsError, message, "")
-		}
-	}
 }
 
 //  generate params string for channels pam request
@@ -1017,6 +993,16 @@ func (pub *Pubnub) pamGenerateParamsForChannelGroup(action, channelGroup string,
 // executePam is the main method which is called for all PAM requests
 func (pub *Pubnub) executePam(entity, requestURL string,
 	callbackChannel, errorChannel chan []byte) {
+
+	message := "Secret key is required"
+
+	if strings.TrimSpace(pub.secretKey) == "" {
+		if strings.TrimSpace(entity) == "" {
+			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
+		} else {
+			pub.sendResponseToChannel(errorChannel, entity, responseAsIsError, message, "")
+		}
+	}
 
 	value, responseCode, err := pub.httpRequest(requestURL, nonSubscribeTrans)
 	if (responseCode != 200) || (err != nil) {
