@@ -26,16 +26,15 @@ type SuccessResponse struct {
 func (r SuccessResponse) Bytes() []byte {
 	// TODO: add cases for Wildcard responses
 	switch r.Type {
-	case ChannelResponse:
-		return []byte(fmt.Sprintf(
-			"[[%s], \"%s\", \"%s\"]", r.Data, r.Timetoken, removePnpres(r.Channel)))
 	case ChannelGroupResponse:
 		return []byte(fmt.Sprintf(
 			"[[%s], \"%s\", \"%s\", \"%s\"]", r.Data, r.Timetoken,
 			removePnpres(r.Channel), removePnpres(r.Source)))
+	case ChannelResponse:
+		fallthrough
 	default:
-		// TODO: log error
-		return []byte{}
+		return []byte(fmt.Sprintf(
+			"[[%s], \"%s\", \"%s\"]", r.Data, r.Timetoken, removePnpres(r.Channel)))
 	}
 }
 
@@ -101,6 +100,7 @@ func newClientSideErrorResponse(msg string) *clientSideErrorResponse {
 }
 
 func (e clientSideErrorResponse) StringForSource(source string) string {
+	// TODO: handle all reasons
 	switch e.Reason {
 	case responseAlreadySubscribed:
 		return fmt.Sprintf("[0, \"%s channel '%s' %s\", \"%s\"]",
