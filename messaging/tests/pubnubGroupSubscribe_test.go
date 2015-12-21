@@ -211,6 +211,79 @@ func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	pubnub.CloseExistingConnection()
 }
 
+func TestGroupSubscriptionPresence(t *testing.T) {
+	//messaging.SetLogOutput(os.Stderr)
+	assert := assert.New(t)
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	r := GenRandom()
+	group := fmt.Sprintf("testChannelGroup_sub_%d", r.Intn(20))
+	groupPresence := fmt.Sprintf("%s%s", group, presenceSuffix)
+
+	createChannelGroups(pubnub, []string{group})
+	defer removeChannelGroups(pubnub, []string{group})
+
+	presenceSuccessChannel := make(chan []byte)
+	presenceErrorChannel := make(chan []byte)
+	subscribeSuccessChannel := make(chan []byte)
+	subscribeErrorChannel := make(chan []byte)
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go func() {
+		select {
+		case <-subscribeSuccessChannel:
+		case <-subscribeErrorChannel:
+		case <-successChannel:
+		case <-errorChannel:
+		}
+	}()
+
+	go pubnub.ChannelGroupSubscribe(groupPresence,
+		presenceSuccessChannel, presenceErrorChannel)
+	ExpectConnectedEvent(t, "", group, presenceSuccessChannel)
+
+	go pubnub.ChannelGroupSubscribe(group,
+		subscribeSuccessChannel, subscribeErrorChannel)
+	select {
+	case message := <-presenceSuccessChannel:
+		var msg []interface{}
+
+		msgString := string(message)
+
+		err := json.Unmarshal(message, &msg)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		assert.Equal("adsf", msg[2].(string))
+		assert.Equal(group, msg[3].(string))
+		assert.Contains(msgString, "join")
+	case err := <-presenceErrorChannel:
+		assert.Fail(string(err))
+	}
+
+	go pubnub.ChannelGroupUnsubscribe(group, successChannel, errorChannel)
+	select {
+	case message := <-presenceSuccessChannel:
+		var msg []interface{}
+
+		msgString := string(message)
+
+		err := json.Unmarshal(message, &msg)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		assert.Equal("adsf", msg[2].(string))
+		assert.Equal(group, msg[3].(string))
+		assert.Contains(msgString, "join")
+	case err := <-presenceErrorChannel:
+		assert.Fail(string(err))
+	}
+
+	pubnub.CloseExistingConnection()
+}
+
 func createChannelGroups(pubnub *messaging.Pubnub, groups []string) {
 	successChannel := make(chan []byte, 1)
 	errorChannel := make(chan []byte, 1)
