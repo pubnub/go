@@ -11,12 +11,12 @@ var pubnub = Pubnub{
 }
 
 var (
-	channelsSingleChannel    = *NewSubscriptionEntity()
-	channelsThreeChannels    = *NewSubscriptionEntity()
-	channelsSingleCG         = *NewSubscriptionEntity()
-	channelsThreeCG          = *NewSubscriptionEntity()
-	channelsChannelAndGroupC = *NewSubscriptionEntity()
-	channelsChannelAndGroupG = *NewSubscriptionEntity()
+	channelsSingleChannel    = *newSubscriptionEntity()
+	channelsThreeChannels    = *newSubscriptionEntity()
+	channelsSingleCG         = *newSubscriptionEntity()
+	channelsThreeCG          = *newSubscriptionEntity()
+	channelsChannelAndGroupC = *newSubscriptionEntity()
+	channelsChannelAndGroupG = *newSubscriptionEntity()
 
 	pubnubSingleChannel = Pubnub{
 		channels:     channelsSingleChannel,

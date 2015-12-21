@@ -29,12 +29,12 @@ import (
 	"time"
 )
 
-type ResponseStatus int
+type responseStatus int
 
 // Enums for send response.
 // REVIEW: about a half of them are not used anywhere
 const (
-	responseAlreadySubscribed  ResponseStatus = 1 << iota //1
+	responseAlreadySubscribed  responseStatus = 1 << iota //1
 	responseConnected                                     //2
 	responseUnsubscribed                                  //3
 	responseNotSubscribed                                 //4
@@ -280,8 +280,8 @@ type Pubnub struct {
 	sentTimeToken     string
 	resetTimeToken    bool
 
-	channels SubscriptionEntity
-	groups   SubscriptionEntity
+	channels subscriptionEntity
+	groups   subscriptionEntity
 
 	userState map[string]map[string]interface{}
 
@@ -324,8 +324,8 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.resetTimeToken = true
 	newPubnub.timeToken = "0"
 	newPubnub.sentTimeToken = "0"
-	newPubnub.channels = *NewSubscriptionEntity()
-	newPubnub.groups = *NewSubscriptionEntity()
+	newPubnub.channels = *newSubscriptionEntity()
+	newPubnub.groups = *newSubscriptionEntity()
 
 	newPubnub.isPresenceHeartbeatRunning = false
 
@@ -591,7 +591,7 @@ func (pub *Pubnub) Abort() {
 			logMu.Unlock()
 
 			pub.sendClientSideSubscribeError(subscribedChannels, subscribedGroups,
-				err.Error(), 0)
+				err.Error(), responseAsIsError)
 		} else {
 			pub.sendSuccessResponse(subscribedChannels, subscribedGroups, value)
 		}
@@ -1333,7 +1333,7 @@ func (pub *Pubnub) Publish(channel string, message interface{}, callbackChannel 
 // response: can be nil, is used only in the case action is '5'.
 // response2: Additional error info.
 func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string,
-	action ResponseStatus, response string, response2 string) {
+	action responseStatus, response string, response2 string) {
 
 	message := ""
 	intResponse := "0"
@@ -1463,13 +1463,13 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string,
 // action: additional information about action
 // response: message as bytes
 func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
-	tp ResponseType, action ResponseStatus, response []byte) {
+	tp responseType, action responseStatus, response []byte) {
 
 	var (
-		item       *SubscriptionItem
+		item       *subscriptionItem
 		found      bool
 		itemName   string
-		value      SuccessResponse
+		value      successResponse
 		isPresence bool
 	)
 
@@ -1479,13 +1479,13 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	isPresence = strings.HasSuffix(channel, presenceSuffix)
 
 	switch tp {
-	case ChannelResponse:
+	case channelResponse:
 		item, found = pub.channels.Get(channel)
 		itemName = channel
-	case ChannelGroupResponse:
+	case channelGroupResponse:
 		item, found = pub.groups.Get(source)
 		itemName = source
-	case WildcardResponse:
+	case wildcardResponse:
 		item, found = pub.channels.Get(source)
 		itemName = source
 	default:
@@ -1495,7 +1495,7 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	if !found {
 		logMu.Lock()
 		errorLogger.Printf("Subscription item for %s response not found: %s\n",
-			StringResponseType(tp), itemName)
+			stringResponseType(tp), itemName)
 		logMu.Unlock()
 		return
 	}
@@ -1504,7 +1504,7 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	infoLogger.Println(fmt.Sprintf("Response value: %#v", value))
 	logMu.Unlock()
 
-	item.SuccessChannel <- SuccessResponse{
+	item.SuccessChannel <- successResponse{
 		Data:      response,
 		Channel:   channel,
 		Source:    source,
@@ -1539,9 +1539,9 @@ func (pub *Pubnub) sendSuccessResponse(channels, groups string, response []byte)
 }
 
 func (pub *Pubnub) sendConnectionEvent(channels, groups string,
-	action ConnectionAction) {
+	action connectionAction) {
 
-	var item *SubscriptionItem
+	var item *subscriptionItem
 	var found bool
 
 	pub.Lock()
@@ -1553,42 +1553,42 @@ func (pub *Pubnub) sendConnectionEvent(channels, groups string,
 
 	for _, channel := range channelsArray {
 		if item, found = pub.channels.Get(channel); found {
-			item.SuccessChannel <- ConnectionEvent{
+			item.SuccessChannel <- connectionEvent{
 				Channel: item.Name,
 				Action:  action,
-				Type:    ChannelResponse,
+				Type:    channelResponse,
 			}.Bytes()
 		}
 	}
 
 	for _, group := range groupsArray {
 		if item, found = pub.groups.Get(group); found {
-			item.SuccessChannel <- ConnectionEvent{
+			item.SuccessChannel <- connectionEvent{
 				Source: item.Name,
 				Action: action,
-				Type:   ChannelGroupResponse,
+				Type:   channelGroupResponse,
 			}.Bytes()
 		}
 	}
 }
 
 func (pub *Pubnub) sendConnectionEventTo(channel chan []byte,
-	source string, tp ResponseType, action ConnectionAction) {
+	source string, tp responseType, action connectionAction) {
 
 	for _, item := range splitItems(source) {
 		switch tp {
-		case ChannelResponse:
+		case channelResponse:
 			fallthrough
-		case WildcardResponse:
+		case wildcardResponse:
 			channel <- newConnectionEventForChannel(item, action).Bytes()
-		case ChannelGroupResponse:
+		case channelGroupResponse:
 			channel <- newConnectionEventForChannelGroup(item, action).Bytes()
 		}
 	}
 }
 
 func sendClientSideErrorAboutSources(errorChannel chan<- []byte,
-	sources []string, status ResponseStatus) {
+	sources []string, status responseStatus) {
 	for _, source := range sources {
 		errorChannel <- clientSideErrorResponse{
 			Reason: status,
@@ -1597,15 +1597,15 @@ func sendClientSideErrorAboutSources(errorChannel chan<- []byte,
 }
 
 func (pub *Pubnub) sendServerSideError(channels, groups string,
-	message ServerSideErrorData) {
+	message serverSideErrorData) {
 
-	pub.sendSubscribeError(channels, groups, ServerSideErrorResponse{
+	pub.sendSubscribeError(channels, groups, serverSideErrorResponse{
 		Data: message,
 	})
 }
 
 func (pub *Pubnub) sendClientSideSubscribeError(channels, groups, message string,
-	reason ResponseStatus) {
+	reason responseStatus) {
 
 	pub.sendSubscribeError(channels, groups, clientSideErrorResponse{
 		Message: message,
@@ -1614,10 +1614,10 @@ func (pub *Pubnub) sendClientSideSubscribeError(channels, groups, message string
 }
 
 func (pub *Pubnub) sendSubscribeError(channels, groups string,
-	errorResponse ErrorResponse) {
+	errorResponse errorResponse) {
 
 	var (
-		item          *SubscriptionItem
+		item          *subscriptionItem
 		found         bool
 		channelsArray []string
 		groupsArray   []string
@@ -1815,7 +1815,7 @@ func (pub *Pubnub) resetRetryAndSendResponse() bool {
 
 	if retryCount > 0 {
 		pub.sendConnectionEvent(pub.channels.ConnectedNamesString(),
-			pub.groups.ConnectedNamesString(), ConnectionReconnected)
+			pub.groups.ConnectedNamesString(), connectionReconnected)
 
 		retryCount = 0
 		return true
@@ -2076,7 +2076,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 
 					pub.CloseExistingConnection()
 
-					var data ServerSideErrorData
+					var data serverSideErrorData
 
 					err := json.Unmarshal(value, &data)
 					if err != nil {
@@ -2248,7 +2248,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 
 		if len(changedChannels) > 0 {
 			pub.sendConnectionEvent(strings.Join(changedChannels, ","),
-				"", ConnectionConnected)
+				"", connectionConnected)
 		}
 
 		pub.Lock()
@@ -2257,7 +2257,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 
 		if len(changedGroups) > 0 {
 			pub.sendConnectionEvent("", strings.Join(changedGroups, ","),
-				ConnectionConnected)
+				connectionConnected)
 		}
 	} else if errJSON != nil {
 		logMu.Lock()
@@ -2309,7 +2309,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 					groupNames[i], newTimetoken)
 			} else {
 				pub.sendSubscribeResponse(channelNames[i], "", newTimetoken,
-					ChannelResponse, responseAsIs, message)
+					channelResponse, responseAsIs, message)
 			}
 		}
 	}
@@ -2326,14 +2326,14 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 	subscribedGroups := pub.groups.ConnectedNamesString()
 
 	if third == fourth && fourthChannelExist {
-		pub.sendSubscribeResponse(fourth, "", timetoken, ChannelResponse, responseAsIs, message)
+		pub.sendSubscribeResponse(fourth, "", timetoken, channelResponse, responseAsIs, message)
 	} else if strings.HasSuffix(third, wildcardSuffix) {
 		if fourthChannelExist && strings.HasSuffix(fourth, presenceSuffix) {
-			pub.sendSubscribeResponse(fourth, third, timetoken, WildcardResponse, responseAsIs, message)
+			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
 		} else if thirdChannelGroupExist && !strings.HasSuffix(fourth, presenceSuffix) {
-			pub.sendSubscribeResponse(fourth, third, timetoken, ChannelGroupResponse, responseAsIs, message)
+			pub.sendSubscribeResponse(fourth, third, timetoken, channelGroupResponse, responseAsIs, message)
 		} else if thirdChannelExist && strings.HasSuffix(third, wildcardSuffix) {
-			pub.sendSubscribeResponse(fourth, third, timetoken, WildcardResponse, responseAsIs, message)
+			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
 		} else {
 			logMu.Lock()
 			errorLogger.Println(
@@ -2346,7 +2346,7 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 				"Unable to handle response", responseAsIsError)
 		}
 	} else if third != fourth && thirdChannelGroupExist {
-		pub.sendSubscribeResponse(fourth, third, timetoken, ChannelGroupResponse, responseAsIs, message)
+		pub.sendSubscribeResponse(fourth, third, timetoken, channelGroupResponse, responseAsIs, message)
 	} else {
 		logMu.Lock()
 		errorLogger.Println(
@@ -2576,8 +2576,8 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 		channelToUnsub := strings.TrimSpace(channelArray[i])
 
 		if pub.channels.Exist(channelToUnsub) {
-			pub.sendConnectionEventTo(callbackChannel, channelToUnsub, ChannelResponse,
-				ConnectionUnsubscribed)
+			pub.sendConnectionEventTo(callbackChannel, channelToUnsub, channelResponse,
+				connectionUnsubscribed)
 
 			pub.Lock()
 			pub.channels.Remove(channelToUnsub)
@@ -2627,8 +2627,8 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 		groupToUnsub := strings.TrimSpace(groupsArray[i])
 
 		if pub.groups.Exist(groupToUnsub) {
-			pub.sendConnectionEventTo(callbackChannel, groupToUnsub, ChannelGroupResponse,
-				ConnectionUnsubscribed)
+			pub.sendConnectionEventTo(callbackChannel, groupToUnsub, channelGroupResponse,
+				connectionUnsubscribed)
 
 			pub.Lock()
 			pub.groups.Remove(groupToUnsub)

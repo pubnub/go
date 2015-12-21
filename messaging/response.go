@@ -5,32 +5,32 @@ import (
 	"fmt"
 )
 
-type ResponseType int
-type ErrorType int
+type responseType int
+type errorType int
 
 const (
-	ChannelResponse ResponseType = 1 << iota
-	ChannelGroupResponse
-	WildcardResponse
+	channelResponse responseType = 1 << iota
+	channelGroupResponse
+	wildcardResponse
 )
 
-type SuccessResponse struct {
+type successResponse struct {
 	Data      []byte
 	Channel   string
 	Source    string
 	Timetoken string
 	Presence  bool
-	Type      ResponseType
+	Type      responseType
 }
 
-func (r SuccessResponse) Bytes() []byte {
+func (r successResponse) Bytes() []byte {
 	// TODO: add cases for Wildcard responses
 	switch r.Type {
-	case ChannelGroupResponse:
+	case channelGroupResponse:
 		return []byte(fmt.Sprintf(
 			"[[%s], \"%s\", \"%s\", \"%s\"]", r.Data, r.Timetoken,
 			removePnpres(r.Channel), removePnpres(r.Source)))
-	case ChannelResponse:
+	case channelResponse:
 		fallthrough
 	default:
 		return []byte(fmt.Sprintf(
@@ -38,7 +38,7 @@ func (r SuccessResponse) Bytes() []byte {
 	}
 }
 
-type ServerSideErrorData struct {
+type serverSideErrorData struct {
 	Message string      `json:"message"`
 	Payload interface{} `json:"payload"`
 	Error   bool        `json:"error"`
@@ -46,18 +46,18 @@ type ServerSideErrorData struct {
 	Status  int         `json:"status"`
 }
 
-type ErrorResponse interface {
+type errorResponse interface {
 	StringForSource(string) string
 	BytesForSource(string) []byte
 }
 
-type ServerSideErrorResponse struct {
-	ErrorResponse
+type serverSideErrorResponse struct {
+	errorResponse
 
-	Data ServerSideErrorData
+	Data serverSideErrorData
 }
 
-func (e ServerSideErrorResponse) StringForSource(source string) string {
+func (e serverSideErrorResponse) StringForSource(source string) string {
 	if val, err := json.Marshal(e.Data.Payload); err != nil || string(val) == "null" {
 		return fmt.Sprintf("%s\n", e.Data.Message)
 	} else {
@@ -65,21 +65,21 @@ func (e ServerSideErrorResponse) StringForSource(source string) string {
 	}
 }
 
-func (e ServerSideErrorResponse) BytesForSource(source string) []byte {
+func (e serverSideErrorResponse) BytesForSource(source string) []byte {
 	return []byte(e.StringForSource(source))
 }
 
-func NewPlainServerSideErrorResponse(response interface{}, status int) *ServerSideErrorResponse {
+func newPlainServerSideErrorResponse(response interface{}, status int) *serverSideErrorResponse {
 	if responseString, err := json.Marshal(response); err != nil {
-		return &ServerSideErrorResponse{
-			Data: ServerSideErrorData{
+		return &serverSideErrorResponse{
+			Data: serverSideErrorData{
 				Message: "Error while marshalling error message",
 				Status:  status,
 			},
 		}
 	} else {
-		return &ServerSideErrorResponse{
-			Data: ServerSideErrorData{
+		return &serverSideErrorResponse{
+			Data: serverSideErrorData{
 				Message: string(responseString),
 			},
 		}
@@ -87,10 +87,10 @@ func NewPlainServerSideErrorResponse(response interface{}, status int) *ServerSi
 }
 
 type clientSideErrorResponse struct {
-	ErrorResponse
+	errorResponse
 
 	Message string
-	Reason  ResponseStatus
+	Reason  responseStatus
 }
 
 func newClientSideErrorResponse(msg string) *clientSideErrorResponse {

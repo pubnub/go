@@ -6,7 +6,7 @@ import (
 )
 
 func TestSubscriptionEntity(t *testing.T) {
-	channels := *NewSubscriptionEntity()
+	channels := *newSubscriptionEntity()
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)

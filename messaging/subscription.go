@@ -7,60 +7,60 @@ import (
 )
 
 const (
-	ConnectionConnected ConnectionAction = 1 << iota
-	ConnectionUnsubscribed
-	ConnectionReconnected
+	connectionConnected connectionAction = 1 << iota
+	connectionUnsubscribed
+	connectionReconnected
 )
 
-type ConnectionAction int
+type connectionAction int
 
-type ConnectionEvent struct {
+type connectionEvent struct {
 	Channel string
 	Source  string
-	Action  ConnectionAction
-	Type    ResponseType
+	Action  connectionAction
+	Type    responseType
 }
 
 func newConnectionEventForChannel(channel string,
-	action ConnectionAction) *ConnectionEvent {
-	return &ConnectionEvent{
+	action connectionAction) *connectionEvent {
+	return &connectionEvent{
 		Channel: channel,
 		Action:  action,
-		Type:    ChannelResponse,
+		Type:    channelResponse,
 	}
 }
 
 func newConnectionEventForChannelGroup(group string,
-	action ConnectionAction) *ConnectionEvent {
-	return &ConnectionEvent{
+	action connectionAction) *connectionEvent {
+	return &connectionEvent{
 		Source: group,
 		Action: action,
-		Type:   ChannelGroupResponse,
+		Type:   channelGroupResponse,
 	}
 }
 
-func (e ConnectionEvent) Bytes() []byte {
+func (e connectionEvent) Bytes() []byte {
 	switch e.Type {
-	case ChannelResponse:
+	case channelResponse:
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Channel),
-			removePnpres(e.Channel), StringConnectionAction(e.Action),
+			removePnpres(e.Channel), stringConnectionAction(e.Action),
 			removePnpres(e.Channel)))
 
-	case ChannelGroupResponse:
+	case channelGroupResponse:
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel group '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Source),
-			removePnpres(e.Source), StringConnectionAction(e.Action),
+			removePnpres(e.Source), stringConnectionAction(e.Action),
 			strings.Replace(e.Source, presenceSuffix, "", -1)))
 
-	case WildcardResponse:
+	case wildcardResponse:
 		// TODO: unsure about wildcard presence
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Source),
-			removePnpres(e.Source), StringConnectionAction(e.Action),
+			removePnpres(e.Source), stringConnectionAction(e.Action),
 			strings.Replace(e.Source, presenceSuffix, "", -1)))
 
 	default:
@@ -69,14 +69,14 @@ func (e ConnectionEvent) Bytes() []byte {
 	}
 }
 
-type SubscriptionItem struct {
+type subscriptionItem struct {
 	Name           string
 	SuccessChannel chan<- []byte
 	ErrorChannel   chan<- []byte
 	Connected      bool
 }
 
-func (e *SubscriptionItem) SetConnected() (changed bool) {
+func (e *subscriptionItem) SetConnected() (changed bool) {
 	if e.Connected == false {
 		e.Connected = true
 		return true
@@ -85,37 +85,37 @@ func (e *SubscriptionItem) SetConnected() (changed bool) {
 	}
 }
 
-type SubscriptionEntity struct {
+type subscriptionEntity struct {
 	sync.RWMutex
-	items         map[string]*SubscriptionItem
+	items         map[string]*subscriptionItem
 	abortedMarker bool
 }
 
-func NewSubscriptionEntity() *SubscriptionEntity {
-	e := new(SubscriptionEntity)
+func newSubscriptionEntity() *subscriptionEntity {
+	e := new(subscriptionEntity)
 
-	e.items = make(map[string]*SubscriptionItem)
+	e.items = make(map[string]*subscriptionItem)
 
 	return e
 }
 
-func (e *SubscriptionEntity) Add(name string,
+func (e *subscriptionEntity) Add(name string,
 	successChannel chan<- []byte, errorChannel chan<- []byte) {
 	e.add(name, false, successChannel, errorChannel)
 }
 
-func (e *SubscriptionEntity) AddConnected(name string,
+func (e *subscriptionEntity) AddConnected(name string,
 	successChannel chan<- []byte, errorChannel chan<- []byte) {
 	e.add(name, true, successChannel, errorChannel)
 }
 
-func (e *SubscriptionEntity) add(name string, connected bool,
+func (e *subscriptionEntity) add(name string, connected bool,
 	successChannel chan<- []byte, errorChannel chan<- []byte) {
 
 	e.Lock()
 	defer e.Unlock()
 
-	item := &SubscriptionItem{
+	item := &subscriptionItem{
 		Name:           name,
 		SuccessChannel: successChannel,
 		ErrorChannel:   errorChannel,
@@ -125,7 +125,7 @@ func (e *SubscriptionEntity) add(name string, connected bool,
 	e.items[name] = item
 }
 
-func (e *SubscriptionEntity) Remove(name string) bool {
+func (e *subscriptionEntity) Remove(name string) bool {
 	e.Lock()
 	defer e.Unlock()
 
@@ -138,11 +138,11 @@ func (e *SubscriptionEntity) Remove(name string) bool {
 	}
 }
 
-func (e *SubscriptionEntity) Length() int {
+func (e *subscriptionEntity) Length() int {
 	return len(e.items)
 }
 
-func (e *SubscriptionEntity) Exist(name string) bool {
+func (e *subscriptionEntity) Exist(name string) bool {
 	if _, ok := e.items[name]; ok {
 		return true
 	} else {
@@ -150,11 +150,11 @@ func (e *SubscriptionEntity) Exist(name string) bool {
 	}
 }
 
-func (e *SubscriptionEntity) Empty() bool {
+func (e *subscriptionEntity) Empty() bool {
 	return len(e.items) == 0
 }
 
-func (e *SubscriptionEntity) Get(name string) (*SubscriptionItem, bool) {
+func (e *subscriptionEntity) Get(name string) (*subscriptionItem, bool) {
 	if _, ok := e.items[name]; ok {
 		return e.items[name], true
 	} else {
@@ -162,7 +162,7 @@ func (e *SubscriptionEntity) Get(name string) (*SubscriptionItem, bool) {
 	}
 }
 
-func (e *SubscriptionEntity) Names() []string {
+func (e *subscriptionEntity) Names() []string {
 	e.RLock()
 	defer e.RUnlock()
 
@@ -175,13 +175,13 @@ func (e *SubscriptionEntity) Names() []string {
 	return names
 }
 
-func (e *SubscriptionEntity) NamesString() string {
+func (e *subscriptionEntity) NamesString() string {
 	names := e.Names()
 
 	return strings.Join(names, ",")
 }
 
-func (e *SubscriptionEntity) HasConnected() bool {
+func (e *subscriptionEntity) HasConnected() bool {
 	e.RLock()
 	defer e.RUnlock()
 
@@ -194,7 +194,7 @@ func (e *SubscriptionEntity) HasConnected() bool {
 	return false
 }
 
-func (e *SubscriptionEntity) ConnectedNames() []string {
+func (e *subscriptionEntity) ConnectedNames() []string {
 	e.RLock()
 	defer e.RUnlock()
 
@@ -209,27 +209,27 @@ func (e *SubscriptionEntity) ConnectedNames() []string {
 	return names
 }
 
-func (e *SubscriptionEntity) ConnectedNamesString() string {
+func (e *subscriptionEntity) ConnectedNamesString() string {
 	names := e.ConnectedNames()
 
 	return strings.Join(names, ",")
 }
 
-func (e *SubscriptionEntity) Clear() {
+func (e *subscriptionEntity) Clear() {
 	e.Lock()
 	defer e.Unlock()
 
-	e.items = make(map[string]*SubscriptionItem)
+	e.items = make(map[string]*subscriptionItem)
 }
 
-func (e *SubscriptionEntity) Abort() {
+func (e *subscriptionEntity) Abort() {
 	e.Lock()
 	defer e.Unlock()
 
 	e.abortedMarker = true
 }
 
-func (e *SubscriptionEntity) ApplyAbort() {
+func (e *subscriptionEntity) ApplyAbort() {
 	e.Lock()
 	defer e.Unlock()
 
@@ -238,7 +238,7 @@ func (e *SubscriptionEntity) ApplyAbort() {
 	}
 }
 
-func (e *SubscriptionEntity) ResetConnected() {
+func (e *subscriptionEntity) ResetConnected() {
 	e.Lock()
 	defer e.Unlock()
 
@@ -247,7 +247,7 @@ func (e *SubscriptionEntity) ResetConnected() {
 	}
 }
 
-func (e *SubscriptionEntity) SetConnected() (changedItemNames []string) {
+func (e *subscriptionEntity) SetConnected() (changedItemNames []string) {
 	e.Lock()
 	defer e.Unlock()
 
@@ -260,7 +260,7 @@ func (e *SubscriptionEntity) SetConnected() (changedItemNames []string) {
 	return changedItemNames
 }
 
-func CreateSubscriptionChannels() (chan []byte, chan []byte) {
+func createSubscriptionChannels() (chan []byte, chan []byte) {
 
 	successResponse := make(chan []byte)
 	errorResponse := make(chan []byte)

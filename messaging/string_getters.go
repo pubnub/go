@@ -1,19 +1,19 @@
 package messaging
 
-func StringResponseType(responseType ResponseType) string {
+func stringResponseType(responseType responseType) string {
 	switch responseType {
-	case ChannelResponse:
+	case channelResponse:
 		return "channel"
-	case ChannelGroupResponse:
+	case channelGroupResponse:
 		return "channel group"
-	case WildcardResponse:
+	case wildcardResponse:
 		return "wildcard channel"
 	default:
 		return ""
 	}
 }
 
-func stringResponseReason(status ResponseStatus) string {
+func stringResponseReason(status responseStatus) string {
 	switch status {
 	case responseAlreadySubscribed:
 		return "already subscribed"
@@ -30,13 +30,13 @@ func stringResponseReason(status ResponseStatus) string {
 	}
 }
 
-func StringConnectionAction(status ConnectionAction) string {
+func stringConnectionAction(status connectionAction) string {
 	switch status {
-	case ConnectionConnected:
+	case connectionConnected:
 		return "connect"
-	case ConnectionUnsubscribed:
+	case connectionUnsubscribed:
 		return "unsubscrib"
-	case ConnectionReconnected:
+	case connectionReconnected:
 		return "reconnect"
 	default:
 		return ""
