@@ -2335,16 +2335,28 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 		} else if thirdChannelExist && strings.HasSuffix(third, wildcardSuffix) {
 			pub.sendSubscribeResponse(fourth, third, timetoken, WildcardResponse, responseAsIs, message)
 		} else {
+			logMu.Lock()
+			errorLogger.Println(
+				"Unable to handle four-element response, please contact PubNub support with error description:",
+				"\n3rd element:", third,
+				"\n4th element:", fourth,
+			)
+			logMu.Unlock()
 			pub.sendClientSideSubscribeError(subscribedChannels, subscribedGroups,
-				"Unable to handle four-element response (case #1), please contact PubNub support with error description",
-				0)
+				"Unable to handle response", responseAsIsError)
 		}
 	} else if third != fourth && thirdChannelGroupExist {
 		pub.sendSubscribeResponse(fourth, third, timetoken, ChannelGroupResponse, responseAsIs, message)
 	} else {
+		logMu.Lock()
+		errorLogger.Println(
+			"Unable to handle four-element response, please contact PubNub support with error description:",
+			"\n3rd element:", third,
+			"\n4th element:", fourth,
+		)
+		logMu.Unlock()
 		pub.sendClientSideSubscribeError(subscribedChannels, subscribedGroups,
-			"Unable to handle four-element response (case #2), please contact PubNub support with error description",
-			0)
+			"Unable to handle response", responseAsIsError)
 	}
 }
 
