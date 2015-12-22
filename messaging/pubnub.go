@@ -2003,7 +2003,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					pub.CloseExistingConnection()
 
 					pub.sendSubscribeError(alreadySubscribedChannels,
-						alreadySubscribedChannelGroups, err.Error(), responseAsIs)
+						alreadySubscribedChannelGroups, string(value), responseAsIs)
 
 					sleepForAWhile(false)
 				}
