@@ -1344,20 +1344,11 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string,
 	case responseAlreadySubscribed:
 		message = "already subscribed"
 		intResponse = "0"
-	case responseConnected:
-		message = "connected"
-		intResponse = "1"
-	case responseUnsubscribed:
-		message = "unsubscribed"
-		intResponse = "1"
 	case responseNotSubscribed:
 		message = "not subscribed"
 		intResponse = "0"
 	case responseAsIs:
 		sendReponseAsIs = true
-	case responseReconnected:
-		message = "reconnected"
-		intResponse = "1"
 	case responseInternetConnIssues:
 		message = "disconnected due to internet connection issues, trying to reconnect. Retry count:" + response
 		response = ""
