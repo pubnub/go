@@ -1341,9 +1341,6 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string,
 	sendErrorResponse := false
 	errorWithoutChannel := false
 	switch action {
-	case responseNotSubscribed:
-		message = "not subscribed"
-		intResponse = "0"
 	case responseAsIs:
 		sendReponseAsIs = true
 	case responseInternetConnIssues:
@@ -1585,20 +1582,20 @@ func sendClientSideErrorAboutSources(errorChannel chan<- []byte,
 	}
 }
 
-func (pub *Pubnub) sendServerSideError(channels, groups string,
-	message serverSideErrorData) {
-
-	pub.sendSubscribeError(channels, groups, serverSideErrorResponse{
-		Data: message,
-	})
-}
-
 func (pub *Pubnub) sendClientSideSubscribeError(channels, groups, message string,
 	reason responseStatus) {
 
 	pub.sendSubscribeError(channels, groups, clientSideErrorResponse{
 		Message: message,
 		Reason:  reason,
+	})
+}
+
+func (pub *Pubnub) sendServerSideError(channels, groups string,
+	message serverSideErrorData) {
+
+	pub.sendSubscribeError(channels, groups, serverSideErrorResponse{
+		Data: message,
 	})
 }
 
@@ -2577,7 +2574,8 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 			unsubscribeChannels += channelToUnsub
 			channelRemoved = true
 		} else {
-			pub.sendResponseToChannel(errorChannel, channelToUnsub, responseNotSubscribed, "", "")
+			sendClientSideErrorAboutSources(errorChannel, channelResponse,
+				splitItems(channelToUnsub), responseNotSubscribed)
 		}
 	}
 
@@ -2628,7 +2626,8 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 			unsubscribeGroups += groupToUnsub
 			groupRemoved = true
 		} else {
-			pub.sendResponseToChannel(errorChannel, groupToUnsub, responseNotSubscribed, "", "")
+			sendClientSideErrorAboutSources(errorChannel, channelGroupResponse,
+				splitItems(groupToUnsub), responseNotSubscribed)
 		}
 	}
 
