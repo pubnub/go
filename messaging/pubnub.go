@@ -1397,7 +1397,7 @@ func (pub *Pubnub) sendSuccessResponse(channels, groups string, response []byte)
 func sendSuccessResponseToChannel(channel chan<- []byte, items,
 	response string) {
 
-	ln := len(items)
+	ln := len(splitItems(items))
 
 	value := strings.Replace(response, presenceSuffix, "", -1)
 
