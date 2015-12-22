@@ -284,6 +284,43 @@ func TestGroupSubscriptionPresence(t *testing.T) {
 	pubnub.CloseExistingConnection()
 }
 
+func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
+	//messaging.SetLogOutput(os.Stderr)
+	assert := assert.New(t)
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	r := GenRandom()
+	group := fmt.Sprintf("testChannelGroup_sub_%d", r.Intn(20))
+
+	createChannelGroups(pubnub, []string{group})
+	defer removeChannelGroups(pubnub, []string{group})
+
+	subscribeSuccessChannel := make(chan []byte)
+	subscribeErrorChannel := make(chan []byte)
+	subscribeSuccessChannel2 := make(chan []byte)
+	subscribeErrorChannel2 := make(chan []byte)
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnub.ChannelGroupSubscribe(group,
+		subscribeSuccessChannel, subscribeErrorChannel)
+	ExpectConnectedEvent(t, "", group, subscribeSuccessChannel)
+
+	go pubnub.ChannelGroupSubscribe(group,
+		subscribeSuccessChannel2, subscribeErrorChannel2)
+	select {
+	case <-subscribeSuccessChannel2:
+		assert.Fail("Received success message while expecting error")
+	case err := <-subscribeErrorChannel2:
+		assert.Contains(string(err), "Subscription to channel group")
+		assert.Contains(string(err), "already subscribed")
+	}
+
+	go pubnub.ChannelGroupUnsubscribe(group, successChannel, errorChannel)
+	ExpectUnsubscribedEvent(t, "", group, successChannel)
+
+	pubnub.CloseExistingConnection()
+}
+
 func createChannelGroups(pubnub *messaging.Pubnub, groups []string) {
 	successChannel := make(chan []byte, 1)
 	errorChannel := make(chan []byte, 1)

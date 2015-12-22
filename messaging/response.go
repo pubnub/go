@@ -92,6 +92,7 @@ type clientSideErrorResponse struct {
 
 	Message string
 	Reason  responseStatus
+	Type    responseType
 }
 
 func newClientSideErrorResponse(msg string) *clientSideErrorResponse {
@@ -104,8 +105,9 @@ func (e clientSideErrorResponse) StringForSource(source string) string {
 	// TODO: handle all reasons
 	switch e.Reason {
 	case responseAlreadySubscribed:
-		return fmt.Sprintf("[0, \"%s channel '%s' %s\", \"%s\"]",
+		return fmt.Sprintf("[0, \"%s %s '%s' %s\", \"%s\"]",
 			stringPresenceOrSubscribe(source),
+			stringResponseType(e.Type),
 			source,
 			stringResponseReason(e.Reason),
 			source)

@@ -1341,9 +1341,6 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string,
 	sendErrorResponse := false
 	errorWithoutChannel := false
 	switch action {
-	case responseAlreadySubscribed:
-		message = "already subscribed"
-		intResponse = "0"
 	case responseNotSubscribed:
 		message = "not subscribed"
 		intResponse = "0"
@@ -1579,10 +1576,11 @@ func (pub *Pubnub) sendConnectionEventTo(channel chan []byte,
 }
 
 func sendClientSideErrorAboutSources(errorChannel chan<- []byte,
-	sources []string, status responseStatus) {
+	tp responseType, sources []string, status responseStatus) {
 	for _, source := range sources {
 		errorChannel <- clientSideErrorResponse{
 			Reason: status,
+			Type:   tp,
 		}.BytesForSource(source)
 	}
 }
@@ -1658,7 +1656,7 @@ func (pub *Pubnub) getSubscribedChannelGroups(groups string,
 	}
 
 	if len(alreadySubscribedChannelGroups) > 0 {
-		sendClientSideErrorAboutSources(errorChannel,
+		sendClientSideErrorAboutSources(errorChannel, channelGroupResponse,
 			alreadySubscribedChannelGroups, responseAlreadySubscribed)
 	}
 
@@ -1704,8 +1702,8 @@ func (pub *Pubnub) getSubscribedChannels(channels string,
 	}
 
 	if len(alreadySubscribedChannels) > 0 {
-		sendClientSideErrorAboutSources(errorChannel, alreadySubscribedChannels,
-			responseAlreadySubscribed)
+		sendClientSideErrorAboutSources(errorChannel, channelResponse,
+			alreadySubscribedChannels, responseAlreadySubscribed)
 	}
 
 	return channelsModified
