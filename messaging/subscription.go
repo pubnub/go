@@ -42,6 +42,8 @@ func newConnectionEventForChannelGroup(group string,
 func (e connectionEvent) Bytes() []byte {
 	switch e.Type {
 	case channelResponse:
+		fallthrough
+	case wildcardResponse:
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Channel),
@@ -51,14 +53,6 @@ func (e connectionEvent) Bytes() []byte {
 	case channelGroupResponse:
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel group '%s' %sed\", \"%s\"]",
-			stringPresenceOrSubscribe(e.Source),
-			removePnpres(e.Source), stringConnectionAction(e.Action),
-			strings.Replace(e.Source, presenceSuffix, "", -1)))
-
-	case wildcardResponse:
-		// TODO: unsure about wildcard presence
-		return []byte(fmt.Sprintf(
-			"[1, \"%s channel '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Source),
 			removePnpres(e.Source), stringConnectionAction(e.Action),
 			strings.Replace(e.Source, presenceSuffix, "", -1)))

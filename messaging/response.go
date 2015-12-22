@@ -24,8 +24,9 @@ type successResponse struct {
 }
 
 func (r successResponse) Bytes() []byte {
-	// TODO: add cases for Wildcard responses
 	switch r.Type {
+	case wildcardResponse:
+		fallthrough
 	case channelGroupResponse:
 		return []byte(fmt.Sprintf(
 			"[[%s], \"%s\", \"%s\", \"%s\"]", r.Data, r.Timetoken,

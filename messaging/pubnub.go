@@ -2332,7 +2332,8 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
 		} else if thirdChannelGroupExist && !strings.HasSuffix(fourth, presenceSuffix) {
 			pub.sendSubscribeResponse(fourth, third, timetoken, channelGroupResponse, responseAsIs, message)
-		} else if thirdChannelExist && strings.HasSuffix(third, wildcardSuffix) {
+		} else if thirdChannelExist && strings.HasSuffix(third, wildcardSuffix) &&
+			!strings.HasSuffix(fourth, presenceSuffix) {
 			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
 		} else {
 			logMu.Lock()
