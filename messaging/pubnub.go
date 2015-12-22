@@ -1541,22 +1541,17 @@ func (pub *Pubnub) sendSubscribeErrorHelper(channels, groups string,
 	errorResponse errorResponse) {
 
 	var (
-		item          *subscriptionItem
-		found         bool
-		channelsArray []string
-		groupsArray   []string
+		item  *subscriptionItem
+		found bool
 	)
 
-	channelsArray = splitItems(channels)
-	groupsArray = splitItems(groups)
-
-	for _, channel := range channelsArray {
+	for _, channel := range splitItems(channels) {
 		if item, found = pub.channels.Get(channel); found {
 			item.ErrorChannel <- errorResponse.BytesForSource(channel)
 		}
 	}
 
-	for _, group := range groupsArray {
+	for _, group := range splitItems(groups) {
 		if item, found = pub.groups.Get(group); found {
 			item.ErrorChannel <- errorResponse.BytesForSource(group)
 		}
