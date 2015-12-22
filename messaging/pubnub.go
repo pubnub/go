@@ -589,7 +589,7 @@ func (pub *Pubnub) Abort() {
 			errorLogger.Println(fmt.Sprintf("Request aborted error:%s", err.Error()))
 			logMu.Unlock()
 
-			pub.sendClientSideSubscribeError(subscribedChannels, subscribedGroups,
+			pub.sendSubscribeError(subscribedChannels, subscribedGroups,
 				err.Error(), responseAsIsError)
 		} else {
 			pub.sendSuccessResponse(subscribedChannels, subscribedGroups, value)
@@ -1511,41 +1511,33 @@ func sendErrorResponseExtended(errorChannel chan<- []byte, items, message,
 func sendClientSideErrorAboutSources(errorChannel chan<- []byte,
 	tp responseType, sources []string, status responseStatus) {
 	for _, source := range sources {
-		errorChannel <- clientSideErrorResponse{
+		errorChannel <- errorResponse{
 			Reason: status,
 			Type:   tp,
 		}.BytesForSource(source)
 	}
 }
 
-func (pub *Pubnub) sendClientSideSubscribeError(channels, groups, message string,
+func (pub *Pubnub) sendSubscribeError(channels, groups, message string,
 	reason responseStatus) {
 
-	pub.sendSubscribeError(channels, groups, clientSideErrorResponse{
+	pub.sendSubscribeErrorHelper(channels, groups, errorResponse{
 		Message: message,
 		Reason:  reason,
 	})
 }
 
-func (pub *Pubnub) sendClientSideSubscribeErrorExtended(channels, groups,
+func (pub *Pubnub) sendSubscribeErrorExtended(channels, groups,
 	message, detailedMessage string, reason responseStatus) {
 
-	pub.sendSubscribeError(channels, groups, clientSideErrorResponse{
+	pub.sendSubscribeErrorHelper(channels, groups, errorResponse{
 		Message:         message,
 		Reason:          reason,
 		DetailedMessage: detailedMessage,
 	})
 }
 
-func (pub *Pubnub) sendServerSideError(channels, groups string,
-	message serverSideErrorData) {
-
-	pub.sendSubscribeError(channels, groups, serverSideErrorResponse{
-		Data: message,
-	})
-}
-
-func (pub *Pubnub) sendSubscribeError(channels, groups string,
+func (pub *Pubnub) sendSubscribeErrorHelper(channels, groups string,
 	errorResponse errorResponse) {
 
 	var (
@@ -1692,7 +1684,7 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error,
 		errorLogger.Println(message)
 		logMu.Unlock()
 
-		pub.sendClientSideSubscribeErrorExtended(subChannels, subChannelGroups,
+		pub.sendSubscribeErrorExtended(subChannels, subChannelGroups,
 			err.Error(), message, responseAsIsError)
 		bRet = true
 	} else if strings.Contains(err.Error(), timeoutU) {
@@ -1703,7 +1695,7 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error,
 		errorLogger.Println(fmt.Sprintf("%s %s:", err.Error(), message))
 		logMu.Unlock()
 
-		pub.sendClientSideSubscribeError(subChannels, subChannelGroups, message, responseTimedOut)
+		pub.sendSubscribeError(subChannels, subChannelGroups, message, responseTimedOut)
 
 		bRet = true
 		bTimeOut = true
@@ -1715,13 +1707,13 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error,
 		errorLogger.Println(fmt.Sprintf("%s %s:", err.Error(), message))
 		logMu.Unlock()
 
-		pub.sendClientSideSubscribeError(subChannels, subChannelGroups, message, responseInternetConnIssues)
+		pub.sendSubscribeError(subChannels, subChannelGroups, message, responseInternetConnIssues)
 		bRet = true
 	}
 
 	if retryCountLocal >= maxRetries {
 		// TODO: verify generated message
-		pub.sendClientSideSubscribeError(subChannels, subChannelGroups, "", reponseAbortMaxRetry)
+		pub.sendSubscribeError(subChannels, subChannelGroups, "", reponseAbortMaxRetry)
 
 		pub.Lock()
 		pub.channels.ResetConnected()
@@ -1968,7 +1960,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					if strings.Contains(err.Error(), connectionAborted) {
 						pub.CloseExistingConnection()
 
-						pub.sendClientSideSubscribeError(alreadySubscribedChannels,
+						pub.sendSubscribeError(alreadySubscribedChannels,
 							alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
 
 						pub.channels.ApplyAbort()
@@ -1993,7 +1985,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					} else {
 						pub.CloseExistingConnection()
 
-						pub.sendClientSideSubscribeError(alreadySubscribedChannels,
+						pub.sendSubscribeError(alreadySubscribedChannels,
 							alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
 
 						sleepForAWhile(true)
@@ -2010,16 +2002,8 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 
 					pub.CloseExistingConnection()
 
-					var data serverSideErrorData
-
-					err := json.Unmarshal(value, &data)
-					if err != nil {
-						pub.sendClientSideSubscribeError(alreadySubscribedChannels,
-							alreadySubscribedChannelGroups, err.Error(), responseAsIs)
-					} else {
-						pub.sendServerSideError(alreadySubscribedChannels,
-							alreadySubscribedChannelGroups, data)
-					}
+					pub.sendSubscribeError(alreadySubscribedChannels,
+						alreadySubscribedChannelGroups, err.Error(), responseAsIs)
 
 					sleepForAWhile(false)
 				}
@@ -2198,7 +2182,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 		errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 		logMu.Unlock()
 
-		pub.sendClientSideSubscribeError(strings.Join(channelNames, ","),
+		pub.sendSubscribeError(strings.Join(channelNames, ","),
 			strings.Join(groupNames, ","), fmt.Sprintf("%s", errJSON),
 			responseAsIsError)
 
@@ -2277,7 +2261,7 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 				"\n4th element:", fourth,
 			)
 			logMu.Unlock()
-			pub.sendClientSideSubscribeError(subscribedChannels, subscribedGroups,
+			pub.sendSubscribeError(subscribedChannels, subscribedGroups,
 				"Unable to handle response", responseAsIsError)
 		}
 	} else if third != fourth && thirdChannelGroupExist {
@@ -2290,7 +2274,7 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 			"\n4th element:", fourth,
 		)
 		logMu.Unlock()
-		pub.sendClientSideSubscribeError(subscribedChannels, subscribedGroups,
+		pub.sendSubscribeError(subscribedChannels, subscribedGroups,
 			"Unable to handle response", responseAsIsError)
 	}
 }

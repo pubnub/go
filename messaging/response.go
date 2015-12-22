@@ -1,7 +1,6 @@
 package messaging
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -39,53 +38,14 @@ func (r successResponse) Bytes() []byte {
 	}
 }
 
-type serverSideErrorData struct {
-	Message string      `json:"message"`
-	Payload interface{} `json:"payload"`
-	Error   bool        `json:"error"`
-	Service string      `json:"service"`
-	Status  int         `json:"status"`
-}
-
-type errorResponse interface {
-	StringForSource(string) string
-	BytesForSource(string) []byte
-}
-
-type serverSideErrorResponse struct {
-	errorResponse
-
-	Data serverSideErrorData
-}
-
-func (e serverSideErrorResponse) StringForSource(source string) string {
-	if val, err := json.Marshal(e.Data.Payload); err != nil || string(val) == "null" {
-		return fmt.Sprintf("%s\n", e.Data.Message)
-	} else {
-		return fmt.Sprintf("%s(%d): %s\n", e.Data.Service, e.Data.Status, val)
-	}
-}
-
-func (e serverSideErrorResponse) BytesForSource(source string) []byte {
-	return []byte(e.StringForSource(source))
-}
-
-type clientSideErrorResponse struct {
-	errorResponse
-
+type errorResponse struct {
 	Message         string
 	DetailedMessage string
 	Reason          responseStatus
 	Type            responseType
 }
 
-func newClientSideErrorResponse(msg string) *clientSideErrorResponse {
-	return &clientSideErrorResponse{
-		Message: msg,
-	}
-}
-
-func (e clientSideErrorResponse) StringForSource(source string) string {
+func (e errorResponse) StringForSource(source string) string {
 	// TODO: handle all reasons
 	switch e.Reason {
 	case responseAlreadySubscribed:
@@ -114,10 +74,10 @@ func (e clientSideErrorResponse) StringForSource(source string) string {
 	}
 }
 
-func (e clientSideErrorResponse) BytesForSource(source string) []byte {
+func (e errorResponse) BytesForSource(source string) []byte {
 	return []byte(e.StringForSource(source))
 }
 
-func (e clientSideErrorResponse) Bytes(source string) []byte {
+func (e errorResponse) Bytes(source string) []byte {
 	return []byte(e.StringForSource(source))
 }
