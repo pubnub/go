@@ -2268,7 +2268,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 
 			if len(channelNames) == 0 {
 				logMu.Lock()
-				errorLogger.Println("Unable to handle response: %s", data)
+				errorLogger.Printf("Unable to handle response: %s", data)
 				logMu.Unlock()
 				return
 			}
