@@ -70,23 +70,6 @@ func (e serverSideErrorResponse) BytesForSource(source string) []byte {
 	return []byte(e.StringForSource(source))
 }
 
-func newPlainServerSideErrorResponse(response interface{}, status int) *serverSideErrorResponse {
-	if responseString, err := json.Marshal(response); err != nil {
-		return &serverSideErrorResponse{
-			Data: serverSideErrorData{
-				Message: "Error while marshalling error message",
-				Status:  status,
-			},
-		}
-	} else {
-		return &serverSideErrorResponse{
-			Data: serverSideErrorData{
-				Message: string(responseString),
-			},
-		}
-	}
-}
-
 type clientSideErrorResponse struct {
 	errorResponse
 
