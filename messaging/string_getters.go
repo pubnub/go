@@ -20,11 +20,11 @@ func stringResponseReason(status responseStatus) string {
 	case responseNotSubscribed:
 		return "not subscribed"
 	case responseInternetConnIssues:
-		return "internet connection issues"
+		return "disconnected due to internet connection issues, trying to reconnect."
 	case reponseAbortMaxRetry:
-		return "max retries exceeded"
+		return "aborted due to max retry limit"
 	case responseTimedOut:
-		return "time out"
+		return "timed out."
 	default:
 		return "unknown error"
 	}

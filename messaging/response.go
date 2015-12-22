@@ -90,9 +90,10 @@ func newPlainServerSideErrorResponse(response interface{}, status int) *serverSi
 type clientSideErrorResponse struct {
 	errorResponse
 
-	Message string
-	Reason  responseStatus
-	Type    responseType
+	Message         string
+	DetailedMessage string
+	Reason          responseStatus
+	Type            responseType
 }
 
 func newClientSideErrorResponse(msg string) *clientSideErrorResponse {
@@ -107,12 +108,22 @@ func (e clientSideErrorResponse) StringForSource(source string) string {
 	case responseAlreadySubscribed:
 		fallthrough
 	case responseNotSubscribed:
-		return fmt.Sprintf("[0, \"%s %s '%s' %s\", \"%s\"]",
-			stringPresenceOrSubscribe(source),
-			stringResponseType(e.Type),
-			source,
-			stringResponseReason(e.Reason),
-			source)
+		if e.DetailedMessage != "" {
+			return fmt.Sprintf("[0, \"%s %s '%s' %s\", %s, \"%s\"]",
+				stringPresenceOrSubscribe(source),
+				stringResponseType(e.Type),
+				source,
+				stringResponseReason(e.Reason),
+				e.DetailedMessage,
+				source)
+		} else {
+			return fmt.Sprintf("[0, \"%s %s '%s' %s\", \"%s\"]",
+				stringPresenceOrSubscribe(source),
+				stringResponseType(e.Type),
+				source,
+				stringResponseReason(e.Reason),
+				source)
+		}
 	case responseAsIsError:
 		fallthrough
 	default:

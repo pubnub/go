@@ -1343,27 +1343,14 @@ func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string,
 	switch action {
 	case responseAsIs:
 		sendReponseAsIs = true
-	case responseInternetConnIssues:
-		message = "disconnected due to internet connection issues, trying to reconnect. Retry count:" + response
-		response = ""
-		intResponse = "0"
-		sendErrorResponse = true
-	case reponseAbortMaxRetry:
-		message = "aborted due to max retry limit"
-		intResponse = "0"
-		sendErrorResponse = true
 	case responseAsIsError:
 		sendErrorResponse = true
 		sendReponseAsIs = true
 		intResponse = "0"
 	case responseWithoutChannel:
 		errorWithoutChannel = true
-	case responseTimedOut:
-		message = "timed out."
-		response = ""
-		intResponse = "0"
-		sendErrorResponse = true
 	}
+
 	var value string
 	channelArray := strings.Split(channels, ",")
 
@@ -1591,6 +1578,16 @@ func (pub *Pubnub) sendClientSideSubscribeError(channels, groups, message string
 	})
 }
 
+func (pub *Pubnub) sendClientSideSubscribeErrorExtended(channels, groups,
+	message, detailedMessage string, reason responseStatus) {
+
+	pub.sendSubscribeError(channels, groups, clientSideErrorResponse{
+		Message:         message,
+		Reason:          reason,
+		DetailedMessage: detailedMessage,
+	})
+}
+
 func (pub *Pubnub) sendServerSideError(channels, groups string,
 	message serverSideErrorData) {
 
@@ -1746,7 +1743,8 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error,
 		errorLogger.Println(message)
 		logMu.Unlock()
 
-		pub.sendClientSideSubscribeError(subChannels, subChannelGroups, message, responseAsIsError)
+		pub.sendClientSideSubscribeErrorExtended(subChannels, subChannelGroups,
+			err.Error(), message, responseAsIsError)
 		bRet = true
 	} else if strings.Contains(err.Error(), timeoutU) {
 		sleepForAWhile(false)
@@ -1773,6 +1771,7 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error,
 	}
 
 	if retryCountLocal >= maxRetries {
+		// TODO: verify generated message
 		pub.sendClientSideSubscribeError(subChannels, subChannelGroups, "", reponseAbortMaxRetry)
 
 		pub.Lock()
@@ -2570,7 +2569,6 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 			pub.channels.Remove(channelToUnsub)
 			pub.Unlock()
 
-			pub.sendResponseToChannel(callbackChannel, "", responseUnsubscribed, "", "")
 			unsubscribeChannels += channelToUnsub
 			channelRemoved = true
 		} else {
@@ -2622,7 +2620,6 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 			pub.groups.Remove(groupToUnsub)
 			pub.Unlock()
 
-			pub.sendResponseToChannel(callbackChannel, "", responseUnsubscribed, "", "")
 			unsubscribeGroups += groupToUnsub
 			groupRemoved = true
 		} else {
