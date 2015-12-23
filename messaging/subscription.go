@@ -58,8 +58,7 @@ func (e connectionEvent) Bytes() []byte {
 			strings.Replace(e.Source, presenceSuffix, "", -1)))
 
 	default:
-		// TODO: log error
-		return []byte{}
+		panic(fmt.Sprintf("Undefined response type: %d", e.Type))
 	}
 }
 
