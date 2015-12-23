@@ -2137,8 +2137,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	var channelNames, groupNames []string
 	reconnected := pub.resetRetryAndSendResponse()
 
-	// REVIEW: check how expensive is a response []byte to string conversion
-	if string(response) == "[]" {
+	if bytes.Equal(response, []byte("[]")) {
 		sleepForAWhile(false)
 		return
 	}
