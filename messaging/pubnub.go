@@ -32,14 +32,10 @@ import (
 type responseStatus int
 
 // Enums for send response.
-// REVIEW: about a half of them are not used anywhere
 const (
 	responseAlreadySubscribed  responseStatus = 1 << iota //1
-	responseConnected                                     //2
-	responseUnsubscribed                                  //3
 	responseNotSubscribed                                 //4
 	responseAsIs                                          //5
-	responseReconnected                                   //6
 	responseInternetConnIssues                            //7
 	reponseAbortMaxRetry                                  //8
 	responseAsIsError                                     //9
