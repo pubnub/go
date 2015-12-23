@@ -577,7 +577,6 @@ func (pub *Pubnub) Abort() {
 	subscribedGroups := pub.groups.ConnectedNamesString()
 
 	if subscribedChannels != "" || subscribedGroups != "" {
-		// REVIEW: handle responseCode error case
 		value, _, err := pub.sendLeaveRequest(subscribedChannels, subscribedGroups)
 
 		if err != nil {
