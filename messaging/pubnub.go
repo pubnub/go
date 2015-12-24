@@ -1441,12 +1441,8 @@ func (pub *Pubnub) sendConnectionEvent(channels, groups string,
 	var item *subscriptionItem
 	var found bool
 
-	pub.Lock()
-
 	channelsArray := splitItems(channels)
 	groupsArray := splitItems(groups)
-
-	pub.Unlock()
 
 	for _, channel := range channelsArray {
 		if item, found = pub.channels.Get(channel); found {
@@ -1804,7 +1800,6 @@ func (pub *Pubnub) createPresenceHeartbeatURL() string {
 	} else {
 		presenceURLBuffer.WriteString(",")
 	}
-	pub.RUnlock()
 
 	presenceURLBuffer.WriteString("/heartbeat")
 	presenceURLBuffer.WriteString("?")
@@ -1815,6 +1810,7 @@ func (pub *Pubnub) createPresenceHeartbeatURL() string {
 			queryEscapeMultiple(pub.groups.NamesString(), ","))
 		presenceURLBuffer.WriteString("&")
 	}
+	pub.RUnlock()
 
 	presenceURLBuffer.WriteString("uuid=")
 	presenceURLBuffer.WriteString(pub.GetUUID())
@@ -1968,8 +1964,10 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 						pub.sendSubscribeError(alreadySubscribedChannels,
 							alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
 
+						pub.Lock()
 						pub.channels.ApplyAbort()
 						pub.groups.ApplyAbort()
+						pub.Unlock()
 					} else if bNonTimeout {
 						pub.CloseExistingConnection()
 
@@ -2166,16 +2164,13 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	if len(data) == 0 && sentTimetoken == "0" && !reconnected {
 		pub.Lock()
 		changedChannels := pub.channels.SetConnected()
+		changedGroups := pub.groups.SetConnected()
 		pub.Unlock()
 
 		if len(changedChannels) > 0 {
 			pub.sendConnectionEvent(strings.Join(changedChannels, ","),
 				"", connectionConnected)
 		}
-
-		pub.Lock()
-		changedGroups := pub.groups.SetConnected()
-		pub.Unlock()
 
 		if len(changedGroups) > 0 {
 			pub.sendConnectionEvent("", strings.Join(changedGroups, ","),
@@ -2240,12 +2235,14 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 	fourth, third, timetoken string) {
 
+	pub.RLock()
 	thirdChannelGroupExist := pub.groups.Exist(third)
 	thirdChannelExist := pub.channels.Exist(third)
 	fourthChannelExist := pub.channels.Exist(fourth)
 
 	subscribedChannels := pub.channels.ConnectedNamesString()
 	subscribedGroups := pub.groups.ConnectedNamesString()
+	pub.RUnlock()
 
 	if third == fourth && fourthChannelExist {
 		pub.sendSubscribeResponse(fourth, "", timetoken, channelResponse, responseAsIs, message)
@@ -2323,8 +2320,10 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 	checkCallbackNil(callbackChannel, false, "ChanelGroupSubscribe")
 	checkCallbackNil(errorChannel, true, "ChanelGroupSubscribe")
 
+	pub.RLock()
 	existingChannelsEmpty := pub.channels.Empty()
 	existingGroupsEmpty := pub.groups.Empty()
+	pub.RUnlock()
 
 	channelGroupsModified :=
 		pub.getSubscribedChannelGroups(groups, errorChannel)
@@ -2401,8 +2400,10 @@ func (pub *Pubnub) Subscribe(channels, timetoken string,
 	checkCallbackNil(callbackChannel, false, "Subscribe")
 	checkCallbackNil(errorChannel, true, "Subscribe")
 
+	pub.RLock()
 	existingChannelsEmpty := pub.channels.Empty()
 	existingGroupsEmpty := pub.groups.Empty()
+	pub.RUnlock()
 
 	if isPresence {
 		channels = convertToPresenceChannel(channels)
