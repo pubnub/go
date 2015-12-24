@@ -646,6 +646,11 @@ func (pub *Pubnub) closeRetryConnection() {
 // and set TTL values for it. To grant a permission set read or write as true
 // to revoke all perms set read and write false and ttl as -1
 //
+// ttl values:
+//		-1: do not include ttl param to query, use default (60 minutes)
+//		 0: permissions will never expire
+//		1..525600: from 1 minute to 1 year(in minutes)
+//
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
@@ -679,6 +684,11 @@ func (pub *Pubnub) AuditSubscribe(channel, authKey string,
 // GrantPresence is used to give a presence channel read, write permissions
 // and set TTL values for it. To grant a permission set read or write as true
 // to revoke all perms set read and write false and ttl as -1
+//
+// ttl values:
+//		-1: do not include ttl param to query, use default (60 minutes)
+//		 0: permissions will never expire
+//		1..525600: from 1 minute to 1 year(in minutes)
 //
 // channel is options and if not provided will set the permissions at subkey level
 //
@@ -716,6 +726,11 @@ func (pub *Pubnub) AuditPresence(channel, authKey string,
 
 // GrantChannelGroup is used to give a channel group read or manage permissions
 // and set TTL values for it.
+//
+// ttl values:
+//		-1: do not include ttl param to query, use default (60 minutes)
+//		 0: permissions will never expire
+//		1..525600: from 1 minute to 1 year(in minutes)
 func (pub *Pubnub) GrantChannelGroup(group string, read, manage bool,
 	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GrantChannelGroup")
