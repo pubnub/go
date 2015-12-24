@@ -132,10 +132,16 @@ func (e *subscriptionEntity) Remove(name string) bool {
 }
 
 func (e *subscriptionEntity) Length() int {
+	e.RLock()
+	defer e.RUnlock()
+
 	return len(e.items)
 }
 
 func (e *subscriptionEntity) Exist(name string) bool {
+	e.RLock()
+	defer e.RUnlock()
+
 	if _, ok := e.items[name]; ok {
 		return true
 	} else {
@@ -144,10 +150,16 @@ func (e *subscriptionEntity) Exist(name string) bool {
 }
 
 func (e *subscriptionEntity) Empty() bool {
+	e.RLock()
+	defer e.RUnlock()
+
 	return len(e.items) == 0
 }
 
 func (e *subscriptionEntity) Get(name string) (*subscriptionItem, bool) {
+	e.RLock()
+	defer e.RUnlock()
+
 	if _, ok := e.items[name]; ok {
 		return e.items[name], true
 	} else {
