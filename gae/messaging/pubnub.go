@@ -1210,8 +1210,9 @@ func (pub *Pubnub) Publish(context context.Context, w http.ResponseWriter,
 // It accepts the following parameters:
 // channel: The Pubnub channel to which the message is to be posted.
 // message: message to be posted.
-// storeInHistory: message will be persisted in Storage & Playback db
-// doNotSerialize: do not wrap string or []byte with braces
+// storeInHistory: Message will be persisted in Storage & Playback db
+// doNotSerialize: Set this option to true if you use your own serializer. In
+// this case passed-in message should be a string or []byte
 // callbackChannel: Channel on which to send the response back.
 // errorChannel on which the error response is sent.
 //
