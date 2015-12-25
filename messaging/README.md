@@ -11,6 +11,7 @@
  * Subscribe method arguments changed
  * Add authKey argument to all PAM methods
  * Add Channel Group Methods
+ * Add PublishExtended() method that extends existing Publish() with 2 bool options: storeInHistory and doNotSerialize
  * Fix multiple channels encoding in PAM methods
 * 3.6.4
  * Exposed MaxIdleConnsPerHost of the transport
