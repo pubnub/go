@@ -6,6 +6,7 @@
 * 3.7.0 changes
  * Add authKey argument to all PAM methods
  * Add Channel Group Methods
+ * Add PublishExtended() method that extends existing Publish() with 2 bool options: storeInHistory and doNotSerialize
  * Fix multiple channels encoding in PAM methods
 * 3.6.3 changes
  * GAE and Managed VM use the same code now.
