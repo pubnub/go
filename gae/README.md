@@ -119,6 +119,23 @@ Initialize a new Pubnub instance.
         // please goto the top of this file see the implementation of handleResult
 ```
 
+#### PublishExtended
+
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var callbackChannel = make(chan []byte)
+        go pubInstance.PublishExtended(<AppEngine context>, <http.ResponseWriter>, <*http.Request>,
+        	<pubnub channel>, <message to publish>, <storeInHistory bool>, <doNotSerialize bool>,
+        	callbackChannel, errorChannel)
+
+        handleResult(<AppEngine context>, <http.ResponseWriter>, <*http.Request>, <UUID>,
+        	callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "PublishExtended")
+
+        // please goto the top of this file see the implementation of handleResult
+```
+
 #### Detailed History
 
 ```go
