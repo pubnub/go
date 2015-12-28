@@ -112,6 +112,7 @@ We've included a demo console app which documents all the functionality of the c
 * Subscribe
 * Subscribe with timetoken
 * Publish
+* PublishExtended
 * Presence
 * Detailed History
 * Here_Now
@@ -280,6 +281,19 @@ Initialize a new Pubnub instance.
         var callbackChannel = make(chan []byte)
         go pubInstance.Publish(<pubnub channel>, <message to publish>, callbackChannel, errorChannel)
         go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### PublishExtended
+
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var callbackChannel = make(chan []byte)
+        go pubInstance.PublishExtended(<pubnub channel>, <message to publish>,
+        	<storeInHistory bool>, <doNotSerialize bool>, callbackChannel, errorChannel)
+        go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "PublishExtended")
         // please goto the top of this file see the implementation of handleResult
 ```
 
