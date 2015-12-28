@@ -146,77 +146,25 @@ We've included a demo console app which documents all the functionality of the c
 This function is a utility function used in the examples below to handle the Subscribe/Presence response. You will want to adapt it to your own needs.
 
 ```go
-func handleSubscribeResult(
-        successChannel chan messaging.SuccessResponse,
-        errorChannel chan messaging.ErrorResponse,
-        eventsChannel chan messaging.ConnectionEvent) {
-
+func handleSubscribeResult(successChannel, errorChannel chan []byte, action string) {
         for {
                 select {
-                case response := <-successChannel:
-                        var name string
-
-                        switch response.Type {
-                        case messaging.ChannelResponse:
-                                name = response.Channel
-                        case messaging.ChannelGroupResponse:
-                                name = response.Source
-                        case messaging.WildcardResponse:
-                                name = response.Source
+                case success, ok := <-successChannel:
+                        if !ok {
+                                break
                         }
-
-                        if response.Presence {
-                                fmt.Printf("New presence event on %s %s (%s)\n", name,
-                                        messaging.StringResponseType(response.Type), response.Timetoken)
-
-                                var presenceEvent messaging.PresenceEvent
-
-                                err := json.Unmarshal(response.Data, &presenceEvent)
-                                if err != nil {
-                                        fmt.Println(err.Error())
-                                        continue
-                                }
-
-                                fmt.Printf("%s action of %s user. New occupancy %d\n\n",
-                                        presenceEvent.Action, presenceEvent.Uuid, presenceEvent.Occupancy)
-                        } else {
-                                fmt.Printf("New message on %s %s (%s)\n", name,
-                                        messaging.StringResponseType(response.Type), response.Timetoken)
-                                fmt.Printf("Received raw data: %s\n\n", response.Data)
+                        if string(success) != "[]" {
+                                fmt.Printf("%s Response: %s\n\n", action, success)
                         }
-
-                case err := <-errorChannel:
-                        switch er := err.(type) {
-                        case messaging.ServerSideErrorResponse:
-                                fmt.Printf("Server-side error: %s", err.Error())
-                                if er.Data.Payload != nil {
-                                        payload, err := json.Marshal(er.Data.Payload)
-                                        if err != nil {
-                                                fmt.Println(err.Error())
-                                                continue
-                                        }
-
-                                        fmt.Printf("Additional payload: %s", payload)
-                                }
-                        case messaging.ClientSideErrorResponse:
-                                fmt.Printf("Client-side error: %s\n", err.Error())
+                case failure, ok := <-errorChannel:
+                        if !ok {
+                                break
                         }
-
-                case event := <-eventsChannel:
-                        fmt.Printf("%s event on",
-                                messaging.StringConnectionAction(event.Action))
-
-                        switch event.Type {
-                        case messaging.ChannelResponse:
-                                fmt.Printf("%s channel", event.Channel)
-                        case messaging.ChannelGroupResponse:
-                                fmt.Printf("%s channel group", event.Source)
-                        case messaging.WildcardResponse:
-                                fmt.Printf("%s wildcard channel", event.Source)
+                        if string(failure) != "[]" {
+                                fmt.Printf("%s Error: %s\n\n", action, failure)
                         }
-
                 case <-messaging.SubscribeTimeout():
-                        fmt.Printf("Subscirbe request timeout")
+                        fmt.Println("TODO: handle subscribe timeout")
                 }
         }
 }
