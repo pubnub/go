@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api on google appengine.
 // Build Date: Jul 30, 2015
-// Version: 3.6.3
+// Version: 3.7.0
 package messaging
 
 //TODO:
@@ -60,7 +60,7 @@ const (
 const (
 	//Sdk Identification Param appended to each request
 	sdkIdentificationParamKey = "pnsdk"
-	sdkIdentificationParamVal = "PubNub-Go-GAE/3.6.3"
+	sdkIdentificationParamVal = "PubNub-Go-GAE/3.7.0"
 
 	// This string is appended to all presence channels
 	// to differentiate from the subscribe requests.
@@ -216,7 +216,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go GAE client SDK Version: 3.6.3; Build Date: Jul 30, 2015;"
+	return "PubNub Go GAE client SDK Version: 3.7.0; Build Date: Jul 30, 2015;"
 }
 
 // initStore initializes the cookie store using the secret key
@@ -582,11 +582,20 @@ func (pub *Pubnub) closeRetryConnection() {
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GrantSubscribe(context context.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GrantSubscribe(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel string, read, write bool,
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 	checkCallbackNil(errorChannel, true, "GrantSubscribe")
 
-	pub.executePam(context, w, r, channel, read, write, ttl, callbackChannel, errorChannel, false)
+	pub.pamValidateSecretKey(channel, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannel("grant", channel, read, write,
+		ttl, authKey)
+
+	pub.executePam(context, w, r, channel, requestURL,
+		callbackChannel, errorChannel)
 }
 
 // AuditSubscribe will make a call to display the permissions for a channel or subkey
@@ -594,11 +603,20 @@ func (pub *Pubnub) GrantSubscribe(context context.Context, w http.ResponseWriter
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) AuditSubscribe(context context.Context, w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) AuditSubscribe(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel, authKey string,
+	callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
 	checkCallbackNil(errorChannel, true, "AuditSubscribe")
 
-	pub.executePam(context, w, r, channel, false, false, -1, callbackChannel, errorChannel, true)
+	pub.pamValidateSecretKey(channel, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannel("audit", channel, false, false,
+		-1, authKey)
+
+	pub.executePam(context, w, r, channel, requestURL,
+		callbackChannel, errorChannel)
 }
 
 // GrantPresence is used to give a presence channel read, write permissions
@@ -608,12 +626,22 @@ func (pub *Pubnub) AuditSubscribe(context context.Context, w http.ResponseWriter
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GrantPresence(context context.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GrantPresence(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel string, read, write bool,
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "GrantPresence")
 	checkCallbackNil(errorChannel, true, "GrantPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(context, w, r, channel2, read, write, ttl, callbackChannel, errorChannel, false)
+
+	pub.pamValidateSecretKey(channel2, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannel("grant", channel2, read, write,
+		ttl, authKey)
+
+	pub.executePam(context, w, r, channel2, requestURL,
+		callbackChannel, errorChannel)
 }
 
 // AuditPresence will make a call to display the permissions for a channel or subkey
@@ -621,12 +649,56 @@ func (pub *Pubnub) GrantPresence(context context.Context, w http.ResponseWriter,
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) AuditPresence(context context.Context, w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) AuditPresence(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel, authKey string,
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditPresence")
 	checkCallbackNil(errorChannel, true, "AuditPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(context, w, r, channel2, false, false, -1, callbackChannel, errorChannel, true)
+
+	pub.pamValidateSecretKey(channel2, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannel("audit", channel2, false, false,
+		-1, authKey)
+
+	pub.executePam(context, w, r, channel2, requestURL,
+		callbackChannel, errorChannel)
+}
+
+// GrantChannelGroup is used to give a channel group read or manage permissions
+// and set TTL values for it.
+func (pub *Pubnub) GrantChannelGroup(context context.Context,
+	w http.ResponseWriter, r *http.Request, group string, read, manage bool,
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "GrantChannelGroup")
+	checkCallbackNil(errorChannel, true, "GrantChannelGroup")
+
+	pub.pamValidateSecretKey(group, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannelGroup("grant", group, read, manage,
+		ttl, authKey)
+
+	pub.executePam(context, w, r, group, requestURL,
+		callbackChannel, errorChannel)
+}
+
+// AuditChannelGroup will make a call to display the permissions
+// for a channel
+// group or subkey
+func (pub *Pubnub) AuditChannelGroup(context context.Context,
+	w http.ResponseWriter, r *http.Request, group, authKey string,
+	callbackChannel, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "AuditChannelGroup")
+	checkCallbackNil(errorChannel, true, "AuditChannelGroup")
+
+	pub.pamValidateSecretKey(group, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannelGroup("audit", group, false, false,
+		-1, authKey)
+
+	pub.executePam(context, w, r, group, requestURL,
+		callbackChannel, errorChannel)
 }
 
 // removeSpacesFromChannelNames will remove the empty spaces from the channels (sent as a comma separated string)
@@ -681,65 +753,58 @@ func queryEscapeMultiple(q string, splitter string) string {
 	return pBuffer.String()
 }
 
-// executePam is the main method which is called for all PAM requests
-//
-// for audit request the isAudit parameter should be true
-func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte, isAudit bool) {
-	signature := ""
-	noChannel := true
-	grantOrAudit := "grant"
+func (pub *Pubnub) pamValidateSecretKey(entity string, errorChannel chan []byte) {
+	message := "Secret key is required"
+
+	if strings.TrimSpace(pub.SecretKey) == "" {
+		if strings.TrimSpace(entity) == "" {
+			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
+		} else {
+			pub.sendResponseToChannel(errorChannel, entity, responseAsIsError, message, "")
+		}
+	}
+}
+
+//  generate params string for channels pam request
+func (pub *Pubnub) pamGenerateParamsForChannel(action, channel string,
+	read, write bool, ttl int, authKey string) string {
 	authParam := ""
 	channelParam := ""
+	noChannel := true
 	readParam := ""
 	writeParam := ""
 	timestampParam := ""
 	ttlParam := ""
+	filler := "&"
+	isAudit := action == "audit"
 
 	var params bytes.Buffer
+	var pamURLBuffer bytes.Buffer
 
 	if strings.TrimSpace(channel) != "" {
 		if isAudit {
-			channelParam = fmt.Sprintf("channel=%s", queryEscapeMultiple(channel, ","))
+			channelParam = fmt.Sprintf("channel=%s", url.QueryEscape(channel))
 		} else {
-			channelParam = fmt.Sprintf("channel=%s&", queryEscapeMultiple(channel, ","))
+			channelParam = fmt.Sprintf("channel=%s&", url.QueryEscape(channel))
 		}
 		noChannel = false
 	}
 
-	if strings.TrimSpace(pub.SecretKey) == "" {
-		message := "Secret key is required"
-		if noChannel {
-			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
+	if strings.TrimSpace(authKey) != "" {
+		if isAudit && noChannel {
+			authParam = fmt.Sprintf("auth=%s", url.QueryEscape(authKey))
 		} else {
-			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, message, "")
-		}
-		return
-	}
-
-	if strings.TrimSpace(pub.AuthenticationKey) != "" {
-		if isAudit {
-			if !noChannel {
-				authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.AuthenticationKey))
-			} else {
-				authParam = fmt.Sprintf("auth=%s", url.QueryEscape(pub.AuthenticationKey))
-			}
-		} else {
-			authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.AuthenticationKey))
+			authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(authKey))
 		}
 	}
 
-	var pamURLBuffer bytes.Buffer
-	pamURLBuffer.WriteString("/v1/auth/")
-	filler := "&"
-	if (noChannel) && (strings.TrimSpace(pub.AuthenticationKey) == "") {
+	if (noChannel) && (strings.TrimSpace(authKey) == "") {
 		filler = ""
 	}
-	if isAudit {
-		grantOrAudit = "audit"
-		timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
-	} else {
-		timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
 
+	timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
+
+	if !isAudit {
 		if read {
 			readParam = "r=1&"
 		} else {
@@ -751,6 +816,7 @@ func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter, r 
 		} else {
 			writeParam = "&w=0"
 		}
+
 		if ttl != -1 {
 			if isAudit {
 				ttlParam = fmt.Sprintf("&ttl=%s", strconv.Itoa(ttl))
@@ -759,29 +825,145 @@ func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter, r 
 			}
 		}
 	}
-	pamURLBuffer.WriteString(grantOrAudit)
+
 	if isAudit {
-		params.WriteString(fmt.Sprintf("%s%s%s%s&%s%s&uuid=%s%s%s", authParam, channelParam, filler, sdkIdentificationParam, readParam, timestampParam, pub.GetUUID(), ttlParam, writeParam))
+		params.WriteString(fmt.Sprintf("%s%s%s%s&%s%s&uuid=%s%s", authParam,
+			channelParam, filler, sdkIdentificationParam, readParam,
+			timestampParam, pub.GetUUID(), writeParam))
+
+	} else if !isAudit && ttl != -1 {
+		params.WriteString(fmt.Sprintf("%s%s%s&%s%s&%s&uuid=%s%s", authParam,
+			channelParam, sdkIdentificationParam, readParam, timestampParam,
+			ttlParam, pub.GetUUID(), writeParam))
+
 	} else {
-		if ttl != -1 {
-			params.WriteString(fmt.Sprintf("%s%s%s&%s%s&%s&uuid=%s%s", authParam, channelParam, sdkIdentificationParam, readParam, timestampParam, ttlParam, pub.GetUUID(), writeParam))
-		} else {
-			params.WriteString(fmt.Sprintf("%s%s%s&%s%s&uuid=%s%s", authParam, channelParam, sdkIdentificationParam, readParam, timestampParam, pub.GetUUID(), writeParam))
-		}
+		params.WriteString(fmt.Sprintf("%s%s%s&%s%s&uuid=%s%s", authParam,
+			channelParam, sdkIdentificationParam, readParam, timestampParam,
+			pub.GetUUID(), writeParam))
 	}
-	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey, grantOrAudit, params.String())
-	signature = getHmacSha256(pub.SecretKey, raw)
 
-	params.WriteString("&")
-	params.WriteString("signature=")
-	params.WriteString(signature)
+	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey,
+		action, params.String())
+	signature := getHmacSha256(pub.SecretKey, raw)
 
+	pamURLBuffer.WriteString("/v1/auth/")
+	pamURLBuffer.WriteString(action)
 	pamURLBuffer.WriteString("/sub-key/")
 	pamURLBuffer.WriteString(pub.SubscribeKey)
 	pamURLBuffer.WriteString("?")
 	pamURLBuffer.WriteString(params.String())
+	pamURLBuffer.WriteString("&")
+	pamURLBuffer.WriteString("signature=")
+	pamURLBuffer.WriteString(signature)
 
-	value, responseCode, err := pub.httpRequest(context, w, r, pamURLBuffer.String(), nonSubscribeTrans)
+	return pamURLBuffer.String()
+}
+
+//  generate params string for channel groups pam request
+func (pub *Pubnub) pamGenerateParamsForChannelGroup(action, channelGroup string,
+	read, manage bool, ttl int, authKey string) string {
+
+	authParam := ""
+	channelGroupParam := ""
+	noChannelGroup := true
+	readParam := ""
+	manageParam := ""
+	timestampParam := ""
+	ttlParam := ""
+	filler := "&"
+	isAudit := action == "audit"
+
+	var params bytes.Buffer
+	var pamURLBuffer bytes.Buffer
+
+	if strings.TrimSpace(channelGroup) != "" {
+		if isAudit {
+			channelGroupParam = fmt.Sprintf("channel-group=%s",
+				url.QueryEscape(channelGroup))
+		} else {
+			channelGroupParam = fmt.Sprintf("channel-group=%s&",
+				url.QueryEscape(channelGroup))
+		}
+		noChannelGroup = false
+	}
+
+	if strings.TrimSpace(authKey) != "" {
+		if isAudit && noChannelGroup {
+			authParam = fmt.Sprintf("auth=%s", url.QueryEscape(authKey))
+		} else {
+			authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(authKey))
+		}
+	}
+
+	if (noChannelGroup) && (strings.TrimSpace(authKey) == "") {
+		filler = ""
+	}
+
+	timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
+
+	if !isAudit {
+		if read {
+			readParam = "r=1&"
+		} else {
+			readParam = "r=0&"
+		}
+
+		if manage {
+			manageParam = "m=1"
+		} else {
+			manageParam = "m=0"
+		}
+
+		if ttl != -1 {
+			if isAudit {
+				ttlParam = fmt.Sprintf("&ttl=%s", strconv.Itoa(ttl))
+			} else {
+				ttlParam = fmt.Sprintf("ttl=%s", strconv.Itoa(ttl))
+			}
+		}
+	}
+
+	if isAudit {
+		params.WriteString(fmt.Sprintf("%s%s%s%s%s&%s%s&uuid=%s", authParam,
+			channelGroupParam, filler, manageParam, sdkIdentificationParam, readParam,
+			timestampParam, pub.GetUUID()))
+
+	} else if !isAudit && ttl != -1 {
+		params.WriteString(fmt.Sprintf("%s%s%s&%s&%s%s&%s&uuid=%s", authParam,
+			channelGroupParam, manageParam, sdkIdentificationParam, readParam,
+			timestampParam, ttlParam, pub.GetUUID()))
+
+	} else {
+		params.WriteString(fmt.Sprintf("%s%s%s&%s&%s%s&uuid=%s", authParam,
+			channelGroupParam, manageParam, sdkIdentificationParam, readParam,
+			timestampParam, pub.GetUUID()))
+	}
+
+	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey,
+		action, params.String())
+	signature := getHmacSha256(pub.SecretKey, raw)
+
+	pamURLBuffer.WriteString("/v1/auth/")
+	pamURLBuffer.WriteString(action)
+	pamURLBuffer.WriteString("/sub-key/")
+	pamURLBuffer.WriteString(pub.SubscribeKey)
+	pamURLBuffer.WriteString("?")
+	pamURLBuffer.WriteString(params.String())
+	pamURLBuffer.WriteString("&")
+	pamURLBuffer.WriteString("signature=")
+	pamURLBuffer.WriteString(signature)
+
+	return pamURLBuffer.String()
+}
+
+// executePam is the main method which is called for all PAM requests
+//
+// for audit request the isAudit parameter should be true
+func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter,
+	r *http.Request, entity, requestURL string,
+	callbackChannel, errorChannel chan []byte) {
+
+	value, responseCode, err := pub.httpRequest(context, w, r, requestURL, nonSubscribeTrans)
 	if (responseCode != 200) || (err != nil) {
 		var message = ""
 		if err != nil {
@@ -791,10 +973,10 @@ func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter, r 
 			message = fmt.Sprintf("%s", value)
 			log.Errorf(context, fmt.Sprintf("PAM Error: responseCode %d, message %s", responseCode, message))
 		}
-		if noChannel {
+		if strings.TrimSpace(entity) == "" {
 			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
 		} else {
-			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, message, "")
+			pub.sendResponseToChannel(errorChannel, entity, responseAsIsError, message, "")
 		}
 	} else {
 		callbackChannel <- []byte(fmt.Sprintf("%s", value))
@@ -1966,6 +2148,110 @@ func (pub *Pubnub) executeSetUserState(context context.Context, w http.ResponseW
 	}
 }
 
+func (pub *Pubnub) ChannelGroupAddChannel(context context.Context,
+	w http.ResponseWriter, r *http.Request, group, channel string,
+	callbackChannel, errorChannel chan []byte) {
+
+	checkCallbackNil(callbackChannel, false, "ChannelGroupAddChannel")
+	checkCallbackNil(errorChannel, true, "ChannelGroupAddChannel")
+
+	pub.executeChannelGroup(context, w, r, "add", group, channel,
+		callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) ChannelGroupRemoveChannel(context context.Context,
+	w http.ResponseWriter, r *http.Request, group, channel string,
+	callbackChannel, errorChannel chan []byte) {
+
+	checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveChannel")
+	checkCallbackNil(errorChannel, true, "ChannelGroupRemoveChannel")
+
+	pub.executeChannelGroup(context, w, r, "remove", group, channel,
+		callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) ChannelGroupListChannels(context context.Context,
+	w http.ResponseWriter, r *http.Request, group string,
+	callbackChannel, errorChannel chan []byte) {
+
+	checkCallbackNil(callbackChannel, false, "ChannelGroupListChannels")
+	checkCallbackNil(errorChannel, true, "ChannelGroupListChannels")
+
+	pub.executeChannelGroup(context, w, r, "list_group", group, "",
+		callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) ChannelGroupRemoveGroup(context context.Context,
+	w http.ResponseWriter, r *http.Request, group string,
+	callbackChannel, errorChannel chan []byte) {
+
+	checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveGroup")
+	checkCallbackNil(errorChannel, true, "ChannelGroupRemoveGroup")
+
+	pub.executeChannelGroup(context, w, r, "remove_group", group, "",
+		callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) generateStringforCGRequest(action, group,
+	channel string) (requestURL bytes.Buffer) {
+	params := url.Values{}
+
+	requestURL.WriteString("/v1/channel-registration")
+	requestURL.WriteString("/sub-key/")
+	requestURL.WriteString(pub.SubscribeKey)
+	requestURL.WriteString("/channel-group/")
+	requestURL.WriteString(group)
+
+	switch action {
+	case "add":
+		fallthrough
+	case "remove":
+		params.Add(action, channel)
+	case "remove_group":
+		requestURL.WriteString("/remove")
+	}
+
+	if strings.TrimSpace(pub.AuthenticationKey) != "" {
+		params.Set("auth", pub.AuthenticationKey)
+	}
+
+	params.Set("uuid", pub.GetUUID())
+	params.Set(sdkIdentificationParamKey, sdkIdentificationParamVal)
+
+	requestURL.WriteString("?")
+	requestURL.WriteString(params.Encode())
+
+	return requestURL
+}
+
+func (pub *Pubnub) executeChannelGroup(context context.Context,
+	w http.ResponseWriter, r *http.Request, action, group, channel string,
+	callbackChannel, errorChannel chan []byte) {
+
+	requestURL := pub.generateStringforCGRequest(action, group, channel)
+
+	value, _, err := pub.httpRequest(context, w, r,
+		requestURL.String(), nonSubscribeTrans)
+
+	if err != nil {
+		log.Errorf(context, fmt.Sprintf("%s", err.Error()))
+		pub.sendResponseToChannel(errorChannel, "", responseAsIsError,
+			err.Error(), "")
+	} else {
+		_, _, _, errJSON := ParseJSON(value, pub.CipherKey)
+		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
+			log.Errorf(context, fmt.Sprintf("%s", errJSON.Error()))
+			pub.sendResponseToChannel(errorChannel, "", responseAsIsError,
+				errJSON.Error(), "")
+			pub.executeChannelGroup(context, w, r, action, group, channel,
+				callbackChannel, errorChannel)
+		} else {
+			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			pub.CloseExistingConnection()
+		}
+	}
+}
+
 // getData parses the interface data and decrypts the messages if the cipher key is provided.
 //
 // It accepts the following parameters:
@@ -2256,7 +2542,7 @@ func (pub *Pubnub) connect(context context.Context, w http.ResponseWriter, r *ht
 			Host:   origin,
 			Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
 		}
-		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go-GAE/3.6.3", runtime.GOOS)
+		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go-GAE/3.7.0", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
 		if err == nil {

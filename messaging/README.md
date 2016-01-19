@@ -1,11 +1,15 @@
 ## Contact support@pubnub.com for all questions
 
-#PubNub 3.6 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2
+#PubNub 3.7 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2, 1.5.1
 
 ###Important changes in this version:
-The package name has been modified to "messaging" from "pubnubMessaging". 
+The authKey argument was added to all PAM method.
 
 ###Change log
+* 3.7.0
+ * Add authKey argument to all PAM methods
+ * Add Channel Group Methods
+ * Fix multiple channels encoding in PAM methods
 * 3.6.4
  * Exposed MaxIdleConnsPerHost of the transport
 * 3.6.3
@@ -336,7 +340,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantSubscribe(<pubnub channels>, true, true, 60, pamChannel, errorChannel)
+        go pub.GrantSubscribe(<pubnub channels>, true, true, 60, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Susbcribe Grant")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -347,7 +351,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantSubscribe(<pubnub channels>, false, false, -1, pamChannel, errorChannel)
+        go pub.GrantSubscribe(<pubnub channels>, false, false, -1, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Subscribe")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -358,7 +362,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.AuditSubscribe(<pubnub channels>, pamChannel, errorChannel)
+        go pub.AuditSubscribe(<pubnub channels>, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Subscribe")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -369,7 +373,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantPresence(<pubnub channels>, true, true, 60, pamChannel, errorChannel)
+        go pub.GrantPresence(<pubnub channels>, true, true, 60, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Presence Grant")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -380,7 +384,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantPresence(<pubnub channels>, false, false, -1, pamChannel, errorChannel)
+        go pub.GrantPresence(<pubnub channels>, false, false, -1, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke presence")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -391,8 +395,40 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.AuditPresence(<pubnub channels>, pamChannel, errorChannel)
+        go pub.AuditPresence(<pubnub channels>, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Presence")
+        // please goto the top of this file see the implementation of handleResult
+```
+#### GrantChannelGroup
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.GrantChannelGroup(<pubnub channel groups>, true, true, 60, <auth keys>, pamChannel, errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Channel Group Grant")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### RevokeChannelGroup
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.GrantChannelGroup(<pubnub channel groups>, false, false, -1, <auth keys>, pamChannel, errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Channel Group")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### AuditChannelGroup
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.AuditChannelGroup(<pubnub channel groups>, <auth keys>, pamChannel, errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Channel Group")
         // please goto the top of this file see the implementation of handleResult
 ```
 

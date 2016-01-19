@@ -304,7 +304,7 @@ func ValidateComplexData(m map[string]interface{}) bool {
 			jsonData, _ := json.Marshal(customComplexMessage.SampleXML)
 			if s1 == string(jsonData) {
 				valid = true
-			} else {	
+			} else {
 				//fmt.Println("SampleXML")
 				return false
 			}

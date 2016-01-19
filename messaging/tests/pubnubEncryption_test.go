@@ -18,7 +18,7 @@ func TestEncryptionStart(t *testing.T) {
 	PrintTestMessage("==========Encryption tests start==========")
 }
 
-func TestPad(t *testing.T){
+func TestPad(t *testing.T) {
 	var bad_msg interface{}
 	b := []byte(`{
 	"kind": "click",
@@ -27,25 +27,25 @@ func TestPad(t *testing.T){
 	"key": "54651fa39868621628000002",
 	"url": "http://www.google.com"
 	}`)
-	
+
 	json.Unmarshal(b, &bad_msg)
 	jsonSerialized, _ := json.Marshal(bad_msg)
-		
+
 	encrypted := messaging.EncryptString("enigma", fmt.Sprintf("%s", jsonSerialized))
 	//fmt.Println(encrypted);
-	expected := "yzJ2MMyt8So18nNXm4m3Dl0XuYAOJFj2JXG8P3BGlCsDsqM44ReH15MRGbEkJZCSqgMiX1wUK44Qz8gsTcmGcZm/7KtOa+kRnvgDpNkTuBUrDqSjmYeuBLqRIEIfoGrRNljbFmP1W9Zv8iVbJMmovF+gmNNiIzlC3J9dHK51/OgW7s2EASMQJr3UJZ26PoFmmXY/wYN+2EyRnT4PBRCocQ==" 
-	if(encrypted != expected){
+	expected := "yzJ2MMyt8So18nNXm4m3Dl0XuYAOJFj2JXG8P3BGlCsDsqM44ReH15MRGbEkJZCSqgMiX1wUK44Qz8gsTcmGcZm/7KtOa+kRnvgDpNkTuBUrDqSjmYeuBLqRIEIfoGrRNljbFmP1W9Zv8iVbJMmovF+gmNNiIzlC3J9dHK51/OgW7s2EASMQJr3UJZ26PoFmmXY/wYN+2EyRnT4PBRCocQ=="
+	if encrypted != expected {
 		t.Error("TestPad: failed.")
 	}
 }
 
-func TestUnpad(t *testing.T){
+func TestUnpad(t *testing.T) {
 	message := "yzJ2MMyt8So18nNXm4m3Dl0XuYAOJFj2JXG8P3BGlCsDsqM44ReH15MRGbEkJZCSqgMiX1wUK44Qz8gsTcmGcZm/7KtOa+kRnvgDpNkTuBUrDqSjmYeuBLqRIEIfoGrRNljbFmP1W9Zv8iVbJMmovF+gmNNiIzlC3J9dHK51/OgW7s2EASMQJr3UJZ26PoFmmXY/wYN+2EyRnT4PBRCocQ=="
 	decrypted, _ := messaging.DecryptString("enigma", message)
-	
+
 	decMessage := fmt.Sprintf("%s", decrypted)
-	
-	if(!strings.Contains(decMessage, `"user":{"key":"user@test.com"}`) || !strings.Contains(decMessage, `"key":"54651fa39868621628000002"`)){
+
+	if !strings.Contains(decMessage, `"user":{"key":"user@test.com"}`) || !strings.Contains(decMessage, `"key":"54651fa39868621628000002"`) {
 		t.Error("TestPad: failed.")
 	}
 }
