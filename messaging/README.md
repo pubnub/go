@@ -1,11 +1,20 @@
 ## Contact support@pubnub.com for all questions
 
-#PubNub 3.6 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2
+#PubNub 3.7 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2, 1.5.2
 
 ###Important changes in this version:
-The package name has been modified to "messaging" from "pubnubMessaging". 
+* The authKey argument was added to all PAM method.
+* Subscribe method arguments changed
 
 ###Change log
+* 3.7.0
+ * Subscribe method arguments changed
+ * Add authKey argument to all PAM methods
+ * Add Channel Group Methods
+ * Add PublishExtended() method that extends existing Publish() with 2 bool options: storeInHistory and doNotSerialize
+ * Fix multiple channels encoding in PAM methods
+* 3.6.4
+ * Exposed MaxIdleConnsPerHost of the transport
 * 3.6.3
  * PAM operations (grant, revoke, audit) now return 403 errors in the Error Callback
 * SetLogging method name changed to LoggingEnabled
@@ -103,6 +112,7 @@ We've included a demo console app which documents all the functionality of the c
 * Subscribe
 * Subscribe with timetoken
 * Publish
+* PublishExtended
 * Presence
 * Detailed History
 * Here_Now
@@ -137,28 +147,26 @@ This function is a utility function used in the examples below to handle the Sub
 
 ```go
 func handleSubscribeResult(successChannel, errorChannel chan []byte, action string) {
-    for {
-        select {
-        case success, ok := <-successChannel:
-            if !ok {
-				break
-			}
-			if string(success) != "[]" {
-				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
-				fmt.Println("")
-			}
-        case failure, ok := <-errorChannel:
-            if !ok {
-				break
-			}
-            if string(failure) != "[]" {
-				if displayError {
-					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
-					fmt.Println("")
-				}
-			}
+        for {
+                select {
+                case success, ok := <-successChannel:
+                        if !ok {
+                                break
+                        }
+                        if string(success) != "[]" {
+                                fmt.Printf("%s Response: %s\n\n", action, success)
+                        }
+                case failure, ok := <-errorChannel:
+                        if !ok {
+                                break
+                        }
+                        if string(failure) != "[]" {
+                                fmt.Printf("%s Error: %s\n\n", action, failure)
+                        }
+                case <-messaging.SubscribeTimeout():
+                        fmt.Println("TODO: handle subscribe timeout")
+                }
         }
-    }
 }
 ```
 
@@ -224,15 +232,28 @@ Initialize a new Pubnub instance.
         // please goto the top of this file see the implementation of handleResult
 ```
 
-#### Subscribe
+#### PublishExtended
 
 ```go
         //Init pubnub instance
 
         var errorChannel = make(chan []byte)
-        var subscribeChannel = make(chan []byte)
-        go pubInstance.Subscribe(<pubnub channels, multiple channels can be separated by comma>, <timetoken, should be an empty string in this case>, subscribeChannel, <this field is FALSE for subscribe requests>, errorChannel)
-        go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+        var callbackChannel = make(chan []byte)
+        go pubInstance.PublishExtended(<pubnub channel>, <message to publish>,
+        	<storeInHistory bool>, <doNotSerialize bool>, callbackChannel, errorChannel)
+        go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "PublishExtended")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### Subscribe
+
+```go
+        //Init pubnub instance
+
+        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>,
+        	successChannel, errorChannel, eventsChannel)
+        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
@@ -241,10 +262,10 @@ Initialize a new Pubnub instance.
 ```go
         //Init pubnub instance
 
-        var errorChannel = make(chan []byte)
-        var subscribeChannel = make(chan []byte)
-        go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>, <timetoken to init the request with>, subscribeChannel, <this field is FALSE for subscribe requests>, errorChannel)
-        go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.SubscribeWithTimetoken(<pubnub channel, multiple channels can be separated by comma>,
+        	<timetoken to init the request with>, successChannel, errorChannel, eventsChannel)
+        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
@@ -253,10 +274,35 @@ Initialize a new Pubnub instance.
 ```go
         //Init pubnub instance
 
-        var errorChannel = make(chan []byte)
-        var presenceChannel = make(chan []byte)
-        go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>, <timetoken, should be an empty string in this case>, presenceChannel, <this field is TRUE for subscribe requests>, errorChannel)
-        go handleSubscribeResult(presenceChannel, errorChannel, "Presence")  
+        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.Subscribe(<pubnub channels, multiple channels can be separated by comma>,
+        	successChannel, errorChannel, eventsChannel)
+        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
+        // please goto the top of this file see the implementation of handleSubscribeResult
+```
+#### Channel Group Subscribe
+
+```go
+        //Init pubnub instance
+
+        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.ChannelGroupSubscribe(
+        	<pubnub channel group, multiple channel groupss can be separated by comma>,
+        	successChannel, errorChannel, eventsChannel)
+        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
+        // please goto the top of this file see the implementation of handleSubscribeResult
+```
+
+#### Channel Group Subscribe with timetoken
+
+```go
+        //Init pubnub instance
+
+        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.ChannelGroupSubscribeWithTimetoken(
+        	<pubnub channel group, multiple channel groupss can be separated by comma>,
+        	<timetoken to init the request with>, successChannel, errorChannel, eventsChannel)
+        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
@@ -334,7 +380,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantSubscribe(<pubnub channels>, true, true, 60, pamChannel, errorChannel)
+        go pub.GrantSubscribe(<pubnub channels>, true, true, 60, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Susbcribe Grant")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -345,7 +391,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantSubscribe(<pubnub channels>, false, false, -1, pamChannel, errorChannel)
+        go pub.GrantSubscribe(<pubnub channels>, false, false, -1, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Subscribe")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -356,7 +402,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.AuditSubscribe(<pubnub channels>, pamChannel, errorChannel)
+        go pub.AuditSubscribe(<pubnub channels>, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Subscribe")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -367,7 +413,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantPresence(<pubnub channels>, true, true, 60, pamChannel, errorChannel)
+        go pub.GrantPresence(<pubnub channels>, true, true, 60, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Presence Grant")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -378,7 +424,7 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.GrantPresence(<pubnub channels>, false, false, -1, pamChannel, errorChannel)
+        go pub.GrantPresence(<pubnub channels>, false, false, -1, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke presence")
         // please goto the top of this file see the implementation of handleResult
 ```
@@ -389,8 +435,40 @@ Initialize a new Pubnub instance.
 
         var errorChannel = make(chan []byte)
         var pamChannel = make(chan []byte)
-        go pub.AuditPresence(<pubnub channels>, pamChannel, errorChannel)
+        go pub.AuditPresence(<pubnub channels>, <auth keys>, pamChannel, errorChannel)
         go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Presence")
+        // please goto the top of this file see the implementation of handleResult
+```
+#### GrantChannelGroup
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.GrantChannelGroup(<pubnub channel groups>, true, true, 60, <auth keys>, pamChannel, errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Channel Group Grant")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### RevokeChannelGroup
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.GrantChannelGroup(<pubnub channel groups>, false, false, -1, <auth keys>, pamChannel, errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Channel Group")
+        // please goto the top of this file see the implementation of handleResult
+```
+
+#### AuditChannelGroup
+```go
+        //Init pubnub instance
+
+        var errorChannel = make(chan []byte)
+        var pamChannel = make(chan []byte)
+        go pub.AuditChannelGroup(<pubnub channel groups>, <auth keys>, pamChannel, errorChannel)
+        go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Channel Group")
         // please goto the top of this file see the implementation of handleResult
 ```
 
