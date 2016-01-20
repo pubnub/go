@@ -5,6 +5,11 @@
 ##PubNub 3.7.0 Go based APIs
 Learn more at http://www.pubnub.com
 
+## Upgrade Notes
+### 3.6.0 --> 3.7.0
+  * The authKey argument was added to all PAM methods.
+  * storeInHistory added for publish methods.
+
 ## Available in this repository
 
 ### For Google App Engine
