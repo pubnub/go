@@ -3,9 +3,6 @@
 // Build Date: Nov 6, 2015
 package messaging
 
-//TODO:
-//websockets instead of channels
-
 import (
 	"bytes"
 	"crypto/aes"
@@ -24,7 +21,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	//"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -33,19 +29,17 @@ import (
 	"time"
 )
 
+type responseStatus int
+
 // Enums for send response.
 const (
-	responseAlreadySubscribed  = 1 << iota //1
-	responseConnected                      //2
-	responseUnsubscribed                   //3
-	responseNotSubscribed                  //4
-	responseAsIs                           //5
-	responseReconnected                    //6
-	responseInternetConnIssues             //7
-	reponseAbortMaxRetry                   //8
-	responseAsIsError                      //9
-	responseWithoutChannel                 //10
-	responseTimedOut                       //11
+	responseAlreadySubscribed  responseStatus = 1 << iota //1
+	responseNotSubscribed                                 //4
+	responseAsIs                                          //5
+	responseInternetConnIssues                            //7
+	reponseAbortMaxRetry                                  //8
+	responseAsIsError                                     //9
+	responseTimedOut                                      //11
 )
 
 // Enums for diff types of connections
@@ -64,6 +58,9 @@ const (
 	// This string is appended to all presence channels
 	// to differentiate from the subscribe requests.
 	presenceSuffix = "-pnpres"
+
+	// Suffix of wildcarded channels
+	wildcardSuffix = "*"
 
 	// This string is used when the server returns a malformed or non-JSON response.
 	invalidJSON = "Invalid JSON"
@@ -257,42 +254,32 @@ func VersionInfo() string {
 // authenticationKey stores the Authentication Key in the current instance.
 // isSSL is true if enabled, else is false for the current instance.
 // uuid is the unique identifier, it can be a custom value or is automatically generated.
-// subscribedChannels keeps a list of subscribed Pubnub channels by the user in the a comma separated string.
 // timeToken is the current value of the servertime. This will be used to appened in each request.
 // sentTimeToken: This is the timetoken sent to the server with the request
 // resetTimeToken: In case of a new request or an error this variable is set to true so that the
-// timeToken will be set to 0 in the next request.
-// presenceChannels: All the presence responses will be routed to this channel. It stores the response channels for
-// each pubnub channel as map using the pubnub channel name as the key.
-// subscribeChannels: All the subscribe responses will be routed to this channel. It stores the response channels for
-// each pubnub channel as map using the pubnub channel name as the key.
-// presenceErrorChannels: All the presence error responses will be routed to this channel. It stores the response channels for
-// each pubnub channel as map using the pubnub channel name as the key.
-// subscribeErrorChannels: All the subscribe error responses will be routed to this channel. It stores the response channels for
-// each pubnub channel as map using the pubnub channel name as the key.
-// newSubscribedChannels keeps a list of the new subscribed Pubnub channels by the user in the a comma
-// separated string, before they are appended to the Pubnub SubscribedChannels.
+//     timeToken will be set to 0 in the next request.
+// channels: container for channels
+// groups: container for channels groups
 // isPresenceHeartbeatRunning a variable to keep a check on the presence heartbeat's status
 // Mutex to lock the operations on the instance
 type Pubnub struct {
-	origin                     string
-	publishKey                 string
-	subscribeKey               string
-	secretKey                  string
-	cipherKey                  string
-	authenticationKey          string
-	isSSL                      bool
-	uuid                       string
-	subscribedChannels         string
-	timeToken                  string
-	sentTimeToken              string
-	resetTimeToken             bool
-	presenceChannels           map[string]chan []byte
-	subscribeChannels          map[string]chan []byte
-	presenceErrorChannels      map[string]chan []byte
-	subscribeErrorChannels     map[string]chan []byte
-	newSubscribedChannels      string
-	userState                  map[string]map[string]interface{}
+	origin            string
+	publishKey        string
+	subscribeKey      string
+	secretKey         string
+	cipherKey         string
+	authenticationKey string
+	isSSL             bool
+	uuid              string
+	timeToken         string
+	sentTimeToken     string
+	resetTimeToken    bool
+
+	channels subscriptionEntity
+	groups   subscriptionEntity
+
+	userState map[string]map[string]interface{}
+
 	isPresenceHeartbeatRunning bool
 	sync.RWMutex
 }
@@ -329,15 +316,12 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.cipherKey = cipherKey
 	newPubnub.isSSL = sslOn
 	newPubnub.uuid = ""
-	newPubnub.subscribedChannels = ""
 	newPubnub.resetTimeToken = true
 	newPubnub.timeToken = "0"
 	newPubnub.sentTimeToken = "0"
-	newPubnub.newSubscribedChannels = ""
-	newPubnub.presenceChannels = make(map[string]chan []byte)
-	newPubnub.subscribeChannels = make(map[string]chan []byte)
-	newPubnub.presenceErrorChannels = make(map[string]chan []byte)
-	newPubnub.subscribeErrorChannels = make(map[string]chan []byte)
+	newPubnub.channels = *newSubscriptionEntity()
+	newPubnub.groups = *newSubscriptionEntity()
+
 	newPubnub.isPresenceHeartbeatRunning = false
 
 	if newPubnub.isSSL {
@@ -587,28 +571,38 @@ func (pubtest *PubnubUnitTest) GetTimeToken(pub *Pubnub) string {
 // and non-subscribe requests.
 //
 // It also sends a leave request for all the subscribed channel and
-// sets the pub.SubscribedChannels as empty to break the loop in the func StartSubscribeLoop
+// resets both channel and group collections to break the loop in the func StartSubscribeLoop
 func (pub *Pubnub) Abort() {
-	if pub.subscribedChannels != "" {
-		value, _, err := pub.sendLeaveRequest(pub.subscribedChannels)
+	subscribedChannels := pub.channels.ConnectedNamesString()
+	subscribedGroups := pub.groups.ConnectedNamesString()
+
+	if subscribedChannels != "" || subscribedGroups != "" {
+		value, _, err := pub.sendLeaveRequest(subscribedChannels, subscribedGroups)
+
 		if err != nil {
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("Request aborted error:%s", err.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(nil, pub.subscribedChannels, responseAsIsError, err.Error(), "")
+
+			pub.sendSubscribeError(subscribedChannels, subscribedGroups,
+				err.Error(), responseAsIsError)
 		} else {
-			pub.sendResponseToChannel(nil, pub.subscribedChannels, responseAsIs, string(value), "")
+			pub.sendSuccessResponse(subscribedChannels, subscribedGroups, value)
 		}
+
 		logMu.Lock()
-		infoLogger.Println(fmt.Sprintf("Request aborted for channels: %s", pub.subscribedChannels))
+		infoLogger.Println(fmt.Sprintf("Request aborted for channels: %s", subscribedChannels))
 		logMu.Unlock()
+
 		pub.Lock()
-		pub.subscribedChannels = ""
+		pub.channels.Abort()
+		pub.groups.Abort()
 		pub.Unlock()
 	}
 
 	nonSubscribeTransportMu.Lock()
 	defer nonSubscribeTransportMu.Unlock()
+
 	if conn != nil {
 		logMu.Lock()
 		infoLogger.Println(fmt.Sprintf("Closing conn"))
@@ -652,6 +646,11 @@ func (pub *Pubnub) closeRetryConnection() {
 // and set TTL values for it. To grant a permission set read or write as true
 // to revoke all perms set read and write false and ttl as -1
 //
+// ttl values:
+//		-1: do not include ttl param to query, use default (60 minutes)
+//		 0: permissions will never expire
+//		1..525600: from 1 minute to 1 year(in minutes)
+//
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
@@ -659,8 +658,6 @@ func (pub *Pubnub) GrantSubscribe(channel string, read, write bool,
 	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 	checkCallbackNil(errorChannel, true, "GrantSubscribe")
-
-	pub.pamValidateSecretKey(channel, errorChannel)
 
 	requestURL := pub.pamGenerateParamsForChannel("grant", channel, read, write,
 		ttl, authKey)
@@ -678,8 +675,6 @@ func (pub *Pubnub) AuditSubscribe(channel, authKey string,
 	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
 	checkCallbackNil(errorChannel, true, "AuditSubscribe")
 
-	pub.pamValidateSecretKey(channel, errorChannel)
-
 	requestURL := pub.pamGenerateParamsForChannel("audit", channel, false, false, -1,
 		authKey)
 
@@ -690,6 +685,11 @@ func (pub *Pubnub) AuditSubscribe(channel, authKey string,
 // and set TTL values for it. To grant a permission set read or write as true
 // to revoke all perms set read and write false and ttl as -1
 //
+// ttl values:
+//		-1: do not include ttl param to query, use default (60 minutes)
+//		 0: permissions will never expire
+//		1..525600: from 1 minute to 1 year(in minutes)
+//
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
@@ -699,8 +699,6 @@ func (pub *Pubnub) GrantPresence(channel string, read, write bool, ttl int,
 	checkCallbackNil(errorChannel, true, "GrantPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-
-	pub.pamValidateSecretKey(channel2, errorChannel)
 
 	requestURL := pub.pamGenerateParamsForChannel("grant", channel2, read, write,
 		ttl, authKey)
@@ -720,8 +718,6 @@ func (pub *Pubnub) AuditPresence(channel, authKey string,
 
 	channel2 := convertToPresenceChannel(channel)
 
-	pub.pamValidateSecretKey(channel2, errorChannel)
-
 	requestURL := pub.pamGenerateParamsForChannel("audit", channel2, false, false, -1,
 		authKey)
 
@@ -730,12 +726,15 @@ func (pub *Pubnub) AuditPresence(channel, authKey string,
 
 // GrantChannelGroup is used to give a channel group read or manage permissions
 // and set TTL values for it.
+//
+// ttl values:
+//		-1: do not include ttl param to query, use default (60 minutes)
+//		 0: permissions will never expire
+//		1..525600: from 1 minute to 1 year(in minutes)
 func (pub *Pubnub) GrantChannelGroup(group string, read, manage bool,
 	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GrantChannelGroup")
 	checkCallbackNil(errorChannel, true, "GrantChannelGroup")
-
-	pub.pamValidateSecretKey(group, errorChannel)
 
 	requestURL := pub.pamGenerateParamsForChannelGroup("grant", group, read, manage,
 		ttl, authKey)
@@ -749,8 +748,6 @@ func (pub *Pubnub) AuditChannelGroup(group, authKey string,
 	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditChannelGroup")
 	checkCallbackNil(errorChannel, true, "AuditChannelGroup")
-
-	pub.pamValidateSecretKey(group, errorChannel)
 
 	requestURL := pub.pamGenerateParamsForChannelGroup("audit", group, false, false,
 		-1, authKey)
@@ -808,18 +805,6 @@ func queryEscapeMultiple(q string, splitter string) string {
 		pBuffer.WriteString(url.QueryEscape(channelArray[i]))
 	}
 	return pBuffer.String()
-}
-
-func (pub *Pubnub) pamValidateSecretKey(entity string, errorChannel chan []byte) {
-	message := "Secret key is required"
-
-	if strings.TrimSpace(pub.secretKey) == "" {
-		if strings.TrimSpace(entity) == "" {
-			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
-		} else {
-			pub.sendResponseToChannel(errorChannel, entity, responseAsIsError, message, "")
-		}
-	}
 }
 
 //  generate params string for channels pam request
@@ -1018,6 +1003,16 @@ func (pub *Pubnub) pamGenerateParamsForChannelGroup(action, channelGroup string,
 func (pub *Pubnub) executePam(entity, requestURL string,
 	callbackChannel, errorChannel chan []byte) {
 
+	message := "Secret key is required"
+
+	if strings.TrimSpace(pub.secretKey) == "" {
+		if strings.TrimSpace(entity) == "" {
+			sendResponseWithoutChannel(errorChannel, message)
+		} else {
+			sendErrorResponse(errorChannel, entity, message)
+		}
+	}
+
 	value, responseCode, err := pub.httpRequest(requestURL, nonSubscribeTrans)
 	if (responseCode != 200) || (err != nil) {
 		var message = ""
@@ -1035,9 +1030,9 @@ func (pub *Pubnub) executePam(entity, requestURL string,
 		}
 
 		if strings.TrimSpace(entity) == "" {
-			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
+			sendResponseWithoutChannel(errorChannel, message)
 		} else {
-			pub.sendResponseToChannel(errorChannel, entity, responseAsIsError, message, "")
+			sendErrorResponse(errorChannel, entity, message)
 		}
 	} else {
 		callbackChannel <- []byte(fmt.Sprintf("%s", value))
@@ -1092,14 +1087,14 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("Time Error: %s", err.Error()))
 		logMu.Unlock()
-		pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, err.Error(), "")
+		sendResponseWithoutChannel(errorChannel, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("Time Error: %s", errJSON.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, errJSON.Error(), "")
+			sendResponseWithoutChannel(errorChannel, err.Error())
 			if count < maxRetries {
 				count++
 				pub.executeTime(callbackChannel, errorChannel, count)
@@ -1119,7 +1114,10 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 // jsonBytes: the message to be sent.
 // callbackChannel: Channel on which to send the response.
 // errorChannel on which the error response is sent.
-func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, jsonBytes []byte, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
+	storeInHistory bool, jsonBytes []byte,
+	callbackChannel, errorChannel chan []byte) {
+
 	u := &url.URL{Path: string(jsonBytes)}
 	encodedPath := u.String()
 	logMu.Lock()
@@ -1127,7 +1125,12 @@ func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, j
 	logMu.Unlock()
 
 	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
-	publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL, sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
+	publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL,
+		sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
+
+	if storeInHistory == false {
+		publishURL = fmt.Sprintf("%s&storeInHistory=0", publishURL)
+	}
 
 	value, responseCode, err := pub.httpRequest(publishURL, nonSubscribeTrans)
 
@@ -1138,31 +1141,31 @@ func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, j
 
 			if (errJSON == nil) && (len(s) > 0) {
 				if message, ok := s[1].(string); ok {
-					pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, message, strconv.Itoa(responseCode))
+					sendErrorResponseExtended(errorChannel, channel, message, strconv.Itoa(responseCode))
 				} else {
-					pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, string(value), strconv.Itoa(responseCode))
+					sendErrorResponseExtended(errorChannel, channel, string(value), strconv.Itoa(responseCode))
 				}
 			} else {
 				logMu.Lock()
 				errorLogger.Println(fmt.Sprintf("Publish Error: %s", errJSON.Error()))
 				logMu.Unlock()
-				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, string(value), strconv.Itoa(responseCode))
+				sendErrorResponseExtended(errorChannel, channel, string(value), strconv.Itoa(responseCode))
 			}
 		} else if (err != nil) && (responseCode > 0) {
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("Publish Failed: %s, ResponseCode: %d", err.Error(), responseCode))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), strconv.Itoa(responseCode))
+			sendErrorResponseExtended(errorChannel, channel, err.Error(), strconv.Itoa(responseCode))
 		} else if err != nil {
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("Publish Failed: %s", err.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), "")
+			sendErrorResponse(errorChannel, channel, err.Error())
 		} else {
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("Publish Failed: ResponseCode: %d", responseCode))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, publishFailed, strconv.Itoa(responseCode))
+			sendErrorResponseExtended(errorChannel, channel, publishFailed, strconv.Itoa(responseCode))
 		}
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
@@ -1170,7 +1173,7 @@ func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, j
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("Publish Error: %s", errJSON.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, errJSON.Error(), "")
+			sendErrorResponse(errorChannel, channel, errJSON.Error())
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
 		}
@@ -1227,7 +1230,7 @@ func invalidMessage(message interface{}) bool {
 // Returns true if any one of the channel is empty. And sends a response on the Pubnub channel stating
 // that there is an "Invalid Channel".
 // Returns false if all the channels is acceptable.
-func invalidChannel(channel string, c chan []byte) bool {
+func invalidChannel(channel string, c chan<- []byte) bool {
 	if strings.TrimSpace(channel) == "" {
 		return true
 	}
@@ -1262,7 +1265,41 @@ func invalidChannel(channel string, c chan []byte) bool {
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) Publish(channel string, message interface{}, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) Publish(channel string, message interface{},
+	callbackChannel, errorChannel chan []byte) {
+
+	pub.PublishExtended(channel, message, true, false, callbackChannel,
+		errorChannel)
+}
+
+// Publish is the struct Pubnub's instance method that creates a publish request and calls
+// SendPublishRequest to post the request.
+//
+// It calls the InvalidChannel and InvalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// storeInHistory: Message will be persisted in Storage & Playback db
+// doNotSerialize: Set this option to true if you use your own serializer. In
+// this case passed-in message should be a string or []byte
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+func (pub *Pubnub) PublishExtended(channel string, message interface{},
+	storeInHistory, doNotSerialize bool,
+	callbackChannel, errorChannel chan []byte) {
+
+	var publishURLBuffer bytes.Buffer
+	var err error
+	var jsonSerialized []byte
+
 	checkCallbackNil(callbackChannel, false, "Publish")
 	checkCallbackNil(errorChannel, true, "Publish")
 
@@ -1270,7 +1307,7 @@ func (pub *Pubnub) Publish(channel string, message interface{}, callbackChannel 
 		logMu.Lock()
 		warnLogger.Println(fmt.Sprintf("Publish key empty"))
 		logMu.Unlock()
-		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, "Publish key required.", "")
+		sendErrorResponse(errorChannel, channel, "Publish key required.")
 		return
 	}
 
@@ -1279,7 +1316,7 @@ func (pub *Pubnub) Publish(channel string, message interface{}, callbackChannel 
 	}
 
 	if invalidMessage(message) {
-		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, "Invalid Message.", "")
+		sendErrorResponse(errorChannel, channel, "Invalid Message.")
 		return
 	}
 
@@ -1289,7 +1326,7 @@ func (pub *Pubnub) Publish(channel string, message interface{}, callbackChannel 
 	} else {
 		signature = "0"
 	}
-	var publishURLBuffer bytes.Buffer
+
 	publishURLBuffer.WriteString("/publish")
 	publishURLBuffer.WriteString("/")
 	publishURLBuffer.WriteString(pub.publishKey)
@@ -1301,9 +1338,21 @@ func (pub *Pubnub) Publish(channel string, message interface{}, callbackChannel 
 	publishURLBuffer.WriteString(url.QueryEscape(channel))
 	publishURLBuffer.WriteString("/0/")
 
-	jsonSerialized, err := json.Marshal(message)
+	if doNotSerialize {
+		switch t := message.(type) {
+		case string:
+			jsonSerialized = []byte(message.(string))
+		case []byte:
+			jsonSerialized = message.([]byte)
+		default:
+			panic(fmt.Sprintf("Unable to send unserialized value of type %s", t))
+		}
+	} else {
+		jsonSerialized, err = json.Marshal(message)
+	}
+
 	if err != nil {
-		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, fmt.Sprintf("error in serializing: %s", err), "")
+		sendErrorResponse(errorChannel, channel, fmt.Sprintf("error in serializing: %s", err))
 	} else {
 		if pub.cipherKey != "" {
 			//Encrypt and Serialize
@@ -1312,194 +1361,298 @@ func (pub *Pubnub) Publish(channel string, message interface{}, callbackChannel 
 				logMu.Lock()
 				errorLogger.Println(fmt.Sprintf("Publish error: %s", errEnc.Error()))
 				logMu.Unlock()
-				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, fmt.Sprintf("error in serializing: %s", errEnc), "")
+				sendErrorResponse(errorChannel, channel, fmt.Sprintf("error in serializing: %s", errEnc))
 			} else {
-				pub.sendPublishRequest(channel, publishURLBuffer.String(), jsonEncBytes, callbackChannel, errorChannel)
+				pub.sendPublishRequest(channel, publishURLBuffer.String(),
+					storeInHistory, jsonEncBytes, callbackChannel, errorChannel)
 			}
 		} else {
-			pub.sendPublishRequest(channel, publishURLBuffer.String(), jsonSerialized, callbackChannel, errorChannel)
+			pub.sendPublishRequest(channel, publishURLBuffer.String(), storeInHistory,
+				jsonSerialized, callbackChannel, errorChannel)
 		}
 	}
 }
 
-// sendResponseToChannel is the struct Pubnub's instance method that sends a reponse on the channel
-// provided as an argument or to the subscribe / presence channel is the argument is nil.
-//
-// Constructs the response based on the action (1-9). In case the action is 5 sends the response
-// as in the parameter response.
+// sendSubscribeResponse is the struct Pubnub's instance method that sends
+// a reponse to subsribed channels or groups
 //
 // It accepts the following parameters:
-// c: Channel on which to send the response back. Can be nil. If nil, assumes that if the channel name
-// is suffixed with "-pnpres" it is a presence channel else subscribe channel and sends the response to all the
-// respective channels. Then it fetches the corresonding channel from the pub.PresenceChannels or pub.SubscribeChannels
-// in case of callback and pub.PresenceErrorChannels or pub.SubscribeErrorChannels in case of error
-//
-// channels: Pubnub Channels to send a response to. Comma separated string for multiple channels.
-// action: (1-9)
-// response: can be nil, is used only in the case action is '5'.
-// response2: Additional error info.
-func (pub *Pubnub) sendResponseToChannel(c chan []byte, channels string, action int, response string, response2 string) {
-	message := ""
-	intResponse := "0"
-	sendReponseAsIs := false
-	sendErrorResponse := false
-	errorWithoutChannel := false
-	switch action {
-	case responseAlreadySubscribed:
-		message = "already subscribed"
-		intResponse = "0"
-	case responseConnected:
-		message = "connected"
-		intResponse = "1"
-	case responseUnsubscribed:
-		message = "unsubscribed"
-		intResponse = "1"
-	case responseNotSubscribed:
-		message = "not subscribed"
-		intResponse = "0"
-	case responseAsIs:
-		sendReponseAsIs = true
-	case responseReconnected:
-		message = "reconnected"
-		intResponse = "1"
-	case responseInternetConnIssues:
-		message = "disconnected due to internet connection issues, trying to reconnect. Retry count:" + response
-		response = ""
-		intResponse = "0"
-		sendErrorResponse = true
-	case reponseAbortMaxRetry:
-		message = "aborted due to max retry limit"
-		intResponse = "0"
-		sendErrorResponse = true
-	case responseAsIsError:
-		sendErrorResponse = true
-		sendReponseAsIs = true
-		intResponse = "0"
-	case responseWithoutChannel:
-		errorWithoutChannel = true
-	case responseTimedOut:
-		message = "timed out."
-		response = ""
-		intResponse = "0"
-		sendErrorResponse = true
+// channel: Channel on which to send the response back.
+// source: Channel Group or Wildcard Channel on which to send the response back.
+// tp: response type
+// action: additional information about action
+// response: message as bytes
+func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
+	tp responseType, action responseStatus, response []byte) {
+
+	var (
+		item       *subscriptionItem
+		found      bool
+		itemName   string
+		value      successResponse
+		isPresence bool
+	)
+
+	channel = strings.TrimSpace(channel)
+	source = strings.TrimSpace(source)
+
+	isPresence = strings.HasSuffix(channel, presenceSuffix)
+
+	switch tp {
+	case channelResponse:
+		item, found = pub.channels.Get(channel)
+		itemName = channel
+	case channelGroupResponse:
+		item, found = pub.groups.Get(source)
+		itemName = source
+	case wildcardResponse:
+		item, found = pub.channels.Get(source)
+		itemName = source
+	default:
+		panic(fmt.Sprintf("Response type #%d is unknown", tp))
 	}
-	var value string
-	channelArray := strings.Split(channels, ",")
 
-	for i := 0; i < len(channelArray); i++ {
-		responseChannel := c
-		presence := "Subscription to channel "
-		channel := strings.TrimSpace(channelArray[i])
-		if channel == "" {
-			continue
-		}
-
-		if response == "" {
-			response = message
-		}
-		if sendErrorResponse {
-			isPresence := false
-			if responseChannel == nil {
-				responseChannel, isPresence = pub.getChannelForPubnubChannel(channel, true)
-			} else {
-				isPresence = strings.Contains(channel, presenceSuffix)
-			}
-			if isPresence {
-				presence = "Presence notifications for channel "
-			}
-			if sendReponseAsIs {
-				presence = ""
-			}
-			if (response2 != "") && (response2 != "0") {
-				value = fmt.Sprintf("[%s, \"%s%s\", %s, \"%s\"]", intResponse, presence, response, response2, strings.Replace(channel, presenceSuffix, "", -1))
-			} else {
-				value = fmt.Sprintf("[%s, \"%s%s\", \"%s\"]", intResponse, presence, response, strings.Replace(channel, presenceSuffix, "", -1))
-			}
-			logMu.Lock()
-			infoLogger.Println(fmt.Sprintf("Response value: %s", value))
-			logMu.Unlock()
-
-			if responseChannel != nil {
-				responseChannel <- []byte(value)
-			}
-		} else {
-			isPresence := false
-			if responseChannel == nil {
-				responseChannel, isPresence = pub.getChannelForPubnubChannel(channel, false)
-			} else {
-				isPresence = strings.Contains(channel, presenceSuffix)
-			}
-			if isPresence {
-				channel = strings.Replace(channel, presenceSuffix, "", -1)
-				presence = "Presence notifications for channel "
-			}
-
-			if sendReponseAsIs {
-				value = strings.Replace(response, presenceSuffix, "", -1)
-			} else {
-				value = fmt.Sprintf("[%s, \"%s'%s' %s\", \"%s\"]", intResponse, presence, channel, message, channel)
-			}
-			logMu.Lock()
-			infoLogger.Println(fmt.Sprintf("Response value: %s", value))
-			logMu.Unlock()
-			if responseChannel != nil {
-				responseChannel <- []byte(value)
-			}
-		}
-	}
-	if errorWithoutChannel {
-		responseChannel := c
-		value = fmt.Sprintf("[%s, \"%s\"]", intResponse, response)
+	if !found {
 		logMu.Lock()
-		infoLogger.Println(fmt.Sprintf("Response value without channel: %s", value))
+		errorLogger.Printf("Subscription item for %s response not found: %s\n",
+			stringResponseType(tp), itemName)
 		logMu.Unlock()
-		if responseChannel != nil {
-			responseChannel <- []byte(value)
+		return
+	}
+
+	logMu.Lock()
+	infoLogger.Println(fmt.Sprintf("Response value: %#v", value))
+	logMu.Unlock()
+
+	item.SuccessChannel <- successResponse{
+		Data:      response,
+		Channel:   channel,
+		Source:    source,
+		Timetoken: timetoken,
+		Type:      tp,
+		Presence:  isPresence,
+	}.Bytes()
+}
+
+// Used only in Abort() method
+func (pub *Pubnub) sendSuccessResponse(channels, groups string, response []byte) {
+	for _, itemName := range splitItems(channels) {
+		channel, found := pub.channels.Get(itemName)
+		if !found {
+			logMu.Lock()
+			errorLogger.Printf("Channel '%s' not found\n", itemName)
+			logMu.Unlock()
+		}
+
+		channel.SuccessChannel <- response
+	}
+
+	for _, itemName := range splitItems(groups) {
+		group, found := pub.channels.Get(itemName)
+		if !found {
+			logMu.Lock()
+			errorLogger.Printf("Group '%s' not found\n", itemName)
+			logMu.Unlock()
+		}
+
+		group.SuccessChannel <- response
+	}
+}
+
+// Sender for specific go channel
+func sendSuccessResponseToChannel(channel chan<- []byte, items,
+	response string) {
+
+	ln := len(splitItems(items))
+
+	value := strings.Replace(response, presenceSuffix, "", -1)
+
+	logMu.Lock()
+	infoLogger.Println(fmt.Sprintf("Response value without channel: %s", value))
+	logMu.Unlock()
+
+	for i := 0; i < ln; i++ {
+		if channel != nil {
+			channel <- []byte(value)
 		}
 	}
 }
 
-// getChannelForPubnubChannel parses the pubnub channel and returns the the callback or the erro channel
-//
-// Accepts the pubnub channel name channel as string, the string is parsed to check if it is a
-// Subscribe or a Presence channel.
-//
-// and isErrorChannel as bool. If it is true PresenceErrorChannels or SubscribeErrorChannels
-// will be used to fetch the corresponding channel.
-//
-// Returns channel to send a response on
-// and bool if true means it is a pubnub Presence channel. Else it is a pubnub Subscribe channel.
-func (pub *Pubnub) getChannelForPubnubChannel(channel string, isErrorChannel bool) (chan []byte, bool) {
-	isPresence := strings.Contains(channel, presenceSuffix)
-	pub.RLock()
-	defer pub.RUnlock()
-	if isPresence {
-		channel = strings.Replace(string(channel), presenceSuffix, "", -1)
-		if isErrorChannel {
-			c, found := pub.presenceErrorChannels[channel]
-			if found {
-				return c, true
-			}
-		} else {
-			c, found := pub.presenceChannels[channel]
-			if found {
-				return c, true
-			}
-		}
-	} else {
-		if isErrorChannel {
-			c, found := pub.subscribeErrorChannels[channel]
-			if found {
-				return c, false
-			}
-		} else {
-			c, found := pub.subscribeChannels[channel]
-			if found {
-				return c, false
-			}
+// Response not related to channel or group
+func sendResponseWithoutChannel(channel chan<- []byte, response string) {
+	value := fmt.Sprintf("[0, \"%s\"]", response)
+
+	logMu.Lock()
+	infoLogger.Println(fmt.Sprintf("Response value without channel: %s", value))
+	logMu.Unlock()
+
+	if channel != nil {
+		channel <- []byte(value)
+	}
+}
+
+func (pub *Pubnub) sendConnectionEvent(channels, groups string,
+	action connectionAction) {
+
+	var item *subscriptionItem
+	var found bool
+
+	channelsArray := splitItems(channels)
+	groupsArray := splitItems(groups)
+
+	for _, channel := range channelsArray {
+		if item, found = pub.channels.Get(channel); found {
+			item.SuccessChannel <- connectionEvent{
+				Channel: item.Name,
+				Action:  action,
+				Type:    channelResponse,
+			}.Bytes()
 		}
 	}
-	return nil, false
+
+	for _, group := range groupsArray {
+		if item, found = pub.groups.Get(group); found {
+			item.SuccessChannel <- connectionEvent{
+				Source: item.Name,
+				Action: action,
+				Type:   channelGroupResponse,
+			}.Bytes()
+		}
+	}
+}
+
+func (pub *Pubnub) sendConnectionEventTo(channel chan []byte,
+	source string, tp responseType, action connectionAction) {
+
+	for _, item := range splitItems(source) {
+		switch tp {
+		case channelResponse:
+			fallthrough
+		case wildcardResponse:
+			channel <- newConnectionEventForChannel(item, action).Bytes()
+		case channelGroupResponse:
+			channel <- newConnectionEventForChannelGroup(item, action).Bytes()
+		}
+	}
+}
+
+// Error sender for non-subscribe requests
+func sendErrorResponse(errorChannel chan<- []byte, items, message string) {
+
+	for _, item := range splitItems(items) {
+		value := fmt.Sprintf("[0, \"%s\", \"%s\"]", message, item)
+
+		logMu.Lock()
+		infoLogger.Println(fmt.Sprintf("Response value: %s", value))
+		logMu.Unlock()
+
+		if errorChannel != nil {
+			errorChannel <- []byte(value)
+		}
+	}
+}
+
+// Detailed error sender for non-subscribe requests
+func sendErrorResponseExtended(errorChannel chan<- []byte, items, message,
+	details string) {
+
+	for _, item := range splitItems(items) {
+		value := fmt.Sprintf("[0, \"%s\", %s, \"%s\"]", message, details, item)
+
+		logMu.Lock()
+		infoLogger.Println(fmt.Sprintf("Response value: %s", value))
+		logMu.Unlock()
+
+		if errorChannel != nil {
+			errorChannel <- []byte(value)
+		}
+	}
+}
+
+// Error sender for subscribe requests
+func sendClientSideErrorAboutSources(errorChannel chan<- []byte,
+	tp responseType, sources []string, status responseStatus) {
+	for _, source := range sources {
+		errorChannel <- errorResponse{
+			Reason: status,
+			Type:   tp,
+		}.BytesForSource(source)
+	}
+}
+
+func (pub *Pubnub) sendSubscribeError(channels, groups, message string,
+	reason responseStatus) {
+
+	pub.sendSubscribeErrorHelper(channels, groups, errorResponse{
+		Message: message,
+		Reason:  reason,
+	})
+}
+
+func (pub *Pubnub) sendSubscribeErrorExtended(channels, groups,
+	message, detailedMessage string, reason responseStatus) {
+
+	pub.sendSubscribeErrorHelper(channels, groups, errorResponse{
+		Message:         message,
+		Reason:          reason,
+		DetailedMessage: detailedMessage,
+	})
+}
+
+func (pub *Pubnub) sendSubscribeErrorHelper(channels, groups string,
+	errorResponse errorResponse) {
+
+	var (
+		item  *subscriptionItem
+		found bool
+	)
+
+	for _, channel := range splitItems(channels) {
+		if item, found = pub.channels.Get(channel); found {
+			item.ErrorChannel <- errorResponse.BytesForSource(channel)
+		}
+	}
+
+	for _, group := range splitItems(groups) {
+		if item, found = pub.groups.Get(group); found {
+			item.ErrorChannel <- errorResponse.BytesForSource(group)
+		}
+	}
+}
+
+func (pub *Pubnub) getSubscribedChannelGroups(groups string,
+	errorChannel chan<- []byte) bool {
+
+	pub.RLock()
+	defer pub.RUnlock()
+
+	groupsArray := strings.Split(groups, ",")
+	subscribedChannelGroups := pub.groups.ConnectedNamesString()
+	channelGroupsModified := false
+	alreadySubscribedChannelGroups := []string{}
+
+	for i := 0; i < len(groupsArray); i++ {
+		groupToSub := strings.TrimSpace(groupsArray[i])
+
+		if !pub.groups.Exist(groupToSub) {
+			if len(subscribedChannelGroups) > 0 {
+				subscribedChannelGroups += ","
+			}
+
+			subscribedChannelGroups += groupToSub
+
+			channelGroupsModified = true
+		} else {
+			alreadySubscribedChannelGroups = append(alreadySubscribedChannelGroups, groupToSub)
+		}
+	}
+
+	if len(alreadySubscribedChannelGroups) > 0 {
+		sendClientSideErrorAboutSources(errorChannel, channelGroupResponse,
+			alreadySubscribedChannelGroups, responseAlreadySubscribed)
+	}
+
+	return channelGroupsModified
 }
 
 // getSubscribedChannels is the struct Pubnub's instance method that iterates through the Pubnub
@@ -1507,62 +1660,45 @@ func (pub *Pubnub) getChannelForPubnubChannel(channel string, isErrorChannel boo
 //
 // It splits the Pubnub channels in the parameter by a comma and compares them to the existing
 // subscribed Pubnub channels.
-// If a new Pubnub channels is found it is appended to the Pubnub SubscribedChannels. The return
-// parameter channelsModified is set to true
-// If an subscribed pubnub channel is already present in the Pubnub SubscribedChannels it is added to
-// the alreadySubscribedChannels string and a response is sent back to the channel
 //
 // It accepts the following parameters:
 // channels: Pubnub Channels to send a response to. Comma separated string for multiple channels.
-// c: Channel on which to send the response back. Can be nil. If nil assumes that if the channel name
-// is suffixed with "-pnpres" it is a presence channel else subscribe channel and send the response to
-// the respective channel.
-// isPresenceSubscribe: can be nil, is used only in the case action is '5'.
 // errorChannel: channel to send the error response to.
 //
 // Returns:
-// subChannels: the Pubnub subscribed channels as a comma separated string.
-// newSubChannels: the new Pubnub subscribed channels as a comma separated string.
-// b: The return parameter channelsModified is set to true if new channels are added.
-func (pub *Pubnub) getSubscribedChannels(channels string, callbackChannel chan []byte, isPresenceSubscribe bool, errorChannel chan []byte) (subChannels string, newSubChannels string, b bool) {
+// channelsModified: The return parameter channelsModified is set to true if new channels are added.
+func (pub *Pubnub) getSubscribedChannels(channels string,
+	errorChannel chan<- []byte) bool {
+
 	pub.RLock()
 	defer pub.RUnlock()
+
 	channelArray := strings.Split(channels, ",")
-	subscribedChannels := pub.subscribedChannels
-	newSubscribedChannels := ""
+	subscribedChannels := pub.channels.ConnectedNamesString()
 	channelsModified := false
-	alreadySubscribedChannels := ""
+	alreadySubscribedChannels := []string{}
 
 	for i := 0; i < len(channelArray); i++ {
 		channelToSub := strings.TrimSpace(channelArray[i])
-		if isPresenceSubscribe {
-			channelToSub += presenceSuffix
-		}
 
-		if pub.notDuplicate(channelToSub) {
+		if !pub.channels.Exist(channelToSub) {
 			if len(subscribedChannels) > 0 {
 				subscribedChannels += ","
 			}
 			subscribedChannels += channelToSub
 
-			if len(newSubscribedChannels) > 0 {
-				newSubscribedChannels += ","
-			}
-			newSubscribedChannels += channelToSub
 			channelsModified = true
 		} else {
-			if len(alreadySubscribedChannels) > 0 {
-				alreadySubscribedChannels += ","
-			}
-			alreadySubscribedChannels += channelToSub
+			alreadySubscribedChannels = append(alreadySubscribedChannels, channelToSub)
 		}
 	}
 
 	if len(alreadySubscribedChannels) > 0 {
-		pub.sendResponseToChannel(errorChannel, alreadySubscribedChannels, responseAlreadySubscribed, "", "")
+		sendClientSideErrorAboutSources(errorChannel, channelResponse,
+			alreadySubscribedChannels, responseAlreadySubscribed)
 	}
 
-	return subscribedChannels, newSubscribedChannels, channelsModified
+	return channelsModified
 }
 
 // checkForTimeoutAndRetries parses the error in case of subscribe error response. Its an Pubnub instance method.
@@ -1580,7 +1716,9 @@ func (pub *Pubnub) getSubscribedChannels(channels string, callbackChannel chan [
 // Returns:
 // b: Bool variable true incase the connection is lost.
 // bTimeOut: bool variable true in case Timeout condition is met.
-func (pub *Pubnub) checkForTimeoutAndRetries(err error, errChannel chan []byte) (bool, bool) {
+func (pub *Pubnub) checkForTimeoutAndRetries(err error,
+	errChannel chan<- []byte) (bool, bool) {
+
 	bRet := false
 	bTimeOut := false
 
@@ -1589,41 +1727,54 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error, errChannel chan []byte) 
 	retryCountMu.RUnlock()
 
 	pub.RLock()
-	subChannels := pub.subscribedChannels
+	subChannels := pub.channels.ConnectedNamesString()
+	subChannelGroups := pub.groups.ConnectedNamesString()
 	pub.RUnlock()
 
 	errorInitConn := strings.Contains(err.Error(), errorInInitializing)
+
 	if errorInitConn {
 		sleepForAWhile(true)
 		message := fmt.Sprintf("Error %s, Retry count: %s", err.Error(), strconv.Itoa(retryCountLocal))
+
 		logMu.Lock()
 		errorLogger.Println(message)
 		logMu.Unlock()
-		pub.sendResponseToChannel(nil, subChannels, responseAsIsError, err.Error(), message)
+
+		pub.sendSubscribeErrorExtended(subChannels, subChannelGroups,
+			err.Error(), message, responseAsIsError)
 		bRet = true
 	} else if strings.Contains(err.Error(), timeoutU) {
 		sleepForAWhile(false)
 		message := strconv.Itoa(retryCountLocal)
+
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s %s:", err.Error(), message))
 		logMu.Unlock()
-		pub.sendResponseToChannel(nil, subChannels, responseTimedOut, message, "")
+
+		pub.sendSubscribeError(subChannels, subChannelGroups, message, responseTimedOut)
+
 		bRet = true
 		bTimeOut = true
 	} else if strings.Contains(err.Error(), noSuchHost) || strings.Contains(err.Error(), networkUnavailable) {
 		sleepForAWhile(true)
 		message := strconv.Itoa(retryCountLocal)
+
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s %s:", err.Error(), message))
 		logMu.Unlock()
-		pub.sendResponseToChannel(nil, subChannels, responseInternetConnIssues, message, "")
+
+		pub.sendSubscribeError(subChannels, subChannelGroups, message, responseInternetConnIssues)
 		bRet = true
 	}
 
 	if retryCountLocal >= maxRetries {
-		pub.sendResponseToChannel(nil, subChannels, reponseAbortMaxRetry, "", "")
+		// TODO: verify generated message
+		pub.sendSubscribeError(subChannels, subChannelGroups, "", reponseAbortMaxRetry)
+
 		pub.Lock()
-		pub.subscribedChannels = ""
+		pub.channels.ResetConnected()
+		pub.groups.ResetConnected()
 		pub.Unlock()
 
 		retryCountLocal = 0
@@ -1635,6 +1786,7 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error, errChannel chan []byte) 
 	if retryCountLocal > 0 {
 		return bRet, bTimeOut
 	}
+
 	return bRet, bTimeOut
 }
 
@@ -1645,7 +1797,9 @@ func (pub *Pubnub) resetRetryAndSendResponse() bool {
 	defer retryCountMu.Unlock()
 
 	if retryCount > 0 {
-		pub.sendResponseToChannel(nil, pub.subscribedChannels, responseReconnected, "", "")
+		pub.sendConnectionEvent(pub.channels.ConnectedNamesString(),
+			pub.groups.ConnectedNamesString(), connectionReconnected)
+
 		retryCount = 0
 		return true
 	}
@@ -1654,12 +1808,14 @@ func (pub *Pubnub) resetRetryAndSendResponse() bool {
 
 // retryLoop checks for the internet connection and intiates the rety logic of
 // connection fails
-func (pub *Pubnub) retryLoop(errorChannel chan []byte) {
+func (pub *Pubnub) retryLoop(errorChannel chan<- []byte) {
 	for {
 		pub.RLock()
-		subChannels := pub.subscribedChannels
+		subChannels := pub.channels.ConnectedNamesString()
+		subChannelsGroups := pub.groups.ConnectedNamesString()
 		pub.RUnlock()
-		if len(subChannels) > 0 {
+
+		if len(subChannels) > 0 || len(subChannelsGroups) > 0 {
 			_, responseCode, err := pub.httpRequest("", retryTrans)
 
 			retryCountMu.RLock()
@@ -1670,6 +1826,7 @@ func (pub *Pubnub) retryLoop(errorChannel chan []byte) {
 				logMu.Lock()
 				errorLogger.Println(fmt.Sprintf("%s, response code: %d:", err.Error(), responseCode))
 				logMu.Unlock()
+
 				pub.checkForTimeoutAndRetries(err, errorChannel)
 				pub.CloseExistingConnection()
 			} else if (err == nil) && (retryCountLocal > 0) {
@@ -1686,37 +1843,47 @@ func (pub *Pubnub) retryLoop(errorChannel chan []byte) {
 // createPresenceHeartbeatURL creates the URL for the presence heartbeat.
 func (pub *Pubnub) createPresenceHeartbeatURL() string {
 	var presenceURLBuffer bytes.Buffer
+
 	presenceURLBuffer.WriteString("/v2/presence")
 	presenceURLBuffer.WriteString("/sub_key/")
 	presenceURLBuffer.WriteString(pub.subscribeKey)
 	presenceURLBuffer.WriteString("/channel/")
+
 	pub.RLock()
-	//get only sub channels
-	var presenceChannelsBuffer bytes.Buffer
-	count := 0
-	for i := range pub.subscribeChannels {
-		if count > 0 {
-			presenceChannelsBuffer.WriteString(",")
-		}
-		count++
-		presenceChannelsBuffer.WriteString(url.QueryEscape(i))
+	if !pub.channels.Empty() {
+		presenceURLBuffer.WriteString(queryEscapeMultiple(
+			pub.channels.NamesString(), ","))
+	} else {
+		presenceURLBuffer.WriteString(",")
 	}
-	//presenceURLBuffer.WriteString(pub.subscribedChannels)
-	presenceURLBuffer.WriteString(presenceChannelsBuffer.String())
-	pub.RUnlock()
+
 	presenceURLBuffer.WriteString("/heartbeat")
-	presenceURLBuffer.WriteString("?uuid=")
+	presenceURLBuffer.WriteString("?")
+
+	if !pub.groups.Empty() {
+		presenceURLBuffer.WriteString("channel-group=")
+		presenceURLBuffer.WriteString(
+			queryEscapeMultiple(pub.groups.NamesString(), ","))
+		presenceURLBuffer.WriteString("&")
+	}
+	pub.RUnlock()
+
+	presenceURLBuffer.WriteString("uuid=")
 	presenceURLBuffer.WriteString(pub.GetUUID())
+
 	presenceURLBuffer.WriteString(pub.addAuthParam(true))
+
 	presenceHeartbeatMu.RLock()
 	if presenceHeartbeat > 0 {
 		presenceURLBuffer.WriteString("&heartbeat=")
 		presenceURLBuffer.WriteString(strconv.Itoa(int(presenceHeartbeat)))
 	}
 	presenceHeartbeatMu.RUnlock()
+
 	pub.RLock()
 	jsonSerialized, err := json.Marshal(pub.userState)
 	pub.RUnlock()
+
 	if err != nil {
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("createPresenceHeartbeatURL %s", err.Error()))
@@ -1741,40 +1908,46 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 	pub.RLock()
 	isPresenceHeartbeatRunning := pub.isPresenceHeartbeatRunning
 	pub.RUnlock()
+
 	if isPresenceHeartbeatRunning {
 		logMu.Lock()
 		infoLogger.Println(fmt.Sprintf("Presence heartbeat already running"))
 		logMu.Unlock()
+
 		return
 	}
+
 	pub.Lock()
 	pub.isPresenceHeartbeatRunning = true
 	pub.Unlock()
+
 	for {
 		pub.RLock()
-		l := len(pub.subscribeChannels)
-		/*for i := range pub.subscribeChannels {
-			fmt.Println("channel:" +i)
-		}*/
+		l := pub.channels.Length()
+		cgl := pub.groups.Length()
 		pub.RUnlock()
+
 		presenceHeartbeatMu.RLock()
 		presenceHeartbeatLoc := presenceHeartbeat
 		presenceHeartbeatMu.RUnlock()
-		if (l <= 0) || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeatLoc <= 0) {
+
+		if (l <= 0 && cgl <= 0) || (pub.GetPresenceHeartbeatInterval() <= 0) || (presenceHeartbeatLoc <= 0) {
 			pub.Lock()
 			pub.isPresenceHeartbeatRunning = false
 			pub.Unlock()
+
 			logMu.Lock()
 			infoLogger.Println(fmt.Sprintf("Breaking out of presence heartbeat loop"))
 			logMu.Unlock()
+
 			pub.closePresenceHeartbeatConnection()
 			break
 		}
 
 		presenceHeartbeatURL := pub.createPresenceHeartbeatURL()
-		//fmt.Println("presenceHeartbeatUrl ", presenceHeartbeatURL);
 
 		value, responseCode, err := pub.httpRequest(presenceHeartbeatURL, presenceHeartbeatTrans)
+
 		if (responseCode != 200) || (err != nil) {
 			if err != nil {
 				logMu.Lock()
@@ -1810,45 +1983,50 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 //
 // It accepts the following parameters:
 // channels: channels to subscribe.
+// groups: channel groups to subscribe.
 // errorChannel: Channel to send the error response to.
-//
-// TODO: Refactor
-func (pub *Pubnub) startSubscribeLoop(channels string, errorChannel chan []byte) {
-	pub.RLock()
-	channelCount := len(pub.subscribedChannels)
-	pub.RUnlock()
-
-	channelsModified := false
+func (pub *Pubnub) startSubscribeLoop(channels, groups string,
+	errorChannel chan<- []byte) {
 
 	go pub.retryLoop(errorChannel)
 
 	for {
 		pub.RLock()
-		modSubChannels := pub.subscribedChannels
+		alreadySubscribedChannels := pub.channels.NamesString()
+		alreadySubscribedChannelGroups := pub.groups.NamesString()
 		pub.RUnlock()
-		if len(modSubChannels) > 0 {
-			if len(modSubChannels) != channelCount {
-				channelsModified = true
-			}
 
+		if len(alreadySubscribedChannels) > 0 || len(alreadySubscribedChannelGroups) > 0 {
 			pub.RLock()
 			sentTimeToken := pub.timeToken
 			pub.RUnlock()
+
 			subscribeURL, sentTimeToken := pub.createSubscribeURL(sentTimeToken)
-			//fmt.Println("subscribeURL ", subscribeURL);
+
 			value, responseCode, err := pub.httpRequest(subscribeURL, subscribeTrans)
 
+			// if response is error
 			if (responseCode != 200) || (err != nil) {
 				if err != nil {
 					logMu.Lock()
 					errorLogger.Println(fmt.Sprintf("%s, response code: %d:", err.Error(), responseCode))
 					logMu.Unlock()
+
 					bNonTimeout, bTimeOut := pub.checkForTimeoutAndRetries(err, errorChannel)
+
 					if strings.Contains(err.Error(), connectionAborted) {
 						pub.CloseExistingConnection()
-						pub.sendResponseToChannel(nil, modSubChannels, responseAsIsError, err.Error(), strconv.Itoa(responseCode))
+
+						pub.sendSubscribeError(alreadySubscribedChannels,
+							alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
+
+						pub.Lock()
+						pub.channels.ApplyAbort()
+						pub.groups.ApplyAbort()
+						pub.Unlock()
 					} else if bNonTimeout {
 						pub.CloseExistingConnection()
+
 						if bTimeOut {
 							_, returnTimeToken, _, errJSON := ParseJSON(value, pub.cipherKey)
 							if errJSON == nil {
@@ -1857,6 +2035,7 @@ func (pub *Pubnub) startSubscribeLoop(channels string, errorChannel chan []byte)
 								pub.Unlock()
 							}
 						}
+
 						if !resumeOnReconnect {
 							pub.Lock()
 							pub.resetTimeToken = true
@@ -1864,51 +2043,39 @@ func (pub *Pubnub) startSubscribeLoop(channels string, errorChannel chan []byte)
 						}
 					} else {
 						pub.CloseExistingConnection()
-						pub.sendResponseToChannel(nil, modSubChannels, responseAsIsError, err.Error(), strconv.Itoa(responseCode))
+
+						pub.sendSubscribeError(alreadySubscribedChannels,
+							alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
+
 						sleepForAWhile(true)
 					}
+					// if unknown error occured
 				} else {
 					logMu.Lock()
 					errorLogger.Println(fmt.Sprintf("response code: %d:", responseCode))
 					logMu.Unlock()
+
 					if responseCode != 403 {
 						pub.resetRetryAndSendResponse()
 					}
+
 					pub.CloseExistingConnection()
-					pub.sendResponseToChannel(nil, modSubChannels, responseAsIsError, string(value), strconv.Itoa(responseCode))
+
+					pub.sendSubscribeError(alreadySubscribedChannels,
+						alreadySubscribedChannelGroups, string(value), responseAsIs)
+
 					sleepForAWhile(false)
 				}
 				continue
+				// if response was successfull
 			} else if string(value) != "" {
+
 				logMu.Lock()
 				infoLogger.Println(fmt.Sprintf("response value: %s", string(value)))
 				logMu.Unlock()
-				reconnected := pub.resetRetryAndSendResponse()
-				if string(value) == "[]" {
-					sleepForAWhile(false)
-					continue
-				}
 
-				data, returnTimeToken, channelName, errJSON := ParseJSON(value, pub.cipherKey)
-				pub.Lock()
-				pub.timeToken = returnTimeToken
-				pub.Unlock()
-				if data == "[]" {
-					if !channelsModified {
-
-						channelsModified = false
-					}
-					if sentTimeToken == "0" {
-						if !reconnected {
-							pub.sendResponseToChannel(nil, modSubChannels, responseConnected, "", "")
-						}
-						pub.Lock()
-						pub.newSubscribedChannels = ""
-						pub.Unlock()
-					}
-					continue
-				}
-				pub.parseHTTPResponse(value, data, channelName, returnTimeToken, errJSON, errorChannel)
+				pub.handleSubscribeResponse(value, sentTimeToken,
+					alreadySubscribedChannels, alreadySubscribedChannelGroups)
 			}
 		} else {
 			break
@@ -1929,9 +2096,17 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 	subscribeURLBuffer.WriteString("/")
 	subscribeURLBuffer.WriteString(pub.subscribeKey)
 	subscribeURLBuffer.WriteString("/")
+
 	pub.Lock()
 	defer pub.Unlock()
-	subscribeURLBuffer.WriteString(queryEscapeMultiple(pub.subscribedChannels, ","))
+
+	if !pub.channels.Empty() {
+		subscribeURLBuffer.WriteString(queryEscapeMultiple(
+			pub.channels.NamesString(), ","))
+	} else {
+		subscribeURLBuffer.WriteString(",")
+	}
+
 	subscribeURLBuffer.WriteString("/0")
 
 	if pub.resetTimeToken {
@@ -1956,15 +2131,26 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 		subscribeURLBuffer.WriteString(pub.timeToken)
 	}
 
-	subscribeURLBuffer.WriteString("?uuid=")
+	subscribeURLBuffer.WriteString("?")
+
+	if !pub.groups.Empty() {
+		subscribeURLBuffer.WriteString("channel-group=")
+		subscribeURLBuffer.WriteString(
+			queryEscapeMultiple(pub.groups.NamesString(), ","))
+		subscribeURLBuffer.WriteString("&")
+	}
+
+	subscribeURLBuffer.WriteString("uuid=")
 	subscribeURLBuffer.WriteString(pub.GetUUID())
 	subscribeURLBuffer.WriteString(pub.addAuthParam(true))
+
 	presenceHeartbeatMu.RLock()
 	if presenceHeartbeat > 0 {
 		subscribeURLBuffer.WriteString("&heartbeat=")
 		subscribeURLBuffer.WriteString(strconv.Itoa(int(presenceHeartbeat)))
 	}
 	presenceHeartbeatMu.RUnlock()
+
 	jsonSerialized, err := json.Marshal(pub.userState)
 	if err != nil {
 		logMu.Lock()
@@ -1977,6 +2163,7 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 			subscribeURLBuffer.WriteString(url.QueryEscape(userState))
 		}
 	}
+
 	subscribeURLBuffer.WriteString("&")
 	subscribeURLBuffer.WriteString(sdkIdentificationParam)
 
@@ -2012,192 +2199,141 @@ func checkQuerystringInit(queryStringInit bool) string {
 	return "?"
 }
 
-// parseHttpResponse parses the http response from the orgin for the subscribe resquest
-// if errJson is not nil it sends an error response on the error channel.
-// In case of subscribe response it parses the returned data and splits if multiple messages are received.
-//
-// Accespts the following parameters
-// value: is the actual response.
-// data: is the json deserialized string,
-// channelName: the pubnub channel of the response
-// returnTimeToken: return time token from the origin,
-// errJson: error if received from server, can be nil.
-// errorChannel: channel to send an error response to.
-func (pub *Pubnub) parseHTTPResponse(value []byte, data string, channelName string, returnTimeToken string, errJSON error, errorChannel chan []byte) {
-	if errJSON != nil {
+func (pub *Pubnub) handleSubscribeResponse(response []byte,
+	sentTimetoken string, subscribedChannels, subscribedGroups string) {
+
+	var channelNames, groupNames []string
+	reconnected := pub.resetRetryAndSendResponse()
+
+	if bytes.Equal(response, []byte("[]")) {
+		sleepForAWhile(false)
+		return
+	}
+
+	data, channelNames, groupNames, newTimetoken, errJSON :=
+		ParseSubscribeResponse(response, pub.cipherKey)
+
+	pub.Lock()
+	pub.timeToken = newTimetoken
+	pub.Unlock()
+
+	if len(data) == 0 && sentTimetoken == "0" && !reconnected {
+		pub.Lock()
+		changedChannels := pub.channels.SetConnected()
+		changedGroups := pub.groups.SetConnected()
+		pub.Unlock()
+
+		if len(changedChannels) > 0 {
+			pub.sendConnectionEvent(strings.Join(changedChannels, ","),
+				"", connectionConnected)
+		}
+
+		if len(changedGroups) > 0 {
+			pub.sendConnectionEvent("", strings.Join(changedGroups, ","),
+				connectionConnected)
+		}
+	} else if errJSON != nil {
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 		logMu.Unlock()
-		pub.sendResponseToChannel(nil, channelName, responseAsIsError, fmt.Sprintf("%s", errJSON), "")
+
+		pub.sendSubscribeError(strings.Join(channelNames, ","),
+			strings.Join(groupNames, ","), fmt.Sprintf("%s", errJSON),
+			responseAsIsError)
+
 		sleepForAWhile(false)
 	} else {
 		retryCountMu.Lock()
 		retryCount = 0
 		retryCountMu.Unlock()
 
-		if channelName == "" {
-			channelName = pub.subscribedChannels
-		}
-		pub.splitMessagesAndSendJSONResponse(data, returnTimeToken, channelName, errorChannel)
-	}
-}
+		if len(channelNames) == 0 && len(groupNames) == 0 {
+			connectedNames := pub.channels.ConnectedNames()
 
-// splitMessagesAndSendJSONResponse unmarshals the data and sends a response if the
-// data type is a non array. Else calls the CreateAndSendJsonResponse to split the messages.
-//
-// parameters:
-// data: the data to parse and split,
-// returnTimeToken: the return timetoken in the response
-// channels: pubnub channels in the response.
-func (pub *Pubnub) splitMessagesAndSendJSONResponse(data string, returnTimeToken string, channels string, errorChannel chan []byte) {
-	channelSlice := strings.Split(channels, ",")
-	channelLen := len(channelSlice)
-	isPresence := false
-	if channelLen == 1 {
-		isPresence = strings.Contains(channels, presenceSuffix)
-	}
+			for i := 0; i < len(data); i++ {
+				channelNames = append(channelNames, connectedNames[0])
+			}
 
-	if (channelLen == 1) && (isPresence) {
-		pub.splitPresenceMessages([]byte(data), returnTimeToken, channelSlice[0], errorChannel)
-	} else if (channelLen == 1) && (!isPresence) {
-		pub.splitSubscribeMessages(data, returnTimeToken, channelSlice[0], errorChannel)
-	} else {
-		var returnedMessages interface{}
-		errUnmarshalMessages := json.Unmarshal([]byte(data), &returnedMessages)
-
-		if errUnmarshalMessages == nil {
-			v := returnedMessages.(interface{})
-
-			switch vv := v.(type) {
-			case string:
-				length := len(vv)
-				if length > 0 {
-					pub.sendJSONResponse(vv, returnTimeToken, channels)
-				}
-			case []interface{}:
-				pub.createAndSendJSONResponse(vv, returnTimeToken, channels)
+			if len(channelNames) == 0 {
+				logMu.Lock()
+				errorLogger.Printf("Unable to handle response: %s", data)
+				logMu.Unlock()
+				return
 			}
 		}
-	}
-}
 
-// splitPresenceMessages splits the multiple messages
-// unmarshals the data into the custom structure,
-// calls the SendJsonResponse funstion to creates the json again.
-//
-// Parameters:
-// data: data to unmarshal,
-// returnTimeToken: the returned timetoken in the pubnub response,
-// channel: pubnub channel,
-// errorChannel: error channel to send a error response back.
-func (pub *Pubnub) splitPresenceMessages(data []byte, returnTimeToken string, channel string, errorChannel chan []byte) {
-	var occupants []struct {
-		Action    string  `json:"action"`
-		Uuid      string  `json:"uuid"`
-		Timestamp float64 `json:"timestamp"`
-		Occupancy int     `json:"occupancy"`
-	}
-	errUnmarshalMessages := json.Unmarshal(data, &occupants)
-	if errUnmarshalMessages != nil {
-		pub.sendResponseToChannel(nil, channel, responseAsIsError, invalidJSON, "")
-	} else {
-		for i := range occupants {
-			intf := make([]interface{}, 1)
-			intf[0] = occupants[i]
-			pub.sendJSONResponse(intf, returnTimeToken, channel)
-		}
-	}
-}
+		groupsLen := len(groupNames)
 
-// splitSubscribeMessages splits the multiple messages
-// unmarshals the data into the custom structure,
-// calls the SendJsonResponse funstion to creates the json again.
-//
-// Parameters:
-// data: data to unmarshal,
-// returnTimeToken: the returned timetoken in the pubnub response,
-// channel: pubnub channel,
-// errorChannel: error channel to send a error response back.
-func (pub *Pubnub) splitSubscribeMessages(data string, returnTimeToken string, channel string, errorChannel chan []byte) {
-	var occupants []interface{}
-	errUnmarshalMessages := json.Unmarshal([]byte(data), &occupants)
-	if errUnmarshalMessages != nil {
-		pub.sendResponseToChannel(nil, channel, responseAsIsError, invalidJSON, "")
-	} else {
-		for i := range occupants {
-			intf := make([]interface{}, 1)
-			intf[0] = occupants[i]
-			pub.sendJSONResponse(intf, returnTimeToken, channel)
-		}
-	}
-}
+		isChannelGroupOrWildcardedMessage := groupsLen > 0
 
-// createAndSendJSONResponse marshals the data for each split message and calls
-// the SendJsonResponse multiple times to send response back to the channel
-//
-// Accepts:
-// rawData: the data to parse and split,
-// returnTimeToken: the return timetoken in the response
-// channels: pubnub channels in the response.
-func (pub *Pubnub) createAndSendJSONResponse(rawData interface{}, returnTimeToken string, channels string) {
-	channelSlice := strings.Split(channels, ",")
-	dataInterface := rawData.(interface{})
-	switch vv := dataInterface.(type) {
-	case []interface{}:
-		for i, u := range vv {
-			intf := make([]interface{}, 1)
-			if reflect.TypeOf(u).Kind() == reflect.String {
-				intf[0] = u
+		for i, message := range data {
+			if channelNames[i] == "" {
+				logMu.Lock()
+				errorLogger.Println(
+					fmt.Sprintf("Requested index %dout of range in %s. Raw response: %s",
+						i, channelNames, data))
+				logMu.Unlock()
+
+				continue
+			}
+
+			if isChannelGroupOrWildcardedMessage {
+				pub.handleFourElementsSubscribeResponse(message, channelNames[i],
+					groupNames[i], newTimetoken)
 			} else {
-				intf[0] = vv[i]
+				pub.sendSubscribeResponse(channelNames[i], "", newTimetoken,
+					channelResponse, responseAsIs, message)
 			}
-			channel := ""
-
-			if i <= len(channelSlice)-1 {
-				channel = channelSlice[i]
-			} else {
-				channel = channelSlice[0]
-			}
-
-			pub.sendJSONResponse(intf, returnTimeToken, channel)
 		}
 	}
 }
 
-// sendJSONResponse creates a json response and sends back to the response channel
-//
-// Accepts:
-// message: response to send back,
-// returnTimeToken: the timetoken for the response,
-// channelName: the pubnub channel for the response.
-func (pub *Pubnub) sendJSONResponse(message interface{}, returnTimeToken string, channelName string) {
+func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
+	fourth, third, timetoken string) {
 
-	if channelName != "" {
-		response := []interface{}{message, fmt.Sprintf("%s", pub.timeToken), channelName}
-		jsonData, err := json.Marshal(response)
-		if err != nil {
-			logMu.Lock()
-			errorLogger.Println(fmt.Sprintf("%s", err.Error()))
-			logMu.Unlock()
-			pub.sendResponseToChannel(nil, channelName, responseAsIsError, invalidJSON, err.Error())
-		}
-		pub.sendResponseToChannel(nil, channelName, responseAsIs, string(jsonData), "")
-	}
-}
+	pub.RLock()
+	thirdChannelGroupExist := pub.groups.Exist(third)
+	thirdChannelExist := pub.channels.Exist(third)
+	fourthChannelExist := pub.channels.Exist(fourth)
 
-// getSubscribedChannelName is the struct Pubnub's instance method.
-// In case of single subscribe request the channelname will be empty.
-// This methos iterates through the pubnub SubscribedChannels to find the name of the channel.
-func (pub *Pubnub) getSubscribedChannelName() string {
-	channelArray := strings.Split(pub.subscribedChannels, ",")
-	for i := 0; i < len(channelArray); i++ {
-		if strings.Contains(channelArray[i], presenceSuffix) {
-			continue
+	subscribedChannels := pub.channels.ConnectedNamesString()
+	subscribedGroups := pub.groups.ConnectedNamesString()
+	pub.RUnlock()
+
+	if third == fourth && fourthChannelExist {
+		pub.sendSubscribeResponse(fourth, "", timetoken, channelResponse, responseAsIs, message)
+	} else if strings.HasSuffix(third, wildcardSuffix) {
+		if fourthChannelExist && strings.HasSuffix(fourth, presenceSuffix) {
+			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
+		} else if thirdChannelGroupExist && !strings.HasSuffix(fourth, presenceSuffix) {
+			pub.sendSubscribeResponse(fourth, third, timetoken, channelGroupResponse, responseAsIs, message)
+		} else if thirdChannelExist && strings.HasSuffix(third, wildcardSuffix) &&
+			!strings.HasSuffix(fourth, presenceSuffix) {
+			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
 		} else {
-			return channelArray[i]
+			logMu.Lock()
+			errorLogger.Println(
+				"Unable to handle four-element response, please contact PubNub support with error description:",
+				"\n3rd element:", third,
+				"\n4th element:", fourth,
+			)
+			logMu.Unlock()
+			pub.sendSubscribeError(subscribedChannels, subscribedGroups,
+				"Unable to handle response", responseAsIsError)
 		}
+	} else if third != fourth && thirdChannelGroupExist {
+		pub.sendSubscribeResponse(fourth, third, timetoken, channelGroupResponse, responseAsIs, message)
+	} else {
+		logMu.Lock()
+		errorLogger.Println(
+			"Unable to handle four-element response, please contact PubNub support with error description:",
+			"\n3rd element:", third,
+			"\n4th element:", fourth,
+		)
+		logMu.Unlock()
+		pub.sendSubscribeError(subscribedChannels, subscribedGroups,
+			"Unable to handle response", responseAsIsError)
 	}
-	return ""
 }
 
 // CloseExistingConnection closes the open subscribe/presence connection.
@@ -2214,7 +2350,7 @@ func (pub *Pubnub) CloseExistingConnection() {
 
 // checkCallbackNil checks if the callback channel is nil
 // if nil then the code wil panic as callbacks are mandatory
-func checkCallbackNil(channelToCheck chan []byte, isErrChannel bool, funcName string) {
+func checkCallbackNil(channelToCheck chan<- []byte, isErrChannel bool, funcName string) {
 	if channelToCheck == nil {
 		message2 := ""
 		if isErrChannel {
@@ -2228,53 +2364,62 @@ func checkCallbackNil(channelToCheck chan []byte, isErrChannel bool, funcName st
 	}
 }
 
-// Subscribe is the struct Pubnub's instance method which checks for the InvalidChannels
-// and returns if true.
-// Initaiates the presence and subscribe response channels.
-// It creates a map for callback and error response channels for
-// each pubnub channel using the pubnub channel name as the key.
-// If muliple channels are passed then the same callback or error channel is used.
-//
-// If there is no existing subscribe/presence loop running then it starts a
-// new loop with the new pubnub channels.
-// Else closes the existing connections and starts a new loop
-//
-// It accepts the following parameters:
-// channels: comma separated pubnub channel list.
-// timetoken: if timetoken is present the subscribe request is sent using this timetoken
-// callbackChannel: Channel on which to send the response back.
-// isPresenceSubscribe: tells the method that presence subscription is requested.
-// errorChannel: channel to send an error response to.
-//
-// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) Subscribe(channels string, timetoken string, callbackChannel chan []byte, isPresenceSubscribe bool, errorChannel chan []byte) {
-	checkCallbackNil(callbackChannel, false, "Subscribe")
-	checkCallbackNil(errorChannel, true, "Subscribe")
-	if invalidChannel(channels, callbackChannel) {
-		return
-	}
-	subscribedChannels, newSubscribedChannels, channelsModified := pub.getSubscribedChannels(channels, callbackChannel, isPresenceSubscribe, errorChannel)
-	pub.Lock()
-	var channelArr = strings.Split(channels, ",")
+func (pub *Pubnub) ChannelGroupSubscribe(groups string,
+	callbackChannel chan<- []byte, errorChannel chan<- []byte) {
+	pub.ChannelGroupSubscribeWithTimetoken(groups, "", callbackChannel,
+		errorChannel)
+}
 
-	for i, u := range channelArr {
-		if isPresenceSubscribe {
-			pub.presenceChannels[u] = callbackChannel
-			pub.presenceErrorChannels[u] = errorChannel
+func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
+	callbackChannel chan<- []byte, errorChannel chan<- []byte) {
+
+	checkCallbackNil(callbackChannel, false, "ChanelGroupSubscribe")
+	checkCallbackNil(errorChannel, true, "ChanelGroupSubscribe")
+
+	pub.RLock()
+	existingChannelsEmpty := pub.channels.Empty()
+	existingGroupsEmpty := pub.groups.Empty()
+	pub.RUnlock()
+
+	channelGroupsModified :=
+		pub.getSubscribedChannelGroups(groups, errorChannel)
+
+	timetokenIsZero := timetoken == "" || timetoken == "0"
+
+	pub.Lock()
+	var groupsArr = strings.Split(groups, ",")
+
+	for _, u := range groupsArr {
+		if timetokenIsZero {
+			pub.groups.Add(u, callbackChannel, errorChannel)
 		} else {
-			pub.subscribeChannels[u] = callbackChannel
-			pub.subscribeErrorChannels[u] = errorChannel
+			pub.groups.AddConnected(u, callbackChannel, errorChannel)
 		}
-		i++
 	}
-	pub.newSubscribedChannels = newSubscribedChannels
-	existingSubscribedChannels := pub.subscribedChannels
+
 	isPresenceHeartbeatRunning := pub.isPresenceHeartbeatRunning
 	pub.Unlock()
-	if (!isPresenceSubscribe) && ((existingSubscribedChannels == "") || (!isPresenceHeartbeatRunning)) {
+
+	if hasNonPresenceChannels(groups) &&
+		(!pub.channels.HasConnected() && !pub.groups.HasConnected() ||
+			!isPresenceHeartbeatRunning) {
 		go pub.runPresenceHeartbeat()
 	}
-	if existingSubscribedChannels == "" {
+
+	if existingChannelsEmpty || existingGroupsEmpty {
+		pub.Lock()
+		if strings.TrimSpace(timetoken) != "" {
+			pub.timeToken = timetoken
+			pub.resetTimeToken = false
+		} else {
+			pub.resetTimeToken = true
+		}
+		pub.Unlock()
+
+		go pub.startSubscribeLoop("", groups, errorChannel)
+	} else if channelGroupsModified {
+		pub.CloseExistingConnection()
+
 		pub.Lock()
 		if strings.TrimSpace(timetoken) != "" {
 			pub.timeToken = timetoken
@@ -2283,9 +2428,79 @@ func (pub *Pubnub) Subscribe(channels string, timetoken string, callbackChannel 
 			pub.resetTimeToken = true
 		}
 
-		pub.subscribedChannels = subscribedChannels
 		pub.Unlock()
-		go pub.startSubscribeLoop(channels, errorChannel)
+	}
+}
+
+// Subscribe is the struct Pubnub's instance method which checks for the InvalidChannels
+// and returns if true.
+// Initaiates the presence and subscribe response channels.
+//
+// If there is no existing subscribe/presence loop running then it starts a
+// new loop with the new pubnub channels.
+// Else closes the existing connections and starts a new loop
+//
+// It accepts the following parameters:
+// channels: comma separated pubnub channel list.
+// timetoken: if timetoken is present the subscribe request is sent using this timetoken
+// successChannel: Channel on which to send the success response back.
+// errorChannel: channel to send an error response to.
+// eventsChannel: Channel on which to send events like connect/disconnect/reconnect.
+func (pub *Pubnub) Subscribe(channels, timetoken string,
+	callbackChannel chan<- []byte, isPresence bool, errorChannel chan<- []byte) {
+
+	if invalidChannel(channels, callbackChannel) {
+		return
+	}
+
+	checkCallbackNil(callbackChannel, false, "Subscribe")
+	checkCallbackNil(errorChannel, true, "Subscribe")
+
+	pub.RLock()
+	existingChannelsEmpty := pub.channels.Empty()
+	existingGroupsEmpty := pub.groups.Empty()
+	pub.RUnlock()
+
+	if isPresence {
+		channels = convertToPresenceChannel(channels)
+	}
+
+	channelsModified :=
+		pub.getSubscribedChannels(channels, errorChannel)
+
+	timetokenIsZero := timetoken == "" || timetoken == "0"
+
+	pub.Lock()
+	var channelArr = strings.Split(channels, ",")
+
+	for _, u := range channelArr {
+		if timetokenIsZero {
+			pub.channels.Add(u, callbackChannel, errorChannel)
+		} else {
+			pub.channels.AddConnected(u, callbackChannel, errorChannel)
+		}
+	}
+
+	isPresenceHeartbeatRunning := pub.isPresenceHeartbeatRunning
+	pub.Unlock()
+
+	if hasNonPresenceChannels(channels) &&
+		(!pub.channels.HasConnected() && !pub.groups.HasConnected() ||
+			!isPresenceHeartbeatRunning) {
+		go pub.runPresenceHeartbeat()
+	}
+
+	if existingChannelsEmpty || existingGroupsEmpty {
+		pub.Lock()
+		if strings.TrimSpace(timetoken) != "" {
+			pub.timeToken = timetoken
+			pub.resetTimeToken = false
+		} else {
+			pub.resetTimeToken = true
+		}
+		pub.Unlock()
+
+		go pub.startSubscribeLoop(channels, "", errorChannel)
 	} else if channelsModified {
 		pub.CloseExistingConnection()
 
@@ -2296,8 +2511,7 @@ func (pub *Pubnub) Subscribe(channels string, timetoken string, callbackChannel 
 		} else {
 			pub.resetTimeToken = true
 		}
-		pub.subscribedChannels = subscribedChannels
-		//fmt.Println("pub.subscribedChannels, ", pub.subscribedChannels)
+
 		pub.Unlock()
 	}
 }
@@ -2310,65 +2524,6 @@ func sleepForAWhile(retry bool) {
 		retryCountMu.Unlock()
 	}
 	time.Sleep(time.Duration(retryInterval) * time.Second)
-}
-
-// notDuplicate is the struct Pubnub's instance method which checks for the channel name
-// to check in the existing pubnub SubscribedChannels.
-//
-// It accepts the following parameters:
-// channel: the Pubnub channel name to check in the existing pubnub SubscribedChannels.
-//
-// returns:
-// true if the channel is found.
-// false if not found.
-func (pub *Pubnub) notDuplicate(channel string) (b bool) {
-	pub.RLock()
-	subChannels := pub.subscribedChannels
-	pub.RUnlock()
-	var channels = strings.Split(subChannels, ",")
-	for i, u := range channels {
-		if channel == u {
-			return false
-		}
-		i++
-	}
-	return true
-}
-
-// removeFromSubscribeList is the struct Pubnub's instance method which checks for the
-// channel name to check in the existing pubnub SubscribedChannels and removes it if found
-//
-// It accepts the following parameters:
-// c: Channel on which to send the response back.
-// channel: the pubnub channel name to check in the existing pubnub SubscribedChannels.
-//
-// returns:
-// true if the channel is found and removed.
-// false if not found.
-func (pub *Pubnub) removeFromSubscribeList(c chan []byte, channel string) (b bool) {
-	pub.RLock()
-	subChannels := pub.subscribedChannels
-	pub.RUnlock()
-	var channels = strings.Split(subChannels, ",")
-	newChannels := ""
-	found := false
-	for _, u := range channels {
-		if channel == u {
-			found = true
-			pub.sendResponseToChannel(c, u, responseUnsubscribed, "", "")
-		} else {
-			if len(newChannels) > 0 {
-				newChannels += ","
-			}
-			newChannels += u
-		}
-	}
-	if found {
-		pub.Lock()
-		pub.subscribedChannels = newChannels
-		pub.Unlock()
-	}
-	return found
 }
 
 // Unsubscribe is the struct Pubnub's instance method which unsubscribes a pubnub subscribe
@@ -2384,7 +2539,8 @@ func (pub *Pubnub) removeFromSubscribeList(c chan []byte, channel string) (b boo
 // errorChannel: channel to send an error response to.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) Unsubscribe(channels string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "Unsubscribe")
 	checkCallbackNil(errorChannel, true, "Unsubscribe")
 
@@ -2396,34 +2552,90 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel chan []byte, err
 		if i > 0 {
 			unsubscribeChannels += ","
 		}
+
 		channelToUnsub := strings.TrimSpace(channelArray[i])
-		removed := pub.removeFromSubscribeList(callbackChannel, channelToUnsub)
-		if !removed {
-			pub.sendResponseToChannel(errorChannel, channelToUnsub, responseNotSubscribed, "", "")
-		} else {
+
+		if pub.channels.Exist(channelToUnsub) {
+			pub.sendConnectionEventTo(callbackChannel, channelToUnsub, channelResponse,
+				connectionUnsubscribed)
+
+			pub.Lock()
+			pub.channels.Remove(channelToUnsub)
+			pub.Unlock()
+
 			unsubscribeChannels += channelToUnsub
 			channelRemoved = true
+		} else {
+			sendClientSideErrorAboutSources(errorChannel, channelResponse,
+				splitItems(channelToUnsub), responseNotSubscribed)
 		}
 	}
 
 	if channelRemoved {
 		if strings.TrimSpace(unsubscribeChannels) != "" {
-			value, _, err := pub.sendLeaveRequest(unsubscribeChannels)
+			value, _, err := pub.sendLeaveRequest(unsubscribeChannels, "")
 			if err != nil {
 				logMu.Lock()
 				errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 				logMu.Unlock()
-				pub.sendResponseToChannel(errorChannel, unsubscribeChannels, responseAsIsError, err.Error(), "")
+
+				sendErrorResponse(errorChannel, unsubscribeChannels, err.Error())
 			} else {
-				pub.sendResponseToChannel(callbackChannel, unsubscribeChannels, responseAsIs, string(value), "")
+				sendSuccessResponseToChannel(callbackChannel, unsubscribeChannels, string(value))
 			}
 		}
-		pub.Lock()
-		for i := 0; i < len(channelArray); i++ {
-			delete(pub.subscribeChannels, channelArray[i])
-			delete(pub.subscribeErrorChannels, channelArray[i])
+
+		pub.CloseExistingConnection()
+	}
+}
+
+func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
+	errorChannel chan []byte) {
+
+	checkCallbackNil(callbackChannel, false, "ChannelGroupUnsubscribe")
+	checkCallbackNil(errorChannel, true, "ChannelGroupUnsubscribe")
+
+	groupsArray := strings.Split(groups, ",")
+	unsubscribeGroups := ""
+	groupRemoved := false
+
+	for i := 0; i < len(groupsArray); i++ {
+		if i > 0 {
+			unsubscribeGroups += ","
 		}
-		pub.Unlock()
+
+		groupToUnsub := strings.TrimSpace(groupsArray[i])
+
+		if pub.groups.Exist(groupToUnsub) {
+			pub.sendConnectionEventTo(callbackChannel, groupToUnsub, channelGroupResponse,
+				connectionUnsubscribed)
+
+			pub.Lock()
+			pub.groups.Remove(groupToUnsub)
+			pub.Unlock()
+
+			unsubscribeGroups += groupToUnsub
+			groupRemoved = true
+		} else {
+			sendClientSideErrorAboutSources(errorChannel, channelGroupResponse,
+				splitItems(groupToUnsub), responseNotSubscribed)
+		}
+	}
+
+	if groupRemoved {
+		if strings.TrimSpace(unsubscribeGroups) != "" {
+			value, _, err := pub.sendLeaveRequest("", unsubscribeGroups)
+			if err != nil {
+				logMu.Lock()
+				errorLogger.Println(fmt.Sprintf("%s", err.Error()))
+				logMu.Unlock()
+
+				sendErrorResponse(errorChannel, unsubscribeGroups, err.Error())
+			} else {
+				sendSuccessResponseToChannel(callbackChannel, unsubscribeGroups, string(value))
+			}
+		}
+
 		pub.CloseExistingConnection()
 	}
 }
@@ -2441,68 +2653,44 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel chan []byte, err
 // errorChannel: channel to send an error response to.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) PresenceUnsubscribe(channels string, callbackChannel chan []byte, errorChannel chan []byte) {
-	checkCallbackNil(callbackChannel, false, "PresenceUnsubscribe")
-	checkCallbackNil(errorChannel, true, "PresenceUnsubscribe")
+func (pub *Pubnub) PresenceUnsubscribe(channels string, callbackChannel,
+	errorChannel chan []byte) {
 
-	channelArray := strings.Split(channels, ",")
-	presenceChannels := ""
-	channelRemoved := false
-
-	for i := 0; i < len(channelArray); i++ {
-		if i > 0 {
-			presenceChannels += ","
-		}
-		channelToUnsub := strings.TrimSpace(channelArray[i]) + presenceSuffix
-		presenceChannels += channelToUnsub
-		removed := pub.removeFromSubscribeList(callbackChannel, channelToUnsub)
-		if !removed {
-			pub.sendResponseToChannel(errorChannel, channelToUnsub, responseNotSubscribed, "", "")
-		} else {
-			channelRemoved = true
-		}
-	}
-
-	if channelRemoved {
-		if strings.TrimSpace(channels) != "" {
-			value, _, err := pub.sendLeaveRequest(presenceChannels)
-			if err != nil {
-				logMu.Lock()
-				errorLogger.Println(fmt.Sprintf("%s", err.Error()))
-				logMu.Unlock()
-				pub.sendResponseToChannel(errorChannel, channels, responseAsIsError, err.Error(), "")
-			} else {
-				pub.sendResponseToChannel(callbackChannel, channels, responseAsIs, string(value), "")
-			}
-		}
-		pub.Lock()
-		for i := 0; i < len(channelArray); i++ {
-			delete(pub.presenceChannels, channelArray[i])
-			delete(pub.presenceErrorChannels, channelArray[i])
-		}
-		pub.Unlock()
-		pub.CloseExistingConnection()
-	}
+	pub.Unsubscribe(addPnpresToString(channels), callbackChannel,
+		errorChannel)
 }
 
 // sendLeaveRequest: Sends a leave request to the origin
 //
 // It accepts the following parameters:
 // channels: Channels to leave
+// groups: Channel Groups to leave
 //
 // returns:
 // the HttpRequest response contents as byte array.
 // response error code,
 // error if any.
-func (pub *Pubnub) sendLeaveRequest(channels string) ([]byte, int, error) {
+func (pub *Pubnub) sendLeaveRequest(channels, groups string) ([]byte, int, error) {
 	var subscribeURLBuffer bytes.Buffer
 	subscribeURLBuffer.WriteString("/v2/presence")
 	subscribeURLBuffer.WriteString("/sub-key/")
 	subscribeURLBuffer.WriteString(pub.subscribeKey)
 	subscribeURLBuffer.WriteString("/channel/")
-	subscribeURLBuffer.WriteString(queryEscapeMultiple(channels, ","))
+
+	if len(channels) > 0 {
+		subscribeURLBuffer.WriteString(queryEscapeMultiple(channels, ","))
+	} else {
+		subscribeURLBuffer.WriteString(",")
+	}
+
 	subscribeURLBuffer.WriteString("/leave?uuid=")
 	subscribeURLBuffer.WriteString(pub.GetUUID())
+
+	if len(groups) > 0 {
+		subscribeURLBuffer.WriteString("&channel-group=")
+		subscribeURLBuffer.WriteString(queryEscapeMultiple(groups, ","))
+	}
+
 	subscribeURLBuffer.WriteString(pub.addAuthParam(true))
 	presenceHeartbeatMu.RLock()
 	if presenceHeartbeat > 0 {
@@ -2598,14 +2786,14 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start int64, end in
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 		logMu.Unlock()
-		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), "")
+		sendErrorResponse(errorChannel, channel, err.Error())
 	} else {
 		data, returnOne, returnTwo, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, errJSON.Error(), "")
+			sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
 				pub.executeHistory(channel, limit, start, end, reverse, callbackChannel, errorChannel, count)
@@ -2674,7 +2862,7 @@ func (pub *Pubnub) executeWhereNow(uuid string, callbackChannel chan []byte, err
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 		logMu.Unlock()
-		pub.sendResponseToChannel(errorChannel, "", responseAsIsError, err.Error(), "")
+		sendErrorResponse(errorChannel, "", err.Error())
 	} else {
 		//Parsejson
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
@@ -2682,7 +2870,7 @@ func (pub *Pubnub) executeWhereNow(uuid string, callbackChannel chan []byte, err
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
+			sendErrorResponse(errorChannel, "", errJSON.Error())
 			if count < maxRetries {
 				count++
 				pub.executeWhereNow(uuid, callbackChannel, errorChannel, count)
@@ -2753,7 +2941,7 @@ func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, ca
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 		logMu.Unlock()
-		pub.sendResponseToChannel(errorChannel, "", responseAsIsError, err.Error(), "")
+		sendErrorResponse(errorChannel, "", err.Error())
 	} else {
 		//Parsejson
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
@@ -2761,7 +2949,7 @@ func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, ca
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
+			sendErrorResponse(errorChannel, "", errJSON.Error())
 			if count < maxRetries {
 				count++
 				pub.executeGlobalHereNow(showUuid, includeUserState, callbackChannel, errorChannel, count)
@@ -2837,7 +3025,7 @@ func (pub *Pubnub) executeHereNow(channel string, showUuid bool, includeUserStat
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 		logMu.Unlock()
-		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), "")
+		sendErrorResponse(errorChannel, "", err.Error())
 	} else {
 		//Parsejson
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
@@ -2845,7 +3033,7 @@ func (pub *Pubnub) executeHereNow(channel string, showUuid bool, includeUserStat
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, errJSON.Error(), "")
+			sendErrorResponse(errorChannel, "", errJSON.Error())
 			if count < maxRetries {
 				count++
 				pub.executeHereNow(channel, showUuid, includeUserState, callbackChannel, errorChannel, count)
@@ -2905,7 +3093,7 @@ func (pub *Pubnub) executeGetUserState(channel string, callbackChannel chan []by
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 		logMu.Unlock()
-		pub.sendResponseToChannel(errorChannel, "", responseAsIsError, err.Error(), "")
+		sendErrorResponse(errorChannel, "", err.Error())
 	} else {
 		//Parsejson
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
@@ -2913,7 +3101,7 @@ func (pub *Pubnub) executeGetUserState(channel string, callbackChannel chan []by
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
+			sendErrorResponse(errorChannel, "", errJSON.Error())
 			if count < maxRetries {
 				count++
 				pub.executeGetUserState(channel, callbackChannel, errorChannel, count)
@@ -2976,7 +3164,7 @@ func (pub *Pubnub) SetUserStateKeyVal(channel string, key string, val string, ca
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("SetUserStateKeyVal err: %s", err.Error()))
 		logMu.Unlock()
-		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, invalidUserStateMap, err.Error())
+		sendErrorResponseExtended(errorChannel, channel, invalidUserStateMap, err.Error())
 		return
 	}
 	stateJSON := string(jsonSerialized)
@@ -3003,7 +3191,7 @@ func (pub *Pubnub) SetUserStateJSON(channel string, jsonString string, callbackC
 	var s interface{}
 	err := json.Unmarshal([]byte(jsonString), &s)
 	if err != nil {
-		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, invalidUserStateMap, err.Error())
+		sendErrorResponseExtended(errorChannel, channel, invalidUserStateMap, err.Error())
 		return
 	}
 	pub.Lock()
@@ -3055,7 +3243,7 @@ func (pub *Pubnub) executeSetUserState(channel string, jsonState string, callbac
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 		logMu.Unlock()
-		pub.sendResponseToChannel(errorChannel, "", responseAsIsError, err.Error(), "")
+		sendErrorResponse(errorChannel, channel, err.Error())
 	} else {
 		//Parsejson
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
@@ -3063,7 +3251,7 @@ func (pub *Pubnub) executeSetUserState(channel string, jsonState string, callbac
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
+			sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
 				pub.executeSetUserState(channel, jsonState, callbackChannel, errorChannel, count)
@@ -3150,14 +3338,14 @@ func (pub *Pubnub) executeChannelGroup(action, group, channel string,
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 		logMu.Unlock()
-		pub.sendResponseToChannel(errorChannel, "", responseAsIsError, err.Error(), "")
+		sendErrorResponse(errorChannel, channel, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 			logMu.Unlock()
-			pub.sendResponseToChannel(errorChannel, "", responseAsIsError, errJSON.Error(), "")
+			sendErrorResponse(errorChannel, channel, errJSON.Error())
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
 			pub.CloseExistingConnection()
@@ -3281,8 +3469,11 @@ func parseCipherInterface(data interface{}, cipherKey string) interface{} {
 // Timetoken/from time in case of detailed history as string.
 // pubnub channelname/timetoken/to time in case of detailed history (value 2).
 // error if any.
-func ParseJSON(contents []byte, cipherKey string) (string, string, string, error) {
+func ParseJSON(contents []byte,
+	cipherKey string) (string, string, string, error) {
+
 	var s interface{}
+
 	returnData := ""
 	returnOne := ""
 	returnTwo := ""
@@ -3316,6 +3507,89 @@ func ParseJSON(contents []byte, cipherKey string) (string, string, string, error
 		err = fmt.Errorf(invalidJSON)
 	}
 	return returnData, returnOne, returnTwo, err
+}
+
+// ParseSubscribeResponse
+// It extracts the actual data (value 0),
+// Timetoken/from time in case of detailed history (value 1),
+// pubnub channelname/timetoken/to time in case of detailed history (value 2).
+//
+// It accepts the following parameters:
+// contents: the contents to parse.
+// cipherKey: the key to decrypt the messages (can be empty).
+//
+// returns:
+// messages: as [][]byte.
+// channels: as string.
+// groups: as string.
+// Timetoken/from time in case of detailed history as string.
+// error: if any.
+func ParseSubscribeResponse(rawResponse []byte, cipherKey string) (
+	messages [][]byte, channels, groups []string, timetoken string, err error) {
+
+	var (
+		response interface{}
+	)
+
+	err = json.Unmarshal(rawResponse, &response)
+
+	if err != nil {
+		logMu.Lock()
+		errorLogger.Println(fmt.Sprintf("Invalid json:%s", string(rawResponse)))
+		logMu.Unlock()
+
+		err = fmt.Errorf(invalidJSON)
+		return
+	}
+
+	v := response.(interface{})
+	switch vv := v.(type) {
+	case []interface{}:
+		length := len(vv)
+
+		if length == 0 {
+			return
+		}
+
+		var messagesArray []interface{}
+
+		// REFACTOR: unmarshaling/marshaling response againg is expensive
+		er := json.Unmarshal([]byte(getData(vv[0], cipherKey)), &messagesArray)
+		if er != nil {
+			err = fmt.Errorf(invalidJSON)
+			return
+		}
+
+		for _, msg := range messagesArray {
+			message, er := json.Marshal(msg)
+
+			if er != nil {
+				err = fmt.Errorf(invalidJSON)
+				return
+			}
+
+			messages = append(messages, message)
+		}
+
+		if length > 1 {
+			timetoken = ParseInterfaceData(vv[1])
+		}
+
+		if length == 3 {
+			channelsString := ParseInterfaceData(vv[2])
+
+			channels = strings.Split(channelsString, ",")
+			groups = []string{}
+		} else if length == 4 {
+			channelsString := ParseInterfaceData(vv[3])
+			groupsString := ParseInterfaceData(vv[2])
+
+			channels = strings.Split(channelsString, ",")
+			groups = strings.Split(groupsString, ",")
+		}
+	}
+
+	return messages, channels, groups, timetoken, err
 }
 
 // ParseInterfaceData formats the data to string as per the type of the data.
@@ -3356,7 +3630,6 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 	requrl := pub.origin + requestURL
 	logMu.Lock()
 	infoLogger.Println(fmt.Sprintf("url: %s", requrl))
-	//fmt.Println(fmt.Sprintf("url: %s", requrl))
 	logMu.Unlock()
 
 	contents, responseStatusCode, err := pub.connect(requrl, action, requestURL)
@@ -3624,6 +3897,19 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 	}
 
 	return nil, 0, err
+}
+
+// Check does passed in string contain at least one non preesnce name
+func hasNonPresenceChannels(channelsString string) bool {
+	channels := strings.Split(channelsString, ",")
+
+	for _, channel := range channels {
+		if !strings.HasSuffix(channel, presenceSuffix) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // padWithPKCS7 pads the data as per the PKCS7 standard
