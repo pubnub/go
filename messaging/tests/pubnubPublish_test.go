@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
@@ -212,6 +213,123 @@ func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoForComplexMessage2WithEncryption")
 	time.Sleep(2 * time.Second)
+}
+
+func TestPublishStringWithSerialization(t *testing.T) {
+	assert := assert.New(t)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	channel := "testChannel"
+	messageToPost := "{\"name\": \"Alex\", \"age\": \"123\"}"
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	subscribeSuccessChannel := make(chan []byte)
+	subscribeErrorChannel := make(chan []byte)
+
+	await := make(chan bool)
+
+	go pubnubInstance.Subscribe(channel, "", subscribeSuccessChannel, false,
+		subscribeErrorChannel)
+	ExpectConnectedEvent(t, channel, "", subscribeSuccessChannel)
+
+	go func() {
+		select {
+		case message := <-subscribeSuccessChannel:
+			var response []interface{}
+			var msgs []interface{}
+			var err error
+
+			err = json.Unmarshal(message, &response)
+			if err != nil {
+				assert.Fail(err.Error())
+			}
+
+			switch t := response[0].(type) {
+			case []interface{}:
+				var messageToPostMap map[string]interface{}
+
+				msgs = response[0].([]interface{})
+				err := json.Unmarshal([]byte(messageToPost), &messageToPostMap)
+				if err != nil {
+					assert.Fail(err.Error())
+				}
+
+				assert.Equal(messageToPost, msgs[0])
+			default:
+				assert.Fail("Unexpected response type%s: ", t)
+			}
+
+			await <- true
+		case err := <-subscribeErrorChannel:
+			assert.Fail(string(err))
+		case <-timeouts(10):
+			assert.Fail("Timeout")
+		}
+	}()
+
+	go pubnubInstance.Publish(channel, messageToPost, successChannel, errorChannel)
+
+	<-await
+}
+
+func TestPublishStringWithoutSerialization(t *testing.T) {
+	assert := assert.New(t)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	channel := "testChannel"
+	messageToPost := "{\"name\": \"Alex\", \"age\": \"123\"}"
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	subscribeSuccessChannel := make(chan []byte)
+	subscribeErrorChannel := make(chan []byte)
+
+	await := make(chan bool)
+
+	go pubnubInstance.Subscribe(channel, "", subscribeSuccessChannel, false,
+		subscribeErrorChannel)
+	ExpectConnectedEvent(t, channel, "", subscribeSuccessChannel)
+
+	go func() {
+		select {
+		case message := <-subscribeSuccessChannel:
+			var response []interface{}
+			var msgs []interface{}
+			var err error
+
+			err = json.Unmarshal(message, &response)
+			if err != nil {
+				assert.Fail(err.Error())
+			}
+
+			switch t := response[0].(type) {
+			case []interface{}:
+				var messageToPostMap map[string]interface{}
+
+				msgs = response[0].([]interface{})
+				err := json.Unmarshal([]byte(messageToPost), &messageToPostMap)
+				if err != nil {
+					assert.Fail(err.Error())
+				}
+
+				assert.Equal(messageToPostMap, msgs[0])
+			default:
+				assert.Fail("Unexpected response type%s: ", t)
+			}
+
+			await <- true
+		case err := <-subscribeErrorChannel:
+			assert.Fail(string(err))
+		case <-timeouts(10):
+			assert.Fail("Timeout")
+		}
+	}()
+
+	go pubnubInstance.PublishExtended(channel, messageToPost, false, true,
+		successChannel, errorChannel)
+
+	<-await
 }
 
 // ParsePublishResponse parses the response from the pubnub api to validate the

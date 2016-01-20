@@ -238,7 +238,7 @@ func auditPresence(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.AuditPresence(c, w, r, ch, successChannel, errorChannel)
+	go pubInstance.AuditPresence(c, w, r, ch, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Presence")
 }
 
@@ -251,7 +251,7 @@ func revokePresence(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantPresence(c, w, r, ch, false, false, 0, successChannel, errorChannel)
+	go pubInstance.GrantPresence(c, w, r, ch, false, false, 0, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Presence")
 }
 
@@ -280,7 +280,7 @@ func grantPresence(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantPresence(c, w, r, ch, bRead, bWrite, iTTL, successChannel, errorChannel)
+	go pubInstance.GrantPresence(c, w, r, ch, bRead, bWrite, iTTL, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Presence")
 
 }
@@ -294,7 +294,7 @@ func auditSubscribe(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.AuditSubscribe(c, w, r, ch, successChannel, errorChannel)
+	go pubInstance.AuditSubscribe(c, w, r, ch, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Subscribe")
 }
 
@@ -307,7 +307,7 @@ func revokeSubscribe(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantSubscribe(c, w, r, ch, false, false, 0, successChannel, errorChannel)
+	go pubInstance.GrantSubscribe(c, w, r, ch, false, false, 0, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Subscribe")
 }
 
@@ -336,7 +336,7 @@ func grantSubscribe(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantSubscribe(c, w, r, ch, bRead, bWrite, iTTL, successChannel, errorChannel)
+	go pubInstance.GrantSubscribe(c, w, r, ch, bRead, bWrite, iTTL, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Subscribe")
 }
 
