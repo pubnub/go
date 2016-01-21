@@ -274,6 +274,7 @@ func TestGroupSubscriptionPresence(t *testing.T) {
 			assert.Fail(err.Error())
 		}
 
+		assert.Len(msg, 4)
 		assert.Equal("adsf", msg[2].(string))
 		assert.Equal(group, msg[3].(string))
 		assert.Contains(msgString, "join")
