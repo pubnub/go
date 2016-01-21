@@ -15,22 +15,22 @@ import (
 )
 
 // PamSubKey: key for pam tests
-var PamSubKey = "pam"
+var PamSubKey = "sub-c-90c51098-c040-11e5-a316-0619f8945a4f"
 
 // PamPubKey: key for pam tests
-var PamPubKey = "pam"
+var PamPubKey = "pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb"
 
 // PamSecKey: key for pam tests
-var PamSecKey = "pam"
+var PamSecKey = "sec-c-ZDA1ZTdlNzAtYzU4Zi00MmEwLTljZmItM2ZhMDExZTE2ZmQ5"
 
-// SubKey: key for pam tests
-var SubKey = "demo-36"
+// SubKey: key for non-pam tests
+var SubKey = "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f"
 
-// PubKey: key for pam tests
-var PubKey = "demo-36"
+// PubKey: key for non-pam tests
+var PubKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"
 
-// SecKey: key for pam tests
-var SecKey = "demo-36"
+// SecKey: key for non-pam tests
+var SecKey = "sec-c-ZjM0NzNmODgtNzE4OC00OTBjLWFhMWMtYjUxZTllYmY5YWE4"
 
 // timeoutMessage is the text message displayed when the
 // unit test times out
