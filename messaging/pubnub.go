@@ -132,6 +132,9 @@ var (
 	// Mutex to lock the operations on presenceHeartbeat ops
 	presenceHeartbeatMu sync.RWMutex
 
+	// Mutex to lock operations on resumeOnReconnect ops
+	resumeOnReconnectMu sync.RWMutex
+
 	// The time after which the server expects the contact from the client.
 	// In seconds.
 	// If the server doesnt get an heartbeat request within this time, it will send
@@ -172,7 +175,7 @@ var (
 	// Logger for warn messages
 	warnLogger *log.Logger
 
-	//logMutex
+	// logMutex
 	logMu sync.Mutex
 )
 
@@ -389,7 +392,18 @@ func SetProxy(proxyServerVal string, proxyPortVal int, proxyUserVal string, prox
 
 // SetResumeOnReconnect sets the value of resumeOnReconnect.
 func SetResumeOnReconnect(val bool) {
+	resumeOnReconnectMu.Lock()
+	defer resumeOnReconnectMu.Unlock()
+
 	resumeOnReconnect = val
+}
+
+// GetResumeOnReconnect returns the value of resumeOnReconnect.
+func GetResumeOnReconnect() bool {
+	resumeOnReconnectMu.RLock()
+	defer resumeOnReconnectMu.RUnlock()
+
+	return resumeOnReconnect
 }
 
 // LoggingEnabled sets the value of loggingEnabled
@@ -2036,7 +2050,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 							}
 						}
 
-						if !resumeOnReconnect {
+						if !GetResumeOnReconnect() {
 							pub.Lock()
 							pub.resetTimeToken = true
 							pub.Unlock()
