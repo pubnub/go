@@ -322,7 +322,6 @@ func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 }
 
 func TestGroupSubscriptionNotSubscribed(t *testing.T) {
-	//messaging.SetLogOutput(os.Stderr)
 	assert := assert.New(t)
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	r := GenRandom()
@@ -341,6 +340,27 @@ func TestGroupSubscriptionNotSubscribed(t *testing.T) {
 	case err := <-errorChannel:
 		assert.Contains(string(err), "Subscription to channel group")
 		assert.Contains(string(err), "not subscribed")
+	}
+
+	pubnub.CloseExistingConnection()
+}
+
+func TestGroupSubscriptionToNotExistingChannelGroup(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	r := GenRandom()
+	group := fmt.Sprintf("testChannelGroup_sub_%d", r.Intn(20))
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnub.ChannelGroupSubscribe(group, successChannel, errorChannel)
+	select {
+	case <-successChannel:
+		assert.Fail("Received success message while expecting error")
+	case err := <-errorChannel:
+		assert.Contains(string(err), "Channel group or groups result in empty subscription set")
+		assert.Contains(string(err), group)
 	}
 
 	pubnub.CloseExistingConnection()
