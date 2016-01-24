@@ -32,13 +32,16 @@ func TestSubscriptionConnectStatus(t *testing.T) {
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
 	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectStatus", "", responseChannel)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectStatus")
-	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -55,13 +58,16 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
 	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", testName, "", responseChannel)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
-	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -79,6 +85,8 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	go pubnubInstance.Subscribe(channels, "", returnSubscribeChannel, false, errorChannel)
 	go ParseSubscribeResponseForMultipleChannels(returnSubscribeChannel, channels, testName, responseChannel)
@@ -86,7 +94,8 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
-	go pubnubInstance.Unsubscribe(channels, returnSubscribeChannel, errorChannel)
+	go pubnubInstance.Unsubscribe(channels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channels, "", unsubscribeSuccessChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -128,13 +137,16 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
 	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForSimple", "", responseChannel)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimple")
-	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -151,13 +163,16 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
 	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForSimpleWithCipher", "enigma", responseChannel)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimpleWithCipher")
-	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -174,13 +189,16 @@ func TestSubscriptionForComplexMessage(t *testing.T) {
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
 	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForComplex", "", responseChannel)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplex")
-	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -197,13 +215,16 @@ func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
 	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForComplexWithCipher", "enigma", responseChannel)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplexWithCipher")
-	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -304,7 +325,7 @@ func ValidateComplexData(m map[string]interface{}) bool {
 			jsonData, _ := json.Marshal(customComplexMessage.SampleXML)
 			if s1 == string(jsonData) {
 				valid = true
-			} else {	
+			} else {
 				//fmt.Println("SampleXML")
 				return false
 			}
@@ -498,6 +519,8 @@ func SendMultipleResponse(t *testing.T, encrypted bool) {
 
 	returnTimeChannel := make(chan []byte)
 	errorChannelTime := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	go pubnubInstance.GetTime(returnTimeChannel, errorChannelTime)
 
@@ -530,7 +553,8 @@ func SendMultipleResponse(t *testing.T, encrypted bool) {
 			go ParseErrorResponse(errorChannelSub, responseChannelSub)
 			go WaitForCompletion(responseChannelSub, waitChannelSub)
 			ParseWaitResponse(waitChannelSub, t, testName)
-			go pubnubInstance.Unsubscribe(pubnubChannel, returnSubscribeChannel, errorChannelSub)
+			go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+			ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel)
 			pubnubInstance.CloseExistingConnection()
 		}
 	}
@@ -677,6 +701,8 @@ func ResumeOnReconnect(t *testing.T, b bool) {
 	errorChannelSub := make(chan []byte)
 	responseChannelSub := make(chan string)
 	waitChannelSub := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	messaging.SetSubscribeTimeout(12)
 	go pubnubInstance.Subscribe(pubnubChannel, "", returnSubscribeChannel, false, errorChannelSub)
@@ -684,7 +710,8 @@ func ResumeOnReconnect(t *testing.T, b bool) {
 	go WaitForCompletion(responseChannelSub, waitChannelSub)
 	ParseWaitResponse(waitChannelSub, t, testName)
 	messaging.SetSubscribeTimeout(310)
-	go pubnubInstance.Unsubscribe(pubnubChannel, returnSubscribeChannel, errorChannelSub)
+	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -787,6 +814,8 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 	errorChannelSub := make(chan []byte)
 	responseChannelSub := make(chan string)
 	waitChannelSub := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	go pubnubInstance.Subscribe(pubnubChannel, "", returnSubscribeChannel, false, errorChannelSub)
 	go ParseSubscribeMultiplexedResponse(pubnubInstance, returnSubscribeChannel, message1, message2, pubnubChannel1, pubnubChannel2, testName, responseChannelSub)
@@ -794,7 +823,8 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 	go ParseResponseDummyMessage(errorChannelSub, "aborted", responseChannelSub)
 	go WaitForCompletion(responseChannelSub, waitChannelSub)
 	ParseWaitResponse(waitChannelSub, t, testName)
-	go pubnubInstance.Unsubscribe(pubnubChannel, returnSubscribeChannel, errorChannelSub)
+	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
