@@ -7,7 +7,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/pubnub/go/messaging"
-	//"net/url"
+	"github.com/stretchr/testify/assert"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -19,6 +20,7 @@ import (
 // PrintTestMessage is defined in the common.go file.
 func TestSubscribeStart(t *testing.T) {
 	PrintTestMessage("==========Subscribe tests start==========")
+	messaging.SetLogOutput(os.Stdout)
 }
 
 // TestSubscriptionConnectStatus sends out a subscribe request to a pubnub channel
@@ -672,96 +674,85 @@ func ParseTimeFromServer(returnChannel chan []byte, errorChannel chan []byte) (s
 // This has the effect of continuing from “this moment onward”.
 // Any messages received since the previous timeout or network error are skipped
 func TestResumeOnReconnectFalse(t *testing.T) {
-	ResumeOnReconnect(t, false)
+	messaging.SetResumeOnReconnect(false)
+
+	r := GenRandom()
+	assert := assert.New(t)
+	pubnubChannel := fmt.Sprintf("testChannel_subror_%d", r.Intn(20))
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+
+	messaging.SetSubscribeTimeout(12)
+
+	go pubnubInstance.Subscribe(pubnubChannel, "", successChannel, false, errorChannel)
+	for {
+		select {
+		case <-successChannel:
+		case value := <-errorChannel:
+			if string(value) != "[]" {
+				newPubnubTest := &messaging.PubnubUnitTest{}
+
+				assert.Equal("0", newPubnubTest.GetSentTimeToken(pubnubInstance))
+			}
+			return
+		case <-messaging.Timeouts(60):
+			assert.Fail("Subscribe timeout")
+			return
+		}
+	}
+
+	messaging.SetSubscribeTimeout(310)
+
+	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel)
+
+	pubnubInstance.CloseExistingConnection()
 }
 
 // TestResumeOnReconnectTrue upon reconnect, it should use the last successfully retrieved timetoken.
 // This has the effect of continuing, or “catching up” to missed traffic.
 func TestResumeOnReconnectTrue(t *testing.T) {
-	ResumeOnReconnect(t, true)
-}
+	messaging.SetResumeOnReconnect(true)
 
-// ResumeOnReconnect contains the actual impementation of both TestResumeOnReconnectFalse and TestResumeOnReconnectTrue
-// the parameter b determines of resume on reconnect setting is true or false.
-//
-// The test contains a data race
-func ResumeOnReconnect(t *testing.T, b bool) {
-	testName := "ResumeOnReconnectFalse"
-	if b {
-		messaging.SetResumeOnReconnect(true)
-		testName = "ResumeOnReconnectTrue"
-	} else {
-		messaging.SetResumeOnReconnect(false)
-	}
 	r := GenRandom()
+	assert := assert.New(t)
 	pubnubChannel := fmt.Sprintf("testChannel_subror_%d", r.Intn(20))
-
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	returnSubscribeChannel := make(chan []byte)
-	errorChannelSub := make(chan []byte)
-	responseChannelSub := make(chan string)
-	waitChannelSub := make(chan string)
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
 
 	messaging.SetSubscribeTimeout(12)
-	go pubnubInstance.Subscribe(pubnubChannel, "", returnSubscribeChannel, false, errorChannelSub)
-	go ParseSubscribeForTimetoken(pubnubInstance, pubnubChannel, returnSubscribeChannel, errorChannelSub, testName, responseChannelSub)
-	go WaitForCompletion(responseChannelSub, waitChannelSub)
-	ParseWaitResponse(waitChannelSub, t, testName)
-	messaging.SetSubscribeTimeout(310)
-	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel)
-	pubnubInstance.CloseExistingConnection()
-}
 
-// ParseSubscribeForTimetoken retrieves the last timetoken and matches with the senttimetoken
-// In case if resumeonreconnect is true the time token should be same.
-// and in case if resumeonreconnect is false the timetoken should be 0.
-//
-// parameters:
-// pubnubInstance: messaging.Pubnub instance.
-// pubnubChannel: pubnub channel used.
-// returnChannel: channel used to read the response.
-// errorChannel: channel used to read the error response.
-// testName: testname for display.
-// responseChannel: channel to send the response back.
-func ParseSubscribeForTimetoken(pubnubInstance *messaging.Pubnub, pubnubChannel string, returnChannel chan []byte, errorChannel chan []byte, testName string, responseChannel chan string) {
+	go pubnubInstance.Subscribe(pubnubChannel, "", successChannel, false, errorChannel)
 	for {
 		select {
-		case value, ok := <-returnChannel:
-			if !ok {
-				fmt.Println("")
-				break
-			}
-			if string(value) != "[]" {
-			}
-		case value, ok := <-errorChannel:
-			if !ok {
-				fmt.Println("")
-				break
-			}
+		case <-successChannel:
+		case value := <-errorChannel:
 			if string(value) != "[]" {
 				newPubnubTest := &messaging.PubnubUnitTest{}
-				if testName == "ResumeOnReconnectTrue" {
-					fmt.Println(fmt.Sprintf("SentTimeToken %s TimeToken %s", newPubnubTest.GetSentTimeToken(pubnubInstance), newPubnubTest.GetTimeToken(pubnubInstance)))
-					if newPubnubTest.GetSentTimeToken(pubnubInstance) == newPubnubTest.GetTimeToken(pubnubInstance) {
-						responseChannel <- "passed"
-					} else {
-						responseChannel <- "failed"
-					}
-				} else {
-					fmt.Println(fmt.Sprintf("SentTimeToken %s", newPubnubTest.GetSentTimeToken(pubnubInstance)))
-					if newPubnubTest.GetSentTimeToken(pubnubInstance) != "0" {
-						responseChannel <- "failed"
-					} else {
-						responseChannel <- "passed"
-					}
-				}
-				break
+
+				assert.Equal(newPubnubTest.GetTimeToken(pubnubInstance), newPubnubTest.GetSentTimeToken(pubnubInstance))
 			}
+			return
+		case <-messaging.Timeouts(60):
+			assert.Fail("Subscribe timeout")
+			return
 		}
 	}
+
+	messaging.SetSubscribeTimeout(310)
+
+	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel)
+
+	pubnubInstance.CloseExistingConnection()
 }
 
 // TestMultiplexing tests the multiplexed subscribe request.
