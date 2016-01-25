@@ -33,6 +33,7 @@ type responseStatus int
 
 // Enums for send response.
 const (
+	// TODO: update comment integers
 	responseAlreadySubscribed  responseStatus = 1 << iota //1
 	responseNotSubscribed                                 //4
 	responseAsIs                                          //5
@@ -2231,20 +2232,24 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	pub.timeToken = newTimetoken
 	pub.Unlock()
 
-	if len(data) == 0 && sentTimetoken == "0" && !reconnected {
-		pub.Lock()
-		changedChannels := pub.channels.SetConnected()
-		changedGroups := pub.groups.SetConnected()
-		pub.Unlock()
+	if len(data) == 0 {
+		if sentTimetoken == "0" {
+			pub.Lock()
+			changedChannels := pub.channels.SetConnected()
+			changedGroups := pub.groups.SetConnected()
+			pub.Unlock()
 
-		if len(changedChannels) > 0 {
-			pub.sendConnectionEvent(strings.Join(changedChannels, ","),
-				"", connectionConnected)
-		}
+			if !reconnected {
+				if len(changedChannels) > 0 {
+					pub.sendConnectionEvent(strings.Join(changedChannels, ","),
+						"", connectionConnected)
+				}
 
-		if len(changedGroups) > 0 {
-			pub.sendConnectionEvent("", strings.Join(changedGroups, ","),
-				connectionConnected)
+				if len(changedGroups) > 0 {
+					pub.sendConnectionEvent("", strings.Join(changedGroups, ","),
+						connectionConnected)
+				}
+			}
 		}
 	} else if errJSON != nil {
 		logMu.Lock()
@@ -2264,15 +2269,12 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 		if len(channelNames) == 0 && len(groupNames) == 0 {
 			connectedNames := pub.channels.ConnectedNames()
 
-			for i := 0; i < len(data); i++ {
-				channelNames = append(channelNames, connectedNames[0])
+			if len(connectedNames) == 0 {
+				return
 			}
 
-			if len(channelNames) == 0 {
-				logMu.Lock()
-				errorLogger.Printf("Unable to handle response: %s", data)
-				logMu.Unlock()
-				return
+			for i := 0; i < len(data); i++ {
+				channelNames = append(channelNames, connectedNames[0])
 			}
 		}
 
@@ -3877,6 +3879,7 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 			Host:   origin,
 			Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
 		}
+		// REVIEW: hardcoded client version
 		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/3.7.0", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
