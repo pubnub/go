@@ -33,14 +33,13 @@ type responseStatus int
 
 // Enums for send response.
 const (
-	// TODO: update comment integers
 	responseAlreadySubscribed  responseStatus = 1 << iota //1
-	responseNotSubscribed                                 //4
-	responseAsIs                                          //5
-	responseInternetConnIssues                            //7
-	reponseAbortMaxRetry                                  //8
-	responseAsIsError                                     //9
-	responseTimedOut                                      //11
+	responseNotSubscribed                                 //2
+	responseAsIs                                          //4
+	responseInternetConnIssues                            //8
+	reponseAbortMaxRetry                                  //16
+	responseAsIsError                                     //32
+	responseTimedOut                                      //64
 )
 
 // Enums for diff types of connections
@@ -1615,22 +1614,24 @@ func (pub *Pubnub) sendSubscribeErrorExtended(channels, groups,
 }
 
 func (pub *Pubnub) sendSubscribeErrorHelper(channels, groups string,
-	errorResponse errorResponse) {
+	errResp errorResponse) {
 
 	var (
 		item  *subscriptionItem
 		found bool
 	)
 
+	errResp.Type = channelResponse
 	for _, channel := range splitItems(channels) {
 		if item, found = pub.channels.Get(channel); found {
-			item.ErrorChannel <- errorResponse.BytesForSource(channel)
+			item.ErrorChannel <- errResp.BytesForSource(channel)
 		}
 	}
 
+	errResp.Type = channelGroupResponse
 	for _, group := range splitItems(groups) {
 		if item, found = pub.groups.Get(group); found {
-			item.ErrorChannel <- errorResponse.BytesForSource(group)
+			item.ErrorChannel <- errResp.BytesForSource(group)
 		}
 	}
 }
@@ -1731,9 +1732,7 @@ func (pub *Pubnub) getSubscribedChannels(channels string,
 // Returns:
 // b: Bool variable true incase the connection is lost.
 // bTimeOut: bool variable true in case Timeout condition is met.
-func (pub *Pubnub) checkForTimeoutAndRetries(err error,
-	errChannel chan<- []byte) (bool, bool) {
-
+func (pub *Pubnub) checkForTimeoutAndRetries(err error) (bool, bool) {
 	bRet := false
 	bTimeOut := false
 
@@ -1823,7 +1822,7 @@ func (pub *Pubnub) resetRetryAndSendResponse() bool {
 
 // retryLoop checks for the internet connection and intiates the rety logic of
 // connection fails
-func (pub *Pubnub) retryLoop(errorChannel chan<- []byte) {
+func (pub *Pubnub) retryLoop() {
 	for {
 		pub.RLock()
 		subChannels := pub.channels.ConnectedNamesString()
@@ -1842,7 +1841,7 @@ func (pub *Pubnub) retryLoop(errorChannel chan<- []byte) {
 				errorLogger.Println(fmt.Sprintf("%s, response code: %d:", err.Error(), responseCode))
 				logMu.Unlock()
 
-				pub.checkForTimeoutAndRetries(err, errorChannel)
+				pub.checkForTimeoutAndRetries(err)
 				pub.CloseExistingConnection()
 			} else if (err == nil) && (retryCountLocal > 0) {
 				pub.resetRetryAndSendResponse()
@@ -2003,7 +2002,7 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 	errorChannel chan<- []byte) {
 
-	go pub.retryLoop(errorChannel)
+	go pub.retryLoop()
 
 	for {
 		pub.RLock()
@@ -2027,7 +2026,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					errorLogger.Println(fmt.Sprintf("%s, response code: %d:", err.Error(), responseCode))
 					logMu.Unlock()
 
-					bNonTimeout, bTimeOut := pub.checkForTimeoutAndRetries(err, errorChannel)
+					bNonTimeout, bTimeOut := pub.checkForTimeoutAndRetries(err)
 
 					if strings.Contains(err.Error(), connectionAborted) {
 						pub.CloseExistingConnection()
