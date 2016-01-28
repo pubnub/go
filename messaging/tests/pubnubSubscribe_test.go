@@ -686,7 +686,7 @@ func TestResumeOnReconnectFalse(t *testing.T) {
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
 
-	messaging.SetSubscribeTimeout(12)
+	messaging.SetSubscribeTimeout(3)
 
 	go pubnubInstance.Subscribe(pubnubChannel, "", successChannel, false, errorChannel)
 	for {
@@ -728,7 +728,7 @@ func TestResumeOnReconnectTrue(t *testing.T) {
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
 
-	messaging.SetSubscribeTimeout(12)
+	messaging.SetSubscribeTimeout(3)
 
 	go pubnubInstance.Subscribe(pubnubChannel, "", successChannel, false, errorChannel)
 	for {
