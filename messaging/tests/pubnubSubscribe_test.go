@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -20,7 +19,6 @@ import (
 // PrintTestMessage is defined in the common.go file.
 func TestSubscribeStart(t *testing.T) {
 	PrintTestMessage("==========Subscribe tests start==========")
-	messaging.SetLogOutput(os.Stdout)
 }
 
 // TestSubscriptionConnectStatus sends out a subscribe request to a pubnub channel
