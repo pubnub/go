@@ -1,14 +1,20 @@
 language: go
 
 go:
-  - 1.4.3
-  - 1.5.3
+  - 1.0
+  - 1.1
+  - 1.3
+  - 1.4
+  - 1.5
+  - 1.6rc1
+  - tip
 
 
 install:
   - go get -t -v ./messaging/
   - mkdir -p $GOPATH/src/github.com/pubnub
   - ln -s $GOPATH/src/github.com/anovikov1984/go $GOPATH/src/github.com/pubnub/go
+
 script:
   - cd messaging && go test -v -race
   - cd tests && go test -v -race
