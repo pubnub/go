@@ -41,7 +41,7 @@ func TestSubscriptionConnectStatus(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectStatus")
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -67,7 +67,7 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -95,7 +95,7 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
 	go pubnubInstance.Unsubscribe(channels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channels, "", unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, channels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -146,7 +146,7 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimple")
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -172,7 +172,7 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimpleWithCipher")
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -198,7 +198,7 @@ func TestSubscriptionForComplexMessage(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplex")
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -224,7 +224,7 @@ func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplexWithCipher")
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -554,7 +554,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool) {
 			go WaitForCompletion(responseChannelSub, waitChannelSub)
 			ParseWaitResponse(waitChannelSub, t, testName)
 			go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-			ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel)
+			ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 			pubnubInstance.CloseExistingConnection()
 		}
 	}
@@ -706,7 +706,7 @@ func TestResumeOnReconnectFalse(t *testing.T) {
 	messaging.SetSubscribeTimeout(310)
 
 	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
 	pubnubInstance.CloseExistingConnection()
 }
@@ -748,7 +748,7 @@ func TestResumeOnReconnectTrue(t *testing.T) {
 	messaging.SetSubscribeTimeout(310)
 
 	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
 	pubnubInstance.CloseExistingConnection()
 }
@@ -812,8 +812,9 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 	go ParseResponseDummyMessage(errorChannelSub, "aborted", responseChannelSub)
 	go WaitForCompletion(responseChannelSub, waitChannelSub)
 	ParseWaitResponse(waitChannelSub, t, testName)
+
 	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	pubnubInstance.CloseExistingConnection()
 }
 

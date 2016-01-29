@@ -37,7 +37,7 @@ var SecKey = "sec-c-ZjM0NzNmODgtNzE4OC00OTBjLWFhMWMtYjUxZTllYmY5YWE4"
 var timeoutMessage = "Test timed out."
 
 // testTimeout in seconds
-var testTimeout int = 5
+var testTimeout int = 30
 
 // prefix for presence channels
 var presenceSuffix string = "-pnpres"
@@ -300,7 +300,7 @@ func ParseResponseDummyMessage(channel chan []byte, message string, responseChan
 }
 
 func ExpectConnectedEvent(t *testing.T,
-	channels, groups string, successChannel <-chan []byte) {
+	channels, groups string, successChannel, errorChannel <-chan []byte) {
 
 	var initialChannelsArray, initialGroupsArray []string
 
@@ -313,7 +313,8 @@ func ExpectConnectedEvent(t *testing.T,
 	}
 
 	select {
-	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray, "connected", successChannel):
+	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray,
+		"connected", successChannel, errorChannel):
 		//fmt.Println("Connected event")
 	case <-timeout():
 		assert.Fail(t, "Timeout occured while waiting for Connected event")
@@ -321,7 +322,7 @@ func ExpectConnectedEvent(t *testing.T,
 }
 
 func ExpectUnsubscribedEvent(t *testing.T,
-	channels, groups string, successChannel <-chan []byte) {
+	channels, groups string, successChannel, errorChannel <-chan []byte) {
 
 	var initialChannelsArray, initialGroupsArray []string
 
@@ -334,7 +335,8 @@ func ExpectUnsubscribedEvent(t *testing.T,
 	}
 
 	select {
-	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray, "unsubscribed", successChannel):
+	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray,
+		"unsubscribed", successChannel, errorChannel):
 		//fmt.Println("Disconnected event")
 	case <-timeout():
 		assert.Fail(t, "Timeout occured while waiting for Disconnected event")
@@ -342,7 +344,7 @@ func ExpectUnsubscribedEvent(t *testing.T,
 }
 
 func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
-	action string, eventsChannel <-chan []byte) <-chan bool {
+	action string, successChannel, errorChannel <-chan []byte) <-chan bool {
 
 	var triggeredChannels []string
 	var triggeredGroups []string
@@ -352,7 +354,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 	go func() {
 		for {
 			select {
-			case event := <-eventsChannel:
+			case event := <-successChannel:
 				var ary []interface{}
 
 				eventString := string(event)
@@ -373,6 +375,10 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 					channel <- true
 					return
 				}
+			case err := <-errorChannel:
+				assert.Fail(t, string(err))
+				channel <- false
+				return
 			case <-timeout():
 				assert.Fail(t, "Timeout occured")
 				channel <- false
