@@ -76,10 +76,7 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	testName := "TestMultiSubscriptionConnectStatus"
-	r := GenRandom()
-	channels := fmt.Sprintf("testChannel_sub_%d,testChannel_sub_%d", r.Intn(20), r.Intn(20))
-
-	//channels := "testChannel1,testChannel2"
+	channels, _ := GenerateTwoRandomChannelStrings(2)
 
 	returnSubscribeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
