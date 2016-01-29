@@ -78,7 +78,10 @@ func TestWildcardSubscriptionMessage(t *testing.T) {
 
 	go pubnubInstance.Subscribe(wildcard, "",
 		subscribeSuccessChannel, false, subscribeErrorChannel)
-	ExpectConnectedEvent(t, wildcard, "", subscribeSuccessChannel)
+
+	ExpectConnectedEvent(t, wildcard, "", subscribeSuccessChannel,
+		subscribeErrorChannel)
+
 	go func() {
 		select {
 		case message := <-subscribeSuccessChannel:
@@ -110,7 +113,7 @@ func TestWildcardSubscriptionMessage(t *testing.T) {
 	<-await
 
 	go pubnubInstance.Unsubscribe(wildcard, successChannel, errorChannel)
-	ExpectUnsubscribedEvent(t, wildcard, "", successChannel)
+	ExpectUnsubscribedEvent(t, wildcard, "", successChannel, errorChannel)
 
 	pubnubInstance.CloseExistingConnection()
 }

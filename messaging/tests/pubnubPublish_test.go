@@ -231,7 +231,8 @@ func TestPublishStringWithSerialization(t *testing.T) {
 
 	go pubnubInstance.Subscribe(channel, "", subscribeSuccessChannel, false,
 		subscribeErrorChannel)
-	ExpectConnectedEvent(t, channel, "", subscribeSuccessChannel)
+	ExpectConnectedEvent(t, channel, "", subscribeSuccessChannel,
+		subscribeErrorChannel)
 
 	go func() {
 		select {
@@ -289,7 +290,8 @@ func TestPublishStringWithoutSerialization(t *testing.T) {
 
 	go pubnubInstance.Subscribe(channel, "", subscribeSuccessChannel, false,
 		subscribeErrorChannel)
-	ExpectConnectedEvent(t, channel, "", subscribeSuccessChannel)
+	ExpectConnectedEvent(t, channel, "", subscribeSuccessChannel,
+		subscribeErrorChannel)
 
 	go func() {
 		select {
