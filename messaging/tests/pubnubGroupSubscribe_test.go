@@ -394,13 +394,13 @@ func createChannelGroups(pubnub *messaging.Pubnub, groups []string) {
 	errorChannel := make(chan []byte, 1)
 
 	for _, group := range groups {
-		fmt.Println("Creating group", group)
+		// fmt.Println("Creating group", group)
 
 		pubnub.ChannelGroupAddChannel(group, "adsf", successChannel, errorChannel)
 
 		select {
 		case <-successChannel:
-			fmt.Println("Group created")
+			// fmt.Println("Group created")
 		case <-errorChannel:
 			fmt.Println("Channel group creation error")
 		case <-timeout():
@@ -418,7 +418,7 @@ func populateChannelGroup(pubnub *messaging.Pubnub, group, channels string) {
 
 	select {
 	case <-successChannel:
-		fmt.Println("Group created")
+		// fmt.Println("Group created")
 	case <-errorChannel:
 		fmt.Println("Channel group creation error")
 	case <-timeout():
@@ -431,13 +431,13 @@ func removeChannelGroups(pubnub *messaging.Pubnub, groups []string) {
 	errorChannel := make(chan []byte, 1)
 
 	for _, group := range groups {
-		fmt.Println("Removing group", group)
+		// fmt.Println("Removing group", group)
 
 		pubnub.ChannelGroupRemoveGroup(group, successChannel, errorChannel)
 
 		select {
 		case <-successChannel:
-			fmt.Println("Group removed")
+			// fmt.Println("Group removed")
 		case <-errorChannel:
 			fmt.Println("Channel group removal error")
 		case <-timeout():
