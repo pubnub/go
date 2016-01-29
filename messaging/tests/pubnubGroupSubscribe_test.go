@@ -177,7 +177,8 @@ func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 
 	go pubnub.ChannelGroupSubscribe(group,
 		subscribeSuccessChannel, subscribeErrorChannel)
-	ExpectConnectedEvent(t, "", group, subscribeSuccessChannel)
+	ExpectConnectedEvent(t, "", group, subscribeSuccessChannel,
+		subscribeErrorChannel)
 
 	go func() {
 		select {
@@ -206,7 +207,8 @@ func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 
 	go pubnub.ChannelGroupUnsubscribe(group, unsubscribeSuccessChannel,
 		unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, "", group, unsubscribeSuccessChannel)
+	ExpectUnsubscribedEvent(t, "", group, unsubscribeSuccessChannel,
+		unsubscribeErrorChannel)
 
 	pubnub.CloseExistingConnection()
 }
@@ -240,7 +242,8 @@ func TestGroupSubscriptionPresence(t *testing.T) {
 
 	go pubnub.ChannelGroupSubscribe(groupPresence,
 		presenceSuccessChannel, presenceErrorChannel)
-	ExpectConnectedEvent(t, "", group, presenceSuccessChannel)
+	ExpectConnectedEvent(t, "", group, presenceSuccessChannel,
+		presenceErrorChannel)
 
 	go pubnub.ChannelGroupSubscribe(group,
 		subscribeSuccessChannel, subscribeErrorChannel)
@@ -304,7 +307,7 @@ func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 
 	go pubnub.ChannelGroupSubscribe(group,
 		subscribeSuccessChannel, subscribeErrorChannel)
-	ExpectConnectedEvent(t, "", group, subscribeSuccessChannel)
+	ExpectConnectedEvent(t, "", group, subscribeSuccessChannel, subscribeErrorChannel)
 
 	go pubnub.ChannelGroupSubscribe(group,
 		subscribeSuccessChannel2, subscribeErrorChannel2)
@@ -317,7 +320,7 @@ func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 	}
 
 	go pubnub.ChannelGroupUnsubscribe(group, successChannel, errorChannel)
-	ExpectUnsubscribedEvent(t, "", group, successChannel)
+	ExpectUnsubscribedEvent(t, "", group, successChannel, errorChannel)
 
 	pubnub.CloseExistingConnection()
 }
@@ -336,8 +339,8 @@ func TestGroupSubscriptionNotSubscribed(t *testing.T) {
 
 	go pubnub.ChannelGroupUnsubscribe(group, successChannel, errorChannel)
 	select {
-	case <-successChannel:
-		assert.Fail("Received success message while expecting error")
+	case response := <-successChannel:
+		assert.Fail("Received success message while expecting error", string(response))
 	case err := <-errorChannel:
 		assert.Contains(string(err), "Subscription to channel group")
 		assert.Contains(string(err), "not subscribed")
