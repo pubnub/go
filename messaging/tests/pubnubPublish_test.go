@@ -264,8 +264,10 @@ func TestPublishStringWithSerialization(t *testing.T) {
 			await <- true
 		case err := <-subscribeErrorChannel:
 			assert.Fail(string(err))
+			await <- false
 		case <-timeouts(10):
 			assert.Fail("Timeout")
+			await <- false
 		}
 	}()
 
@@ -323,8 +325,10 @@ func TestPublishStringWithoutSerialization(t *testing.T) {
 			await <- true
 		case err := <-subscribeErrorChannel:
 			assert.Fail(string(err))
+			await <- false
 		case <-timeouts(10):
 			assert.Fail("Timeout")
+			await <- false
 		}
 	}()
 
