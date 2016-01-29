@@ -98,8 +98,10 @@ func TestWildcardSubscriptionMessage(t *testing.T) {
 			await <- true
 		case err := <-subscribeErrorChannel:
 			assert.Fail(string(err))
+			await <- false
 		case <-messaging.SubscribeTimeout():
 			assert.Fail("Subscribe timeout")
+			await <- false
 		}
 	}()
 
