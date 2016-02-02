@@ -58,18 +58,24 @@ func TestPresenceHeartbeat(t *testing.T) {
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	testName := "Presence Heartbeat"
 	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
 	time.Sleep(time.Duration(3) * time.Second)
 	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, true, errorChannel)
 	go ParsePresenceResponseForTimeout(returnSubscribeChannel, responseChannel, testName)
-	//go ParseErrorResponse(errorChannel, responseChannel)
 	go ParseResponseDummyMessage(errorChannel, "aborted", responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
-	go pubnubInstance.PresenceUnsubscribe(channel, returnSubscribeChannel, errorChannel)
-	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+
+	go pubnubInstance.PresenceUnsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
 	pubnubInstance.CloseExistingConnection()
 }
 
@@ -111,22 +117,26 @@ func ParsePresenceResponseForTimeout(returnChannel chan []byte, responseChannel 
 func HereNow(t *testing.T, cipherKey string, customUuid string, testName string) {
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, customUuid)
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_hn_%d", r.Intn(100))
+	channel := RandomChannel()
 
-	returnSubscribeChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponseForPresence(pubnubInstance, customUuid, returnSubscribeChannel, channel, testName, responseChannel)
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go ParseSubscribeResponseForPresence(pubnubInstance, customUuid, successChannel, channel, testName, responseChannel)
 	go ParseErrorResponse(errorChannel, responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
-	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
 	pubnubInstance.CloseExistingConnection()
-	time.Sleep(1 * time.Second)
 }
 
 // ParseHereNowResponse parses the herenow response on the go channel.
@@ -205,13 +215,14 @@ func Test0Presence(t *testing.T) {
 	customUuid := "customuuid"
 	testName := "Presence"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, customUuid)
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_pres_%d", r.Intn(100))
+	channel := RandomChannel()
 
 	returnPresenceChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	time.Sleep(time.Duration(3) * time.Second)
 
@@ -221,9 +232,11 @@ func Test0Presence(t *testing.T) {
 	go ParseResponseDummyMessage(errorChannel, "aborted", responseChannel)
 	go WaitForCompletion(responseChannel, waitChannel)
 	ParseWaitResponse(waitChannel, t, testName)
-	go pubnubInstance.Unsubscribe(channel, returnPresenceChannel, errorChannel)
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
 	pubnubInstance.CloseExistingConnection()
-	time.Sleep(2 * time.Second)
 }
 
 // TestWhereNow subscribes to a pubnub channel and then
@@ -243,8 +256,7 @@ func TestWhereNow(t *testing.T) {
 func WhereNow(t *testing.T, cipherKey string, customUuid string, testName string) {
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, customUuid)
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_wn_%d", r.Intn(100))
+	channel := RandomChannel()
 
 	returnSubscribeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -453,7 +465,7 @@ func TestSetGetUserState(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(3 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	go pubnubInstance.GetUserState(channel, successGet, errorGet)
 	select {
@@ -507,7 +519,7 @@ func TestSetUserStateHereNow(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	go pubnubInstance.HereNow(channel, true, true, successGet, errorGet)
 	select {
@@ -562,7 +574,7 @@ func TestSetUserStateGlobalHereNow(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	go pubnubInstance.GlobalHereNow(true, true, successGet, errorGet)
 	select {
@@ -613,7 +625,7 @@ func TestSetUserStateJSON(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	go pubnubInstance.SetUserStateKeyVal(channel, key2, "", successSet, errorSet)
 	select {
