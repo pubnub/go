@@ -257,7 +257,7 @@ func TestWhereNow(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-	time.Sleep(3 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	go pubnubInstance.WhereNow(uuid, successGet, errorGet)
 	select {
