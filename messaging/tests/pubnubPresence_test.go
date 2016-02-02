@@ -138,34 +138,6 @@ func ParsePresenceResponseForTimeout(returnChannel chan []byte, responseChannel 
 	}
 }
 
-// HereNow is a common method used by the tests TestHereNow, HereNowWithCipher, CustomUuid
-// It subscribes to a pubnub channel and then
-// makes a call to the herenow method of the pubnub api.
-func HereNow(t *testing.T, cipherKey string, customUuid string, testName string) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, customUuid)
-
-	channel := RandomChannel()
-
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-
-	successChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	unsubscribeSuccessChannel := make(chan []byte)
-	unsubscribeErrorChannel := make(chan []byte)
-
-	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
-	go ParseSubscribeResponseForPresence(pubnubInstance, customUuid, successChannel, channel, testName, responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, testName)
-
-	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
-}
-
 // ParseHereNowResponse parses the herenow response on the go channel.
 // In case of customuuid it looks for the custom uuid in the response.
 // And in other cases checks for the occupancy.
