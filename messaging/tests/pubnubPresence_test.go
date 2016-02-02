@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
@@ -52,12 +53,12 @@ func TestPresenceHeartbeat(t *testing.T) {
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 	pubnubInstance.SetPresenceHeartbeat(10)
 	channel := fmt.Sprintf("presence_hb")
-	
+
 	returnSubscribeChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
-	
+
 	testName := "Presence Heartbeat"
 	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
 	time.Sleep(time.Duration(3) * time.Second)
@@ -69,7 +70,7 @@ func TestPresenceHeartbeat(t *testing.T) {
 	ParseWaitResponse(waitChannel, t, testName)
 	go pubnubInstance.PresenceUnsubscribe(channel, returnSubscribeChannel, errorChannel)
 	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
-	pubnubInstance.CloseExistingConnection()	
+	pubnubInstance.CloseExistingConnection()
 }
 
 func ParsePresenceResponseForTimeout(returnChannel chan []byte, responseChannel chan string, testName string) {
@@ -79,7 +80,7 @@ func ParsePresenceResponseForTimeout(returnChannel chan []byte, responseChannel 
 		timeout <- true
 	}()
 	for {
-	select {
+		select {
 		case value, ok := <-returnChannel:
 			if !ok {
 				break
@@ -88,9 +89,9 @@ func ParsePresenceResponseForTimeout(returnChannel chan []byte, responseChannel 
 				response := string(value)
 				//fmt.Println("response:", response)
 				//fmt.Println("message:",message);
-				if strings.Contains(response, "connected") || strings.Contains(response, "join") || strings.Contains(response, "leave"){
+				if strings.Contains(response, "connected") || strings.Contains(response, "join") || strings.Contains(response, "leave") {
 					continue
-				}else if strings.Contains(response, "timeout") {
+				} else if strings.Contains(response, "timeout") {
 					responseChannel <- "Test '" + testName + "': failed."
 				} else {
 					responseChannel <- "Test '" + testName + "': passed."
@@ -211,9 +212,9 @@ func Test0Presence(t *testing.T) {
 	errorChannel := make(chan []byte)
 	responseChannel := make(chan string)
 	waitChannel := make(chan string)
-	
+
 	time.Sleep(time.Duration(3) * time.Second)
-	
+
 	go pubnubInstance.Subscribe(channel, "", returnPresenceChannel, true, errorChannel)
 	go ParseSubscribeResponseForPresence(pubnubInstance, customUuid, returnPresenceChannel, channel, testName, responseChannel)
 	//go ParseResponseDummy(errorChannel)
@@ -412,86 +413,167 @@ func ParseSubscribeResponseForPresence(pubnubInstance *messaging.Pubnub, customU
 // makes a call to the herenow method of the pubnub api. The occupancy should
 // be greater than one.
 func TestSetGetUserState(t *testing.T) {
-	cipherKey := ""
-	testName := "SetGetUserState"
+	assert := assert.New(t)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	channel := RandomChannel()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
-
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_us_%d", r.Intn(100))
 	key := "testkey"
 	val := "testval"
-	CommonUserState(pubnubInstance, t, channel, key, val, testName)
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	successSet := make(chan []byte)
+	errorSet := make(chan []byte)
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
+
+	go pubnubInstance.SetUserStateKeyVal(channel, key, val, successSet, errorSet)
+	select {
+	case value := <-successSet:
+		actual := string(value)
+		expectedSubstring := fmt.Sprintf("{\"%s\": \"%s\"}", key, val)
+
+		assert.Contains(actual, expectedSubstring)
+	case err := <-errorSet:
+		assert.Fail("Failed to set state", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Set state timeout")
+	}
+
+	time.Sleep(3 * time.Second)
+
+	go pubnubInstance.GetUserState(channel, successGet, errorGet)
+	select {
+	case value := <-successGet:
+		actual := string(value)
+		expectedSubstring := fmt.Sprintf("{\"%s\": \"%s\"}", key, val)
+
+		assert.Contains(actual, expectedSubstring)
+	case err := <-errorSet:
+		assert.Fail("Failed to get state", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Get state timeout")
+	}
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	pubnubInstance.CloseExistingConnection()
 }
 
 func TestSetUserStateHereNow(t *testing.T) {
-	cipherKey := ""
-	testName := "SetGetUserStateHereNow"
+	assert := assert.New(t)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	channel := RandomChannel()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
-
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_us_%d", r.Intn(100))
 	key := "testkey"
 	val := "testval"
 
-	CommonUserState(pubnubInstance, t, channel, key, val, testName)
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	successSet := make(chan []byte)
+	errorSet := make(chan []byte)
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
+
+	go pubnubInstance.SetUserStateKeyVal(channel, key, val, successSet, errorSet)
+	select {
+	case value := <-successSet:
+		actual := string(value)
+		expectedSubstring := fmt.Sprintf("{\"%s\": \"%s\"}", key, val)
+
+		assert.Contains(actual, expectedSubstring)
+	case err := <-errorSet:
+		assert.Fail("Failed to set state", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Set state timeout")
+	}
+
+	time.Sleep(3 * time.Second)
+
+	go pubnubInstance.HereNow(channel, true, true, successGet, errorGet)
+	select {
+	case value := <-successGet:
+		actual := string(value)
+		expectedSubstring := fmt.Sprintf("{\"%s\": \"%s\"}", key, val)
+
+		assert.Contains(actual, expectedSubstring)
+		assert.Contains(actual, pubnubInstance.GetUUID())
+	case err := <-errorSet:
+		assert.Fail("Failed to get state", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Get state timeout")
+	}
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	pubnubInstance.CloseExistingConnection()
 }
 
 func TestSetUserStateGlobalHereNow(t *testing.T) {
-	cipherKey := ""
-	testName := "SetGetUserStateGlobalHereNow"
+	assert := assert.New(t)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	channel := RandomChannel()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
-
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_us_%d", r.Intn(100))
 	key := "testkey"
 	val := "testval"
 
-	CommonUserState(pubnubInstance, t, channel, key, val, testName)
-}
-
-func CommonUserState(pubnubInstance *messaging.Pubnub, t *testing.T, channel string, key string, val string, testName string) {
-	returnSubscribeChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	waitChannel := make(chan string)
-	//returnChannel := make(chan []byte)
-	responseChannel := make(chan string)
+	successSet := make(chan []byte)
+	errorSet := make(chan []byte)
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubcribeResponseForUserState(pubnubInstance, t, returnSubscribeChannel, channel, key, val, testName, responseChannel)
-	go ParseResponseDummy(errorChannel)
-	//go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, testName)
-	go pubnubInstance.Unsubscribe(channel, returnSubscribeChannel, errorChannel)
-	pubnubInstance.CloseExistingConnection()
-	time.Sleep(2 * time.Second)
-}
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-func ParseSubcribeResponseForUserState(pubnubInstance *messaging.Pubnub, t *testing.T, returnChannel chan []byte, channel string, key string, val string, testName string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			message := "'" + channel + "' connected"
-			messageReconn := "'" + channel + "' reconnected"
-			if (strings.Contains(response, message)) || (strings.Contains(response, messageReconn)) {
-				time.Sleep(1 * time.Second)
-				errorChannel := make(chan []byte)
-				returnChannel2 := make(chan []byte)
+	go pubnubInstance.SetUserStateKeyVal(channel, key, val, successSet, errorSet)
+	select {
+	case value := <-successSet:
+		actual := string(value)
+		expectedSubstring := fmt.Sprintf("{\"%s\": \"%s\"}", key, val)
 
-				go pubnubInstance.SetUserStateKeyVal(channel, key, val, returnChannel2, errorChannel)
-				go ParseSetUserStateResponse(pubnubInstance, returnChannel2, channel, key, val, testName, responseChannel)
-				go ParseErrorResponse(errorChannel, responseChannel)
-			}
-			break
-		}
+		assert.Contains(actual, expectedSubstring)
+	case err := <-errorSet:
+		assert.Fail("Failed to set state", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Set state timeout")
 	}
+
+	time.Sleep(3 * time.Second)
+
+	go pubnubInstance.GlobalHereNow(true, true, successGet, errorGet)
+	select {
+	case value := <-successGet:
+		actual := string(value)
+		expectedSubstring := fmt.Sprintf("{\"%s\": \"%s\"}", key, val)
+
+		assert.Contains(actual, expectedSubstring)
+		assert.Contains(actual, pubnubInstance.GetUUID())
+	case err := <-errorSet:
+		assert.Fail("Failed to get state", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Get state timeout")
+	}
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	pubnubInstance.CloseExistingConnection()
 }
 
 func ParseUserStateResponse(returnChannel chan []byte, channel string, key string, val string, testName string, responseChannel chan string) {

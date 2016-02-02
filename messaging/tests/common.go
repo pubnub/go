@@ -405,7 +405,7 @@ func GenerateTwoRandomChannelStrings(length int) (channels1, channels2 string) {
 	channelsMap := make(map[string]struct{})
 
 	for len(channelsMap) < length*2 {
-		channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+		channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 
 		if _, found := channelsMap[channel]; !found {
 			channelsMap[channel] = struct{}{}
@@ -443,6 +443,16 @@ func AssertStringSliceElementsEqual(first, second []string) bool {
 	}
 
 	return true
+}
+
+func RandomChannel() string {
+	channel, _ := GenerateTwoRandomChannelStrings(1)
+	return channel
+}
+
+func RandomChannels(length int) string {
+	channel, _ := GenerateTwoRandomChannelStrings(length)
+	return channel
 }
 
 func LogErrors(errorsChannel <-chan []byte) {
