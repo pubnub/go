@@ -76,68 +76,6 @@ func TestCustomUuid(t *testing.T) {
 	pubnubInstance.CloseExistingConnection()
 }
 
-func TestPresenceHeartbeat(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-	pubnubInstance.SetPresenceHeartbeat(10)
-	channel := fmt.Sprintf("presence_hb")
-
-	returnSubscribeChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-	unsubscribeSuccessChannel := make(chan []byte)
-	unsubscribeErrorChannel := make(chan []byte)
-
-	testName := "Presence Heartbeat"
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	time.Sleep(time.Duration(3) * time.Second)
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, true, errorChannel)
-	go ParsePresenceResponseForTimeout(returnSubscribeChannel, responseChannel, testName)
-	go ParseResponseDummyMessage(errorChannel, "aborted", responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, testName)
-
-	go pubnubInstance.PresenceUnsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
-}
-
-func ParsePresenceResponseForTimeout(returnChannel chan []byte, responseChannel chan string, testName string) {
-	timeout := make(chan bool, 1)
-	go func() {
-		time.Sleep(20 * time.Second)
-		timeout <- true
-	}()
-	for {
-		select {
-		case value, ok := <-returnChannel:
-			if !ok {
-				break
-			}
-			if string(value) != "[]" {
-				response := string(value)
-				//fmt.Println("response:", response)
-				//fmt.Println("message:",message);
-				if strings.Contains(response, "connected") || strings.Contains(response, "join") || strings.Contains(response, "leave") {
-					continue
-				} else if strings.Contains(response, "timeout") {
-					responseChannel <- "Test '" + testName + "': failed."
-				} else {
-					responseChannel <- "Test '" + testName + "': passed."
-				}
-				break
-			}
-		case <-timeout:
-			responseChannel <- "Test '" + testName + "': passed."
-			break
-		}
-	}
-}
-
 // TestPresence subscribes to the presence notifications on a pubnub channel and
 // then subscribes to a pubnub channel. The test waits till we get a response from
 // the subscribe call. The method that parses the presence response sets the global
