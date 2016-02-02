@@ -138,73 +138,6 @@ func ParsePresenceResponseForTimeout(returnChannel chan []byte, responseChannel 
 	}
 }
 
-// ParseHereNowResponse parses the herenow response on the go channel.
-// In case of customuuid it looks for the custom uuid in the response.
-// And in other cases checks for the occupancy.
-func ParseHereNowResponse(returnChannel chan []byte, channel string, message string, testName string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			//fmt.Println("Test '" + testName + "':" +response)
-			if testName == "CustomUuid" {
-				if strings.Contains(response, message) {
-					responseChannel <- "Test '" + testName + "': passed."
-					break
-				} else {
-					responseChannel <- "Test '" + testName + "': failed."
-					break
-				}
-			} else if (testName == "WhereNow") || (testName == "GlobalHereNow") {
-				if strings.Contains(response, channel) {
-					responseChannel <- "Test '" + testName + "': passed."
-					break
-				} else {
-					responseChannel <- "Test '" + testName + "': failed."
-					break
-				}
-			} else {
-				var occupants struct {
-					Uuids     []map[string]string
-					Occupancy int
-				}
-
-				err := json.Unmarshal(value, &occupants)
-				if err != nil {
-					//fmt.Println("Test '" + testName + "':",err, "\n")
-					responseChannel <- "Test '" + testName + "': failed. Message: " + err.Error()
-					break
-				} else {
-					found := false
-					for _, v := range occupants.Uuids {
-						if v["uuid"] == message {
-							found = true
-						}
-					}
-					if found {
-						responseChannel <- "Test '" + testName + "': passed."
-						break
-					} else {
-						responseChannel <- "Test '" + testName + "': failed."
-						break
-					}
-					/*i := occupants.Occupancy
-					if i <= 0 {
-						responseChannel <- "Test '" + testName + "': failed. Occupancy mismatch"
-						break
-					} else {
-						responseChannel <- "Test '" + testName + "': passed."
-					}*/
-				}
-			}
-		}
-	}
-}
-
 // TestPresence subscribes to the presence notifications on a pubnub channel and
 // then subscribes to a pubnub channel. The test waits till we get a response from
 // the subscribe call. The method that parses the presence response sets the global
@@ -279,35 +212,32 @@ func TestWhereNow(t *testing.T) {
 // makes a call to the herenow method of the pubnub api. The occupancy should
 // be greater than one.
 func TestGlobalHereNow(t *testing.T) {
-	cipherKey := ""
-	testName := "GlobalHereNow"
-	customUuid := "customuuid"
-	//subscribe
+	assert := assert.New(t)
+	uuid := "customuuid"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
+	channel := RandomChannel()
 
-	GlobalHereNow(t, cipherKey, customUuid, testName)
-}
-
-// GlobalHereNow is a common method used by the tests TestHereNow, HereNowWithCipher, CustomUuid
-// It subscribes to a pubnub channel and then
-// makes a call to the herenow method of the pubnub api.
-func GlobalHereNow(t *testing.T, cipherKey string, customUuid string, testName string) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, customUuid)
-
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_ghn_%d", r.Intn(100))
-
-	returnSubscribeChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponseForPresence(pubnubInstance, customUuid, returnSubscribeChannel, channel, testName, responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, testName)
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
+
+	time.Sleep(5 * time.Second)
+
+	go pubnubInstance.GlobalHereNow(true, false, successGet, errorGet)
+	select {
+	case value := <-successGet:
+		assert.Contains(string(value), channel)
+	case err := <-errorGet:
+		assert.Fail("Failed to get state", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Get state timeout")
+	}
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
@@ -327,98 +257,57 @@ func ParseSubscribeResponseForPresence(pubnubInstance *messaging.Pubnub, customU
 		//fmt.Println(response);
 
 		if string(value) != "[]" {
-			if (testName == "CustomUuid") || (testName == "HereNow") || (testName == "HereNowWithCipher") {
-				response := fmt.Sprintf("%s", value)
-				message := "'" + channel + "' connected"
-				messageReconn := "'" + channel + "' reconnected"
-				if (strings.Contains(response, message)) || (strings.Contains(response, messageReconn)) {
-					errorChannel := make(chan []byte)
-					returnChannel := make(chan []byte)
-					time.Sleep(3 * time.Second)
-					go pubnubInstance.HereNow(channel, true, true, returnChannel, errorChannel)
-					go ParseHereNowResponse(returnChannel, channel, customUuid, testName, responseChannel)
-					go ParseErrorResponse(errorChannel, responseChannel)
-					break
-				}
-			} else if testName == "WhereNow" {
-				response := fmt.Sprintf("%s", value)
-				message := "'" + channel + "' connected"
-				messageReconn := "'" + channel + "' reconnected"
-				if (strings.Contains(response, message)) || (strings.Contains(response, messageReconn)) {
-					errorChannel := make(chan []byte)
-					returnChannel := make(chan []byte)
-					time.Sleep(3 * time.Second)
-					go pubnubInstance.WhereNow(customUuid, returnChannel, errorChannel)
-					go ParseHereNowResponse(returnChannel, channel, customUuid, testName, responseChannel)
-					go ParseErrorResponse(errorChannel, responseChannel)
-					break
-				}
-			} else if testName == "GlobalHereNow" {
-				response := fmt.Sprintf("%s", value)
-				message := "'" + channel + "' connected"
-				messageReconn := "'" + channel + "' reconnected"
-				if (strings.Contains(response, message)) || (strings.Contains(response, messageReconn)) {
-					errorChannel := make(chan []byte)
-					returnChannel := make(chan []byte)
-					time.Sleep(3 * time.Second)
-					go pubnubInstance.GlobalHereNow(true, false, returnChannel, errorChannel)
-					go ParseHereNowResponse(returnChannel, channel, customUuid, testName, responseChannel)
-					go ParseErrorResponse(errorChannel, responseChannel)
-					break
-				}
+			response := fmt.Sprintf("%s", value)
+			message := "'" + channel + "' connected"
+			messageReconn := "'" + channel + "' reconnected"
+			//fmt.Println("Test3 '" + testName + "':" +response)
+			if (strings.Contains(response, message)) || (strings.Contains(response, messageReconn)) {
+
+				errorChannel2 := make(chan []byte)
+				returnSubscribeChannel := make(chan []byte)
+				time.Sleep(1 * time.Second)
+				go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel2)
+				go ParseResponseDummy(returnSubscribeChannel)
+				go ParseResponseDummy(errorChannel2)
 			} else {
-				response := fmt.Sprintf("%s", value)
-				message := "'" + channel + "' connected"
-				messageReconn := "'" + channel + "' reconnected"
-				//fmt.Println("Test3 '" + testName + "':" +response)
-				if (strings.Contains(response, message)) || (strings.Contains(response, messageReconn)) {
+				if testName == "Presence" {
+					data, _, returnedChannel, err2 := messaging.ParseJSON(value, "")
 
-					errorChannel2 := make(chan []byte)
-					returnSubscribeChannel := make(chan []byte)
-					time.Sleep(1 * time.Second)
-					go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel2)
-					go ParseResponseDummy(returnSubscribeChannel)
-					go ParseResponseDummy(errorChannel2)
-				} else {
-					if testName == "Presence" {
-						data, _, returnedChannel, err2 := messaging.ParseJSON(value, "")
+					var occupants []struct {
+						Action    string
+						Uuid      string
+						Timestamp float64
+						Occupancy int
+					}
 
-						var occupants []struct {
-							Action    string
-							Uuid      string
-							Timestamp float64
-							Occupancy int
+					if err2 != nil {
+						responseChannel <- "Test '" + testName + "': failed. Message: 1 :" + err2.Error()
+						break
+					}
+					//fmt.Println("Test3 '" + testName + "':" +data)
+					err := json.Unmarshal([]byte(data), &occupants)
+					if err != nil {
+						//fmt.Println("err '" + testName + "':",err)
+						responseChannel <- "Test '" + testName + "': failed. Message: 2 :" + err.Error()
+						break
+					} else {
+						channelSubRepsonseReceived := false
+						for i := 0; i < len(occupants); i++ {
+							if (occupants[i].Action == "join") && occupants[i].Uuid == customUuid {
+								channelSubRepsonseReceived = true
+								break
+							}
 						}
-
-						if err2 != nil {
-							responseChannel <- "Test '" + testName + "': failed. Message: 1 :" + err2.Error()
+						if !channelSubRepsonseReceived {
+							responseChannel <- "Test '" + testName + "': failed. Message: err3"
 							break
 						}
-						//fmt.Println("Test3 '" + testName + "':" +data)
-						err := json.Unmarshal([]byte(data), &occupants)
-						if err != nil {
-							//fmt.Println("err '" + testName + "':",err)
-							responseChannel <- "Test '" + testName + "': failed. Message: 2 :" + err.Error()
+						if channel == returnedChannel {
+							responseChannel <- "Test '" + testName + "': passed."
 							break
 						} else {
-							channelSubRepsonseReceived := false
-							for i := 0; i < len(occupants); i++ {
-								if (occupants[i].Action == "join") && occupants[i].Uuid == customUuid {
-									channelSubRepsonseReceived = true
-									break
-								}
-							}
-							if !channelSubRepsonseReceived {
-								responseChannel <- "Test '" + testName + "': failed. Message: err3"
-								break
-							}
-							if channel == returnedChannel {
-								responseChannel <- "Test '" + testName + "': passed."
-								break
-							} else {
-								responseChannel <- "Test '" + testName + "': failed. Message: err4"
-								break
-							}
+							responseChannel <- "Test '" + testName + "': failed. Message: err4"
+							break
 						}
 					}
 				}
