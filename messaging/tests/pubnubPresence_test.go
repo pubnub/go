@@ -19,34 +19,61 @@ func TestPresenceStart(t *testing.T) {
 	PrintTestMessage("==========Presence tests start==========")
 }
 
+const PresenceServerTimeout = 12
+
 // TestCustomUuid subscribes to a pubnub channel using a custom uuid and then
 // makes a call to the herenow method of the pubnub api. The custom id should
 // be present in the response else the test fails.
 func TestCustomUuid(t *testing.T) {
-	cipherKey := ""
-	testName := "CustomUuid"
-	customUuid := "customuuid"
-	HereNow(t, cipherKey, customUuid, testName)
-}
+	assert := assert.New(t)
+	uuid := "customuuid"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
+	channel := RandomChannel()
 
-// TestHereNow subscribes to a pubnub channel and then
-// makes a call to the herenow method of the pubnub api. The occupancy should
-// be greater than one.
-func TestHereNow(t *testing.T) {
-	cipherKey := ""
-	testName := "HereNow"
-	customUuid := "customuuid"
-	HereNow(t, cipherKey, customUuid, testName)
-}
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
 
-// TestHereNowWithCipher subscribes to a pubnub channel and then
-// makes a call to the herenow method of the pubnub api. The occupancy should
-// be greater than one.
-func TestHereNowWithCipher(t *testing.T) {
-	cipherKey := ""
-	testName := "HereNowWithCipher"
-	customUuid := "customuuid"
-	HereNow(t, cipherKey, customUuid, testName)
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
+
+	time.Sleep(PresenceServerTimeout * time.Second)
+
+	go pubnubInstance.HereNow(channel, true, true, successGet, errorGet)
+	select {
+	case value := <-successGet:
+		assert.Contains(string(value), uuid)
+		var occupants struct {
+			Uuids     []map[string]string
+			Occupancy int
+		}
+
+		err := json.Unmarshal(value, &occupants)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		found := false
+		for _, v := range occupants.Uuids {
+			if v["uuid"] == uuid {
+				found = true
+			}
+		}
+
+		assert.True(found)
+	case err := <-errorGet:
+		assert.Fail("Failed to get state", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Get state timeout")
+	}
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	pubnubInstance.CloseExistingConnection()
 }
 
 func TestPresenceHeartbeat(t *testing.T) {
