@@ -275,33 +275,6 @@ func TestWhereNow(t *testing.T) {
 	pubnubInstance.CloseExistingConnection()
 }
 
-// WhereNow is a common method used by the tests TestHereNow, HereNowWithCipher, CustomUuid
-// It subscribes to a pubnub channel and then
-// makes a call to the herenow method of the pubnub api.
-func WhereNow(t *testing.T, cipherKey string, customUuid string, testName string) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, customUuid)
-
-	channel := RandomChannel()
-
-	returnSubscribeChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-	unsubscribeSuccessChannel := make(chan []byte)
-	unsubscribeErrorChannel := make(chan []byte)
-
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponseForPresence(pubnubInstance, customUuid, returnSubscribeChannel, channel, testName, responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, testName)
-
-	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
-}
-
 // TestGlobalHereNow subscribes to a pubnub channel and then
 // makes a call to the herenow method of the pubnub api. The occupancy should
 // be greater than one.
