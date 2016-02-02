@@ -19,7 +19,7 @@ func TestPresenceStart(t *testing.T) {
 	PrintTestMessage("==========Presence tests start==========")
 }
 
-const PresenceServerTimeout = 20
+const PresenceServerTimeout = 30
 
 // TestCustomUuid subscribes to a pubnub channel using a custom uuid and then
 // makes a call to the herenow method of the pubnub api. The custom id should
