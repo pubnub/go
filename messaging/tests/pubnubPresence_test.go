@@ -65,9 +65,9 @@ func TestCustomUuid(t *testing.T) {
 
 		assert.True(found)
 	case err := <-errorGet:
-		assert.Fail("Failed to get state", string(err))
+		assert.Fail("Failed to get online users", string(err))
 	case <-messaging.Timeout():
-		assert.Fail("Get state timeout")
+		assert.Fail("HereNow timeout")
 	}
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
@@ -135,9 +135,9 @@ func TestWhereNow(t *testing.T) {
 	case value := <-successGet:
 		assert.Contains(string(value), channel)
 	case err := <-errorGet:
-		assert.Fail("Failed to get state", string(err))
+		assert.Fail("Failed to get channel list", string(err))
 	case <-messaging.Timeout():
-		assert.Fail("Get state timeout")
+		assert.Fail("WhereNow timeout")
 	}
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
@@ -172,9 +172,9 @@ func TestGlobalHereNow(t *testing.T) {
 	case value := <-successGet:
 		assert.Contains(string(value), channel)
 	case err := <-errorGet:
-		assert.Fail("Failed to get state", string(err))
+		assert.Fail("Failed to get online users", string(err))
 	case <-messaging.Timeout():
-		assert.Fail("Get state timeout")
+		assert.Fail("GlobalHereNow timeout")
 	}
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
