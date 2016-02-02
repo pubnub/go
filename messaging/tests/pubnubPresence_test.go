@@ -242,11 +242,37 @@ func Test0Presence(t *testing.T) {
 // makes a call to the herenow method of the pubnub api. The occupancy should
 // be greater than one.
 func TestWhereNow(t *testing.T) {
-	cipherKey := ""
-	testName := "WhereNow"
-	customUuid := "customuuid"
+	assert := assert.New(t)
+	uuid := "customuuid"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
+	channel := RandomChannel()
 
-	WhereNow(t, cipherKey, customUuid, testName)
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
+
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
+
+	time.Sleep(3 * time.Second)
+
+	go pubnubInstance.WhereNow(uuid, successGet, errorGet)
+	select {
+	case value := <-successGet:
+		assert.Contains(string(value), channel)
+	case err := <-errorGet:
+		assert.Fail("Failed to get state", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Get state timeout")
+	}
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	pubnubInstance.CloseExistingConnection()
 }
 
 // WhereNow is a common method used by the tests TestHereNow, HereNowWithCipher, CustomUuid
