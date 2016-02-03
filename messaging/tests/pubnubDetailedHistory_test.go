@@ -20,49 +20,6 @@ func TestDetailedHistoryStart(t *testing.T) {
 	PrintTestMessage("==========DetailedHistory tests start==========")
 }
 
-// TestDetailedHistory publish's a message to a pubnub channel and when the sent response is received,
-// calls the history method of the messaging package to fetch 1 message. This received
-// message is compared to the message sent and if both match test is successful.
-/*func TestDetailedHistory(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
-	message := "Test Message"
-
-	returnPublishChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-
-	go pubnubInstance.Publish(channel, message, returnPublishChannel, errorChannel)
-	go ParseResponse(returnPublishChannel, pubnubInstance, channel, message, "DetailedHistory", 1, responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "DetailedHistory")
-}
-
-// TestEncryptedDetailedHistory publish's an encrypted message to a pubnub channel and when the
-// sent response is received, calls the history method of the messaging package to fetch
-// 1 message. This received message is compared to the message sent and if both match test is successful.
-func TestEncryptedDetailedHistory(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "enigma", false, "")
-
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
-
-	message := "Test Message"
-	returnPublishChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-
-	go pubnubInstance.Publish(channel, message, returnPublishChannel, errorChannel)
-	go ParseResponse(returnPublishChannel, pubnubInstance, channel, message, "EncryptedDetailedHistory", 1, responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "EncryptedDetailedHistory")
-}*/
-
 // TestDetailedHistoryFor10Messages publish's 10 unencrypted messages to a pubnub channel, and after that
 // calls the history method of the messaging package to fetch last 10 messages. These received
 // messages are compared to the messages sent and if all match test is successful.
@@ -376,28 +333,6 @@ func ParseHistoryResponse(returnChannel chan []byte, channel string, message str
 		}
 	}
 }
-
-// ParseResponse parses the publish response from the pubnub api on the returnChannel and
-// when the sent response is received, calls the history method of the messaging
-// package to fetch 1 message.
-/*func ParseResponse(returnChannel chan []byte, pubnubInstance *messaging.Pubnub, channel string, message string, testName string, numberOfMessages int, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			returnHistoryChannel := make(chan []byte)
-			var errorChannel = make(chan []byte)
-			go pubnubInstance.History(channel, 1, 0, 0, false, returnHistoryChannel, errorChannel)
-			go ParseHistoryResponse(returnHistoryChannel, channel, message, testName, responseChannel)
-			go ParseErrorResponse(errorChannel, responseChannel)
-			go WaitForCompletion(returnHistoryChannel, waitChannel)
-			ParseWaitResponse(waitChannel2, t, testName)
-			break
-		}
-	}
-}*/
 
 // TestDetailedHistoryEnd prints a message on the screen to mark the end of
 // detailed history tests.
