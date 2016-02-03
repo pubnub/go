@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 	"strconv"
 	"strings"
 	"testing"
@@ -68,7 +69,6 @@ func TestEncryptedDetailedHistory(t *testing.T) {
 func TestDetailedHistoryFor10Messages(t *testing.T) {
 	testName := "TestDetailedHistoryFor10Messages"
 	DetailedHistoryFor10Messages(t, "", testName)
-	time.Sleep(2 * time.Second)
 }
 
 // TestDetailedHistoryFor10EncryptedMessages publish's 10 encrypted messages to a pubnub channel, and after that
@@ -77,7 +77,6 @@ func TestDetailedHistoryFor10Messages(t *testing.T) {
 func TestDetailedHistoryFor10EncryptedMessages(t *testing.T) {
 	testName := "TestDetailedHistoryFor10EncryptedMessages"
 	DetailedHistoryFor10Messages(t, "enigma", testName)
-	time.Sleep(2 * time.Second)
 }
 
 // DetailedHistoryFor10Messages is a common method used by both TestDetailedHistoryFor10EncryptedMessages
@@ -90,8 +89,7 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
 
 	message := "Test Message "
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
+	channel := RandomChannel()
 
 	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
 	if messagesSent {
@@ -117,7 +115,6 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 func TestDetailedHistoryParamsFor10MessagesWithSeretKey(t *testing.T) {
 	testName := "TestDetailedHistoryFor10MessagesWithSeretKey"
 	DetailedHistoryParamsFor10Messages(t, "", "secret", testName)
-	time.Sleep(2 * time.Second)
 }
 
 // TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey publish's 10 encrypted secret keyed messages
@@ -127,7 +124,6 @@ func TestDetailedHistoryParamsFor10MessagesWithSeretKey(t *testing.T) {
 func TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey(t *testing.T) {
 	testName := "TestDetailedHistoryFor10EncryptedMessagesWithSeretKey"
 	DetailedHistoryParamsFor10Messages(t, "enigma", "secret", testName)
-	time.Sleep(2 * time.Second)
 }
 
 // TestDetailedHistoryParamsFor10Messages publish's 10 unencrypted messages
@@ -137,7 +133,6 @@ func TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey(t *testing.T) {
 func TestDetailedHistoryParamsFor10Messages(t *testing.T) {
 	testName := "TestDetailedHistoryFor10Messages"
 	DetailedHistoryParamsFor10Messages(t, "", "", testName)
-	time.Sleep(2 * time.Second)
 }
 
 // TestDetailedHistoryParamsFor10EncryptedMessages publish's 10 encrypted messages
@@ -147,7 +142,6 @@ func TestDetailedHistoryParamsFor10Messages(t *testing.T) {
 func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
 	testName := "TestDetailedHistoryParamsFor10EncryptedMessages"
 	DetailedHistoryParamsFor10Messages(t, "enigma", "", testName)
-	time.Sleep(2 * time.Second)
 }
 
 // DetailedHistoryFor10Messages is a common method used by both TestDetailedHistoryFor10EncryptedMessages
@@ -269,24 +263,36 @@ func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName s
 //
 // returns a bool if the publish of all messages is successful.
 func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testing.T, startMessagesFrom int, numberOfMessages int, message string) bool {
+	assert := assert.New(t)
 	messagesReceived := 0
 	messageToSend := ""
 	tOut := messaging.GetNonSubscribeTimeout()
 	messaging.SetNonSubscribeTimeout(30)
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
 	for i := startMessagesFrom; i < startMessagesFrom+numberOfMessages; i++ {
 		messageToSend = message + strconv.Itoa(i)
 
-		returnPublishChannel := make(chan []byte)
-		errorChannel := make(chan []byte)
-		go pubnubInstance.Publish(channel, messageToSend, returnPublishChannel, errorChannel)
-		messagesReceived++
-		//time.Sleep(500 * time.Millisecond)
-		time.Sleep(1500 * time.Millisecond)
+		go pubnubInstance.Publish(channel, messageToSend, successChannel, errorChannel)
+		select {
+		case <-successChannel:
+			messagesReceived++
+		case err := <-errorChannel:
+			assert.Fail("Failed to get channel list", string(err))
+		case <-messaging.Timeout():
+			assert.Fail("WhereNow timeout")
+		}
 	}
+
+	time.Sleep(3 * time.Second)
 	if messagesReceived == numberOfMessages {
 		return true
 	}
+
 	messaging.SetNonSubscribeTimeout(tOut)
+
 	return false
 }
 
