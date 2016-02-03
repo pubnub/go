@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
-	"strings"
 	"testing"
 	"time"
 )
@@ -83,26 +82,70 @@ func TestCustomUuid(t *testing.T) {
 // variable _endPresenceTestAsSuccess to true if the presence contains a join info
 // on the channel and _endPresenceTestAsFailure is otherwise.
 func Test0Presence(t *testing.T) {
+	assert := assert.New(t)
 	customUuid := "customuuid"
-	testName := "Presence"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, customUuid)
 	channel := RandomChannel()
 
-	returnPresenceChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
+	successSubscribe := make(chan []byte)
+	errorSubscribe := make(chan []byte)
+	successPresence := make(chan []byte)
+	errorPresence := make(chan []byte)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
 
-	time.Sleep(time.Duration(3) * time.Second)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channel, "", returnPresenceChannel, true, errorChannel)
-	go ParseSubscribeResponseForPresence(pubnubInstance, customUuid, returnPresenceChannel, channel, testName, responseChannel)
-	//go ParseResponseDummy(errorChannel)
-	go ParseResponseDummyMessage(errorChannel, "aborted", responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, testName)
+	go pubnubInstance.Subscribe(channel, "", successPresence, true, errorPresence)
+	ExpectConnectedEvent(t, channel, "", successPresence, errorPresence)
+
+	go func() {
+		for {
+			select {
+			case value := <-successPresence:
+				data, _, returnedChannel, err := messaging.ParseJSON(value, "")
+				if err != nil {
+					assert.Fail(err.Error())
+				}
+
+				var occupants []struct {
+					Action    string
+					Uuid      string
+					Timestamp float64
+					Occupancy int
+				}
+
+				err = json.Unmarshal([]byte(data), &occupants)
+				if err != nil {
+					assert.Fail(err.Error())
+				}
+
+				channelSubRepsonseReceived := false
+				for i := 0; i < len(occupants); i++ {
+					if (occupants[i].Action == "join") && occupants[i].Uuid == customUuid {
+						channelSubRepsonseReceived = true
+						break
+					}
+				}
+
+				assert.True(channelSubRepsonseReceived)
+				assert.Equal(channel, returnedChannel)
+
+				await <- true
+			case err := <-errorPresence:
+				await <- false
+				assert.Fail("Failed to subscribe to presence", string(err))
+			case <-timeouts(15):
+				assert.Fail("Presence timeout")
+				await <- false
+			}
+		}
+	}()
+
+	go pubnubInstance.Subscribe(channel, "", successSubscribe, false, errorSubscribe)
+	ExpectConnectedEvent(t, channel, "", successSubscribe, errorSubscribe)
+
+	<-await
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
@@ -182,77 +225,6 @@ func TestGlobalHereNow(t *testing.T) {
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
 	pubnubInstance.CloseExistingConnection()
-}
-
-// ParseSubscribeResponseForPresence will look for the connection status in the response
-// received on the go channel.
-func ParseSubscribeResponseForPresence(pubnubInstance *messaging.Pubnub, customUuid string, returnChannel chan []byte, channel string, testName string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		//response := fmt.Sprintf("%s", value)
-		//fmt.Println(response);
-
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			message := "'" + channel + "' connected"
-			messageReconn := "'" + channel + "' reconnected"
-			//fmt.Println("Test3 '" + testName + "':" +response)
-			if (strings.Contains(response, message)) || (strings.Contains(response, messageReconn)) {
-
-				errorChannel2 := make(chan []byte)
-				returnSubscribeChannel := make(chan []byte)
-				time.Sleep(1 * time.Second)
-				go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel2)
-				go ParseResponseDummy(returnSubscribeChannel)
-				go ParseResponseDummy(errorChannel2)
-			} else {
-				if testName == "Presence" {
-					data, _, returnedChannel, err2 := messaging.ParseJSON(value, "")
-
-					var occupants []struct {
-						Action    string
-						Uuid      string
-						Timestamp float64
-						Occupancy int
-					}
-
-					if err2 != nil {
-						responseChannel <- "Test '" + testName + "': failed. Message: 1 :" + err2.Error()
-						break
-					}
-					//fmt.Println("Test3 '" + testName + "':" +data)
-					err := json.Unmarshal([]byte(data), &occupants)
-					if err != nil {
-						//fmt.Println("err '" + testName + "':",err)
-						responseChannel <- "Test '" + testName + "': failed. Message: 2 :" + err.Error()
-						break
-					} else {
-						channelSubRepsonseReceived := false
-						for i := 0; i < len(occupants); i++ {
-							if (occupants[i].Action == "join") && occupants[i].Uuid == customUuid {
-								channelSubRepsonseReceived = true
-								break
-							}
-						}
-						if !channelSubRepsonseReceived {
-							responseChannel <- "Test '" + testName + "': failed. Message: err3"
-							break
-						}
-						if channel == returnedChannel {
-							responseChannel <- "Test '" + testName + "': passed."
-							break
-						} else {
-							responseChannel <- "Test '" + testName + "': failed. Message: err4"
-							break
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 // TestSetGetUserState subscribes to a pubnub channel and then
