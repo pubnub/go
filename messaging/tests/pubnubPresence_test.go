@@ -19,7 +19,8 @@ func TestPresenceStart(t *testing.T) {
 	PrintTestMessage("==========Presence tests start==========")
 }
 
-const PresenceServerTimeout = 30
+const PresenceServerTimeoutHighter = 30 * time.Second
+const PresenceServerTimeoutLower = 15 * time.Second
 
 // TestCustomUuid subscribes to a pubnub channel using a custom uuid and then
 // makes a call to the herenow method of the pubnub api. The custom id should
@@ -40,7 +41,7 @@ func TestCustomUuid(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-	time.Sleep(PresenceServerTimeout * time.Second)
+	time.Sleep(PresenceServerTimeoutHighter)
 
 	go pubnubInstance.HereNow(channel, true, true, successGet, errorGet)
 	select {
@@ -128,7 +129,7 @@ func TestWhereNow(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.WhereNow(uuid, successGet, errorGet)
 	select {
@@ -165,7 +166,7 @@ func TestGlobalHereNow(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.GlobalHereNow(true, false, successGet, errorGet)
 	select {
@@ -290,7 +291,7 @@ func TestSetGetUserState(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.GetUserState(channel, successGet, errorGet)
 	select {
@@ -344,7 +345,7 @@ func TestSetUserStateHereNow(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.HereNow(channel, true, true, successGet, errorGet)
 	select {
@@ -399,7 +400,7 @@ func TestSetUserStateGlobalHereNow(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.GlobalHereNow(true, true, successGet, errorGet)
 	select {
@@ -450,7 +451,7 @@ func TestSetUserStateJSON(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.SetUserStateKeyVal(channel, key2, "", successSet, errorSet)
 	select {
