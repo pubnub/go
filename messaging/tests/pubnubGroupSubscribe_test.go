@@ -103,7 +103,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 				messages = append(messages, string(msg[2].(string)))
 			case err := <-subscribeErrorChannel:
 				assert.Fail("Subscribe error", string(err))
-			case <-timeouts(4):
+			case <-timeouts(10):
 				assert.Fail("For looop timed out")
 				break
 			}
@@ -112,11 +112,16 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 				break
 			}
 		}
-		assert.True(AssertStringSliceElementsEqual(groups, messages))
+		assert.True(AssertStringSliceElementsEqual(groups, messages),
+			fmt.Sprintf("Expected groups: %s. Actual groups: %s\n", groups, messages))
 		await <- true
 	}()
 
-	<-await
+	select {
+	case <-await:
+	case <-timeouts(20):
+		assert.Fail("Receive connected messages timeout")
+	}
 
 	go pubnub.ChannelGroupUnsubscribe(groupsString, successChannel, errorChannel)
 	go func() {
@@ -139,7 +144,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 				messages = append(messages, string(msg[2].(string)))
 			case err := <-errorChannel:
 				assert.Fail("Subscribe error", string(err))
-			case <-timeouts(4):
+			case <-timeouts(10):
 				assert.Fail("For looop timed out")
 				break
 			}
@@ -149,11 +154,16 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 			}
 		}
 
-		assert.True(AssertStringSliceElementsEqual(groups, messages))
+		assert.True(AssertStringSliceElementsEqual(groups, messages),
+			fmt.Sprintf("Expected groups: %s. Actual groups: %s\n", groups, messages))
 		await <- true
 	}()
 
-	<-await
+	select {
+	case <-await:
+	case <-timeouts(20):
+		assert.Fail("Receive unsubscribed messages timeout")
+	}
 
 	pubnub.CloseExistingConnection()
 }
