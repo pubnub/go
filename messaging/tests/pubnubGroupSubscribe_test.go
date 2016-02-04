@@ -104,7 +104,6 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 			case err := <-subscribeErrorChannel:
 				assert.Fail("Subscribe error", string(err))
 			case <-timeouts(10):
-				assert.Fail("For looop timed out")
 				break
 			}
 
@@ -112,8 +111,10 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 				break
 			}
 		}
+
 		assert.True(AssertStringSliceElementsEqual(groups, messages),
 			fmt.Sprintf("Expected groups: %s. Actual groups: %s\n", groups, messages))
+
 		await <- true
 	}()
 
@@ -145,7 +146,6 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 			case err := <-errorChannel:
 				assert.Fail("Subscribe error", string(err))
 			case <-timeouts(10):
-				assert.Fail("For looop timed out")
 				break
 			}
 
@@ -156,6 +156,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 
 		assert.True(AssertStringSliceElementsEqual(groups, messages),
 			fmt.Sprintf("Expected groups: %s. Actual groups: %s\n", groups, messages))
+
 		await <- true
 	}()
 
