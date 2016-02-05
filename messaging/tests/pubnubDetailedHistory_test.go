@@ -196,52 +196,27 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 // GetServerTime calls the GetTime method of the messaging, parses the response to get the
 // value and return it.
 func GetServerTime(pubnubInstance *messaging.Pubnub, t *testing.T, testName string) int64 {
-	returnTimeChannel := make(chan []byte)
+	assert := assert.New(t)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	go pubnubInstance.GetTime(returnTimeChannel, errorChannel)
-	return ParseServerTimeResponse(returnTimeChannel, t, testName)
-}
 
-// ParseServerTimeResponse unmarshals the time response from the pubnub api and returns the int64 value.
-// On error the test fails.
-func ParseServerTimeResponse(returnChannel chan []byte, t *testing.T, testName string) int64 {
-	timeout := make(chan bool, 1)
-	go func() {
-		time.Sleep(15 * time.Second)
-		timeout <- true
-	}()
-	for {
-		select {
-		case value, ok := <-returnChannel:
-			if !ok {
-				break
-			}
-			if string(value) != "[]" {
-				response := string(value)
-				if response != "" {
-					var arr []int64
-					err2 := json.Unmarshal(value, &arr)
-					if err2 != nil {
-						fmt.Println("err2 time", err2)
-						t.Error("Test '" + testName + "': failed.")
-						break
-					} else {
-						return arr[0]
-					}
-				} else {
-					fmt.Println("response", response)
-					t.Error("Test '" + testName + "': failed.")
-					break
-				}
-			}
-		case <-timeout:
-			fmt.Println("timeout")
-			t.Error("Test '" + testName + "': failed.")
-			break
+	go pubnubInstance.GetTime(successChannel, errorChannel)
+	select {
+	case value := <-successChannel:
+		response := string(value)
+		timestamp, err := strconv.Atoi(strings.Trim(response, "[]"))
+		if err != nil {
+			assert.Fail(err.Error())
 		}
+
+		return int64(timestamp)
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+		return 0
+	case <-timeouts(10):
+		assert.Fail("Getting server timestamp timeout")
+		return 0
 	}
-	t.Error("Test '" + testName + "': failed.")
-	return 0
 }
 
 // PublishMessages calls the publish method of messaging package numberOfMessages times
