@@ -107,52 +107,89 @@ func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
 // between which the messages were sent. These received message is compared to the messages sent and
 // if all match test is successful.
 func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKey string, testName string) {
+	time.Sleep(5 * time.Second)
+	assert := assert.New(t)
 	numberOfMessages := 5
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, secretKey, cipherKey, false, "")
 
 	message := "Test Message "
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_dh_%d", r.Intn(20))
+	channel := RandomChannel()
 
 	startTime := GetServerTime(pubnubInstance, t, testName)
 	startMessagesFrom := 0
 	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
-
 	midTime := GetServerTime(pubnubInstance, t, testName)
 	startMessagesFrom = 5
 	messagesSent2 := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
 	endTime := GetServerTime(pubnubInstance, t, testName)
-
 	startMessagesFrom = 0
-	if messagesSent {
-		returnHistoryChannel := make(chan []byte)
-		responseChannel := make(chan string)
-		errorChannel := make(chan []byte)
-		waitChannel := make(chan string)
 
-		go pubnubInstance.History(channel, numberOfMessages, startTime, midTime, false, returnHistoryChannel, errorChannel)
-		go ParseHistoryResponseForMultipleMessages(returnHistoryChannel, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey, responseChannel)
-		go ParseErrorResponse(errorChannel, responseChannel)
-		go WaitForCompletion(responseChannel, waitChannel)
-		ParseWaitResponse(waitChannel, t, testName)
-	} else {
-		t.Error("Test '" + testName + "': failed.")
+	assert.True(messagesSent, "Error while sending a first bunch of messages")
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnubInstance.History(channel, numberOfMessages, startTime, midTime,
+		false, successChannel, errorChannel)
+	select {
+	case value := <-successChannel:
+		data, _, _, err := messaging.ParseJSON(value, cipherKey)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		var arr []string
+		err = json.Unmarshal([]byte(data), &arr)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		messagesReceived := 0
+
+		assert.Len(arr, numberOfMessages)
+
+		for i := 0; i < len(arr); i++ {
+			if arr[i] == message+strconv.Itoa(startMessagesFrom+i) {
+				messagesReceived++
+			}
+		}
+
+		assert.Equal(numberOfMessages, messagesReceived)
+	case err := <-errorChannel:
+		assert.Fail(string(err))
 	}
 
 	startMessagesFrom = 5
-	if messagesSent2 {
-		returnHistoryChannel2 := make(chan []byte)
-		errorChannel2 := make(chan []byte)
-		responseChannel2 := make(chan string)
-		waitChannel2 := make(chan string)
 
-		go pubnubInstance.History(channel, numberOfMessages, midTime, endTime, false, returnHistoryChannel2, errorChannel2)
-		go ParseHistoryResponseForMultipleMessages(returnHistoryChannel2, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey, responseChannel2)
-		go ParseErrorResponse(errorChannel2, responseChannel2)
-		go WaitForCompletion(responseChannel2, waitChannel2)
-		ParseWaitResponse(waitChannel2, t, testName)
-	} else {
-		t.Error("Test '" + testName + "': failed.")
+	assert.True(messagesSent2, "Error while sending a second bunch of messages")
+
+	go pubnubInstance.History(channel, numberOfMessages, midTime, endTime, false,
+		successChannel, errorChannel)
+	select {
+	case value := <-successChannel:
+		data, _, _, err := messaging.ParseJSON(value, cipherKey)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		var arr []string
+		err = json.Unmarshal([]byte(data), &arr)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		messagesReceived := 0
+
+		assert.Len(arr, numberOfMessages)
+
+		for i := 0; i < len(arr); i++ {
+			if arr[i] == message+strconv.Itoa(startMessagesFrom+i) {
+				messagesReceived++
+			}
+		}
+
+		assert.Equal(numberOfMessages, messagesReceived)
+	case err := <-errorChannel:
+		assert.Fail(string(err))
 	}
 }
 
