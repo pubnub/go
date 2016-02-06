@@ -4,7 +4,6 @@ package tests
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
 	"strconv"
@@ -41,6 +40,8 @@ func TestDetailedHistoryFor10EncryptedMessages(t *testing.T) {
 // call the history method of the messaging package to fetch last 10 messages. These received
 // messages are compared to the messages sent and if all match test is successful.
 func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName string) {
+	assert := assert.New(t)
+
 	numberOfMessages := 10
 	startMessagesFrom := 0
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
@@ -49,19 +50,39 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	channel := RandomChannel()
 
 	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
-	if messagesSent {
-		returnHistoryChannel := make(chan []byte)
-		errorChannel := make(chan []byte)
-		responseChannel := make(chan string)
-		waitChannel := make(chan string)
 
-		go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, returnHistoryChannel, errorChannel)
-		go ParseHistoryResponseForMultipleMessages(returnHistoryChannel, channel, message, testName, startMessagesFrom, numberOfMessages, cipherKey, responseChannel)
-		go ParseErrorResponse(errorChannel, responseChannel)
-		go WaitForCompletion(responseChannel, waitChannel)
-		ParseWaitResponse(waitChannel, t, testName)
-	} else {
-		t.Error("Test '" + testName + "': failed.")
+	assert.True(messagesSent)
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, successChannel, errorChannel)
+	select {
+	case value := <-successChannel:
+		data, _, _, err := messaging.ParseJSON(value, cipherKey)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		var arr []string
+		err = json.Unmarshal([]byte(data), &arr)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		messagesReceived := 0
+
+		assert.Len(arr, numberOfMessages)
+
+		for i := 0; i < len(arr); i++ {
+			if arr[i] == message+strconv.Itoa(startMessagesFrom+i) {
+				messagesReceived++
+			}
+		}
+
+		assert.Equal(numberOfMessages, messagesReceived)
+	case err := <-errorChannel:
+		assert.Fail(string(err))
 	}
 }
 
@@ -263,87 +284,6 @@ func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testin
 	messaging.SetNonSubscribeTimeout(tOut)
 
 	return false
-}
-
-// ParseHistoryResponseForMultipleMessages unmarshalls the response of the history call to the
-// pubnub api and compares the received messages to the sent messages. If the response match the
-// test is successful.
-//
-// Parameters:
-// returnChannel: channel to read the response from,
-// t: a reference to *testing.T,
-// channel: the pubnub channel to publish the messages,
-// message: message to compare,
-// testname: the test name form where this method is called,
-// startMessagesFrom: the message identifer,
-// numberOfMessages: number of messages to send,
-// cipherKey: the cipher key if used. Can be empty.
-func ParseHistoryResponseForMultipleMessages(returnChannel chan []byte, channel string, message string, testName string, startMessagesFrom int, numberOfMessages int, cipherKey string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			data, _, _, err := messaging.ParseJSON(value, cipherKey)
-			if err != nil {
-				//t.Error("Test '" + testName + "': failed.")
-				responseChannel <- "Test '" + testName + "': failed. Message: " + err.Error()
-			} else {
-				var arr []string
-				err2 := json.Unmarshal([]byte(data), &arr)
-				if err2 != nil {
-					//t.Error("Test '" + testName + "': failed.");
-					responseChannel <- "Test '" + testName + "': failed. Message: " + err2.Error()
-				} else {
-					messagesReceived := 0
-
-					if len(arr) != numberOfMessages {
-						responseChannel <- "Test '" + testName + "': failed."
-						//t.Error("Test '" + testName + "': failed.");
-						break
-					}
-					for i := 0; i < numberOfMessages; i++ {
-						if arr[i] == message+strconv.Itoa(startMessagesFrom+i) {
-							//fmt.Println("data:",arr[i])
-							messagesReceived++
-						}
-					}
-					if messagesReceived == numberOfMessages {
-						fmt.Println("Test '" + testName + "': passed.")
-						responseChannel <- "Test '" + testName + "': passed."
-					} else {
-						responseChannel <- "Test '" + testName + "': failed. Returned message mismatch"
-						//t.Error("Test '" + testName + "': failed.");
-					}
-					break
-				}
-			}
-		}
-	}
-}
-
-// ParseHistoryResponse parses the history response from the pubnub api on the returnChannel
-// and checks if the response contains the message. If true then the test is successful.
-func ParseHistoryResponse(returnChannel chan []byte, channel string, message string, testName string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := string(value)
-			//fmt.Println("response", response)
-
-			if strings.Contains(response, message) {
-				//fmt.Println("Test '" + testName + "': passed.")
-				responseChannel <- "Test '" + testName + "': passed."
-				break
-			} else {
-				responseChannel <- "Test '" + testName + "': failed."
-			}
-		}
-	}
 }
 
 // TestDetailedHistoryEnd prints a message on the screen to mark the end of
