@@ -68,10 +68,7 @@ func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *messaging.Pubnub, 
 		if string(value) != "[]" {
 			response := fmt.Sprintf("%s", value)
 			message = "'" + channel + "' " + message
-			//messageAbort := "'" + channel + "' aborted"
-			//fmt.Printf("response:",response);
-			//fmt.Printf("message:", message);
-			
+
 			if strings.Contains(response, message) {
 				returnUnsubscribeChannel := make(chan []byte)
 				errorChannel := make(chan []byte)
@@ -81,13 +78,7 @@ func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *messaging.Pubnub, 
 				go ParseResponseDummy(errorChannel)
 
 				break
-			} /*else if (strings.Contains(response, messageAbort)){
-			      responseChannel <- "Test unsubscribed: failed."
-			      break
-			  } else {
-			      responseChannel <- "Test unsubscribed: failed."
-			      break
-			  }*/
+			}
 		}
 	}
 }

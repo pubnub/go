@@ -33,9 +33,9 @@ func ParsePamErrorResponse(channel chan []byte, testName string, message string,
 		if !ok {
 			break
 		}
+
 		returnVal := string(value)
-		fmt.Println("returnValErr:", returnVal)
-		fmt.Println("messageErr:", message)
+
 		if returnVal != "[]" {
 			if strings.Contains(returnVal, "aborted") || strings.Contains(returnVal, "reset") {
 				continue
@@ -61,8 +61,6 @@ func ParsePamResponseEqual(returnChannel chan []byte, pubnubInstance *messaging.
 
 		if string(value) != "[]" {
 			response := string(value)
-			fmt.Println("returnValErr:", response)
-			fmt.Println("messageErr:", message)
 
 			if assert.JSONEq(t, message, response) {
 				responseChannel <- "Test '" + testName + "': passed."

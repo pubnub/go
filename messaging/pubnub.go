@@ -34,12 +34,12 @@ type responseStatus int
 // Enums for send response.
 const (
 	responseAlreadySubscribed  responseStatus = 1 << iota //1
-	responseNotSubscribed                                 //4
-	responseAsIs                                          //5
-	responseInternetConnIssues                            //7
-	reponseAbortMaxRetry                                  //8
-	responseAsIsError                                     //9
-	responseTimedOut                                      //11
+	responseNotSubscribed                                 //2
+	responseAsIs                                          //4
+	responseInternetConnIssues                            //8
+	reponseAbortMaxRetry                                  //16
+	responseAsIsError                                     //32
+	responseTimedOut                                      //64
 )
 
 // Enums for diff types of connections
@@ -132,6 +132,9 @@ var (
 	// Mutex to lock the operations on presenceHeartbeat ops
 	presenceHeartbeatMu sync.RWMutex
 
+	// Mutex to lock operations on resumeOnReconnect ops
+	resumeOnReconnectMu sync.RWMutex
+
 	// The time after which the server expects the contact from the client.
 	// In seconds.
 	// If the server doesnt get an heartbeat request within this time, it will send
@@ -172,7 +175,7 @@ var (
 	// Logger for warn messages
 	warnLogger *log.Logger
 
-	//logMutex
+	// logMutex
 	logMu sync.Mutex
 )
 
@@ -389,7 +392,18 @@ func SetProxy(proxyServerVal string, proxyPortVal int, proxyUserVal string, prox
 
 // SetResumeOnReconnect sets the value of resumeOnReconnect.
 func SetResumeOnReconnect(val bool) {
+	resumeOnReconnectMu.Lock()
+	defer resumeOnReconnectMu.Unlock()
+
 	resumeOnReconnect = val
+}
+
+// GetResumeOnReconnect returns the value of resumeOnReconnect.
+func GetResumeOnReconnect() bool {
+	resumeOnReconnectMu.RLock()
+	defer resumeOnReconnectMu.RUnlock()
+
+	return resumeOnReconnect
 }
 
 // LoggingEnabled sets the value of loggingEnabled
@@ -1600,22 +1614,24 @@ func (pub *Pubnub) sendSubscribeErrorExtended(channels, groups,
 }
 
 func (pub *Pubnub) sendSubscribeErrorHelper(channels, groups string,
-	errorResponse errorResponse) {
+	errResp errorResponse) {
 
 	var (
 		item  *subscriptionItem
 		found bool
 	)
 
+	errResp.Type = channelResponse
 	for _, channel := range splitItems(channels) {
 		if item, found = pub.channels.Get(channel); found {
-			item.ErrorChannel <- errorResponse.BytesForSource(channel)
+			item.ErrorChannel <- errResp.BytesForSource(channel)
 		}
 	}
 
+	errResp.Type = channelGroupResponse
 	for _, group := range splitItems(groups) {
 		if item, found = pub.groups.Get(group); found {
-			item.ErrorChannel <- errorResponse.BytesForSource(group)
+			item.ErrorChannel <- errResp.BytesForSource(group)
 		}
 	}
 }
@@ -1716,9 +1732,7 @@ func (pub *Pubnub) getSubscribedChannels(channels string,
 // Returns:
 // b: Bool variable true incase the connection is lost.
 // bTimeOut: bool variable true in case Timeout condition is met.
-func (pub *Pubnub) checkForTimeoutAndRetries(err error,
-	errChannel chan<- []byte) (bool, bool) {
-
+func (pub *Pubnub) checkForTimeoutAndRetries(err error) (bool, bool) {
 	bRet := false
 	bTimeOut := false
 
@@ -1808,7 +1822,7 @@ func (pub *Pubnub) resetRetryAndSendResponse() bool {
 
 // retryLoop checks for the internet connection and intiates the rety logic of
 // connection fails
-func (pub *Pubnub) retryLoop(errorChannel chan<- []byte) {
+func (pub *Pubnub) retryLoop() {
 	for {
 		pub.RLock()
 		subChannels := pub.channels.ConnectedNamesString()
@@ -1827,7 +1841,7 @@ func (pub *Pubnub) retryLoop(errorChannel chan<- []byte) {
 				errorLogger.Println(fmt.Sprintf("%s, response code: %d:", err.Error(), responseCode))
 				logMu.Unlock()
 
-				pub.checkForTimeoutAndRetries(err, errorChannel)
+				pub.checkForTimeoutAndRetries(err)
 				pub.CloseExistingConnection()
 			} else if (err == nil) && (retryCountLocal > 0) {
 				pub.resetRetryAndSendResponse()
@@ -1988,7 +2002,7 @@ func (pub *Pubnub) runPresenceHeartbeat() {
 func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 	errorChannel chan<- []byte) {
 
-	go pub.retryLoop(errorChannel)
+	go pub.retryLoop()
 
 	for {
 		pub.RLock()
@@ -2012,7 +2026,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					errorLogger.Println(fmt.Sprintf("%s, response code: %d:", err.Error(), responseCode))
 					logMu.Unlock()
 
-					bNonTimeout, bTimeOut := pub.checkForTimeoutAndRetries(err, errorChannel)
+					bNonTimeout, bTimeOut := pub.checkForTimeoutAndRetries(err)
 
 					if strings.Contains(err.Error(), connectionAborted) {
 						pub.CloseExistingConnection()
@@ -2036,7 +2050,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 							}
 						}
 
-						if !resumeOnReconnect {
+						if !GetResumeOnReconnect() {
 							pub.Lock()
 							pub.resetTimeToken = true
 							pub.Unlock()
@@ -2217,20 +2231,24 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	pub.timeToken = newTimetoken
 	pub.Unlock()
 
-	if len(data) == 0 && sentTimetoken == "0" && !reconnected {
-		pub.Lock()
-		changedChannels := pub.channels.SetConnected()
-		changedGroups := pub.groups.SetConnected()
-		pub.Unlock()
+	if len(data) == 0 {
+		if sentTimetoken == "0" {
+			pub.Lock()
+			changedChannels := pub.channels.SetConnected()
+			changedGroups := pub.groups.SetConnected()
+			pub.Unlock()
 
-		if len(changedChannels) > 0 {
-			pub.sendConnectionEvent(strings.Join(changedChannels, ","),
-				"", connectionConnected)
-		}
+			if !reconnected {
+				if len(changedChannels) > 0 {
+					pub.sendConnectionEvent(strings.Join(changedChannels, ","),
+						"", connectionConnected)
+				}
 
-		if len(changedGroups) > 0 {
-			pub.sendConnectionEvent("", strings.Join(changedGroups, ","),
-				connectionConnected)
+				if len(changedGroups) > 0 {
+					pub.sendConnectionEvent("", strings.Join(changedGroups, ","),
+						connectionConnected)
+				}
+			}
 		}
 	} else if errJSON != nil {
 		logMu.Lock()
@@ -2250,15 +2268,12 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 		if len(channelNames) == 0 && len(groupNames) == 0 {
 			connectedNames := pub.channels.ConnectedNames()
 
-			for i := 0; i < len(data); i++ {
-				channelNames = append(channelNames, connectedNames[0])
+			if len(connectedNames) == 0 {
+				return
 			}
 
-			if len(channelNames) == 0 {
-				logMu.Lock()
-				errorLogger.Printf("Unable to handle response: %s", data)
-				logMu.Unlock()
-				return
+			for i := 0; i < len(data); i++ {
+				channelNames = append(channelNames, connectedNames[0])
 			}
 		}
 
@@ -3799,7 +3814,9 @@ func (pub *Pubnub) initTrans(action int) http.RoundTripper {
 		}
 	}
 	transport.MaxIdleConnsPerHost = maxIdleConnsPerHost
+	logMu.Lock()
 	infoLogger.Println(fmt.Sprintf("MaxIdleConnsPerHost set to: %d", transport.MaxIdleConnsPerHost))
+	logMu.Unlock()
 	return transport
 }
 
@@ -3861,6 +3878,7 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 			Host:   origin,
 			Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
 		}
+		// REVIEW: hardcoded client version
 		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/3.7.0", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)

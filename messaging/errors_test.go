@@ -43,3 +43,29 @@ func TestErrorResponseAsIs(t *testing.T) {
 	expected := "[0, \"hello\", \"blah\"]"
 	assert.Equal(expected, string(err.BytesForSource("blah")))
 }
+
+func TestErrorResponseTimedOutToChannel(t *testing.T) {
+	assert := assert.New(t)
+
+	err := errorResponse{
+		Message: "hello",
+		Type:    channelResponse,
+		Reason:  responseTimedOut,
+	}
+
+	expected := "[0, \"Subscription to channel timed out.\", \"blah\"]"
+	assert.Equal(expected, string(err.BytesForSource("blah")))
+}
+
+func TestErrorResponseTimedOutToGroup(t *testing.T) {
+	assert := assert.New(t)
+
+	err := errorResponse{
+		Message: "hello",
+		Type:    channelGroupResponse,
+		Reason:  responseTimedOut,
+	}
+
+	expected := "[0, \"Subscription to channel group timed out.\", \"blah\"]"
+	assert.Equal(expected, string(err.BytesForSource("blah")))
+}

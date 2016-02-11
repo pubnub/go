@@ -15,29 +15,29 @@ import (
 )
 
 // PamSubKey: key for pam tests
-var PamSubKey = "pam"
+var PamSubKey = "sub-c-90c51098-c040-11e5-a316-0619f8945a4f"
 
 // PamPubKey: key for pam tests
-var PamPubKey = "pam"
+var PamPubKey = "pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb"
 
 // PamSecKey: key for pam tests
-var PamSecKey = "pam"
+var PamSecKey = "sec-c-ZDA1ZTdlNzAtYzU4Zi00MmEwLTljZmItM2ZhMDExZTE2ZmQ5"
 
-// SubKey: key for pam tests
-var SubKey = "demo-36"
+// SubKey: key for non-pam tests
+var SubKey = "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f"
 
-// PubKey: key for pam tests
-var PubKey = "demo-36"
+// PubKey: key for non-pam tests
+var PubKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"
 
-// SecKey: key for pam tests
-var SecKey = "demo-36"
+// SecKey: key for non-pam tests
+var SecKey = "sec-c-ZjM0NzNmODgtNzE4OC00OTBjLWFhMWMtYjUxZTllYmY5YWE4"
 
 // timeoutMessage is the text message displayed when the
 // unit test times out
 var timeoutMessage = "Test timed out."
 
 // testTimeout in seconds
-var testTimeout int = 5
+var testTimeout int = 30
 
 // prefix for presence channels
 var presenceSuffix string = "-pnpres"
@@ -300,7 +300,7 @@ func ParseResponseDummyMessage(channel chan []byte, message string, responseChan
 }
 
 func ExpectConnectedEvent(t *testing.T,
-	channels, groups string, successChannel <-chan []byte) {
+	channels, groups string, successChannel, errorChannel <-chan []byte) {
 
 	var initialChannelsArray, initialGroupsArray []string
 
@@ -312,16 +312,12 @@ func ExpectConnectedEvent(t *testing.T,
 		initialGroupsArray = strings.Split(groups, ",")
 	}
 
-	select {
-	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray, "connected", successChannel):
-		//fmt.Println("Connected event")
-	case <-timeout():
-		assert.Fail(t, "Timeout occured while waiting for Connected event")
-	}
+	waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray,
+		"connected", successChannel, errorChannel)
 }
 
 func ExpectUnsubscribedEvent(t *testing.T,
-	channels, groups string, successChannel <-chan []byte) {
+	channels, groups string, successChannel, errorChannel <-chan []byte) {
 
 	var initialChannelsArray, initialGroupsArray []string
 
@@ -333,16 +329,12 @@ func ExpectUnsubscribedEvent(t *testing.T,
 		initialGroupsArray = strings.Split(groups, ",")
 	}
 
-	select {
-	case <-waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray, "unsubscribed", successChannel):
-		//fmt.Println("Disconnected event")
-	case <-timeout():
-		assert.Fail(t, "Timeout occured while waiting for Disconnected event")
-	}
+	waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray,
+		"unsubscribed", successChannel, errorChannel)
 }
 
 func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
-	action string, eventsChannel <-chan []byte) <-chan bool {
+	action string, successChannel, errorChannel <-chan []byte) {
 
 	var triggeredChannels []string
 	var triggeredGroups []string
@@ -352,7 +344,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 	go func() {
 		for {
 			select {
-			case event := <-eventsChannel:
+			case event := <-successChannel:
 				var ary []interface{}
 
 				eventString := string(event)
@@ -373,15 +365,22 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 					channel <- true
 					return
 				}
-			case <-timeout():
-				assert.Fail(t, "Timeout occured")
+			case err := <-errorChannel:
+				assert.Fail(t, string(err))
 				channel <- false
 				return
 			}
 		}
 	}()
 
-	return channel
+	select {
+	case <-channel:
+	case <-timeouts(20):
+		assert.Fail(t, fmt.Sprintf(
+			"Timeout occured for %s event. Expected channels/groups: %s/%s. "+
+				"Received channels/groups: %s/%s\n",
+			action, channels, groups, triggeredChannels, triggeredGroups))
+	}
 }
 
 func timeout() <-chan time.Time {
@@ -399,7 +398,7 @@ func GenerateTwoRandomChannelStrings(length int) (channels1, channels2 string) {
 	channelsMap := make(map[string]struct{})
 
 	for len(channelsMap) < length*2 {
-		channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+		channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 
 		if _, found := channelsMap[channel]; !found {
 			channelsMap[channel] = struct{}{}
@@ -437,6 +436,16 @@ func AssertStringSliceElementsEqual(first, second []string) bool {
 	}
 
 	return true
+}
+
+func RandomChannel() string {
+	channel, _ := GenerateTwoRandomChannelStrings(1)
+	return channel
+}
+
+func RandomChannels(length int) string {
+	channel, _ := GenerateTwoRandomChannelStrings(length)
+	return channel
 }
 
 func LogErrors(errorsChannel <-chan []byte) {
