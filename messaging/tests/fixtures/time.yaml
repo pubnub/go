@@ -1,0 +1,32 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/time/0?pnsdk=PubNub-Go%2F3.7.0&uuid=ccuid
+    method: GET
+  response:
+    body: '[14559151893214037]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "19"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Fri, 19 Feb 2016 20:53:09 GMT
+    status: 200 OK
+    code: 200

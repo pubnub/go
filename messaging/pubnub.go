@@ -291,6 +291,12 @@ type Pubnub struct {
 type PubnubUnitTest struct {
 }
 
+func SetNonSubscribeTransport(transport http.RoundTripper) {
+	nonSubscribeTransportMu.Lock()
+	nonSubscribeTransport = transport
+	nonSubscribeTransportMu.Unlock()
+}
+
 // NewPubnub initializes pubnub struct with the user provided values.
 // And then initiates the origin by appending the protocol based upon the sslOn argument.
 // Then it uses the customuuid or generates the uuid.
@@ -3681,7 +3687,7 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 //
 // returns:
 // the transport.
-func (pub *Pubnub) setOrGetTransport(action int) http.RoundTripper {
+func setOrGetTransport(action int) http.RoundTripper {
 	var transport http.RoundTripper
 	switch action {
 	case subscribeTrans:
@@ -3689,7 +3695,7 @@ func (pub *Pubnub) setOrGetTransport(action int) http.RoundTripper {
 		transport = subscribeTransport
 		subscribeTransportMu.RUnlock()
 		if transport == nil {
-			transport = pub.initTrans(action)
+			transport = initTrans(action)
 			subscribeTransportMu.Lock()
 			subscribeTransport = transport
 			subscribeTransportMu.Unlock()
@@ -3699,7 +3705,7 @@ func (pub *Pubnub) setOrGetTransport(action int) http.RoundTripper {
 		transport = nonSubscribeTransport
 		nonSubscribeTransportMu.RUnlock()
 		if transport == nil {
-			transport = pub.initTrans(action)
+			transport = initTrans(action)
 			nonSubscribeTransportMu.Lock()
 			nonSubscribeTransport = transport
 			nonSubscribeTransportMu.Unlock()
@@ -3709,7 +3715,7 @@ func (pub *Pubnub) setOrGetTransport(action int) http.RoundTripper {
 		transport = retryTransport
 		retryTransportMu.RUnlock()
 		if transport == nil {
-			transport = pub.initTrans(action)
+			transport = initTrans(action)
 			retryTransportMu.Lock()
 			retryTransport = transport
 			retryTransportMu.Unlock()
@@ -3719,7 +3725,7 @@ func (pub *Pubnub) setOrGetTransport(action int) http.RoundTripper {
 		transport = presenceHeartbeatTransport
 		presenceHeartbeatTransportMu.RUnlock()
 		if transport == nil {
-			transport = pub.initTrans(action)
+			transport = initTrans(action)
 			presenceHeartbeatTransportMu.Lock()
 			presenceHeartbeatTransport = transport
 			presenceHeartbeatTransportMu.Unlock()
@@ -3742,7 +3748,7 @@ func (pub *Pubnub) setOrGetTransport(action int) http.RoundTripper {
 //
 // returns:
 // the transport.
-func (pub *Pubnub) initTrans(action int) http.RoundTripper {
+func initTrans(action int) http.RoundTripper {
 	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		Dial: func(netw, addr string) (net.Conn, error) {
 			c, err := net.DialTimeout(netw, addr, time.Duration(connectTimeout)*time.Second)
@@ -3779,7 +3785,9 @@ func (pub *Pubnub) initTrans(action int) http.RoundTripper {
 				case presenceHeartbeatTrans:
 					presenceHeartbeatTransportMu.Lock()
 					defer presenceHeartbeatTransportMu.Unlock()
-					deadline := time.Now().Add(time.Duration(pub.GetPresenceHeartbeatInterval()) * time.Second)
+					// Temporary commented out
+					// deadline := time.Now().Add(time.Duration(pub.GetPresenceHeartbeatInterval()) * time.Second)
+					deadline := time.Now().Add(time.Duration(subscribeTimeout) * time.Second)
 					c.SetDeadline(deadline)
 					presenceHeartbeatConn = c
 					logMu.Lock()
@@ -3835,7 +3843,7 @@ func (pub *Pubnub) initTrans(action int) http.RoundTripper {
 // error is any.
 func (pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
 	var transport http.RoundTripper
-	transport = pub.setOrGetTransport(action)
+	transport = setOrGetTransport(action)
 
 	var err error
 	var httpClient *http.Client
