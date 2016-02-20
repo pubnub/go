@@ -12,19 +12,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var r *recorder.Recorder
-
 // TestTimeStart prints a message on the screen to mark the beginning of
 // time tests.
 // PrintTestMessage is defined in the common.go file.
 func TestTimeStart(t *testing.T) {
-	r, _ = recorder.New("fixtures/time")
-	messaging.SetNonSubscribeTransport(r.Transport)
 	PrintTestMessage("==========Time tests start==========")
 }
 
 // TestServerTime calls the GetTime method of the messaging to test the time
 func TestServerTime(t *testing.T) {
+	recorder, _ := recorder.New("fixtures/time")
+	defer recorder.Stop()
+	messaging.SetNonSubscribeTransport(recorder.Transport)
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "ccuid")
 
 	assert := assert.New(t)
@@ -52,6 +52,5 @@ func TestServerTime(t *testing.T) {
 // time tests.
 // PrintTestMessage is defined in the common.go file.
 func TestTimeEnd(t *testing.T) {
-	r.Stop()
 	PrintTestMessage("==========Time tests end==========")
 }
