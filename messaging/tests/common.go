@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dnaeon/go-vcr/cassette"
+	"github.com/anovikov1984/go-vcr/cassette"
 	"github.com/stretchr/testify/assert"
 )
 

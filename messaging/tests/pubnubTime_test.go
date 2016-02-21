@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dnaeon/go-vcr/recorder"
+	"github.com/anovikov1984/go-vcr/recorder"
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
 )
