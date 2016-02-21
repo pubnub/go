@@ -22,10 +22,11 @@ func TestTimeStart(t *testing.T) {
 // TestServerTime calls the GetTime method of the messaging to test the time
 func TestServerTime(t *testing.T) {
 	recorder, _ := recorder.New("fixtures/time")
+	recorder.UseMatcher(pubnubMatcher)
 	defer recorder.Stop()
 	messaging.SetNonSubscribeTransport(recorder.Transport)
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "ccuid")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "testTime")
 
 	assert := assert.New(t)
 	successChannel := make(chan []byte)

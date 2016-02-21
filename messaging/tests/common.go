@@ -7,11 +7,15 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"math/rand"
+	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/dnaeon/go-vcr/cassette"
+	"github.com/stretchr/testify/assert"
 )
 
 // PamSubKey: key for pam tests
@@ -446,6 +450,73 @@ func RandomChannel() string {
 func RandomChannels(length int) string {
 	channel, _ := GenerateTwoRandomChannelStrings(length)
 	return channel
+}
+
+func NewPubnubMatcher(skipFields []string) cassette.Matcher {
+	matcher := &PubnubMatcher{}
+
+	matcher.skipFields = skipFields
+
+	return matcher
+}
+
+type PubnubMatcher struct {
+	cassette.Matcher
+
+	skipFields []string
+}
+
+func (m *PubnubMatcher) Match(interactions []*cassette.Interaction,
+	r *http.Request) (*cassette.Interaction, error) {
+
+interactionsLoop:
+	for _, i := range interactions {
+		if r.Method != i.Request.Method {
+			continue
+		}
+
+		expectedURL, err := url.Parse(i.URL)
+		if err != nil {
+			continue
+		}
+
+		if expectedURL.Host != r.URL.Host {
+			continue
+		}
+
+		if expectedURL.Path != r.URL.Path {
+			continue
+		}
+
+		eQuery := expectedURL.Query()
+		aQuery := r.URL.Query()
+
+		for fKey, _ := range eQuery {
+			if hasKey(fKey, m.skipFields) {
+				continue
+			}
+
+			if aQuery[fKey] == nil || eQuery.Get(fKey) != aQuery.Get(fKey) {
+				continue interactionsLoop
+			}
+		}
+
+		return i, nil
+	}
+
+	return nil, cassette.InteractionNotFound
+}
+
+var pubnubMatcher cassette.Matcher = NewPubnubMatcher([]string{})
+
+func hasKey(key string, list []string) bool {
+	for _, v := range list {
+		if v == key {
+			return true
+		}
+	}
+
+	return false
 }
 
 func LogErrors(errorsChannel <-chan []byte) {
