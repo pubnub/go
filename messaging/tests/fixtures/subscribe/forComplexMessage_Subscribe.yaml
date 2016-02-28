@@ -1,0 +1,63 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/subscriptionConnectedForComplex/0/0?uuid=5115a48b407be845800ba3d0ea950d66&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[[],"14566948090820022"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "24"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Sun, 28 Feb 2016 21:26:49 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/subscriptionConnectedForComplex/0/14566948090820022?uuid=5115a48b407be845800ba3d0ea950d66&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[[{"VersionID":"3.4","TimeToken":"13601488652764619","OperationName":"Publish","Channels":["ch1","ch
+      2"],"DemoMessage":{"DefaultMessage":"\"~!@#$%^\\u0026*()_+ `1234567890-= qwertyuiop[]\\\\
+      {}| asdfghjkl;'' :\\\" zxcvbnm,./ \\u003c\\u003e? \""},"SampleXML":"\"\\u003cdata\\u003e\\u003cname\\u003eDoe\\u003c/name\\u003e\\u003cage\\u003e42\\u003c/age\\u003e\\u003c/data\\u003e\""}],"14566948092439612"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "400"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Sun, 28 Feb 2016 21:26:49 GMT
+    status: 200 OK
+    code: 200

@@ -291,10 +291,18 @@ type Pubnub struct {
 type PubnubUnitTest struct {
 }
 
+func SetSubscribeTransport(transport http.RoundTripper) {
+	subscribeTransportMu.Lock()
+	defer subscribeTransportMu.Unlock()
+
+	subscribeTransport = transport
+}
+
 func SetNonSubscribeTransport(transport http.RoundTripper) {
 	nonSubscribeTransportMu.Lock()
+	defer nonSubscribeTransportMu.Unlock()
+
 	nonSubscribeTransport = transport
-	nonSubscribeTransportMu.Unlock()
 }
 
 // NewPubnub initializes pubnub struct with the user provided values.

@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/pubnub/go/messaging"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"strings"
 	"testing"
-	"time"
+
+	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestSubscribeStart prints a message on the screen to mark the beginning of
@@ -177,52 +177,159 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 // a complex message on the same pubnub channel. The subscribe response should receive
 // the same message.
 func TestSubscriptionForComplexMessage(t *testing.T) {
+	assert := assert.New(t)
+
+	stop := NewVCRBoth("fixtures/subscribe/forComplexMessage", []string{"uuid"}, 2)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	messaging.SetSubscribeTimeout(10)
 
-	returnSubscribeChannel := make(chan []byte)
+	channel := "subscriptionConnectedForComplex"
+	customComplexMessage := InitComplexMessage()
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForComplex", "", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplex")
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				response := fmt.Sprintf("%s", resp)
+				if response != "[]" {
+					message := "'" + channel + "' connected"
+
+					if strings.Contains(response, message) {
+
+						successChannel := make(chan []byte)
+						errorChannel := make(chan []byte)
+
+						go pubnubInstance.Publish(channel, customComplexMessage,
+							successChannel, errorChannel)
+						select {
+						case <-successChannel:
+						case err := <-errorChannel:
+							assert.Fail(string(err))
+						case <-timeout():
+							assert.Fail("Publish timeout")
+						}
+					} else {
+						var arr []interface{}
+						err := json.Unmarshal(resp, &arr)
+						if err != nil {
+							assert.Fail(err.Error())
+						} else {
+							assert.True(CheckComplexData(arr))
+						}
+
+						close(await)
+						return
+					}
+				}
+			case err := <-errorChannel:
+				if !IsConnectionRefusedError(err) {
+					assert.Fail(string(err))
+				}
+
+				close(await)
+				return
+			case <-timeouts(3):
+				assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+
+		}
+	}()
+
+	<-await
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForComplexMessageWithCipher first subscribes to a pubnub channel and then publishes
 // an encrypted complex message on the same pubnub channel. The subscribe response should receive
 // the decrypted message.
 func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
+	assert := assert.New(t)
+
+	stop := NewVCRBoth("fixtures/subscribe/forComplexMessageWithCipher", []string{"uuid"}, 2)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	messaging.SetSubscribeTimeout(10)
 
-	returnSubscribeChannel := make(chan []byte)
+	channel := "subscriptionConnectedForComplexWithCipher"
+	customComplexMessage := InitComplexMessage()
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForComplexWithCipher", "enigma", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplexWithCipher")
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				response := fmt.Sprintf("%s", resp)
+				if response != "[]" {
+					message := "'" + channel + "' connected"
+
+					if strings.Contains(response, message) {
+
+						successChannel := make(chan []byte)
+						errorChannel := make(chan []byte)
+
+						go pubnubInstance.Publish(channel, customComplexMessage,
+							successChannel, errorChannel)
+						select {
+						case <-successChannel:
+						case err := <-errorChannel:
+							assert.Fail(string(err))
+						case <-timeout():
+							assert.Fail("Publish timeout")
+						}
+					} else {
+						var arr []interface{}
+						err := json.Unmarshal(resp, &arr)
+						if err != nil {
+							assert.Fail(err.Error())
+						} else {
+							assert.True(CheckComplexData(arr))
+						}
+
+						close(await)
+						return
+					}
+				}
+			case err := <-errorChannel:
+				if !IsConnectionRefusedError(err) {
+					assert.Fail(string(err))
+				}
+
+				close(await)
+				return
+			case <-timeouts(3):
+				assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+		}
+	}()
+
+	<-await
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
 }
 
 // PublishComplexMessage publises a complex message on a pubnub channel and
@@ -263,7 +370,7 @@ func ValidateComplexData(m map[string]interface{}) bool {
 	customComplexMessage := InitComplexMessage()
 	valid := false
 	for k, v := range m {
-		//fmt.Println("k:", k, "v:", v)
+		// fmt.Println("k:", k, "v:", v)
 		if k == "OperationName" {
 			if m["OperationName"].(string) == customComplexMessage.OperationName {
 				valid = true
@@ -533,7 +640,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool) {
 
 		returnPublishChannel2 := make(chan []byte)
 		errorChannelPub2 := make(chan []byte)
-		time.Sleep(time.Duration(2) * time.Second)
+		// time.Sleep(time.Duration(2) * time.Second)
 
 		go pubnubInstance.Publish(pubnubChannel, message2, returnPublishChannel2, errorChannelPub2)
 		b2, _ := ParsePublishResponseFromServer(returnPublishChannel2, errorChannelPub2)

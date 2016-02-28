@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -15,6 +16,8 @@ import (
 	"time"
 
 	"github.com/anovikov1984/go-vcr/cassette"
+	"github.com/anovikov1984/go-vcr/recorder"
+	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -303,6 +306,16 @@ func ParseResponseDummyMessage(channel chan []byte, message string, responseChan
 	}
 }
 
+func IsConnectionRefusedError(err []byte) bool {
+	er := string(err)
+	if strings.Contains(er, "http: error connecting to proxy") &&
+		strings.Contains(er, "getsockopt: connection refused") {
+		return true
+	} else {
+		return false
+	}
+}
+
 func ExpectConnectedEvent(t *testing.T,
 	channels, groups string, successChannel, errorChannel <-chan []byte) {
 
@@ -317,7 +330,7 @@ func ExpectConnectedEvent(t *testing.T,
 	}
 
 	waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray,
-		"connected", successChannel, errorChannel)
+		"connected", "join", successChannel, errorChannel)
 }
 
 func ExpectUnsubscribedEvent(t *testing.T,
@@ -334,11 +347,11 @@ func ExpectUnsubscribedEvent(t *testing.T,
 	}
 
 	waitForEventOnEveryChannel(t, initialChannelsArray, initialGroupsArray,
-		"unsubscribed", successChannel, errorChannel)
+		"unsubscribed", "leave", successChannel, errorChannel)
 }
 
 func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
-	action string, successChannel, errorChannel <-chan []byte) {
+	cnAction, prAction string, successChannel, errorChannel <-chan []byte) {
 
 	var triggeredChannels []string
 	var triggeredGroups []string
@@ -352,7 +365,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 				var ary []interface{}
 
 				eventString := string(event)
-				assert.Contains(t, eventString, action)
+				assert.Contains(t, eventString, cnAction)
 
 				err := json.Unmarshal(event, &ary)
 				if err != nil {
@@ -383,7 +396,38 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 		assert.Fail(t, fmt.Sprintf(
 			"Timeout occured for %s event. Expected channels/groups: %s/%s. "+
 				"Received channels/groups: %s/%s\n",
-			action, channels, groups, triggeredChannels, triggeredGroups))
+			cnAction, channels, groups, triggeredChannels, triggeredGroups))
+	}
+
+	go func() {
+		for {
+			select {
+			case ev := <-successChannel:
+				var event messaging.PresenceResonse
+
+				err := json.Unmarshal(ev, &event)
+				if err != nil {
+					assert.Fail(t, err.Error())
+				}
+
+				assert.Equal(t, prAction, event.Action)
+				assert.Equal(t, 200, event.Status)
+				channel <- true
+			case err := <-errorChannel:
+				assert.Fail(t, string(err))
+				channel <- false
+				return
+			}
+		}
+	}()
+
+	select {
+	case <-channel:
+	case <-timeouts(20):
+		assert.Fail(t, fmt.Sprintf(
+			"Timeout occured for %s event. Expected channels/groups: %s/%s. "+
+				"Received channels/groups: %s/%s\n",
+			prAction, channels, groups, triggeredChannels, triggeredGroups))
 	}
 }
 
@@ -452,6 +496,52 @@ func RandomChannels(length int) string {
 	return channel
 }
 
+type VCRTransportStub int
+
+const (
+	vcrStubSubscribe VCRTransportStub = 1 << iota
+	vcrStubNonSubscribe
+)
+
+func NewVCRNonSubscribe(name string, skipFields []string) {
+}
+
+func NewVCRBothRetreive(name string, skipFields []string) (
+	*recorder.Recorder, *recorder.Recorder) {
+	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
+	sMatcher := NewPubnubMatcher(skipFields)
+	s.UseMatcher(sMatcher)
+	messaging.SetSubscribeTransport(s.Transport)
+
+	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
+	nsMatcher := NewPubnubMatcher(skipFields)
+	ns.UseMatcher(nsMatcher)
+	messaging.SetNonSubscribeTransport(ns.Transport)
+
+	return s, ns
+}
+
+func NewVCRBoth(name string, skipFields []string, stimes int) func() {
+	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
+	sMatcher := NewPubnubMatcher(skipFields)
+	s.UseMatcher(sMatcher)
+	s.StopAfter(stimes)
+	messaging.SetSubscribeTransport(s.Transport)
+
+	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
+	nsMatcher := NewPubnubMatcher(skipFields)
+	ns.UseMatcher(nsMatcher)
+	messaging.SetNonSubscribeTransport(ns.Transport)
+
+	return func() {
+		s.Stop()
+		ns.Stop()
+
+		messaging.SetSubscribeTransport(nil)
+		messaging.SetNonSubscribeTransport(nil)
+	}
+}
+
 func NewPubnubMatcher(skipFields []string) cassette.Matcher {
 	matcher := &PubnubMatcher{}
 
@@ -504,7 +594,22 @@ interactionsLoop:
 		return i, nil
 	}
 
-	return nil, cassette.InteractionNotFound
+	return nil, m.errorInteractionNotFound(interactions)
+}
+
+func (m *PubnubMatcher) errorInteractionNotFound(
+	interactions []*cassette.Interaction) error {
+
+	var urlsBuffer bytes.Buffer
+
+	for _, i := range interactions {
+		urlsBuffer.WriteString(i.URL)
+		urlsBuffer.WriteString("\n")
+	}
+
+	return errors.New(fmt.Sprintf(
+		"Interaction not found in:\n%s",
+		urlsBuffer.String()))
 }
 
 var pubnubMatcher cassette.Matcher = NewPubnubMatcher([]string{})
