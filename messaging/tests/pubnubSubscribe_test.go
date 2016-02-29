@@ -26,7 +26,7 @@ func TestSubscribeStart(t *testing.T) {
 func TestSubscriptionConnectStatus(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRSubscribe("fixtures/subscribe/connectStatus", []string{"uuid"}, 1)
+	stop := NewVCRSubscribe("fixtures/subscribe/connectStatus", []string{"uuid"}, 2)
 	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
@@ -72,27 +72,53 @@ func TestSubscriptionConnectStatus(t *testing.T) {
 // TestSubscriptionAlreadySubscribed sends out a subscribe request to a pubnub channel
 // and when connected sends out another subscribe request. The response for the second
 func TestSubscriptionAlreadySubscribed(t *testing.T) {
+	assert := assert.New(t)
+
+	stop := NewVCRBoth("fixtures/subscribe/alreadySubscribed", []string{"uuid"}, 1)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
-	testName := "SubscriptionAlreadySubscribed"
+	messaging.SetSubscribeTimeout(10)
 
-	returnSubscribeChannel := make(chan []byte)
+	channel := "alreadySubscribed"
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", testName, "", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, testName)
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	select {
+	case resp := <-successChannel:
+		response := fmt.Sprintf("%s", resp)
+		if response != "[]" {
+			message := "'" + channel + "' connected"
+			assert.Contains(response, message)
+		}
+	case err := <-errorChannel:
+		if !IsConnectionRefusedError(err) {
+			assert.Fail(string(err))
+		}
+	case <-timeouts(3):
+		assert.Fail("Subscribe timeout 3s")
+	}
+
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	select {
+	case resp := <-successChannel:
+		assert.Fail(fmt.Sprintf(
+			"Receive message on success channel, while expecting error: %s",
+			string(resp)))
+	case err := <-errorChannel:
+		assert.Contains(string(err), "already subscribe")
+		assert.Contains(string(err), channel)
+	case <-timeouts(3):
+		assert.Fail("Subscribe timeout 3s")
+	}
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestMultiSubscriptionConnectStatus send out a pubnub multi channel subscribe request and
