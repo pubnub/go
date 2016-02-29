@@ -24,25 +24,49 @@ func TestSubscribeStart(t *testing.T) {
 // TestSubscriptionConnectStatus sends out a subscribe request to a pubnub channel
 // and validates the response for the connect status.
 func TestSubscriptionConnectStatus(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	assert := assert.New(t)
 
-	returnSubscribeChannel := make(chan []byte)
+	stop := NewVCRSubscribe("fixtures/subscribe/connectStatus", []string{"uuid"}, 1)
+	defer stop()
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+
+	messaging.SetSubscribeTimeout(10)
+
+	channel := "connectStatus"
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectStatus", "", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SubscriptionConnectStatus")
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	select {
+	case resp := <-successChannel:
+		response := fmt.Sprintf("%s", resp)
+		if response != "[]" {
+			message := "'" + channel + "' connected"
+			assert.Contains(response, message)
+
+			close(await)
+			return
+		}
+	case err := <-errorChannel:
+		if !IsConnectionRefusedError(err) {
+			assert.Fail(string(err))
+		}
+
+		close(await)
+		return
+	case <-timeouts(3):
+		assert.Fail("Subscribe timeout 3s")
+		close(await)
+		return
+	}
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionAlreadySubscribed sends out a subscribe request to a pubnub channel

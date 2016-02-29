@@ -503,22 +503,21 @@ const (
 	vcrStubNonSubscribe
 )
 
-func NewVCRNonSubscribe(name string, skipFields []string) {
-}
-
-func NewVCRBothRetreive(name string, skipFields []string) (
-	*recorder.Recorder, *recorder.Recorder) {
+func NewVCRSubscribe(name string, skipFields []string, stimes int) func() {
 	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
 	sMatcher := NewPubnubMatcher(skipFields)
 	s.UseMatcher(sMatcher)
+	s.StopAfter(stimes)
 	messaging.SetSubscribeTransport(s.Transport)
 
-	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
-	nsMatcher := NewPubnubMatcher(skipFields)
-	ns.UseMatcher(nsMatcher)
-	messaging.SetNonSubscribeTransport(ns.Transport)
+	return func() {
+		s.Stop()
 
-	return s, ns
+		messaging.SetSubscribeTransport(nil)
+	}
+}
+
+func NewVCRNonSubscribe(name string, skipFields []string) {
 }
 
 func NewVCRBoth(name string, skipFields []string, stimes int) func() {
