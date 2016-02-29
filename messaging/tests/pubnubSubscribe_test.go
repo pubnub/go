@@ -125,52 +125,147 @@ func ParseSubscribeResponseForMultipleChannels(returnChannel chan []byte, channe
 // TestSubscriptionForSimpleMessage first subscribes to a pubnub channel and then publishes
 // a message on the same pubnub channel. The subscribe response should receive this same message.
 func TestSubscriptionForSimpleMessage(t *testing.T) {
+	assert := assert.New(t)
+
+	stop := NewVCRBoth("fixtures/subscribe/forSimpleMessage", []string{"uuid"}, 2)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	messaging.SetSubscribeTimeout(10)
 
-	returnSubscribeChannel := make(chan []byte)
+	channel := "subscriptionConnectedForSimple"
+	customMessage := "Test message"
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForSimple", "", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimple")
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				response := fmt.Sprintf("%s", resp)
+				if response != "[]" {
+					message := "'" + channel + "' connected"
+
+					if strings.Contains(response, message) {
+
+						successChannel := make(chan []byte)
+						errorChannel := make(chan []byte)
+
+						go pubnubInstance.Publish(channel, customMessage,
+							successChannel, errorChannel)
+						select {
+						case <-successChannel:
+						case err := <-errorChannel:
+							assert.Fail(string(err))
+						case <-timeout():
+							assert.Fail("Publish timeout")
+						}
+					} else {
+						assert.Contains(response, customMessage)
+
+						close(await)
+						return
+					}
+				}
+			case err := <-errorChannel:
+				if !IsConnectionRefusedError(err) {
+					assert.Fail(string(err))
+				}
+
+				close(await)
+				return
+			case <-timeouts(3):
+				assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+
+		}
+	}()
+
+	<-await
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForSimpleMessageWithCipher first subscribes to a pubnub channel and then publishes
 // an encrypted message on the same pubnub channel. The subscribe response should receive
 // the decrypted message.
 func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
+	assert := assert.New(t)
+
+	stop := NewVCRBoth("fixtures/subscribe/forSimpleMessageWithCipher", []string{"uuid"}, 2)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	messaging.SetSubscribeTimeout(10)
 
-	returnSubscribeChannel := make(chan []byte)
+	channel := "subscriptionConnectedForSimpleWithCipher"
+	customMessage := "Test message"
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForSimpleWithCipher", "enigma", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimpleWithCipher")
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				response := fmt.Sprintf("%s", resp)
+				if response != "[]" {
+					message := "'" + channel + "' connected"
+
+					if strings.Contains(response, message) {
+
+						successChannel := make(chan []byte)
+						errorChannel := make(chan []byte)
+
+						go pubnubInstance.Publish(channel, customMessage,
+							successChannel, errorChannel)
+						select {
+						case <-successChannel:
+						case err := <-errorChannel:
+							assert.Fail(string(err))
+						case <-timeout():
+							assert.Fail("Publish timeout")
+						}
+					} else {
+						assert.Contains(response, customMessage)
+
+						close(await)
+						return
+					}
+				}
+			case err := <-errorChannel:
+				if !IsConnectionRefusedError(err) {
+					assert.Fail(string(err))
+				}
+
+				close(await)
+				return
+			case <-timeouts(3):
+				assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+		}
+	}()
+
+	<-await
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForComplexMessage first subscribes to a pubnub channel and then publishes
@@ -267,7 +362,7 @@ func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 	messaging.SetSubscribeTimeout(10)
 
 	channel := "subscriptionConnectedForComplexWithCipher"
-	customComplexMessage := InitComplexMessage()
+	customMessage := InitComplexMessage()
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -289,7 +384,7 @@ func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 						successChannel := make(chan []byte)
 						errorChannel := make(chan []byte)
 
-						go pubnubInstance.Publish(channel, customComplexMessage,
+						go pubnubInstance.Publish(channel, customMessage,
 							successChannel, errorChannel)
 						select {
 						case <-successChannel:
