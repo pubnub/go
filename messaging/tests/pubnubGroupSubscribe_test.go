@@ -6,7 +6,9 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/messaging/tests/utils"
 	"github.com/stretchr/testify/assert"
 	// "os"
 	"strings"
@@ -112,7 +114,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 			}
 		}
 
-		assert.True(AssertStringSliceElementsEqual(groups, messages),
+		assert.True(utils.AssertStringSliceElementsEqual(groups, messages),
 			fmt.Sprintf("Expected groups: %s. Actual groups: %s\n", groups, messages))
 
 		await <- true
@@ -154,7 +156,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 			}
 		}
 
-		assert.True(AssertStringSliceElementsEqual(groups, messages),
+		assert.True(utils.AssertStringSliceElementsEqual(groups, messages),
 			fmt.Sprintf("Expected groups: %s. Actual groups: %s\n", groups, messages))
 
 		await <- true

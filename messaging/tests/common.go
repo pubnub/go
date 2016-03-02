@@ -6,11 +6,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"math/rand"
-	"net/http"
-	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -18,6 +15,7 @@ import (
 	"github.com/anovikov1984/go-vcr/cassette"
 	"github.com/anovikov1984/go-vcr/recorder"
 	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/messaging/tests/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -311,6 +309,9 @@ func IsConnectionRefusedError(err []byte) bool {
 	if strings.Contains(er, "http: error connecting to proxy") &&
 		strings.Contains(er, "getsockopt: connection refused") {
 		return true
+	} else if strings.Contains(er, "Get ") &&
+		strings.Contains(er, "EOF") {
+		return true
 	} else {
 		return false
 	}
@@ -377,8 +378,8 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 				} else if strings.Contains(eventString, "channel") {
 					triggeredChannels = append(triggeredChannels, ary[2].(string))
 				}
-				if AssertStringSliceElementsEqual(triggeredChannels, channels) &&
-					AssertStringSliceElementsEqual(triggeredGroups, groups) {
+				if utils.AssertStringSliceElementsEqual(triggeredChannels, channels) &&
+					utils.AssertStringSliceElementsEqual(triggeredGroups, groups) {
 					channel <- true
 					return
 				}
@@ -460,32 +461,6 @@ func GenerateTwoRandomChannelStrings(length int) (channels1, channels2 string) {
 	return strings.Join(channelsArray[:length], ","), strings.Join(channelsArray[length:], ",")
 }
 
-func AssertStringSliceElementsEqual(first, second []string) bool {
-	if len(first) != len(second) {
-		return false
-	}
-
-	if len(first) == 0 && len(second) == 0 {
-		return true
-	}
-
-	for _, f := range first {
-		firstFound := false
-
-		for _, s := range second {
-			if f == s {
-				firstFound = true
-			}
-		}
-
-		if firstFound == false {
-			return false
-		}
-	}
-
-	return true
-}
-
 func RandomChannel() string {
 	channel, _ := GenerateTwoRandomChannelStrings(1)
 	return channel
@@ -496,6 +471,8 @@ func RandomChannels(length int) string {
 	return channel
 }
 
+var pubnubMatcher cassette.Matcher = utils.NewPubnubMatcher([]string{})
+
 type VCRTransportStub int
 
 const (
@@ -505,7 +482,7 @@ const (
 
 func NewVCRSubscribe(name string, skipFields []string, stimes int) func() {
 	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
-	sMatcher := NewPubnubMatcher(skipFields)
+	sMatcher := utils.NewPubnubSubscribeMatcher(skipFields)
 	s.UseMatcher(sMatcher)
 	s.StopAfter(stimes)
 	messaging.SetSubscribeTransport(s.Transport)
@@ -517,20 +494,16 @@ func NewVCRSubscribe(name string, skipFields []string, stimes int) func() {
 	}
 }
 
-func NewVCRNonSubscribe(name string, skipFields []string) {
-}
-
 func NewVCRBoth(name string, skipFields []string, stimes int) func() {
 	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
-	sMatcher := NewPubnubMatcher(skipFields)
-	s.UseMatcher(sMatcher)
+	s.UseMatcher(utils.NewPubnubSubscribeMatcher(skipFields))
 	s.StopAfter(stimes)
-	messaging.SetSubscribeTransport(s.Transport)
 
 	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
-	nsMatcher := NewPubnubMatcher(skipFields)
-	ns.UseMatcher(nsMatcher)
+	ns.UseMatcher(utils.NewPubnubMatcher(skipFields))
+
 	messaging.SetNonSubscribeTransport(ns.Transport)
+	messaging.SetSubscribeTransport(s.Transport)
 
 	return func() {
 		s.Stop()
@@ -539,88 +512,6 @@ func NewVCRBoth(name string, skipFields []string, stimes int) func() {
 		messaging.SetSubscribeTransport(nil)
 		messaging.SetNonSubscribeTransport(nil)
 	}
-}
-
-func NewPubnubMatcher(skipFields []string) cassette.Matcher {
-	matcher := &PubnubMatcher{}
-
-	matcher.skipFields = skipFields
-
-	return matcher
-}
-
-type PubnubMatcher struct {
-	cassette.Matcher
-
-	skipFields []string
-}
-
-func (m *PubnubMatcher) Match(interactions []*cassette.Interaction,
-	r *http.Request) (*cassette.Interaction, error) {
-
-interactionsLoop:
-	for _, i := range interactions {
-		if r.Method != i.Request.Method {
-			continue
-		}
-
-		expectedURL, err := url.Parse(i.URL)
-		if err != nil {
-			continue
-		}
-
-		if expectedURL.Host != r.URL.Host {
-			continue
-		}
-
-		if expectedURL.Path != r.URL.Path {
-			continue
-		}
-
-		eQuery := expectedURL.Query()
-		aQuery := r.URL.Query()
-
-		for fKey, _ := range eQuery {
-			if hasKey(fKey, m.skipFields) {
-				continue
-			}
-
-			if aQuery[fKey] == nil || eQuery.Get(fKey) != aQuery.Get(fKey) {
-				continue interactionsLoop
-			}
-		}
-
-		return i, nil
-	}
-
-	return nil, m.errorInteractionNotFound(interactions)
-}
-
-func (m *PubnubMatcher) errorInteractionNotFound(
-	interactions []*cassette.Interaction) error {
-
-	var urlsBuffer bytes.Buffer
-
-	for _, i := range interactions {
-		urlsBuffer.WriteString(i.URL)
-		urlsBuffer.WriteString("\n")
-	}
-
-	return errors.New(fmt.Sprintf(
-		"Interaction not found in:\n%s",
-		urlsBuffer.String()))
-}
-
-var pubnubMatcher cassette.Matcher = NewPubnubMatcher([]string{})
-
-func hasKey(key string, list []string) bool {
-	for _, v := range list {
-		if v == key {
-			return true
-		}
-	}
-
-	return false
 }
 
 func LogErrors(errorsChannel <-chan []byte) {

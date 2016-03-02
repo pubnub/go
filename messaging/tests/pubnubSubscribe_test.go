@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/messaging/tests/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +28,8 @@ func TestSubscribeStart(t *testing.T) {
 func TestSubscriptionConnectStatus(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRSubscribe("fixtures/subscribe/connectStatus", []string{"uuid"}, 2)
+	stop := NewVCRSubscribe(
+		"fixtures/subscribe/connectStatus", []string{"uuid"}, 2)
 	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
@@ -124,26 +127,77 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 // TestMultiSubscriptionConnectStatus send out a pubnub multi channel subscribe request and
 // parses the response for multiple connection status.
 func TestMultiSubscriptionConnectStatus(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	testName := "TestMultiSubscriptionConnectStatus"
-	channels, _ := GenerateTwoRandomChannelStrings(2)
+	assert := assert.New(t)
 
-	returnSubscribeChannel := make(chan []byte)
+	stop := NewVCRBoth("fixtures/subscribe/connectMultipleStatus", []string{"uuid"}, 2)
+	defer stop()
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+
+	messaging.SetSubscribeTimeout(10)
+
+	channels := "connectStatus_14,connectStatus_992"
+	expectedChannels := strings.Split(channels, ",")
+	actualChannels := []string{}
+	var actualMu sync.Mutex
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channels, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponseForMultipleChannels(returnSubscribeChannel, channels, testName, responseChannel)
+	go pubnubInstance.Subscribe(channels, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				var response []interface{}
 
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, testName)
+				err := json.Unmarshal(resp, &response)
+				if err != nil {
+					assert.Fail(err.Error())
+				}
+
+				assert.Len(response, 3)
+				assert.Contains(response[1].(string), "Subscription to channel")
+				assert.Contains(response[1].(string), "connected")
+
+				actualMu.Lock()
+				actualChannels = append(actualChannels, response[2].(string))
+				l := len(actualChannels)
+				actualMu.Unlock()
+
+				if l == 2 {
+					await <- true
+				}
+
+			case err := <-errorChannel:
+				if !IsConnectionRefusedError(err) {
+					assert.Fail(string(err))
+				}
+				fmt.Println("connection refused")
+
+				await <- false
+			case <-timeouts(5):
+				assert.Fail("Subscribe timeout 3s")
+				await <- false
+			}
+		}
+	}()
+
+	select {
+	case <-await:
+		actualMu.Lock()
+		assert.True(utils.AssertStringSliceElementsEqual(expectedChannels, actualChannels),
+			fmt.Sprintf("%s(expected) should be equal to %s(actual)", expectedChannels, actualChannels))
+		actualMu.Unlock()
+	case <-timeouts(10):
+		assert.Fail("Timeout 5s")
+	}
+
 	go pubnubInstance.Unsubscribe(channels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
 }
 
 // ParseSubscribeResponseForMultipleChannels parses the pubnub multi channel response
