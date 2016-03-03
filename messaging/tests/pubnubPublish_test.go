@@ -4,10 +4,7 @@ package tests
 
 import (
 	"encoding/json"
-	"fmt"
-	"strings"
 	"testing"
-	"time"
 
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
@@ -171,23 +168,32 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
+	assert := assert.New(t)
+
+	stop := NewVCRNonSubscribe(
+		"fixtures/publish/successCodeAndInfoForComplexMessage2WithEncryption",
+		[]string{"uuid"}, 1)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
-	channel := "testChannel"
+	channel := "successCodeAndInfoForComplexMessage2WithEncryption"
 
 	customComplexMessage := InitComplexMessage()
 
-	returnChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2WithEncryption", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoForComplexMessage2WithEncryption")
-	time.Sleep(2 * time.Second)
+	go pubnubInstance.Publish(channel, customComplexMessage,
+		successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Contains(string(msg), "1,")
+		assert.Contains(string(msg), "\"Sent\",")
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
 }
 
 func TestPublishStringWithSerialization(t *testing.T) {
@@ -311,28 +317,6 @@ func TestPublishStringWithoutSerialization(t *testing.T) {
 		successChannel, errorChannel)
 
 	<-await
-}
-
-// ParsePublishResponse parses the response from the pubnub api to validate the
-// sent status.
-func ParsePublishResponse(returnChannel chan []byte, channel string, message string, testname string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			//fmt.Println("Test '" + testname + "':" +response)
-			if strings.Contains(response, message) {
-				responseChannel <- "Test '" + testname + "': passed."
-				break
-			} else {
-				responseChannel <- "Test '" + testname + "': failed."
-				break
-			}
-		}
-	}
 }
 
 // TestPublishEnd prints a message on the screen to mark the end of
