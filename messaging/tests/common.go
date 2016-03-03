@@ -480,6 +480,27 @@ const (
 	vcrStubNonSubscribe
 )
 
+func NewVCRNonSubscribeWithSleep(name string, skipFields []string) (
+	func(), func(int)) {
+
+	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
+	nsMatcher := utils.NewPubnubMatcher(skipFields)
+	ns.UseMatcher(nsMatcher)
+	messaging.SetNonSubscribeTransport(ns.Transport)
+
+	return func() {
+			ns.Stop()
+
+			messaging.SetNonSubscribeTransport(nil)
+		}, func(seconds int) {
+			if ns.Mode() == recorder.ModeRecording {
+				time.Sleep(time.Duration(seconds) * time.Second)
+			} else {
+				// do not sleep
+			}
+		}
+}
+
 func NewVCRNonSubscribe(name string, skipFields []string) func() {
 	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
 	nsMatcher := utils.NewPubnubMatcher(skipFields)

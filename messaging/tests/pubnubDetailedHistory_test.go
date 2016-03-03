@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
@@ -47,7 +46,7 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	numberOfMessages := 10
 	startMessagesFrom := 0
 
-	stop := NewVCRNonSubscribe(fmt.Sprintf("fixtures/history/%s", testName),
+	stop, sleep := NewVCRNonSubscribeWithSleep(fmt.Sprintf("fixtures/history/%s", testName),
 		[]string{"uuid"})
 	defer stop()
 
@@ -56,7 +55,8 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	message := "Test Message "
 	channel := testName
 
-	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
+	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom,
+		numberOfMessages, message, sleep)
 
 	assert.True(messagesSent)
 
@@ -117,13 +117,14 @@ func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
 // between which the messages were sent. These received message is compared to the messages sent and
 // if all match test is successful.
 func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKey string, testName string) {
-	time.Sleep(5 * time.Second)
 	assert := assert.New(t)
 	numberOfMessages := 5
 
-	stop := NewVCRNonSubscribe(fmt.Sprintf("fixtures/history/%s", testName),
-		[]string{})
+	stop, sleep := NewVCRNonSubscribeWithSleep(fmt.Sprintf(
+		"fixtures/history/%s", testName), []string{})
 	defer stop()
+
+	sleep(5)
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipherKey, false,
 		fmt.Sprintf("uuid_%s", testName))
@@ -133,10 +134,12 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 
 	startTime := GetServerTime("start")
 	startMessagesFrom := 0
-	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
+	messagesSent := PublishMessages(pubnubInstance, channel, t,
+		startMessagesFrom, numberOfMessages, message, sleep)
 	midTime := GetServerTime("mid")
 	startMessagesFrom = 5
-	messagesSent2 := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
+	messagesSent2 := PublishMessages(pubnubInstance, channel, t,
+		startMessagesFrom, numberOfMessages, message, sleep)
 	endTime := GetServerTime("end")
 	startMessagesFrom = 0
 
@@ -249,7 +252,10 @@ func GetServerTime(uuid string) int64 {
 // message: message to send.
 //
 // returns a bool if the publish of all messages is successful.
-func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testing.T, startMessagesFrom int, numberOfMessages int, message string) bool {
+func PublishMessages(pubnubInstance *messaging.Pubnub, channel string,
+	t *testing.T, startMessagesFrom int, numberOfMessages int,
+	message string, sleep func(int)) bool {
+
 	assert := assert.New(t)
 	messagesReceived := 0
 	messageToSend := ""
@@ -273,7 +279,7 @@ func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testin
 		}
 	}
 
-	time.Sleep(3 * time.Second)
+	sleep(3)
 	if messagesReceived == numberOfMessages {
 		return true
 	}
