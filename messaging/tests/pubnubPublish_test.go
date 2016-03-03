@@ -41,8 +41,6 @@ func TestNullMessage(t *testing.T) {
 }
 
 // TestSuccessCodeAndInfo sends out a message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfo(t *testing.T) {
 	assert := assert.New(t)
 
@@ -71,8 +69,6 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 
 // TestSuccessCodeAndInfoWithEncryption sends out an encrypted
 // message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 	assert := assert.New(t)
 
@@ -100,8 +96,6 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 }
 
 // TestSuccessCodeAndInfoForComplexMessage sends out a complex message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage and customstruct is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 	assert := assert.New(t)
 
@@ -133,8 +127,6 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 }
 
 // TestSuccessCodeAndInfoForComplexMessage2 sends out a complex message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 	assert := assert.New(t)
 
@@ -165,8 +157,6 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 
 // TestSuccessCodeAndInfoForComplexMessage2WithEncryption sends out an
 // encypted complex message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
 	assert := assert.New(t)
 
