@@ -43,19 +43,6 @@ func TestNullMessage(t *testing.T) {
 	}
 }
 
-// TestUniqueGuid tests the generation of a unique GUID for the client.
-func TestUniqueGuid(t *testing.T) {
-	guid, err := messaging.GenUuid()
-	if err != nil {
-		fmt.Println("err: ", err)
-		t.Error("Test 'UniqueGuid': failed.")
-	} else if guid == "" {
-		t.Error("Test 'UniqueGuid': failed.")
-	} /*else {
-		//fmt.Println("Test 'UniqueGuid': passed.")
-	}*/
-}
-
 // TestSuccessCodeAndInfo sends out a message to the pubnub channel
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
