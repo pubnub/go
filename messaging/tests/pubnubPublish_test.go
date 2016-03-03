@@ -335,58 +335,6 @@ func ParsePublishResponse(returnChannel chan []byte, channel string, message str
 	}
 }
 
-// TestLargeMessage tests the client by publshing a large message
-// An error "message to large" should be returned from the server
-/*func TestLargeMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-	channel := "testChannel"
-	message := "This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. "
-	returnChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	go ParseLargeResponse("Message Too Large", errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "MessageTooLarge")
-}*/
-
-// ParseLargeResponse parses the returnChannel and matches the message m
-//
-// Parameters:
-// m: message to compare
-// returnChannel: the channel to read
-// responseChannel: the channel to send a response to.
-func ParseLargeResponse(m string, returnChannel chan []byte, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		returnVal := string(value)
-		if returnVal != "[]" {
-			var s []interface{}
-			errJSON := json.Unmarshal(value, &s)
-
-			if (errJSON == nil) && (len(s) > 0) {
-				if message, ok := s[1].(string); ok {
-					if message == m {
-						responseChannel <- "passed"
-					} else {
-						responseChannel <- "failed"
-					}
-				} else {
-					responseChannel <- "failed"
-				}
-			} else {
-				responseChannel <- "failed"
-			}
-			break
-		}
-	}
-}
-
 // TestPublishEnd prints a message on the screen to mark the end of
 // publish tests.
 // PrintTestMessage is defined in the common.go file.
