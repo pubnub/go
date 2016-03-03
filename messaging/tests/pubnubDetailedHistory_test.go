@@ -88,24 +88,6 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	}
 }
 
-// TestDetailedHistoryParamsFor10MessagesWithSeretKey publish's 10 unencrypted secret keyed messages
-// to a pubnub channel, and after that calls the history method of the messaging package to fetch
-// last 10 messages with time parameters between which the messages were sent. These received
-// messages are compared to the messages sent and if all match test is successful.
-func xTestDetailedHistoryParamsFor10MessagesWithSeretKey(t *testing.T) {
-	testName := "historyFor10MessagesWithSeretKey"
-	DetailedHistoryParamsFor10Messages(t, "", "secret", testName)
-}
-
-// TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey publish's 10 encrypted secret keyed messages
-// to a pubnub channel, and after that calls the history method of the messaging package to fetch
-// last 10 messages with time parameters between which the messages were sent. These received
-// messages are compared to the messages sent and if all match test is successful.
-func xTestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey(t *testing.T) {
-	testName := "historyFor10EncryptedMessagesWithSeretKey"
-	DetailedHistoryParamsFor10Messages(t, "enigma", "secret", testName)
-}
-
 // TestDetailedHistoryParamsFor10Messages publish's 10 unencrypted messages
 // to a pubnub channel, and after that calls the history method of the messaging package to fetch
 // last 10 messages with time parameters between which the messages were sent. These received
