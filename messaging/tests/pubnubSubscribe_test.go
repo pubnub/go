@@ -200,32 +200,6 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	ExpectUnsubscribedEvent(t, channels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 }
 
-// ParseSubscribeResponseForMultipleChannels parses the pubnub multi channel response
-// for the number or channels connected and matches them to the connected channels.
-func ParseSubscribeResponseForMultipleChannels(returnChannel chan []byte, channels string, testName string, responseChannel chan string) {
-	noOfChannelsConnected := 0
-	channelArray := strings.Split(channels, ",")
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			message := "' connected"
-			messageReconn := "' reconnected"
-			//fmt.Println("response: ", response)
-			if (strings.Contains(response, message)) || (strings.Contains(response, messageReconn)) {
-				noOfChannelsConnected++
-				if noOfChannelsConnected >= len(channelArray) {
-					responseChannel <- "Test '" + testName + "': passed."
-					break
-				}
-			}
-		}
-	}
-}
-
 // TestSubscriptionForSimpleMessage first subscribes to a pubnub channel and then publishes
 // a message on the same pubnub channel. The subscribe response should receive this same message.
 func TestSubscriptionForSimpleMessage(t *testing.T) {
