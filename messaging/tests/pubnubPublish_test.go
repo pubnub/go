@@ -102,28 +102,6 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 	}
 }
 
-// TestSuccessCodeAndInfoWithSecretAndEncryption sends out an encrypted
-// secret keyed message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage is defined in the common.go file
-func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "enigma", false, "")
-	channel := "testChannel"
-	message := "Pubnub API Usage Example"
-	returnChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoWithSecretAndEncryption", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoWithSecretAndEncryption")
-	time.Sleep(2 * time.Second)
-}
-
 // TestSuccessCodeAndInfoForComplexMessage sends out a complex message to the pubnub channel
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage and customstruct is defined in the common.go file
