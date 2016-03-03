@@ -166,30 +166,6 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 	}
 }
 
-// TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption sends out an
-// encypted and secret keyed complex message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage and InitComplexMessage is defined in the common.go file
-func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "secret", "enigma", false, "")
-	channel := "testChannel"
-
-	customComplexMessage := InitComplexMessage()
-
-	returnChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-
-	go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption")
-	time.Sleep(2 * time.Second)
-}
-
 // TestSuccessCodeAndInfoForComplexMessage2WithEncryption sends out an
 // encypted complex message to the pubnub channel
 // The response is parsed and should match the 'sent' status.
