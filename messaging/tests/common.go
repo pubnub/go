@@ -480,7 +480,7 @@ const (
 	vcrStubNonSubscribe
 )
 
-func NewVCRNonSubscribe(name string, skipFields []string, stimes int) func() {
+func NewVCRNonSubscribe(name string, skipFields []string) func() {
 	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
 	nsMatcher := utils.NewPubnubMatcher(skipFields)
 	ns.UseMatcher(nsMatcher)

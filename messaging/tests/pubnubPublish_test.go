@@ -45,7 +45,7 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewVCRNonSubscribe("fixtures/publish/successCodeAndInfo",
-		[]string{"uuid"}, 1)
+		[]string{"uuid"})
 	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
@@ -73,7 +73,7 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewVCRNonSubscribe(
-		"fixtures/publish/successCodeAndInfoWithEncryption", []string{"uuid"}, 1)
+		"fixtures/publish/successCodeAndInfoWithEncryption", []string{"uuid"})
 	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
@@ -100,7 +100,7 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewVCRNonSubscribe(
-		"fixtures/publish/successCodeAndInfoForComplexMessage", []string{"uuid"}, 1)
+		"fixtures/publish/successCodeAndInfoForComplexMessage", []string{"uuid"})
 	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
@@ -131,7 +131,7 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewVCRNonSubscribe(
-		"fixtures/publish/successCodeAndInfoForComplexMessage2", []string{"uuid"}, 1)
+		"fixtures/publish/successCodeAndInfoForComplexMessage2", []string{"uuid"})
 	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
@@ -162,7 +162,7 @@ func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
 
 	stop := NewVCRNonSubscribe(
 		"fixtures/publish/successCodeAndInfoForComplexMessage2WithEncryption",
-		[]string{"uuid"}, 1)
+		[]string{"uuid"})
 	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
