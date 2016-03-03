@@ -54,10 +54,10 @@ interactionsLoop:
 		}
 
 		if !m.matchPath(expectedURL.Path, r.URL.Path) {
-			fmt.Println("!!!!!!!!!!!!!!paths doesnt match", expectedURL.Path, r.URL.Path)
+			// fmt.Println("!!!!!!!!!!!!!!paths doesnt match", expectedURL.Path, r.URL.Path)
 			continue
 		} else {
-			fmt.Println("!!!!!!!!!!!!!!paths MATCH", expectedURL.Path, r.URL.Path)
+			// fmt.Println("!!!!!!!!!!!!!!paths MATCH", expectedURL.Path, r.URL.Path)
 		}
 
 		eQuery := expectedURL.Query()

@@ -47,21 +47,29 @@ func TestNullMessage(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfo(t *testing.T) {
+	assert := assert.New(t)
+
+	stop := NewVCRNonSubscribe("fixtures/publish/successCodeAndInfo",
+		[]string{"uuid"}, 1)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	channel := "testChannel"
+	channel := "successCodeAndInfo"
 	message := "Pubnub API Usage Example"
-	returnChannel := make(chan []byte)
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfo", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfo")
-	time.Sleep(2 * time.Second)
+	go pubnubInstance.Publish(channel, message, successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Contains(string(msg), "1,")
+		assert.Contains(string(msg), "\"Sent\",")
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
 }
 
 // TestSuccessCodeAndInfoWithEncryption sends out an encrypted
@@ -69,21 +77,29 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 // The response is parsed and should match the 'sent' status.
 // _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
+	assert := assert.New(t)
+
+	stop := NewVCRNonSubscribe(
+		"fixtures/publish/successCodeAndInfoWithEncryption", []string{"uuid"}, 1)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
-	channel := "testChannel"
+	channel := "successCodeAndInfo"
 	message := "Pubnub API Usage Example"
-	returnChannel := make(chan []byte)
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoWithEncryption", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoWithEncryption")
-	time.Sleep(2 * time.Second)
+	go pubnubInstance.Publish(channel, message, successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Contains(string(msg), "1,")
+		assert.Contains(string(msg), "\"Sent\",")
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
 }
 
 // TestSuccessCodeAndInfoWithSecretAndEncryption sends out an encrypted
