@@ -5,11 +5,12 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubnub/go/messaging"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestPublishStart prints a message on the screen to mark the beginning of
@@ -22,22 +23,24 @@ func TestPublishStart(t *testing.T) {
 // TestNullMessage sends out a null message to a pubnub channel. The response should
 // be an "Invalid Message".
 func TestNullMessage(t *testing.T) {
+	assert := assert.New(t)
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	channel := "testChannel"
+	channel := "nullMessage"
 	var message interface{}
 	message = nil
-	returnChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	//go ParsePublishResponse(returnChannel, channel, "Invalid Message", "NullMessage", responseChannel)
-	go ParseResponseDummy(returnChannel)
-	go ParseErrorResponseForTestSuccess("Invalid Message", errorChannel, responseChannel)
-	//go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "NullMessage")
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnubInstance.Publish(channel, message, successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Fail("Response on success channel while expecting an error", string(msg))
+	case err := <-errorChannel:
+		assert.Contains(string(err), "Invalid Message")
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
 }
 
 // TestUniqueGuid tests the generation of a unique GUID for the client.
