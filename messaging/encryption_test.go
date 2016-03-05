@@ -1,6 +1,6 @@
 // Package tests has the unit tests of package messaging.
 // pubnubEncryption_test.go contains the tests related to the Encryption/Decryption of messages
-package tests
+package messaging
 
 import (
 	"encoding/json"
