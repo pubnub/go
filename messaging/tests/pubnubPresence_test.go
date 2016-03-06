@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
@@ -436,9 +435,13 @@ func TestSetUserStateGlobalHereNow(t *testing.T) {
 func TestSetUserStateJSON(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	stop, sleep := NewVCRNonSubscribeWithSleep(
+		"fixtures/presence/setUserStateJSON", []string{"uuid"})
+	defer stop()
 
-	channel := RandomChannel()
+	channel := "Channel_SetUserStateJSON"
+	uuid := "UUID_SetUserStateJSON"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
 
 	key1 := "testkey"
 	val1 := "testval"
@@ -462,7 +465,7 @@ func TestSetUserStateJSON(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(PresenceServerTimeoutLower)
+	sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.SetUserStateKeyVal(channel, key2, "", successSet, errorSet)
 	select {
