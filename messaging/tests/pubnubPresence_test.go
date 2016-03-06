@@ -87,11 +87,16 @@ func TestCustomUuid(t *testing.T) {
 // the subscribe call. The method that parses the presence response sets the global
 // variable _endPresenceTestAsSuccess to true if the presence contains a join info
 // on the channel and _endPresenceTestAsFailure is otherwise.
-func Test0Presence(t *testing.T) {
+func xTest0Presence(t *testing.T) {
 	assert := assert.New(t)
-	customUuid := "customuuid"
+
+	stop := NewVCRBoth(
+		"fixtures/presence/zeroPresence", []string{"uuid"}, 3)
+	defer stop()
+
+	customUuid := "UUID_zeroPresence"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, customUuid)
-	channel := RandomChannel()
+	channel := "Channel_ZeroPresence"
 
 	successSubscribe := make(chan []byte)
 	errorSubscribe := make(chan []byte)
