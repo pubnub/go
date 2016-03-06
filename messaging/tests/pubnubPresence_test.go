@@ -211,9 +211,14 @@ func TestWhereNow(t *testing.T) {
 // be greater than one.
 func TestGlobalHereNow(t *testing.T) {
 	assert := assert.New(t)
-	uuid := "customuuid"
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/presence/globalWhereNow", []string{"uuid"}, 1)
+	defer stop()
+
+	uuid := "UUID_GlobalWhereNow"
+	channel := "Channel_GlobalWhereNow"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
-	channel := RandomChannel()
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -225,7 +230,7 @@ func TestGlobalHereNow(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-	time.Sleep(PresenceServerTimeoutLower)
+	sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.GlobalHereNow(true, false, successGet, errorGet)
 	select {
