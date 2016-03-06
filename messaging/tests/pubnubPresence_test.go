@@ -20,7 +20,7 @@ func TestPresenceStart(t *testing.T) {
 }
 
 const PresenceServerTimeoutHighter = 5
-const PresenceServerTimeoutLower = 5 * time.Second
+const PresenceServerTimeoutLower = 3
 
 // TestCustomUuid subscribes to a pubnub channel using a custom uuid and then
 // makes a call to the herenow method of the pubnub api. The custom id should
@@ -169,9 +169,14 @@ func xTest0Presence(t *testing.T) {
 // be greater than one.
 func TestWhereNow(t *testing.T) {
 	assert := assert.New(t)
-	uuid := "customuuid"
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/presence/whereNow", []string{"uuid"}, 1)
+	defer stop()
+
+	uuid := "UUID_WhereNow"
+	channel := "Channel_WhereNow"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
-	channel := RandomChannel()
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -183,7 +188,7 @@ func TestWhereNow(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-	time.Sleep(PresenceServerTimeoutLower)
+	sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.WhereNow(uuid, successGet, errorGet)
 	select {
