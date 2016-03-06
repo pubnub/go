@@ -400,35 +400,38 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 			cnAction, channels, groups, triggeredChannels, triggeredGroups))
 	}
 
-	go func() {
-		for {
-			select {
-			case ev := <-successChannel:
-				var event messaging.PresenceResonse
+	if "unsubscribed" == cnAction {
+		fmt.Println("####################### await unsubscribe")
+		go func() {
+			for {
+				select {
+				case ev := <-successChannel:
+					var event messaging.PresenceResonse
 
-				err := json.Unmarshal(ev, &event)
-				if err != nil {
-					assert.Fail(t, err.Error())
+					err := json.Unmarshal(ev, &event)
+					if err != nil {
+						assert.Fail(t, err.Error())
+					}
+
+					assert.Equal(t, prAction, event.Action)
+					assert.Equal(t, 200, event.Status)
+					channel <- true
+				case err := <-errorChannel:
+					assert.Fail(t, string(err))
+					channel <- false
+					return
 				}
-
-				assert.Equal(t, prAction, event.Action)
-				assert.Equal(t, 200, event.Status)
-				channel <- true
-			case err := <-errorChannel:
-				assert.Fail(t, string(err))
-				channel <- false
-				return
 			}
-		}
-	}()
+		}()
 
-	select {
-	case <-channel:
-	case <-timeouts(20):
-		assert.Fail(t, fmt.Sprintf(
-			"Timeout occured for %s event. Expected channels/groups: %s/%s. "+
-				"Received channels/groups: %s/%s\n",
-			prAction, channels, groups, triggeredChannels, triggeredGroups))
+		select {
+		case <-channel:
+		case <-timeouts(20):
+			assert.Fail(t, fmt.Sprintf(
+				"Timeout occured for %s event. Expected channels/groups: %s/%s. "+
+					"Received channels/groups: %s/%s\n",
+				prAction, channels, groups, triggeredChannels, triggeredGroups))
+		}
 	}
 }
 
@@ -526,6 +529,35 @@ func NewVCRSubscribe(name string, skipFields []string, stimes int) func() {
 
 		messaging.SetSubscribeTransport(nil)
 	}
+}
+
+func NewVCRBothWithSleep(name string, skipFields []string, stimes int) (
+	func(), func(int)) {
+
+	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
+	s.UseMatcher(utils.NewPubnubSubscribeMatcher(skipFields))
+	s.StopAfter(stimes)
+
+	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
+	ns.UseMatcher(utils.NewPubnubMatcher(skipFields))
+
+	messaging.SetNonSubscribeTransport(ns.Transport)
+	messaging.SetSubscribeTransport(s.Transport)
+
+	return func() {
+			s.Stop()
+			ns.Stop()
+
+			messaging.SetSubscribeTransport(nil)
+			messaging.SetNonSubscribeTransport(nil)
+		}, func(seconds int) {
+			mode := recorder.ModeRecording
+			if ns.Mode() == mode && s.Mode() == mode {
+				time.Sleep(time.Duration(seconds) * time.Second)
+			} else {
+				// do not sleep
+			}
+		}
 }
 
 func NewVCRBoth(name string, skipFields []string, stimes int) func() {
