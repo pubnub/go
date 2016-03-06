@@ -5,10 +5,11 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubnub/go/messaging"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestPresenceStart prints a message on the screen to mark the beginning of
@@ -18,17 +19,24 @@ func TestPresenceStart(t *testing.T) {
 	PrintTestMessage("==========Presence tests start==========")
 }
 
-const PresenceServerTimeoutHighter = 30 * time.Second
-const PresenceServerTimeoutLower = 15 * time.Second
+const PresenceServerTimeoutHighter = 5
+const PresenceServerTimeoutLower = 5 * time.Second
 
 // TestCustomUuid subscribes to a pubnub channel using a custom uuid and then
 // makes a call to the herenow method of the pubnub api. The custom id should
 // be present in the response else the test fails.
 func TestCustomUuid(t *testing.T) {
 	assert := assert.New(t)
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/presence/customUuid", []string{"uuid"}, 1)
+	defer stop()
+
+	messaging.SetSubscribeTimeout(10)
+
 	uuid := "customuuid"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
-	channel := RandomChannel()
+	channel := "customUuid"
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -40,7 +48,7 @@ func TestCustomUuid(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-	time.Sleep(PresenceServerTimeoutHighter)
+	sleep(PresenceServerTimeoutHighter)
 
 	go pubnubInstance.HereNow(channel, true, true, successGet, errorGet)
 	select {
@@ -72,8 +80,6 @@ func TestCustomUuid(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestPresence subscribes to the presence notifications on a pubnub channel and
