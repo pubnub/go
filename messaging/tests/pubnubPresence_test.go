@@ -374,8 +374,14 @@ func TestSetUserStateHereNow(t *testing.T) {
 
 func TestSetUserStateGlobalHereNow(t *testing.T) {
 	assert := assert.New(t)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-	channel := RandomChannel()
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/presence/setUserStateGlobalHereNow", []string{"uuid"}, 1)
+	defer stop()
+
+	channel := "Channel_SetUserStateGlobalHereNow"
+	uuid := "UUID_SetUserStateGlobalHereNow"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
 
 	key := "testkey"
 	val := "testval"
@@ -405,7 +411,7 @@ func TestSetUserStateGlobalHereNow(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(PresenceServerTimeoutLower)
+	sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.GlobalHereNow(true, true, successGet, errorGet)
 	select {
