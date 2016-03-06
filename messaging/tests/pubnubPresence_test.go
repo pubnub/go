@@ -253,8 +253,14 @@ func TestGlobalHereNow(t *testing.T) {
 // be greater than one.
 func TestSetGetUserState(t *testing.T) {
 	assert := assert.New(t)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-	channel := RandomChannel()
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/presence/setGetUserState", []string{"uuid"}, 1)
+	defer stop()
+
+	uuid := "UUID_SetGetUserState"
+	channel := "Channel_SetGetUserState"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
 
 	key := "testkey"
 	val := "testval"
@@ -284,7 +290,7 @@ func TestSetGetUserState(t *testing.T) {
 		assert.Fail("Set state timeout")
 	}
 
-	time.Sleep(PresenceServerTimeoutLower)
+	sleep(PresenceServerTimeoutLower)
 
 	go pubnubInstance.GetUserState(channel, successGet, errorGet)
 	select {
