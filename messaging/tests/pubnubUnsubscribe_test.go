@@ -3,8 +3,8 @@
 package tests
 
 import (
+	"encoding/json"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -45,71 +45,64 @@ func TestUnsubscribeNotSubscribed(t *testing.T) {
 
 // TestUnsubscribe will subscribe to a pubnub channel and then send an unsubscribe request
 // The response should contain 'unsubscribed'
-func TestUnsubscribe(t *testing.T) {
+func TestUnsubscribeChannel(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/unsubscribe/channel", []string{"uuid"}, 1)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
-	channel := "testChannel"
+	channel := "Channel_UnsubscribeChannel"
 
-	returnSubscribeChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
+	subscribeSuccessChannel := make(chan []byte)
+	subscribeErrorChannel := make(chan []byte)
+	unSubscribeSuccessChannel := make(chan []byte)
+	unSubscribeErrorChannel := make(chan []byte)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance, returnSubscribeChannel, channel, "connected", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "Unsubscribe")
-}
-
-// ParseSubscribeResponseAndCallUnsubscribe will parse the response on the go channel.
-// It will check the subscribe connection status and when connected
-// it will initiate the unsubscribe request.
-func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *messaging.Pubnub, returnChannel chan []byte, channel string, message string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			message = "'" + channel + "' " + message
-
-			if strings.Contains(response, message) {
-				returnUnsubscribeChannel := make(chan []byte)
-				errorChannel := make(chan []byte)
-
-				go pubnubInstance.Unsubscribe(channel, returnUnsubscribeChannel, errorChannel)
-				go ParseUnsubscribeResponse(returnUnsubscribeChannel, channel, "unsubscribed", responseChannel)
-				go ParseResponseDummy(errorChannel)
-
-				break
-			}
-		}
+	go pubnubInstance.Subscribe(channel, "", subscribeSuccessChannel,
+		false, subscribeErrorChannel)
+	select {
+	case msg := <-subscribeSuccessChannel:
+		val := string(msg)
+		assert.Equal(val, fmt.Sprintf(
+			"[1, \"Subscription to channel '%s' connected\", \"%s\"]",
+			channel, channel))
+	case err := <-subscribeErrorChannel:
+		assert.Fail(string(err))
 	}
-}
 
-// ParseUnsubscribeResponse will parse the unsubscribe response on the go channel.
-// If it contains unsubscribed the test will pass.
-func ParseUnsubscribeResponse(returnChannel chan []byte, channel string, message string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			//fmt.Printf("response:",response);
-			//fmt.Printf("message:", message);
-			if strings.Contains(response, message) {
-				responseChannel <- "Test '" + message + "': passed."
-				break
-			} else {
-				responseChannel <- "Test '" + message + "': failed."
-				break
-			}
-		}
+	sleep(2)
+
+	go pubnubInstance.Unsubscribe(channel, unSubscribeSuccessChannel,
+		unSubscribeErrorChannel)
+	select {
+	case msg := <-unSubscribeSuccessChannel:
+		val := string(msg)
+		assert.Equal(val, fmt.Sprintf(
+			"[1, \"Subscription to channel '%s' unsubscribed\", \"%s\"]",
+			channel, channel))
+	case err := <-unSubscribeErrorChannel:
+		assert.Fail(string(err))
 	}
+
+	select {
+	case ev := <-unSubscribeSuccessChannel:
+		var event messaging.PresenceResonse
+
+		err := json.Unmarshal(ev, &event)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		assert.Equal("leave", event.Action)
+		assert.Equal(200, event.Status)
+	case err := <-unSubscribeErrorChannel:
+		assert.Fail(string(err))
+	}
+
+	pubnubInstance.CloseExistingConnection()
 }
 
 // TestUnsubscribeEnd prints a message on the screen to mark the end of
