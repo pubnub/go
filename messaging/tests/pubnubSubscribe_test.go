@@ -129,12 +129,10 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth("fixtures/subscribe/connectMultipleStatus", []string{"uuid"}, 2)
+	stop := NewVCRBoth("fixtures/subscribe/connectMultipleStatus", []string{"uuid"}, 1)
 	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-
-	messaging.SetSubscribeTimeout(10)
 
 	channels := "connectStatus_14,connectStatus_992"
 	expectedChannels := strings.Split(channels, ",")
@@ -197,8 +195,6 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	case <-timeouts(10):
 		assert.Fail("Timeout 5s")
 	}
-
-	PublishHack(t, pubnubInstance, expectedChannels[0], successChannel, errorChannel)
 
 	go pubnubInstance.Unsubscribe(channels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)

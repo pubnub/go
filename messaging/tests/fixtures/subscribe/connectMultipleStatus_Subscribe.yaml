@@ -9,10 +9,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/connectStatus_14,connectStatus_992/0/0?uuid=c821a0f5405c4cc6807068abe945ed34&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/connectStatus_14,connectStatus_992/0/0?uuid=4111ba2340b695a380987d74c8659cc4&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '[[],"14574191247327758",""]'
+    body: '[[],"14574402416465106",""]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -27,35 +27,6 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 06:42:25 GMT
-    status: 200 OK
-    code: 200
-- request:
-    body: ""
-    form: {}
-    headers:
-      Accept-Encoding:
-      - gzip
-      User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/connectStatus_14,connectStatus_992/0/14574191247327758?uuid=c821a0f5405c4cc6807068abe945ed34&pnsdk=PubNub-Go%2F3.7.0
-    method: GET
-  response:
-    body: '[["HACK"],"14574193454161451","connectStatus_14"]'
-    headers:
-      Access-Control-Allow-Methods:
-      - GET
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Length:
-      - "49"
-      Content-Type:
-      - text/javascript; charset="UTF-8"
-      Date:
-      - Tue, 08 Mar 2016 06:42:25 GMT
+      - Tue, 08 Mar 2016 12:32:21 GMT
     status: 200 OK
     code: 200
