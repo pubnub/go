@@ -653,32 +653,40 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipher, false, "")
 	channel := "Channel_MultipleResponse"
 
-	returnTimeChannel := make(chan []byte)
-	errorChannelTime := make(chan []byte)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
 
-	go pubnubInstance.GetTime(returnTimeChannel, errorChannelTime)
-
-	retTime, errTime := ParseTimeFromServer(returnTimeChannel, errorChannelTime)
-	assert.NoError(errTime)
+	retTime := GetServerTimeString("time_uuid")
+	fmt.Println("time is", retTime)
 
 	message1 := "message1"
 	message2 := "message2"
 
-	returnPublishChannel := make(chan []byte)
-	errorChannelPub := make(chan []byte)
+	successChannelPublish := make(chan []byte)
+	errorChannelPublish := make(chan []byte)
 
-	go pubnubInstance.Publish(channel, message1, returnPublishChannel, errorChannelPub)
-	b1, _ := ParsePublishResponseFromServer(returnPublishChannel, errorChannelPub)
-	assert.True(b1)
+	go pubnubInstance.Publish(channel, message1, successChannelPublish,
+		errorChannelPublish)
+	select {
+	case <-successChannelPublish:
+	case err := <-errorChannelPublish:
+		assert.Fail("Publish #1 error", string(err))
+	case <-timeout():
+		assert.Fail("Publish #1 timeout")
+	}
 
-	returnPublishChannel2 := make(chan []byte)
-	errorChannelPub2 := make(chan []byte)
+	successChannelPublish2 := make(chan []byte)
+	errorChannelPublish2 := make(chan []byte)
 
-	go pubnubInstance.Publish(channel, message2, returnPublishChannel2, errorChannelPub2)
-	b2, _ := ParsePublishResponseFromServer(returnPublishChannel2, errorChannelPub2)
-	assert.True(b2)
+	go pubnubInstance.Publish(channel, message2, successChannelPublish2,
+		errorChannelPublish2)
+	select {
+	case <-successChannelPublish2:
+	case err := <-errorChannelPublish2:
+		assert.Fail("Publish #2 error", string(err))
+	case <-timeout():
+		assert.Fail("Publish #2 timeout")
+	}
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -738,72 +746,6 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
 	pubnubInstance.CloseExistingConnection()
-}
-
-// ParsePublishResponseFromServer returns true if the "Sent" message is found
-// on the returnChannel's response.
-// On error it returns the error.
-func ParsePublishResponseFromServer(returnChannel chan []byte, errorChannel chan []byte) (bool, error) {
-	retBool := false
-	retError := fmt.Errorf("")
-
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			message := "Sent"
-			//fmt.Println("response:", string(value), strings.Contains(response, message))
-			if strings.Contains(response, message) {
-				retBool = true
-			}
-			break
-		}
-	}
-	return retBool, retError
-}
-
-// ParseTimeResponse parses the time response from the pubnub api.
-// On error it returns the error
-func ParseTimeFromServer(returnChannel chan []byte, errorChannel chan []byte) (string, error) {
-	retVal := ""
-	retError := fmt.Errorf("")
-	for {
-		select {
-		case value, ok := <-returnChannel:
-			if !ok {
-				fmt.Println("")
-				break
-			}
-
-			if string(value) != "[]" {
-				var s []interface{}
-				err := json.Unmarshal(value, &s)
-				//fmt.Println("response:", string(value))
-				if err == nil {
-					retVal = messaging.ParseInterfaceData(s[0])
-					return retVal, nil
-				}
-				retError = err
-				return "", retError
-			}
-			break
-		case value, ok := <-errorChannel:
-			if !ok {
-				fmt.Println("")
-				break
-			}
-
-			if string(value) != "[]" {
-				retError = fmt.Errorf(timeoutMessage)
-				return "", retError
-			}
-			break
-		}
-	}
-	return retVal, retError
 }
 
 // TestResumeOnReconnectFalse upon reconnect, it should use a 0 (zero) timetoken.

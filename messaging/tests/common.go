@@ -8,6 +8,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -603,6 +604,33 @@ func PublishHack(t *testing.T, pubnubInstance *messaging.Pubnub, channel string,
 	case <-messaging.Timeout():
 		assert.Fail("PublishHack() receive message timeout")
 	}
+}
+
+func GetServerTimeString(uuid string) string {
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false,
+		fmt.Sprintf("timeGetter_%s", uuid))
+
+	go pubnubInstance.GetTime(successChannel, errorChannel)
+	select {
+	case value := <-successChannel:
+		return strings.Trim(string(value), "[]\n")
+	case err := <-errorChannel:
+		panic(string(err))
+	case <-timeouts(10):
+		panic("Getting server timestamp timeout")
+	}
+}
+
+func GetServerTime(uuid string) int64 {
+	timestamp, err := strconv.Atoi(GetServerTimeString(uuid))
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return int64(timestamp)
 }
 
 func LogErrors(errorsChannel <-chan []byte) {

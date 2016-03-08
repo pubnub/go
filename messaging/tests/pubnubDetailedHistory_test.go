@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/pubnub/go/messaging"
@@ -209,34 +208,6 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 		assert.Equal(numberOfMessages, messagesReceived)
 	case err := <-errorChannel:
 		assert.Fail(string(err))
-	}
-}
-
-// GetServerTime calls the GetTime method of the messaging, parses the response to get the
-// value and return it.
-func GetServerTime(uuid string) int64 {
-	successChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false,
-		fmt.Sprintf("timeGetter_%s", uuid))
-
-	go pubnubInstance.GetTime(successChannel, errorChannel)
-	select {
-	case value := <-successChannel:
-		response := string(value)
-		timestamp, err := strconv.Atoi(strings.Trim(response, "[]\n"))
-		if err != nil {
-			panic(err.Error())
-		}
-
-		return int64(timestamp)
-	case err := <-errorChannel:
-		panic(string(err))
-		return 0
-	case <-timeouts(10):
-		panic("Getting server timestamp timeout")
-		return 0
 	}
 }
 
