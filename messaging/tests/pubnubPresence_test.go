@@ -86,7 +86,7 @@ func TestCustomUuid(t *testing.T) {
 // the subscribe call. The method that parses the presence response sets the global
 // variable _endPresenceTestAsSuccess to true if the presence contains a join info
 // on the channel and _endPresenceTestAsFailure is otherwise.
-func xTest0Presence(t *testing.T) {
+func Test0Presence(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewVCRBoth(
@@ -110,45 +110,43 @@ func xTest0Presence(t *testing.T) {
 	ExpectConnectedEvent(t, channel, "", successPresence, errorPresence)
 
 	go func() {
-		for {
-			select {
-			case value := <-successPresence:
-				data, _, returnedChannel, err := messaging.ParseJSON(value, "")
-				if err != nil {
-					assert.Fail(err.Error())
-				}
-
-				var occupants []struct {
-					Action    string
-					Uuid      string
-					Timestamp float64
-					Occupancy int
-				}
-
-				err = json.Unmarshal([]byte(data), &occupants)
-				if err != nil {
-					assert.Fail(err.Error())
-				}
-
-				channelSubRepsonseReceived := false
-				for i := 0; i < len(occupants); i++ {
-					if (occupants[i].Action == "join") && occupants[i].Uuid == customUuid {
-						channelSubRepsonseReceived = true
-						break
-					}
-				}
-
-				assert.True(channelSubRepsonseReceived)
-				assert.Equal(channel, returnedChannel)
-
-				await <- true
-			case err := <-errorPresence:
-				await <- false
-				assert.Fail("Failed to subscribe to presence", string(err))
-			case <-timeouts(15):
-				assert.Fail("Presence timeout")
-				await <- false
+		select {
+		case value := <-successPresence:
+			data, _, returnedChannel, err := messaging.ParseJSON(value, "")
+			if err != nil {
+				assert.Fail(err.Error())
 			}
+
+			var occupants []struct {
+				Action    string
+				Uuid      string
+				Timestamp float64
+				Occupancy int
+			}
+
+			err = json.Unmarshal([]byte(data), &occupants)
+			if err != nil {
+				assert.Fail(err.Error())
+			}
+
+			channelSubRepsonseReceived := false
+			for i := 0; i < len(occupants); i++ {
+				if (occupants[i].Action == "join") && occupants[i].Uuid == customUuid {
+					channelSubRepsonseReceived = true
+					break
+				}
+			}
+
+			assert.True(channelSubRepsonseReceived)
+			assert.Equal(channel, returnedChannel)
+
+			await <- true
+		case err := <-errorPresence:
+			await <- false
+			assert.Fail("Failed to subscribe to presence", string(err))
+		case <-timeouts(15):
+			assert.Fail("Presence timeout")
+			await <- false
 		}
 	}()
 
