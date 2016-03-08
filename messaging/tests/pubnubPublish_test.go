@@ -249,8 +249,15 @@ func TestPublishStringWithSerialization(t *testing.T) {
 
 func TestPublishStringWithoutSerialization(t *testing.T) {
 	assert := assert.New(t)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	channel := "testChannel"
+
+	stop := NewVCRBoth(
+		"fixtures/publish/publishStringWithoutSerialization",
+		[]string{"uuid"}, 2)
+	defer stop()
+
+	channel := "Channel_PublishStringWithoutSerialization"
+	uuid := "UUID_PublishStringWithoutSerialization"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 	messageToPost := "{\"name\": \"Alex\", \"age\": \"123\"}"
 
 	successChannel := make(chan []byte)
@@ -305,6 +312,13 @@ func TestPublishStringWithoutSerialization(t *testing.T) {
 
 	go pubnubInstance.PublishExtended(channel, messageToPost, false, true,
 		successChannel, errorChannel)
+	select {
+	case <-successChannel:
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
 
 	<-await
 }

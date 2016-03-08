@@ -9,10 +9,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateGlobalHereNow/0/0?uuid=UUID_SetUserStateGlobalHereNow&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_PublishStringWithoutSerialization/0/%7B%22name%22:%20%22Alex%22,%20%22age%22:%20%22123%22%7D?pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_PublishStringWithoutSerialization&storeInHistory=0
     method: GET
   response:
-    body: '[[],"14572626848987847"]'
+    body: '[1,"Sent","14574164365533660"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -23,10 +23,10 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - "24"
+      - "30"
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Sun, 06 Mar 2016 11:11:25 GMT
+      - Tue, 08 Mar 2016 05:53:56 GMT
     status: 200 OK
     code: 200
