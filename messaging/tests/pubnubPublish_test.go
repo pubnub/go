@@ -188,8 +188,15 @@ func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
 
 func TestPublishStringWithSerialization(t *testing.T) {
 	assert := assert.New(t)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	channel := "testChannel"
+
+	stop := NewVCRBoth(
+		"fixtures/publish/publishStringWithSerialization",
+		[]string{"uuid"}, 2)
+	defer stop()
+
+	channel := "Channel_PublishStringWithSerialization"
+	uuid := "UUID_PublishStringWithSerialization"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 	messageToPost := "{\"name\": \"Alex\", \"age\": \"123\"}"
 
 	successChannel := make(chan []byte)
@@ -243,6 +250,13 @@ func TestPublishStringWithSerialization(t *testing.T) {
 	}()
 
 	go pubnubInstance.Publish(channel, messageToPost, successChannel, errorChannel)
+	select {
+	case <-successChannel:
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
 
 	<-await
 }
