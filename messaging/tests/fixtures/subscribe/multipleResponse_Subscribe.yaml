@@ -1,0 +1,32 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_MultipleResponse/0/14574588702222180?uuid=fa794b1c4015b555806351cb6c2e61a5&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[["message1","message2"],"14574588702729635"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "45"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 08 Mar 2016 17:41:10 GMT
+    status: 200 OK
+    code: 200
