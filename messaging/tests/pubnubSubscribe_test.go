@@ -84,8 +84,6 @@ func xTestSubscriptionAlreadySubscribed(t *testing.T) {
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
-	messaging.SetSubscribeTimeout(10)
-
 	channel := "alreadySubscribed"
 
 	successChannel := make(chan []byte)
@@ -181,7 +179,7 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 
 				await <- false
 			case <-timeouts(5):
-				assert.Fail("Subscribe timeout 3s")
+				assert.Fail("Subscribe timeout 5s")
 				await <- false
 			}
 
@@ -195,7 +193,7 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 			fmt.Sprintf("%s(expected) should be equal to %s(actual)", expectedChannels, actualChannels))
 		actualMu.Unlock()
 	case <-timeouts(10):
-		assert.Fail("Timeout 5s")
+		assert.Fail("Timeout connecting channels")
 	}
 
 	go pubnubInstance.Unsubscribe(channels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
@@ -835,22 +833,24 @@ func TestResumeOnReconnectTrue(t *testing.T) {
 
 // TestMultiplexing tests the multiplexed subscribe request.
 func TestMultiplexing(t *testing.T) {
-	SendMultiplexingRequest(t, "TestMultiplexing", false, false)
+	SendMultiplexingRequest(t, "testMultiplexing", false, false)
 }
 
 // TestMultiplexing tests the multiplexed subscribe request wil ssl.
-func TestMultiplexingSSL(t *testing.T) {
-	SendMultiplexingRequest(t, "TestMultiplexingSSL", true, false)
+func xTestMultiplexingSSL(t *testing.T) {
+	// TODO: handle SSL && VCR
+	SendMultiplexingRequest(t, "testMultiplexingSSL", true, false)
 }
 
 // TestMultiplexing tests the encrypted multiplexed subscribe request.
-func TestEncryptedMultiplexing(t *testing.T) {
-	SendMultiplexingRequest(t, "TestEncryptedMultiplexing", false, true)
+func TestMultiplexingEncrypted(t *testing.T) {
+	SendMultiplexingRequest(t, "testEncryptedMultiplexing", false, true)
 }
 
 // TestMultiplexing tests the encrypted multiplexed subscribe request with ssl.
-func TestEncryptedMultiplexingWithSSL(t *testing.T) {
-	SendMultiplexingRequest(t, "TestEncryptedMultiplexingWithSSL", true, true)
+func xTestMultiplexingEncryptedWithSSL(t *testing.T) {
+	// TODO: handle SSL && VCR
+	SendMultiplexingRequest(t, "testEncryptedMultiplexingWithSSL", true, true)
 }
 
 // SendMultiplexingRequest is the common method to test TestMultiplexing,
@@ -867,14 +867,20 @@ func TestEncryptedMultiplexingWithSSL(t *testing.T) {
 func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted bool) {
 	assert := assert.New(t)
 
+	stop := NewVCRBoth(fmt.Sprintf("fixtures/subscribe/%s", testName),
+		[]string{"uuid"}, 3)
+	defer stop()
+
 	cipher := ""
 	if encrypted {
 		cipher = "enigma"
 	}
+
 	message1 := "message1"
 	message2 := "message2"
 
-	pubnubChannel1, pubnubChannel2 := GenerateTwoRandomChannelStrings(1)
+	pubnubChannel1 := "Mpx_Channel_1"
+	pubnubChannel2 := "Mpx_Channel_2"
 
 	pubnubChannels := pubnubChannel1 + "," + pubnubChannel2
 
@@ -949,6 +955,7 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 							if len(s) > 2 {
 								if message, ok := s[0].([]interface{}); ok {
 									if messageT, ok2 := message[0].(string); ok2 {
+										// TODO: populate an actual slice and compare it to expected
 
 										if (len(message) > 0) && (messageT == message1) && (s[2].(string) == pubnubChannel1) {
 											messageCount++
@@ -969,7 +976,7 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 				}
 			case err := <-errorChannel:
 				assert.Fail(string(err))
-			case <-messaging.SubscribeTimeout():
+			case <-timeouts(10):
 				assert.Fail("Subscribe timeout")
 			}
 		}
@@ -979,7 +986,6 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 
 	go pubnubInstance.Unsubscribe(pubnubChannels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, pubnubChannels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscribeEnd prints a message on the screen to mark the end of
