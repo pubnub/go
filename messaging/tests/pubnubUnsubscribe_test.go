@@ -4,10 +4,12 @@ package tests
 
 import (
 	"fmt"
-	"github.com/pubnub/go/messaging"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestUnsubscribeStart prints a message on the screen to mark the beginning of
@@ -20,21 +22,25 @@ func TestUnsubscribeStart(t *testing.T) {
 // TestUnsubscribeNotSubscribed will try to unsubscribe a non subscribed pubnub channel.
 // The response should contain 'not subscribed'
 func TestUnsubscribeNotSubscribed(t *testing.T) {
+	assert := assert.New(t)
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 
 	currentTime := time.Now()
 	channel := "testChannel" + currentTime.Format("20060102150405")
 
-	returnUnsubscribeChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Unsubscribe(channel, returnUnsubscribeChannel, errorChannel)
-	go ParseUnsubscribeResponse(errorChannel, channel, "not subscribed", responseChannel)
-	go ParseErrorResponse(returnUnsubscribeChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "UnsubscribeNotSubscribed")
+	go pubnubInstance.Unsubscribe(channel, successChannel, errorChannel)
+	select {
+	case <-successChannel:
+		assert.Fail("Success unsubscribe response while expecting an error")
+	case err := <-errorChannel:
+		assert.Contains(string(err), "not subscribed")
+		assert.Contains(string(err), channel)
+	case <-timeout():
+		assert.Fail("Unsubscribe request timeout")
+	}
 }
 
 // TestUnsubscribe will subscribe to a pubnub channel and then send an unsubscribe request
