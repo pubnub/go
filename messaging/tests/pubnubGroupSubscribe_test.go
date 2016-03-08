@@ -27,7 +27,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 	assert := assert.New(t)
 
 	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/groups/conAndUnsSingle", []string{"uuid"}, 2)
+		"fixtures/groups/conAndUnsSingle", []string{"uuid"}, 1)
 	defer stop()
 
 	group := "Group_GroupSubscriptionConAndUnsSingle"
@@ -86,14 +86,21 @@ func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 
 func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 	assert := assert.New(t)
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/groups/conAndUnsMultiple", []string{"uuid"}, 2)
+	defer stop()
+
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	groupsString, _ := GenerateTwoRandomChannelStrings(3)
+	// groupsString, _ := GenerateTwoRandomChannelStrings(3)
+	// TODO: allow groups mixing in matcher
+	groupsString := "Group_ConAndUnsMult1,Group_ConAndUns_2,Group_ConAndUns_3"
 	groups := strings.Split(groupsString, ",")
 
 	createChannelGroups(pubnub, groups)
 	defer removeChannelGroups(pubnub, groups)
 
-	time.Sleep(1 * time.Second)
+	sleep(2)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
