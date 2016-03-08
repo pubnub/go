@@ -201,7 +201,7 @@ func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	assert := assert.New(t)
 
 	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/groups/receiveSingleMessage", []string{"uuid"}, 3)
+		"fixtures/groups/receiveSingleMessage", []string{"uuid"}, 2)
 	defer stop()
 
 	group := "Group_GroupReceiveSingleMessage"

@@ -9,7 +9,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_GroupReceiveSingleMessage?add=Channel_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.7.0&uuid=c2cd2c11400d1be680a99bfc238a4b2d
+    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_GroupReceiveSingleMessage?add=Channel_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.7.0&uuid=358bd72640472d9b80ec3b44b66e6ad5
     method: GET
   response:
     body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
@@ -32,7 +32,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 07:40:10 GMT
+      - Tue, 08 Mar 2016 12:10:47 GMT
       Server:
       - Pubnub
     status: 200 OK
@@ -45,10 +45,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_GroupReceiveSingleMessage/0/%22hey%22?pnsdk=PubNub-Go%2F3.7.0&uuid=c2cd2c11400d1be680a99bfc238a4b2d
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_GroupReceiveSingleMessage/0/%22hey%22?pnsdk=PubNub-Go%2F3.7.0&uuid=358bd72640472d9b80ec3b44b66e6ad5
     method: GET
   response:
-    body: '[1,"Sent","14574228121333613"]'
+    body: '[1,"Sent","14574390499072310"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -63,7 +63,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 07:40:12 GMT
+      - Tue, 08 Mar 2016 12:10:49 GMT
     status: 200 OK
     code: 200
 - request:
@@ -74,7 +74,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/,/leave?uuid=c2cd2c11400d1be680a99bfc238a4b2d&channel-group=Group_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/,/leave?uuid=358bd72640472d9b80ec3b44b66e6ad5&channel-group=Group_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
     body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
@@ -96,7 +96,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 07:40:12 GMT
+      - Tue, 08 Mar 2016 12:10:50 GMT
       Server:
       - Pubnub Presence
     status: 200 OK
@@ -109,7 +109,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_GroupReceiveSingleMessage/remove?pnsdk=PubNub-Go%2F3.7.0&uuid=c2cd2c11400d1be680a99bfc238a4b2d
+    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_GroupReceiveSingleMessage/remove?pnsdk=PubNub-Go%2F3.7.0&uuid=358bd72640472d9b80ec3b44b66e6ad5
     method: GET
   response:
     body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
@@ -132,7 +132,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 07:40:12 GMT
+      - Tue, 08 Mar 2016 12:10:50 GMT
       Server:
       - Pubnub
     status: 200 OK
