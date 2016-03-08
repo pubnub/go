@@ -149,6 +149,7 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 
 	go pubnubInstance.Subscribe(channels, "", successChannel, false, errorChannel)
 	go func() {
+
 		for {
 			select {
 			case resp := <-successChannel:
@@ -170,19 +171,20 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 
 				if l == 2 {
 					await <- true
+					return
 				}
 
 			case err := <-errorChannel:
 				if !IsConnectionRefusedError(err) {
 					assert.Fail(string(err))
 				}
-				fmt.Println("connection refused")
 
 				await <- false
 			case <-timeouts(5):
 				assert.Fail("Subscribe timeout 3s")
 				await <- false
 			}
+
 		}
 	}()
 
@@ -195,6 +197,8 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	case <-timeouts(10):
 		assert.Fail("Timeout 5s")
 	}
+
+	PublishHack(t, pubnubInstance, expectedChannels[0], successChannel, errorChannel)
 
 	go pubnubInstance.Unsubscribe(channels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
