@@ -401,7 +401,6 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 	}
 
 	if "unsubscribed" == cnAction {
-		fmt.Println("####################### await unsubscribe")
 		go func() {
 			for {
 				select {
@@ -577,6 +576,32 @@ func NewVCRBoth(name string, skipFields []string, stimes int) func() {
 
 		messaging.SetSubscribeTransport(nil)
 		messaging.SetNonSubscribeTransport(nil)
+	}
+}
+
+func PublishHack(t *testing.T, pubnubInstance *messaging.Pubnub, channel string,
+	successChannel, errorChannel chan []byte) {
+	assert := assert.New(t)
+	successPublish := make(chan []byte)
+	errorPublish := make(chan []byte)
+
+	go pubnubInstance.Publish(channel, "HACK", successPublish, errorPublish)
+	select {
+	case <-successPublish:
+	case err := <-errorPublish:
+		assert.Fail("PublishHack() error", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("PublishHack() timeout")
+	}
+
+	select {
+	case <-successChannel:
+	case err := <-errorChannel:
+		if !IsConnectionRefusedError(err) {
+			assert.Fail("PublishHack() receive message error", string(err))
+		}
+	case <-messaging.Timeout():
+		assert.Fail("PublishHack() receive message timeout")
 	}
 }
 
