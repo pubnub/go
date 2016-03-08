@@ -24,15 +24,19 @@ func TestGroupSubscribeStart(t *testing.T) {
 }
 
 func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
-	//messaging.SetLogOutput(os.Stderr)
 	assert := assert.New(t)
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/groups/conAndUnsSingle", []string{"uuid"}, 2)
+	defer stop()
+
+	group := "Group_GroupSubscriptionConAndUnsSingle"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
 
 	createChannelGroups(pubnubInstance, []string{group})
 	defer removeChannelGroups(pubnubInstance, []string{group})
 
-	time.Sleep(1 * time.Second)
+	sleep(2)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
@@ -58,6 +62,21 @@ func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 		assert.Equal(val, fmt.Sprintf(
 			"[1, \"Subscription to channel group '%s' unsubscribed\", \"%s\"]",
 			group, group))
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	}
+
+	select {
+	case ev := <-successChannel:
+		var event messaging.PresenceResonse
+
+		err := json.Unmarshal(ev, &event)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		assert.Equal("leave", event.Action)
+		assert.Equal(200, event.Status)
 	case err := <-errorChannel:
 		assert.Fail(string(err))
 	}
@@ -173,14 +192,19 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 
 func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	assert := assert.New(t)
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/groups/receiveSingleMessage", []string{"uuid"}, 3)
+	defer stop()
+
+	group := "Group_GroupReceiveSingleMessage"
+	channel := "Channel_GroupReceiveSingleMessage"
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
-	channel := RandomChannel()
 
 	populateChannelGroup(pubnub, group, channel)
 	defer removeChannelGroups(pubnub, []string{group})
 
-	time.Sleep(1 * time.Second)
+	sleep(2)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
@@ -218,6 +242,13 @@ func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	}()
 
 	go pubnub.Publish(channel, "hey", successChannel, errorChannel)
+	select {
+	case <-successChannel:
+	case err := <-errorChannel:
+		assert.Fail("Publish error", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Publish timeout")
+	}
 
 	<-msgReceived
 
