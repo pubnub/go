@@ -28,8 +28,8 @@ func TestSubscribeStart(t *testing.T) {
 func TestSubscriptionConnectStatus(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRSubscribe(
-		"fixtures/subscribe/connectStatus", []string{"uuid"}, 2)
+	stop := NewVCRBoth(
+		"fixtures/subscribe/connectStatus", []string{"uuid"}, 1)
 	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
