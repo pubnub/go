@@ -89,9 +89,10 @@ func TestCustomUuid(t *testing.T) {
 func Test0Presence(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth(
-		"fixtures/presence/zeroPresence", []string{"uuid"}, 3)
-	defer stop()
+	// TODO: a random request urls prevents to cover test with VCR
+	// stop := NewVCRBoth(
+	// 	"fixtures/presence/zeroPresence", []string{"uuid"}, 6)
+	// defer stop()
 
 	customUuid := "UUID_zeroPresence"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, customUuid)
