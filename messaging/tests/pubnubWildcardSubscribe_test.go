@@ -6,11 +6,11 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
+
+	"testing"
+
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
-	// "strings"
-	// "os"
-	"testing"
 )
 
 // TestWildcardSubscribeEnd prints a message on the screen to mark the beginning of
@@ -21,11 +21,13 @@ func TestWildcardSubscribeStart(t *testing.T) {
 }
 
 func TestWildcardSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
-	//messaging.SetLogOutput(os.Stderr)
 	assert := assert.New(t)
+
+	stop := NewVCRBoth("fixtures/wildcard/connAndUns", []string{"uuid"}, 1)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	r := GenRandom()
-	major := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	major := "Channel_ConnAndUns"
 	wildcard := fmt.Sprintf("%s.*", major)
 
 	subscribeSuccessChannel := make(chan []byte)
@@ -60,12 +62,15 @@ func TestWildcardSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 }
 
 func TestWildcardSubscriptionMessage(t *testing.T) {
-	//messaging.SetLogOutput(os.Stderr)
 	assert := assert.New(t)
+
+	stop := NewVCRBoth("fixtures/wildcard/message", []string{"uuid"}, 2)
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	r := GenRandom()
-	major := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
-	minor := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+
+	major := "Channel_SubscribeMajor"
+	minor := "Channel_SubscribeMinor"
 	channel := fmt.Sprintf("%s.%s", major, minor)
 	wildcard := fmt.Sprintf("%s.*", major)
 
