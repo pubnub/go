@@ -367,7 +367,8 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 				var ary []interface{}
 
 				eventString := string(event)
-				assert.Contains(t, eventString, cnAction)
+				assert.Contains(t, eventString, cnAction,
+					"While expecting connection messages to be equal")
 
 				err := json.Unmarshal(event, &ary)
 				if err != nil {
@@ -385,7 +386,9 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 					return
 				}
 			case err := <-errorChannel:
-				assert.Fail(t, string(err))
+				assert.Fail(t, fmt.Sprintf(
+					"Error while expecting for a %s connection event", cnAction),
+					string(err))
 				channel <- false
 				return
 			}
@@ -417,7 +420,9 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 					assert.Equal(t, 200, event.Status)
 					channel <- true
 				case err := <-errorChannel:
-					assert.Fail(t, string(err))
+					assert.Fail(t,
+						fmt.Sprintf("Error while expecting for a %s presence event", prAction),
+						string(err))
 					channel <- false
 					return
 				}
