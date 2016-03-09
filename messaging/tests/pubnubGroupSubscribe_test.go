@@ -84,7 +84,8 @@ func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 	pubnubInstance.CloseExistingConnection()
 }
 
-func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
+// TODO: allow groups mixing in matcher
+func xTestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 	assert := assert.New(t)
 
 	stop, sleep := NewVCRBothWithSleep(
@@ -93,7 +94,6 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	// groupsString, _ := GenerateTwoRandomChannelStrings(3)
-	// TODO: allow groups mixing in matcher
 	groupsString := "Group_ConAndUnsMult1,Group_ConAndUns_2,Group_ConAndUns_3"
 	groups := strings.Split(groupsString, ",")
 
@@ -386,8 +386,8 @@ func TestGroupSubscriptionPresence(t *testing.T) {
 	pubnub.CloseExistingConnection()
 }
 
+// WARNING: may cause retryCount more than 0
 func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
-	//messaging.SetLogOutput(os.Stderr)
 	assert := assert.New(t)
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	group := RandomChannel()
