@@ -13,7 +13,6 @@ import (
 	// "os"
 	"strings"
 	"testing"
-	"time"
 )
 
 // TestGroupSubscribeStart prints a message on the screen to mark the beginning of
@@ -469,15 +468,20 @@ func TestGroupSubscriptionNotSubscribed(t *testing.T) {
 
 func TestGroupSubscriptionToNotExistingChannelGroup(t *testing.T) {
 	assert := assert.New(t)
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/groups/notExistingCG", []string{"uuid"}, 1)
+	defer stop()
+
+	group := "Group_NotExistingCG"
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 
 	removeChannelGroups(pubnub, []string{group})
 
-	time.Sleep(1 * time.Second)
+	sleep(2)
 
 	go pubnub.ChannelGroupSubscribe(group, successChannel, errorChannel)
 	select {
