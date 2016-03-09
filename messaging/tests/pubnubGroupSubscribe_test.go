@@ -397,13 +397,18 @@ func xTestGroupSubscriptionPresence(t *testing.T) {
 // WARNING: may cause retryCount more than 0
 func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 	assert := assert.New(t)
+
+	stop, sleep := NewVCRBothWithSleep(
+		"fixtures/groups/alreadySubscribed", []string{"uuid"}, 1)
+	defer stop()
+
+	group := "Group_AlreadySubscribed"
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
 
 	createChannelGroups(pubnub, []string{group})
 	defer removeChannelGroups(pubnub, []string{group})
 
-	time.Sleep(1 * time.Second)
+	sleep(2)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
