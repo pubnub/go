@@ -439,13 +439,18 @@ func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 
 func TestGroupSubscriptionNotSubscribed(t *testing.T) {
 	assert := assert.New(t)
+
+	stop, sleep := NewVCRNonSubscribeWithSleep(
+		"fixtures/groups/notSubscribed", []string{"uuid"})
+	defer stop()
+
+	group := "Group_NotSubscribed"
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
 
 	createChannelGroups(pubnub, []string{group})
 	defer removeChannelGroups(pubnub, []string{group})
 
-	time.Sleep(1 * time.Second)
+	sleep(2)
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
