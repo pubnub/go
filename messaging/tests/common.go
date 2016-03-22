@@ -8,6 +8,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"math/rand"
+	"net"
 	"strconv"
 	"strings"
 	"testing"
@@ -546,8 +547,12 @@ func NewVCRBothWithSleep(name string, skipFields []string, stimes int) (
 	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
 	ns.UseMatcher(utils.NewPubnubMatcher(skipFields))
 
-	messaging.SetNonSubscribeTransport(ns.Transport)
+	sDial := genVcrDial()
+
+	s.Transport.Dial = sDial
+
 	messaging.SetSubscribeTransport(s.Transport)
+	messaging.SetNonSubscribeTransport(ns.Transport)
 
 	return func() {
 			s.Stop()
@@ -573,8 +578,12 @@ func NewVCRBoth(name string, skipFields []string, stimes int) func() {
 	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
 	ns.UseMatcher(utils.NewPubnubMatcher(skipFields))
 
-	messaging.SetNonSubscribeTransport(ns.Transport)
+	sDial := genVcrDial()
+
+	s.Transport.Dial = sDial
+
 	messaging.SetSubscribeTransport(s.Transport)
+	messaging.SetNonSubscribeTransport(ns.Transport)
 
 	return func() {
 		s.Stop()
@@ -585,30 +594,31 @@ func NewVCRBoth(name string, skipFields []string, stimes int) func() {
 	}
 }
 
-func PublishHack(t *testing.T, pubnubInstance *messaging.Pubnub, channel string,
-	successChannel, errorChannel chan []byte) {
-	assert := assert.New(t)
-	successPublish := make(chan []byte)
-	errorPublish := make(chan []byte)
+func genVcrDial() func(string, string) (net.Conn, error) {
+	// Same values both for subscribe and non-subscribe conns are ok for tests
+	const (
+		CONNECT_TIMEOUT   int = 5
+		SUBSCRIBE_TIMEOUT int = 200
+	)
 
-	go pubnubInstance.Publish(channel, "HACK", successPublish, errorPublish)
-	select {
-	case <-successPublish:
-	case err := <-errorPublish:
-		assert.Fail("PublishHack() error", string(err))
-	case <-messaging.Timeout():
-		assert.Fail("PublishHack() timeout")
-	}
-
-	select {
-	case <-successChannel:
-	case err := <-errorChannel:
-		if !IsConnectionRefusedError(err) {
-			assert.Fail("PublishHack() receive message error", string(err))
+	dial := func(netw, addr string) (net.Conn, error) {
+		c, err := net.DialTimeout(netw, addr, time.Duration(CONNECT_TIMEOUT)*time.Second)
+		if err != nil {
+			return nil, err
 		}
-	case <-messaging.Timeout():
-		assert.Fail("PublishHack() receive message timeout")
+
+		deadline := time.Now().Add(time.Duration(SUBSCRIBE_TIMEOUT) * time.Second)
+
+		c.SetDeadline(deadline)
+
+		// fmt.Printf(">>> DIAL to %s/%s conn is %s\n", netw, addr, c)
+		messaging.SetSubscribeConn(c)
+		// fmt.Printf("^^^ DIAL conn is %s\n", c)
+
+		return c, nil
 	}
+
+	return dial
 }
 
 func GetServerTimeString(uuid string) string {
