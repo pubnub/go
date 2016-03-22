@@ -33,7 +33,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Sun, 06 Mar 2016 10:51:52 GMT
+      - Tue, 22 Mar 2016 07:35:07 GMT
       Server:
       - Pubnub Presence
     status: 200 OK
@@ -68,8 +68,9 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Sun, 06 Mar 2016 10:51:52 GMT
+      - Tue, 22 Mar 2016 07:35:07 GMT
       Server:
       - Pubnub Presence
     status: 200 OK
     code: 200
+unclosed_requests: {}

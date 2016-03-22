@@ -9,7 +9,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetGetUserState/uuid/UUID_SetGetUserState/data?state=%7B%22testkey%22%3A%22testval%22%7D&pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_SetGetUserState
+    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetUserStateGlobalHereNow/uuid/UUID_SetUserStateGlobalHereNow/data?state=%7B%22testkey%22%3A%22testval%22%7D&pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_SetUserStateGlobalHereNow
     method: GET
   response:
     body: '{"status": 200, "message": "OK", "payload": {"testkey": "testval"}, "service":
@@ -32,7 +32,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 22 Mar 2016 07:35:08 GMT
+      - Tue, 22 Mar 2016 07:35:16 GMT
       Server:
       - Pubnub Presence
     status: 200 OK
@@ -45,11 +45,12 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetGetUserState/uuid/UUID_SetGetUserState?pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_SetGetUserState
+    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f?disable_uuids=0&state=1&pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_SetUserStateGlobalHereNow
     method: GET
   response:
-    body: '{"status": 200, "uuid": "UUID_SetGetUserState", "service": "Presence",
-      "message": "OK", "payload": {"testkey": "testval"}, "channel": "Channel_SetGetUserState"}'
+    body: '{"status": 200, "message": "OK", "payload": {"channels": {"Channel_SetUserStateGlobalHereNow":
+      {"uuids": [{"state": {"testkey": "testval"}, "uuid": "UUID_SetUserStateGlobalHereNow"}],
+      "occupancy": 1}}, "total_channels": 1, "total_occupancy": 1}, "service": "Presence"}'
     headers:
       Accept-Ranges:
       - bytes
@@ -64,11 +65,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - "160"
+      - "268"
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 22 Mar 2016 07:35:11 GMT
+      - Tue, 22 Mar 2016 07:35:19 GMT
       Server:
       - Pubnub Presence
     status: 200 OK
@@ -81,7 +82,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetGetUserState/leave?uuid=UUID_SetGetUserState&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetUserStateGlobalHereNow/leave?uuid=UUID_SetUserStateGlobalHereNow&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
     body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
@@ -103,7 +104,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 22 Mar 2016 07:35:11 GMT
+      - Tue, 22 Mar 2016 07:35:20 GMT
       Server:
       - Pubnub Presence
     status: 200 OK

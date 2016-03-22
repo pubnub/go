@@ -12,7 +12,7 @@ interactions:
     url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateHereNow/0/0?uuid=UUID_SetUserStateHereNow&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '[[],"14572625499537690"]'
+    body: '[[],"14586321119748400"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -27,6 +27,9 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Sun, 06 Mar 2016 11:09:10 GMT
+      - Tue, 22 Mar 2016 07:35:12 GMT
     status: 200 OK
     code: 200
+unclosed_requests:
+  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateHereNow/0/14586321119748400?uuid=UUID_SetUserStateHereNow&pnsdk=PubNub-Go%2F3.7.0
+  : {}
