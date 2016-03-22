@@ -9,10 +9,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/0?uuid=7dcac82340f51ebe8085f44d49358bc4&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/0?uuid=UUID_Multiplexing&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '[[],"14574630625585756",""]'
+    body: '[[],"14586610210555993",""]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -27,7 +27,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 18:51:42 GMT
+      - Tue, 22 Mar 2016 15:42:14 GMT
     status: 200 OK
     code: 200
 - request:
@@ -38,10 +38,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/14574630625585756?uuid=7dcac82340f51ebe8085f44d49358bc4&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/14586610210555993?uuid=UUID_Multiplexing&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '[["message1"],"14574631026033484","Mpx_Channel_1"]'
+    body: '[["message1"],"14586613343588074","Mpx_Channel_1"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -56,7 +56,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 18:51:42 GMT
+      - Tue, 22 Mar 2016 15:42:14 GMT
     status: 200 OK
     code: 200
 - request:
@@ -67,10 +67,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/14574631026033484?uuid=7dcac82340f51ebe8085f44d49358bc4&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/14586613343588074?uuid=UUID_Multiplexing&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '[["message2"],"14574631026304280","Mpx_Channel_2"]'
+    body: '[["message2"],"14586613343837041","Mpx_Channel_2"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -85,6 +85,9 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 18:51:42 GMT
+      - Tue, 22 Mar 2016 15:42:14 GMT
     status: 200 OK
     code: 200
+unclosed_requests:
+  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/14586613343837041?uuid=UUID_Multiplexing&pnsdk=PubNub-Go%2F3.7.0
+  : {}

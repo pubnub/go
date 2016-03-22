@@ -9,24 +9,31 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/connectStatus_14,connectStatus_992/0/0?uuid=4111ba2340b695a380987d74c8659cc4&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_ConnectStatus/leave?uuid=UUID_ConnectStatus&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '[[],"14574402416465106",""]'
+    body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
     headers:
+      Accept-Ranges:
+      - bytes
       Access-Control-Allow-Methods:
-      - GET
+      - OPTIONS, GET, POST
       Access-Control-Allow-Origin:
       - '*'
+      Age:
+      - "0"
       Cache-Control:
       - no-cache
       Connection:
       - keep-alive
       Content-Length:
-      - "27"
+      - "74"
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 12:32:21 GMT
+      - Tue, 22 Mar 2016 15:42:06 GMT
+      Server:
+      - Pubnub Presence
     status: 200 OK
     code: 200
+unclosed_requests: {}

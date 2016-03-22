@@ -12,7 +12,7 @@ interactions:
     url: http://pubsub.pubnub.com/time/0?pnsdk=PubNub-Go%2F3.7.0&uuid=timeGetter_time_uuid
     method: GET
   response:
-    body: '[14574612350310300]'
+    body: '[14586613306457058]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -27,7 +27,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 18:20:35 GMT
+      - Tue, 22 Mar 2016 15:42:10 GMT
     status: 200 OK
     code: 200
 - request:
@@ -38,10 +38,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_MultipleResponse/0/%22message1%22?pnsdk=PubNub-Go%2F3.7.0&uuid=17bd71ce40b3ada0801676a5c332ef46
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_MultipleResponse/0/%22message1%22?pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_MultipleResponse
     method: GET
   response:
-    body: '[1,"Sent","14574612350593312"]'
+    body: '[1,"Sent","14586613306744256"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -56,7 +56,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 18:20:35 GMT
+      - Tue, 22 Mar 2016 15:42:10 GMT
     status: 200 OK
     code: 200
 - request:
@@ -67,10 +67,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_MultipleResponse/0/%22message2%22?pnsdk=PubNub-Go%2F3.7.0&uuid=17bd71ce40b3ada0801676a5c332ef46
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_MultipleResponse/0/%22message2%22?pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_MultipleResponse
     method: GET
   response:
-    body: '[1,"Sent","14574612350833610"]'
+    body: '[1,"Sent","14586613306993567"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -85,7 +85,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 18:20:35 GMT
+      - Tue, 22 Mar 2016 15:42:10 GMT
     status: 200 OK
     code: 200
 - request:
@@ -96,7 +96,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_MultipleResponse/leave?uuid=17bd71ce40b3ada0801676a5c332ef46&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_MultipleResponse/leave?uuid=UUID_MultipleResponse&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
     body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
@@ -118,8 +118,9 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 18:20:35 GMT
+      - Tue, 22 Mar 2016 15:42:11 GMT
       Server:
       - Pubnub Presence
     status: 200 OK
     code: 200
+unclosed_requests: {}
