@@ -510,25 +510,16 @@ func NewVCRNonSubscribeWithSleep(name string, skipFields []string) (
 		}
 }
 
-func NewVCRNonSubscribe(name string, skipFields []string) func() {
-	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
-	nsMatcher := utils.NewPubnubMatcher(skipFields)
-	ns.UseMatcher(nsMatcher)
-	messaging.SetNonSubscribeTransport(ns.Transport)
-
-	return func() {
-		ns.Stop()
-
-		messaging.SetNonSubscribeTransport(nil)
-	}
-}
-
 func NewVCRSubscribe(name string, skipFields []string, stimes int) func() {
 	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
 	sMatcher := utils.NewPubnubSubscribeMatcher(skipFields)
 	s.UseMatcher(sMatcher)
 	s.StopAfter(stimes)
 	messaging.SetSubscribeTransport(s.Transport)
+
+	sDial := genVcrDial()
+
+	s.Transport.Dial = sDial
 
 	return func() {
 		s.Stop()

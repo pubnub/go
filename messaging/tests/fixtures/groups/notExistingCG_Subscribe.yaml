@@ -9,7 +9,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/0?channel-group=Group_NotExistingCG&uuid=3bb4c9b0403c33d280e7cb4b49b38b3a&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/0?channel-group=Group_NotExistingCG&uuid=UUID_NotExistingCG&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
     body: '{"status":400,"service":"PubSub","error":true,"message":"Channel group
@@ -28,6 +28,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Wed, 09 Mar 2016 06:57:40 GMT
+      - Thu, 24 Mar 2016 07:11:47 GMT
     status: 400 Error
     code: 400
+unclosed_requests: {}

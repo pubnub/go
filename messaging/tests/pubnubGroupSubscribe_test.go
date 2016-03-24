@@ -30,7 +30,8 @@ func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 	defer stop()
 
 	group := "Group_GroupSubscriptionConAndUnsSingle"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	uuid := "UUID_GroupSubscriptionConAndUnsSingle"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	createChannelGroups(pubnubInstance, []string{group})
 	defer removeChannelGroups(pubnubInstance, []string{group})
@@ -205,7 +206,8 @@ func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 
 	group := "Group_GroupReceiveSingleMessage"
 	channel := "Channel_GroupReceiveSingleMessage"
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	uuid := "UUID_GroupReceiveSingleMessage"
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	populateChannelGroup(pubnub, group, channel)
 	defer removeChannelGroups(pubnub, []string{group})
@@ -402,7 +404,8 @@ func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 	defer stop()
 
 	group := "Group_AlreadySubscribed"
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	uuid := "UUID_AlreadySubscribed"
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	createChannelGroups(pubnub, []string{group})
 	defer removeChannelGroups(pubnub, []string{group})
@@ -444,7 +447,8 @@ func TestGroupSubscriptionNotSubscribed(t *testing.T) {
 	defer stop()
 
 	group := "Group_NotSubscribed"
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	uuid := "UUID_NotSubscribed"
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	createChannelGroups(pubnub, []string{group})
 	defer removeChannelGroups(pubnub, []string{group})
@@ -474,7 +478,8 @@ func TestGroupSubscriptionToNotExistingChannelGroup(t *testing.T) {
 	defer stop()
 
 	group := "Group_NotExistingCG"
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	uuid := "UUID_NotExistingCG"
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
