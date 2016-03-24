@@ -12,7 +12,7 @@ interactions:
     url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithoutSerialization/0/0?uuid=UUID_PublishStringWithoutSerialization&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '[[],"14574164363981726"]'
+    body: '[[],"14588062886538014"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -27,7 +27,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 05:53:56 GMT
+      - Thu, 24 Mar 2016 08:11:22 GMT
     status: 200 OK
     code: 200
 - request:
@@ -38,10 +38,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithoutSerialization/0/14574164363981726?uuid=UUID_PublishStringWithoutSerialization&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithoutSerialization/0/14588062886538014?uuid=UUID_PublishStringWithoutSerialization&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '[[{"name": "Alex", "age": "123"}],"14574164365539505"]'
+    body: '[[{"name": "Alex", "age": "123"}],"14588070825056505"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -56,6 +56,9 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 08 Mar 2016 05:53:56 GMT
+      - Thu, 24 Mar 2016 08:11:22 GMT
     status: 200 OK
     code: 200
+unclosed_requests:
+  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithoutSerialization/0/14588070825056505?uuid=UUID_PublishStringWithoutSerialization&pnsdk=PubNub-Go%2F3.7.0
+  : {}

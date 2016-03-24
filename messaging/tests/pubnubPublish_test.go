@@ -44,7 +44,7 @@ func TestNullMessage(t *testing.T) {
 func TestSuccessCodeAndInfo(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRNonSubscribe("fixtures/publish/successCodeAndInfo",
+	stop, _ := NewVCRNonSubscribe("fixtures/publish/successCodeAndInfo",
 		[]string{"uuid"})
 	defer stop()
 
@@ -72,7 +72,7 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRNonSubscribe(
+	stop, _ := NewVCRNonSubscribe(
 		"fixtures/publish/successCodeAndInfoWithEncryption", []string{"uuid"})
 	defer stop()
 
@@ -99,7 +99,7 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRNonSubscribe(
+	stop, _ := NewVCRNonSubscribe(
 		"fixtures/publish/successCodeAndInfoForComplexMessage", []string{"uuid"})
 	defer stop()
 
@@ -130,7 +130,7 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRNonSubscribe(
+	stop, _ := NewVCRNonSubscribe(
 		"fixtures/publish/successCodeAndInfoForComplexMessage2", []string{"uuid"})
 	defer stop()
 
@@ -160,7 +160,7 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRNonSubscribe(
+	stop, _ := NewVCRNonSubscribe(
 		"fixtures/publish/successCodeAndInfoForComplexMessage2WithEncryption",
 		[]string{"uuid"})
 	defer stop()
@@ -189,9 +189,9 @@ func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
 func TestPublishStringWithSerialization(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth(
+	stop, _ := NewVCRBoth(
 		"fixtures/publish/publishStringWithSerialization",
-		[]string{"uuid"}, 2)
+		[]string{"uuid"})
 	defer stop()
 
 	channel := "Channel_PublishStringWithSerialization"
@@ -204,6 +204,9 @@ func TestPublishStringWithSerialization(t *testing.T) {
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
+
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	await := make(chan bool)
 
@@ -259,14 +262,19 @@ func TestPublishStringWithSerialization(t *testing.T) {
 	}
 
 	<-await
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	pubnubInstance.CloseExistingConnection()
 }
 
 func TestPublishStringWithoutSerialization(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth(
+	stop, _ := NewVCRBoth(
 		"fixtures/publish/publishStringWithoutSerialization",
-		[]string{"uuid"}, 2)
+		[]string{"uuid"})
 	defer stop()
 
 	channel := "Channel_PublishStringWithoutSerialization"
@@ -279,6 +287,9 @@ func TestPublishStringWithoutSerialization(t *testing.T) {
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
+
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	await := make(chan bool)
 
@@ -335,6 +346,11 @@ func TestPublishStringWithoutSerialization(t *testing.T) {
 	}
 
 	<-await
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	pubnubInstance.CloseExistingConnection()
 }
 
 // TestPublishEnd prints a message on the screen to mark the end of
