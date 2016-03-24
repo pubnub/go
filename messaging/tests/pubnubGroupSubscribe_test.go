@@ -25,8 +25,8 @@ func TestGroupSubscribeStart(t *testing.T) {
 func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/groups/conAndUnsSingle", []string{"uuid"}, 1)
+	stop, sleep := NewVCRBoth(
+		"fixtures/groups/conAndUnsSingle", []string{"uuid"})
 	defer stop()
 
 	group := "Group_GroupSubscriptionConAndUnsSingle"
@@ -88,8 +88,8 @@ func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 func xTestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/groups/conAndUnsMultiple", []string{"uuid"}, 2)
+	stop, sleep := NewVCRBoth(
+		"fixtures/groups/conAndUnsMultiple", []string{"uuid"})
 	defer stop()
 
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
@@ -200,8 +200,8 @@ func xTestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/groups/receiveSingleMessage", []string{"uuid"}, 2)
+	stop, sleep := NewVCRBoth(
+		"fixtures/groups/receiveSingleMessage", []string{"uuid"})
 	defer stop()
 
 	group := "Group_GroupReceiveSingleMessage"
@@ -273,8 +273,8 @@ func xTestGroupSubscriptionPresence(t *testing.T) {
 	presenceTimeout := 15
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/groups/presence", []string{"uuid"}, 6)
+	stop, sleep := NewVCRBoth(
+		"fixtures/groups/presence", []string{"uuid"})
 	defer stop()
 
 	group := "Group_GroupPresence"
@@ -399,8 +399,8 @@ func xTestGroupSubscriptionPresence(t *testing.T) {
 func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/groups/alreadySubscribed", []string{"uuid"}, 1)
+	stop, sleep := NewVCRBoth(
+		"fixtures/groups/alreadySubscribed", []string{"uuid"})
 	defer stop()
 
 	group := "Group_AlreadySubscribed"
@@ -442,7 +442,7 @@ func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 func TestGroupSubscriptionNotSubscribed(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRNonSubscribeWithSleep(
+	stop, sleep := NewVCRNonSubscribe(
 		"fixtures/groups/notSubscribed", []string{"uuid"})
 	defer stop()
 
@@ -473,8 +473,8 @@ func TestGroupSubscriptionNotSubscribed(t *testing.T) {
 func TestGroupSubscriptionToNotExistingChannelGroup(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/groups/notExistingCG", []string{"uuid"}, 1)
+	stop, sleep := NewVCRBoth(
+		"fixtures/groups/notExistingCG", []string{"uuid"})
 	defer stop()
 
 	group := "Group_NotExistingCG"

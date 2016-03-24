@@ -28,8 +28,8 @@ func TestSubscribeStart(t *testing.T) {
 func TestSubscriptionConnectStatus(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth(
-		"fixtures/subscribe/connectStatus", []string{"uuid"}, 1)
+	stop, _ := NewVCRBoth(
+		"fixtures/subscribe/connectStatus", []string{"uuid"})
 	defer stop()
 
 	channel := "Channel_ConnectStatus"
@@ -73,7 +73,7 @@ func xTestSubscriptionAlreadySubscribed(t *testing.T) {
 
 	assert := assert.New(t)
 
-	stop := NewVCRBoth("fixtures/subscribe/alreadySubscribed", []string{"uuid"}, 1)
+	stop, _ := NewVCRBoth("fixtures/subscribe/alreadySubscribed", []string{"uuid"})
 	defer stop()
 
 	channel := "Channel_AlreadySubscribed"
@@ -126,7 +126,7 @@ func xTestMultiSubscriptionConnectStatus(t *testing.T) {
 	// TODO: test passes successfully, but some errors about extra interactions exists
 	assert := assert.New(t)
 
-	stop := NewVCRBoth("fixtures/subscribe/connectMultipleStatus", []string{"uuid"}, 1)
+	stop, _ := NewVCRBoth("fixtures/subscribe/connectMultipleStatus", []string{"uuid"})
 	defer stop()
 
 	channels := "Channel_ConnectStatus_14,Channel_ConnectStatus_992"
@@ -203,7 +203,7 @@ func xTestMultiSubscriptionConnectStatus(t *testing.T) {
 func TestSubscriptionForSimpleMessage(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth("fixtures/subscribe/forSimpleMessage", []string{"uuid"}, 2)
+	stop, _ := NewVCRBoth("fixtures/subscribe/forSimpleMessage", []string{"uuid"})
 	defer stop()
 
 	channel := "Channel_SubscriptionConnectedForSimple"
@@ -280,7 +280,7 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth("fixtures/subscribe/forSimpleMessageWithCipher", []string{"uuid"}, 2)
+	stop, _ := NewVCRBoth("fixtures/subscribe/forSimpleMessageWithCipher", []string{"uuid"})
 	defer stop()
 
 	channel := "Channel_SubscriptionConnectedForSimpleWithCipher"
@@ -356,7 +356,7 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 func TestSubscriptionForComplexMessage(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth("fixtures/subscribe/forComplexMessage", []string{"uuid"}, 2)
+	stop, _ := NewVCRBoth("fixtures/subscribe/forComplexMessage", []string{"uuid"})
 	defer stop()
 
 	channel := "Channel_SubscriptionConnectedForComplex"
@@ -439,7 +439,7 @@ func TestSubscriptionForComplexMessage(t *testing.T) {
 func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth("fixtures/subscribe/forComplexMessageWithCipher", []string{"uuid"}, 2)
+	stop, _ := NewVCRBoth("fixtures/subscribe/forComplexMessageWithCipher", []string{"uuid"})
 	defer stop()
 
 	channel := "Channel_SubscriptionConnectedForComplexWithCipher"
@@ -655,7 +655,7 @@ func TestMultipleResponseEncrypted(t *testing.T) {
 func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth(fmt.Sprintf("fixtures/subscribe/%s", testName), []string{"uuid"}, 1)
+	stop, _ := NewVCRBoth(fmt.Sprintf("fixtures/subscribe/%s", testName), []string{"uuid"})
 	defer stop()
 
 	channel := "Channel_MultipleResponse"
@@ -879,8 +879,8 @@ func xTestMultiplexingEncryptedWithSSL(t *testing.T) {
 func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted bool) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth(fmt.Sprintf("fixtures/subscribe/%s", testName),
-		[]string{"uuid"}, 3)
+	stop, _ := NewVCRBoth(fmt.Sprintf("fixtures/subscribe/%s", testName),
+		[]string{"uuid"})
 	defer stop()
 
 	cipher := ""

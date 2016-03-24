@@ -27,8 +27,8 @@ const PresenceServerTimeoutLower = 3
 func TestCustomUuid(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/presence/customUuid", []string{"uuid"}, 1)
+	stop, sleep := NewVCRBoth(
+		"fixtures/presence/customUuid", []string{"uuid"})
 	defer stop()
 
 	uuid := "customuuid"
@@ -168,8 +168,8 @@ func xTest0Presence(t *testing.T) {
 func TestWhereNow(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/presence/whereNow", []string{"uuid"}, 1)
+	stop, sleep := NewVCRBoth(
+		"fixtures/presence/whereNow", []string{"uuid"})
 	defer stop()
 
 	uuid := "UUID_WhereNow"
@@ -210,8 +210,8 @@ func TestWhereNow(t *testing.T) {
 func TestGlobalHereNow(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/presence/globalWhereNow", []string{"uuid"}, 1)
+	stop, sleep := NewVCRBoth(
+		"fixtures/presence/globalWhereNow", []string{"uuid"})
 	defer stop()
 
 	uuid := "UUID_GlobalWhereNow"
@@ -252,8 +252,8 @@ func TestGlobalHereNow(t *testing.T) {
 func TestSetGetUserState(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/presence/setGetUserState", []string{"uuid"}, 1)
+	stop, sleep := NewVCRBoth(
+		"fixtures/presence/setGetUserState", []string{"uuid"})
 	defer stop()
 
 	uuid := "UUID_SetGetUserState"
@@ -312,8 +312,8 @@ func TestSetGetUserState(t *testing.T) {
 func TestSetUserStateHereNow(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/presence/setUserStateHereNow", []string{"uuid"}, 1)
+	stop, sleep := NewVCRBoth(
+		"fixtures/presence/setUserStateHereNow", []string{"uuid"})
 	defer stop()
 
 	channel := "Channel_SetUserStateHereNow"
@@ -373,8 +373,8 @@ func TestSetUserStateHereNow(t *testing.T) {
 func TestSetUserStateGlobalHereNow(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/presence/setUserStateGlobalHereNow", []string{"uuid"}, 1)
+	stop, sleep := NewVCRBoth(
+		"fixtures/presence/setUserStateGlobalHereNow", []string{"uuid"})
 	defer stop()
 
 	channel := "Channel_SetUserStateGlobalHereNow"
@@ -434,7 +434,7 @@ func TestSetUserStateGlobalHereNow(t *testing.T) {
 func TestSetUserStateJSON(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRNonSubscribeWithSleep(
+	stop, sleep := NewVCRNonSubscribe(
 		"fixtures/presence/setUserStateJSON", []string{"uuid"})
 	defer stop()
 

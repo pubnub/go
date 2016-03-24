@@ -489,7 +489,7 @@ const (
 	vcrStubNonSubscribe
 )
 
-func NewVCRNonSubscribeWithSleep(name string, skipFields []string) (
+func NewVCRNonSubscribe(name string, skipFields []string) (
 	func(), func(int)) {
 
 	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
@@ -510,11 +510,10 @@ func NewVCRNonSubscribeWithSleep(name string, skipFields []string) (
 		}
 }
 
-func NewVCRSubscribe(name string, skipFields []string, stimes int) func() {
+func NewVCRSubscribe(name string, skipFields []string) func() {
 	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
 	sMatcher := utils.NewPubnubSubscribeMatcher(skipFields)
 	s.UseMatcher(sMatcher)
-	s.StopAfter(stimes)
 	messaging.SetSubscribeTransport(s.Transport)
 
 	sDial := genVcrDial()
@@ -528,12 +527,11 @@ func NewVCRSubscribe(name string, skipFields []string, stimes int) func() {
 	}
 }
 
-func NewVCRBothWithSleep(name string, skipFields []string, stimes int) (
+func NewVCRBoth(name string, skipFields []string) (
 	func(), func(int)) {
 
 	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
 	s.UseMatcher(utils.NewPubnubSubscribeMatcher(skipFields))
-	s.StopAfter(stimes)
 
 	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
 	ns.UseMatcher(utils.NewPubnubMatcher(skipFields))
@@ -559,30 +557,6 @@ func NewVCRBothWithSleep(name string, skipFields []string, stimes int) (
 				// do not sleep
 			}
 		}
-}
-
-func NewVCRBoth(name string, skipFields []string, stimes int) func() {
-	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
-	s.UseMatcher(utils.NewPubnubSubscribeMatcher(skipFields))
-	s.StopAfter(stimes)
-
-	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
-	ns.UseMatcher(utils.NewPubnubMatcher(skipFields))
-
-	sDial := genVcrDial()
-
-	s.Transport.Dial = sDial
-
-	messaging.SetSubscribeTransport(s.Transport)
-	messaging.SetNonSubscribeTransport(ns.Transport)
-
-	return func() {
-		s.Stop()
-		ns.Stop()
-
-		messaging.SetSubscribeTransport(nil)
-		messaging.SetNonSubscribeTransport(nil)
-	}
 }
 
 func genVcrDial() func(string, string) (net.Conn, error) {
