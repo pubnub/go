@@ -39,7 +39,7 @@ func TestSecretKeyRequired(t *testing.T) {
 func TestGrantAndRevokeSubKeyLevelSubscribe(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRNonSubscribeWithSleep(
+	stop, sleep := NewVCRNonSubscribe(
 		"fixtures/pam/grantAndRevokeSubKeyLevelSubscribe",
 		[]string{"uuid", "signature", "timestamp"})
 	defer stop()
@@ -83,7 +83,7 @@ func TestGrantAndRevokeSubKeyLevelSubscribe(t *testing.T) {
 func TestGrantAndRevokeChannelLevelSubscribe(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRNonSubscribeWithSleep(
+	stop, sleep := NewVCRNonSubscribe(
 		"fixtures/pam/grantAndRevokeChannelLevelSubscribe",
 		[]string{"uuid", "signature", "timestamp"})
 	defer stop()
@@ -129,7 +129,7 @@ func TestGrantAndRevokeChannelLevelSubscribe(t *testing.T) {
 func TestGrantChannelLevelSubscribeWithAuth(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRNonSubscribe(
+	stop, _ := NewVCRNonSubscribe(
 		"fixtures/pam/grantChannelLevelSubscribeWithAuth",
 		[]string{"uuid", "signature", "timestamp"})
 	defer stop()

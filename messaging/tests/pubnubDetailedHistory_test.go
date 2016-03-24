@@ -45,7 +45,7 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	numberOfMessages := 10
 	startMessagesFrom := 0
 
-	stop, sleep := NewVCRNonSubscribeWithSleep(fmt.Sprintf("fixtures/history/%s", testName),
+	stop, sleep := NewVCRNonSubscribe(fmt.Sprintf("fixtures/history/%s", testName),
 		[]string{"uuid"})
 	defer stop()
 
@@ -119,7 +119,7 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 	assert := assert.New(t)
 	numberOfMessages := 5
 
-	stop, sleep := NewVCRNonSubscribeWithSleep(fmt.Sprintf(
+	stop, sleep := NewVCRNonSubscribe(fmt.Sprintf(
 		"fixtures/history/%s", testName), []string{})
 	defer stop()
 
