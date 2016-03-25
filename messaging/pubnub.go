@@ -291,6 +291,13 @@ type Pubnub struct {
 type PubnubUnitTest struct {
 }
 
+func SetSubscribeConn(conn net.Conn) {
+	subscribeTransportMu.Lock()
+	defer subscribeTransportMu.Unlock()
+
+	subscribeConn = conn
+}
+
 func SetSubscribeTransport(transport http.RoundTripper) {
 	subscribeTransportMu.Lock()
 	defer subscribeTransportMu.Unlock()
