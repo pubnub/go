@@ -1,23 +1,17 @@
-// Package tests has the unit tests of package messaging.
+// Package tests has the unit tests of package
 // pubnubEncryption_test.go contains the tests related to the Encryption/Decryption of messages
 package messaging
 
 import (
+	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"testing"
 	"unicode/utf16"
 
-	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
 )
-
-// TestEncryptionStart prints a message on the screen to mark the beginning of
-// encryption tests.
-// PrintTestMessage is defined in the common.go file.
-func TestEncryptionStart(t *testing.T) {
-	PrintTestMessage("==========Encryption tests start==========")
-}
 
 func TestPad(t *testing.T) {
 	assert := assert.New(t)
@@ -34,7 +28,7 @@ func TestPad(t *testing.T) {
 	json.Unmarshal(b, &bad_msg)
 	jsonSerialized, _ := json.Marshal(bad_msg)
 
-	actual := messaging.EncryptString("enigma", fmt.Sprintf("%s", jsonSerialized))
+	actual := EncryptString("enigma", fmt.Sprintf("%s", jsonSerialized))
 	expected := "yzJ2MMyt8So18nNXm4m3Dl0XuYAOJFj2JXG8P3BGlCsDsqM44ReH15MRGbEkJZCSqgMiX1wUK44Qz8gsTcmGcZm/7KtOa+kRnvgDpNkTuBUrDqSjmYeuBLqRIEIfoGrRNljbFmP1W9Zv8iVbJMmovF+gmNNiIzlC3J9dHK51/OgW7s2EASMQJr3UJZ26PoFmmXY/wYN+2EyRnT4PBRCocQ=="
 
 	assert.Equal(expected, actual)
@@ -44,7 +38,7 @@ func TestUnpad(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "yzJ2MMyt8So18nNXm4m3Dl0XuYAOJFj2JXG8P3BGlCsDsqM44ReH15MRGbEkJZCSqgMiX1wUK44Qz8gsTcmGcZm/7KtOa+kRnvgDpNkTuBUrDqSjmYeuBLqRIEIfoGrRNljbFmP1W9Zv8iVbJMmovF+gmNNiIzlC3J9dHK51/OgW7s2EASMQJr3UJZ26PoFmmXY/wYN+2EyRnT4PBRCocQ=="
-	decrypted, _ := messaging.DecryptString("enigma", message)
+	decrypted, _ := DecryptString("enigma", message)
 
 	decMessage := fmt.Sprintf("%s", decrypted)
 
@@ -60,7 +54,7 @@ func TestYayDecryptionBasic(t *testing.T) {
 
 	message := "q/xJqqN6qbiZMXYmiQC1Fw=="
 
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 
 	assert.Equal("yay!", decrypted)
@@ -73,7 +67,7 @@ func TestYayEncryptionBasic(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "yay!"
-	encrypted := messaging.EncryptString("enigma", message)
+	encrypted := EncryptString("enigma", message)
 
 	assert.Equal("q/xJqqN6qbiZMXYmiQC1Fw==", encrypted)
 }
@@ -86,7 +80,7 @@ func TestYayDecryption(t *testing.T) {
 
 	message := "Wi24KS4pcTzvyuGOHubiXg=="
 
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 
 	b, err := json.Marshal("yay!")
@@ -105,7 +99,7 @@ func TestYayEncryption(t *testing.T) {
 	b, err := json.Marshal(message)
 	assert.NoError(err)
 
-	encrypted := messaging.EncryptString("enigma", string(b))
+	encrypted := EncryptString("enigma", string(b))
 	assert.Equal("Wi24KS4pcTzvyuGOHubiXg==", encrypted)
 }
 
@@ -117,7 +111,7 @@ func TestArrayDecryption(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "Ns4TB41JjT2NCXaGLWSPAQ=="
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 	slice := []string{}
 	b, err := json.Marshal(slice)
@@ -137,7 +131,7 @@ func TestArrayEncryption(t *testing.T) {
 	b, err := json.Marshal(message)
 	assert.NoError(err)
 
-	encrypted := messaging.EncryptString("enigma", string(b))
+	encrypted := EncryptString("enigma", string(b))
 	assert.Equal("Ns4TB41JjT2NCXaGLWSPAQ==", encrypted)
 }
 
@@ -149,10 +143,10 @@ func TestObjectDecryption(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "IDjZE9BHSjcX67RddfCYYg=="
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 
-	emptyStruct := EmptyStruct{}
+	emptyStruct := emptyStruct{}
 
 	b, err := json.Marshal(emptyStruct)
 	assert.NoError(err)
@@ -165,12 +159,12 @@ func TestObjectDecryption(t *testing.T) {
 func TestObjectEncryption(t *testing.T) {
 	assert := assert.New(t)
 
-	message := EmptyStruct{}
+	message := emptyStruct{}
 
 	b, err := json.Marshal(message)
 	assert.NoError(err)
 
-	encrypted := messaging.EncryptString("enigma", string(b))
+	encrypted := EncryptString("enigma", string(b))
 
 	assert.Equal("IDjZE9BHSjcX67RddfCYYg==", encrypted)
 }
@@ -183,10 +177,10 @@ func TestMyObjectDecryption(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "BMhiHh363wsb7kNk7krTtDcey/O6ZcoKDTvVc4yDhZY="
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 
 	assert.NoError(decErr)
-	customStruct := CustomStruct{
+	customStruct := customStruct{
 		Foo: "hi!",
 		Bar: []int{1, 2, 3, 4, 5},
 	}
@@ -201,7 +195,7 @@ func TestMyObjectDecryption(t *testing.T) {
 func TestMyObjectEncryption(t *testing.T) {
 	assert := assert.New(t)
 
-	message := CustomStruct{
+	message := customStruct{
 		Foo: "hi!",
 		Bar: []int{1, 2, 3, 4, 5},
 	}
@@ -209,7 +203,7 @@ func TestMyObjectEncryption(t *testing.T) {
 	b1, err := json.Marshal(message)
 	assert.NoError(err)
 
-	encrypted := messaging.EncryptString("enigma", string(b1))
+	encrypted := EncryptString("enigma", string(b1))
 	assert.Equal("BMhiHh363wsb7kNk7krTtDcey/O6ZcoKDTvVc4yDhZY=", encrypted)
 }
 
@@ -220,7 +214,7 @@ func TestPubNubDecryption2(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "f42pIQcWZ9zbTbH8cyLwB/tdvRxjFLOYcBNMVKeHS54="
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 
 	b, err := json.Marshal("Pubnub Messaging API 2")
@@ -238,7 +232,7 @@ func TestPubNubEncryption2(t *testing.T) {
 	b, err := json.Marshal(message)
 	assert.NoError(err)
 
-	encrypted := messaging.EncryptString("enigma", string(b))
+	encrypted := EncryptString("enigma", string(b))
 	assert.Equal("f42pIQcWZ9zbTbH8cyLwB/tdvRxjFLOYcBNMVKeHS54=", encrypted)
 }
 
@@ -249,7 +243,7 @@ func TestPubNubDecryption(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "f42pIQcWZ9zbTbH8cyLwByD/GsviOE0vcREIEVPARR0="
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 
 	b, err := json.Marshal("Pubnub Messaging API 1")
@@ -266,7 +260,7 @@ func TestPubNubEncryption(t *testing.T) {
 	message := "Pubnub Messaging API 1"
 	b, err := json.Marshal(message)
 	assert.NoError(err)
-	encrypted := messaging.EncryptString("enigma", string(b))
+	encrypted := EncryptString("enigma", string(b))
 	assert.Equal("f42pIQcWZ9zbTbH8cyLwByD/GsviOE0vcREIEVPARR0=", encrypted)
 }
 
@@ -277,7 +271,7 @@ func TestStuffCanDecryption(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "zMqH/RTPlC8yrAZ2UhpEgLKUVzkMI2cikiaVg30AyUu7B6J0FLqCazRzDOmrsFsF"
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 	assert.Equal("{\"this stuff\":{\"can get\":\"complicated!\"}}", decrypted)
 }
@@ -289,7 +283,7 @@ func TestStuffCanEncryption(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "{\"this stuff\":{\"can get\":\"complicated!\"}}"
-	encrypted := messaging.EncryptString("enigma", message)
+	encrypted := EncryptString("enigma", message)
 	assert.Equal("zMqH/RTPlC8yrAZ2UhpEgLKUVzkMI2cikiaVg30AyUu7B6J0FLqCazRzDOmrsFsF", encrypted)
 }
 
@@ -300,7 +294,7 @@ func TestHashDecryption(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "GsvkCYZoYylL5a7/DKhysDjNbwn+BtBtHj2CvzC4Y4g="
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 	assert.Equal("{\"foo\":{\"bar\":\"foobar\"}}", decrypted)
 }
@@ -313,7 +307,7 @@ func TestHashEncryption(t *testing.T) {
 
 	message := "{\"foo\":{\"bar\":\"foobar\"}}"
 
-	encrypted := messaging.EncryptString("enigma", message)
+	encrypted := EncryptString("enigma", message)
 	assert.Equal("GsvkCYZoYylL5a7/DKhysDjNbwn+BtBtHj2CvzC4Y4g=", encrypted)
 }
 
@@ -324,10 +318,10 @@ func TestUnicodeDecryption(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "+BY5/miAA8aeuhVl4d13Kg=="
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 
-	data, _, _, err := messaging.ParseJSON([]byte(decrypted.(string)), "")
+	data, _, _, err := ParseJSON([]byte(decrypted.(string)), "")
 	assert.NoError(err)
 	assert.Equal("漢語", data)
 }
@@ -354,7 +348,7 @@ func TestUnicodeEncryption(t *testing.T) {
 	b, err := json.Marshal(message)
 	assert.NoError(err)
 
-	encrypted := messaging.EncryptString("enigma", string(b))
+	encrypted := EncryptString("enigma", string(b))
 	assert.Equal("+BY5/miAA8aeuhVl4d13Kg==", encrypted)
 }
 
@@ -365,10 +359,10 @@ func TestGermanDecryption(t *testing.T) {
 	assert := assert.New(t)
 
 	message := "stpgsG1DZZxb44J7mFNSzg=="
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 
-	data, _, _, err := messaging.ParseJSON([]byte(decrypted.(string)), "")
+	data, _, _, err := ParseJSON([]byte(decrypted.(string)), "")
 	assert.NoError(err)
 	assert.Equal("ÜÖ", data)
 }
@@ -383,7 +377,7 @@ func TestGermanEncryption(t *testing.T) {
 	b, err := json.Marshal(message)
 	assert.NoError(err)
 
-	encrypted := messaging.EncryptString("enigma", string(b))
+	encrypted := EncryptString("enigma", string(b))
 	assert.Equal("stpgsG1DZZxb44J7mFNSzg==", encrypted)
 }
 
@@ -394,10 +388,10 @@ func TestComplexClassDecryption(t *testing.T) {
 
 	message := "Bc846Ri5HK1ixqP/dzAyZq23Z/NBlcPn2UX8h38xTGINs72yF5gtU0t9fFEMxjY+DmezWt0nG7eN7RABrj697tK1nooVHYIxgDLMsjMTw5N0K+rUM823n7LcHfEoXaX8oH2E6zkg6iK5pmT8nlh6LF6Bw1G5zkluT8oTjnbFJcpEvTyT2ZKzcqptgYsE9XZiEn84zv0wjDMxSJzlM7cbe2JpLtR99mdkUf8SMVr+J0ym6Z9c02MKLP6bygWzdG9zTdkLSIxJE3R9Yt76XeRFdrbRNWkuQM/uItDsE23+8RKwZRyAScoDMwFAg+BSa6KF1tS6cJlyjxA8o5e9iWykKuHO0h1uAiapzTx9iZluOH2bVZgTUu1GABjXveMBAkrZ1eG4nVOlytsAr1oSekKvWxzyUEP2kFSrtQbg6oGECb1OMmj5bd21cx0vpDWr/juGT7/n4sBr7gYsWDvBaU7awN9Y7bcq14jtiXq/2iNNW0zoI3xe6+qByimHaiAgVoqO"
 
-	decrypted, decErr := messaging.DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 
-	customComplexMessage := InitComplexMessage()
+	customComplexMessage := initComplexMessage()
 	b, err := json.Marshal(customComplexMessage)
 
 	assert.NoError(err)
@@ -409,18 +403,80 @@ func TestComplexClassDecryption(t *testing.T) {
 func TestComplexClassEncryption(t *testing.T) {
 	assert := assert.New(t)
 
-	customComplexMessage := InitComplexMessage()
+	customComplexMessage := initComplexMessage()
 
 	b1, err := json.Marshal(customComplexMessage)
 	assert.NoError(err)
 
-	encrypted := messaging.EncryptString("enigma", string(b1))
+	encrypted := EncryptString("enigma", string(b1))
 	assert.Equal("Bc846Ri5HK1ixqP/dzAyZq23Z/NBlcPn2UX8h38xTGINs72yF5gtU0t9fFEMxjY+DmezWt0nG7eN7RABrj697tK1nooVHYIxgDLMsjMTw5N0K+rUM823n7LcHfEoXaX8oH2E6zkg6iK5pmT8nlh6LF6Bw1G5zkluT8oTjnbFJcpEvTyT2ZKzcqptgYsE9XZiEn84zv0wjDMxSJzlM7cbe2JpLtR99mdkUf8SMVr+J0ym6Z9c02MKLP6bygWzdG9zTdkLSIxJE3R9Yt76XeRFdrbRNWkuQM/uItDsE23+8RKwZRyAScoDMwFAg+BSa6KF1tS6cJlyjxA8o5e9iWykKuHO0h1uAiapzTx9iZluOH2bVZgTUu1GABjXveMBAkrZ1eG4nVOlytsAr1oSekKvWxzyUEP2kFSrtQbg6oGECb1OMmj5bd21cx0vpDWr/juGT7/n4sBr7gYsWDvBaU7awN9Y7bcq14jtiXq/2iNNW0zoI3xe6+qByimHaiAgVoqO", encrypted)
 }
 
-// TestEncryptionEnd prints a message on the screen to mark the end of
-// encryption tests.
-// PrintTestMessage is defined in the common.go file.
-func TestEncryptionEnd(t *testing.T) {
-	PrintTestMessage("==========Encryption tests end==========")
+// Data represents a <data> element.
+type data struct {
+	XMLName xml.Name `xml:"data"`
+	//Entry   []Entry  `xml:"entry"`
+	Name string `xml:"name"`
+	Age  int    `xml:"age"`
+}
+
+// PubnubDemoMessage is a struct to test a non-alphanumeric message
+type pubnubDemoMessage struct {
+	DefaultMessage string `json:",string"`
+}
+
+// CustomComplexMessage is used to test the custom structure encryption and decryption.
+// The variables "foo" and "bar" as used in the other languages are not
+// accepted by golang and give an empty value when serialized, used "Foo"
+// and "Bar" instead.
+type customComplexMessage struct {
+	VersionID     float32 `json:",string"`
+	TimeToken     int64   `json:",string"`
+	OperationName string
+	Channels      []string
+	DemoMessage   pubnubDemoMessage `json:",string"`
+	SampleXML     string            `json:",string"`
+}
+
+// InitComplexMessage initializes a complex structure of the
+// type CustomComplexMessage which includes a xml, struct of type PubnubDemoMessage,
+// strings, float and integer.
+func initComplexMessage() customComplexMessage {
+	pubnubDemoMessage := pubnubDemoMessage{
+		DefaultMessage: "~!@#$%^&*()_+ `1234567890-= qwertyuiop[]\\ {}| asdfghjkl;' :\" zxcvbnm,./ <>? ",
+	}
+
+	xmlDoc := &data{Name: "Doe", Age: 42}
+
+	output := new(bytes.Buffer)
+	enc := xml.NewEncoder(output)
+
+	err := enc.Encode(xmlDoc)
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+		return customComplexMessage{}
+	}
+
+	customComplexMessage := customComplexMessage{
+		VersionID:     3.4,
+		TimeToken:     13601488652764619,
+		OperationName: "Publish",
+		Channels:      []string{"ch1", "ch 2"},
+		DemoMessage:   pubnubDemoMessage,
+		SampleXML:     output.String(),
+	}
+	return customComplexMessage
+}
+
+// EmptyStruct provided the empty struct to test the encryption.
+type emptyStruct struct {
+}
+
+// CustomStruct to test the custom structure encryption and decryption
+// The variables "foo" and "bar" as used in the other languages are not
+// accepted by golang and give an empty value when serialized, used "Foo"
+// and "Bar" instead.
+type customStruct struct {
+	Foo string
+	Bar []int
 }
