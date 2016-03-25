@@ -23,12 +23,13 @@ func TestWildcardSubscribeStart(t *testing.T) {
 func TestWildcardSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth("fixtures/wildcard/connAndUns", []string{"uuid"}, 1)
+	stop, _ := NewVCRBoth("fixtures/wildcard/connAndUns", []string{"uuid"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
 	major := "Channel_ConnAndUns"
 	wildcard := fmt.Sprintf("%s.*", major)
+	uuid := "UUID_ConnAndUns"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
@@ -64,15 +65,15 @@ func TestWildcardSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 func TestWildcardSubscriptionMessage(t *testing.T) {
 	assert := assert.New(t)
 
-	stop := NewVCRBoth("fixtures/wildcard/message", []string{"uuid"}, 2)
+	stop, _ := NewVCRBoth("fixtures/wildcard/message", []string{"uuid"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-
+	uuid := "UUID_SubscribeMajor"
 	major := "Channel_SubscribeMajor"
 	minor := "Channel_SubscribeMinor"
 	channel := fmt.Sprintf("%s.%s", major, minor)
 	wildcard := fmt.Sprintf("%s.*", major)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)

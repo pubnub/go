@@ -48,13 +48,13 @@ func TestUnsubscribeNotSubscribed(t *testing.T) {
 func TestUnsubscribeChannel(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, sleep := NewVCRBothWithSleep(
-		"fixtures/unsubscribe/channel", []string{"uuid"}, 1)
+	stop, sleep := NewVCRBoth(
+		"fixtures/unsubscribe/channel", []string{"uuid"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-
 	channel := "Channel_UnsubscribeChannel"
+	uuid := "UUID_UnsubscribeChannel"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)

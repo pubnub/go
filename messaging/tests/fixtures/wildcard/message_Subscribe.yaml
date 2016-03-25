@@ -9,10 +9,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/0?uuid=65a8ab35405f3fe580d1aeda0e32e940&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/0?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '[[],"14575135111537675"]'
+    body: '[[],"14588303680736640","",""]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -23,11 +23,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - "24"
+      - "30"
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Wed, 09 Mar 2016 08:51:51 GMT
+      - Thu, 24 Mar 2016 14:39:44 GMT
     status: 200 OK
     code: 200
 - request:
@@ -38,10 +38,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/14575135111537675?uuid=65a8ab35405f3fe580d1aeda0e32e940&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/14588303680736640?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '[["hey"],"14575135113085688","Channel_SubscribeMajor.*","Channel_SubscribeMajor.Channel_SubscribeMinor"]'
+    body: '[["hey"],"14588303843889819","Channel_SubscribeMajor.*","Channel_SubscribeMajor.Channel_SubscribeMinor"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -56,6 +56,67 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Wed, 09 Mar 2016 08:51:51 GMT
+      - Thu, 24 Mar 2016 14:39:44 GMT
     status: 200 OK
     code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/14588303843889819?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[[{"action": "leave", "timestamp": 1458830384, "uuid": "UUID_SubscribeMajor",
+      "occupancy": 0}],"14588303845321039","Channel_SubscribeMajor.*","Channel_SubscribeMajor.*-pnpres"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "176"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Thu, 24 Mar 2016 14:39:44 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/14588303843889819?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[[{"action": "leave", "timestamp": 1458830384, "uuid": "UUID_SubscribeMajor",
+      "occupancy": 0}],"14588303845321039","Channel_SubscribeMajor.*","Channel_SubscribeMajor.*-pnpres"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "176"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Thu, 24 Mar 2016 14:39:44 GMT
+    status: 200 OK
+    code: 200
+unclosed_requests: {}
