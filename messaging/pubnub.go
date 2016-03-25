@@ -2336,16 +2336,33 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 	subscribedGroups := pub.groups.ConnectedNamesString()
 	pub.RUnlock()
 
+	// TODO: exclude this logic into sub-method to cover it with unit tests
 	if third == fourth && fourthChannelExist {
 		pub.sendSubscribeResponse(fourth, "", timetoken, channelResponse, responseAsIs, message)
 	} else if strings.HasSuffix(third, wildcardSuffix) {
+		// Wildcard channel presence event
+		// ["foo.*, "foo.*-pnpres"] foo.*-pnpres/
 		if fourthChannelExist && strings.HasSuffix(fourth, presenceSuffix) {
 			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
+			// REVIEW: probably this is not a place for CG response
+			// Channel group message
+			// ["news, "world"] /news
 		} else if thirdChannelGroupExist && !strings.HasSuffix(fourth, presenceSuffix) {
 			pub.sendSubscribeResponse(fourth, third, timetoken, channelGroupResponse, responseAsIs, message)
-		} else if thirdChannelExist && strings.HasSuffix(third, wildcardSuffix) &&
-			!strings.HasSuffix(fourth, presenceSuffix) {
+			// Wildcard channel message
+			// ["foo.*, "foo.bar"] foo.*/
+		} else if thirdChannelExist && !strings.HasSuffix(fourth, presenceSuffix) {
 			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
+			// Wildcard channel presence event while subscribed only to messages
+			// ["foo.*, "foo.bar-pnpres"] foo.*/
+			// ["foo.*, "foo.*-pnpres"] foo.*/
+		} else if thirdChannelExist && !fourthChannelExist && strings.HasSuffix(fourth, presenceSuffix) {
+			// Message should be ignored
+
+			// Wildcard channel message while subscribed only to presence
+			// ["foo.*, "foo.bar"] foo.*-pnpres/
+		} else if !thirdChannelExist && !fourthChannelExist && !strings.HasSuffix(fourth, presenceSuffix) {
+			// Message should be ignored
 		} else {
 			logMu.Lock()
 			errorLogger.Println(

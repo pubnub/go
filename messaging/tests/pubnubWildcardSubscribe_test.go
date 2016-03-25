@@ -49,15 +49,7 @@ func TestWildcardSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 	}
 
 	go pubnubInstance.Unsubscribe(wildcard, successChannel, errorChannel)
-	select {
-	case msg := <-successChannel:
-		val := string(msg)
-		assert.Equal(fmt.Sprintf(
-			"[1, \"Subscription to channel '%s' unsubscribed\", \"%s\"]",
-			wildcard, wildcard), val)
-	case err := <-errorChannel:
-		assert.Fail(string(err))
-	}
+	ExpectUnsubscribedEvent(t, wildcard, "", successChannel, errorChannel)
 
 	pubnubInstance.CloseExistingConnection()
 }
