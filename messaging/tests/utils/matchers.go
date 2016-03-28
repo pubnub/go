@@ -27,6 +27,23 @@ func NewPubnubSubscribeMatcher(skipFields []string) cassette.Matcher {
 	}
 }
 
+type pubnubService int
+
+const (
+	serviceRegular pubnubService = 1 << iota
+	serviceCGAddRemove
+	serviceSubscribe
+)
+
+func getServiceForUrl(path string) pubnubService {
+	if isSubscribeRe.MatchString(path) {
+		return serviceSubscribe
+		// TODO: add cg and pam matchers
+	} else {
+		return serviceRegular
+	}
+}
+
 // Matcher for non-subscribe requests
 type PubnubMatcher struct {
 	cassette.Matcher
@@ -38,7 +55,6 @@ type PubnubMatcher struct {
 func (m *PubnubMatcher) Match(interactions []*cassette.Interaction,
 	r *http.Request) (*cassette.Interaction, error) {
 
-interactionsLoop:
 	for _, i := range interactions {
 		if r.Method != i.Request.Method {
 			continue
@@ -49,38 +65,56 @@ interactionsLoop:
 			continue
 		}
 
-		if expectedURL.Host != r.URL.Host {
-			continue
+		if m.MatchUrl(expectedURL, r.URL) {
+			return i, nil
 		}
-
-		if !m.matchPath(expectedURL.Path, r.URL.Path) {
-			continue
-		}
-		eQuery := expectedURL.Query()
-		aQuery := r.URL.Query()
-
-		for fKey, _ := range eQuery {
-			if hasKey(fKey, m.skipFields) {
-				continue
-			}
-
-			if aQuery[fKey] == nil || eQuery.Get(fKey) != aQuery.Get(fKey) {
-				continue interactionsLoop
-			}
-		}
-
-		return i, nil
 	}
 
 	return nil, errorInteractionNotFound(interactions)
 }
 
-func (m *PubnubMatcher) matchPath(expected, actual string) bool {
-	if isSubscribeRe.MatchString(expected) && isSubscribeRe.MatchString(actual) {
-		return urlsMatch(expected, actual)
-	} else {
-		return expected == actual
+func (m *PubnubMatcher) MatchUrlStrings(expected, actual string) bool {
+	expectedUrl, err := url.Parse(expected)
+	if err != nil {
+		return false
 	}
+
+	actualUrl, err := url.Parse(actual)
+	if err != nil {
+		return false
+	}
+
+	return m.MatchUrl(expectedUrl, actualUrl)
+}
+
+func (m *PubnubMatcher) MatchUrl(expected, actual *url.URL) bool {
+	serviceType := getServiceForUrl(expected.Path)
+
+	if expected.Host != actual.Host {
+		return false
+	}
+
+	switch serviceType {
+	case serviceSubscribe:
+		pathOk := matchSubscribePath(expected.Path, actual.Path)
+		queryOk := matchQuery(expected.Query(), actual.Query(),
+			[]string{}, []string{"channel-group"})
+
+		fmt.Println("subscribe")
+		if !pathOk || !queryOk {
+			return false
+		}
+	case serviceRegular:
+		pathOk := matchPath(expected.Path, actual.Path)
+		queryOk := matchQuery(expected.Query(), actual.Query(),
+			[]string{}, []string{})
+
+		if !pathOk || !queryOk {
+			return false
+		}
+	}
+
+	return true
 }
 
 func errorInteractionNotFound(
@@ -98,70 +132,67 @@ func errorInteractionNotFound(
 		urlsBuffer.String()))
 }
 
-var isSubscribeRe = regexp.MustCompile("^/subscribe/.*$")
-var subscribePathRe = regexp.MustCompile("^((?:http|https)://[^/]+)?(/subscribe/[^/]+/)([^/]+)(/[^?]+)?.+$")
+var isSubscribeRe = regexp.MustCompile("/subscribe/.*$")
+var subscribePathRe = regexp.MustCompile("(/subscribe/[^/]+)/([^/]+)/([^?]*)")
 
-func urlsMatch(expected, actual string) bool {
-	eAllMatches := subscribePathRe.FindAllStringSubmatch(expected, -4)
-	aAllMatches := subscribePathRe.FindAllStringSubmatch(actual, -4)
+func matchPath(expected, actual string) bool {
+	return expected == actual
+}
 
-	fmt.Println(eAllMatches[0][1], aAllMatches[0][1])
+func matchSubscribePath(expected, actual string) bool {
+	eAllMatches := subscribePathRe.FindAllStringSubmatch(expected, -1)
+	aAllMatches := subscribePathRe.FindAllStringSubmatch(actual, -1)
 
-	if len(eAllMatches) > 0 && len(aAllMatches) > 0 {
-		eMatches := eAllMatches[0][2:]
-		aMatches := aAllMatches[0][2:]
-
-		if eMatches[0] != aMatches[0] {
-			return false
-		}
-
-		eChannels := strings.Split(eMatches[1], ",")
-		aChannels := strings.Split(aMatches[1], ",")
-
-		if !AssertStringSliceElementsEqual(eChannels, aChannels) {
-			fmt.Println("chanels are NOT equal", eChannels, aChannels)
-			return false
-		} else {
-			fmt.Println("chanels ARE equal", eChannels, aChannels)
-		}
-
-		if eMatches[2] != aMatches[2] {
-			return false
-		}
-
-		eUrl, err := url.Parse(expected)
-		if err != nil {
-			panic(err.Error)
-		}
-
-		aUrl, err := url.Parse(actual)
-		if err != nil {
-			panic(err.Error)
-		}
-
-		eQuery := eUrl.Query()
-		aQuery := aUrl.Query()
-
-		for fKey, _ := range eQuery {
-			if fKey == "channel-group" {
-				if _, ok := aQuery["channel-group"]; ok {
-					eCgs := eQuery.Get(fKey)
-					aCgs := aQuery.Get(fKey)
-					eChannels := strings.Split(eCgs, ",")
-					aChannels := strings.Split(aCgs, ",")
-					return AssertStringSliceElementsEqual(eChannels, aChannels)
-				} else {
-					return false
-				}
-			} else {
-				if aQuery[fKey] == nil || eQuery.Get(fKey) != aQuery.Get(fKey) {
-					return false
-				}
-			}
-		}
-
-		return true
-	} else {
+	if len(eAllMatches) == 0 || len(aAllMatches) == 0 {
 		return false
 	}
+
+	eMatches := eAllMatches[0][1:]
+	aMatches := aAllMatches[0][1:]
+	fmt.Println(eMatches, aMatches)
+
+	if eMatches[0] != aMatches[0] {
+		return false
+	}
+
+	eChannels := strings.Split(eMatches[1], ",")
+	aChannels := strings.Split(aMatches[1], ",")
+
+	if !AssertStringSliceElementsEqual(eChannels, aChannels) {
+		return false
+	}
+
+	if eMatches[2] != aMatches[2] {
+		return false
+	}
+
+	return true
+}
+
+func matchQuery(eQuery, aQuery url.Values, ignore, mixed []string) bool {
+	for fKey, _ := range eQuery {
+		if hasKey(fKey, ignore) {
+			continue
+		}
+
+		if hasKey(fKey, mixed) {
+			if _, ok := aQuery[fKey]; ok {
+				eCgs := eQuery.Get(fKey)
+				aCgs := aQuery.Get(fKey)
+				eChannels := strings.Split(eCgs, ",")
+				aChannels := strings.Split(aCgs, ",")
+				if AssertStringSliceElementsEqual(eChannels, aChannels) {
+					continue
+				}
+			}
+
+			return false
+		}
+
+		if aQuery[fKey] == nil || eQuery.Get(fKey) != aQuery.Get(fKey) {
+			return false
+		}
+	}
+
+	return true
 }
