@@ -12,7 +12,7 @@ interactions:
     url: http://pubsub.pubnub.com/time/0?pnsdk=PubNub-Go%2F3.7.0&uuid=timeGetter_time_uuid
     method: GET
   response:
-    body: '[14586613306457058]'
+    body: '[14591685620543810]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -27,7 +27,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 22 Mar 2016 15:42:10 GMT
+      - Mon, 28 Mar 2016 12:36:02 GMT
     status: 200 OK
     code: 200
 - request:
@@ -41,7 +41,7 @@ interactions:
     url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_MultipleResponse/0/%22message1%22?pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_MultipleResponse
     method: GET
   response:
-    body: '[1,"Sent","14586613306744256"]'
+    body: '[1,"Sent","14591685620840142"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -56,7 +56,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 22 Mar 2016 15:42:10 GMT
+      - Mon, 28 Mar 2016 12:36:02 GMT
     status: 200 OK
     code: 200
 - request:
@@ -70,7 +70,7 @@ interactions:
     url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_MultipleResponse/0/%22message2%22?pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_MultipleResponse
     method: GET
   response:
-    body: '[1,"Sent","14586613306993567"]'
+    body: '[1,"Sent","14591685621098006"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -85,7 +85,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 22 Mar 2016 15:42:10 GMT
+      - Mon, 28 Mar 2016 12:36:02 GMT
     status: 200 OK
     code: 200
 - request:
@@ -118,7 +118,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 22 Mar 2016 15:42:11 GMT
+      - Mon, 28 Mar 2016 12:36:02 GMT
       Server:
       - Pubnub Presence
     status: 200 OK
