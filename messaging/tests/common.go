@@ -11,6 +11,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -489,8 +490,12 @@ const (
 	vcrStubNonSubscribe
 )
 
+var vcrMu sync.Mutex
+
 func NewVCRNonSubscribe(name string, skipFields []string) (
 	func(), func(int)) {
+
+	vcrMu.Lock()
 
 	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
 	nsMatcher := utils.NewPubnubMatcher(skipFields)
@@ -501,6 +506,7 @@ func NewVCRNonSubscribe(name string, skipFields []string) (
 			ns.Stop()
 
 			messaging.SetNonSubscribeTransport(nil)
+			vcrMu.Unlock()
 		}, func(seconds int) {
 			if ns.Mode() == recorder.ModeRecording {
 				time.Sleep(time.Duration(seconds) * time.Second)
@@ -511,6 +517,8 @@ func NewVCRNonSubscribe(name string, skipFields []string) (
 }
 
 func NewVCRSubscribe(name string, skipFields []string) func() {
+	vcrMu.Lock()
+
 	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
 	sMatcher := utils.NewPubnubSubscribeMatcher(skipFields)
 	s.UseMatcher(sMatcher)
@@ -524,11 +532,14 @@ func NewVCRSubscribe(name string, skipFields []string) func() {
 		s.Stop()
 
 		messaging.SetSubscribeTransport(nil)
+		vcrMu.Unlock()
 	}
 }
 
 func NewVCRBoth(name string, skipFields []string) (
 	func(), func(int)) {
+
+	vcrMu.Lock()
 
 	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
 	s.UseMatcher(utils.NewPubnubSubscribeMatcher(skipFields))
@@ -549,6 +560,7 @@ func NewVCRBoth(name string, skipFields []string) (
 
 			messaging.SetSubscribeTransport(nil)
 			messaging.SetNonSubscribeTransport(nil)
+			vcrMu.Unlock()
 		}, func(seconds int) {
 			mode := recorder.ModeRecording
 			if ns.Mode() == mode && s.Mode() == mode {
