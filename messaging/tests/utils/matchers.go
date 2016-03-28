@@ -98,16 +98,15 @@ func (m *PubnubMatcher) MatchUrl(expected, actual *url.URL) bool {
 	case serviceSubscribe:
 		pathOk := matchSubscribePath(expected.Path, actual.Path)
 		queryOk := matchQuery(expected.Query(), actual.Query(),
-			[]string{}, []string{"channel-group"})
+			m.skipFields, []string{"channel-group"})
 
-		fmt.Println("subscribe")
 		if !pathOk || !queryOk {
 			return false
 		}
 	case serviceRegular:
 		pathOk := matchPath(expected.Path, actual.Path)
 		queryOk := matchQuery(expected.Query(), actual.Query(),
-			[]string{}, []string{})
+			m.skipFields, []string{})
 
 		if !pathOk || !queryOk {
 			return false
@@ -149,7 +148,6 @@ func matchSubscribePath(expected, actual string) bool {
 
 	eMatches := eAllMatches[0][1:]
 	aMatches := aAllMatches[0][1:]
-	fmt.Println(eMatches, aMatches)
 
 	if eMatches[0] != aMatches[0] {
 		return false
