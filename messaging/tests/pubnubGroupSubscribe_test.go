@@ -84,17 +84,16 @@ func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 	pubnubInstance.CloseExistingConnection()
 }
 
-// TODO: allow groups mixing in matcher
-func xTestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
+func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 	assert := assert.New(t)
 
 	stop, sleep := NewVCRBoth(
 		"fixtures/groups/conAndUnsMultiple", []string{"uuid"})
 	defer stop()
 
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	// groupsString, _ := GenerateTwoRandomChannelStrings(3)
-	groupsString := "Group_ConAndUnsMult1,Group_ConAndUns_2,Group_ConAndUns_3"
+	uuid := "UUID_Multiple_CAU"
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	groupsString := "Group_ConAndUnsMult_1,Group_ConAndUnsMult_2,Group_ConAndUnsMult_3"
 	groups := strings.Split(groupsString, ",")
 
 	createChannelGroups(pubnub, groups)
@@ -155,6 +154,7 @@ func xTestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 	go pubnub.ChannelGroupUnsubscribe(groupsString, successChannel, errorChannel)
 	go func() {
 		var messages []string
+		var events int
 
 		for {
 			select {
@@ -163,21 +163,30 @@ func xTestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 
 				err := json.Unmarshal(message, &msg)
 				if err != nil {
-					assert.Fail(err.Error())
+					var event map[string]interface{}
+					err := json.Unmarshal(message, &event)
+					if err != nil {
+						assert.Fail(err.Error())
+					}
+
+					assert.Equal(event["action"].(string), "leave")
+					assert.Equal(event["message"].(string), "OK")
+					events++
+				} else {
+
+					assert.Contains(msg[1].(string), "Subscription to channel group")
+					assert.Contains(msg[1].(string), "unsubscribed")
+					assert.Len(msg, 3)
+
+					messages = append(messages, string(msg[2].(string)))
 				}
-
-				assert.Contains(msg[1].(string), "Subscription to channel group")
-				assert.Contains(msg[1].(string), "unsubscribed")
-				assert.Len(msg, 3)
-
-				messages = append(messages, string(msg[2].(string)))
 			case err := <-errorChannel:
 				assert.Fail("Subscribe error", string(err))
 			case <-timeouts(10):
 				break
 			}
 
-			if len(messages) == 3 {
+			if len(messages) == 3 && events == 3 {
 				break
 			}
 		}

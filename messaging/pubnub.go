@@ -2677,6 +2677,8 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 
 	if groupRemoved {
 		if strings.TrimSpace(unsubscribeGroups) != "" {
+			pub.CloseExistingConnection()
+
 			value, _, err := pub.sendLeaveRequest("", unsubscribeGroups)
 			if err != nil {
 				logMu.Lock()
@@ -2688,8 +2690,6 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 				sendSuccessResponseToChannel(callbackChannel, unsubscribeGroups, string(value))
 			}
 		}
-
-		pub.CloseExistingConnection()
 	}
 }
 
