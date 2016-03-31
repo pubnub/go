@@ -284,6 +284,8 @@ type Pubnub struct {
 	userState map[string]map[string]interface{}
 
 	isPresenceHeartbeatRunning bool
+	subscribeSleeper           chan struct{}
+	retrySleeper               chan struct{}
 	sync.RWMutex
 }
 
@@ -359,6 +361,8 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	logMu.Unlock()
 	//Generate the uuid is custmUuid is not provided
 	newPubnub.SetUUID(customUuid)
+	newPubnub.subscribeSleeper = make(chan struct{})
+	newPubnub.retrySleeper = make(chan struct{})
 
 	return newPubnub
 }
@@ -1497,7 +1501,6 @@ func (pub *Pubnub) sendSuccessResponse(channels, groups string, response []byte)
 // Sender for specific go channel
 func sendSuccessResponseToChannel(channel chan<- []byte, items,
 	response string) {
-
 	ln := len(splitItems(items))
 
 	value := strings.Replace(response, presenceSuffix, "", -1)
@@ -1769,7 +1772,7 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error) (bool, bool) {
 	errorInitConn := strings.Contains(err.Error(), errorInInitializing)
 
 	if errorInitConn {
-		sleepForAWhile(true)
+		pub.sleepForAWhile(true)
 		message := fmt.Sprintf("Error %s, Retry count: %s", err.Error(), strconv.Itoa(retryCountLocal))
 
 		logMu.Lock()
@@ -1780,7 +1783,7 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error) (bool, bool) {
 			err.Error(), message, responseAsIsError)
 		bRet = true
 	} else if strings.Contains(err.Error(), timeoutU) {
-		sleepForAWhile(false)
+		pub.sleepForAWhile(false)
 		message := strconv.Itoa(retryCountLocal)
 
 		logMu.Lock()
@@ -1792,7 +1795,7 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error) (bool, bool) {
 		bRet = true
 		bTimeOut = true
 	} else if strings.Contains(err.Error(), noSuchHost) || strings.Contains(err.Error(), networkUnavailable) {
-		sleepForAWhile(true)
+		pub.sleepForAWhile(true)
 		message := strconv.Itoa(retryCountLocal)
 
 		logMu.Lock()
@@ -1802,6 +1805,7 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error) (bool, bool) {
 		pub.sendSubscribeError(subChannels, subChannelGroups, message, responseInternetConnIssues)
 		bRet = true
 	}
+	// TODO: probably another cases exists
 
 	if retryCountLocal >= maxRetries {
 		// TODO: verify generated message
@@ -1816,10 +1820,6 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error) (bool, bool) {
 		retryCountMu.Lock()
 		defer retryCountMu.Unlock()
 		retryCount = 0
-	}
-
-	if retryCountLocal > 0 {
-		return bRet, bTimeOut
 	}
 
 	return bRet, bTimeOut
@@ -1846,8 +1846,8 @@ func (pub *Pubnub) resetRetryAndSendResponse() bool {
 func (pub *Pubnub) retryLoop() {
 	for {
 		pub.RLock()
-		subChannels := pub.channels.ConnectedNamesString()
-		subChannelsGroups := pub.groups.ConnectedNamesString()
+		subChannels := pub.channels.NamesString()
+		subChannelsGroups := pub.groups.NamesString()
 		pub.RUnlock()
 
 		if len(subChannels) > 0 || len(subChannelsGroups) > 0 {
@@ -1867,7 +1867,7 @@ func (pub *Pubnub) retryLoop() {
 			} else if (err == nil) && (retryCountLocal > 0) {
 				pub.resetRetryAndSendResponse()
 			}
-			sleepForAWhile(false)
+			pub.sleepForAWhileRetry(false)
 		} else {
 			pub.closeRetryConnection()
 			break
@@ -2040,77 +2040,84 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 
 			value, responseCode, err := pub.httpRequest(subscribeURL, subscribeTrans)
 
-			// if response is error
-			if (responseCode != 200) || (err != nil) {
-				if err != nil {
-					logMu.Lock()
-					errorLogger.Println(fmt.Sprintf("%s, response code: %d:", err.Error(), responseCode))
-					logMu.Unlock()
+			// if network error, for ex.
+			// - closed network connection/connection aborted
+			if err != nil {
+				logMu.Lock()
+				errorLogger.Println(fmt.Sprintf("Network Error: %s, response code: %d:", err.Error(), responseCode))
+				logMu.Unlock()
 
-					bNonTimeout, bTimeOut := pub.checkForTimeoutAndRetries(err)
+				bNonTimeout, bTimeOut := pub.checkForTimeoutAndRetries(err)
 
-					if strings.Contains(err.Error(), connectionAborted) {
-						pub.CloseExistingConnection()
-
-						pub.sendSubscribeError(alreadySubscribedChannels,
-							alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
-
-						pub.Lock()
-						pub.channels.ApplyAbort()
-						pub.groups.ApplyAbort()
-						pub.Unlock()
-					} else if bNonTimeout {
-						pub.CloseExistingConnection()
-
-						if bTimeOut {
-							_, returnTimeToken, _, errJSON := ParseJSON(value, pub.cipherKey)
-							if errJSON == nil {
-								pub.Lock()
-								pub.timeToken = returnTimeToken
-								pub.Unlock()
-							}
-						}
-
-						if !GetResumeOnReconnect() {
-							pub.Lock()
-							pub.resetTimeToken = true
-							pub.Unlock()
-						}
-					} else {
-						pub.CloseExistingConnection()
-
-						pub.sendSubscribeError(alreadySubscribedChannels,
-							alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
-
-						sleepForAWhile(true)
-					}
-					// if unknown error occured
-				} else {
-					logMu.Lock()
-					errorLogger.Println(fmt.Sprintf("response code: %d:", responseCode))
-					logMu.Unlock()
-
-					if responseCode != 403 {
-						pub.resetRetryAndSendResponse()
-					}
-
+				if strings.Contains(err.Error(), connectionAborted) {
 					pub.CloseExistingConnection()
 
 					pub.sendSubscribeError(alreadySubscribedChannels,
-						alreadySubscribedChannelGroups, string(value), responseAsIs)
+						alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
 
-					sleepForAWhile(false)
+					pub.Lock()
+					pub.channels.ApplyAbort()
+					pub.groups.ApplyAbort()
+					pub.Unlock()
+				} else if bNonTimeout {
+					pub.CloseExistingConnection()
+
+					if bTimeOut {
+						_, returnTimeToken, _, errJSON := ParseJSON(value, pub.cipherKey)
+						if errJSON == nil {
+							pub.Lock()
+							pub.timeToken = returnTimeToken
+							pub.Unlock()
+						}
+					}
+
+					if !GetResumeOnReconnect() {
+						pub.Lock()
+						pub.resetTimeToken = true
+						pub.Unlock()
+					}
+				} else {
+					pub.CloseExistingConnection()
+
+					pub.sendSubscribeError(alreadySubscribedChannels,
+						alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
+
+					pub.sleepForAWhile(true)
 				}
 				continue
-				// if response was successfull
-			} else if string(value) != "" {
+				// if server error. for ex.
+				// - 400/cg doesn't exist
+				// - 403/no permissions
+			} else if responseCode != 200 {
+				logMu.Lock()
+				errorLogger.Println(fmt.Sprintf("Server Error. Response code: %d:", responseCode))
+				logMu.Unlock()
 
+				if responseCode != 403 && responseCode != 400 {
+					pub.resetRetryAndSendResponse()
+				}
+
+				pub.CloseExistingConnection()
+
+				pub.sendSubscribeError(alreadySubscribedChannels,
+					alreadySubscribedChannelGroups, string(value), responseAsIsError)
+
+				pub.sleepForAWhile(false)
+				continue
+				// if server error. for ex.
+			} else if string(value) != "" {
 				logMu.Lock()
 				infoLogger.Println(fmt.Sprintf("response value: %s", string(value)))
 				logMu.Unlock()
 
 				pub.handleSubscribeResponse(value, sentTimeToken,
 					alreadySubscribedChannels, alreadySubscribedChannelGroups)
+			} else {
+				logMu.Lock()
+				infoLogger.Println(fmt.Sprintf("Empty subscribe response"))
+				logMu.Unlock()
+
+				// TODO: handle else case (send error and sleepForAWhile(true))
 			}
 		} else {
 			break
@@ -2241,7 +2248,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	reconnected := pub.resetRetryAndSendResponse()
 
 	if bytes.Equal(response, []byte("[]")) {
-		sleepForAWhile(false)
+		pub.sleepForAWhile(false)
 		return
 	}
 
@@ -2280,7 +2287,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 			strings.Join(groupNames, ","), fmt.Sprintf("%s", errJSON),
 			responseAsIsError)
 
-		sleepForAWhile(false)
+		pub.sleepForAWhile(false)
 	} else {
 		retryCountMu.Lock()
 		retryCount = 0
@@ -2569,6 +2576,32 @@ func (pub *Pubnub) Subscribe(channels, timetoken string,
 	}
 }
 
+func (pub *Pubnub) sleepForAWhile(retry bool) {
+	if retry {
+		retryCountMu.Lock()
+		retryCount++
+		retryCountMu.Unlock()
+	}
+
+	select {
+	case <-time.After(time.Duration(retryInterval) * time.Second):
+	case <-pub.subscribeSleeper:
+	}
+}
+
+func (pub *Pubnub) sleepForAWhileRetry(retry bool) {
+	if retry {
+		retryCountMu.Lock()
+		retryCount++
+		retryCountMu.Unlock()
+	}
+
+	select {
+	case <-time.After(time.Duration(retryInterval) * time.Second):
+	case <-pub.retrySleeper:
+	}
+}
+
 // sleepForAWhile pauses the subscribe/presence loop for the retryInterval.
 func sleepForAWhile(retry bool) {
 	if retry {
@@ -2576,6 +2609,7 @@ func sleepForAWhile(retry bool) {
 		retryCount++
 		retryCountMu.Unlock()
 	}
+
 	time.Sleep(time.Duration(retryInterval) * time.Second)
 }
 
@@ -2627,14 +2661,24 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 	if channelRemoved {
 		if strings.TrimSpace(unsubscribeChannels) != "" {
 			pub.CloseExistingConnection()
+			pub.subscribeSleeper <- struct{}{}
+			pub.retrySleeper <- struct{}{}
 
-			value, _, err := pub.sendLeaveRequest(unsubscribeChannels, "")
+			value, statusCode, err := pub.sendLeaveRequest(unsubscribeChannels, "")
 			if err != nil {
 				logMu.Lock()
 				errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 				logMu.Unlock()
 
 				sendErrorResponse(errorChannel, unsubscribeChannels, err.Error())
+			} else if statusCode != 200 {
+				errorString := string(value)
+
+				logMu.Lock()
+				errorLogger.Println(fmt.Sprintf("%s", errorString))
+				logMu.Unlock()
+
+				sendErrorResponse(errorChannel, unsubscribeChannels, errorString)
 			} else {
 				sendSuccessResponseToChannel(callbackChannel, unsubscribeChannels, string(value))
 			}
@@ -2678,14 +2722,24 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 	if groupRemoved {
 		if strings.TrimSpace(unsubscribeGroups) != "" {
 			pub.CloseExistingConnection()
+			pub.subscribeSleeper <- struct{}{}
+			pub.retrySleeper <- struct{}{}
 
-			value, _, err := pub.sendLeaveRequest("", unsubscribeGroups)
+			value, statusCode, err := pub.sendLeaveRequest("", unsubscribeGroups)
 			if err != nil {
 				logMu.Lock()
 				errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 				logMu.Unlock()
 
 				sendErrorResponse(errorChannel, unsubscribeGroups, err.Error())
+			} else if statusCode != 200 {
+				errorString := string(value)
+
+				logMu.Lock()
+				errorLogger.Println(fmt.Sprintf("%s", errorString))
+				logMu.Unlock()
+
+				sendErrorResponse(errorChannel, unsubscribeGroups, errorString)
 			} else {
 				sendSuccessResponseToChannel(callbackChannel, unsubscribeGroups, string(value))
 			}
