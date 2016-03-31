@@ -40,6 +40,12 @@ var PubKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"
 // SecKey: key for non-pam tests
 var SecKey = "sec-c-ZjM0NzNmODgtNzE4OC00OTBjLWFhMWMtYjUxZTllYmY5YWE4"
 
+// SubKey: key for non-pam tests
+var SubNoPermissionsKey = "sub-c-642a6fca-f5b9-11e5-9086-02ee2ddab7fe"
+
+// PubKey: key for non-pam tests
+var PubNoPermissionsKey = "pub-c-5375d0d0-2088-43c6-864e-bcf6a6714212"
+
 // timeoutMessage is the text message displayed when the
 // unit test times out
 var timeoutMessage = "Test timed out."
@@ -627,4 +633,8 @@ func GetServerTime(uuid string) int64 {
 
 func LogErrors(errorsChannel <-chan []byte) {
 	fmt.Printf("ERROR: %s", <-errorsChannel)
+}
+
+func sleep(seconds int) {
+	time.Sleep(time.Duration(seconds) * time.Second)
 }
