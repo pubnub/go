@@ -31,30 +31,58 @@ func TestSubscriptionToNotPermittedChannel(t *testing.T) {
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	select {
 	case resp := <-successChannel:
 		assert.Fail("Success response while error is expected", string(resp))
-	case err := <-errorChannel:
-		assert.Contains(string(err), "Forbidden")
-		assert.Contains(string(err), "channels")
-		assert.Contains(string(err), "403")
-		assert.Contains(string(err), channel)
+	case er := <-errorChannel:
+		err := string(er)
+
+		assert.Contains(err, "Access Manager")
+		assert.Contains(err, "Forbidden")
+		assert.Contains(err, "channels")
+		assert.Contains(err, "403")
+		assert.Contains(err, channel)
 	case <-timeouts(3):
 		assert.Fail("Subscribe timeout 3s")
 	}
 
-	// TODO: verify retryLoop is stopped, it sleeps sometimes and wakeups at
-	// another test time
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	select {
+	case ev := <-unsubscribeSuccessChannel:
+		event := string(ev)
+
+		assert.Contains(event, channel)
+	case err := <-unsubscribeErrorChannel:
+		assert.Fail("Error while waiting for a unsubscribed event", err)
+	case <-timeout():
+		assert.Fail("timeout")
+	}
+
+	select {
+	case ev := <-unsubscribeSuccessChannel:
+		assert.Fail("Success response  while waiting for an error", string(ev))
+	case er := <-unsubscribeErrorChannel:
+		err := string(er)
+
+		assert.Contains(err, channel)
+		assert.Contains(err, "Access Manager")
+		assert.Contains(err, "Forbidden")
+		assert.Contains(err, "403")
+		assert.Contains(err, "channels")
+	case <-timeout():
+		assert.Fail("timeout")
+	}
+
 	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionAlreadySubscribed sends out a subscribe request to a pubnub channel
 // and when connected sends out another subscribe request. The response for the second
-func xTestSubscriptionAlreadySubscribed(t *testing.T) {
-	// TODO: test causes "httpRequest error: Get /123 EOF", this breaks the next
-	// test
+func TestSubscriptionAlreadySubscribed(t *testing.T) {
 
 	assert := assert.New(t)
 
