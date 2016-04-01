@@ -81,7 +81,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 		assert.Fail(string(err))
 	}
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
@@ -203,7 +203,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 		assert.Fail("Receive unsubscribed messages timeout")
 	}
 
-	pubnub.CloseExistingConnection()
+	// pubnub.CloseExistingConnection()
 }
 
 func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
@@ -274,7 +274,7 @@ func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	ExpectUnsubscribedEvent(t, "", group, unsubscribeSuccessChannel,
 		unsubscribeErrorChannel)
 
-	pubnub.CloseExistingConnection()
+	// pubnub.CloseExistingConnection()
 }
 
 // TODO: verify that CG requests are not duplicated
@@ -394,14 +394,12 @@ func xTestGroupSubscriptionPresence(t *testing.T) {
 		}
 	}()
 
+	<-await
+
 	go pubnub.ChannelGroupUnsubscribe(group, unsubscribeSuccessChannel,
 		unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, "", group, unsubscribeSuccessChannel,
 		unsubscribeErrorChannel)
-
-	<-await
-
-	pubnub.CloseExistingConnection()
 }
 
 func createChannelGroups(pubnub *messaging.Pubnub, groups []string) {

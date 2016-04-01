@@ -159,7 +159,7 @@ func xTest0Presence(t *testing.T) {
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestWhereNow subscribes to a pubnub channel and then
@@ -201,7 +201,7 @@ func TestWhereNow(t *testing.T) {
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestGlobalHereNow subscribes to a pubnub channel and then
@@ -243,7 +243,7 @@ func TestGlobalHereNow(t *testing.T) {
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestSetGetUserState subscribes to a pubnub channel and then
@@ -253,7 +253,7 @@ func TestSetGetUserState(t *testing.T) {
 	assert := assert.New(t)
 
 	stop, sleep := NewVCRBoth(
-		"fixtures/presence/setGetUserState", []string{"uuid"})
+		"fixtures/presence/setGetUserState", []string{"uuid", "state"})
 	defer stop()
 
 	uuid := "UUID_SetGetUserState"
@@ -306,14 +306,14 @@ func TestSetGetUserState(t *testing.T) {
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 func TestSetUserStateHereNow(t *testing.T) {
 	assert := assert.New(t)
 
 	stop, sleep := NewVCRBoth(
-		"fixtures/presence/setUserStateHereNow", []string{"uuid"})
+		"fixtures/presence/setUserStateHereNow", []string{"uuid", "state"})
 	defer stop()
 
 	channel := "Channel_SetUserStateHereNow"
@@ -367,7 +367,7 @@ func TestSetUserStateHereNow(t *testing.T) {
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 func TestSetUserStateGlobalHereNow(t *testing.T) {
@@ -428,7 +428,7 @@ func TestSetUserStateGlobalHereNow(t *testing.T) {
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 func TestSetUserStateJSON(t *testing.T) {

@@ -83,7 +83,6 @@ func TestSubscriptionToNotPermittedChannel(t *testing.T) {
 // TestSubscriptionAlreadySubscribed sends out a subscribe request to a pubnub channel
 // and when connected sends out another subscribe request. The response for the second
 func TestSubscriptionAlreadySubscribed(t *testing.T) {
-
 	assert := assert.New(t)
 
 	stop, _ := NewVCRBoth("fixtures/subscribe/alreadySubscribed", []string{"uuid"})
@@ -129,8 +128,6 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestResumeOnReconnectFalse upon reconnect, it should use a 0 (zero) timetoken.
@@ -219,8 +216,7 @@ func xTestResumeOnReconnectTrue(t *testing.T) {
 	pubnubInstance.CloseExistingConnection()
 }
 
-// WARNING: may cause retryCount more than 0
-func xTestGroupSubscriptionAlreadySubscribed(t *testing.T) {
+func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 	assert := assert.New(t)
 
 	stop, sleep := NewVCRBoth(
@@ -259,8 +255,6 @@ func xTestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 
 	go pubnub.ChannelGroupUnsubscribe(group, successChannel, errorChannel)
 	ExpectUnsubscribedEvent(t, "", group, successChannel, errorChannel)
-
-	pubnub.CloseExistingConnection()
 }
 
 func TestGroupSubscriptionNotSubscribed(t *testing.T) {

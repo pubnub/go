@@ -265,8 +265,6 @@ func TestPublishStringWithSerialization(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
 }
 
 func TestPublishStringWithoutSerialization(t *testing.T) {
@@ -349,8 +347,6 @@ func TestPublishStringWithoutSerialization(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestPublishEnd prints a message on the screen to mark the end of

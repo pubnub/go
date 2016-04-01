@@ -51,7 +51,7 @@ func TestWildcardSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 	go pubnubInstance.Unsubscribe(wildcard, successChannel, errorChannel)
 	ExpectUnsubscribedEvent(t, wildcard, "", successChannel, errorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 func TestWildcardSubscriptionMessage(t *testing.T) {
@@ -115,7 +115,7 @@ func TestWildcardSubscriptionMessage(t *testing.T) {
 	go pubnubInstance.Unsubscribe(wildcard, successChannel, errorChannel)
 	ExpectUnsubscribedEvent(t, wildcard, "", successChannel, errorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TODO test presence
