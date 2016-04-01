@@ -301,6 +301,8 @@ func TestGroupSubscriptionToNotExistingChannelGroup(t *testing.T) {
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
 	removeChannelGroups(pubnub, []string{group})
 
@@ -315,7 +317,9 @@ func TestGroupSubscriptionToNotExistingChannelGroup(t *testing.T) {
 		assert.Contains(string(err), group)
 	}
 
-	pubnub.CloseExistingConnection()
+	go pubnub.ChannelGroupUnsubscribe(group, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, "", group, unsubscribeSuccessChannel,
+		unsubscribeErrorChannel)
 }
 
 // TestSubscribeEnd prints a message on the screen to mark the end of
