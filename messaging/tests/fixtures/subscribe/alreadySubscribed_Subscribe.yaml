@@ -9,32 +9,25 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_NotSubscribed?add=adsf&pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_NotSubscribed
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0/0?uuid=UUID_AlreadySubscribed&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
-      false}'
+    body: '[[],"14593573167052997"]'
     headers:
-      Accept-Ranges:
-      - bytes
       Access-Control-Allow-Methods:
       - GET
       Access-Control-Allow-Origin:
       - '*'
-      Age:
-      - "0"
       Cache-Control:
       - no-cache
       Connection:
       - keep-alive
       Content-Length:
-      - "79"
+      - "24"
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 29 Mar 2016 15:44:18 GMT
-      Server:
-      - Pubnub
+      - Wed, 30 Mar 2016 17:01:56 GMT
     status: 200 OK
     code: 200
 - request:
@@ -45,32 +38,27 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_NotSubscribed/remove?pnsdk=PubNub-Go%2F3.7.0&uuid=UUID_NotSubscribed
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0/0?uuid=UUID_AlreadySubscribed&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:
-    body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
-      false}'
+    body: '[[],"14593573167658805"]'
     headers:
-      Accept-Ranges:
-      - bytes
       Access-Control-Allow-Methods:
       - GET
       Access-Control-Allow-Origin:
       - '*'
-      Age:
-      - "0"
       Cache-Control:
       - no-cache
       Connection:
       - keep-alive
       Content-Length:
-      - "79"
+      - "24"
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Tue, 29 Mar 2016 15:44:20 GMT
-      Server:
-      - Pubnub
+      - Wed, 30 Mar 2016 17:01:56 GMT
     status: 200 OK
     code: 200
-unclosed_requests: {}
+unclosed_requests:
+  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0/14593573167052997?uuid=UUID_AlreadySubscribed&pnsdk=PubNub-Go%2F3.7.0
+  : {}
