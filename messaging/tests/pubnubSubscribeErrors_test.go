@@ -175,7 +175,7 @@ func xTestResumeOnReconnectFalse(t *testing.T) {
 
 // TestResumeOnReconnectTrue upon reconnect, it should use the last successfully retrieved timetoken.
 // This has the effect of continuing, or “catching up” to missed traffic.
-func xTestResumeOnReconnectTrue(t *testing.T) {
+func TestResumeOnReconnectTrue(t *testing.T) {
 	messaging.SetResumeOnReconnect(true)
 
 	r := GenRandom()
