@@ -36,8 +36,6 @@ func TestSubscriptionConnectStatus(t *testing.T) {
 	uuid := "UUID_ConnectStatus"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
-	messaging.SetSubscribeTimeout(10)
-
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	unsubscribeSuccessChannel := make(chan []byte)
@@ -61,13 +59,11 @@ func TestSubscriptionConnectStatus(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestMultiSubscriptionConnectStatus send out a pubnub multi channel subscribe request and
 // parses the response for multiple connection status.
-func xTestMultiSubscriptionConnectStatus(t *testing.T) {
+func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	// TODO: test passes successfully, but some errors about extra interactions exists
 	assert := assert.New(t)
 
@@ -139,8 +135,6 @@ func xTestMultiSubscriptionConnectStatus(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForSimpleMessage first subscribes to a pubnub channel and then publishes
@@ -154,8 +148,6 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 	channel := "Channel_SubscriptionConnectedForSimple"
 	uuid := "UUID_SubscriptionConnectedForSimple"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
-
-	messaging.SetSubscribeTimeout(10)
 
 	customMessage := "Test message"
 
@@ -196,9 +188,7 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 					}
 				}
 			case err := <-errorChannel:
-				if !IsConnectionRefusedError(err) {
-					assert.Fail(string(err))
-				}
+				assert.Fail(string(err))
 
 				close(await)
 				return
@@ -216,7 +206,7 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForSimpleMessageWithCipher first subscribes to a pubnub channel and then publishes
@@ -231,8 +221,6 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 	channel := "Channel_SubscriptionConnectedForSimpleWithCipher"
 	uuid := "UUID_SubscriptionConnectedForSimpleWithCipher"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, uuid)
-
-	messaging.SetSubscribeTimeout(10)
 
 	customMessage := "Test message"
 
@@ -273,9 +261,7 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 					}
 				}
 			case err := <-errorChannel:
-				if !IsConnectionRefusedError(err) {
-					assert.Fail(string(err))
-				}
+				assert.Fail(string(err))
 
 				close(await)
 				return
@@ -292,7 +278,7 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForComplexMessage first subscribes to a pubnub channel and then publishes
@@ -307,8 +293,6 @@ func TestSubscriptionForComplexMessage(t *testing.T) {
 	channel := "Channel_SubscriptionConnectedForComplex"
 	uuid := "UUID_SubscriptionConnectedForComplex"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
-
-	messaging.SetSubscribeTimeout(10)
 
 	customComplexMessage := InitComplexMessage()
 
@@ -375,7 +359,7 @@ func TestSubscriptionForComplexMessage(t *testing.T) {
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForComplexMessageWithCipher first subscribes to a pubnub channel and then publishes
@@ -390,8 +374,6 @@ func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 	channel := "Channel_SubscriptionConnectedForComplexWithCipher"
 	uuid := "UUID_SubscriptionConnectedForComplexWithCipher"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, uuid)
-
-	messaging.SetSubscribeTimeout(10)
 
 	customMessage := InitComplexMessage()
 
@@ -457,7 +439,7 @@ func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // ValidateComplexData takes an interafce as a parameter and iterates through it
@@ -699,7 +681,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestMultiplexing tests the multiplexed subscribe request.
@@ -859,7 +841,7 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 	go pubnubInstance.Unsubscribe(pubnubChannels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, pubnubChannels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscribeEnd prints a message on the screen to mark the end of
