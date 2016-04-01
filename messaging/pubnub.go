@@ -2673,7 +2673,7 @@ func (pub *Pubnub) wakeUpSubscribe() {
 
 	if pub.subscribeAsleep {
 		pub.subscribeSleeper <- struct{}{}
-		pub.shouldRetrySleep = false
+		pub.shouldSubscribeSleep = false
 	}
 }
 
@@ -2735,8 +2735,8 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 	if channelRemoved {
 		if strings.TrimSpace(unsubscribeChannels) != "" {
 			pub.CloseExistingConnection()
-			pub.wakeUpSubscribe()
-			pub.wakeUpRetry()
+			go pub.wakeUpSubscribe()
+			go pub.wakeUpRetry()
 
 			value, statusCode, err := pub.sendLeaveRequest(unsubscribeChannels, "")
 			if err != nil {
@@ -2797,8 +2797,8 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 	if groupRemoved {
 		if strings.TrimSpace(unsubscribeGroups) != "" {
 			pub.CloseExistingConnection()
-			pub.wakeUpSubscribe()
-			pub.wakeUpRetry()
+			go pub.wakeUpSubscribe()
+			go pub.wakeUpRetry()
 
 			value, statusCode, err := pub.sendLeaveRequest("", unsubscribeGroups)
 			if err != nil {
