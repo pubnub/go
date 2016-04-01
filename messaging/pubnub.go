@@ -1851,6 +1851,18 @@ func (pub *Pubnub) resetRetryAndSendResponse() bool {
 	return false
 }
 
+func (pub *Pubnub) resetRetry() {
+	retryCountMu.Lock()
+	defer retryCountMu.Unlock()
+
+	if retryCount > 0 {
+		pub.sendConnectionEvent(pub.channels.ConnectedNamesString(),
+			pub.groups.ConnectedNamesString(), connectionReconnected)
+
+		retryCount = 0
+	}
+}
+
 // retryLoop checks for the internet connection and intiates the rety logic of
 // connection fails
 func (pub *Pubnub) retryLoop() {
@@ -2065,9 +2077,10 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 				errorLogger.Println(fmt.Sprintf("Network Error: %s, response code: %d:", err.Error(), responseCode))
 				logMu.Unlock()
 
-				bNonTimeout, bTimeOut := pub.checkForTimeoutAndRetries(err)
+				isConnError, isConnTimeoutError := pub.checkForTimeoutAndRetries(err)
+				isConnAbortedError := strings.Contains(err.Error(), connectionAborted)
 
-				if strings.Contains(err.Error(), connectionAborted) {
+				if isConnAbortedError {
 					pub.CloseExistingConnection()
 
 					pub.sendSubscribeError(alreadySubscribedChannels,
@@ -2077,10 +2090,10 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					pub.channels.ApplyAbort()
 					pub.groups.ApplyAbort()
 					pub.Unlock()
-				} else if bNonTimeout {
+				} else if isConnError {
 					pub.CloseExistingConnection()
 
-					if bTimeOut {
+					if isConnTimeoutError {
 						_, returnTimeToken, _, errJSON := ParseJSON(value, pub.cipherKey)
 						if errJSON == nil {
 							pub.Lock()
@@ -2094,6 +2107,12 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 						pub.resetTimeToken = true
 						pub.Unlock()
 					}
+					// Another error, for ex.:
+					// - EOF
+					// - Get {url}: http: error connecting to proxy http://127.0.0.1:34341:
+					//   dial tcp 127.0.0.1:34341: getsockopt: connection refused
+					// - Get {url}: net/http: HTTP/1 transport connection broken:
+					//	 readLoopPeekFailLocked: EOF
 				} else {
 					pub.CloseExistingConnection()
 
@@ -2263,7 +2282,9 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	sentTimetoken string, subscribedChannels, subscribedGroups string) {
 
 	var channelNames, groupNames []string
-	reconnected := pub.resetRetryAndSendResponse()
+	// reconnected := pub.resetRetryAndSendResponse()
+	pub.resetRetry()
+	reconnected := false
 
 	if bytes.Equal(response, []byte("[]")) {
 		pub.sleepForAWhile(false)
