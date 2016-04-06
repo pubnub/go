@@ -87,11 +87,12 @@ func TestCustomUuid(t *testing.T) {
 func Test0Presence(t *testing.T) {
 	assert := assert.New(t)
 
-	stop, _ := NewVCRBoth(
-		"fixtures/presence/zeroPresence", []string{"uuid"})
-	defer stop()
+	// stop, _ := NewVCRBoth(
+	// 	"fixtures/presence/zeroPresence", []string{"uuid"})
+	// defer stop()
 
-	customUuid := "UUID_zeroPresence"
+	// customUuid := "UUID_zeroPresence"
+	customUuid := RandomChannel()
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, customUuid)
 	channel := "Channel_ZeroPresence"
 
@@ -153,7 +154,8 @@ func Test0Presence(t *testing.T) {
 
 	<-await
 
-	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	go pubnubInstance.Unsubscribe(fmt.Sprintf("%s-pnpres", channel),
+		unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 }
 
