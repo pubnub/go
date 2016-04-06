@@ -50,6 +50,14 @@ const (
 	retryTrans
 )
 
+type subscribeLoopAction int
+
+const (
+	subscribeLoopStart subscribeLoopAction = 1 << iota
+	subscribeLoopRestart
+	subscribeLoopDoNothing
+)
+
 const (
 	//Sdk Identification Param appended to each request
 	sdkIdentificationParamKey = "pnsdk"
@@ -71,6 +79,9 @@ const (
 	// This string is returned as a message when the http request is aborted.
 	connectionAborted = "Connection aborted"
 
+	// This string is returned as a message when the http request is canceled
+	connectionCanceled = "Connection canceled"
+
 	// This string is encountered when the http request couldn't connect to the origin.
 	noSuchHost = "no such host"
 
@@ -79,6 +90,9 @@ const (
 
 	// This string is used when the http request faces connectivity issues.
 	closedNetworkConnection = "closed network connection"
+
+	// This string is used when the http request is closed manually
+	requestCanceled = "request canceled"
 
 	// This string is used when the http request faces connectivity issues.
 	connectionResetByPeer = "connection reset by peer"
@@ -294,6 +308,8 @@ type Pubnub struct {
 	shouldRetrySleep     bool
 	subscribeSleeper     chan struct{}
 	retrySleeper         chan struct{}
+	requestCloser        chan struct{}
+	requestCloserMu      sync.RWMutex
 }
 
 // PubnubUnitTest structure used to expose some data for unit tests.
@@ -1669,88 +1685,6 @@ func (pub *Pubnub) sendSubscribeErrorHelper(channels, groups string,
 	}
 }
 
-func (pub *Pubnub) getSubscribedChannelGroups(groups string,
-	errorChannel chan<- []byte) (bool, bool) {
-
-	pub.RLock()
-	defer pub.RUnlock()
-
-	groupsArray := strings.Split(groups, ",")
-	subscribedChannelGroups := pub.groups.ConnectedNamesString()
-	channelGroupsModified := false
-	alreadySubscribedChannelGroups := []string{}
-
-	for i := 0; i < len(groupsArray); i++ {
-		groupToSub := strings.TrimSpace(groupsArray[i])
-
-		if !pub.groups.Exist(groupToSub) {
-			if len(subscribedChannelGroups) > 0 {
-				subscribedChannelGroups += ","
-			}
-
-			subscribedChannelGroups += groupToSub
-
-			channelGroupsModified = true
-		} else {
-			alreadySubscribedChannelGroups = append(alreadySubscribedChannelGroups, groupToSub)
-		}
-	}
-
-	if len(alreadySubscribedChannelGroups) > 0 {
-		sendClientSideErrorAboutSources(errorChannel, channelGroupResponse,
-			alreadySubscribedChannelGroups, responseAlreadySubscribed)
-	}
-
-	return channelGroupsModified, len(alreadySubscribedChannelGroups) > 0
-}
-
-// getSubscribedChannels is the struct Pubnub's instance method that iterates through the Pubnub
-// SubscribedChannels and appends the new channels.
-//
-// It splits the Pubnub channels in the parameter by a comma and compares them to the existing
-// subscribed Pubnub channels.
-//
-// It accepts the following parameters:
-// channels: Pubnub Channels to send a response to. Comma separated string for multiple channels.
-// errorChannel: channel to send the error response to.
-//
-// Returns:
-// channelsModified: The return parameter channelsModified is set to true if new channels are added.
-// alreadySubscribed: True if at least one already subscribed occurance exists
-func (pub *Pubnub) getSubscribedChannels(channels string,
-	errorChannel chan<- []byte) (bool, bool) {
-
-	pub.RLock()
-	defer pub.RUnlock()
-
-	channelArray := strings.Split(channels, ",")
-	subscribedChannels := pub.channels.ConnectedNamesString()
-	channelsModified := false
-	alreadySubscribedChannels := []string{}
-
-	for i := 0; i < len(channelArray); i++ {
-		channelToSub := strings.TrimSpace(channelArray[i])
-
-		if !pub.channels.Exist(channelToSub) {
-			if len(subscribedChannels) > 0 {
-				subscribedChannels += ","
-			}
-			subscribedChannels += channelToSub
-
-			channelsModified = true
-		} else {
-			alreadySubscribedChannels = append(alreadySubscribedChannels, channelToSub)
-		}
-	}
-
-	if len(alreadySubscribedChannels) > 0 {
-		sendClientSideErrorAboutSources(errorChannel, channelResponse,
-			alreadySubscribedChannels, responseAlreadySubscribed)
-	}
-
-	return channelsModified, len(alreadySubscribedChannels) > 0
-}
-
 // checkForTimeoutAndRetries parses the error in case of subscribe error response. Its an Pubnub instance method.
 // If any of the strings "Error in initializating connection", "timeout", "no such host"
 // are found it assumes that a network connection is lost.
@@ -2068,7 +2002,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 
 			subscribeURL, sentTimeToken := pub.createSubscribeURL(sentTimeToken)
 
-			value, responseCode, err := pub.httpRequest(subscribeURL, subscribeTrans)
+			value, responseCode, err := pub.httpRequestOptional(subscribeURL, subscribeTrans, true)
 
 			// if network error, for ex.
 			// - closed network connection/connection aborted
@@ -2077,12 +2011,11 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 				errorLogger.Println(fmt.Sprintf("Network Error: %s, response code: %d:", err.Error(), responseCode))
 				logMu.Unlock()
 
-				isConnError, isConnTimeoutError := pub.checkForTimeoutAndRetries(err)
+				// Means CloseExistingConnection() was called
 				isConnAbortedError := strings.Contains(err.Error(), connectionAborted)
+				isConnCanceled := strings.Contains(err.Error(), connectionCanceled)
 
 				if isConnAbortedError {
-					pub.CloseExistingConnection()
-
 					pub.sendSubscribeError(alreadySubscribedChannels,
 						alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
 
@@ -2090,9 +2023,20 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					pub.channels.ApplyAbort()
 					pub.groups.ApplyAbort()
 					pub.Unlock()
-				} else if isConnError {
-					pub.CloseExistingConnection()
+					continue
+				}
 
+				if isConnCanceled {
+					pub.Lock()
+					pub.channels.ApplyAbort()
+					pub.groups.ApplyAbort()
+					pub.Unlock()
+					continue
+				}
+
+				isConnError, isConnTimeoutError := pub.checkForTimeoutAndRetries(err)
+
+				if isConnError {
 					if isConnTimeoutError {
 						_, returnTimeToken, _, errJSON := ParseJSON(value, pub.cipherKey)
 						if errJSON == nil {
@@ -2463,6 +2407,95 @@ func checkCallbackNil(channelToCheck chan<- []byte, isErrChannel bool, funcName 
 	}
 }
 
+func (pub *Pubnub) getSubscribeLoopAction(channels, groups string,
+	errorChannel chan<- []byte) subscribeLoopAction {
+
+	pub.RLock()
+	defer pub.RUnlock()
+
+	var (
+		channelsModified             bool = false
+		groupsModified               bool = false
+		alreadySubscribedChannelsLen int
+		alreadySubscribedGroupsLen   int
+	)
+
+	// channels
+	newChannels := splitItems(channels)
+	newGroups := splitItems(groups)
+	subscribedChannels := pub.channels.ConnectedNamesString()
+	subscribedChannelGroups := pub.groups.ConnectedNamesString()
+	alreadySubscribedChannels := []string{}
+	alreadySubscribedChannelGroups := []string{}
+
+	pub.RLock()
+	existingChannelsEmpty := pub.channels.Empty()
+	existingGroupsEmpty := pub.groups.Empty()
+	pub.RUnlock()
+
+	for i := 0; i < len(newChannels); i++ {
+		channelToSub := strings.TrimSpace(newChannels[i])
+
+		if !pub.channels.Exist(channelToSub) {
+			if len(subscribedChannels) > 0 {
+				subscribedChannels += ","
+			}
+			subscribedChannels += channelToSub
+
+			channelsModified = true
+		} else {
+			alreadySubscribedChannels = append(alreadySubscribedChannels, channelToSub)
+		}
+	}
+
+	alreadySubscribedChannelsLen = len(alreadySubscribedChannels)
+	if alreadySubscribedChannelsLen > 0 {
+		sendClientSideErrorAboutSources(errorChannel, channelResponse,
+			alreadySubscribedChannels, responseAlreadySubscribed)
+	}
+
+	//groups
+	for i := 0; i < len(newGroups); i++ {
+		groupToSub := strings.TrimSpace(newGroups[i])
+
+		if !pub.groups.Exist(groupToSub) {
+			if len(subscribedChannelGroups) > 0 {
+				subscribedChannelGroups += ","
+			}
+
+			subscribedChannelGroups += groupToSub
+
+			groupsModified = true
+		} else {
+			alreadySubscribedChannelGroups = append(alreadySubscribedChannelGroups, groupToSub)
+		}
+	}
+
+	alreadySubscribedGroupsLen = len(alreadySubscribedChannelGroups)
+	if alreadySubscribedGroupsLen > 0 {
+		sendClientSideErrorAboutSources(errorChannel, channelGroupResponse,
+			alreadySubscribedChannelGroups, responseAlreadySubscribed)
+	}
+
+	modified := channelsModified || groupsModified
+	existingEmpty := existingChannelsEmpty && existingGroupsEmpty
+	alreadySubscribed := alreadySubscribedChannelsLen > 0 && alreadySubscribedGroupsLen > 0
+
+	onlyAlreadySubscribed := alreadySubscribed &&
+		(len(alreadySubscribedChannels) == len(newChannels) &&
+			len(alreadySubscribedChannelGroups) == len(newGroups))
+
+	if existingEmpty && modified {
+		return subscribeLoopStart
+	} else if modified && !alreadySubscribed {
+		return subscribeLoopRestart
+	} else if modified && alreadySubscribed && onlyAlreadySubscribed {
+		return subscribeLoopDoNothing
+	} else {
+		return subscribeLoopDoNothing
+	}
+}
+
 func (pub *Pubnub) ChannelGroupSubscribe(groups string,
 	callbackChannel chan<- []byte, errorChannel chan<- []byte) {
 	pub.ChannelGroupSubscribeWithTimetoken(groups, "", callbackChannel,
@@ -2475,13 +2508,7 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 	checkCallbackNil(callbackChannel, false, "ChanelGroupSubscribe")
 	checkCallbackNil(errorChannel, true, "ChanelGroupSubscribe")
 
-	pub.RLock()
-	existingChannelsEmpty := pub.channels.Empty()
-	existingGroupsEmpty := pub.groups.Empty()
-	pub.RUnlock()
-
-	channelGroupsModified, alreadySubscribed :=
-		pub.getSubscribedChannelGroups(groups, errorChannel)
+	loopAction := pub.getSubscribeLoopAction("", groups, errorChannel)
 
 	timetokenIsZero := timetoken == "" || timetoken == "0"
 
@@ -2505,7 +2532,8 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 		go pub.runPresenceHeartbeat()
 	}
 
-	if (existingChannelsEmpty || existingGroupsEmpty) && !alreadySubscribed {
+	switch loopAction {
+	case subscribeLoopStart:
 		pub.Lock()
 		if strings.TrimSpace(timetoken) != "" {
 			pub.timeToken = timetoken
@@ -2516,8 +2544,8 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 		pub.Unlock()
 
 		go pub.startSubscribeLoop("", groups, errorChannel)
-	} else if channelGroupsModified {
-		pub.CloseExistingConnection()
+	case subscribeLoopRestart:
+		pub.closeSubscribe()
 
 		pub.Lock()
 		if strings.TrimSpace(timetoken) != "" {
@@ -2528,7 +2556,7 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 		}
 
 		pub.Unlock()
-	} else if alreadySubscribed {
+	case subscribeLoopDoNothing:
 		// do nothing
 	}
 }
@@ -2557,17 +2585,11 @@ func (pub *Pubnub) Subscribe(channels, timetoken string,
 	checkCallbackNil(callbackChannel, false, "Subscribe")
 	checkCallbackNil(errorChannel, true, "Subscribe")
 
-	pub.RLock()
-	existingChannelsEmpty := pub.channels.Empty()
-	existingGroupsEmpty := pub.groups.Empty()
-	pub.RUnlock()
-
 	if isPresence {
 		channels = convertToPresenceChannel(channels)
 	}
 
-	channelsModified, alreadySubscribed :=
-		pub.getSubscribedChannels(channels, errorChannel)
+	loopAction := pub.getSubscribeLoopAction(channels, "", errorChannel)
 
 	timetokenIsZero := timetoken == "" || timetoken == "0"
 
@@ -2591,7 +2613,8 @@ func (pub *Pubnub) Subscribe(channels, timetoken string,
 		go pub.runPresenceHeartbeat()
 	}
 
-	if (existingChannelsEmpty || existingGroupsEmpty) && !alreadySubscribed {
+	switch loopAction {
+	case subscribeLoopStart:
 		pub.Lock()
 		if strings.TrimSpace(timetoken) != "" {
 			pub.timeToken = timetoken
@@ -2602,8 +2625,8 @@ func (pub *Pubnub) Subscribe(channels, timetoken string,
 		pub.Unlock()
 
 		go pub.startSubscribeLoop(channels, "", errorChannel)
-	} else if channelsModified {
-		pub.CloseExistingConnection()
+	case subscribeLoopRestart:
+		pub.closeSubscribe()
 
 		pub.Lock()
 		if strings.TrimSpace(timetoken) != "" {
@@ -2614,7 +2637,9 @@ func (pub *Pubnub) Subscribe(channels, timetoken string,
 		}
 
 		pub.Unlock()
-	} else if alreadySubscribed {
+	case subscribeLoopDoNothing:
+		// do nothing
+	default:
 		// do nothing
 	}
 }
@@ -2667,13 +2692,22 @@ func (pub *Pubnub) sleepForAWhileRetry(retry bool) {
 	pub.retrySleeperMu.Unlock()
 }
 
+func (pub *Pubnub) closeSubscribe() {
+	pub.requestCloserMu.Lock()
+	defer pub.requestCloserMu.Unlock()
+
+	if pub.requestCloser != nil {
+		close(pub.requestCloser)
+	}
+}
+
 func (pub *Pubnub) wakeUpSubscribe() {
 	pub.subscribeSleeperMu.Lock()
 	defer pub.subscribeSleeperMu.Unlock()
 
+	pub.shouldSubscribeSleep = false
 	if pub.subscribeAsleep {
 		pub.subscribeSleeper <- struct{}{}
-		pub.shouldSubscribeSleep = false
 	}
 }
 
@@ -2734,7 +2768,7 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 
 	if channelRemoved {
 		if strings.TrimSpace(unsubscribeChannels) != "" {
-			pub.CloseExistingConnection()
+			go pub.closeSubscribe()
 			go pub.wakeUpSubscribe()
 			go pub.wakeUpRetry()
 
@@ -2757,7 +2791,6 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 				sendSuccessResponseToChannel(callbackChannel, unsubscribeChannels, string(value))
 			}
 		}
-		pub.CloseExistingConnection()
 	}
 }
 
@@ -2796,7 +2829,7 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 
 	if groupRemoved {
 		if strings.TrimSpace(unsubscribeGroups) != "" {
-			pub.CloseExistingConnection()
+			go pub.closeSubscribe()
 			go pub.wakeUpSubscribe()
 			go pub.wakeUpRetry()
 
@@ -2819,7 +2852,6 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 				sendSuccessResponseToChannel(callbackChannel, unsubscribeGroups, string(value))
 			}
 		}
-		pub.CloseExistingConnection()
 	}
 }
 
@@ -3531,7 +3563,6 @@ func (pub *Pubnub) executeChannelGroup(action, group, channel string,
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
-			pub.CloseExistingConnection()
 		}
 	}
 }
@@ -3810,12 +3841,16 @@ func ParseInterfaceData(myInterface interface{}) string {
 // response error code if any.
 // error if any.
 func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, error) {
+	return pub.httpRequestOptional(requestURL, action, false)
+}
+
+func (pub *Pubnub) httpRequestOptional(requestURL string, action int, subscribe bool) ([]byte, int, error) {
 	requrl := pub.origin + requestURL
 	logMu.Lock()
 	infoLogger.Println(fmt.Sprintf("url: %s", requrl))
 	logMu.Unlock()
 
-	contents, responseStatusCode, err := pub.connect(requrl, action, requestURL)
+	contents, responseStatusCode, err := pub.connect(requrl, action, requestURL, subscribe)
 
 	if err != nil {
 		logMu.Lock()
@@ -3826,6 +3861,8 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 			return nil, responseStatusCode, fmt.Errorf(operationTimeout)
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), closedNetworkConnection) {
 			return nil, responseStatusCode, fmt.Errorf(connectionAborted)
+		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), requestCanceled) {
+			return nil, responseStatusCode, fmt.Errorf(connectionCanceled)
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), noSuchHost) {
 			return nil, responseStatusCode, fmt.Errorf(networkUnavailable)
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), connectionResetByPeer) {
@@ -4033,9 +4070,17 @@ func (pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
 // the response as byte array.
 // response errorcode if any.
 // error if any.
-func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]byte, int, error) {
+func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string,
+	isSubscribe bool) ([]byte, int, error) {
+
 	var contents []byte
 	httpClient, err := pub.createHTTPClient(action)
+
+	if isSubscribe {
+		pub.requestCloserMu.Lock()
+		pub.requestCloser = make(chan struct{})
+		pub.requestCloserMu.Unlock()
+	}
 
 	if err == nil {
 		req, err := http.NewRequest("GET", requestURL, nil)
@@ -4048,15 +4093,29 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 			Host:   origin,
 			Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
 		}
+
+		if isSubscribe {
+			pub.requestCloserMu.RLock()
+			req.Cancel = pub.requestCloser
+			pub.requestCloserMu.RUnlock()
+		}
 		// REVIEW: hardcoded client version
 		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/3.7.0", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
 		if err == nil {
 			response, err := httpClient.Do(req)
+
+			if isSubscribe {
+				pub.requestCloserMu.Lock()
+				pub.requestCloser = nil
+				pub.requestCloserMu.Unlock()
+			}
+
 			if err == nil {
 				defer response.Body.Close()
 				bodyContents, e := ioutil.ReadAll(response.Body)
+
 				if e == nil {
 					contents = bodyContents
 					logMu.Lock()
@@ -4078,6 +4137,7 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string) ([]b
 			logMu.Unlock()
 			return nil, 0, err
 		}
+
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("httpRequest: %s", err.Error()))
 		logMu.Unlock()
