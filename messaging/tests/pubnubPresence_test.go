@@ -77,8 +77,6 @@ func TestCustomUuid(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestPresence subscribes to the presence notifications on a pubnub channel and
@@ -157,8 +155,6 @@ func Test0Presence(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestWhereNow subscribes to a pubnub channel and then
@@ -241,8 +237,6 @@ func TestGlobalHereNow(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestSetGetUserState subscribes to a pubnub channel and then
@@ -304,8 +298,6 @@ func TestSetGetUserState(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	// pubnubInstance.CloseExistingConnection()
 }
 
 func TestSetUserStateHereNow(t *testing.T) {
@@ -365,8 +357,6 @@ func TestSetUserStateHereNow(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	// pubnubInstance.CloseExistingConnection()
 }
 
 func TestSetUserStateGlobalHereNow(t *testing.T) {
@@ -426,8 +416,6 @@ func TestSetUserStateGlobalHereNow(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	// pubnubInstance.CloseExistingConnection()
 }
 
 func TestSetUserStateJSON(t *testing.T) {
