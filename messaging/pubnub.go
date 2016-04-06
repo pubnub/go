@@ -2699,7 +2699,6 @@ func (pub *Pubnub) closeSubscribe() {
 
 	if pub.currentSubscribeReq != nil {
 		if trans, ok := subscribeTransport.(*http.Transport); ok {
-			fmt.Println("yes")
 			trans.CancelRequest(pub.currentSubscribeReq)
 		}
 	}
