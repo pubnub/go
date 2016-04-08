@@ -8,11 +8,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/time/0?pnsdk=PubNub-Go%2F3.7.0&uuid=testTime
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/time/0?pnsdk=PubNub-Go%2F3.7.1&uuid=testTime
     method: GET
   response:
-    body: '[14560736978945153]'
+    body: '[14601341825375121]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -27,6 +27,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Sun, 21 Feb 2016 16:54:57 GMT
+      - Fri, 08 Apr 2016 16:49:42 GMT
     status: 200 OK
     code: 200
+unclosed_requests: {}

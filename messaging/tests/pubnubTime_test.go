@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/anovikov1984/go-vcr/recorder"
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,10 +20,8 @@ func TestTimeStart(t *testing.T) {
 
 // TestServerTime calls the GetTime method of the messaging to test the time
 func TestServerTime(t *testing.T) {
-	recorder, _ := recorder.New("fixtures/time")
-	recorder.UseMatcher(pubnubMatcher)
-	defer recorder.Stop()
-	messaging.SetNonSubscribeTransport(recorder.Transport)
+	stop, _ := NewVCRNonSubscribe("fixtures/time", []string{})
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "testTime")
 
