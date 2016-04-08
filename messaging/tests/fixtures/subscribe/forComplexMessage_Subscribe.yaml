@@ -1,0 +1,66 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0/0?uuid=UUID_SubscriptionConnectedForComplex&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[[],"14586610179764926"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "24"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:09 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0/14586610179764926?uuid=UUID_SubscriptionConnectedForComplex&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[[{"VersionID":"3.4","TimeToken":"13601488652764619","OperationName":"Publish","Channels":["ch1","ch
+      2"],"DemoMessage":{"DefaultMessage":"\"~!@#$%^\\u0026*()_+ `1234567890-= qwertyuiop[]\\\\
+      {}| asdfghjkl;'' :\\\" zxcvbnm,./ \\u003c\\u003e? \""},"SampleXML":"\"\\u003cdata\\u003e\\u003cname\\u003eDoe\\u003c/name\\u003e\\u003cage\\u003e42\\u003c/age\\u003e\\u003c/data\\u003e\""}],"14586613295253763"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "400"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:09 GMT
+    status: 200 OK
+    code: 200
+unclosed_requests:
+  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0/14586613295253763?uuid=UUID_SubscriptionConnectedForComplex&pnsdk=PubNub-Go%2F3.7.0
+  : {}

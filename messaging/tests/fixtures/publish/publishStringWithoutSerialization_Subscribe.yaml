@@ -1,0 +1,64 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithoutSerialization/0/0?uuid=UUID_PublishStringWithoutSerialization&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[[],"14588062886538014"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "24"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Thu, 24 Mar 2016 08:11:22 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithoutSerialization/0/14588062886538014?uuid=UUID_PublishStringWithoutSerialization&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[[{"name": "Alex", "age": "123"}],"14588070825056505"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "54"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Thu, 24 Mar 2016 08:11:22 GMT
+    status: 200 OK
+    code: 200
+unclosed_requests:
+  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithoutSerialization/0/14588070825056505?uuid=UUID_PublishStringWithoutSerialization&pnsdk=PubNub-Go%2F3.7.0
+  : {}

@@ -5,157 +5,134 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestPamStart(t *testing.T) {
 	PrintTestMessage("==========PAM tests start==========")
-
-	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
-
-	returnPamChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-
-	go pubnubInstance.GrantSubscribe("", false, false, -1, "", returnPamChannel, errorChannel)
-
-	<-returnPamChannel
-
-	time.Sleep(time.Duration(5) * time.Second)
-}
-
-func ParsePamErrorResponse(channel chan []byte, testName string, message string, responseChannel chan string) {
-	for {
-		value, ok := <-channel
-		if !ok {
-			break
-		}
-		returnVal := string(value)
-		fmt.Println("returnValErr:", returnVal)
-		fmt.Println("messageErr:", message)
-		if returnVal != "[]" {
-			if strings.Contains(returnVal, "aborted") || strings.Contains(returnVal, "reset") {
-				continue
-			}
-			if strings.Contains(returnVal, message) {
-				responseChannel <- "Test '" + testName + "': passed."
-				break
-			} else {
-				responseChannel <- "Test '" + testName + "': failed."
-			}
-
-			break
-		}
-	}
-}
-
-func ParsePamResponseEqual(returnChannel chan []byte, pubnubInstance *messaging.Pubnub, message string, channel string, testName string, responseChannel chan string, t *testing.T) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-
-		if string(value) != "[]" {
-			response := string(value)
-			fmt.Println("returnValErr:", response)
-			fmt.Println("messageErr:", message)
-
-			if assert.JSONEq(t, message, response) {
-				responseChannel <- "Test '" + testName + "': passed."
-				break
-			} else {
-				responseChannel <- "Test '" + testName + "': failed."
-			}
-		}
-	}
 }
 
 func TestSecretKeyRequired(t *testing.T) {
+	assert := assert.New(t)
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	channel := "testChannel"
+	channel := "testSecretKeyRequired"
 
-	returnPamChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.GrantSubscribe(channel, true, true, 12, "", returnPamChannel, errorChannel)
-	go ParsePamErrorResponse(errorChannel, "SecretKeyRequired", "Secret key is required", responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SecretKeyRequired")
-
+	go pubnubInstance.GrantSubscribe(channel, true, true, 12, "",
+		successChannel, errorChannel)
+	select {
+	case <-successChannel:
+		assert.Fail("Response on success channel while expecting error")
+	case err := <-errorChannel:
+		assert.Contains(string(err), "Secret key is required")
+	case <-timeout():
+		assert.Fail("GrantSubscribe Timeout")
+	}
 }
 
 func TestGrantAndRevokeSubKeyLevelSubscribe(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, sleep := NewVCRNonSubscribe(
+		"fixtures/pam/grantAndRevokeSubKeyLevelSubscribe",
+		[]string{"uuid", "signature", "timestamp"})
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	ttl := 4
 	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"r":1,"m":0,"w":1,"subscribe_key":"%s","ttl":%d,"level":"subkey"}}`, PamSubKey, ttl)
 	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"r":0,"m":0,"w":0,"subscribe_key":"%s","ttl":%d,"level":"subkey"}}`, PamSubKey, 1)
 
-	returnPamChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.GrantSubscribe("", true, true, ttl, "", returnPamChannel, errorChannel)
-	go ParsePamResponseEqual(returnPamChannel, pubnubInstance, message, "", "GrantSubKeyLevelSubscribe", responseChannel, t)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "GrantSubKeyLevelSubscribe")
+	go pubnubInstance.GrantSubscribe("", true, true, ttl, "", successChannel, errorChannel)
+	select {
+	case resp := <-successChannel:
+		response := string(resp)
+		assert.JSONEq(message, response)
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("GrantSubscribe Timeout")
+	}
 
-	returnPamChannel2 := make(chan []byte)
+	successChannel2 := make(chan []byte)
 	errorChannel2 := make(chan []byte)
-	responseChannel2 := make(chan string)
-	waitChannel2 := make(chan string)
 
-	time.Sleep(time.Duration(5) * time.Second)
+	sleep(5)
 
-	go pubnubInstance.GrantSubscribe("", false, false, -1, "", returnPamChannel2, errorChannel2)
-	go ParsePamResponseEqual(returnPamChannel2, pubnubInstance, message2, "", "RevokeSubKeyLevelSubscribe", responseChannel2, t)
-	go ParseErrorResponse(errorChannel2, responseChannel2)
-	go WaitForCompletion(responseChannel2, waitChannel2)
-	ParseWaitResponse(waitChannel2, t, "RevokeSubKeyLevelSubscribe")
+	go pubnubInstance.GrantSubscribe("", false, false, -1, "", successChannel2, errorChannel2)
+	select {
+	case resp := <-successChannel2:
+		response := string(resp)
+		assert.JSONEq(message2, response)
+	case err := <-errorChannel2:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("GrantSubscribe Timeout")
+	}
 }
 
 func TestGrantAndRevokeChannelLevelSubscribe(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, sleep := NewVCRNonSubscribe(
+		"fixtures/pam/grantAndRevokeChannelLevelSubscribe",
+		[]string{"uuid", "signature", "timestamp"})
+	defer stop()
+
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testChannelGrantAndRevokeChannelLevelSubscribe"
 	ttl := 8
+
 	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"m":0,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
 	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, 1)
 
-	returnPamChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, "", returnPamChannel, errorChannel)
-	go ParsePamResponseEqual(returnPamChannel, pubnubInstance, message, channel, "GrantChannelLevelSubscribe", responseChannel, t)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "GrantChannelLevelSubscribe")
+	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, "", successChannel, errorChannel)
+	select {
+	case resp := <-successChannel:
+		response := string(resp)
+		assert.JSONEq(message, response)
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("GrantSubscribe Timeout")
+	}
 
-	returnPamChannel2 := make(chan []byte)
+	successChannel2 := make(chan []byte)
 	errorChannel2 := make(chan []byte)
-	responseChannel2 := make(chan string)
-	waitChannel2 := make(chan string)
 
-	time.Sleep(time.Duration(5) * time.Second)
+	sleep(5)
 
-	go pubnubInstance.GrantSubscribe(channel, false, false, -1, "", returnPamChannel2, errorChannel2)
-	go ParsePamResponseEqual(returnPamChannel2, pubnubInstance, message2, channel, "RevokeChannelLevelSubscribe", responseChannel2, t)
-	go ParseErrorResponse(errorChannel2, responseChannel2)
-	go WaitForCompletion(responseChannel2, waitChannel2)
-	ParseWaitResponse(waitChannel2, t, "RevokeChannelLevelSubscribe")
+	go pubnubInstance.GrantSubscribe(channel, false, false, -1, "", successChannel2, errorChannel2)
+	select {
+	case resp := <-successChannel2:
+		response := string(resp)
+		assert.JSONEq(message2, response)
+	case err := <-errorChannel2:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("GrantSubscribe Timeout")
+	}
 }
 
 func TestGrantChannelLevelSubscribeWithAuth(t *testing.T) {
-	var response, sendAsReturn []byte
-	var pamResponse PamResponse
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe(
+		"fixtures/pam/grantChannelLevelSubscribeWithAuth",
+		[]string{"uuid", "signature", "timestamp"})
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
 	channel := "testGrantChannelLevelSubscribeWithAuth"
@@ -170,24 +147,29 @@ func TestGrantChannelLevelSubscribeWithAuth(t *testing.T) {
 		"subscribe_key":"%s"
 	}`, authKey, channel, ttl, PamSubKey)
 
-	returnPamChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, authKey, returnPamChannel, errorChannel)
+	go pubnubInstance.GrantSubscribe(channel, true, true, ttl, authKey, successChannel, errorChannel)
+	select {
+	case resp := <-successChannel:
+		var response PamResponse
+		err := json.Unmarshal(resp, &response)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
 
-	response = <-returnPamChannel
-	json.Unmarshal(response, &pamResponse)
+		payload, err := json.Marshal(response.Payload)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
 
-	go ParsePamResponseEqual(returnPamChannel, pubnubInstance, expected, channel, "GrantChannelLevelSubscribeWithAuth", responseChannel, t)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-
-	sendAsReturn, _ = json.Marshal(pamResponse.Payload)
-	returnPamChannel <- []byte(sendAsReturn)
-
-	ParseWaitResponse(waitChannel, t, "GrantChannelLevelSubscribeWithAuth")
+		assert.JSONEq(expected, string(payload))
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("GrantSubscribe Timeout")
+	}
 }
 
 func TestPamEnd(t *testing.T) {

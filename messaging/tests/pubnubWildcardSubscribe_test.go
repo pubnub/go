@@ -6,11 +6,11 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
+
+	"testing"
+
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
-	// "strings"
-	// "os"
-	"testing"
 )
 
 // TestWildcardSubscribeEnd prints a message on the screen to mark the beginning of
@@ -21,12 +21,15 @@ func TestWildcardSubscribeStart(t *testing.T) {
 }
 
 func TestWildcardSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
-	//messaging.SetLogOutput(os.Stderr)
 	assert := assert.New(t)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	r := GenRandom()
-	major := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+
+	stop, _ := NewVCRBoth("fixtures/wildcard/connAndUns", []string{"uuid"})
+	defer stop()
+
+	major := "Channel_ConnAndUns"
 	wildcard := fmt.Sprintf("%s.*", major)
+	uuid := "UUID_ConnAndUns"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
@@ -46,28 +49,23 @@ func TestWildcardSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 	}
 
 	go pubnubInstance.Unsubscribe(wildcard, successChannel, errorChannel)
-	select {
-	case msg := <-successChannel:
-		val := string(msg)
-		assert.Equal(fmt.Sprintf(
-			"[1, \"Subscription to channel '%s' unsubscribed\", \"%s\"]",
-			wildcard, wildcard), val)
-	case err := <-errorChannel:
-		assert.Fail(string(err))
-	}
+	ExpectUnsubscribedEvent(t, wildcard, "", successChannel, errorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 func TestWildcardSubscriptionMessage(t *testing.T) {
-	//messaging.SetLogOutput(os.Stderr)
 	assert := assert.New(t)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	r := GenRandom()
-	major := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
-	minor := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+
+	stop, _ := NewVCRBoth("fixtures/wildcard/message", []string{"uuid"})
+	defer stop()
+
+	uuid := "UUID_SubscribeMajor"
+	major := "Channel_SubscribeMajor"
+	minor := "Channel_SubscribeMinor"
 	channel := fmt.Sprintf("%s.%s", major, minor)
 	wildcard := fmt.Sprintf("%s.*", major)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
@@ -78,7 +76,10 @@ func TestWildcardSubscriptionMessage(t *testing.T) {
 
 	go pubnubInstance.Subscribe(wildcard, "",
 		subscribeSuccessChannel, false, subscribeErrorChannel)
-	ExpectConnectedEvent(t, wildcard, "", subscribeSuccessChannel)
+
+	ExpectConnectedEvent(t, wildcard, "", subscribeSuccessChannel,
+		subscribeErrorChannel)
+
 	go func() {
 		select {
 		case message := <-subscribeSuccessChannel:
@@ -95,8 +96,10 @@ func TestWildcardSubscriptionMessage(t *testing.T) {
 			await <- true
 		case err := <-subscribeErrorChannel:
 			assert.Fail(string(err))
+			await <- false
 		case <-messaging.SubscribeTimeout():
 			assert.Fail("Subscribe timeout")
+			await <- false
 		}
 	}()
 
@@ -110,9 +113,9 @@ func TestWildcardSubscriptionMessage(t *testing.T) {
 	<-await
 
 	go pubnubInstance.Unsubscribe(wildcard, successChannel, errorChannel)
-	ExpectUnsubscribedEvent(t, wildcard, "", successChannel)
+	ExpectUnsubscribedEvent(t, wildcard, "", successChannel, errorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TODO test presence
