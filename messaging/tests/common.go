@@ -421,7 +421,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 
 					err := json.Unmarshal(ev, &event)
 					if err != nil {
-						assert.Fail(t, err.Error())
+						assert.Fail(t, err.Error(), string(ev))
 					}
 
 					assert.Equal(t, prAction, event.Action)

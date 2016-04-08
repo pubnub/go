@@ -310,6 +310,7 @@ type Pubnub struct {
 	retrySleeper         chan struct{}
 	requestCloser        chan struct{}
 	requestCloserMu      sync.RWMutex
+	currentSubscribeReq  *http.Request
 }
 
 // PubnubUnitTest structure used to expose some data for unit tests.
@@ -2078,7 +2079,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					pub.resetRetryAndSendResponse()
 				}
 
-				pub.CloseExistingConnection()
+				pub.closeSubscribe()
 
 				pub.sendSubscribeError(alreadySubscribedChannels,
 					alreadySubscribedChannelGroups, string(value), responseAsIsError)
@@ -2696,9 +2697,17 @@ func (pub *Pubnub) closeSubscribe() {
 	pub.requestCloserMu.Lock()
 	defer pub.requestCloserMu.Unlock()
 
-	if pub.requestCloser != nil {
-		close(pub.requestCloser)
+	if pub.currentSubscribeReq != nil {
+		subscribeTransportMu.Lock()
+		if trans, ok := subscribeTransport.(*http.Transport); ok {
+			trans.CancelRequest(pub.currentSubscribeReq)
+		}
+		subscribeTransportMu.Unlock()
 	}
+
+	// if pub.requestCloser != nil {
+	// 	close(pub.requestCloser)
+	// }
 }
 
 func (pub *Pubnub) wakeUpSubscribe() {
@@ -3473,7 +3482,7 @@ func (pub *Pubnub) executeSetUserState(channel string, jsonState string, callbac
 			}
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
-			pub.CloseExistingConnection()
+			pub.closeSubscribe()
 		}
 	}
 }
@@ -3861,6 +3870,7 @@ func (pub *Pubnub) httpRequestOptional(requestURL string, action int, subscribe 
 			return nil, responseStatusCode, fmt.Errorf(operationTimeout)
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), closedNetworkConnection) {
 			return nil, responseStatusCode, fmt.Errorf(connectionAborted)
+			// Connection canceled supported since go1.5
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), requestCanceled) {
 			return nil, responseStatusCode, fmt.Errorf(connectionCanceled)
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), noSuchHost) {
@@ -4077,9 +4087,9 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string,
 	httpClient, err := pub.createHTTPClient(action)
 
 	if isSubscribe {
-		pub.requestCloserMu.Lock()
-		pub.requestCloser = make(chan struct{})
-		pub.requestCloserMu.Unlock()
+		// pub.requestCloserMu.Lock()
+		// pub.requestCloser = make(chan struct{})
+		// pub.requestCloserMu.Unlock()
 	}
 
 	if err == nil {
@@ -4094,21 +4104,25 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string,
 			Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
 		}
 
-		if isSubscribe {
-			pub.requestCloserMu.RLock()
-			req.Cancel = pub.requestCloser
-			pub.requestCloserMu.RUnlock()
-		}
 		// REVIEW: hardcoded client version
 		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/3.7.0", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
+
+		if isSubscribe {
+			pub.requestCloserMu.RLock()
+			// req.Cancel = pub.requestCloser
+			pub.currentSubscribeReq = req
+			pub.requestCloserMu.RUnlock()
+		}
+
 		if err == nil {
 			response, err := httpClient.Do(req)
 
 			if isSubscribe {
 				pub.requestCloserMu.Lock()
-				pub.requestCloser = nil
+				// pub.requestCloser = nil
+				pub.currentSubscribeReq = nil
 				pub.requestCloserMu.Unlock()
 			}
 
