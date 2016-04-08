@@ -5,6 +5,7 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/pubnub/go/messaging"
@@ -87,12 +88,11 @@ func TestCustomUuid(t *testing.T) {
 func Test0Presence(t *testing.T) {
 	assert := assert.New(t)
 
-	// stop, _ := NewVCRBoth(
-	// 	"fixtures/presence/zeroPresence", []string{"uuid"})
-	// defer stop()
+	stop, _ := NewVCRBoth(
+		"fixtures/presence/zeroPresence", []string{"uuid"})
+	defer stop()
 
-	// customUuid := "UUID_zeroPresence"
-	customUuid := RandomChannel()
+	customUuid := "UUID_zeroPresence"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, customUuid)
 	channel := "Channel_ZeroPresence"
 
@@ -102,6 +102,8 @@ func Test0Presence(t *testing.T) {
 	errorPresence := make(chan []byte)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	unsubscribeSuccessPresence := make(chan []byte)
+	unsubscribeErrorPresence := make(chan []byte)
 
 	await := make(chan bool)
 
@@ -109,54 +111,83 @@ func Test0Presence(t *testing.T) {
 	ExpectConnectedEvent(t, channel, "", successPresence, errorPresence)
 
 	go func() {
-		select {
-		case value := <-successPresence:
-			data, _, returnedChannel, err := messaging.ParseJSON(value, "")
-			if err != nil {
-				assert.Fail(err.Error())
-			}
-
-			var occupants []struct {
-				Action    string
-				Uuid      string
-				Timestamp float64
-				Occupancy int
-			}
-
-			err = json.Unmarshal([]byte(data), &occupants)
-			if err != nil {
-				assert.Fail(err.Error())
-			}
-
-			channelSubRepsonseReceived := false
-			for i := 0; i < len(occupants); i++ {
-				if (occupants[i].Action == "join") && occupants[i].Uuid == customUuid {
-					channelSubRepsonseReceived = true
-					break
+		for {
+			select {
+			case value := <-successPresence:
+				data, _, returnedChannel, err := messaging.ParseJSON(value, "")
+				if err != nil {
+					assert.Fail(err.Error())
 				}
+
+				var occupants []struct {
+					Action    string
+					Uuid      string
+					Timestamp float64
+					Occupancy int
+				}
+
+				err = json.Unmarshal([]byte(data), &occupants)
+				if err != nil {
+					assert.Fail(err.Error())
+				}
+
+				channelSubRepsonseReceived := false
+				for i := 0; i < len(occupants); i++ {
+					if (occupants[i].Action == "join") && occupants[i].Uuid == customUuid {
+						channelSubRepsonseReceived = true
+						break
+					}
+				}
+
+				assert.True(channelSubRepsonseReceived, "Sub-response not received")
+				assert.Equal(channel, returnedChannel)
+
+				await <- true
+				return
+			case err := <-errorPresence:
+				if !strings.Contains(string(err), "aborted") {
+					await <- false
+					assert.Fail("Failed to subscribe to presence", string(err))
+					return
+				}
+			case <-timeouts(15):
+				await <- false
+				return
 			}
-
-			assert.True(channelSubRepsonseReceived)
-			assert.Equal(channel, returnedChannel)
-
-			await <- true
-		case err := <-errorPresence:
-			await <- false
-			assert.Fail("Failed to subscribe to presence", string(err))
-		case <-timeouts(15):
-			assert.Fail("Presence timeout")
-			await <- false
 		}
 	}()
 
 	go pubnubInstance.Subscribe(channel, "", successSubscribe, false, errorSubscribe)
 	ExpectConnectedEvent(t, channel, "", successSubscribe, errorSubscribe)
+	go func() {
+		select {
+		case <-successSubscribe:
+		case err := <-errorSubscribe:
+			if !strings.Contains(string(err), "aborted") {
+				assert.Fail("Error in subscribe dummy loop", string(err))
+			}
+		}
+	}()
 
 	<-await
 
-	go pubnubInstance.Unsubscribe(fmt.Sprintf("%s-pnpres", channel),
+	go func() {
+		select {
+		case <-successPresence:
+		case err := <-errorPresence:
+			if !strings.Contains(string(err), "aborted") {
+				assert.Fail("Error in presence dummy loop", string(err))
+			}
+		}
+	}()
+
+	go pubnubInstance.Unsubscribe(channel,
 		unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	go pubnubInstance.Unsubscribe(fmt.Sprintf("%s-pnpres", channel),
+		unsubscribeSuccessPresence, unsubscribeErrorPresence)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessPresence, unsubscribeErrorPresence)
 }
 
 // TestWhereNow subscribes to a pubnub channel and then
