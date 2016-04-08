@@ -4,12 +4,12 @@ package tests
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
+	"testing"
+
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
-	"strconv"
-	"strings"
-	"testing"
-	"time"
 )
 
 // TestDetailedHistoryStart prints a message on the screen to mark the beginning of
@@ -23,7 +23,7 @@ func TestDetailedHistoryStart(t *testing.T) {
 // calls the history method of the messaging package to fetch last 10 messages. These received
 // messages are compared to the messages sent and if all match test is successful.
 func TestDetailedHistoryFor10Messages(t *testing.T) {
-	testName := "TestDetailedHistoryFor10Messages"
+	testName := "historyFor10Messages"
 	DetailedHistoryFor10Messages(t, "", testName)
 }
 
@@ -31,7 +31,7 @@ func TestDetailedHistoryFor10Messages(t *testing.T) {
 // calls the history method of the messaging package to fetch last 10 messages. These received
 // messages are compared to the messages sent and if all match test is successful.
 func TestDetailedHistoryFor10EncryptedMessages(t *testing.T) {
-	testName := "TestDetailedHistoryFor10EncryptedMessages"
+	testName := "historyFor10EncryptedMessages"
 	DetailedHistoryFor10Messages(t, "enigma", testName)
 }
 
@@ -44,12 +44,18 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 
 	numberOfMessages := 10
 	startMessagesFrom := 0
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, cipherKey, false, "")
+
+	stop, sleep := NewVCRNonSubscribe(fmt.Sprintf("fixtures/history/%s", testName),
+		[]string{"uuid"})
+	defer stop()
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipherKey, false, "")
 
 	message := "Test Message "
-	channel := RandomChannel()
+	channel := testName
 
-	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
+	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom,
+		numberOfMessages, message, sleep)
 
 	assert.True(messagesSent)
 
@@ -86,30 +92,12 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	}
 }
 
-// TestDetailedHistoryParamsFor10MessagesWithSeretKey publish's 10 unencrypted secret keyed messages
-// to a pubnub channel, and after that calls the history method of the messaging package to fetch
-// last 10 messages with time parameters between which the messages were sent. These received
-// messages are compared to the messages sent and if all match test is successful.
-func TestDetailedHistoryParamsFor10MessagesWithSeretKey(t *testing.T) {
-	testName := "TestDetailedHistoryFor10MessagesWithSeretKey"
-	DetailedHistoryParamsFor10Messages(t, "", "secret", testName)
-}
-
-// TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey publish's 10 encrypted secret keyed messages
-// to a pubnub channel, and after that calls the history method of the messaging package to fetch
-// last 10 messages with time parameters between which the messages were sent. These received
-// messages are compared to the messages sent and if all match test is successful.
-func TestDetailedHistoryParamsFor10EncryptedMessagesWithSeretKey(t *testing.T) {
-	testName := "TestDetailedHistoryFor10EncryptedMessagesWithSeretKey"
-	DetailedHistoryParamsFor10Messages(t, "enigma", "secret", testName)
-}
-
 // TestDetailedHistoryParamsFor10Messages publish's 10 unencrypted messages
 // to a pubnub channel, and after that calls the history method of the messaging package to fetch
 // last 10 messages with time parameters between which the messages were sent. These received
 // messages are compared to the messages sent and if all match test is successful.
 func TestDetailedHistoryParamsFor10Messages(t *testing.T) {
-	testName := "TestDetailedHistoryFor10Messages"
+	testName := "historyParamsFor10Messages"
 	DetailedHistoryParamsFor10Messages(t, "", "", testName)
 }
 
@@ -118,7 +106,7 @@ func TestDetailedHistoryParamsFor10Messages(t *testing.T) {
 // last 10 messages with time parameters between which the messages were sent. These received
 // messages are compared to the messages sent and if all match test is successful.
 func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
-	testName := "TestDetailedHistoryParamsFor10EncryptedMessages"
+	testName := "historyParamsFor10EncryptedMessages"
 	DetailedHistoryParamsFor10Messages(t, "enigma", "", testName)
 }
 
@@ -128,21 +116,30 @@ func TestDetailedHistoryParamsFor10EncryptedMessages(t *testing.T) {
 // between which the messages were sent. These received message is compared to the messages sent and
 // if all match test is successful.
 func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKey string, testName string) {
-	time.Sleep(5 * time.Second)
 	assert := assert.New(t)
 	numberOfMessages := 5
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, secretKey, cipherKey, false, "")
+
+	stop, sleep := NewVCRNonSubscribe(fmt.Sprintf(
+		"fixtures/history/%s", testName), []string{})
+	defer stop()
+
+	sleep(5)
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipherKey, false,
+		fmt.Sprintf("uuid_%s", testName))
 
 	message := "Test Message "
-	channel := RandomChannel()
+	channel := testName
 
-	startTime := GetServerTime(pubnubInstance, t, testName)
+	startTime := GetServerTime("start")
 	startMessagesFrom := 0
-	messagesSent := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
-	midTime := GetServerTime(pubnubInstance, t, testName)
+	messagesSent := PublishMessages(pubnubInstance, channel, t,
+		startMessagesFrom, numberOfMessages, message, sleep)
+	midTime := GetServerTime("mid")
 	startMessagesFrom = 5
-	messagesSent2 := PublishMessages(pubnubInstance, channel, t, startMessagesFrom, numberOfMessages, message)
-	endTime := GetServerTime(pubnubInstance, t, testName)
+	messagesSent2 := PublishMessages(pubnubInstance, channel, t,
+		startMessagesFrom, numberOfMessages, message, sleep)
+	endTime := GetServerTime("end")
 	startMessagesFrom = 0
 
 	assert.True(messagesSent, "Error while sending a first bunch of messages")
@@ -214,32 +211,6 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 	}
 }
 
-// GetServerTime calls the GetTime method of the messaging, parses the response to get the
-// value and return it.
-func GetServerTime(pubnubInstance *messaging.Pubnub, t *testing.T, testName string) int64 {
-	assert := assert.New(t)
-	successChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-
-	go pubnubInstance.GetTime(successChannel, errorChannel)
-	select {
-	case value := <-successChannel:
-		response := string(value)
-		timestamp, err := strconv.Atoi(strings.Trim(response, "[]"))
-		if err != nil {
-			assert.Fail(err.Error())
-		}
-
-		return int64(timestamp)
-	case err := <-errorChannel:
-		assert.Fail(string(err))
-		return 0
-	case <-timeouts(10):
-		assert.Fail("Getting server timestamp timeout")
-		return 0
-	}
-}
-
 // PublishMessages calls the publish method of messaging package numberOfMessages times
 // and appends the count with the message to distinguish from the others.
 //
@@ -252,7 +223,10 @@ func GetServerTime(pubnubInstance *messaging.Pubnub, t *testing.T, testName stri
 // message: message to send.
 //
 // returns a bool if the publish of all messages is successful.
-func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testing.T, startMessagesFrom int, numberOfMessages int, message string) bool {
+func PublishMessages(pubnubInstance *messaging.Pubnub, channel string,
+	t *testing.T, startMessagesFrom int, numberOfMessages int,
+	message string, sleep func(int)) bool {
+
 	assert := assert.New(t)
 	messagesReceived := 0
 	messageToSend := ""
@@ -276,7 +250,7 @@ func PublishMessages(pubnubInstance *messaging.Pubnub, channel string, t *testin
 		}
 	}
 
-	time.Sleep(3 * time.Second)
+	sleep(3)
 	if messagesReceived == numberOfMessages {
 		return true
 	}

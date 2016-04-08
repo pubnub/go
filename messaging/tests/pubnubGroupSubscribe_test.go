@@ -6,12 +6,13 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/messaging/tests/utils"
 	"github.com/stretchr/testify/assert"
 	// "os"
 	"strings"
 	"testing"
-	"time"
 )
 
 // TestGroupSubscribeStart prints a message on the screen to mark the beginning of
@@ -22,15 +23,20 @@ func TestGroupSubscribeStart(t *testing.T) {
 }
 
 func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
-	//messaging.SetLogOutput(os.Stderr)
 	assert := assert.New(t)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
+
+	stop, sleep := NewVCRBoth(
+		"fixtures/groups/conAndUnsSingle", []string{"uuid"})
+	defer stop()
+
+	group := "Group_GroupSubscriptionConAndUnsSingle"
+	uuid := "UUID_GroupSubscriptionConAndUnsSingle"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	createChannelGroups(pubnubInstance, []string{group})
 	defer removeChannelGroups(pubnubInstance, []string{group})
 
-	time.Sleep(1 * time.Second)
+	sleep(2)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
@@ -60,19 +66,40 @@ func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 		assert.Fail(string(err))
 	}
 
-	pubnubInstance.CloseExistingConnection()
+	select {
+	case ev := <-successChannel:
+		var event messaging.PresenceResonse
+
+		err := json.Unmarshal(ev, &event)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		assert.Equal("leave", event.Action)
+		assert.Equal(200, event.Status)
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	}
+
+	// pubnubInstance.CloseExistingConnection()
 }
 
 func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	groupsString, _ := GenerateTwoRandomChannelStrings(3)
+
+	stop, sleep := NewVCRBoth(
+		"fixtures/groups/conAndUnsMultiple", []string{"uuid"})
+	defer stop()
+
+	uuid := "UUID_Multiple_CAU"
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	groupsString := "Group_ConAndUnsMult_1,Group_ConAndUnsMult_2,Group_ConAndUnsMult_3"
 	groups := strings.Split(groupsString, ",")
 
 	createChannelGroups(pubnub, groups)
 	defer removeChannelGroups(pubnub, groups)
 
-	time.Sleep(1 * time.Second)
+	sleep(2)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
@@ -112,7 +139,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 			}
 		}
 
-		assert.True(AssertStringSliceElementsEqual(groups, messages),
+		assert.True(utils.AssertStringSliceElementsEqual(groups, messages),
 			fmt.Sprintf("Expected groups: %s. Actual groups: %s\n", groups, messages))
 
 		await <- true
@@ -127,6 +154,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 	go pubnub.ChannelGroupUnsubscribe(groupsString, successChannel, errorChannel)
 	go func() {
 		var messages []string
+		var events int
 
 		for {
 			select {
@@ -135,26 +163,35 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 
 				err := json.Unmarshal(message, &msg)
 				if err != nil {
-					assert.Fail(err.Error())
+					var event map[string]interface{}
+					err := json.Unmarshal(message, &event)
+					if err != nil {
+						assert.Fail(err.Error())
+					}
+
+					assert.Equal(event["action"].(string), "leave")
+					assert.Equal(event["message"].(string), "OK")
+					events++
+				} else {
+
+					assert.Contains(msg[1].(string), "Subscription to channel group")
+					assert.Contains(msg[1].(string), "unsubscribed")
+					assert.Len(msg, 3)
+
+					messages = append(messages, string(msg[2].(string)))
 				}
-
-				assert.Contains(msg[1].(string), "Subscription to channel group")
-				assert.Contains(msg[1].(string), "unsubscribed")
-				assert.Len(msg, 3)
-
-				messages = append(messages, string(msg[2].(string)))
 			case err := <-errorChannel:
 				assert.Fail("Subscribe error", string(err))
 			case <-timeouts(10):
 				break
 			}
 
-			if len(messages) == 3 {
+			if len(messages) == 3 && events == 3 {
 				break
 			}
 		}
 
-		assert.True(AssertStringSliceElementsEqual(groups, messages),
+		assert.True(utils.AssertStringSliceElementsEqual(groups, messages),
 			fmt.Sprintf("Expected groups: %s. Actual groups: %s\n", groups, messages))
 
 		await <- true
@@ -166,19 +203,25 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 		assert.Fail("Receive unsubscribed messages timeout")
 	}
 
-	pubnub.CloseExistingConnection()
+	// pubnub.CloseExistingConnection()
 }
 
 func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
-	channel := RandomChannel()
+
+	stop, sleep := NewVCRBoth(
+		"fixtures/groups/receiveSingleMessage", []string{"uuid"})
+	defer stop()
+
+	group := "Group_GroupReceiveSingleMessage"
+	channel := "Channel_GroupReceiveSingleMessage"
+	uuid := "UUID_GroupReceiveSingleMessage"
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	populateChannelGroup(pubnub, group, channel)
 	defer removeChannelGroups(pubnub, []string{group})
 
-	time.Sleep(1 * time.Second)
+	sleep(2)
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
@@ -216,6 +259,13 @@ func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	}()
 
 	go pubnub.Publish(channel, "hey", successChannel, errorChannel)
+	select {
+	case <-successChannel:
+	case err := <-errorChannel:
+		assert.Fail("Publish error", string(err))
+	case <-messaging.Timeout():
+		assert.Fail("Publish timeout")
+	}
 
 	<-msgReceived
 
@@ -224,20 +274,26 @@ func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	ExpectUnsubscribedEvent(t, "", group, unsubscribeSuccessChannel,
 		unsubscribeErrorChannel)
 
-	pubnub.CloseExistingConnection()
+	// pubnub.CloseExistingConnection()
 }
 
-func TestGroupSubscriptionPresence(t *testing.T) {
+// TODO: verify that CG requests are not duplicated
+func xTestGroupSubscriptionPresence(t *testing.T) {
 	presenceTimeout := 15
 	assert := assert.New(t)
+
+	stop, sleep := NewVCRBoth(
+		"fixtures/groups/presence", []string{"uuid"})
+	defer stop()
+
+	group := "Group_GroupPresence"
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
 	groupPresence := fmt.Sprintf("%s%s", group, presenceSuffix)
 
 	createChannelGroups(pubnub, []string{group})
 	defer removeChannelGroups(pubnub, []string{group})
 
-	time.Sleep(1 * time.Second)
+	sleep(2)
 
 	presenceSuccessChannel := make(chan []byte)
 	presenceErrorChannel := make(chan []byte)
@@ -275,15 +331,16 @@ func TestGroupSubscriptionPresence(t *testing.T) {
 				assert.Equal(group, msg[3].(string))
 
 				assert.Contains(msgString, "join")
-				assert.Contains(msgString, pubnub.GetUUID())
+				assert.Contains(msgString, pubnub.GetUUID(),
+					"While expecting equal uuids in routine #1")
 				await <- true
 				return
 			case err := <-presenceErrorChannel:
-				assert.Fail(string(err))
+				assert.Fail("Presence routine #1 error", string(err))
 				await <- false
 				return
 			case <-timeouts(presenceTimeout):
-				assert.Fail("Presence timeout")
+				assert.Fail("Presence routine #1 timeout")
 				await <- false
 				return
 			}
@@ -297,7 +354,7 @@ func TestGroupSubscriptionPresence(t *testing.T) {
 
 	<-await
 
-	time.Sleep(3 * time.Second)
+	sleep(3)
 
 	go func() {
 		for {
@@ -321,116 +378,28 @@ func TestGroupSubscriptionPresence(t *testing.T) {
 				assert.Equal(group, msg[3].(string))
 
 				assert.Contains(msgString, "leave")
-				assert.Contains(msgString, pubnub.GetUUID())
+				assert.Contains(msgString, pubnub.GetUUID(),
+					"While expecting equal uuids in routine #2")
 				await <- true
 				return
 			case err := <-presenceErrorChannel:
-				assert.Fail(string(err))
+				assert.Fail("Presence routine #2 error", string(err))
 				await <- false
 				return
 			case <-timeouts(presenceTimeout):
-				assert.Fail("Presence timeout")
+				assert.Fail("Presence routine #2 timeout")
 				await <- false
 				return
 			}
 		}
 	}()
 
+	<-await
+
 	go pubnub.ChannelGroupUnsubscribe(group, unsubscribeSuccessChannel,
 		unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, "", group, unsubscribeSuccessChannel,
 		unsubscribeErrorChannel)
-
-	<-await
-
-	pubnub.CloseExistingConnection()
-}
-
-func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
-	//messaging.SetLogOutput(os.Stderr)
-	assert := assert.New(t)
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
-
-	createChannelGroups(pubnub, []string{group})
-	defer removeChannelGroups(pubnub, []string{group})
-
-	time.Sleep(1 * time.Second)
-
-	subscribeSuccessChannel := make(chan []byte)
-	subscribeErrorChannel := make(chan []byte)
-	subscribeSuccessChannel2 := make(chan []byte)
-	subscribeErrorChannel2 := make(chan []byte)
-	successChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-
-	go pubnub.ChannelGroupSubscribe(group,
-		subscribeSuccessChannel, subscribeErrorChannel)
-	ExpectConnectedEvent(t, "", group, subscribeSuccessChannel, subscribeErrorChannel)
-
-	go pubnub.ChannelGroupSubscribe(group,
-		subscribeSuccessChannel2, subscribeErrorChannel2)
-	select {
-	case <-subscribeSuccessChannel2:
-		assert.Fail("Received success message while expecting error")
-	case err := <-subscribeErrorChannel2:
-		assert.Contains(string(err), "Subscription to channel group")
-		assert.Contains(string(err), "already subscribed")
-	}
-
-	go pubnub.ChannelGroupUnsubscribe(group, successChannel, errorChannel)
-	ExpectUnsubscribedEvent(t, "", group, successChannel, errorChannel)
-
-	pubnub.CloseExistingConnection()
-}
-
-func TestGroupSubscriptionNotSubscribed(t *testing.T) {
-	assert := assert.New(t)
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
-
-	createChannelGroups(pubnub, []string{group})
-	defer removeChannelGroups(pubnub, []string{group})
-
-	time.Sleep(1 * time.Second)
-
-	successChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-
-	go pubnub.ChannelGroupUnsubscribe(group, successChannel, errorChannel)
-	select {
-	case response := <-successChannel:
-		assert.Fail("Received success message while expecting error", string(response))
-	case err := <-errorChannel:
-		assert.Contains(string(err), "Subscription to channel group")
-		assert.Contains(string(err), "not subscribed")
-	}
-
-	pubnub.CloseExistingConnection()
-}
-
-func TestGroupSubscriptionToNotExistingChannelGroup(t *testing.T) {
-	assert := assert.New(t)
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	group := RandomChannel()
-
-	successChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-
-	removeChannelGroups(pubnub, []string{group})
-
-	time.Sleep(1 * time.Second)
-
-	go pubnub.ChannelGroupSubscribe(group, successChannel, errorChannel)
-	select {
-	case response := <-successChannel:
-		assert.Fail("Received success message while expecting error", string(response))
-	case err := <-errorChannel:
-		assert.Contains(string(err), "Channel group or groups result in empty subscription set")
-		assert.Contains(string(err), group)
-	}
-
-	pubnub.CloseExistingConnection()
 }
 
 func createChannelGroups(pubnub *messaging.Pubnub, groups []string) {

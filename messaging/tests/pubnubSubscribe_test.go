@@ -6,12 +6,14 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/pubnub/go/messaging"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
-	"time"
+
+	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/messaging/tests/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestSubscribeStart prints a message on the screen to mark the beginning of
@@ -24,232 +26,420 @@ func TestSubscribeStart(t *testing.T) {
 // TestSubscriptionConnectStatus sends out a subscribe request to a pubnub channel
 // and validates the response for the connect status.
 func TestSubscriptionConnectStatus(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	assert := assert.New(t)
 
-	returnSubscribeChannel := make(chan []byte)
+	stop, _ := NewVCRBoth(
+		"fixtures/subscribe/connectStatus", []string{"uuid"})
+	defer stop()
+
+	channel := "Channel_ConnectStatus"
+	uuid := "UUID_ConnectStatus"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectStatus", "", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SubscriptionConnectStatus")
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	select {
+	case resp := <-successChannel:
+		response := fmt.Sprintf("%s", resp)
+		if response != "[]" {
+			message := "'" + channel + "' connected"
+			assert.Contains(response, message)
+		}
+	case err := <-errorChannel:
+		if !IsConnectionRefusedError(err) {
+			assert.Fail(string(err))
+		}
+	case <-timeouts(3):
+		assert.Fail("Subscribe timeout 3s")
+	}
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
-}
-
-// TestSubscriptionAlreadySubscribed sends out a subscribe request to a pubnub channel
-// and when connected sends out another subscribe request. The response for the second
-func TestSubscriptionAlreadySubscribed(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
-	testName := "SubscriptionAlreadySubscribed"
-
-	returnSubscribeChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-	unsubscribeSuccessChannel := make(chan []byte)
-	unsubscribeErrorChannel := make(chan []byte)
-
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", testName, "", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, testName)
-	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
 }
 
 // TestMultiSubscriptionConnectStatus send out a pubnub multi channel subscribe request and
 // parses the response for multiple connection status.
 func TestMultiSubscriptionConnectStatus(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	testName := "TestMultiSubscriptionConnectStatus"
-	channels, _ := GenerateTwoRandomChannelStrings(2)
+	// TODO: test passes successfully, but some errors about extra interactions exists
+	assert := assert.New(t)
 
-	returnSubscribeChannel := make(chan []byte)
+	stop, _ := NewVCRBoth("fixtures/subscribe/connectMultipleStatus", []string{"uuid"})
+	defer stop()
+
+	channels := "Channel_ConnectStatus_14,Channel_ConnectStatus_992"
+	uuid := "UUID_ConnectStatus"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+
+	expectedChannels := strings.Split(channels, ",")
+	actualChannels := []string{}
+	var actualMu sync.Mutex
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channels, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponseForMultipleChannels(returnSubscribeChannel, channels, testName, responseChannel)
+	go pubnubInstance.Subscribe(channels, "", successChannel, false, errorChannel)
+	go func() {
 
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, testName)
+		for {
+			select {
+			case resp := <-successChannel:
+				var response []interface{}
+
+				err := json.Unmarshal(resp, &response)
+				if err != nil {
+					assert.Fail(err.Error())
+				}
+
+				assert.Len(response, 3)
+				assert.Contains(response[1].(string), "Subscription to channel")
+				assert.Contains(response[1].(string), "connected")
+
+				actualMu.Lock()
+				actualChannels = append(actualChannels, response[2].(string))
+				l := len(actualChannels)
+				actualMu.Unlock()
+
+				if l == 2 {
+					await <- true
+					return
+				}
+
+			case err := <-errorChannel:
+				assert.Fail(string(err))
+
+				await <- false
+			case <-timeouts(5):
+				assert.Fail("Subscribe timeout 5s")
+				await <- false
+			}
+
+		}
+	}()
+
+	select {
+	case <-await:
+		actualMu.Lock()
+		assert.True(utils.AssertStringSliceElementsEqual(expectedChannels, actualChannels),
+			fmt.Sprintf("%s(expected) should be equal to %s(actual)", expectedChannels, actualChannels))
+		actualMu.Unlock()
+	case <-timeouts(10):
+		assert.Fail("Timeout connecting channels")
+	}
+
 	go pubnubInstance.Unsubscribe(channels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
-}
-
-// ParseSubscribeResponseForMultipleChannels parses the pubnub multi channel response
-// for the number or channels connected and matches them to the connected channels.
-func ParseSubscribeResponseForMultipleChannels(returnChannel chan []byte, channels string, testName string, responseChannel chan string) {
-	noOfChannelsConnected := 0
-	channelArray := strings.Split(channels, ",")
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			message := "' connected"
-			messageReconn := "' reconnected"
-			//fmt.Println("response: ", response)
-			if (strings.Contains(response, message)) || (strings.Contains(response, messageReconn)) {
-				noOfChannelsConnected++
-				if noOfChannelsConnected >= len(channelArray) {
-					responseChannel <- "Test '" + testName + "': passed."
-					break
-				}
-			}
-		}
-	}
 }
 
 // TestSubscriptionForSimpleMessage first subscribes to a pubnub channel and then publishes
 // a message on the same pubnub channel. The subscribe response should receive this same message.
 func TestSubscriptionForSimpleMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	assert := assert.New(t)
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	stop, _ := NewVCRBoth("fixtures/subscribe/forSimpleMessage", []string{"uuid"})
+	defer stop()
 
-	returnSubscribeChannel := make(chan []byte)
+	channel := "Channel_SubscriptionConnectedForSimple"
+	uuid := "UUID_SubscriptionConnectedForSimple"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+
+	customMessage := "Test message"
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForSimple", "", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimple")
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				response := fmt.Sprintf("%s", resp)
+				if response != "[]" {
+					message := "'" + channel + "' connected"
+
+					if strings.Contains(response, message) {
+
+						successChannel := make(chan []byte)
+						errorChannel := make(chan []byte)
+
+						go pubnubInstance.Publish(channel, customMessage,
+							successChannel, errorChannel)
+						select {
+						case <-successChannel:
+						case err := <-errorChannel:
+							assert.Fail(string(err))
+						case <-timeout():
+							assert.Fail("Publish timeout")
+						}
+					} else {
+						assert.Contains(response, customMessage)
+
+						close(await)
+						return
+					}
+				}
+			case err := <-errorChannel:
+				assert.Fail(string(err))
+
+				close(await)
+				return
+			case <-timeouts(5):
+				assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+
+		}
+	}()
+
+	<-await
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
+
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForSimpleMessageWithCipher first subscribes to a pubnub channel and then publishes
 // an encrypted message on the same pubnub channel. The subscribe response should receive
 // the decrypted message.
 func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
+	assert := assert.New(t)
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	stop, _ := NewVCRBoth("fixtures/subscribe/forSimpleMessageWithCipher", []string{"uuid"})
+	defer stop()
 
-	returnSubscribeChannel := make(chan []byte)
+	channel := "Channel_SubscriptionConnectedForSimpleWithCipher"
+	uuid := "UUID_SubscriptionConnectedForSimpleWithCipher"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, uuid)
+
+	customMessage := "Test message"
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForSimpleWithCipher", "enigma", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForSimpleWithCipher")
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				response := fmt.Sprintf("%s", resp)
+				if response != "[]" {
+					message := "'" + channel + "' connected"
+
+					if strings.Contains(response, message) {
+
+						successChannel := make(chan []byte)
+						errorChannel := make(chan []byte)
+
+						go pubnubInstance.Publish(channel, customMessage,
+							successChannel, errorChannel)
+						select {
+						case <-successChannel:
+						case err := <-errorChannel:
+							assert.Fail(string(err))
+						case <-timeout():
+							assert.Fail("Publish timeout")
+						}
+					} else {
+						assert.Contains(response, customMessage)
+
+						close(await)
+						return
+					}
+				}
+			case err := <-errorChannel:
+				assert.Fail(string(err))
+
+				close(await)
+				return
+			case <-timeouts(3):
+				assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+		}
+	}()
+
+	<-await
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
+
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForComplexMessage first subscribes to a pubnub channel and then publishes
 // a complex message on the same pubnub channel. The subscribe response should receive
 // the same message.
 func TestSubscriptionForComplexMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	assert := assert.New(t)
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	stop, _ := NewVCRBoth("fixtures/subscribe/forComplexMessage", []string{"uuid"})
+	defer stop()
 
-	returnSubscribeChannel := make(chan []byte)
+	channel := "Channel_SubscriptionConnectedForComplex"
+	uuid := "UUID_SubscriptionConnectedForComplex"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+
+	customComplexMessage := InitComplexMessage()
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForComplex", "", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplex")
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				response := fmt.Sprintf("%s", resp)
+				if response != "[]" {
+					message := "'" + channel + "' connected"
+
+					if strings.Contains(response, message) {
+
+						successChannel := make(chan []byte)
+						errorChannel := make(chan []byte)
+
+						go pubnubInstance.Publish(channel, customComplexMessage,
+							successChannel, errorChannel)
+						select {
+						case <-successChannel:
+						case err := <-errorChannel:
+							assert.Fail(string(err))
+						case <-timeout():
+							assert.Fail("Publish timeout")
+						}
+					} else {
+						var arr []interface{}
+						err := json.Unmarshal(resp, &arr)
+						if err != nil {
+							assert.Fail(err.Error())
+						} else {
+							assert.True(CheckComplexData(arr))
+						}
+
+						close(await)
+						return
+					}
+				}
+			case err := <-errorChannel:
+				if !IsConnectionRefusedError(err) {
+					assert.Fail(string(err))
+				}
+
+				close(await)
+				return
+			case <-timeouts(3):
+				assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+
+		}
+	}()
+
+	<-await
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
+
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscriptionForComplexMessageWithCipher first subscribes to a pubnub channel and then publishes
 // an encrypted complex message on the same pubnub channel. The subscribe response should receive
 // the decrypted message.
 func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
+	assert := assert.New(t)
 
-	r := GenRandom()
-	channel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+	stop, _ := NewVCRBoth("fixtures/subscribe/forComplexMessageWithCipher", []string{"uuid"})
+	defer stop()
 
-	returnSubscribeChannel := make(chan []byte)
+	channel := "Channel_SubscriptionConnectedForComplexWithCipher"
+	uuid := "UUID_SubscriptionConnectedForComplexWithCipher"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, uuid)
+
+	customMessage := InitComplexMessage()
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnSubscribeChannel, t, channel, "", "SubscriptionConnectedForComplexWithCipher", "enigma", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SubscriptionConnectedForComplexWithCipher")
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				response := fmt.Sprintf("%s", resp)
+				if response != "[]" {
+					message := "'" + channel + "' connected"
+
+					if strings.Contains(response, message) {
+
+						successChannel := make(chan []byte)
+						errorChannel := make(chan []byte)
+
+						go pubnubInstance.Publish(channel, customMessage,
+							successChannel, errorChannel)
+						select {
+						case <-successChannel:
+						case err := <-errorChannel:
+							assert.Fail(string(err))
+						case <-timeout():
+							assert.Fail("Publish timeout")
+						}
+					} else {
+						var arr []interface{}
+						err := json.Unmarshal(resp, &arr)
+						if err != nil {
+							assert.Fail(err.Error())
+						} else {
+							assert.True(CheckComplexData(arr))
+						}
+
+						close(await)
+						return
+					}
+				}
+			case err := <-errorChannel:
+				if !IsConnectionRefusedError(err) {
+					assert.Fail(string(err))
+				}
+
+				close(await)
+				return
+			case <-timeouts(3):
+				assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+		}
+	}()
+
+	<-await
+
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
-}
 
-// PublishComplexMessage publises a complex message on a pubnub channel and
-// calls the parse method to validate the message subscription.
-// CustomComplexMessage and InitComplexMessage are defined in the common.go file.
-func PublishComplexMessage(pubnubInstance *messaging.Pubnub, t *testing.T, channel string, testName string, cipherKey string, responseChannel chan string) {
-	customComplexMessage := InitComplexMessage()
-
-	returnChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-
-	go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnChannel, t, channel, "", testName, cipherKey, responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-}
-
-// PublishSimpleMessage publises a message on a pubnub channel and
-// calls the parse method to validate the message subscription.
-func PublishSimpleMessage(pubnubInstance *messaging.Pubnub, t *testing.T, channel string, testName string, cipherKey string, responseChannel chan string) {
-	message := "Test message"
-
-	returnChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	go ParseSubscribeResponse(pubnubInstance, returnChannel, t, channel, "", testName, cipherKey, responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // ValidateComplexData takes an interafce as a parameter and iterates through it
@@ -263,7 +453,7 @@ func ValidateComplexData(m map[string]interface{}) bool {
 	customComplexMessage := InitComplexMessage()
 	valid := false
 	for k, v := range m {
-		//fmt.Println("k:", k, "v:", v)
+		// fmt.Println("k:", k, "v:", v)
 		if k == "OperationName" {
 			if m["OperationName"].(string) == customComplexMessage.OperationName {
 				valid = true
@@ -371,125 +561,12 @@ func CheckComplexData(b interface{}) bool {
 	return valid
 }
 
-// ParseSubscribeData is used by multiple test cases and acts according to the testcase names.
-// In case of complex message calls a sub method and in case of a simle message parses
-// the response.
-func ParseSubscribeData(t *testing.T, response []byte, testName string, cipherKey string, returnChannel chan string) bool {
-	if response != nil {
-		var b interface{}
-		err := json.Unmarshal(response, &b)
-
-		isValid := false
-		if (testName == "SubscriptionConnectedForComplex") || (testName == "SubscriptionConnectedForComplexWithCipher") {
-			isValid = CheckComplexData(b)
-		} else if (testName == "SubscriptionConnectedForSimple") || (testName == "SubscriptionConnectedForSimpleWithCipher") {
-			var arr []interface{}
-
-			err := json.Unmarshal(response, &arr)
-			//fmt.Println("response:", arr[1].(string))
-			if err != nil {
-				fmt.Println("err:", err)
-			} else {
-				if len(arr) > 0 {
-					if message, ok := arr[0].([]interface{}); ok {
-						if messageT, ok2 := message[0].(string); ok2 {
-							if (len(message) > 0) && (messageT == "Test message") {
-								isValid = true
-							}
-						}
-					}
-				}
-			}
-		}
-		if err != nil {
-			return false
-		} else if !isValid {
-			return false
-		}
-	}
-	return true
-}
-
-// ParseSubscribeResponse reads the response from the go channel and unmarshal's it.
-// It is used by multiple test cases and acts according to the testcase names.
-// The idea is to parse each message in the response based on the type of message
-// and test against the sent message. If both match the test case is successful.
-// _publishSuccessMessage is defined in the common.go file.
-func ParseSubscribeResponse(pubnubInstance *messaging.Pubnub, returnChannel chan []byte, t *testing.T, channel string, message string, testName string, cipherKey string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			//fmt.Println("Response1:", response)
-			if (testName == "SubscriptionConnectedForComplex") || (testName == "SubscriptionConnectedForComplexWithCipher") {
-				message = "'" + channel + "' connected"
-				if strings.Contains(response, message) {
-					PublishComplexMessage(pubnubInstance, t, channel, publishSuccessMessage, cipherKey, responseChannel)
-				} else {
-					//fmt.Println("resp:", response)
-					if ParseSubscribeData(t, value, testName, cipherKey, responseChannel) {
-						responseChannel <- "Test '" + testName + "': passed."
-					} else {
-						responseChannel <- "Test '" + testName + "': failed."
-					}
-					break
-				}
-			} else if (testName == "SubscriptionConnectedForSimple") || (testName == "SubscriptionConnectedForSimpleWithCipher") {
-				message = "'" + channel + "' connected"
-				if strings.Contains(response, message) {
-					PublishSimpleMessage(pubnubInstance, t, channel, publishSuccessMessage, cipherKey, responseChannel)
-				} else {
-					if ParseSubscribeData(t, value, testName, cipherKey, responseChannel) {
-						responseChannel <- "Test '" + testName + "': passed."
-					} else {
-						responseChannel <- "Test '" + testName + "': failed."
-					}
-					break
-				}
-			} else if testName == "SubscriptionAlreadySubscribed" {
-				message = "'" + channel + "' connected"
-
-				if strings.Contains(response, message) {
-					returnSubscribeChannel2 := make(chan []byte)
-					errorChannel2 := make(chan []byte)
-
-					go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel2, false, errorChannel2)
-					go ParseSubscribeResponse(pubnubInstance, errorChannel2, t, channel, "already subscribed", "SubscriptionAlreadySubscribedResponse", "", responseChannel)
-					go ParseResponseDummy(returnSubscribeChannel2)
-				}
-				break
-			} else if testName == "SubscriptionAlreadySubscribedResponse" {
-				message = "'" + channel + "' already subscribed"
-				if strings.Contains(response, message) {
-					responseChannel <- "Test '" + testName + "': passed."
-				} else {
-					responseChannel <- "Test '" + testName + "': failed."
-					//t.Error("Test '" + testName + "': failed.");
-				}
-				break
-			} else if testName == "SubscriptionConnectStatus" {
-				message = "'" + channel + "' connected"
-				if strings.Contains(response, message) {
-					responseChannel <- "Test '" + testName + "': passed."
-				} else {
-					responseChannel <- "Test '" + testName + "': failed."
-					//t.Error("Test '" + testName + "': failed.");
-				}
-				break
-			}
-		}
-	}
-}
-
 // TestMultipleResponse publishes 2 messages and then parses the response
 // by creating a subsribe request with a timetoken prior to publishing of the messages
 // on subscribing we will get one response with multiple messages which should be split into
 // 2 by the client api.
 func TestMultipleResponse(t *testing.T) {
-	SendMultipleResponse(t, false)
+	SendMultipleResponse(t, false, "multipleResponse", "")
 }
 
 // TestMultipleResponseEncrypted publishes 2 messages and then parses the response
@@ -497,277 +574,136 @@ func TestMultipleResponse(t *testing.T) {
 // on subscribing we will get one response with multiple messages which should be split into
 // 2 by the clinet api.
 func TestMultipleResponseEncrypted(t *testing.T) {
-	SendMultipleResponse(t, true)
+	SendMultipleResponse(t, true, "multipleResponseEncrypted", "enigma")
 }
 
 // SendMultipleResponse is the common implementation for TestMultipleResponsed and
 // TestMultipleResponseEncrypted
-func SendMultipleResponse(t *testing.T, encrypted bool) {
-	cipher := ""
-	testName := "TestMultipleResponse"
-	if encrypted {
-		cipher = "enigma"
-		testName = "TestMultipleResponseEncrypted"
-	}
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipher, false, "")
-	//pubnubChannel := "testChannel"
-	r := GenRandom()
-	pubnubChannel := fmt.Sprintf("testChannel_sub_%d", r.Intn(20))
+func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string) {
+	assert := assert.New(t)
 
-	returnTimeChannel := make(chan []byte)
-	errorChannelTime := make(chan []byte)
+	stop, _ := NewVCRBoth(fmt.Sprintf("fixtures/subscribe/%s", testName), []string{"uuid"})
+	defer stop()
+
+	channel := "Channel_MultipleResponse"
+	uuid := "UUID_MultipleResponse"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipher, false, uuid)
+
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
 
-	go pubnubInstance.GetTime(returnTimeChannel, errorChannelTime)
+	retTime := GetServerTimeString("time_uuid")
+	fmt.Println("time is", retTime)
 
-	retTime, errTime := ParseTimeFromServer(returnTimeChannel, errorChannelTime)
-	if errTime == nil {
-		message1 := "message1"
-		message2 := "message2"
-		returnPublishChannel := make(chan []byte)
-		errorChannelPub := make(chan []byte)
+	message1 := "message1"
+	message2 := "message2"
 
-		go pubnubInstance.Publish(pubnubChannel, message1, returnPublishChannel, errorChannelPub)
-		b1, _ := ParsePublishResponseFromServer(returnPublishChannel, errorChannelPub)
+	successChannelPublish := make(chan []byte)
+	errorChannelPublish := make(chan []byte)
 
-		returnPublishChannel2 := make(chan []byte)
-		errorChannelPub2 := make(chan []byte)
-		time.Sleep(time.Duration(2) * time.Second)
-
-		go pubnubInstance.Publish(pubnubChannel, message2, returnPublishChannel2, errorChannelPub2)
-		b2, _ := ParsePublishResponseFromServer(returnPublishChannel2, errorChannelPub2)
-
-		if b1 && b2 {
-
-			returnSubscribeChannel := make(chan []byte)
-			errorChannelSub := make(chan []byte)
-			responseChannelSub := make(chan string)
-			waitChannelSub := make(chan string)
-
-			go pubnubInstance.Subscribe(pubnubChannel, retTime, returnSubscribeChannel, false, errorChannelSub)
-			go ParseSubscribeMultiResponse(pubnubChannel, returnSubscribeChannel, message1, message2, cipher, testName, responseChannelSub)
-			go ParseErrorResponse(errorChannelSub, responseChannelSub)
-			go WaitForCompletion(responseChannelSub, waitChannelSub)
-			ParseWaitResponse(waitChannelSub, t, testName)
-			go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-			ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-			pubnubInstance.CloseExistingConnection()
-		}
+	go pubnubInstance.Publish(channel, message1, successChannelPublish,
+		errorChannelPublish)
+	select {
+	case <-successChannelPublish:
+	case err := <-errorChannelPublish:
+		assert.Fail("Publish #1 error", string(err))
+	case <-timeout():
+		assert.Fail("Publish #1 timeout")
 	}
-}
 
-// ParseSubscribeMultiResponse reads the response on the returnChannel and looks for message1 and
-// message2. If both messages are received the response with passed status is sent on the
-// responseChannel.
-func ParseSubscribeMultiResponse(channel string, returnChannel chan []byte, message1 string, message2 string, cipher string, testName string, responseChannel chan string) {
-	messageCount := 0
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			message := "'" + channel + "' connected"
-			if strings.Contains(response, message) {
-				continue
-			} else {
-				var s []interface{}
-				err := json.Unmarshal(value, &s)
-				if err == nil {
-					if len(s) > 0 {
-						if message, ok := s[0].([]interface{}); ok {
-							if messageT, ok2 := message[0].(string); ok2 {
-								if (len(message) > 0) && (messageT == message1) {
-									messageCount++
-								}
-								if (len(message) > 0) && (messageT == message2) {
-									messageCount++
+	successChannelPublish2 := make(chan []byte)
+	errorChannelPublish2 := make(chan []byte)
+
+	go pubnubInstance.Publish(channel, message2, successChannelPublish2,
+		errorChannelPublish2)
+	select {
+	case <-successChannelPublish2:
+	case err := <-errorChannelPublish2:
+		assert.Fail("Publish #2 error", string(err))
+	case <-timeout():
+		assert.Fail("Publish #2 timeout")
+	}
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	await := make(chan bool)
+
+	go pubnubInstance.Subscribe(channel, retTime, successChannel, false, errorChannel)
+
+	go func() {
+		messageCount := 0
+
+		for {
+			select {
+			case value := <-successChannel:
+				response := fmt.Sprintf("%s", value)
+				message := "'" + channel + "' connected"
+				if strings.Contains(response, message) {
+					continue
+				} else {
+					var s []interface{}
+					err := json.Unmarshal(value, &s)
+					if err == nil {
+						if len(s) > 0 {
+							if message, ok := s[0].([]interface{}); ok {
+								if messageT, ok2 := message[0].(string); ok2 {
+									if (len(message) > 0) && (messageT == message1) {
+										messageCount++
+									}
+									if (len(message) > 0) && (messageT == message2) {
+										messageCount++
+									}
 								}
 							}
 						}
 					}
+
+					if messageCount >= 2 {
+						await <- true
+						return
+					}
 				}
 
-				if messageCount >= 2 {
-					responseChannel <- "Test '" + testName + "': passed."
-					break
-				}
+			case err := <-errorChannel:
+				assert.Fail("Subscribe error", string(err))
+				await <- false
+				return
+			case <-timeout():
+				assert.Fail("Subscribe timeout")
+				await <- false
+				return
 			}
 		}
-	}
-}
+	}()
 
-// ParsePublishResponseFromServer returns true if the "Sent" message is found
-// on the returnChannel's response.
-// On error it returns the error.
-func ParsePublishResponseFromServer(returnChannel chan []byte, errorChannel chan []byte) (bool, error) {
-	retBool := false
-	retError := fmt.Errorf("")
+	<-await
 
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			message := "Sent"
-			//fmt.Println("response:", string(value), strings.Contains(response, message))
-			if strings.Contains(response, message) {
-				retBool = true
-			}
-			break
-		}
-	}
-	return retBool, retError
-}
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-// ParseTimeResponse parses the time response from the pubnub api.
-// On error it returns the error
-func ParseTimeFromServer(returnChannel chan []byte, errorChannel chan []byte) (string, error) {
-	retVal := ""
-	retError := fmt.Errorf("")
-	for {
-		select {
-		case value, ok := <-returnChannel:
-			if !ok {
-				fmt.Println("")
-				break
-			}
-
-			if string(value) != "[]" {
-				var s []interface{}
-				err := json.Unmarshal(value, &s)
-				//fmt.Println("response:", string(value))
-				if err == nil {
-					retVal = messaging.ParseInterfaceData(s[0])
-					return retVal, nil
-				}
-				retError = err
-				return "", retError
-			}
-			break
-		case value, ok := <-errorChannel:
-			if !ok {
-				fmt.Println("")
-				break
-			}
-
-			if string(value) != "[]" {
-				retError = fmt.Errorf(timeoutMessage)
-				return "", retError
-			}
-			break
-		}
-	}
-	return retVal, retError
-}
-
-// TestResumeOnReconnectFalse upon reconnect, it should use a 0 (zero) timetoken.
-// This has the effect of continuing from “this moment onward”.
-// Any messages received since the previous timeout or network error are skipped
-func xTestResumeOnReconnectFalse(t *testing.T) {
-	messaging.SetResumeOnReconnect(false)
-
-	r := GenRandom()
-	assert := assert.New(t)
-	pubnubChannel := fmt.Sprintf("testChannel_subror_%d", r.Intn(20))
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-
-	successChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	unsubscribeSuccessChannel := make(chan []byte)
-	unsubscribeErrorChannel := make(chan []byte)
-
-	messaging.SetSubscribeTimeout(3)
-
-	go pubnubInstance.Subscribe(pubnubChannel, "", successChannel, false, errorChannel)
-	for {
-		select {
-		case <-successChannel:
-		case value := <-errorChannel:
-			if string(value) != "[]" {
-				newPubnubTest := &messaging.PubnubUnitTest{}
-
-				assert.Equal("0", newPubnubTest.GetSentTimeToken(pubnubInstance))
-			}
-			return
-		case <-messaging.Timeouts(60):
-			assert.Fail("Subscribe timeout")
-			return
-		}
-	}
-
-	messaging.SetSubscribeTimeout(310)
-
-	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
-}
-
-// TestResumeOnReconnectTrue upon reconnect, it should use the last successfully retrieved timetoken.
-// This has the effect of continuing, or “catching up” to missed traffic.
-func TestResumeOnReconnectTrue(t *testing.T) {
-	messaging.SetResumeOnReconnect(true)
-
-	r := GenRandom()
-	assert := assert.New(t)
-	pubnubChannel := fmt.Sprintf("testChannel_subror_%d", r.Intn(20))
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-
-	successChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	unsubscribeSuccessChannel := make(chan []byte)
-	unsubscribeErrorChannel := make(chan []byte)
-
-	messaging.SetSubscribeTimeout(3)
-
-	go pubnubInstance.Subscribe(pubnubChannel, "", successChannel, false, errorChannel)
-	for {
-		select {
-		case <-successChannel:
-		case value := <-errorChannel:
-			if string(value) != "[]" {
-				newPubnubTest := &messaging.PubnubUnitTest{}
-
-				assert.Equal(newPubnubTest.GetTimeToken(pubnubInstance), newPubnubTest.GetSentTimeToken(pubnubInstance))
-			}
-			return
-		case <-messaging.Timeouts(60):
-			assert.Fail("Subscribe timeout")
-			return
-		}
-	}
-
-	messaging.SetSubscribeTimeout(310)
-
-	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	pubnubInstance.CloseExistingConnection()
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestMultiplexing tests the multiplexed subscribe request.
 func TestMultiplexing(t *testing.T) {
-	SendMultiplexingRequest(t, "TestMultiplexing", false, false)
+	SendMultiplexingRequest(t, "testMultiplexing", false, false)
 }
 
 // TestMultiplexing tests the multiplexed subscribe request wil ssl.
-func TestMultiplexingSSL(t *testing.T) {
-	SendMultiplexingRequest(t, "TestMultiplexingSSL", true, false)
+func xTestMultiplexingSSL(t *testing.T) {
+	// TODO: handle SSL && VCR
+	SendMultiplexingRequest(t, "testMultiplexingSSL", true, false)
 }
 
 // TestMultiplexing tests the encrypted multiplexed subscribe request.
-func TestEncryptedMultiplexing(t *testing.T) {
-	SendMultiplexingRequest(t, "TestEncryptedMultiplexing", false, true)
+func TestMultiplexingEncrypted(t *testing.T) {
+	SendMultiplexingRequest(t, "testEncryptedMultiplexing", false, true)
 }
 
 // TestMultiplexing tests the encrypted multiplexed subscribe request with ssl.
-func TestEncryptedMultiplexingWithSSL(t *testing.T) {
-	SendMultiplexingRequest(t, "TestEncryptedMultiplexingWithSSL", true, true)
+func xTestMultiplexingEncryptedWithSSL(t *testing.T) {
+	// TODO: handle SSL && VCR
+	SendMultiplexingRequest(t, "testEncryptedMultiplexingWithSSL", true, true)
 }
 
 // SendMultiplexingRequest is the common method to test TestMultiplexing,
@@ -784,18 +720,25 @@ func TestEncryptedMultiplexingWithSSL(t *testing.T) {
 func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted bool) {
 	assert := assert.New(t)
 
+	stop, _ := NewVCRBoth(fmt.Sprintf("fixtures/subscribe/%s", testName),
+		[]string{"uuid"})
+	defer stop()
+
 	cipher := ""
 	if encrypted {
 		cipher = "enigma"
 	}
+
 	message1 := "message1"
 	message2 := "message2"
 
-	pubnubChannel1, pubnubChannel2 := GenerateTwoRandomChannelStrings(1)
+	pubnubChannel1 := "Mpx_Channel_1"
+	pubnubChannel2 := "Mpx_Channel_2"
 
 	pubnubChannels := pubnubChannel1 + "," + pubnubChannel2
+	uuid := "UUID_Multiplexing"
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipher, ssl, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipher, ssl, uuid)
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -866,6 +809,7 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 							if len(s) > 2 {
 								if message, ok := s[0].([]interface{}); ok {
 									if messageT, ok2 := message[0].(string); ok2 {
+										// TODO: populate an actual slice and compare it to expected
 
 										if (len(message) > 0) && (messageT == message1) && (s[2].(string) == pubnubChannel1) {
 											messageCount++
@@ -886,7 +830,7 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 				}
 			case err := <-errorChannel:
 				assert.Fail(string(err))
-			case <-messaging.SubscribeTimeout():
+			case <-timeouts(10):
 				assert.Fail("Subscribe timeout")
 			}
 		}
@@ -896,7 +840,8 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 
 	go pubnubInstance.Unsubscribe(pubnubChannels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, pubnubChannels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-	pubnubInstance.CloseExistingConnection()
+
+	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestSubscribeEnd prints a message on the screen to mark the end of

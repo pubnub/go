@@ -3,11 +3,12 @@
 package tests
 
 import (
-	"github.com/pubnub/go/messaging"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestTimeStart prints a message on the screen to mark the beginning of
@@ -19,7 +20,10 @@ func TestTimeStart(t *testing.T) {
 
 // TestServerTime calls the GetTime method of the messaging to test the time
 func TestServerTime(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	stop, _ := NewVCRNonSubscribe("fixtures/time", []string{})
+	defer stop()
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "testTime")
 
 	assert := assert.New(t)
 	successChannel := make(chan []byte)
@@ -29,7 +33,7 @@ func TestServerTime(t *testing.T) {
 	select {
 	case value := <-successChannel:
 		response := string(value)
-		timestamp, err := strconv.Atoi(strings.Trim(response, "[]"))
+		timestamp, err := strconv.Atoi(strings.Trim(response, "[]\n"))
 		if err != nil {
 			assert.Fail(err.Error())
 		}

@@ -1,0 +1,64 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/0?channel-group=Group_GroupReceiveSingleMessage&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[[],"14588028428566008"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "24"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Thu, 24 Mar 2016 07:11:39 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.7.0
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/14588028428566008?channel-group=Group_GroupReceiveSingleMessage&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.7.0
+    method: GET
+  response:
+    body: '[["hey"],"14588034994295336","Group_GroupReceiveSingleMessage","Channel_GroupReceiveSingleMessage"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "99"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Thu, 24 Mar 2016 07:11:39 GMT
+    status: 200 OK
+    code: 200
+unclosed_requests:
+  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/14588034994295336?channel-group=Group_GroupReceiveSingleMessage&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.7.0
+  : {}

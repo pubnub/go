@@ -29,6 +29,14 @@ type PresenceEvent struct {
 	Occupancy int     `json:"occupancy"`
 }
 
+// Type for presence response
+type PresenceResonse struct {
+	Action  string `json:"action"`
+	Status  int    `json:"status"`
+	Service string `json:"service"`
+	Message string `json:"message"`
+}
+
 func stringPresenceOrSubscribe(channel string) string {
 	const (
 		subscribeMessage string = "Subscription to"
