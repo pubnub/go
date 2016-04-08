@@ -2079,7 +2079,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 					pub.resetRetryAndSendResponse()
 				}
 
-				pub.CloseExistingConnection()
+				pub.closeSubscribe()
 
 				pub.sendSubscribeError(alreadySubscribedChannels,
 					alreadySubscribedChannelGroups, string(value), responseAsIsError)
@@ -2698,9 +2698,11 @@ func (pub *Pubnub) closeSubscribe() {
 	defer pub.requestCloserMu.Unlock()
 
 	if pub.currentSubscribeReq != nil {
+		subscribeTransportMu.Lock()
 		if trans, ok := subscribeTransport.(*http.Transport); ok {
 			trans.CancelRequest(pub.currentSubscribeReq)
 		}
+		subscribeTransportMu.Unlock()
 	}
 
 	// if pub.requestCloser != nil {
@@ -3480,7 +3482,7 @@ func (pub *Pubnub) executeSetUserState(channel string, jsonState string, callbac
 			}
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
-			pub.CloseExistingConnection()
+			pub.closeSubscribe()
 		}
 	}
 }
@@ -3868,6 +3870,7 @@ func (pub *Pubnub) httpRequestOptional(requestURL string, action int, subscribe 
 			return nil, responseStatusCode, fmt.Errorf(operationTimeout)
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), closedNetworkConnection) {
 			return nil, responseStatusCode, fmt.Errorf(connectionAborted)
+			// Connection canceled supported since go1.5
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), requestCanceled) {
 			return nil, responseStatusCode, fmt.Errorf(connectionCanceled)
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), noSuchHost) {
