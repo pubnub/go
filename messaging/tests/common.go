@@ -497,12 +497,13 @@ const (
 )
 
 var vcrMu sync.Mutex
+var defaultFieldsToSkip = []string{"pnsdk"}
 
 func NewVCRNonSubscribe(name string, skipFields []string) (
 	func(), func(int)) {
 
 	vcrMu.Lock()
-
+	skipFields = append(skipFields, defaultFieldsToSkip...)
 	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
 	nsMatcher := utils.NewPubnubMatcher(skipFields)
 	ns.UseMatcher(nsMatcher)
@@ -525,6 +526,7 @@ func NewVCRNonSubscribe(name string, skipFields []string) (
 func NewVCRSubscribe(name string, skipFields []string) func() {
 	vcrMu.Lock()
 
+	skipFields = append(skipFields, defaultFieldsToSkip...)
 	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
 	sMatcher := utils.NewPubnubSubscribeMatcher(skipFields)
 	s.UseMatcher(sMatcher)
@@ -547,6 +549,7 @@ func NewVCRBoth(name string, skipFields []string) (
 
 	vcrMu.Lock()
 
+	skipFields = append(skipFields, defaultFieldsToSkip...)
 	s, _ := recorder.New(fmt.Sprintf("%s_%s", name, "Subscribe"))
 	s.UseMatcher(utils.NewPubnubSubscribeMatcher(skipFields))
 
