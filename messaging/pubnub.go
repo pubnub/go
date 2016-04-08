@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.7.0
-// Build Date: Nov 6, 2015
+// Version: 3.7.1
+// Build Date: Apr 8, 2016
 package messaging
 
 import (
@@ -61,7 +61,7 @@ const (
 const (
 	//Sdk Identification Param appended to each request
 	sdkIdentificationParamKey = "pnsdk"
-	sdkIdentificationParamVal = "PubNub-Go/3.7.0"
+	sdkIdentificationParamVal = "PubNub-Go/3.7.1"
 
 	// This string is appended to all presence channels
 	// to differentiate from the subscribe requests.
@@ -259,7 +259,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go client SDK Version: 3.7.0; Build Date: Nov 6, 2015;"
+	return "PubNub Go client SDK Version: 3.7.1; Build Date: Nov 6, 2015;"
 }
 
 // Pubnub structure.
@@ -4105,7 +4105,7 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string,
 		}
 
 		// REVIEW: hardcoded client version
-		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/3.7.0", runtime.GOOS)
+		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/3.7.1", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
 
