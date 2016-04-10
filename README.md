@@ -1,6 +1,12 @@
-## Contact support@pubnub.com for all questions
+#PubNub 3.7.1 client for Go
+* Go (1.2, 1.3, 1.4, 1.5, 1.6)
+* Google App Engine (1.9.28 - 2015-10-29)
+* Managed VMs (Google Cloud SDK 0.9.70)
 
-#PubNub 3.7.1 client for Go (1.2, 1.3, 1.4, 1.5, 1.6), Google App Engine (1.9.28 - 2015-10-29) and Managed VMs (Google Cloud SDK 0.9.70)
+[![Build Status](https://travis-ci.org/pubnub/php.svg?branch=master)](https://travis-ci.org/pubnub/php)
+[![codecov.io](https://codecov.io/github/pubnub/go/coverage.svg?branch=master)](https://codecov.io/github/pubnub/go?branch=master)
+
+## Contact support@pubnub.com for all questions
 
 ##PubNub 3.7.1 Go based APIs
 Learn more at http://www.pubnub.com
