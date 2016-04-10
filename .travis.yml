@@ -13,5 +13,4 @@ install:
   - go get -t -v ./messaging/...
 
 script:
-  - cd messaging && go test -v -race
-  - cd tests && go test -v -race
+  - bash ./run.sh
