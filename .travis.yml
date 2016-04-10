@@ -13,4 +13,4 @@ install:
   - go get -t -v ./messaging/...
 
 script:
-  - bash ./run.sh
+  - bash ./test.sh
