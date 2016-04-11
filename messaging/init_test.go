@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+func init() {
+	initLogging()
+}
+
 var pubnub = Pubnub{
 	subscribeKey: "demo",
 }
