@@ -42,3 +42,23 @@ func stringConnectionAction(status connectionAction) string {
 		return ""
 	}
 }
+
+var responseTypeName = map[responseType]string{
+	channelResponse:      "channel",
+	channelGroupResponse: "channel group",
+	wildcardResponse:     "wildcard channel",
+}
+
+func (r responseType) String() string {
+	return responseTypeName[r]
+}
+
+var subscribeLoopActionName = map[subscribeLoopAction]string{
+	subscribeLoopStart:     "start",
+	subscribeLoopRestart:   "restart",
+	subscribeLoopDoNothing: "do nothing",
+}
+
+func (s subscribeLoopAction) String() string {
+	return subscribeLoopActionName[s]
+}
