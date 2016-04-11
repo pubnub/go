@@ -17,17 +17,14 @@ func stringResponseReason(status responseStatus) string {
 	}
 }
 
-func stringConnectionAction(status connectionAction) string {
-	switch status {
-	case connectionConnected:
-		return "connect"
-	case connectionUnsubscribed:
-		return "unsubscrib"
-	case connectionReconnected:
-		return "reconnect"
-	default:
-		return ""
-	}
+var connectionActionName = map[connectionAction]string{
+	connectionConnected:    "connect",
+	connectionUnsubscribed: "unsubscrib",
+	connectionReconnected:  "reconnect",
+}
+
+func (c connectionAction) String() string {
+	return connectionActionName[c]
 }
 
 var responseTypeName = map[responseType]string{

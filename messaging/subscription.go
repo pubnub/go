@@ -47,14 +47,14 @@ func (e connectionEvent) Bytes() []byte {
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Channel),
-			removePnpres(e.Channel), stringConnectionAction(e.Action),
+			removePnpres(e.Channel), e.Action,
 			removePnpres(e.Channel)))
 
 	case channelGroupResponse:
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel group '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Source),
-			removePnpres(e.Source), stringConnectionAction(e.Action),
+			removePnpres(e.Source), e.Action,
 			strings.Replace(e.Source, presenceSuffix, "", -1)))
 
 	default:
