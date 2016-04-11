@@ -1481,8 +1481,7 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	}
 
 	if !found {
-		logErrorf("Subscription item for %s response not found: %s\n",
-			stringResponseType(tp), itemName)
+		logErrorf("Subscription item for %s response not found: %s\n", tp, itemName)
 		return
 	}
 

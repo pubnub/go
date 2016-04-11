@@ -1,18 +1,5 @@
 package messaging
 
-func stringResponseType(responseType responseType) string {
-	switch responseType {
-	case channelResponse:
-		return "channel"
-	case channelGroupResponse:
-		return "channel group"
-	case wildcardResponse:
-		return "wildcard channel"
-	default:
-		return ""
-	}
-}
-
 func stringResponseReason(status responseStatus) string {
 	switch status {
 	case responseAlreadySubscribed:
