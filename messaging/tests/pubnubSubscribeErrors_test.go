@@ -94,6 +94,8 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
+	successChannel2 := make(chan []byte)
+	errorChannel2 := make(chan []byte)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
 
@@ -113,18 +115,62 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 		assert.Fail("Subscribe timeout 3s")
 	}
 
-	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go pubnubInstance.Subscribe(channel, "", successChannel2, false, errorChannel2)
 	select {
-	case resp := <-successChannel:
+	case resp := <-successChannel2:
 		assert.Fail(fmt.Sprintf(
 			"Receive message on success channel, while expecting error: %s",
 			string(resp)))
-	case err := <-errorChannel:
+	case err := <-errorChannel2:
 		assert.Contains(string(err), "already subscribe")
 		assert.Contains(string(err), channel)
 	case <-timeouts(3):
 		assert.Fail("Subscribe timeout 3s")
 	}
+
+	go func() {
+		successChannel := make(chan []byte)
+		errorChannel := make(chan []byte)
+		go pubnubInstance.Publish(channel, "blah", successChannel, errorChannel)
+		select {
+		case <-successChannel:
+		case err := <-errorChannel:
+			fmt.Println("Publish error", err)
+		case <-timeouts(4):
+			fmt.Println("Publish timeout")
+		}
+	}()
+
+	await := make(chan bool)
+
+	go func() {
+		select {
+		case resp := <-successChannel:
+			fmt.Println("got", string(resp))
+			assert.Contains(string(resp), "blah")
+		case err := <-errorChannel:
+			if !IsConnectionRefusedError(err) {
+				assert.Fail(string(err))
+			}
+		case <-timeouts(5):
+			assert.Fail("Subscribe timeout 5s")
+		}
+
+		await <- true
+	}()
+
+	go func() {
+		select {
+		case resp := <-successChannel2:
+			assert.Fail("Success un 2nd subscribe channel", string(resp))
+		case err := <-errorChannel2:
+			assert.Fail("Error un 2nd subscribe channel", string(err))
+		}
+
+		await <- true
+	}()
+
+	<-await
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
