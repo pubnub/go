@@ -4147,19 +4147,6 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string,
 	return nil, 0, err
 }
 
-// Check does passed in string contain at least one non preesnce name
-func hasNonPresenceChannels(channelsString string) bool {
-	channels := strings.Split(channelsString, ",")
-
-	for _, channel := range channels {
-		if !strings.HasSuffix(channel, presenceSuffix) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // padWithPKCS7 pads the data as per the PKCS7 standard
 // It accepts the following parameters:
 // data: data to pad as byte array.

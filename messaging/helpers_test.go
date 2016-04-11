@@ -29,3 +29,13 @@ func TestRemovePnpres(t *testing.T) {
 	assert.Equal("ch1", removePnpres("ch1"))
 	assert.Equal("ch1", removePnpres("ch1-pnpres"))
 }
+
+func TestOnlyPresence(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.True(hasNonPresenceChannels("qwer"))
+	assert.True(hasNonPresenceChannels("qwer,asdf"))
+	assert.True(hasNonPresenceChannels("qwer,asdf-pnpres"))
+	assert.False(hasNonPresenceChannels("qwer-pnpres"))
+	assert.False(hasNonPresenceChannels("qwer-pnpres,asdf-pnpres"))
+}
