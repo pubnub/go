@@ -8,11 +8,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0/0?uuid=UUID_AlreadySubscribed&pnsdk=PubNub-Go%2F3.7.0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0/0?uuid=UUID_AlreadySubscribed&pnsdk=PubNub-Go%2F3.7.1
     method: GET
   response:
-    body: '[[],"14593573167052997"]'
+    body: '[[],"14603735664245698"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -27,7 +27,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Wed, 30 Mar 2016 17:01:56 GMT
+      - Mon, 11 Apr 2016 11:19:26 GMT
     status: 200 OK
     code: 200
 - request:
@@ -37,11 +37,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0/0?uuid=UUID_AlreadySubscribed&pnsdk=PubNub-Go%2F3.7.0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0/14603735664245698?uuid=UUID_AlreadySubscribed&pnsdk=PubNub-Go%2F3.7.1
     method: GET
   response:
-    body: '[[],"14593573167658805"]'
+    body: '[["blah"],"14603735665857211"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -52,13 +52,13 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - "24"
+      - "30"
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Wed, 30 Mar 2016 17:01:56 GMT
+      - Mon, 11 Apr 2016 11:19:26 GMT
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0/14593573167052997?uuid=UUID_AlreadySubscribed&pnsdk=PubNub-Go%2F3.7.0
+  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0/14603735665857211?uuid=UUID_AlreadySubscribed&pnsdk=PubNub-Go%2F3.7.1
   : {}

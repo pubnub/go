@@ -1454,12 +1454,15 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 		item       *subscriptionItem
 		found      bool
 		itemName   string
-		value      successResponse
 		isPresence bool
 	)
 
 	channel = strings.TrimSpace(channel)
 	source = strings.TrimSpace(source)
+
+	if len(channel) == 0 {
+		logErrorf("RESPONSE: Empty channel value: %s", channel)
+	}
 
 	isPresence = strings.HasSuffix(channel, presenceSuffix)
 
@@ -1478,16 +1481,12 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	}
 
 	if !found {
-		logMu.Lock()
-		errorLogger.Printf("Subscription item for %s response not found: %s\n",
+		logErrorf("Subscription item for %s response not found: %s\n",
 			stringResponseType(tp), itemName)
-		logMu.Unlock()
 		return
 	}
 
-	logMu.Lock()
-	infoLogger.Println(fmt.Sprintf("Response value: %#v", value))
-	logMu.Unlock()
+	logInfof("RESPONSE: Subscription to %s '%s', message %s\n", tp, itemName, response)
 
 	item.SuccessChannel <- successResponse{
 		Data:      response,
@@ -2088,20 +2087,14 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 				continue
 				// if server error. for ex.
 			} else if string(value) != "" {
-				logMu.Lock()
-				infoLogger.Println(fmt.Sprintf("response value: %s", string(value)))
-				logMu.Unlock()
-
 				pub.handleSubscribeResponse(value, sentTimeToken,
 					alreadySubscribedChannels, alreadySubscribedChannelGroups)
 			} else {
-				logMu.Lock()
-				infoLogger.Println(fmt.Sprintf("Empty subscribe response"))
-				logMu.Unlock()
-
+				logInfoln("SUBSCRIPTION: Empty subscribe response")
 				// TODO: handle else case (send error and sleepForAWhile(true))
 			}
 		} else {
+			logInfoln("SUBSCRIPTION: Stop")
 			break
 		}
 	}
@@ -2281,6 +2274,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 			connectedNames := pub.channels.ConnectedNames()
 
 			if len(connectedNames) == 0 {
+				logErrorf("SUBSCRIPTION: No connected channels for response: %s", data)
 				return
 			}
 
@@ -2486,15 +2480,21 @@ func (pub *Pubnub) getSubscribeLoopAction(channels, groups string,
 		(len(alreadySubscribedChannels) == len(newChannels) &&
 			len(alreadySubscribedChannelGroups) == len(newGroups))
 
+	var returnAction subscribeLoopAction
+
 	if existingEmpty && modified {
-		return subscribeLoopStart
+		returnAction = subscribeLoopStart
 	} else if modified && !alreadySubscribed {
-		return subscribeLoopRestart
+		returnAction = subscribeLoopRestart
 	} else if modified && alreadySubscribed && onlyAlreadySubscribed {
-		return subscribeLoopDoNothing
+		returnAction = subscribeLoopDoNothing
 	} else {
-		return subscribeLoopDoNothing
+		returnAction = subscribeLoopDoNothing
 	}
+
+	logInfof("SUBSCRIPTION: Loop %s", returnAction)
+
+	return returnAction
 }
 
 func (pub *Pubnub) ChannelGroupSubscribe(groups string,
@@ -3855,17 +3855,12 @@ func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, erro
 
 func (pub *Pubnub) httpRequestOptional(requestURL string, action int, subscribe bool) ([]byte, int, error) {
 	requrl := pub.origin + requestURL
-	logMu.Lock()
-	infoLogger.Println(fmt.Sprintf("url: %s", requrl))
-	logMu.Unlock()
 
 	contents, responseStatusCode, err := pub.connect(requrl, action, requestURL, subscribe)
 
 	if err != nil {
-		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("httpRequest error: %s", err.Error()))
-		//errorLogger.Println(fmt.Sprintf("httpRequest responseStatusCode: %d", responseStatusCode))
-		logMu.Unlock()
+		logErrorf("httpRequest error: %s", err.Error())
+
 		if strings.Contains(err.Error(), timeout) {
 			return nil, responseStatusCode, fmt.Errorf(operationTimeout)
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), closedNetworkConnection) {
@@ -4082,6 +4077,7 @@ func (pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
 // error if any.
 func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string,
 	isSubscribe bool) ([]byte, int, error) {
+	logInfoln("REQUEST:", opaqueURL)
 
 	var contents []byte
 	httpClient, err := pub.createHTTPClient(action)
@@ -4132,29 +4128,20 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string,
 
 				if e == nil {
 					contents = bodyContents
-					logMu.Lock()
-					infoLogger.Println(fmt.Sprintf("opaqueURL %s", opaqueURL))
-					infoLogger.Println(fmt.Sprintf("response: %s", string(contents)))
-					logMu.Unlock()
+					logInfof("RESPONSE: %s", string(contents))
 					return contents, response.StatusCode, nil
 				}
 				return nil, response.StatusCode, e
 			}
 			if response != nil {
-				logMu.Lock()
-				errorLogger.Println(fmt.Sprintf("httpRequest: %s, response.StatusCode: %d", err.Error(), response.StatusCode))
-				logMu.Unlock()
+				logErrorf("SERVER ERROR: %s, response.StatusCode: %d", err.Error(), response.StatusCode)
 				return nil, response.StatusCode, err
 			}
-			logMu.Lock()
-			errorLogger.Println(fmt.Sprintf("httpRequest: %s", err.Error()))
-			logMu.Unlock()
+			logErrorf("CONNECTION ERROR: %s", err.Error())
 			return nil, 0, err
 		}
 
-		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("httpRequest: %s", err.Error()))
-		logMu.Unlock()
+		logErrorf("CONNECTION ERROR: %s", err.Error())
 		return nil, 0, err
 	}
 
