@@ -1,20 +1,15 @@
 package messaging
 
-func stringResponseReason(status responseStatus) string {
-	switch status {
-	case responseAlreadySubscribed:
-		return "already subscribed"
-	case responseNotSubscribed:
-		return "not subscribed"
-	case responseInternetConnIssues:
-		return "disconnected due to internet connection issues, trying to reconnect."
-	case reponseAbortMaxRetry:
-		return "aborted due to max retry limit"
-	case responseTimedOut:
-		return "timed out."
-	default:
-		return "unknown error"
-	}
+var responseStatusName = map[responseStatus]string{
+	responseAlreadySubscribed:  "already subscribed",
+	responseNotSubscribed:      "not subscribed",
+	responseInternetConnIssues: "disconnected due to internet connection issues, trying to reconnect.",
+	reponseAbortMaxRetry:       "aborted due to max retry limit",
+	responseTimedOut:           "timed out.",
+}
+
+func (r responseStatus) String() string {
+	return responseStatusName[r]
 }
 
 var connectionActionName = map[connectionAction]string{

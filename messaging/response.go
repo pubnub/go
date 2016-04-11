@@ -56,7 +56,7 @@ func (e errorResponse) StringForSource(source string) string {
 				stringPresenceOrSubscribe(source),
 				e.Type,
 				source,
-				stringResponseReason(e.Reason),
+				e.Reason,
 				e.DetailedMessage,
 				source)
 		} else {
@@ -64,14 +64,14 @@ func (e errorResponse) StringForSource(source string) string {
 				stringPresenceOrSubscribe(source),
 				e.Type,
 				source,
-				stringResponseReason(e.Reason),
+				e.Reason,
 				source)
 		}
 	case responseTimedOut:
 		return fmt.Sprintf("[0, \"%s %s %s\", \"%s\"]",
 			stringPresenceOrSubscribe(source),
 			e.Type,
-			stringResponseReason(e.Reason),
+			e.Reason,
 			source)
 	case responseAsIsError:
 		fallthrough
