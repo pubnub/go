@@ -110,6 +110,11 @@ func (e *subscriptionEntity) add(name string, connected bool,
 	e.Lock()
 	defer e.Unlock()
 
+	if _, ok := e.items[name]; ok {
+		logInfof("ITEMS: Item '%s' is not added since it's already exists", name)
+		return
+	}
+
 	item := &subscriptionItem{
 		Name:           name,
 		SuccessChannel: successChannel,
