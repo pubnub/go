@@ -83,7 +83,3 @@ func (e errorResponse) StringForSource(source string) string {
 func (e errorResponse) BytesForSource(source string) []byte {
 	return []byte(e.StringForSource(source))
 }
-
-func (e errorResponse) Bytes(source string) []byte {
-	return []byte(e.StringForSource(source))
-}
