@@ -3,13 +3,9 @@
 set -e
 echo "" > coverage.txt
 
+go test -coverprofile=unit_tests.out -covermode=atomic -coverpkg=./messaging ./messaging/
+go test -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./messaging ./messaging/tests/
 
-for d in $(find  ./* -maxdepth 2 -type d ! -ipath '*gae*'); do
-    if ls $d/*_test.go &> /dev/null; then
-        go test -v -coverprofile=profile.out -covermode=atomic $d
-        if [ -f profile.out ]; then
-            cat profile.out >> coverage.txt
-            rm profile.out
-        fi
-    fi
-done
+gocovmerge unit_tests.out functional_tests.out > coverage.txt
+
+rm unit_tests.out functional_tests.out
