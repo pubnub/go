@@ -9,8 +9,7 @@ import (
 func TestSubscriptionEntity(t *testing.T) {
 	channels := *newSubscriptionEntity()
 
-	successChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
+	successChannel, errorChannel := CreateSubscriptionChannels()
 
 	channels.Add("qwer", successChannel, errorChannel)
 	channels.Add("asdf", successChannel, errorChannel)

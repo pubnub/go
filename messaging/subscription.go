@@ -284,7 +284,7 @@ func (e *subscriptionEntity) SetConnected() (changedItemNames []string) {
 	return changedItemNames
 }
 
-func createSubscriptionChannels() (chan []byte, chan []byte) {
+func CreateSubscriptionChannels() (chan []byte, chan []byte) {
 
 	successResponse := make(chan []byte)
 	errorResponse := make(chan []byte)
