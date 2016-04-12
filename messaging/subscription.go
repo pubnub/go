@@ -249,9 +249,10 @@ func (e *subscriptionEntity) ApplyAbort() {
 	logInfoln("ITEMS: Applying abort")
 
 	e.Lock()
-	defer e.Unlock()
+	abortedMarker := e.abortedMarker
+	e.Unlock()
 
-	if e.abortedMarker == true {
+	if abortedMarker == true {
 		e.Clear()
 	}
 }
