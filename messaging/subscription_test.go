@@ -1,8 +1,9 @@
 package messaging
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSubscriptionEntity(t *testing.T) {
@@ -20,4 +21,15 @@ func TestSubscriptionEntity(t *testing.T) {
 	assert.Contains(t, channels.NamesString(), "asdf", "should contain asdf")
 	assert.Contains(t, channels.NamesString(), "qwer", "should contain qwer")
 	assert.Contains(t, channels.NamesString(), "zxcv", "should contain zxcv")
+}
+
+func TestSubscriptionPanicOnUndefinedResponseType(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			assert.Equal(t, "Undefined response type: 0", r)
+		}
+	}()
+
+	event := connectionEvent{}
+	event.Bytes()
 }
