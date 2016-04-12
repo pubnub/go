@@ -75,6 +75,19 @@ func TestSubscriptionAbort(t *testing.T) {
 	assert.Zero(len(items.items))
 }
 
+func TestSubscriptionResetConnected(t *testing.T) {
+	assert := assert.New(t)
+
+	items := testEntityWithOneItem()
+	items.items["qwer"].Connected = true
+
+	assert.Equal([]string{"qwer"}, items.ConnectedNames())
+
+	items.ResetConnected()
+
+	assert.Equal([]string{}, items.ConnectedNames())
+}
+
 func testEntityWithOneItem() *subscriptionEntity {
 	items := newSubscriptionEntity()
 
