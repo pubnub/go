@@ -180,7 +180,7 @@ func (e *subscriptionEntity) Names() []string {
 	e.RLock()
 	defer e.RUnlock()
 
-	var names []string
+	var names = []string{}
 
 	for k, _ := range e.items {
 		names = append(names, k)
@@ -212,7 +212,7 @@ func (e *subscriptionEntity) ConnectedNames() []string {
 	e.RLock()
 	defer e.RUnlock()
 
-	var names []string
+	var names = []string{}
 
 	for k, item := range e.items {
 		if item.Connected {
