@@ -33,3 +33,52 @@ func TestSubscriptionPanicOnUndefinedResponseType(t *testing.T) {
 	event := connectionEvent{}
 	event.Bytes()
 }
+
+func TestSubscriptionRemoveNonExistingItem(t *testing.T) {
+	items := testEntityWithOneItem()
+
+	assert.False(t, items.Remove("blah"))
+}
+
+func TestSubscriptionClear(t *testing.T) {
+	assert := assert.New(t)
+
+	items := testEntityWithOneItem()
+
+	assert.Len(items.items, 1)
+	items.Clear()
+
+	assert.Zero(len(items.items))
+}
+
+func TestSubscriptionAbort(t *testing.T) {
+	assert := assert.New(t)
+
+	items := testEntityWithOneItem()
+
+	assert.False(items.abortedMarker)
+	assert.Len(items.items, 1)
+
+	items.ApplyAbort()
+
+	assert.False(items.abortedMarker)
+	assert.Len(items.items, 1)
+
+	items.Abort()
+
+	assert.True(items.abortedMarker)
+	assert.Len(items.items, 1)
+
+	items.ApplyAbort()
+
+	assert.True(items.abortedMarker)
+	assert.Zero(len(items.items))
+}
+
+func testEntityWithOneItem() *subscriptionEntity {
+	items := newSubscriptionEntity()
+
+	items.items["qwer"] = &subscriptionItem{}
+
+	return items
+}
