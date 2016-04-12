@@ -87,6 +87,17 @@ func TestSubscriptionResetConnected(t *testing.T) {
 	assert.Equal([]string{}, items.ConnectedNames())
 }
 
+func TestGetNonExistingItem(t *testing.T) {
+	assert := assert.New(t)
+
+	items := testEntityWithOneItem()
+
+	item, ok := items.Get("asdf")
+
+	assert.Nil(item)
+	assert.False(ok)
+}
+
 func testEntityWithOneItem() *subscriptionEntity {
 	items := newSubscriptionEntity()
 
