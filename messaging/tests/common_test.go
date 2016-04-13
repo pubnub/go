@@ -6,9 +6,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -605,6 +607,20 @@ func genVcrDial() func(string, string) (net.Conn, error) {
 	}
 
 	return dial
+}
+
+type BrokenTransport struct {
+	Message   string
+	PnMessage string
+}
+
+func (t *BrokenTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	return nil, errors.New(t.Message)
+}
+
+var abortedTransport = &BrokenTransport{
+	Message:   "closed network connection",
+	PnMessage: "Connection aborted",
 }
 
 func GetServerTimeString(uuid string) string {

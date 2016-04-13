@@ -228,8 +228,30 @@ func TestWhereNow(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+}
 
-	// pubnubInstance.CloseExistingConnection()
+func TestWhereNowNetworkError(t *testing.T) {
+	assert := assert.New(t)
+
+	messaging.SetNonSubscribeTransport(abortedTransport)
+
+	uuid := "UUID_WhereNow"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
+	go pubnubInstance.WhereNow(uuid, successGet, errorGet)
+	select {
+	case value := <-successGet:
+		assert.Fail("Success response while expecting error", string(value))
+	case err := <-errorGet:
+		assert.Contains(string(err), abortedTransport.PnMessage)
+		assert.Contains(string(err), uuid)
+	case <-timeouts(5):
+		assert.Fail("WhereNow timeout 5s")
+	}
+
+	messaging.SetNonSubscribeTransport(nil)
 }
 
 // TestGlobalHereNow subscribes to a pubnub channel and then
