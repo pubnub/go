@@ -254,6 +254,30 @@ func TestWhereNowNetworkError(t *testing.T) {
 	messaging.SetNonSubscribeTransport(nil)
 }
 
+func TestWhereNowJSONError(t *testing.T) {
+	assert := assert.New(t)
+
+	messaging.SetNonSubscribeTransport(badJSONTransport)
+
+	uuid := "UUID_WhereNow"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
+	go pubnubInstance.WhereNow(uuid, successGet, errorGet)
+	select {
+	case value := <-successGet:
+		assert.Fail("Success response while expecting error", string(value))
+	case err := <-errorGet:
+		assert.Contains(string(err), "Invalid JSON")
+		assert.Contains(string(err), uuid)
+	case <-timeouts(5):
+		assert.Fail("WhereNow timeout 5s")
+	}
+
+	messaging.SetNonSubscribeTransport(nil)
+}
+
 // TestGlobalHereNow subscribes to a pubnub channel and then
 // makes a call to the herenow method of the pubnub api. The occupancy should
 // be greater than one.

@@ -8,6 +8,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -609,19 +610,43 @@ func genVcrDial() func(string, string) (net.Conn, error) {
 	return dial
 }
 
-type BrokenTransport struct {
+type BrokenConnectionTransport struct {
 	Message   string
 	PnMessage string
 }
 
-func (t *BrokenTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+func (t *BrokenConnectionTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	return nil, errors.New(t.Message)
 }
 
-var abortedTransport = &BrokenTransport{
+var abortedTransport = &BrokenConnectionTransport{
 	Message:   "closed network connection",
 	PnMessage: "Connection aborted",
 }
+
+type BadJSONTransport struct {
+	Message   string
+	PnMessage string
+}
+
+func (t *BadJSONTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	resp := http.Response{
+		StatusCode: 200,
+		Proto:      "HTTP/1.0",
+		ProtoMajor: 1,
+		ProtoMinor: 0,
+	}
+
+	header := http.Header{}
+	header.Set("Content-Type", "text/javascript; charset=\"UTF-8\"")
+	resp.Header = header
+
+	resp.Body = ioutil.NopCloser(bytes.NewBuffer([]byte("i'm bad")))
+
+	return &resp, nil
+}
+
+var badJSONTransport = &BadJSONTransport{}
 
 func GetServerTimeString(uuid string) string {
 	successChannel := make(chan []byte)
