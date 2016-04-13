@@ -3306,18 +3306,13 @@ func (pub *Pubnub) executeGetUserState(channel string, callbackChannel chan []by
 	value, _, err := pub.httpRequest(userStateURL.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
-		logMu.Unlock()
-		sendErrorResponse(errorChannel, "", err.Error())
+		logErrorf("%s", err.Error())
+		sendErrorResponse(errorChannel, channel, err.Error())
 	} else {
-		//Parsejson
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logMu.Lock()
-			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
-			logMu.Unlock()
-			sendErrorResponse(errorChannel, "", errJSON.Error())
+			logErrorf("%s", errJSON.Error())
+			sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
 				pub.executeGetUserState(channel, callbackChannel, errorChannel, count)
