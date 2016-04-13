@@ -3085,8 +3085,8 @@ func (pub *Pubnub) executeWhereNow(uuid string, callbackChannel chan []byte, err
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logErrorf("WHERE NOW: JSON parsing error: %s", err.Error())
-			sendErrorResponse(errorChannel, "", errJSON.Error())
+			logErrorf("WHERE NOW: JSON parsing error: %s", errJSON.Error())
+			sendErrorResponse(errorChannel, uuid, errJSON.Error())
 			if count < maxRetries {
 				count++
 				pub.executeWhereNow(uuid, callbackChannel, errorChannel, count)
@@ -3716,9 +3716,7 @@ func ParseJSON(contents []byte,
 			}
 		}
 	} else {
-		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("Invalid json:%s", string(contents)))
-		logMu.Unlock()
+		logErrorf("JSON PARSER: Bad JSON: %s", contents)
 		err = fmt.Errorf(invalidJSON)
 	}
 	return returnData, returnOne, returnTwo, err
