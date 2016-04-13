@@ -405,6 +405,7 @@ func TestHereNowJSONError(t *testing.T) {
 
 	messaging.SetNonSubscribeTransport(nil)
 }
+
 func TestGetUserStateNetworkError(t *testing.T) {
 	assert := assert.New(t)
 
@@ -437,6 +438,51 @@ func TestGetUserStateJSONError(t *testing.T) {
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
 	go pubnubInstance.GetUserState("ch", successGet, errorGet)
+	select {
+	case value := <-successGet:
+		assert.Fail("Success response while expecting error", string(value))
+	case err := <-errorGet:
+		assert.Contains(string(err), "Invalid JSON")
+		assert.Contains(string(err), "ch")
+	case <-timeouts(5):
+		assert.Fail("WhereNow timeout 5s")
+	}
+
+	messaging.SetNonSubscribeTransport(nil)
+}
+
+func TestSetUserStateNetworkError(t *testing.T) {
+	assert := assert.New(t)
+
+	messaging.SetNonSubscribeTransport(abortedTransport)
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
+	go pubnubInstance.SetUserStateJSON("ch", "{}", successGet, errorGet)
+	select {
+	case value := <-successGet:
+		assert.Fail("Success response while expecting error", string(value))
+	case err := <-errorGet:
+		assert.Contains(string(err), abortedTransport.PnMessage)
+	case <-timeouts(5):
+		assert.Fail("WhereNow timeout 5s")
+	}
+
+	messaging.SetNonSubscribeTransport(nil)
+}
+
+func TestSetUserStateJSONError(t *testing.T) {
+	assert := assert.New(t)
+
+	messaging.SetNonSubscribeTransport(badJSONTransport)
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
+	go pubnubInstance.SetUserStateJSON("ch", "{}", successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Fail("Success response while expecting error", string(value))
