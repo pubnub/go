@@ -1598,13 +1598,25 @@ func (pub *Pubnub) sendConnectionEventTo(channel chan []byte,
 	}
 }
 
+// Error sender for non-subscribe requests without 3rd element
+func sendErrorResponseSimplified(errorChannel chan<- []byte, message string) {
+
+	value := fmt.Sprintf("[0, \"%s\"]", message)
+
+	logInfof("SEND ERROR: simplified: %s", value)
+
+	if errorChannel != nil {
+		errorChannel <- []byte(value)
+	}
+}
+
 // Error sender for non-subscribe requests
 func sendErrorResponse(errorChannel chan<- []byte, items, message string) {
 
 	for _, item := range splitItems(items) {
 		value := fmt.Sprintf("[0, \"%s\", \"%s\"]", message, item)
 
-		logInfof("Response value: %s", value)
+		logInfof("SEND ERROR: regular: %s", value)
 
 		if errorChannel != nil {
 			errorChannel <- []byte(value)
@@ -1619,9 +1631,7 @@ func sendErrorResponseExtended(errorChannel chan<- []byte, items, message,
 	for _, item := range splitItems(items) {
 		value := fmt.Sprintf("[0, \"%s\", %s, \"%s\"]", message, details, item)
 
-		logMu.Lock()
-		infoLogger.Println(fmt.Sprintf("Response value: %s", value))
-		logMu.Unlock()
+		logInfof("SEND ERROR: extended: %s", value)
 
 		if errorChannel != nil {
 			errorChannel <- []byte(value)
@@ -3154,18 +3164,13 @@ func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, ca
 	value, _, err := pub.httpRequest(hereNowURL.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
-		logMu.Unlock()
-		sendErrorResponse(errorChannel, "", err.Error())
+		logErrorf("%s", err.Error())
+		sendErrorResponseSimplified(errorChannel, err.Error())
 	} else {
-		//Parsejson
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logMu.Lock()
-			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
-			logMu.Unlock()
-			sendErrorResponse(errorChannel, "", errJSON.Error())
+			logErrorf("%s", errJSON.Error())
+			sendErrorResponseSimplified(errorChannel, errJSON.Error())
 			if count < maxRetries {
 				count++
 				pub.executeGlobalHereNow(showUuid, includeUserState, callbackChannel, errorChannel, count)

@@ -318,6 +318,50 @@ func TestGlobalHereNow(t *testing.T) {
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 }
 
+func TestGlobalHereNowNetworkError(t *testing.T) {
+	assert := assert.New(t)
+
+	messaging.SetNonSubscribeTransport(abortedTransport)
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
+	go pubnubInstance.GlobalHereNow(true, false, successGet, errorGet)
+	select {
+	case value := <-successGet:
+		assert.Fail("Success response while expecting error", string(value))
+	case err := <-errorGet:
+		assert.Contains(string(err), abortedTransport.PnMessage)
+	case <-timeouts(5):
+		assert.Fail("WhereNow timeout 5s")
+	}
+
+	messaging.SetNonSubscribeTransport(nil)
+}
+
+func TestGlobalHereNowJSONError(t *testing.T) {
+	assert := assert.New(t)
+
+	messaging.SetNonSubscribeTransport(badJSONTransport)
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+
+	successGet := make(chan []byte)
+	errorGet := make(chan []byte)
+	go pubnubInstance.GlobalHereNow(true, false, successGet, errorGet)
+	select {
+	case value := <-successGet:
+		assert.Fail("Success response while expecting error", string(value))
+	case err := <-errorGet:
+		assert.Contains(string(err), "Invalid JSON")
+	case <-timeouts(5):
+		assert.Fail("WhereNow timeout 5s")
+	}
+
+	messaging.SetNonSubscribeTransport(nil)
+}
+
 // TestSetGetUserState subscribes to a pubnub channel and then
 // makes a call to the herenow method of the pubnub api. The occupancy should
 // be greater than one.
