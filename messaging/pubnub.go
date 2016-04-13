@@ -1604,9 +1604,7 @@ func sendErrorResponse(errorChannel chan<- []byte, items, message string) {
 	for _, item := range splitItems(items) {
 		value := fmt.Sprintf("[0, \"%s\", \"%s\"]", message, item)
 
-		logMu.Lock()
-		infoLogger.Println(fmt.Sprintf("Response value: %s", value))
-		logMu.Unlock()
+		logInfof("Response value: %s", value)
 
 		if errorChannel != nil {
 			errorChannel <- []byte(value)
@@ -3082,17 +3080,12 @@ func (pub *Pubnub) executeWhereNow(uuid string, callbackChannel chan []byte, err
 	value, _, err := pub.httpRequest(whereNowURL.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
-		logMu.Unlock()
-		sendErrorResponse(errorChannel, "", err.Error())
+		logErrorf("WHERE NOW: Connection error: %s", err.Error())
+		sendErrorResponse(errorChannel, uuid, err.Error())
 	} else {
-		//Parsejson
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logMu.Lock()
-			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
-			logMu.Unlock()
+			logErrorf("WHERE NOW: JSON parsing error: %s", err.Error())
 			sendErrorResponse(errorChannel, "", errJSON.Error())
 			if count < maxRetries {
 				count++
@@ -3858,8 +3851,6 @@ func (pub *Pubnub) httpRequestOptional(requestURL string, action int, subscribe 
 	contents, responseStatusCode, err := pub.connect(requrl, action, requestURL, subscribe)
 
 	if err != nil {
-		logErrorf("httpRequest error: %s", err.Error())
-
 		if strings.Contains(err.Error(), timeout) {
 			return nil, responseStatusCode, fmt.Errorf(operationTimeout)
 		} else if strings.Contains(fmt.Sprintf("%s", err.Error()), closedNetworkConnection) {
@@ -4144,6 +4135,7 @@ func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string,
 		return nil, 0, err
 	}
 
+	logErrorf("REQUEST CREATION ERROR: %s", err.Error())
 	return nil, 0, err
 }
 
