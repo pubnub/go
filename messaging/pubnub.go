@@ -3537,17 +3537,13 @@ func (pub *Pubnub) executeChannelGroup(action, group, channel string,
 	value, _, err := pub.httpRequest(requestURL.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
-		logMu.Unlock()
+		logErrorf("%s", err.Error())
 		// TODO 3.8.0: replace channel-s with group
 		sendErrorResponse(errorChannel, channel, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logMu.Lock()
-			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
-			logMu.Unlock()
+			logErrorf("%s", errJSON.Error())
 			// TODO 3.8.0: replace channel-s with group
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 		} else {
