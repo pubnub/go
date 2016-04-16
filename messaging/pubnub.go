@@ -3540,6 +3540,7 @@ func (pub *Pubnub) executeChannelGroup(action, group, channel string,
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s", err.Error()))
 		logMu.Unlock()
+		// TODO 3.8.0: replace channel-s with group
 		sendErrorResponse(errorChannel, channel, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
@@ -3547,6 +3548,7 @@ func (pub *Pubnub) executeChannelGroup(action, group, channel string,
 			logMu.Lock()
 			errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 			logMu.Unlock()
+			// TODO 3.8.0: replace channel-s with group
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 		} else {
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
