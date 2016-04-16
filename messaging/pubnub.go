@@ -3551,7 +3551,7 @@ func (pub *Pubnub) executeChannelGroup(action, group, channel string,
 			// TODO 3.8.0: replace channel-s with group
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 		} else {
-			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			callbackChannel <- []byte(value)
 		}
 	}
 }
