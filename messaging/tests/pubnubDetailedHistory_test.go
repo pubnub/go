@@ -263,7 +263,8 @@ func PublishMessages(pubnubInstance *messaging.Pubnub, channel string,
 func TestHistoryNetworkError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(abortedTransport)
+	stop := NewAbortedTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -278,14 +279,13 @@ func TestHistoryNetworkError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func TestHistoryJSONError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(badJSONTransport)
+	stop := NewBadJSONTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -300,8 +300,6 @@ func TestHistoryJSONError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 // TestDetailedHistoryEnd prints a message on the screen to mark the end of

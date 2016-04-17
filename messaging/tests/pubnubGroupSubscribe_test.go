@@ -405,7 +405,8 @@ func xTestGroupSubscriptionPresence(t *testing.T) {
 func TestGroupNetworkError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(abortedTransport)
+	stop := NewAbortedTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -421,14 +422,13 @@ func TestGroupNetworkError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func TestGroupJSONError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(badJSONTransport)
+	stop := NewBadJSONTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -443,8 +443,6 @@ func TestGroupJSONError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func createChannelGroups(pubnub *messaging.Pubnub, groups []string) {

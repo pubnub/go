@@ -233,7 +233,8 @@ func TestWhereNow(t *testing.T) {
 func TestWhereNowNetworkError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(abortedTransport)
+	stop := NewAbortedTransport()
+	defer stop()
 
 	uuid := "UUID_WhereNow"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
@@ -250,14 +251,13 @@ func TestWhereNowNetworkError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func TestWhereNowJSONError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(badJSONTransport)
+	stop := NewBadJSONTransport()
+	defer stop()
 
 	uuid := "UUID_WhereNow"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
@@ -274,8 +274,6 @@ func TestWhereNowJSONError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 // TestGlobalHereNow subscribes to a pubnub channel and then
@@ -321,7 +319,8 @@ func TestGlobalHereNow(t *testing.T) {
 func TestGlobalHereNowNetworkError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(abortedTransport)
+	stop := NewAbortedTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -336,14 +335,13 @@ func TestGlobalHereNowNetworkError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func TestGlobalHereNowJSONError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(badJSONTransport)
+	stop := NewBadJSONTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -358,14 +356,13 @@ func TestGlobalHereNowJSONError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func TestHereNowNetworkError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(abortedTransport)
+	stop := NewAbortedTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -380,14 +377,13 @@ func TestHereNowNetworkError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func TestHereNowJSONError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(badJSONTransport)
+	stop := NewBadJSONTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -402,14 +398,13 @@ func TestHereNowJSONError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func TestGetUserStateNetworkError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(abortedTransport)
+	stop := NewAbortedTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -424,14 +419,13 @@ func TestGetUserStateNetworkError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func TestGetUserStateJSONError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(badJSONTransport)
+	stop := NewBadJSONTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -447,14 +441,13 @@ func TestGetUserStateJSONError(t *testing.T) {
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func TestSetUserStateNetworkError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(abortedTransport)
+	stop := NewAbortedTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -467,16 +460,15 @@ func TestSetUserStateNetworkError(t *testing.T) {
 	case err := <-errorGet:
 		assert.Contains(string(err), abortedTransport.PnMessage)
 	case <-timeouts(5):
-		assert.Fail("WhereNow timeout 5s")
+		assert.Fail("SetState timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 func TestSetUserStateJSONError(t *testing.T) {
 	assert := assert.New(t)
 
-	messaging.SetNonSubscribeTransport(badJSONTransport)
+	stop := NewBadJSONTransport()
+	defer stop()
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
 
@@ -490,10 +482,8 @@ func TestSetUserStateJSONError(t *testing.T) {
 		assert.Contains(string(err), "Invalid JSON")
 		assert.Contains(string(err), "ch")
 	case <-timeouts(5):
-		assert.Fail("WhereNow timeout 5s")
+		assert.Fail("SetState timeout 5s")
 	}
-
-	messaging.SetNonSubscribeTransport(nil)
 }
 
 // TestSetGetUserState subscribes to a pubnub channel and then

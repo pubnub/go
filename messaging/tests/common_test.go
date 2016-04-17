@@ -583,6 +583,26 @@ func NewVCRBoth(name string, skipFields []string) (
 		}
 }
 
+func NewAbortedTransport() func() {
+	vcrMu.Lock()
+	messaging.SetNonSubscribeTransport(abortedTransport)
+
+	return func() {
+		messaging.SetNonSubscribeTransport(nil)
+		vcrMu.Unlock()
+	}
+}
+
+func NewBadJSONTransport() func() {
+	vcrMu.Lock()
+	messaging.SetNonSubscribeTransport(badJSONTransport)
+
+	return func() {
+		messaging.SetNonSubscribeTransport(nil)
+		vcrMu.Unlock()
+	}
+}
+
 func genVcrDial() func(string, string) (net.Conn, error) {
 	// Same values both for subscribe and non-subscribe conns are ok for tests
 	const (
