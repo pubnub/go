@@ -2,8 +2,11 @@
 
 set -e
 echo "" > coverage.txt
+
 go version
-if [[ $TRAVIS_GO_VERSION == 1.4 ]]; then
+
+if [[ $TRAVIS_GO_VERSION == 1.4.3 ]]; then
+  echo "match"
   go get golang.org/x/tools/cmd/cover
 fi
 
