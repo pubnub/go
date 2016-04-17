@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHistoryNetworkError(t *testing.T) {
+func TestErrorNetworkHistory(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewAbortedTransport()
@@ -28,7 +28,7 @@ func TestHistoryNetworkError(t *testing.T) {
 	}
 }
 
-func TestHistoryJSONError(t *testing.T) {
+func TestErrorJSONHistory(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewBadJSONTransport()
@@ -49,7 +49,7 @@ func TestHistoryJSONError(t *testing.T) {
 	}
 }
 
-func TestGroupNetworkError(t *testing.T) {
+func TestErrorNetworkGroup(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewAbortedTransport()
@@ -71,7 +71,7 @@ func TestGroupNetworkError(t *testing.T) {
 	}
 }
 
-func TestGroupJSONError(t *testing.T) {
+func TestErrorJSONGroup(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewBadJSONTransport()
@@ -92,7 +92,7 @@ func TestGroupJSONError(t *testing.T) {
 	}
 }
 
-func TestWhereNowNetworkError(t *testing.T) {
+func TestErrorNetworkWhereNow(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewAbortedTransport()
@@ -115,7 +115,7 @@ func TestWhereNowNetworkError(t *testing.T) {
 	}
 }
 
-func TestWhereNowJSONError(t *testing.T) {
+func TestErrorJSONWhereNow(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewBadJSONTransport()
@@ -138,7 +138,7 @@ func TestWhereNowJSONError(t *testing.T) {
 	}
 }
 
-func TestGlobalHereNowNetworkError(t *testing.T) {
+func TestErrorNetworkGlobalHereNow(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewAbortedTransport()
@@ -159,7 +159,7 @@ func TestGlobalHereNowNetworkError(t *testing.T) {
 	}
 }
 
-func TestGlobalHereNowJSONError(t *testing.T) {
+func TestErrorJSONGlobalHereNow(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewBadJSONTransport()
@@ -180,7 +180,7 @@ func TestGlobalHereNowJSONError(t *testing.T) {
 	}
 }
 
-func TestHereNowNetworkError(t *testing.T) {
+func TestErrorNetworkHereNow(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewAbortedTransport()
@@ -201,7 +201,7 @@ func TestHereNowNetworkError(t *testing.T) {
 	}
 }
 
-func TestHereNowJSONError(t *testing.T) {
+func TestErrorJSONHereNow(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewBadJSONTransport()
@@ -222,7 +222,7 @@ func TestHereNowJSONError(t *testing.T) {
 	}
 }
 
-func TestGetUserStateNetworkError(t *testing.T) {
+func TestErrorNetworkGetUserState(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewAbortedTransport()
@@ -243,7 +243,7 @@ func TestGetUserStateNetworkError(t *testing.T) {
 	}
 }
 
-func TestGetUserStateJSONError(t *testing.T) {
+func TestErrorJSONGetUserState(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewBadJSONTransport()
@@ -265,7 +265,7 @@ func TestGetUserStateJSONError(t *testing.T) {
 	}
 }
 
-func TestSetUserStateNetworkError(t *testing.T) {
+func TestErrorNetworkSetUserState(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewAbortedTransport()
@@ -286,7 +286,7 @@ func TestSetUserStateNetworkError(t *testing.T) {
 	}
 }
 
-func TestSetUserStateJSONError(t *testing.T) {
+func TestErrorJSONSetUserState(t *testing.T) {
 	assert := assert.New(t)
 
 	stop := NewBadJSONTransport()
@@ -308,7 +308,7 @@ func TestSetUserStateJSONError(t *testing.T) {
 	}
 }
 
-func TestUnsubscribeNetworkError(t *testing.T) {
+func TestErrorNetworkUnsubscribe(t *testing.T) {
 	assert := assert.New(t)
 
 	stop, _ := NewVCRBoth(
@@ -351,7 +351,7 @@ func TestUnsubscribeNetworkError(t *testing.T) {
 	messaging.SetNonSubscribeTransport(nil)
 }
 
-func TestGroupUnsubscribeNetworkError(t *testing.T) {
+func TestNetworkErrorGroupUnsubscribe(t *testing.T) {
 	assert := assert.New(t)
 
 	stop, sleep := NewVCRBoth(
