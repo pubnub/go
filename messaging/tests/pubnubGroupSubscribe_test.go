@@ -402,49 +402,6 @@ func xTestGroupSubscriptionPresence(t *testing.T) {
 		unsubscribeErrorChannel)
 }
 
-func TestGroupNetworkError(t *testing.T) {
-	assert := assert.New(t)
-
-	stop := NewAbortedTransport()
-	defer stop()
-
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-
-	successGet := make(chan []byte)
-	errorGet := make(chan []byte)
-	go pubnubInstance.ChannelGroupAddChannel("group", "ch", successGet, errorGet)
-	select {
-	case value := <-successGet:
-		assert.Fail("Success response while expecting error", string(value))
-	case err := <-errorGet:
-		assert.Contains(string(err), abortedTransport.PnMessage)
-		assert.Contains(string(err), "ch")
-	case <-timeouts(5):
-		assert.Fail("WhereNow timeout 5s")
-	}
-}
-
-func TestGroupJSONError(t *testing.T) {
-	assert := assert.New(t)
-
-	stop := NewBadJSONTransport()
-	defer stop()
-
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-
-	successGet := make(chan []byte)
-	errorGet := make(chan []byte)
-	go pubnubInstance.ChannelGroupAddChannel("group", "ch", successGet, errorGet)
-	select {
-	case value := <-successGet:
-		assert.Fail("Success response while expecting error", string(value))
-	case err := <-errorGet:
-		assert.Contains(string(err), "Invalid JSON")
-	case <-timeouts(5):
-		assert.Fail("WhereNow timeout 5s")
-	}
-}
-
 func createChannelGroups(pubnub *messaging.Pubnub, groups []string) {
 	successChannel := make(chan []byte, 1)
 	errorChannel := make(chan []byte, 1)

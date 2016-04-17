@@ -260,48 +260,6 @@ func PublishMessages(pubnubInstance *messaging.Pubnub, channel string,
 	return false
 }
 
-func TestHistoryNetworkError(t *testing.T) {
-	assert := assert.New(t)
-
-	stop := NewAbortedTransport()
-	defer stop()
-
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-
-	successGet := make(chan []byte)
-	errorGet := make(chan []byte)
-	go pubnubInstance.History("ch", 100, 0, 0, false, successGet, errorGet)
-	select {
-	case value := <-successGet:
-		assert.Fail("Success response while expecting error", string(value))
-	case err := <-errorGet:
-		assert.Contains(string(err), abortedTransport.PnMessage)
-	case <-timeouts(5):
-		assert.Fail("WhereNow timeout 5s")
-	}
-}
-
-func TestHistoryJSONError(t *testing.T) {
-	assert := assert.New(t)
-
-	stop := NewBadJSONTransport()
-	defer stop()
-
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-
-	successGet := make(chan []byte)
-	errorGet := make(chan []byte)
-	go pubnubInstance.History("ch", 100, 0, 0, false, successGet, errorGet)
-	select {
-	case value := <-successGet:
-		assert.Fail("Success response while expecting error", string(value))
-	case err := <-errorGet:
-		assert.Contains(string(err), "Invalid JSON")
-	case <-timeouts(5):
-		assert.Fail("WhereNow timeout 5s")
-	}
-}
-
 // TestDetailedHistoryEnd prints a message on the screen to mark the end of
 // detailed history tests.
 // PrintTestMessage is defined in the common.go file.
