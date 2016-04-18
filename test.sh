@@ -10,8 +10,13 @@ if [[ $TRAVIS_GO_VERSION == 1.4.3 ]]; then
 fi
 
 go test -coverprofile=unit_tests.out -covermode=atomic -coverpkg=./messaging ./messaging/
-go test -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./messaging ./messaging/tests/
 
-gocovmerge unit_tests.out functional_tests.out > coverage.txt
+go test -coverprofile=errors_tests.out -covermode=atomic -coverpkg=./messaging \
+./messaging/tests/ -test.run TestError*
 
-rm unit_tests.out functional_tests.out
+go test -coverprofile=integration_tests.out -covermode=atomic -coverpkg=./messaging \
+./messaging/tests/ -test.run '^(Test[^(?:Error)].*)'
+
+gocovmerge unit_tests.out integration_tests.out errors_tests.out > coverage.txt
+
+rm unit_tests.out integration_tests.out errors_tests.out
