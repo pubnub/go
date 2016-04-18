@@ -101,8 +101,6 @@ func TestUnsubscribeChannel(t *testing.T) {
 	case err := <-unSubscribeErrorChannel:
 		assert.Fail(string(err))
 	}
-
-	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestUnsubscribeEnd prints a message on the screen to mark the end of

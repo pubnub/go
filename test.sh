@@ -3,13 +3,20 @@
 set -e
 echo "" > coverage.txt
 
+go version
 
-for d in $(find  ./* -maxdepth 2 -type d ! -ipath '*gae*'); do
-    if ls $d/*_test.go &> /dev/null; then
-        go test -v -coverprofile=profile.out -covermode=atomic $d
-        if [ -f profile.out ]; then
-            cat profile.out >> coverage.txt
-            rm profile.out
-        fi
-    fi
-done
+if [[ $TRAVIS_GO_VERSION == 1.4.3 ]]; then
+  go get golang.org/x/tools/cmd/cover
+fi
+
+go test -coverprofile=unit_tests.out -covermode=atomic -coverpkg=./messaging ./messaging/
+
+go test -v -coverprofile=errors_tests.out -covermode=atomic -coverpkg=./messaging \
+./messaging/tests/ -test.run TestError*
+
+go test -v -coverprofile=integration_tests.out -covermode=atomic -coverpkg=./messaging \
+./messaging/tests/ -test.run '^(Test[^(?:Error)].*)'
+
+gocovmerge unit_tests.out integration_tests.out errors_tests.out > coverage.txt
+
+rm unit_tests.out integration_tests.out errors_tests.out

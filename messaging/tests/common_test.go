@@ -6,9 +6,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -580,6 +583,26 @@ func NewVCRBoth(name string, skipFields []string) (
 		}
 }
 
+func NewAbortedTransport() func() {
+	vcrMu.Lock()
+	messaging.SetNonSubscribeTransport(abortedTransport)
+
+	return func() {
+		messaging.SetNonSubscribeTransport(nil)
+		vcrMu.Unlock()
+	}
+}
+
+func NewBadJSONTransport() func() {
+	vcrMu.Lock()
+	messaging.SetNonSubscribeTransport(badJSONTransport)
+
+	return func() {
+		messaging.SetNonSubscribeTransport(nil)
+		vcrMu.Unlock()
+	}
+}
+
 func genVcrDial() func(string, string) (net.Conn, error) {
 	// Same values both for subscribe and non-subscribe conns are ok for tests
 	const (
@@ -606,6 +629,44 @@ func genVcrDial() func(string, string) (net.Conn, error) {
 
 	return dial
 }
+
+type BrokenConnectionTransport struct {
+	Message   string
+	PnMessage string
+}
+
+func (t *BrokenConnectionTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	return nil, errors.New(t.Message)
+}
+
+var abortedTransport = &BrokenConnectionTransport{
+	Message:   "closed network connection",
+	PnMessage: "Connection aborted",
+}
+
+type BadJSONTransport struct {
+	Message   string
+	PnMessage string
+}
+
+func (t *BadJSONTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	resp := http.Response{
+		StatusCode: 200,
+		Proto:      "HTTP/1.0",
+		ProtoMajor: 1,
+		ProtoMinor: 0,
+	}
+
+	header := http.Header{}
+	header.Set("Content-Type", "text/javascript; charset=\"UTF-8\"")
+	resp.Header = header
+
+	resp.Body = ioutil.NopCloser(bytes.NewBuffer([]byte("i'm bad")))
+
+	return &resp, nil
+}
+
+var badJSONTransport = &BadJSONTransport{}
 
 func GetServerTimeString(uuid string) string {
 	successChannel := make(chan []byte)

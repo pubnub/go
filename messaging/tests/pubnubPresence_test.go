@@ -228,8 +228,6 @@ func TestWhereNow(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestGlobalHereNow subscribes to a pubnub channel and then

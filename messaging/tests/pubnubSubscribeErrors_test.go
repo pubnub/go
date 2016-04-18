@@ -146,7 +146,6 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 	go func() {
 		select {
 		case resp := <-successChannel:
-			fmt.Println("got", string(resp))
 			assert.Contains(string(resp), "blah")
 		case err := <-errorChannel:
 			if !IsConnectionRefusedError(err) {

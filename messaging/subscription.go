@@ -47,14 +47,14 @@ func (e connectionEvent) Bytes() []byte {
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Channel),
-			removePnpres(e.Channel), stringConnectionAction(e.Action),
+			removePnpres(e.Channel), e.Action,
 			removePnpres(e.Channel)))
 
 	case channelGroupResponse:
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel group '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Source),
-			removePnpres(e.Source), stringConnectionAction(e.Action),
+			removePnpres(e.Source), e.Action,
 			strings.Replace(e.Source, presenceSuffix, "", -1)))
 
 	default:
@@ -180,7 +180,7 @@ func (e *subscriptionEntity) Names() []string {
 	e.RLock()
 	defer e.RUnlock()
 
-	var names []string
+	var names = []string{}
 
 	for k, _ := range e.items {
 		names = append(names, k)
@@ -212,7 +212,7 @@ func (e *subscriptionEntity) ConnectedNames() []string {
 	e.RLock()
 	defer e.RUnlock()
 
-	var names []string
+	var names = []string{}
 
 	for k, item := range e.items {
 		if item.Connected {
@@ -249,9 +249,10 @@ func (e *subscriptionEntity) ApplyAbort() {
 	logInfoln("ITEMS: Applying abort")
 
 	e.Lock()
-	defer e.Unlock()
+	abortedMarker := e.abortedMarker
+	e.Unlock()
 
-	if e.abortedMarker == true {
+	if abortedMarker == true {
 		e.Clear()
 	}
 }
@@ -283,7 +284,7 @@ func (e *subscriptionEntity) SetConnected() (changedItemNames []string) {
 	return changedItemNames
 }
 
-func createSubscriptionChannels() (chan []byte, chan []byte) {
+func CreateSubscriptionChannels() (chan []byte, chan []byte) {
 
 	successResponse := make(chan []byte)
 	errorResponse := make(chan []byte)
