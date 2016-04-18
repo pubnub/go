@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"os"
 	"testing"
 
 	"github.com/pubnub/go/messaging"
@@ -8,6 +9,7 @@ import (
 )
 
 func TestErrorNetworkHistory(t *testing.T) {
+	messaging.SetLogOutput(os.Stderr)
 	assert := assert.New(t)
 
 	stop := NewAbortedTransport()

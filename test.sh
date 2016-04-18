@@ -11,10 +11,10 @@ fi
 
 go test -coverprofile=unit_tests.out -covermode=atomic -coverpkg=./messaging ./messaging/
 
-go test -coverprofile=errors_tests.out -covermode=atomic -coverpkg=./messaging \
+go test -v -coverprofile=errors_tests.out -covermode=atomic -coverpkg=./messaging \
 ./messaging/tests/ -test.run TestError*
 
-go test -coverprofile=integration_tests.out -covermode=atomic -coverpkg=./messaging \
+go test -v -coverprofile=integration_tests.out -covermode=atomic -coverpkg=./messaging \
 ./messaging/tests/ -test.run '^(Test[^(?:Error)].*)'
 
 gocovmerge unit_tests.out integration_tests.out errors_tests.out > coverage.txt
