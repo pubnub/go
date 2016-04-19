@@ -3572,14 +3572,12 @@ func (pub *Pubnub) executeChannelGroup(action, group, channel string,
 
 	if err != nil {
 		logErrorf("%s", err.Error())
-		// TODO 3.8.0: replace channel-s with group
-		sendErrorResponse(errorChannel, channel, err.Error())
+		sendErrorResponse(errorChannel, group, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
 			logErrorf("%s", errJSON.Error())
-			// TODO 3.8.0: replace channel-s with group
-			sendErrorResponse(errorChannel, channel, errJSON.Error())
+			sendErrorResponse(errorChannel, group, errJSON.Error())
 		} else {
 			callbackChannel <- []byte(value)
 		}
