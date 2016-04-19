@@ -286,7 +286,6 @@ func TestSetGetUserState(t *testing.T) {
 
 	key := "testkey"
 	val := "testval"
-	uuid := "my_uuid"
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)

@@ -234,7 +234,7 @@ func TestErrorNetworkGetUserState(t *testing.T) {
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
-	go pubnubInstance.GetUserState("ch", successGet, errorGet)
+	go pubnubInstance.GetUserState("ch", "", successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Fail("Success response while expecting error", string(value))
@@ -255,7 +255,7 @@ func TestErrorJSONGetUserState(t *testing.T) {
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
-	go pubnubInstance.GetUserState("ch", successGet, errorGet)
+	go pubnubInstance.GetUserState("ch", "", successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Fail("Success response while expecting error", string(value))
@@ -277,7 +277,7 @@ func TestErrorNetworkSetUserState(t *testing.T) {
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
-	go pubnubInstance.SetUserStateJSON("ch", "{}", successGet, errorGet)
+	go pubnubInstance.SetUserStateJSON("ch", "{}", "", successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Fail("Success response while expecting error", string(value))
@@ -298,7 +298,7 @@ func TestErrorJSONSetUserState(t *testing.T) {
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
-	go pubnubInstance.SetUserStateJSON("ch", "{}", successGet, errorGet)
+	go pubnubInstance.SetUserStateJSON("ch", "{}", "", successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Fail("Success response while expecting error", string(value))
