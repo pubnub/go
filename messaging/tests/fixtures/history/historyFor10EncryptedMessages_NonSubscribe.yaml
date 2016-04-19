@@ -8,11 +8,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22XggLXEc7XxPftPda7MAeYbIeTF6QrmMKA1zz/+PKMGo=%22?pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22XggLXEc7XxPftPda7MAeYbIeTF6QrmMKA1zz/+PKMGo=%22?pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[1,"Sent","14570161233324636"]'
+    body: '[1,"Sent","14610686529002182"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -27,7 +27,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:03 GMT
+      - Tue, 19 Apr 2016 12:24:12 GMT
     status: 200 OK
     code: 200
 - request:
@@ -37,11 +37,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22mAw0tx7L5zEWKIYnvb0FJB08/k38qK2rnD82fN2yy4E=%22?pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22mAw0tx7L5zEWKIYnvb0FJB08/k38qK2rnD82fN2yy4E=%22?pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[1,"Sent","14570161233615808"]'
+    body: '[1,"Sent","14610686529220636"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -56,7 +56,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:03 GMT
+      - Tue, 19 Apr 2016 12:24:12 GMT
     status: 200 OK
     code: 200
 - request:
@@ -66,11 +66,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22SSWpsb6UwtDt+bwR2RxwNq++q7In4Fv3P+BryUgre3I=%22?pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22SSWpsb6UwtDt+bwR2RxwNq++q7In4Fv3P+BryUgre3I=%22?pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[1,"Sent","14570161233871236"]'
+    body: '[1,"Sent","14610686529438761"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -85,7 +85,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:03 GMT
+      - Tue, 19 Apr 2016 12:24:12 GMT
     status: 200 OK
     code: 200
 - request:
@@ -95,11 +95,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22ciDFGdEkWXpZhMeSrBEbP3bEfFaZM+6Dsq90VUGA6+I=%22?pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22ciDFGdEkWXpZhMeSrBEbP3bEfFaZM+6Dsq90VUGA6+I=%22?pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[1,"Sent","14570161234127020"]'
+    body: '[1,"Sent","14610686529658963"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -114,7 +114,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:03 GMT
+      - Tue, 19 Apr 2016 12:24:12 GMT
     status: 200 OK
     code: 200
 - request:
@@ -124,11 +124,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22KY2sTN89UKR6JJB+GdNZqiLzU8JC0acN8ExV3ZwUiJ4=%22?pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22KY2sTN89UKR6JJB+GdNZqiLzU8JC0acN8ExV3ZwUiJ4=%22?pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[1,"Sent","14570161234381056"]'
+    body: '[1,"Sent","14610686529875057"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -143,7 +143,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:03 GMT
+      - Tue, 19 Apr 2016 12:24:12 GMT
     status: 200 OK
     code: 200
 - request:
@@ -153,11 +153,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=%22?pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=%22?pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[1,"Sent","14570161234660118"]'
+    body: '[1,"Sent","14610686530090303"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -172,7 +172,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:03 GMT
+      - Tue, 19 Apr 2016 12:24:13 GMT
     status: 200 OK
     code: 200
 - request:
@@ -182,11 +182,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22AA9MBpymUzq/bfLCtIKFB+J6L+s3UGm6xPGh9kuXsoQ=%22?pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22AA9MBpymUzq/bfLCtIKFB+J6L+s3UGm6xPGh9kuXsoQ=%22?pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[1,"Sent","14570161234919933"]'
+    body: '[1,"Sent","14610686530309259"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -201,7 +201,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:03 GMT
+      - Tue, 19 Apr 2016 12:24:13 GMT
     status: 200 OK
     code: 200
 - request:
@@ -211,11 +211,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22SfGYYp58jU2FGBNNsRk0kZ8KWRjZ6OsG3OxSySd7FF0=%22?pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22SfGYYp58jU2FGBNNsRk0kZ8KWRjZ6OsG3OxSySd7FF0=%22?pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[1,"Sent","14570161235172196"]'
+    body: '[1,"Sent","14610686530526644"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -230,7 +230,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:03 GMT
+      - Tue, 19 Apr 2016 12:24:13 GMT
     status: 200 OK
     code: 200
 - request:
@@ -240,11 +240,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22ek+lrKjHCJPp5wYpxWlZcg806w/SWU5dzNYmjqDVb6o=%22?pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22ek+lrKjHCJPp5wYpxWlZcg806w/SWU5dzNYmjqDVb6o=%22?pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[1,"Sent","14570161235422078"]'
+    body: '[1,"Sent","14610686530745567"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -259,7 +259,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:03 GMT
+      - Tue, 19 Apr 2016 12:24:13 GMT
     status: 200 OK
     code: 200
 - request:
@@ -269,11 +269,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22HrIrwvdGrm3/TM4kCf0EGl5SzcD+JqOXesWtzzc8+UA=%22?pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyFor10EncryptedMessages/0/%22HrIrwvdGrm3/TM4kCf0EGl5SzcD+JqOXesWtzzc8+UA=%22?pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[1,"Sent","14570161235669097"]'
+    body: '[1,"Sent","14610686530964823"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -288,7 +288,7 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:03 GMT
+      - Tue, 19 Apr 2016 12:24:13 GMT
     status: 200 OK
     code: 200
 - request:
@@ -298,11 +298,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/historyFor10EncryptedMessages?count=10&reverse=false&pnsdk=PubNub-Go%2F3.7.0&uuid=eaca0f5f4035e57980b7ac15658e1fd0
+      - ua_string=(linux) PubNub-Go/3.7.1
+    url: http://pubsub.pubnub.com/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/historyFor10EncryptedMessages?count=10&reverse=false&include_token=false&pnsdk=PubNub-Go%2F3.7.1&uuid=aabe6be9402dd13b805e47103d9baa0e
     method: GET
   response:
-    body: '[["XggLXEc7XxPftPda7MAeYbIeTF6QrmMKA1zz/+PKMGo=","mAw0tx7L5zEWKIYnvb0FJB08/k38qK2rnD82fN2yy4E=","SSWpsb6UwtDt+bwR2RxwNq++q7In4Fv3P+BryUgre3I=","ciDFGdEkWXpZhMeSrBEbP3bEfFaZM+6Dsq90VUGA6+I=","KY2sTN89UKR6JJB+GdNZqiLzU8JC0acN8ExV3ZwUiJ4=","h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=","AA9MBpymUzq/bfLCtIKFB+J6L+s3UGm6xPGh9kuXsoQ=","SfGYYp58jU2FGBNNsRk0kZ8KWRjZ6OsG3OxSySd7FF0=","ek+lrKjHCJPp5wYpxWlZcg806w/SWU5dzNYmjqDVb6o=","HrIrwvdGrm3/TM4kCf0EGl5SzcD+JqOXesWtzzc8+UA="],14570161233324636,14570161235669097]'
+    body: '[["XggLXEc7XxPftPda7MAeYbIeTF6QrmMKA1zz/+PKMGo=","mAw0tx7L5zEWKIYnvb0FJB08/k38qK2rnD82fN2yy4E=","SSWpsb6UwtDt+bwR2RxwNq++q7In4Fv3P+BryUgre3I=","ciDFGdEkWXpZhMeSrBEbP3bEfFaZM+6Dsq90VUGA6+I=","KY2sTN89UKR6JJB+GdNZqiLzU8JC0acN8ExV3ZwUiJ4=","h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=","AA9MBpymUzq/bfLCtIKFB+J6L+s3UGm6xPGh9kuXsoQ=","SfGYYp58jU2FGBNNsRk0kZ8KWRjZ6OsG3OxSySd7FF0=","ek+lrKjHCJPp5wYpxWlZcg806w/SWU5dzNYmjqDVb6o=","HrIrwvdGrm3/TM4kCf0EGl5SzcD+JqOXesWtzzc8+UA="],14610686529002182,14610686530964823]'
     headers:
       Accept-Ranges:
       - bytes
@@ -321,8 +321,9 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Thu, 03 Mar 2016 14:42:06 GMT
+      - Tue, 19 Apr 2016 12:24:16 GMT
       Server:
       - Pubnub
     status: 200 OK
     code: 200
+unclosed_requests: {}

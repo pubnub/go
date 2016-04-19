@@ -2946,15 +2946,18 @@ func (pub *Pubnub) sendLeaveRequest(channels, groups string) ([]byte, int, error
 // start: start time from where to begin the history messages.
 // end: end time till where to get the history messages.
 // reverse: to fetch the messages in ascending order
+// include_token: to receive a timetoken for each history message
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) History(channel string, limit int, start int64, end int64, reverse bool, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) History(channel string, limit int, start, end int64,
+	reverse, include_token bool, callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "History")
 	checkCallbackNil(errorChannel, true, "History")
 
-	pub.executeHistory(channel, limit, start, end, reverse, callbackChannel, errorChannel, 0)
+	pub.executeHistory(channel, limit, start, end, reverse, include_token,
+		callbackChannel, errorChannel, 0)
 }
 
 // executeHistory is the struct Pubnub's instance method which creates and post the History request
@@ -2970,10 +2973,14 @@ func (pub *Pubnub) History(channel string, limit int, start int64, end int64, re
 // start: start time from where to begin the history messages.
 // end: end time till where to get the history messages.
 // reverse: to fetch the messages in ascending order
+// include_token: to receive a timetoken for each history message
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
-func (pub *Pubnub) executeHistory(channel string, limit int, start int64, end int64, reverse bool, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
+func (pub *Pubnub) executeHistory(channel string, limit int, start, end int64,
+	reverse, include_token bool, callbackChannel, errorChannel chan []byte,
+	retryCount int) {
+
 	count := retryCount
 	if invalidChannel(channel, callbackChannel) {
 		return
@@ -2995,6 +3002,14 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start int64, end in
 		parameters.WriteString("&end=")
 		parameters.WriteString(fmt.Sprintf("%d", end))
 	}
+
+	parameters.WriteString("&include_token=")
+	if include_token == true {
+		parameters.WriteString("true")
+	} else {
+		parameters.WriteString("false")
+	}
+
 	parameters.WriteString(pub.addAuthParam(true))
 
 	var historyURLBuffer bytes.Buffer
@@ -3023,7 +3038,8 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start int64, end in
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
-				pub.executeHistory(channel, limit, start, end, reverse, callbackChannel, errorChannel, count)
+				pub.executeHistory(channel, limit, start, end, reverse, include_token,
+					callbackChannel, errorChannel, count)
 			}
 		} else {
 			var buffer bytes.Buffer

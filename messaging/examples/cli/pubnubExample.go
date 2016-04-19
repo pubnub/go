@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"encoding/binary"
 	"fmt"
-	"github.com/pubnub/go/messaging"
 	"math/big"
 	"os"
 	"strconv"
@@ -14,6 +13,8 @@ import (
 	"time"
 	"unicode/utf16"
 	"unicode/utf8"
+
+	"github.com/pubnub/go/messaging"
 )
 
 // connectChannels: the conected pubnub channels, multiple channels are stored separated by comma.
@@ -1186,7 +1187,7 @@ func detailedHistoryRoutine(channels string) {
 		channel := make(chan []byte)
 
 		//go _pub.History(ch, 100, 13662867154115803, 13662867243518473, false, channel)
-		go pub.History(ch, 100, 0, 0, false, channel, errorChannel)
+		go pub.History(ch, 100, 0, 0, false, false, channel, errorChannel)
 		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Detailed History")
 	}
 }

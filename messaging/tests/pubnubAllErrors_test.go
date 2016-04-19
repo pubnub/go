@@ -19,7 +19,7 @@ func TestErrorNetworkHistory(t *testing.T) {
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
-	go pubnubInstance.History("ch", 100, 0, 0, false, successGet, errorGet)
+	go pubnubInstance.History("ch", 100, 0, 0, false, true, successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Fail("Success response while expecting error", string(value))
@@ -40,7 +40,7 @@ func TestErrorJSONHistory(t *testing.T) {
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
-	go pubnubInstance.History("ch", 100, 0, 0, false, successGet, errorGet)
+	go pubnubInstance.History("ch", 100, 0, 0, false, true, successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Fail("Success response while expecting error", string(value))
