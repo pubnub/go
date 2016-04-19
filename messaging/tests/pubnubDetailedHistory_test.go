@@ -62,7 +62,8 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 
-	go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, successChannel, errorChannel)
+	go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, false,
+		successChannel, errorChannel)
 	select {
 	case value := <-successChannel:
 		data, _, _, err := messaging.ParseJSON(value, cipherKey)
@@ -147,7 +148,7 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 	errorChannel := make(chan []byte)
 
 	go pubnubInstance.History(channel, numberOfMessages, startTime, midTime,
-		false, successChannel, errorChannel)
+		false, false, successChannel, errorChannel)
 	select {
 	case value := <-successChannel:
 		data, _, _, err := messaging.ParseJSON(value, cipherKey)
@@ -181,7 +182,7 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 	assert.True(messagesSent2, "Error while sending a second bunch of messages")
 
 	go pubnubInstance.History(channel, numberOfMessages, midTime, endTime, false,
-		successChannel, errorChannel)
+		false, successChannel, errorChannel)
 	select {
 	case value := <-successChannel:
 		data, _, _, err := messaging.ParseJSON(value, cipherKey)
