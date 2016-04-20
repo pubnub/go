@@ -42,9 +42,11 @@ const (
 	responseTimedOut                                      //64
 )
 
+type transportType int
+
 // Enums for diff types of connections
 const (
-	subscribeTrans = 1 << iota
+	subscribeTrans transportType = 1 << iota
 	nonSubscribeTrans
 	presenceHeartbeatTrans
 	retryTrans
@@ -3845,7 +3847,7 @@ func ParseInterfaceData(myInterface interface{}) string {
 //
 // It accepts the following parameters:
 // requestUrl: the url to connect to.
-// action: any one of
+// tType: transport type, any one of
 //	subscribeTrans
 //	nonSubscribeTrans
 //	presenceHeartbeatTrans
@@ -3855,14 +3857,19 @@ func ParseInterfaceData(myInterface interface{}) string {
 // the response contents as byte array.
 // response error code if any.
 // error if any.
-func (pub *Pubnub) httpRequest(requestURL string, action int) ([]byte, int, error) {
-	return pub.httpRequestOptional(requestURL, action, false)
+func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
+	[]byte, int, error) {
+
+	return pub.httpRequestOptional(requestURL, tType, false)
 }
 
-func (pub *Pubnub) httpRequestOptional(requestURL string, action int, subscribe bool) ([]byte, int, error) {
+func (pub *Pubnub) httpRequestOptional(requestURL string, tType transportType,
+	subscribe bool) ([]byte, int, error) {
+
+	// TODO: detect subscribe by matching transportType
 	requrl := pub.origin + requestURL
 
-	contents, responseStatusCode, err := pub.connect(requrl, action, requestURL, subscribe)
+	contents, responseStatusCode, err := pub.connect(requrl, tType, requestURL, subscribe)
 
 	if err != nil {
 		if strings.Contains(err.Error(), timeout) {
@@ -3887,7 +3894,7 @@ func (pub *Pubnub) httpRequestOptional(requestURL string, action int, subscribe 
 // setOrGetTransport creates the transport and sets it for reuse
 // based on the action parameter
 // It accepts the following parameters:
-// action: any one of
+// tType: transport type, any one of
 //	subscribeTrans
 //	nonSubscribeTrans
 //	presenceHeartbeatTrans
@@ -3895,15 +3902,15 @@ func (pub *Pubnub) httpRequestOptional(requestURL string, action int, subscribe 
 //
 // returns:
 // the transport.
-func setOrGetTransport(action int) http.RoundTripper {
+func setOrGetTransport(tType transportType) http.RoundTripper {
 	var transport http.RoundTripper
-	switch action {
+	switch tType {
 	case subscribeTrans:
 		subscribeTransportMu.RLock()
 		transport = subscribeTransport
 		subscribeTransportMu.RUnlock()
 		if transport == nil {
-			transport = initTrans(action)
+			transport = initTrans(tType)
 			subscribeTransportMu.Lock()
 			subscribeTransport = transport
 			subscribeTransportMu.Unlock()
@@ -3913,7 +3920,7 @@ func setOrGetTransport(action int) http.RoundTripper {
 		transport = nonSubscribeTransport
 		nonSubscribeTransportMu.RUnlock()
 		if transport == nil {
-			transport = initTrans(action)
+			transport = initTrans(tType)
 			nonSubscribeTransportMu.Lock()
 			nonSubscribeTransport = transport
 			nonSubscribeTransportMu.Unlock()
@@ -3923,7 +3930,7 @@ func setOrGetTransport(action int) http.RoundTripper {
 		transport = retryTransport
 		retryTransportMu.RUnlock()
 		if transport == nil {
-			transport = initTrans(action)
+			transport = initTrans(tType)
 			retryTransportMu.Lock()
 			retryTransport = transport
 			retryTransportMu.Unlock()
@@ -3933,7 +3940,7 @@ func setOrGetTransport(action int) http.RoundTripper {
 		transport = presenceHeartbeatTransport
 		presenceHeartbeatTransportMu.RUnlock()
 		if transport == nil {
-			transport = initTrans(action)
+			transport = initTrans(tType)
 			presenceHeartbeatTransportMu.Lock()
 			presenceHeartbeatTransport = transport
 			presenceHeartbeatTransportMu.Unlock()
@@ -3948,7 +3955,7 @@ func setOrGetTransport(action int) http.RoundTripper {
 // It sets the timeouts based on the different requests.
 //
 // It accepts the following parameters:
-// action: any one of
+// tType: transport type, any one of
 //	subscribeTrans
 //	nonSubscribeTrans
 //	presenceHeartbeatTrans
@@ -3956,13 +3963,13 @@ func setOrGetTransport(action int) http.RoundTripper {
 //
 // returns:
 // the transport.
-func initTrans(action int) http.RoundTripper {
+func initTrans(tType transportType) http.RoundTripper {
 	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		Dial: func(netw, addr string) (net.Conn, error) {
 			c, err := net.DialTimeout(netw, addr, time.Duration(connectTimeout)*time.Second)
 
 			if c != nil {
-				switch action {
+				switch tType {
 				case subscribeTrans:
 					subscribeTransportMu.Lock()
 					defer subscribeTransportMu.Unlock()
@@ -4049,7 +4056,7 @@ func initTrans(action int) http.RoundTripper {
 // returns:
 // the pointer to the http.Client
 // error is any.
-func (pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
+func (pub *Pubnub) createHTTPClient(action transportType) (*http.Client, error) {
 	var transport http.RoundTripper
 	transport = setOrGetTransport(action)
 
@@ -4079,8 +4086,9 @@ func (pub *Pubnub) createHTTPClient(action int) (*http.Client, error) {
 // the response as byte array.
 // response errorcode if any.
 // error if any.
-func (pub *Pubnub) connect(requestURL string, action int, opaqueURL string,
-	isSubscribe bool) ([]byte, int, error) {
+func (pub *Pubnub) connect(requestURL string, action transportType,
+	opaqueURL string, isSubscribe bool) ([]byte, int, error) {
+
 	logInfoln("REQUEST:", opaqueURL)
 
 	var contents []byte
