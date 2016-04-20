@@ -3969,27 +3969,21 @@ func initTrans(tType transportType) http.RoundTripper {
 					deadline := time.Now().Add(time.Duration(subscribeTimeout) * time.Second)
 					c.SetDeadline(deadline)
 					subscribeConn = c
-					logMu.Lock()
-					infoLogger.Println(fmt.Sprintf("subscribeConn set"))
-					logMu.Unlock()
+					logInfof("CONN: Default subscribe Conn initialized")
 				case nonSubscribeTrans:
 					nonSubscribeTransportMu.Lock()
 					defer nonSubscribeTransportMu.Unlock()
 					deadline := time.Now().Add(time.Duration(nonSubscribeTimeout) * time.Second)
 					c.SetDeadline(deadline)
 					conn = c
-					logMu.Lock()
-					infoLogger.Println(fmt.Sprintf("non subscribeConn set"))
-					logMu.Unlock()
+					logInfof("CONN: Default non-subscribe Conn initialized")
 				case retryTrans:
 					retryTransportMu.Lock()
 					defer retryTransportMu.Unlock()
 					deadline := time.Now().Add(time.Duration(retryInterval) * time.Second)
 					c.SetDeadline(deadline)
 					retryConn = c
-					logMu.Lock()
-					infoLogger.Println(fmt.Sprintf("retry conn set"))
-					logMu.Unlock()
+					logInfof("CONN: Default retry Conn initialized")
 				case presenceHeartbeatTrans:
 					presenceHeartbeatTransportMu.Lock()
 					defer presenceHeartbeatTransportMu.Unlock()
@@ -3998,21 +3992,13 @@ func initTrans(tType transportType) http.RoundTripper {
 					deadline := time.Now().Add(time.Duration(subscribeTimeout) * time.Second)
 					c.SetDeadline(deadline)
 					presenceHeartbeatConn = c
-					logMu.Lock()
-					infoLogger.Println(fmt.Sprintf("presenceHeartbeatConn set"))
-					logMu.Unlock()
+					logInfof("CONN: Default presence heartbeat Conn initialized")
 				}
-			} else {
-				err = fmt.Errorf("%s%s", errorInInitializing, err.Error())
-				logMu.Lock()
-				errorLogger.Println(fmt.Sprintf("httpRequest: %s", err.Error()))
-				logMu.Unlock()
 			}
 
 			if err != nil {
-				logMu.Lock()
-				errorLogger.Println(fmt.Sprintf("err: %s", err.Error()))
-				logMu.Unlock()
+				err = fmt.Errorf("%s%s", errorInInitializing, err.Error())
+				logErrorf("CONN: %s", err.Error())
 				return nil, err
 			}
 
@@ -4020,19 +4006,19 @@ func initTrans(tType transportType) http.RoundTripper {
 		}}
 
 	if proxyServerEnabled {
-		proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", proxyUser, proxyPassword, proxyServer, proxyPort))
+		proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", proxyUser,
+			proxyPassword, proxyServer, proxyPort))
+
 		if err == nil {
 			transport.Proxy = http.ProxyURL(proxyURL)
 		} else {
-			logMu.Lock()
-			errorLogger.Println(fmt.Sprintf("Error in connecting to proxy: %s", err.Error()))
-			logMu.Unlock()
+			logErrorf("CONN: Proxy connection error: %s", err.Error())
 		}
 	}
+
 	transport.MaxIdleConnsPerHost = maxIdleConnsPerHost
-	logMu.Lock()
-	infoLogger.Println(fmt.Sprintf("MaxIdleConnsPerHost set to: %d", transport.MaxIdleConnsPerHost))
-	logMu.Unlock()
+	logInfof("CONN: MaxIdleConnsPerHost set to %d", transport.MaxIdleConnsPerHost)
+
 	return transport
 }
 
