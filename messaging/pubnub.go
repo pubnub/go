@@ -4078,8 +4078,7 @@ func initTrans(tType transportType) http.RoundTripper {
 // returns:
 // the pointer to the http.Client
 // error is any.
-func (pub *Pubnub) createHTTPClient(tType transportType) (*http.Client, error) {
-	// TODO: move out of *Pubnub
+func createHTTPClient(tType transportType) (*http.Client, error) {
 	var transport http.RoundTripper
 	var err error
 	var httpClient *http.Client
@@ -4112,7 +4111,7 @@ func (pub *Pubnub) connect(requestURL string, tType transportType,
 	logInfoln("REQUEST:", opaqueURL)
 
 	var contents []byte
-	httpClient, err := pub.createHTTPClient(tType)
+	httpClient, err := createHTTPClient(tType)
 	isSubscribe := tType == subscribeTrans
 
 	if isSubscribe {
