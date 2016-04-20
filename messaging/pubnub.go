@@ -1102,7 +1102,7 @@ func (pub *Pubnub) executePam(entity, requestURL string,
 			sendErrorResponse(errorChannel, entity, message)
 		}
 	} else {
-		callbackChannel <- []byte(fmt.Sprintf("%s", value))
+		callbackChannel <- value
 	}
 }
 
@@ -1167,7 +1167,7 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 				pub.executeTime(callbackChannel, errorChannel, count)
 			}
 		} else {
-			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			callbackChannel <- value
 		}
 	}
 }
@@ -1242,7 +1242,7 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 			logMu.Unlock()
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 		} else {
-			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			callbackChannel <- value
 		}
 	}
 }
@@ -3049,7 +3049,7 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start, end int64,
 			buffer.WriteString(data)
 			buffer.WriteString(",\"" + returnOne + "\",\"" + returnTwo + "\"]")
 
-			callbackChannel <- []byte(fmt.Sprintf("%s", buffer.Bytes()))
+			callbackChannel <- buffer.Bytes()
 		}
 	}
 }
@@ -3116,7 +3116,7 @@ func (pub *Pubnub) executeWhereNow(uuid string, callbackChannel chan []byte, err
 				pub.executeWhereNow(uuid, callbackChannel, errorChannel, count)
 			}
 		} else {
-			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			callbackChannel <- value
 		}
 	}
 }
@@ -3190,7 +3190,7 @@ func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, ca
 				pub.executeGlobalHereNow(showUuid, includeUserState, callbackChannel, errorChannel, count)
 			}
 		} else {
-			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			callbackChannel <- value
 		}
 	}
 }
@@ -3269,7 +3269,7 @@ func (pub *Pubnub) executeHereNow(channel string, showUuid bool, includeUserStat
 				pub.executeHereNow(channel, showUuid, includeUserState, callbackChannel, errorChannel, count)
 			}
 		} else {
-			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			callbackChannel <- value
 		}
 	}
 }
@@ -3343,7 +3343,7 @@ func (pub *Pubnub) executeGetUserState(channel, uuid string,
 				pub.executeGetUserState(channel, uuid, callbackChannel, errorChannel, count)
 			}
 		} else {
-			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			callbackChannel <- value
 		}
 	}
 }
@@ -3495,7 +3495,7 @@ func (pub *Pubnub) executeSetUserState(channel, jsonState, uuid string,
 					errorChannel, count)
 			}
 		} else {
-			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			callbackChannel <- value
 			pub.closeSubscribe()
 		}
 	}
@@ -3581,7 +3581,7 @@ func (pub *Pubnub) executeChannelGroup(action, group, channel string,
 			logErrorf("%s", errJSON.Error())
 			sendErrorResponse(errorChannel, group, errJSON.Error())
 		} else {
-			callbackChannel <- []byte(value)
+			callbackChannel <- value
 		}
 	}
 }
