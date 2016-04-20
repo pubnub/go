@@ -3847,11 +3847,7 @@ func ParseInterfaceData(myInterface interface{}) string {
 //
 // It accepts the following parameters:
 // requestUrl: the url to connect to.
-// tType: transport type, any one of
-//	subscribeTrans
-//	nonSubscribeTrans
-//	presenceHeartbeatTrans
-//	retryTrans
+// tType: transport type
 //
 // returns:
 // the response contents as byte array.
@@ -3887,16 +3883,13 @@ func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 // setOrGetTransport creates the transport and sets it for reuse
 // based on the action parameter
 // It accepts the following parameters:
-// tType: transport type, any one of
-//	subscribeTrans
-//	nonSubscribeTrans
-//	presenceHeartbeatTrans
-//	retryTrans
+// tType: transport type
 //
 // returns:
 // the transport.
 func setOrGetTransport(tType transportType) http.RoundTripper {
 	var transport http.RoundTripper
+
 	switch tType {
 	case subscribeTrans:
 		subscribeTransportMu.RLock()
@@ -3939,7 +3932,65 @@ func setOrGetTransport(tType transportType) http.RoundTripper {
 			presenceHeartbeatTransportMu.Unlock()
 		}
 	}
+
+	resetConnDeadline(tType)
+
 	return transport
+}
+
+func resetConnDeadline(tType transportType) {
+	switch tType {
+	case subscribeTrans:
+		subscribeTransportMu.Lock()
+		defer subscribeTransportMu.Unlock()
+
+		if subscribeConn != nil {
+			logInfof("CONN: Reset subscribe Conn deadline")
+
+			deadline := time.Now().Add(time.Duration(subscribeTimeout) * time.Second)
+			subscribeConn.SetDeadline(deadline)
+		} else {
+			logInfof("CONN: Skip reset subscribe Conn deadline")
+		}
+	case nonSubscribeTrans:
+		nonSubscribeTransportMu.Lock()
+		defer nonSubscribeTransportMu.Unlock()
+
+		if conn != nil {
+			logInfof("CONN: Reset non-subscribe Conn deadline")
+
+			deadline := time.Now().Add(time.Duration(nonSubscribeTimeout) * time.Second)
+			conn.SetDeadline(deadline)
+		} else {
+			logInfof("CONN: Skip reset non-subscribe Conn deadline")
+		}
+	case retryTrans:
+		retryTransportMu.Lock()
+		defer retryTransportMu.Unlock()
+
+		if retryConn != nil {
+			logInfof("CONN: Reset retry Conn deadline")
+
+			deadline := time.Now().Add(time.Duration(retryInterval) * time.Second)
+			retryConn.SetDeadline(deadline)
+		} else {
+			logInfof("CONN: Skip reset retry Conn deadline")
+		}
+	case presenceHeartbeatTrans:
+		presenceHeartbeatTransportMu.Lock()
+		defer presenceHeartbeatTransportMu.Unlock()
+
+		if presenceHeartbeatConn != nil {
+			logInfof("CONN: Reset presence heartbeat Conn deadline")
+
+			// TODO: set PresenceHeartbeatInterval
+			// deadline := time.Now().Add(time.Duration(pub.GetPresenceHeartbeatInterval()) * time.Second)
+			deadline := time.Now().Add(time.Duration(subscribeTimeout) * time.Second)
+			presenceHeartbeatConn.SetDeadline(deadline)
+		} else {
+			logInfof("CONN: Skip reset presence heartbeat Conn deadline")
+		}
+	}
 }
 
 // initTrans creates the transport and sets it for reuse.
@@ -4028,6 +4079,7 @@ func initTrans(tType transportType) http.RoundTripper {
 // the pointer to the http.Client
 // error is any.
 func (pub *Pubnub) createHTTPClient(tType transportType) (*http.Client, error) {
+	// TODO: move out of *Pubnub
 	var transport http.RoundTripper
 	var err error
 	var httpClient *http.Client
