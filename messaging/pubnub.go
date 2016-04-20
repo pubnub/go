@@ -3948,11 +3948,7 @@ func setOrGetTransport(tType transportType) http.RoundTripper {
 // It sets the timeouts based on the different requests.
 //
 // It accepts the following parameters:
-// tType: transport type, any one of
-//	subscribeTrans
-//	nonSubscribeTrans
-//	presenceHeartbeatTrans
-//	retryTrans
+// tType: transport type
 //
 // returns:
 // the transport.
@@ -4026,21 +4022,18 @@ func initTrans(tType transportType) http.RoundTripper {
 // different types of requests.
 //
 // It accepts the following parameters:
-// action: any one of
-//	subscribeTrans
-//	nonSubscribeTrans
-//	presenceHeartbeatTrans
-//	retryTrans
-//
+// tType: transport type
+
 // returns:
 // the pointer to the http.Client
 // error is any.
-func (pub *Pubnub) createHTTPClient(action transportType) (*http.Client, error) {
+func (pub *Pubnub) createHTTPClient(tType transportType) (*http.Client, error) {
 	var transport http.RoundTripper
-	transport = setOrGetTransport(action)
-
 	var err error
 	var httpClient *http.Client
+
+	transport = setOrGetTransport(tType)
+
 	if transport != nil {
 		httpClient = &http.Client{Transport: transport, CheckRedirect: nil}
 	} else {
@@ -4055,12 +4048,8 @@ func (pub *Pubnub) createHTTPClient(action transportType) (*http.Client, error) 
 //
 // It accepts the following parameters:
 // requestUrl: the url to connect to.
-// action: any one of
-//	subscribeTrans
-//	nonSubscribeTrans
-//	presenceHeartbeatTrans
-//	retryTrans
-//
+// tType: transport type
+
 // returns:
 // the response as byte array.
 // response errorcode if any.
