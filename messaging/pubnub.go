@@ -2011,7 +2011,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 
 			subscribeURL, sentTimeToken := pub.createSubscribeURL(sentTimeToken)
 
-			value, responseCode, err := pub.httpRequestOptional(subscribeURL, subscribeTrans, true)
+			value, responseCode, err := pub.httpRequest(subscribeURL, subscribeTrans)
 
 			// if network error, for ex.
 			// - closed network connection/connection aborted
@@ -3860,16 +3860,9 @@ func ParseInterfaceData(myInterface interface{}) string {
 func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 	[]byte, int, error) {
 
-	return pub.httpRequestOptional(requestURL, tType, false)
-}
-
-func (pub *Pubnub) httpRequestOptional(requestURL string, tType transportType,
-	subscribe bool) ([]byte, int, error) {
-
-	// TODO: detect subscribe by matching transportType
 	requrl := pub.origin + requestURL
 
-	contents, responseStatusCode, err := pub.connect(requrl, tType, requestURL, subscribe)
+	contents, responseStatusCode, err := pub.connect(requrl, tType, requestURL)
 
 	if err != nil {
 		if strings.Contains(err.Error(), timeout) {
@@ -4086,13 +4079,14 @@ func (pub *Pubnub) createHTTPClient(action transportType) (*http.Client, error) 
 // the response as byte array.
 // response errorcode if any.
 // error if any.
-func (pub *Pubnub) connect(requestURL string, action transportType,
-	opaqueURL string, isSubscribe bool) ([]byte, int, error) {
+func (pub *Pubnub) connect(requestURL string, tType transportType,
+	opaqueURL string) ([]byte, int, error) {
 
 	logInfoln("REQUEST:", opaqueURL)
 
 	var contents []byte
-	httpClient, err := pub.createHTTPClient(action)
+	httpClient, err := pub.createHTTPClient(tType)
+	isSubscribe := tType == subscribeTrans
 
 	if isSubscribe {
 		// pub.requestCloserMu.Lock()
