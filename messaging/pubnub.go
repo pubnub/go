@@ -3847,11 +3847,7 @@ func ParseInterfaceData(myInterface interface{}) string {
 //
 // It accepts the following parameters:
 // requestUrl: the url to connect to.
-// tType: transport type, any one of
-//	subscribeTrans
-//	nonSubscribeTrans
-//	presenceHeartbeatTrans
-//	retryTrans
+// tType: transport type
 //
 // returns:
 // the response contents as byte array.
@@ -3887,11 +3883,7 @@ func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 // setOrGetTransport creates the transport and sets it for reuse
 // based on the action parameter
 // It accepts the following parameters:
-// tType: transport type, any one of
-//	subscribeTrans
-//	nonSubscribeTrans
-//	presenceHeartbeatTrans
-//	retryTrans
+// tType: transport type
 //
 // returns:
 // the transport.
