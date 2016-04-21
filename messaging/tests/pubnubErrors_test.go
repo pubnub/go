@@ -67,7 +67,7 @@ func TestErrorNetworkGroup(t *testing.T) {
 		assert.Fail("Success response while expecting error", string(value))
 	case err := <-errorGet:
 		assert.Contains(string(err), abortedTransport.PnMessage)
-		assert.Contains(string(err), "ch")
+		assert.Contains(string(err), "group")
 	case <-timeouts(5):
 		assert.Fail("WhereNow timeout 5s")
 	}
