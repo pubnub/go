@@ -402,63 +402,6 @@ func xTestGroupSubscriptionPresence(t *testing.T) {
 		unsubscribeErrorChannel)
 }
 
-func createChannelGroups(pubnub *messaging.Pubnub, groups []string) {
-	successChannel := make(chan []byte, 1)
-	errorChannel := make(chan []byte, 1)
-
-	for _, group := range groups {
-		// fmt.Println("Creating group", group)
-
-		pubnub.ChannelGroupAddChannel(group, "adsf", successChannel, errorChannel)
-
-		select {
-		case <-successChannel:
-			// fmt.Println("Group created")
-		case <-errorChannel:
-			fmt.Println("Channel group creation error")
-		case <-timeout():
-			fmt.Println("Channel group creation timeout")
-		}
-	}
-}
-
-func populateChannelGroup(pubnub *messaging.Pubnub, group, channels string) {
-
-	successChannel := make(chan []byte, 1)
-	errorChannel := make(chan []byte, 1)
-
-	pubnub.ChannelGroupAddChannel(group, channels, successChannel, errorChannel)
-
-	select {
-	case <-successChannel:
-		// fmt.Println("Group created")
-	case <-errorChannel:
-		fmt.Println("Channel group creation error")
-	case <-timeout():
-		fmt.Println("Channel group creation timeout")
-	}
-}
-
-func removeChannelGroups(pubnub *messaging.Pubnub, groups []string) {
-	successChannel := make(chan []byte, 1)
-	errorChannel := make(chan []byte, 1)
-
-	for _, group := range groups {
-		// fmt.Println("Removing group", group)
-
-		pubnub.ChannelGroupRemoveGroup(group, successChannel, errorChannel)
-
-		select {
-		case <-successChannel:
-			// fmt.Println("Group removed")
-		case <-errorChannel:
-			fmt.Println("Channel group removal error")
-		case <-timeout():
-			fmt.Println("Channel group removal timeout")
-		}
-	}
-}
-
 // TestGroupSubscribeEnd prints a message on the screen to mark the end of
 // subscribe tests.
 // PrintTestMessage is defined in the common.go file.

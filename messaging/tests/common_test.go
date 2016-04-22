@@ -699,6 +699,63 @@ func LogErrors(errorsChannel <-chan []byte) {
 	fmt.Printf("ERROR: %s", <-errorsChannel)
 }
 
+func createChannelGroups(pubnub *messaging.Pubnub, groups []string) {
+	successChannel := make(chan []byte, 1)
+	errorChannel := make(chan []byte, 1)
+
+	for _, group := range groups {
+		// fmt.Println("Creating group", group)
+
+		pubnub.ChannelGroupAddChannel(group, "adsf", successChannel, errorChannel)
+
+		select {
+		case <-successChannel:
+			// fmt.Println("Group created")
+		case <-errorChannel:
+			fmt.Println("Channel group creation error")
+		case <-timeout():
+			fmt.Println("Channel group creation timeout")
+		}
+	}
+}
+
+func populateChannelGroup(pubnub *messaging.Pubnub, group, channels string) {
+
+	successChannel := make(chan []byte, 1)
+	errorChannel := make(chan []byte, 1)
+
+	pubnub.ChannelGroupAddChannel(group, channels, successChannel, errorChannel)
+
+	select {
+	case <-successChannel:
+		// fmt.Println("Group created")
+	case <-errorChannel:
+		fmt.Println("Channel group creation error")
+	case <-timeout():
+		fmt.Println("Channel group creation timeout")
+	}
+}
+
+func removeChannelGroups(pubnub *messaging.Pubnub, groups []string) {
+	successChannel := make(chan []byte, 1)
+	errorChannel := make(chan []byte, 1)
+
+	for _, group := range groups {
+		// fmt.Println("Removing group", group)
+
+		pubnub.ChannelGroupRemoveGroup(group, successChannel, errorChannel)
+
+		select {
+		case <-successChannel:
+			// fmt.Println("Group removed")
+		case <-errorChannel:
+			fmt.Println("Channel group removal error")
+		case <-timeout():
+			fmt.Println("Channel group removal timeout")
+		}
+	}
+}
+
 func sleep(seconds int) {
 	time.Sleep(time.Duration(seconds) * time.Second)
 }
