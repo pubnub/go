@@ -311,6 +311,10 @@ type Pubnub struct {
 type PubnubUnitTest struct {
 }
 
+// Set a default subscribe transport for subscribe request workers.
+// Will affect only on newly created Pubnub instances
+// To set transport for an already existing instance use instance method with
+// the same name
 func SetSubscribeTransport(transport http.RoundTripper) {
 	subscribeTransportMu.Lock()
 	defer subscribeTransportMu.Unlock()
@@ -318,6 +322,10 @@ func SetSubscribeTransport(transport http.RoundTripper) {
 	subscribeTransport = transport
 }
 
+// Set a default non-subscribe transport for non-subscribe request workers.
+// Will affect only on newly created Pubnub instances
+// To set transport for an already existing instance use instance method with
+// the same name
 func SetNonSubscribeTransport(transport http.RoundTripper) {
 	nonSubscribeTransportMu.Lock()
 	defer nonSubscribeTransportMu.Unlock()
@@ -625,18 +633,23 @@ func (pubtest *PubnubUnitTest) GetTimeToken(pub *Pubnub) string {
 	return pub.timeToken
 }
 
+// Set custom subscribe transport for a subscribe worker
 func (pub *Pubnub) SetSubscribeTransport(trans http.RoundTripper) {
 	pub.subscribeWorker.SetTransport(trans)
 }
 
+// Set custom non-subscribe transport for a subscribe worker
 func (pub *Pubnub) SetNonSubscribeTransport(trans http.RoundTripper) {
 	pub.nonSubscribeWorker.SetTransport(trans)
 }
 
+// Get a reference to the current subscribe transport used by a subscribe worker
 func (pub *Pubnub) GetSubscribeTransport() http.RoundTripper {
 	return pub.subscribeWorker.GetTransport()
 }
 
+// Get a reference to the current non-subscribe transport used by
+// a non-subscribe worker
 func (pub *Pubnub) GetNonSubscribeTransport() http.RoundTripper {
 	return pub.nonSubscribeWorker.GetTransport()
 }
