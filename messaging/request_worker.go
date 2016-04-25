@@ -150,6 +150,7 @@ func (w *requestWorker) Client() *http.Client {
 		}
 
 		transport.MaxIdleConnsPerHost = maxIdleConnsPerHost
+		w.Transport = transport
 	}
 
 	return &http.Client{
