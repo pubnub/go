@@ -47,7 +47,7 @@ type requestWorker struct {
 func newRequestWorker(name string, defaultTransport http.RoundTripper,
 	roundTripTimeout uint16) *requestWorker {
 
-	logInfof("%s initialized", name)
+	logInfof("%s worker initialized", name)
 	return &requestWorker{
 		Name:      fmt.Sprintf("%s Worker", name),
 		CancelChs: make(map[string]chan requestCanceledReason),
