@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"os"
 	"testing"
 
 	"github.com/pubnub/go/messaging"
@@ -9,7 +8,6 @@ import (
 )
 
 func TestErrorNetworkHistory(t *testing.T) {
-	messaging.SetLogOutput(os.Stderr)
 	assert := assert.New(t)
 
 	stop := NewAbortedTransport()
@@ -316,10 +314,10 @@ func TestErrorNetworkUnsubscribe(t *testing.T) {
 	stop, _ := NewVCRBoth(
 		"fixtures/unsubscribe/networkError", []string{"uuid"})
 	defer stop()
-	messaging.SetNonSubscribeTransport(abortedTransport)
 
 	channel := "Channel_UnsubscribeNetError"
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance.SetNonSubscribeTransport(abortedTransport)
 
 	subscribeSuccess := make(chan []byte)
 	subscribeError := make(chan []byte)
@@ -377,7 +375,8 @@ func TestNetworkErrorGroupUnsubscribe(t *testing.T) {
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
 
-	messaging.SetNonSubscribeTransport(abortedTransport)
+	saveTrans := pubnubInstance.GetNonSubscribeTransport()
+	pubnubInstance.SetNonSubscribeTransport(abortedTransport)
 
 	go pubnubInstance.ChannelGroupUnsubscribe(group, successGet, errorGet)
 	select {
@@ -399,5 +398,5 @@ func TestNetworkErrorGroupUnsubscribe(t *testing.T) {
 		assert.Fail("WhereNow timeout 5s")
 	}
 
-	messaging.SetNonSubscribeTransport(nil)
+	pubnubInstance.SetNonSubscribeTransport(saveTrans)
 }

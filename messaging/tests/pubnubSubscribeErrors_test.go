@@ -180,6 +180,7 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 // Any messages received since the previous timeout or network error are skipped
 func xTestResumeOnReconnectFalse(t *testing.T) {
 	messaging.SetResumeOnReconnect(false)
+	messaging.SetSubscribeTimeout(3)
 
 	r := GenRandom()
 	assert := assert.New(t)
@@ -190,8 +191,6 @@ func xTestResumeOnReconnectFalse(t *testing.T) {
 	errorChannel := make(chan []byte)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
-
-	messaging.SetSubscribeTimeout(3)
 
 	go pubnubInstance.Subscribe(pubnubChannel, "", successChannel, false, errorChannel)
 	for {
@@ -204,24 +203,23 @@ func xTestResumeOnReconnectFalse(t *testing.T) {
 				assert.Equal("0", newPubnubTest.GetSentTimeToken(pubnubInstance))
 			}
 			return
-		case <-messaging.Timeouts(60):
+		case <-messaging.Timeouts(20):
 			assert.Fail("Subscribe timeout")
 			return
 		}
 	}
 
-	messaging.SetSubscribeTimeout(310)
-
 	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	messaging.SetSubscribeTimeout(310)
 }
 
 // TestResumeOnReconnectTrue upon reconnect, it should use the last successfully retrieved timetoken.
 // This has the effect of continuing, or “catching up” to missed traffic.
 func TestResumeOnReconnectTrue(t *testing.T) {
 	messaging.SetResumeOnReconnect(true)
+	messaging.SetSubscribeTimeout(3)
 
 	r := GenRandom()
 	assert := assert.New(t)
@@ -232,8 +230,6 @@ func TestResumeOnReconnectTrue(t *testing.T) {
 	errorChannel := make(chan []byte)
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
-
-	messaging.SetSubscribeTimeout(3)
 
 	go pubnubInstance.Subscribe(pubnubChannel, "", successChannel, false, errorChannel)
 	for {
@@ -246,18 +242,16 @@ func TestResumeOnReconnectTrue(t *testing.T) {
 				assert.Equal(newPubnubTest.GetTimeToken(pubnubInstance), newPubnubTest.GetSentTimeToken(pubnubInstance))
 			}
 			return
-		case <-messaging.Timeouts(60):
+		case <-messaging.Timeouts(20):
 			assert.Fail("Subscribe timeout")
 			return
 		}
 	}
 
-	messaging.SetSubscribeTimeout(310)
-
 	go pubnubInstance.Unsubscribe(pubnubChannel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, pubnubChannel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
-	pubnubInstance.CloseExistingConnection()
+	messaging.SetSubscribeTimeout(310)
 }
 
 func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {

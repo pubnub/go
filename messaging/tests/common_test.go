@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -55,6 +54,9 @@ var timeoutMessage = "Test timed out."
 
 // testTimeout in seconds
 var testTimeout int = 30
+
+// testTimeout in seconds
+var connectionEventTimeout int = 20
 
 // prefix for presence channels
 var presenceSuffix string = "-pnpres"
@@ -408,7 +410,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 
 	select {
 	case <-channel:
-	case <-timeouts(20):
+	case <-timeouts(connectionEventTimeout):
 		assert.Fail(t, fmt.Sprintf(
 			"Timeout occured for %s event. Expected channels/groups: %s/%s. "+
 				"Received channels/groups: %s/%s\n",
@@ -442,7 +444,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 
 		select {
 		case <-channel:
-		case <-timeouts(20):
+		case <-timeouts(connectionEventTimeout):
 			assert.Fail(t, fmt.Sprintf(
 				"Timeout occured for %s event. Expected channels/groups: %s/%s. "+
 					"Received channels/groups: %s/%s\n",
@@ -535,10 +537,6 @@ func NewVCRSubscribe(name string, skipFields []string) func() {
 	s.UseMatcher(sMatcher)
 	messaging.SetSubscribeTransport(s.Transport)
 
-	sDial := genVcrDial()
-
-	s.Transport.Dial = sDial
-
 	return func() {
 		s.Stop()
 
@@ -558,10 +556,6 @@ func NewVCRBoth(name string, skipFields []string) (
 
 	ns, _ := recorder.New(fmt.Sprintf("%s_%s", name, "NonSubscribe"))
 	ns.UseMatcher(utils.NewPubnubMatcher(skipFields))
-
-	sDial := genVcrDial()
-
-	s.Transport.Dial = sDial
 
 	messaging.SetSubscribeTransport(s.Transport)
 	messaging.SetNonSubscribeTransport(ns.Transport)
@@ -601,33 +595,6 @@ func NewBadJSONTransport() func() {
 		messaging.SetNonSubscribeTransport(nil)
 		vcrMu.Unlock()
 	}
-}
-
-func genVcrDial() func(string, string) (net.Conn, error) {
-	// Same values both for subscribe and non-subscribe conns are ok for tests
-	const (
-		CONNECT_TIMEOUT   int = 5
-		SUBSCRIBE_TIMEOUT int = 200
-	)
-
-	dial := func(netw, addr string) (net.Conn, error) {
-		c, err := net.DialTimeout(netw, addr, time.Duration(CONNECT_TIMEOUT)*time.Second)
-		if err != nil {
-			return nil, err
-		}
-
-		deadline := time.Now().Add(time.Duration(SUBSCRIBE_TIMEOUT) * time.Second)
-
-		c.SetDeadline(deadline)
-
-		// fmt.Printf(">>> DIAL to %s/%s conn is %s\n", netw, addr, c)
-		messaging.SetSubscribeConn(c)
-		// fmt.Printf("^^^ DIAL conn is %s\n", c)
-
-		return c, nil
-	}
-
-	return dial
 }
 
 type BrokenConnectionTransport struct {
