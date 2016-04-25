@@ -827,7 +827,6 @@ func ReadLoop() {
 			fmt.Println(fmt.Sprintf("Presence Heartbeat Interval set to :%d", pub.GetPresenceHeartbeatInterval()))
 		case "24":
 			channel, errReadingChannel := askOneChannel()
-			uuid := askString("UUID", true)
 
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
@@ -835,29 +834,27 @@ func ReadLoop() {
 				key := askString("key", false)
 				val := askString("val", false)
 				fmt.Println("Setting User State")
-				go setUserState(channel, key, val, uuid)
+				go setUserState(channel, key, val)
 			}
 		case "25":
 			channel, errReadingChannel := askOneChannel()
-			uuid := askString("UUID", true)
 
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
 				key := askString("User state key to delete", false)
 				fmt.Println("Deleting User State")
-				go delUserState(channel, key, uuid)
+				go delUserState(channel, key)
 			}
 		case "26":
 			channel, errReadingChannel := askOneChannel()
-			uuid := askString("UUID", true)
 
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
 				jsonString := askString("User state JSON", false)
 				fmt.Println("Setting User State using JSON")
-				go setUserStateJSON(channel, jsonString, uuid)
+				go setUserStateJSON(channel, jsonString)
 			}
 		case "27":
 			channel, errReadingChannel := askOneChannel()
@@ -947,24 +944,24 @@ func getUserState(channel, uuid string) {
 	go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Get User State")
 }
 
-func setUserStateJSON(channel, jsonString, uuid string) {
+func setUserStateJSON(channel, jsonString string) {
 	var errorChannel = make(chan []byte)
 	var successChannel = make(chan []byte)
-	go pub.SetUserStateJSON(channel, jsonString, uuid, successChannel, errorChannel)
+	go pub.SetUserStateJSON(channel, jsonString, successChannel, errorChannel)
 	go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Set User State JSON")
 }
 
-func setUserState(channel, key, val, uuid string) {
+func setUserState(channel, key, val string) {
 	var errorChannel = make(chan []byte)
 	var successChannel = make(chan []byte)
-	go pub.SetUserStateKeyVal(channel, key, val, uuid, successChannel, errorChannel)
+	go pub.SetUserStateKeyVal(channel, key, val, successChannel, errorChannel)
 	go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Set User State")
 }
 
-func delUserState(channel, key, uuid string) {
+func delUserState(channel, key string) {
 	var errorChannel = make(chan []byte)
 	var successChannel = make(chan []byte)
-	go pub.SetUserStateKeyVal(channel, key, "", uuid, successChannel, errorChannel)
+	go pub.SetUserStateKeyVal(channel, key, "", successChannel, errorChannel)
 	go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Del User State")
 }
 

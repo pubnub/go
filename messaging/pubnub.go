@@ -3331,12 +3331,11 @@ func (pub *Pubnub) executeGetUserState(channel, uuid string,
 // channel: a single value of the pubnub channel.
 // key: user states key
 // value: user stated value
-// uuid: uuid of user to get state on or an empty string.
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) SetUserStateKeyVal(channel, key, val, uuid string,
+func (pub *Pubnub) SetUserStateKeyVal(channel, key, val string,
 	callbackChannel, errorChannel chan []byte) {
 
 	checkCallbackNil(callbackChannel, false, "SetUserState")
@@ -3380,7 +3379,7 @@ func (pub *Pubnub) SetUserStateKeyVal(channel, key, val, uuid string,
 		stateJSON = "{}"
 	}
 
-	pub.executeSetUserState(channel, stateJSON, uuid, callbackChannel, errorChannel, 0)
+	pub.executeSetUserState(channel, stateJSON, callbackChannel, errorChannel, 0)
 }
 
 // SetUserStateJSON is the struct Pubnub's instance method which creates and posts the User state
@@ -3389,12 +3388,11 @@ func (pub *Pubnub) SetUserStateKeyVal(channel, key, val, uuid string,
 // It accepts the following parameters:
 // channel: a single value of the pubnub channel.
 // jsonString: the user state in JSON format. If invalid an error will be thrown
-// uuid: uuid of user to get state on or an empty string.
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) SetUserStateJSON(channel, jsonString, uuid string,
+func (pub *Pubnub) SetUserStateJSON(channel, jsonString string,
 	callbackChannel, errorChannel chan []byte) {
 
 	checkCallbackNil(callbackChannel, false, "SetUserState")
@@ -3412,7 +3410,7 @@ func (pub *Pubnub) SetUserStateJSON(channel, jsonString, uuid string,
 		pub.userState = make(map[string]map[string]interface{})
 	}
 	pub.userState[channel] = s.(map[string]interface{})
-	pub.executeSetUserState(channel, jsonString, uuid, callbackChannel, errorChannel, 0)
+	pub.executeSetUserState(channel, jsonString, callbackChannel, errorChannel, 0)
 }
 
 // executeSetUserState  is the struct Pubnub's instance method that creates a user state request and sends back the
@@ -3423,18 +3421,15 @@ func (pub *Pubnub) SetUserStateJSON(channel, jsonString, uuid string,
 //
 // channel: a single value of the pubnub channel.
 // jsonString: the user state in JSON format.
-// uuid: uuid of user to get state on or an empty string.
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
-func (pub *Pubnub) executeSetUserState(channel, jsonState, uuid string,
+func (pub *Pubnub) executeSetUserState(channel, jsonState string,
 	callbackChannel, errorChannel chan []byte, retryCount int) {
 
 	count := retryCount
 
-	if uuid == "" {
-		uuid = pub.GetUUID()
-	}
+	uuid := pub.GetUUID()
 
 	var userStateURL bytes.Buffer
 	userStateURL.WriteString("/v2/presence")
@@ -3467,7 +3462,7 @@ func (pub *Pubnub) executeSetUserState(channel, jsonState, uuid string,
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
-				pub.executeSetUserState(channel, jsonState, uuid, callbackChannel,
+				pub.executeSetUserState(channel, jsonState, callbackChannel,
 					errorChannel, count)
 			}
 		} else {

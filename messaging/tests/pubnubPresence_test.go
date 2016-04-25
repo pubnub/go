@@ -300,7 +300,7 @@ func TestSetGetUserState(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-	go pubnubInstance.SetUserStateKeyVal(channel, key, val, uuid, successSet, errorSet)
+	go pubnubInstance.SetUserStateKeyVal(channel, key, val, successSet, errorSet)
 	select {
 	case value := <-successSet:
 		actual := string(value)
@@ -358,7 +358,7 @@ func TestSetUserStateHereNow(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-	go pubnubInstance.SetUserStateKeyVal(channel, key, val, "", successSet, errorSet)
+	go pubnubInstance.SetUserStateKeyVal(channel, key, val, successSet, errorSet)
 	select {
 	case value := <-successSet:
 		actual := string(value)
@@ -417,7 +417,7 @@ func TestSetUserStateGlobalHereNow(t *testing.T) {
 	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
 	ExpectConnectedEvent(t, channel, "", successChannel, errorChannel)
 
-	go pubnubInstance.SetUserStateKeyVal(channel, key, val, "", successSet, errorSet)
+	go pubnubInstance.SetUserStateKeyVal(channel, key, val, successSet, errorSet)
 	select {
 	case value := <-successSet:
 		actual := string(value)
@@ -471,7 +471,7 @@ func TestSetUserStateJSON(t *testing.T) {
 
 	jsonString := fmt.Sprintf("{\"%s\": \"%s\",\"%s\": \"%s\"}", key1, val1, key2, val2)
 
-	go pubnubInstance.SetUserStateJSON(channel, jsonString, "", successSet, errorSet)
+	go pubnubInstance.SetUserStateJSON(channel, jsonString, successSet, errorSet)
 	select {
 	case value := <-successSet:
 		actual := string(value)
@@ -485,7 +485,7 @@ func TestSetUserStateJSON(t *testing.T) {
 
 	sleep(PresenceServerTimeoutLower)
 
-	go pubnubInstance.SetUserStateKeyVal(channel, key2, "", "", successSet, errorSet)
+	go pubnubInstance.SetUserStateKeyVal(channel, key2, "", successSet, errorSet)
 	select {
 	case value := <-successSet:
 		actual := string(value)
