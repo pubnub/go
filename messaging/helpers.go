@@ -75,3 +75,37 @@ func addPnpresToString(items string) string {
 func removePnpres(initial string) string {
 	return strings.TrimSuffix(initial, presenceSuffix)
 }
+
+// Check does passed in string contain at least one non preesnce name
+func hasNonPresenceChannels(channelsString string) bool {
+	channels := strings.Split(channelsString, ",")
+
+	for _, channel := range channels {
+		if !strings.HasSuffix(channel, presenceSuffix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func logErrorf(format string, v ...interface{}) {
+	logMu.Lock()
+	defer logMu.Unlock()
+
+	errorLogger.Output(2, fmt.Sprintf(format, v...))
+}
+
+func logInfof(format string, v ...interface{}) {
+	logMu.Lock()
+	defer logMu.Unlock()
+
+	infoLogger.Output(2, fmt.Sprintf(format, v...))
+}
+
+func logInfoln(v ...interface{}) {
+	logMu.Lock()
+	defer logMu.Unlock()
+
+	infoLogger.Output(2, fmt.Sprintln(v...))
+}

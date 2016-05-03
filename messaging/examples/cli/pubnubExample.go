@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"encoding/binary"
 	"fmt"
-	"github.com/pubnub/go/messaging"
 	"math/big"
 	"os"
 	"strconv"
@@ -14,6 +13,8 @@ import (
 	"time"
 	"unicode/utf16"
 	"unicode/utf8"
+
+	"github.com/pubnub/go/messaging"
 )
 
 // connectChannels: the conected pubnub channels, multiple channels are stored separated by comma.
@@ -826,6 +827,7 @@ func ReadLoop() {
 			fmt.Println(fmt.Sprintf("Presence Heartbeat Interval set to :%d", pub.GetPresenceHeartbeatInterval()))
 		case "24":
 			channel, errReadingChannel := askOneChannel()
+
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
@@ -836,6 +838,7 @@ func ReadLoop() {
 			}
 		case "25":
 			channel, errReadingChannel := askOneChannel()
+
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
@@ -855,11 +858,13 @@ func ReadLoop() {
 			}
 		case "27":
 			channel, errReadingChannel := askOneChannel()
+			uuid := askString("UUID", true)
+
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
 				fmt.Println("Running Get User State")
-				go getUserState(channel)
+				go getUserState(channel, uuid)
 			}
 		case "28":
 			uuid := askString("uuid", true)
@@ -932,28 +937,28 @@ func ReadLoop() {
 	}
 }
 
-func getUserState(channel string) {
+func getUserState(channel, uuid string) {
 	var errorChannel = make(chan []byte)
 	var successChannel = make(chan []byte)
-	go pub.GetUserState(channel, successChannel, errorChannel)
+	go pub.GetUserState(channel, uuid, successChannel, errorChannel)
 	go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Get User State")
 }
 
-func setUserStateJSON(channel string, jsonString string) {
+func setUserStateJSON(channel, jsonString string) {
 	var errorChannel = make(chan []byte)
 	var successChannel = make(chan []byte)
 	go pub.SetUserStateJSON(channel, jsonString, successChannel, errorChannel)
 	go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Set User State JSON")
 }
 
-func setUserState(channel string, key string, val string) {
+func setUserState(channel, key, val string) {
 	var errorChannel = make(chan []byte)
 	var successChannel = make(chan []byte)
 	go pub.SetUserStateKeyVal(channel, key, val, successChannel, errorChannel)
 	go handleResult(successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Set User State")
 }
 
-func delUserState(channel string, key string) {
+func delUserState(channel, key string) {
 	var errorChannel = make(chan []byte)
 	var successChannel = make(chan []byte)
 	go pub.SetUserStateKeyVal(channel, key, "", successChannel, errorChannel)
@@ -1186,7 +1191,7 @@ func detailedHistoryRoutine(channels string) {
 		channel := make(chan []byte)
 
 		//go _pub.History(ch, 100, 13662867154115803, 13662867243518473, false, channel)
-		go pub.History(ch, 100, 0, 0, false, channel, errorChannel)
+		go pub.History(ch, 100, 0, 0, false, false, channel, errorChannel)
 		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Detailed History")
 	}
 }
@@ -1219,7 +1224,7 @@ func hereNowRoutine(channels string, showUuid bool, includeUserState bool) {
 		ch := strings.TrimSpace(channelArray[i])
 		fmt.Println("HereNow for channel: ", ch)
 
-		go pub.HereNow(ch, showUuid, includeUserState, channel, errorChannel)
+		go pub.HereNow(ch, "", showUuid, includeUserState, channel, errorChannel)
 		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "HereNow")
 	}
 }

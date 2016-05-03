@@ -48,7 +48,7 @@ func TestCustomUuid(t *testing.T) {
 
 	sleep(PresenceServerTimeoutHighter)
 
-	go pubnubInstance.HereNow(channel, true, true, successGet, errorGet)
+	go pubnubInstance.HereNow(channel, "", true, true, successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Contains(string(value), uuid)
@@ -159,11 +159,12 @@ func Test0Presence(t *testing.T) {
 
 	go pubnubInstance.Subscribe(channel, "", successSubscribe, false, errorSubscribe)
 	ExpectConnectedEvent(t, channel, "", successSubscribe, errorSubscribe)
+
 	go func() {
 		select {
 		case <-successSubscribe:
 		case err := <-errorSubscribe:
-			if !strings.Contains(string(err), "aborted") {
+			if !strings.Contains(string(err), "EOF") {
 				assert.Fail("Error in subscribe dummy loop", string(err))
 			}
 		}
@@ -175,7 +176,7 @@ func Test0Presence(t *testing.T) {
 		select {
 		case <-successPresence:
 		case err := <-errorPresence:
-			if !strings.Contains(string(err), "aborted") {
+			if !strings.Contains(string(err), "EOF") {
 				assert.Fail("Error in presence dummy loop", string(err))
 			}
 		}
@@ -228,8 +229,6 @@ func TestWhereNow(t *testing.T) {
 
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
-
-	// pubnubInstance.CloseExistingConnection()
 }
 
 // TestGlobalHereNow subscribes to a pubnub channel and then
@@ -316,7 +315,7 @@ func TestSetGetUserState(t *testing.T) {
 
 	sleep(PresenceServerTimeoutLower)
 
-	go pubnubInstance.GetUserState(channel, successGet, errorGet)
+	go pubnubInstance.GetUserState(channel, uuid, successGet, errorGet)
 	select {
 	case value := <-successGet:
 		actual := string(value)
@@ -374,7 +373,7 @@ func TestSetUserStateHereNow(t *testing.T) {
 
 	sleep(PresenceServerTimeoutLower)
 
-	go pubnubInstance.HereNow(channel, true, true, successGet, errorGet)
+	go pubnubInstance.HereNow(channel, "", true, true, successGet, errorGet)
 	select {
 	case value := <-successGet:
 		actual := string(value)

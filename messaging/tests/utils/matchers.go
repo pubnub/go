@@ -168,6 +168,10 @@ func matchSubscribePath(expected, actual string) bool {
 }
 
 func matchQuery(eQuery, aQuery url.Values, ignore, mixed []string) bool {
+	if len(eQuery) != len(aQuery) {
+		return false
+	}
+
 	for fKey, _ := range eQuery {
 		if hasKey(fKey, ignore) {
 			continue

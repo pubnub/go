@@ -47,14 +47,14 @@ func (e connectionEvent) Bytes() []byte {
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Channel),
-			removePnpres(e.Channel), stringConnectionAction(e.Action),
+			removePnpres(e.Channel), e.Action,
 			removePnpres(e.Channel)))
 
 	case channelGroupResponse:
 		return []byte(fmt.Sprintf(
 			"[1, \"%s channel group '%s' %sed\", \"%s\"]",
 			stringPresenceOrSubscribe(e.Source),
-			removePnpres(e.Source), stringConnectionAction(e.Action),
+			removePnpres(e.Source), e.Action,
 			strings.Replace(e.Source, presenceSuffix, "", -1)))
 
 	default:
@@ -105,8 +105,15 @@ func (e *subscriptionEntity) AddConnected(name string,
 func (e *subscriptionEntity) add(name string, connected bool,
 	successChannel chan<- []byte, errorChannel chan<- []byte) {
 
+	logInfof("ITEMS: Adding item '%s', connected: %t", name, connected)
+
 	e.Lock()
 	defer e.Unlock()
+
+	if _, ok := e.items[name]; ok {
+		logInfof("ITEMS: Item '%s' is not added since it's already exists", name)
+		return
+	}
 
 	item := &subscriptionItem{
 		Name:           name,
@@ -119,6 +126,8 @@ func (e *subscriptionEntity) add(name string, connected bool,
 }
 
 func (e *subscriptionEntity) Remove(name string) bool {
+	logInfof("ITEMS: Removing item '%s'", name)
+
 	e.Lock()
 	defer e.Unlock()
 
@@ -171,7 +180,7 @@ func (e *subscriptionEntity) Names() []string {
 	e.RLock()
 	defer e.RUnlock()
 
-	var names []string
+	var names = []string{}
 
 	for k, _ := range e.items {
 		names = append(names, k)
@@ -203,7 +212,7 @@ func (e *subscriptionEntity) ConnectedNames() []string {
 	e.RLock()
 	defer e.RUnlock()
 
-	var names []string
+	var names = []string{}
 
 	for k, item := range e.items {
 		if item.Connected {
@@ -228,6 +237,8 @@ func (e *subscriptionEntity) Clear() {
 }
 
 func (e *subscriptionEntity) Abort() {
+	logInfoln("ITEMS: Aborting")
+
 	e.Lock()
 	defer e.Unlock()
 
@@ -235,15 +246,20 @@ func (e *subscriptionEntity) Abort() {
 }
 
 func (e *subscriptionEntity) ApplyAbort() {
-	e.Lock()
-	defer e.Unlock()
+	logInfoln("ITEMS: Applying abort")
 
-	if e.abortedMarker == true {
+	e.Lock()
+	abortedMarker := e.abortedMarker
+	e.Unlock()
+
+	if abortedMarker == true {
 		e.Clear()
 	}
 }
 
 func (e *subscriptionEntity) ResetConnected() {
+	logInfoln("ITEMS: Resetting connected flag")
+
 	e.Lock()
 	defer e.Unlock()
 
@@ -253,6 +269,9 @@ func (e *subscriptionEntity) ResetConnected() {
 }
 
 func (e *subscriptionEntity) SetConnected() (changedItemNames []string) {
+	logInfof("ITEMS: Setting items '%s' as connected",
+		strings.Join(changedItemNames, ","))
+
 	e.Lock()
 	defer e.Unlock()
 
@@ -265,7 +284,7 @@ func (e *subscriptionEntity) SetConnected() (changedItemNames []string) {
 	return changedItemNames
 }
 
-func createSubscriptionChannels() (chan []byte, chan []byte) {
+func CreateSubscriptionChannels() (chan []byte, chan []byte) {
 
 	successResponse := make(chan []byte)
 	errorResponse := make(chan []byte)

@@ -54,24 +54,24 @@ func (e errorResponse) StringForSource(source string) string {
 		if e.DetailedMessage != "" {
 			return fmt.Sprintf("[0, \"%s %s '%s' %s\", %s, \"%s\"]",
 				stringPresenceOrSubscribe(source),
-				stringResponseType(e.Type),
+				e.Type,
 				source,
-				stringResponseReason(e.Reason),
+				e.Reason,
 				e.DetailedMessage,
 				source)
 		} else {
 			return fmt.Sprintf("[0, \"%s %s '%s' %s\", \"%s\"]",
 				stringPresenceOrSubscribe(source),
-				stringResponseType(e.Type),
+				e.Type,
 				source,
-				stringResponseReason(e.Reason),
+				e.Reason,
 				source)
 		}
 	case responseTimedOut:
 		return fmt.Sprintf("[0, \"%s %s %s\", \"%s\"]",
 			stringPresenceOrSubscribe(source),
-			stringResponseType(e.Type),
-			stringResponseReason(e.Reason),
+			e.Type,
+			e.Reason,
 			source)
 	case responseAsIsError:
 		fallthrough
@@ -81,9 +81,5 @@ func (e errorResponse) StringForSource(source string) string {
 }
 
 func (e errorResponse) BytesForSource(source string) []byte {
-	return []byte(e.StringForSource(source))
-}
-
-func (e errorResponse) Bytes(source string) []byte {
 	return []byte(e.StringForSource(source))
 }

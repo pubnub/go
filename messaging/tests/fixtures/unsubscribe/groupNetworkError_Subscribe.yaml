@@ -9,10 +9,10 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.1
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateHereNow/0/0?uuid=UUID_SetUserStateHereNow&pnsdk=PubNub-Go%2F3.7.1
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/0?channel-group=Channel_GroupUnsubscribeNetError&uuid=ed80209240a2c5b38037801644ec1c42&pnsdk=PubNub-Go%2F3.7.1
     method: GET
   response:
-    body: '[[],"14615710361330684"]'
+    body: '[[],"14606269433069896"]'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -27,9 +27,9 @@ interactions:
       Content-Type:
       - text/javascript; charset="UTF-8"
       Date:
-      - Mon, 25 Apr 2016 07:57:16 GMT
+      - Thu, 14 Apr 2016 09:42:23 GMT
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateHereNow/0/14615710361330684?uuid=UUID_SetUserStateHereNow&state=%7B%22Channel_SetUserStateHereNow%22%3A%7B%22testkey%22%3A%22testval%22%7D%7D&pnsdk=PubNub-Go%2F3.7.1
+  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/14606269433069896?channel-group=Channel_GroupUnsubscribeNetError&uuid=ed80209240a2c5b38037801644ec1c42&pnsdk=PubNub-Go%2F3.7.1
   : {}

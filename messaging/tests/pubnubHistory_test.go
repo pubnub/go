@@ -62,7 +62,8 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 
-	go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, successChannel, errorChannel)
+	go pubnubInstance.History(channel, numberOfMessages, 0, 0, false, false,
+		successChannel, errorChannel)
 	select {
 	case value := <-successChannel:
 		data, _, _, err := messaging.ParseJSON(value, cipherKey)
@@ -147,7 +148,7 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 	errorChannel := make(chan []byte)
 
 	go pubnubInstance.History(channel, numberOfMessages, startTime, midTime,
-		false, successChannel, errorChannel)
+		false, false, successChannel, errorChannel)
 	select {
 	case value := <-successChannel:
 		data, _, _, err := messaging.ParseJSON(value, cipherKey)
@@ -181,7 +182,7 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 	assert.True(messagesSent2, "Error while sending a second bunch of messages")
 
 	go pubnubInstance.History(channel, numberOfMessages, midTime, endTime, false,
-		successChannel, errorChannel)
+		false, successChannel, errorChannel)
 	select {
 	case value := <-successChannel:
 		data, _, _, err := messaging.ParseJSON(value, cipherKey)
@@ -258,6 +259,53 @@ func PublishMessages(pubnubInstance *messaging.Pubnub, channel string,
 	messaging.SetNonSubscribeTimeout(tOut)
 
 	return false
+}
+
+func TestHistoryWithTimetoken(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, sleep := NewVCRNonSubscribe(fmt.Sprintf(
+		"fixtures/history/withTimetoken"), []string{})
+	defer stop()
+
+	count := 10
+	uuid := "UUID_HistoryWithTT"
+	channel := "Channel_HistoryWithTT"
+	message := "Test TT Message "
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+
+	PublishMessages(pubnub, channel, t, 0, count, message, sleep)
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnub.History(channel, count, 0, 0, false, true, successChannel, errorChannel)
+	select {
+	case value := <-successChannel:
+		data, _, _, err := messaging.ParseJSON(value, "")
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		var arr []map[string]interface{}
+		err = json.Unmarshal([]byte(data), &arr)
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		messagesReceived := 0
+
+		assert.Len(arr, count)
+
+		for i := 0; i < len(arr); i++ {
+			if len(arr[i]["message"].(string)) > 0 && arr[i]["timetoken"].(float64) > 0 {
+				messagesReceived++
+			}
+		}
+
+		assert.Equal(count, messagesReceived)
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	}
 }
 
 // TestDetailedHistoryEnd prints a message on the screen to mark the end of
