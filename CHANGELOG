@@ -17,6 +17,7 @@ FEATURES
 BREAKING CHANGES
 - Add history 'include_token' param
 - Add uuid param to state getter
+- Add channelGroup param to HereNow method
 - Channel group's add and remove methods errors channel now emits a single error
   with a group as entity, instead of multiple errors with all passed-in channels
   as entity
