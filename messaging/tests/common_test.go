@@ -597,6 +597,16 @@ func NewBadJSONTransport() func() {
 	}
 }
 
+func NewHangingTransport() func() {
+	vcrMu.Lock()
+	messaging.SetNonSubscribeTransport(hangingTransport)
+
+	return func() {
+		messaging.SetNonSubscribeTransport(nil)
+		vcrMu.Unlock()
+	}
+}
+
 type BrokenConnectionTransport struct {
 	Message   string
 	PnMessage string
@@ -634,6 +644,22 @@ func (t *BadJSONTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 }
 
 var badJSONTransport = &BadJSONTransport{}
+
+type HangingTransport struct {
+	Message     string
+	PnMessage   string
+	HangTimeout int
+}
+
+func (t *HangingTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	trans := &http.Transport{}
+	time.Sleep(time.Duration(t.HangTimeout) * time.Second)
+	return trans.RoundTrip(r)
+}
+
+var hangingTransport = &HangingTransport{
+	HangTimeout: 3,
+}
 
 func GetServerTimeString(uuid string) string {
 	successChannel := make(chan []byte)
