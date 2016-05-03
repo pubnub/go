@@ -1,4 +1,4 @@
-04-25-16 3.8.0
+05-03-16 3.8.0
 
 NETWORKING BEHAVIOUR CHANGED
 - Add request workers for different request types. Each Pubnub instance has
