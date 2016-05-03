@@ -1224,7 +1224,7 @@ func hereNowRoutine(channels string, showUuid bool, includeUserState bool) {
 		ch := strings.TrimSpace(channelArray[i])
 		fmt.Println("HereNow for channel: ", ch)
 
-		go pub.HereNow(ch, showUuid, includeUserState, channel, errorChannel)
+		go pub.HereNow(ch, "", showUuid, includeUserState, channel, errorChannel)
 		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "HereNow")
 	}
 }

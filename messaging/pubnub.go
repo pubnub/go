@@ -3183,16 +3183,19 @@ func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, ca
 // request to get the connected users details.
 //
 // It accepts the following parameters:
-// channel: a single value of the pubnub channel.
+// channel: a single channel or a channels list.
+// channelGroup group: a single channel group or a channel groups list.
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) HereNow(channel string, showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) HereNow(channel, channelGroup string,
+	showUuid, includeUserState bool, callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "HereNow")
 	checkCallbackNil(errorChannel, true, "HereNow")
 
-	pub.executeHereNow(channel, showUuid, includeUserState, callbackChannel, errorChannel, 0)
+	pub.executeHereNow(channel, channelGroup, showUuid, includeUserState, callbackChannel, errorChannel, 0)
 }
 
 // executeHereNow  is the struct Pubnub's instance method that creates a time request and sends back the
@@ -3204,7 +3207,8 @@ func (pub *Pubnub) HereNow(channel string, showUuid bool, includeUserState bool,
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
-func (pub *Pubnub) executeHereNow(channel string, showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
+func (pub *Pubnub) executeHereNow(channel, channelGroup string, showUuid,
+	includeUserState bool, callbackChannel, errorChannel chan []byte, retryCount int) {
 	count := retryCount
 
 	if invalidChannel(channel, callbackChannel) {
@@ -3233,6 +3237,12 @@ func (pub *Pubnub) executeHereNow(channel string, showUuid bool, includeUserStat
 	hereNowURL.WriteString(params.String())
 
 	hereNowURL.WriteString(pub.addAuthParam(true))
+
+	if len(channelGroup) > 0 {
+		hereNowURL.WriteString("&channel-group=")
+		hereNowURL.WriteString(url.QueryEscape(channelGroup))
+	}
+
 	hereNowURL.WriteString("&")
 	hereNowURL.WriteString(sdkIdentificationParam)
 	hereNowURL.WriteString("&uuid=")
@@ -3250,7 +3260,8 @@ func (pub *Pubnub) executeHereNow(channel string, showUuid bool, includeUserStat
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
-				pub.executeHereNow(channel, showUuid, includeUserState, callbackChannel, errorChannel, count)
+				pub.executeHereNow(channel, channelGroup, showUuid, includeUserState,
+					callbackChannel, errorChannel, count)
 			}
 		} else {
 			callbackChannel <- value

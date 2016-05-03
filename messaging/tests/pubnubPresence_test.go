@@ -48,7 +48,7 @@ func TestCustomUuid(t *testing.T) {
 
 	sleep(PresenceServerTimeoutHighter)
 
-	go pubnubInstance.HereNow(channel, true, true, successGet, errorGet)
+	go pubnubInstance.HereNow(channel, "", true, true, successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Contains(string(value), uuid)
@@ -373,7 +373,7 @@ func TestSetUserStateHereNow(t *testing.T) {
 
 	sleep(PresenceServerTimeoutLower)
 
-	go pubnubInstance.HereNow(channel, true, true, successGet, errorGet)
+	go pubnubInstance.HereNow(channel, "", true, true, successGet, errorGet)
 	select {
 	case value := <-successGet:
 		actual := string(value)

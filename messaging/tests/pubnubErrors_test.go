@@ -190,7 +190,7 @@ func TestErrorNetworkHereNow(t *testing.T) {
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
-	go pubnubInstance.HereNow("ch", true, false, successGet, errorGet)
+	go pubnubInstance.HereNow("ch", "", true, false, successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Fail("Success response while expecting error", string(value))
@@ -211,7 +211,7 @@ func TestErrorJSONHereNow(t *testing.T) {
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
-	go pubnubInstance.HereNow("ch", true, false, successGet, errorGet)
+	go pubnubInstance.HereNow("ch", "", true, false, successGet, errorGet)
 	select {
 	case value := <-successGet:
 		assert.Fail("Success response while expecting error", string(value))
