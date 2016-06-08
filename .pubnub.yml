@@ -1,0 +1,4 @@
+name: go
+features:
+  publish:
+   - STORE-FLAG
