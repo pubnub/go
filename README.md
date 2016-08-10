@@ -1,4 +1,4 @@
-#PubNub 3.8.0 client for Go
+#PubNub 3.9.0 client for Go
 * Go (1.2, 1.3, 1.4, 1.5, 1.6)
 * Google App Engine (1.9.28 - 2015-10-29)
 * Managed VMs (Google Cloud SDK 0.9.70)
@@ -8,7 +8,7 @@
 
 ## Contact support@pubnub.com for all questions
 
-##PubNub 3.8.0 Go based APIs
+##PubNub 3.9.0 Go based APIs
 Learn more at http://www.pubnub.com
 
 ## Available in this repository
@@ -21,7 +21,7 @@ Learn more at http://www.pubnub.com
 
 ### For Non Google App Engine
 
-* [PubNub SDK for GO](messaging) (3.8)
+* [PubNub SDK for GO](messaging) (3.9)
  * [Example](messaging/example)
 
 ## Contact support@pubnub.com for all questions
