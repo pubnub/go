@@ -80,16 +80,16 @@ func Init() (b bool) {
 		connectChannels = string(line)
 		if strings.TrimSpace(connectChannels) != "" {
 			fmt.Println("Channel: ", connectChannels)
-			fmt.Println("Enable SSL? Enter y for Yes, n for No.")
+			fmt.Println("Enable SSL? Enter n for No, y for Yes")
 			var enableSsl string
 			fmt.Scanln(&enableSsl)
 
-			if enableSsl == "y" || enableSsl == "Y" {
-				ssl = true
-				fmt.Println("SSL enabled")
-			} else {
+			if enableSsl == "n" || enableSsl == "N" {
 				ssl = false
 				fmt.Println("SSL disabled")
+			} else {
+				ssl = true
+				fmt.Println("SSL enabled")
 			}
 
 			fmt.Println("Please enter a subscribe key, leave blank for default key.")

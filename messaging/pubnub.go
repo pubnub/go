@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.8.0
-// Build Date: May 03, 2016
+// Version: 3.9.0
+// Build Date: Aug 04, 2016
 package messaging
 
 import (
@@ -29,8 +29,8 @@ import (
 )
 
 const (
-	SDK_VERSION = "3.8.0"
-	SDK_DATE    = "May 03, 2016;"
+	SDK_VERSION = "3.9.0"
+	SDK_DATE    = "Aug 04, 2016"
 )
 
 type responseStatus int
@@ -287,6 +287,7 @@ type Pubnub struct {
 	timeToken         string
 	sentTimeToken     string
 	resetTimeToken    bool
+	publishCounter    uint64
 
 	channels subscriptionEntity
 	groups   subscriptionEntity
@@ -296,6 +297,7 @@ type Pubnub struct {
 	isPresenceHeartbeatRunning bool
 	sync.RWMutex
 
+	publishCounterMu     sync.Mutex
 	subscribeSleeperMu   sync.Mutex
 	retrySleeperMu       sync.Mutex
 	subscribeAsleep      bool
@@ -307,6 +309,7 @@ type Pubnub struct {
 	requestCloser        chan struct{}
 	requestCloserMu      sync.RWMutex
 	currentSubscribeReq  *http.Request
+	filterExpression     string
 
 	// TODO: expose setters
 	subscribeWorker         *requestWorker
@@ -372,6 +375,7 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.resetTimeToken = true
 	newPubnub.timeToken = "0"
 	newPubnub.sentTimeToken = "0"
+
 	newPubnub.channels = *newSubscriptionEntity()
 	newPubnub.groups = *newSubscriptionEntity()
 
@@ -388,6 +392,7 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	logMu.Unlock()
 	//Generate the uuid is custmUuid is not provided
 	newPubnub.SetUUID(customUuid)
+	newPubnub.publishCounter = 0
 	newPubnub.subscribeSleeper = make(chan struct{})
 	newPubnub.retrySleeper = make(chan struct{})
 	newPubnub.shouldSubscribeSleep = true
@@ -521,6 +526,24 @@ func (pub *Pubnub) SetUUID(val string) {
 // GetUUID returns the value of UUID
 func (pub *Pubnub) GetUUID() string {
 	return pub.uuid
+}
+
+// FilterExpression gets the value of the set filter expression
+func (pub *Pubnub) FilterExpression() string {
+	return pub.filterExpression
+}
+
+// SetFilterExpression sets the value of the filter expression
+func (pub *Pubnub) SetFilterExpression(val string) {
+	pub.filterExpression = val
+	pub.CloseExistingConnection()
+}
+
+// ResetCounter resets the publish counter
+func (pub *Pubnub) ResetPublishCounter() {
+	pub.publishCounterMu.Lock()
+	pub.publishCounter = 0
+	pub.publishCounterMu.Unlock()
 }
 
 // SetPresenceHeartbeat sets the value of presence heartbeat.
@@ -1170,7 +1193,7 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 // callbackChannel: Channel on which to send the response.
 // errorChannel on which the error response is sent.
 func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
-	storeInHistory bool, jsonBytes []byte,
+	storeInHistory bool, jsonBytes, metaBytes []byte,
 	callbackChannel, errorChannel chan []byte) {
 
 	u := &url.URL{Path: string(jsonBytes)}
@@ -1185,6 +1208,24 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 
 	if storeInHistory == false {
 		publishURL = fmt.Sprintf("%s&storeInHistory=0", publishURL)
+	}
+
+	pub.publishCounterMu.Lock()
+	pub.publishCounter++
+	counter := strconv.FormatUint(pub.publishCounter, 10)
+	pub.publishCounterMu.Unlock()
+
+	logMu.Lock()
+	infoLogger.Println(fmt.Sprintf("Publish counter: %s", counter))
+	logMu.Unlock()
+
+	publishURL = fmt.Sprintf("%s&seqn=%s", publishURL, counter)
+
+	if metaBytes != nil {
+		metaEncoded := &url.URL{Path: string(metaBytes)}
+		metaEncodedPath := metaEncoded.String()
+
+		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
 	}
 
 	value, responseCode, err := pub.httpRequest(publishURL, nonSubscribeTrans)
@@ -1323,8 +1364,7 @@ func invalidChannel(channel string, c chan<- []byte) bool {
 func (pub *Pubnub) Publish(channel string, message interface{},
 	callbackChannel, errorChannel chan []byte) {
 
-	pub.PublishExtended(channel, message, true, false, callbackChannel,
-		errorChannel)
+	pub.PublishExtendedWithMeta(channel, message, nil, true, false, callbackChannel, errorChannel)
 }
 
 // Publish is the struct Pubnub's instance method that creates a publish request and calls
@@ -1350,10 +1390,37 @@ func (pub *Pubnub) Publish(channel string, message interface{},
 func (pub *Pubnub) PublishExtended(channel string, message interface{},
 	storeInHistory, doNotSerialize bool,
 	callbackChannel, errorChannel chan []byte) {
+	pub.PublishExtendedWithMeta(channel, message, nil, storeInHistory, doNotSerialize, callbackChannel, errorChannel)
+}
+
+// Publish is the struct Pubnub's instance method that creates a publish request and calls
+// SendPublishRequest to post the request.
+//
+// It calls the InvalidChannel and InvalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// storeInHistory: Message will be persisted in Storage & Playback db
+// doNotSerialize: Set this option to true if you use your own serializer. In
+// this case passed-in message should be a string or []byte
+// meta: meta data for message filtering
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+func (pub *Pubnub) PublishExtendedWithMeta(channel string, message, meta interface{},
+	storeInHistory, doNotSerialize bool,
+	callbackChannel, errorChannel chan []byte) {
 
 	var publishURLBuffer bytes.Buffer
-	var err error
-	var jsonSerialized []byte
+	var err, errMeta error
+	var jsonSerialized, jsonSerializedMeta []byte
 
 	checkCallbackNil(callbackChannel, false, "Publish")
 	checkCallbackNil(errorChannel, true, "Publish")
@@ -1393,6 +1460,13 @@ func (pub *Pubnub) PublishExtended(channel string, message interface{},
 	publishURLBuffer.WriteString(url.QueryEscape(channel))
 	publishURLBuffer.WriteString("/0/")
 
+	if meta != nil {
+		jsonSerializedMeta, errMeta = json.Marshal(meta)
+		if errMeta != nil {
+			panic(fmt.Sprintf("error in serializing meta: %s", errMeta))
+		}
+	}
+
 	if doNotSerialize {
 		switch t := message.(type) {
 		case string:
@@ -1419,11 +1493,11 @@ func (pub *Pubnub) PublishExtended(channel string, message interface{},
 				sendErrorResponse(errorChannel, channel, fmt.Sprintf("error in serializing: %s", errEnc))
 			} else {
 				pub.sendPublishRequest(channel, publishURLBuffer.String(),
-					storeInHistory, jsonEncBytes, callbackChannel, errorChannel)
+					storeInHistory, jsonEncBytes, jsonSerializedMeta, callbackChannel, errorChannel)
 			}
 		} else {
 			pub.sendPublishRequest(channel, publishURLBuffer.String(), storeInHistory,
-				jsonSerialized, callbackChannel, errorChannel)
+				jsonSerialized, jsonSerializedMeta, callbackChannel, errorChannel)
 		}
 	}
 }
@@ -1991,6 +2065,8 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 
 	go pub.retryLoop()
 
+	var region string
+
 	for {
 		pub.RLock()
 		alreadySubscribedChannels := pub.channels.NamesString()
@@ -2006,7 +2082,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 			sentTimeToken := pub.timeToken
 			pub.RUnlock()
 
-			subscribeURL, sentTimeToken := pub.createSubscribeURL(sentTimeToken)
+			subscribeURL, sentTimeToken := pub.createSubscribeURL(sentTimeToken, region)
 
 			value, responseCode, err := pub.httpRequest(subscribeURL, subscribeTrans)
 
@@ -2091,7 +2167,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 				continue
 				// if server error. for ex.
 			} else if string(value) != "" {
-				pub.handleSubscribeResponse(value, sentTimeToken,
+				region = pub.handleSubscribeResponse(value, sentTimeToken,
 					alreadySubscribedChannels, alreadySubscribedChannelGroups)
 			} else {
 				logInfoln("SUBSCRIPTION: Empty subscribe response")
@@ -2111,8 +2187,9 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 //
 // Accepts the sentTimeToken as a string parameter.
 // retunrs the Url and the senttimetoken based on the logic above .
-func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
+func (pub *Pubnub) createSubscribeURL(sentTimeToken, region string) (string, string) {
 	var subscribeURLBuffer bytes.Buffer
+	subscribeURLBuffer.WriteString("/v2")
 	subscribeURLBuffer.WriteString("/subscribe")
 	subscribeURLBuffer.WriteString("/")
 	subscribeURLBuffer.WriteString(pub.subscribeKey)
@@ -2130,24 +2207,6 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 
 	subscribeURLBuffer.WriteString("/0")
 
-	if pub.resetTimeToken {
-		logInfoln("SUBSCRIPTION: resetTimeToken=true")
-		subscribeURLBuffer.WriteString("/0")
-		sentTimeToken = "0"
-		pub.sentTimeToken = "0"
-		pub.resetTimeToken = false
-	} else {
-		subscribeURLBuffer.WriteString("/")
-		logInfoln("SUBSCRIPTION: resetTimeToken=false")
-		if strings.TrimSpace(pub.timeToken) == "" {
-			pub.timeToken = "0"
-			pub.sentTimeToken = "0"
-		} else {
-			pub.sentTimeToken = sentTimeToken
-		}
-		subscribeURLBuffer.WriteString(pub.timeToken)
-	}
-
 	subscribeURLBuffer.WriteString("?")
 
 	if !pub.groups.Empty() {
@@ -2160,6 +2219,34 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken string) (string, string) {
 	subscribeURLBuffer.WriteString("uuid=")
 	subscribeURLBuffer.WriteString(pub.GetUUID())
 	subscribeURLBuffer.WriteString(pub.addAuthParam(true))
+
+	subscribeURLBuffer.WriteString("&tt=")
+	if pub.resetTimeToken {
+		logInfoln("SUBSCRIPTION: resetTimeToken=true")
+
+		sentTimeToken = "0"
+		pub.sentTimeToken = "0"
+		pub.resetTimeToken = false
+		subscribeURLBuffer.WriteString("0")
+	} else {
+		logInfoln("SUBSCRIPTION: resetTimeToken=false")
+		if strings.TrimSpace(pub.timeToken) == "" {
+			pub.timeToken = "0"
+			pub.sentTimeToken = "0"
+		} else {
+			pub.sentTimeToken = sentTimeToken
+		}
+		subscribeURLBuffer.WriteString(pub.timeToken)
+	}
+
+	if region != "" {
+		subscribeURLBuffer.WriteString("&tr=")
+		subscribeURLBuffer.WriteString(url.QueryEscape(region))
+	}
+	if pub.FilterExpression() != "" {
+		subscribeURLBuffer.WriteString("&filter-expr=")
+		subscribeURLBuffer.WriteString(url.QueryEscape(pub.FilterExpression()))
+	}
 
 	presenceHeartbeatMu.RLock()
 	if presenceHeartbeat > 0 {
@@ -2217,7 +2304,7 @@ func checkQuerystringInit(queryStringInit bool) string {
 }
 
 func (pub *Pubnub) handleSubscribeResponse(response []byte,
-	sentTimetoken string, subscribedChannels, subscribedGroups string) {
+	sentTimetoken string, subscribedChannels, subscribedGroups string) string {
 
 	var channelNames, groupNames []string
 	// reconnected := pub.resetRetryAndSendResponse()
@@ -2226,10 +2313,10 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 
 	if bytes.Equal(response, []byte("[]")) {
 		pub.sleepForAWhile(false)
-		return
+		return ""
 	}
 
-	data, channelNames, groupNames, newTimetoken, errJSON :=
+	data, channelNames, groupNames, newTimetoken, region, errJSON :=
 		ParseSubscribeResponse(response, pub.cipherKey)
 
 	pub.Lock()
@@ -2275,7 +2362,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 
 			if len(connectedNames) == 0 {
 				logErrorf("SUBSCRIPTION: No connected channels for response: %s", data)
-				return
+				return ""
 			}
 
 			for i := 0; i < len(data); i++ {
@@ -2307,6 +2394,8 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 			}
 		}
 	}
+
+	return region
 }
 
 func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
@@ -3746,71 +3835,142 @@ func ParseJSON(contents []byte,
 // Timetoken/from time in case of detailed history as string.
 // error: if any.
 func ParseSubscribeResponse(rawResponse []byte, cipherKey string) (
-	messages [][]byte, channels, groups []string, timetoken string, err error) {
+	messages [][]byte, channels, groups []string, timetoken, region string, err error) {
 
-	var (
-		response interface{}
-	)
-
-	err = json.Unmarshal(rawResponse, &response)
-
-	if err != nil {
+	res := subscribeEnvelope{}
+	if err := json.Unmarshal(rawResponse, &res); err != nil {
 		logMu.Lock()
-		errorLogger.Println(fmt.Sprintf("Invalid json:%s", string(rawResponse)))
+		errorLogger.Println(fmt.Sprintf("Invalid JSON:%s, err %s", string(rawResponse), err.Error()))
+		logMu.Unlock()
+	} else {
+		logMu.Lock()
+		if res.Messages != nil {
+			count := 0
+			for _, msg := range res.Messages {
+				count++
+
+				infoLogger.Println(fmt.Sprintf("-----Message %d-----", count))
+				infoLogger.Println(fmt.Sprintf("Channel, %s", msg.Channel))
+				infoLogger.Println(fmt.Sprintf("Flags, %d", msg.Flags))
+				infoLogger.Println(fmt.Sprintf("IssuingClientId, %s", msg.IssuingClientId))
+				//if msg.OriginatingTimetoken != nil {
+				infoLogger.Println(fmt.Sprintf("OriginatingTimetoken Region, %d", msg.OriginatingTimetoken.Region))
+				infoLogger.Println(fmt.Sprintf("OriginatingTimetoken Timetoken, %s", msg.OriginatingTimetoken.Timetoken))
+				//}
+				//if msg.PublishTimetokenMetadata != nil {
+				infoLogger.Println(fmt.Sprintf("PublishTimetokenMetadata Region, %d", msg.PublishTimetokenMetadata.Region))
+				infoLogger.Println(fmt.Sprintf("PublishTimetokenMetadata Timetoken, %s", msg.PublishTimetokenMetadata.Timetoken))
+				//}
+				message, errMrshal := json.Marshal(msg.Payload)
+				//TODO:
+				//if presence
+				//if presence > presence max
+				//Extract cg
+				// extract ch
+				// wildc
+
+				//message, errGettingBytes := getBytesOfInterface(msg.Payload)
+
+				if errMrshal == nil {
+					messages = append(messages, message)
+				} else {
+					err = fmt.Errorf(invalidJSON)
+					//change to error logger
+					infoLogger.Println(fmt.Sprintf("getBytesOfInterface Timetoken, %s", errMrshal.Error()))
+				}
+
+				strPayload, ok := msg.Payload.(string)
+				if ok {
+					infoLogger.Println(fmt.Sprintf("Payload, %s", strPayload))
+				} else {
+					infoLogger.Println(fmt.Sprintf("Payload, not converted to string %s", msg.Payload))
+				}
+				infoLogger.Println(fmt.Sprintf("SequenceNumber, %d", msg.SequenceNumber))
+				infoLogger.Println(fmt.Sprintf("Shard, %s", msg.Shard))
+				infoLogger.Println(fmt.Sprintf("SubscribeKey, %s", msg.SubscribeKey))
+				infoLogger.Println(fmt.Sprintf("SubscriptionMatch, %s", msg.SubscriptionMatch))
+				strUserMetadata, ok := msg.UserMetadata.(string)
+				if ok {
+					infoLogger.Println(fmt.Sprintf("UserMetadata, %s", strUserMetadata))
+				} else {
+					infoLogger.Println(fmt.Sprintf("UserMetadata, not converted to string"))
+				}
+
+			}
+		}
+		//if res.TimetokenMeta != nil {
+		infoLogger.Println(fmt.Sprintf("TimetokenMeta Region, %d", res.TimetokenMeta.Region))
+		infoLogger.Println(fmt.Sprintf("TimetokenMeta Timestamp: %s", res.TimetokenMeta.Timetoken))
+		timetoken = string(res.TimetokenMeta.Timetoken)
+		region = strconv.Itoa(res.TimetokenMeta.Region)
+		//}
 		logMu.Unlock()
 
-		err = fmt.Errorf(invalidJSON)
-		return
 	}
 
-	v := response.(interface{})
-	switch vv := v.(type) {
-	case []interface{}:
-		length := len(vv)
+	/*
+		var (
+			response interface{}
+		)
+		err = json.Unmarshal(rawResponse, &response)
 
-		if length == 0 {
-			return
-		}
+		if err != nil {
+			logMu.Lock()
+			errorLogger.Println(fmt.Sprintf("Invalid json:%s", string(rawResponse)))
+			logMu.Unlock()
 
-		var messagesArray []interface{}
-
-		// REFACTOR: unmarshaling/marshaling response againg is expensive
-		er := json.Unmarshal([]byte(getData(vv[0], cipherKey)), &messagesArray)
-		if er != nil {
 			err = fmt.Errorf(invalidJSON)
 			return
 		}
 
-		for _, msg := range messagesArray {
-			message, er := json.Marshal(msg)
+		v := response.(interface{})
+		switch vv := v.(type) {
+		case []interface{}:
+			length := len(vv)
 
+			if length == 0 {
+				return
+			}
+
+			var messagesArray []interface{}
+
+			// REFACTOR: unmarshaling/marshaling response againg is expensive
+			er := json.Unmarshal([]byte(getData(vv[0], cipherKey)), &messagesArray)
 			if er != nil {
 				err = fmt.Errorf(invalidJSON)
 				return
 			}
 
-			messages = append(messages, message)
-		}
+			for _, msg := range messagesArray {
+				message, er := json.Marshal(msg)
 
-		if length > 1 {
-			timetoken = ParseInterfaceData(vv[1])
-		}
+				if er != nil {
+					err = fmt.Errorf(invalidJSON)
+					return
+				}
 
-		if length == 3 {
-			channelsString := ParseInterfaceData(vv[2])
+				messages = append(messages, message)
+			}
 
-			channels = strings.Split(channelsString, ",")
-			groups = []string{}
-		} else if length == 4 {
-			channelsString := ParseInterfaceData(vv[3])
-			groupsString := ParseInterfaceData(vv[2])
+			if length > 1 {
+				timetoken = ParseInterfaceData(vv[1])
+			}
 
-			channels = strings.Split(channelsString, ",")
-			groups = strings.Split(groupsString, ",")
-		}
-	}
+			if length == 3 {
+				channelsString := ParseInterfaceData(vv[2])
 
-	return messages, channels, groups, timetoken, err
+				channels = strings.Split(channelsString, ",")
+				groups = []string{}
+			} else if length == 4 {
+				channelsString := ParseInterfaceData(vv[3])
+				groupsString := ParseInterfaceData(vv[2])
+
+				channels = strings.Split(channelsString, ",")
+				groups = strings.Split(groupsString, ",")
+			}
+		}*/
+
+	return messages, channels, groups, timetoken, region, err
 }
 
 // ParseInterfaceData formats the data to string as per the type of the data.

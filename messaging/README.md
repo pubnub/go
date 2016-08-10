@@ -1,12 +1,16 @@
 ## Contact support@pubnub.com for all questions
 
-#PubNub 3.7 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2, 1.5.2
+#PubNub 3.9 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2, 1.5.2
 
 ###Important changes in this version:
 * The authKey argument was added to all PAM method.
 * Subscribe method arguments changed
 
 ###Change log
+
+* 3.9.0
+ * PubSub v2
+ * Message Filtering
 * 3.7.0
  * Subscribe method arguments changed
  * Add authKey argument to all PAM methods
