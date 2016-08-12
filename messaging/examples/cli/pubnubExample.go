@@ -611,6 +611,10 @@ func ReadLoop() {
 			fmt.Println("ENTER 32 TO Remove Channel from Channel Group ")
 			fmt.Println("ENTER 33 TO List Channel Group ")
 			fmt.Println("ENTER 34 TO Remove Channel Group ")
+			fmt.Println("ENTER 35 TO Set Filter Expression")
+			fmt.Println("ENTER 36 TO Get Filter Expression")
+			fmt.Println("ENTER 37 TO Publish with Meta")
+			fmt.Println("ENTER 38 TO Subscribe to Channel Group with timetoken")
 			fmt.Println("ENTER 99 FOR Exit")
 			fmt.Println("")
 			showOptions = false
@@ -920,6 +924,46 @@ func ReadLoop() {
 			} else {
 				go removeChannelGroupRoutine(group)
 			}
+		case "35":
+			fmt.Println("Set Filter Expression")
+			filterExp := askString("Filter Expression", false)
+			go pub.SetFilterExpression(filterExp)
+		case "36":
+			fmt.Println("Get Filter Expression: ", pub.FilterExpression())
+		case "37":
+			channels, errReadingChannel := askChannel()
+			nextStep := false
+			msg := ""
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Please enter the message")
+				message, _, err := reader.ReadLine()
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					nextStep = true
+					msg = string(message)
+				}
+			}
+			if nextStep {
+				metaKey := askString("Meta Key", false)
+				metaVal := askString("Meta Value", false)
+				if strings.TrimSpace(metaKey) != "" && strings.TrimSpace(metaVal) != "" {
+					meta := make(map[string]string)
+					meta[metaKey] = metaVal
+					go publishWithMetaRoutine(channels, msg, meta)
+				}
+			}
+		case "38":
+			channelGroups, errReadingChannelGrp := askChannelGroup()
+			if errReadingChannelGrp != nil {
+				fmt.Println("errReadingChannelGrp: ", errReadingChannelGrp)
+			} else {
+				fmt.Println("Running Subscribe for Channel Group")
+				go subscribeChannelGroupRoutine(channelGroups, "")
+			}
+
 		case "99":
 			fmt.Println("Exiting")
 			pub.Abort()
@@ -1018,6 +1062,15 @@ func pamAuditChannelGroupRoutine(groups, auth string) {
 		"Channel Group Audit")
 }
 
+// SubscribeChannelGroupRoutine calls the Subscribe routine of the messaging package
+// as a parallel process.
+func subscribeChannelGroupRoutine(channelGroups string, timetoken string) {
+	var errorChannel = make(chan []byte)
+	var subscribeChannel = make(chan []byte)
+	go pub.ChannelGroupSubscribeWithTimetoken(channelGroups, timetoken, subscribeChannel, errorChannel)
+	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+}
+
 // SubscribeRoutine calls the Subscribe routine of the messaging package
 // as a parallel process.
 func subscribeRoutine(channels string, timetoken string) {
@@ -1034,6 +1087,20 @@ func subscribeRoutine2(channels string, timetoken string) {
 	var subscribeChannel = make(chan []byte)
 	go pub.Subscribe(channels, timetoken, subscribeChannel, false, errorChannel)
 	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe2")
+}
+
+// PublishRoutine asks the user the message to send to the pubnub channel(s) and
+// calls the Publish routine of the messaging package as a parallel
+// process. If we have multiple pubnub channels then this method will spilt the
+// channel by comma and send the message on all the pubnub channels.
+func publishWithMetaRoutine(channels, message string, meta interface{}) {
+	var errorChannel = make(chan []byte)
+	ch := strings.TrimSpace(channels)
+	fmt.Println("Publish to channel: ", ch)
+	callbackChannel := make(chan []byte)
+	go pub.PublishExtendedWithMeta(ch, message, meta, true, false, callbackChannel, errorChannel)
+
+	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
 }
 
 // PublishRoutine asks the user the message to send to the pubnub channel(s) and

@@ -76,7 +76,7 @@ const (
 	presenceSuffix = "-pnpres"
 
 	// Suffix of wildcarded channels
-	wildcardSuffix = "*"
+	wildcardSuffix = ".*"
 
 	// This string is used when the server returns a malformed or non-JSON response.
 	invalidJSON = "Invalid JSON"
@@ -2306,7 +2306,7 @@ func checkQuerystringInit(queryStringInit bool) string {
 func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	sentTimetoken string, subscribedChannels, subscribedGroups string) string {
 
-	var channelNames, groupNames []string
+	//var channelNames, groupNames []string
 	// reconnected := pub.resetRetryAndSendResponse()
 	pub.resetRetry()
 	reconnected := false
@@ -2316,14 +2316,15 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 		return ""
 	}
 
-	data, channelNames, groupNames, newTimetoken, region, errJSON :=
+	//data, channelNames, groupNames, newTimetoken, region, errJSON :=
+	subEnvelope, newTimetoken, region, errJSON :=
 		ParseSubscribeResponse(response, pub.cipherKey)
 
 	pub.Lock()
 	pub.timeToken = newTimetoken
 	pub.Unlock()
 
-	if len(data) == 0 {
+	if len(subEnvelope.Messages) == 0 {
 		if sentTimetoken == "0" {
 			pub.Lock()
 			changedChannels := pub.channels.SetConnected()
@@ -2346,9 +2347,22 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 		logMu.Lock()
 		errorLogger.Println(fmt.Sprintf("%s", errJSON.Error()))
 		logMu.Unlock()
+		channelNames, channelGroupNames := subEnvelope.getChannelsAndGroups()
+		chNames := ""
+		if len(channelNames) > 0 {
+			chNames = strings.Join(channelNames, ",")
+		}
 
-		pub.sendSubscribeError(strings.Join(channelNames, ","),
-			strings.Join(groupNames, ","), fmt.Sprintf("%s", errJSON),
+		chGroupNames := ""
+		if len(channelNames) > 0 {
+			chGroupNames = strings.Join(channelGroupNames, ",")
+		}
+
+		logMu.Lock()
+		infoLogger.Println(fmt.Sprintf("chNames=%s\nchGroupNames=%s", chNames, chGroupNames))
+		logMu.Unlock()
+
+		pub.sendSubscribeError(chNames, chGroupNames, fmt.Sprintf("%s", errJSON),
 			responseAsIsError)
 
 		pub.sleepForAWhile(false)
@@ -2356,12 +2370,20 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 		retryCountMu.Lock()
 		retryCount = 0
 		retryCountMu.Unlock()
+		if subEnvelope.Messages != nil {
+			count := 0
+			for _, msg := range subEnvelope.Messages {
+				count++
+				msg.writeMessageLog(count)
+				pub.parseMessagesAndSendCallbacks(msg, newTimetoken)
+			}
+		}
 
-		if len(channelNames) == 0 && len(groupNames) == 0 {
+		/*f len(channelNames) == 0 && len(groupNames) == 0 {
 			connectedNames := pub.channels.ConnectedNames()
 
 			if len(connectedNames) == 0 {
-				logErrorf("SUBSCRIPTION: No connected channels for response: %s", data)
+				logErrorf("SUBSCRIPTION: No connected channels for response: %s", subEnv.Messages)
 				return ""
 			}
 
@@ -2392,13 +2414,43 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 				pub.sendSubscribeResponse(channelNames[i], "", newTimetoken,
 					channelResponse, responseAsIs, message)
 			}
-		}
+		}*/
 	}
 
 	return region
 }
 
-func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
+func (pub *Pubnub) parseMessagesAndSendCallbacks(msg subscribeMessage, timetoken string) {
+	//msg.Channel, msg.SubscriptionMatch, msg.Payload, msg.PublishTimetokenMetadata.Timetoken
+	channel := msg.Channel
+
+	//Extract Message
+	message, errMrshal := json.Marshal(msg.Payload)
+
+	if errMrshal != nil {
+		strPayload, _ := msg.Payload.(string)
+		errMsg := fmt.Sprintf("Error marshalling received payload, %s\nMessage: %s", errMrshal.Error(), strPayload)
+		errorLogger.Println(errMsg)
+		message = []byte(errMsg)
+	}
+	// End Extract Message
+
+	if (len(strings.TrimSpace(msg.SubscriptionMatch)) <= 0) || (channel == msg.SubscriptionMatch) {
+		//channel
+		pub.sendSubscribeResponse(channel, "", timetoken, channelResponse, responseAsIs, message)
+	} else if strings.HasSuffix(msg.SubscriptionMatch, wildcardSuffix) && (strings.Contains(msg.SubscriptionMatch, presenceSuffix)) {
+		//wildcard presence channel
+		pub.sendSubscribeResponse(channel, msg.SubscriptionMatch, timetoken, wildcardResponse, responseAsIs, message)
+	} else if strings.HasSuffix(msg.SubscriptionMatch, wildcardSuffix) {
+		//wildcard channel
+		pub.sendSubscribeResponse(channel, msg.SubscriptionMatch, timetoken, wildcardResponse, responseAsIs, message)
+	} else {
+		//ce will be the cg and subscriptionMatch will have the cg name
+		pub.sendSubscribeResponse(channel, msg.SubscriptionMatch, timetoken, channelGroupResponse, responseAsIs, message)
+	}
+}
+
+/*func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 	fourth, third, timetoken string) {
 
 	pub.RLock()
@@ -2424,17 +2476,17 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 		} else if thirdChannelGroupExist && !strings.HasSuffix(fourth, presenceSuffix) {
 			pub.sendSubscribeResponse(fourth, third, timetoken, channelGroupResponse, responseAsIs, message)
 			// Wildcard channel message
-			// ["foo.*, "foo.bar"] foo.*/
+			// ["foo.*, "foo.bar"] foo.*
 		} else if thirdChannelExist && !strings.HasSuffix(fourth, presenceSuffix) {
 			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
 			// Wildcard channel presence event while subscribed only to messages
-			// ["foo.*, "foo.bar-pnpres"] foo.*/
-			// ["foo.*, "foo.*-pnpres"] foo.*/
+			// ["foo.*, "foo.bar-pnpres"] foo.*
+			// ["foo.*, "foo.*-pnpres"] foo.*
 		} else if thirdChannelExist && !fourthChannelExist && strings.HasSuffix(fourth, presenceSuffix) {
 			// Message should be ignored
 
 			// Wildcard channel message while subscribed only to presence
-			// ["foo.*, "foo.bar"] foo.*-pnpres/
+			// ["foo.*, "foo.bar"] foo.*-pnpres
 		} else if !thirdChannelExist && !fourthChannelExist && !strings.HasSuffix(fourth, presenceSuffix) {
 			// Message should be ignored
 		} else {
@@ -2461,7 +2513,7 @@ func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
 		pub.sendSubscribeError(subscribedChannels, subscribedGroups,
 			"Unable to handle response", responseAsIsError)
 	}
-}
+}*/
 
 // CloseExistingConnection closes the open subscribe/presence connection.
 func (pub *Pubnub) CloseExistingConnection() {
@@ -3835,8 +3887,8 @@ func ParseJSON(contents []byte,
 // Timetoken/from time in case of detailed history as string.
 // error: if any.
 func ParseSubscribeResponse(rawResponse []byte, cipherKey string) (
-	messages [][]byte, channels, groups []string, timetoken, region string, err error) {
-
+	subEnv subscribeEnvelope, timetoken, region string, err error) {
+	//messages [][]byte, channels, groups []string, timetoken, region string, err error) {
 	res := subscribeEnvelope{}
 	if err := json.Unmarshal(rawResponse, &res); err != nil {
 		logMu.Lock()
@@ -3844,70 +3896,15 @@ func ParseSubscribeResponse(rawResponse []byte, cipherKey string) (
 		logMu.Unlock()
 	} else {
 		logMu.Lock()
-		if res.Messages != nil {
-			count := 0
-			for _, msg := range res.Messages {
-				count++
-
-				infoLogger.Println(fmt.Sprintf("-----Message %d-----", count))
-				infoLogger.Println(fmt.Sprintf("Channel, %s", msg.Channel))
-				infoLogger.Println(fmt.Sprintf("Flags, %d", msg.Flags))
-				infoLogger.Println(fmt.Sprintf("IssuingClientId, %s", msg.IssuingClientId))
-				//if msg.OriginatingTimetoken != nil {
-				infoLogger.Println(fmt.Sprintf("OriginatingTimetoken Region, %d", msg.OriginatingTimetoken.Region))
-				infoLogger.Println(fmt.Sprintf("OriginatingTimetoken Timetoken, %s", msg.OriginatingTimetoken.Timetoken))
-				//}
-				//if msg.PublishTimetokenMetadata != nil {
-				infoLogger.Println(fmt.Sprintf("PublishTimetokenMetadata Region, %d", msg.PublishTimetokenMetadata.Region))
-				infoLogger.Println(fmt.Sprintf("PublishTimetokenMetadata Timetoken, %s", msg.PublishTimetokenMetadata.Timetoken))
-				//}
-				message, errMrshal := json.Marshal(msg.Payload)
-				//TODO:
-				//if presence
-				//if presence > presence max
-				//Extract cg
-				// extract ch
-				// wildc
-
-				//message, errGettingBytes := getBytesOfInterface(msg.Payload)
-
-				if errMrshal == nil {
-					messages = append(messages, message)
-				} else {
-					err = fmt.Errorf(invalidJSON)
-					//change to error logger
-					infoLogger.Println(fmt.Sprintf("getBytesOfInterface Timetoken, %s", errMrshal.Error()))
-				}
-
-				strPayload, ok := msg.Payload.(string)
-				if ok {
-					infoLogger.Println(fmt.Sprintf("Payload, %s", strPayload))
-				} else {
-					infoLogger.Println(fmt.Sprintf("Payload, not converted to string %s", msg.Payload))
-				}
-				infoLogger.Println(fmt.Sprintf("SequenceNumber, %d", msg.SequenceNumber))
-				infoLogger.Println(fmt.Sprintf("Shard, %s", msg.Shard))
-				infoLogger.Println(fmt.Sprintf("SubscribeKey, %s", msg.SubscribeKey))
-				infoLogger.Println(fmt.Sprintf("SubscriptionMatch, %s", msg.SubscriptionMatch))
-				strUserMetadata, ok := msg.UserMetadata.(string)
-				if ok {
-					infoLogger.Println(fmt.Sprintf("UserMetadata, %s", strUserMetadata))
-				} else {
-					infoLogger.Println(fmt.Sprintf("UserMetadata, not converted to string"))
-				}
-
-			}
-		}
-		//if res.TimetokenMeta != nil {
+		infoLogger.Println(fmt.Sprintf("res.Messages count, %d", len(res.Messages)))
 		infoLogger.Println(fmt.Sprintf("TimetokenMeta Region, %d", res.TimetokenMeta.Region))
 		infoLogger.Println(fmt.Sprintf("TimetokenMeta Timestamp: %s", res.TimetokenMeta.Timetoken))
+		logMu.Unlock()
 		timetoken = string(res.TimetokenMeta.Timetoken)
 		region = strconv.Itoa(res.TimetokenMeta.Region)
-		//}
-		logMu.Unlock()
 
 	}
-
+	return res, timetoken, region, err
 	/*
 		var (
 			response interface{}
@@ -3970,7 +3967,7 @@ func ParseSubscribeResponse(rawResponse []byte, cipherKey string) (
 			}
 		}*/
 
-	return messages, channels, groups, timetoken, region, err
+	//return messages, channels, groups, timetoken, region, err
 }
 
 // ParseInterfaceData formats the data to string as per the type of the data.

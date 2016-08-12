@@ -1,9 +1,6 @@
 package messaging
 
 import (
-	"bytes"
-	//	"encoding/gob"
-	//"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -111,22 +108,4 @@ func logInfoln(v ...interface{}) {
 	defer logMu.Unlock()
 
 	infoLogger.Output(2, fmt.Sprintln(v...))
-}
-
-func getBytesOfInterface(iface interface{}) ([]byte, error) {
-	/*var buffer bytes.Buffer
-	encoder := gob.NewEncoder(&buffer)
-	err := encoder.Encode(iface)
-	if err != nil {
-		return nil, err
-	}
-	return buffer.Bytes(), nil*/
-	if iface == nil {
-		return nil, fmt.Errorf("interface nil")
-	}
-	switch v := iface.(type) {
-	case bytes.Buffer:
-		return v.Bytes(), nil
-	}
-	return nil, fmt.Errorf("Not converted to bytes")
 }
