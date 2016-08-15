@@ -1,4 +1,114 @@
 name: go
+version: 3.9.0
+schema: 1
+scm: github.com/pubnub/go
+changelog:
+  - version: v3.9.0
+    date: 
+    changes:
+      - type: feature
+        text: PubSub v2.
+      - type: feature
+        text: Message Filtering.
+  - version: v3.8.0
+    changes:
+      - type: bug
+        text: Add request workers for different request types. Each Pubnub instance has
+  it's own request workers set now. Each worker has it's own transport, which
+  now can be customized by user using associated setter.
+      - type: improvement
+        text: Add module setters for default subscribe and non-subscribe transports.
+      - type: improvement
+        text: Add instance setters for subscribe and non-subscribe transports.
+      - type: improvement
+        text: Add more errors handling codecoverage for codecov.io.
+      - type: improvement
+        text: Rewrite most of loggers with unified syntax.
+      - type: feature
+        text: Add history 'include_token' param.
+      - type: feature
+        text: Add uuid param to state getter.
+      - type: feature
+        text: Add channelGroup param to HereNow method.
+      - type: feature
+        text:  Channel group's add and remove methods errors channel now emits a single error with a group as entity, instead of multiple errors with all passed-in channels
+  as entity.
+  - version: v3.7.0
+    changes:
+      - type: improvement
+        text: Subscribe method arguments changed.
+      - type: improvement
+        text: Add authKey argument to all PAM methods.
+      - type: feature
+        text: Add Channel Group Methods.
+      - type: feature
+        text: Add PublishExtended() method that extends existing Publish() with 2 bool options: storeInHistory and doNotSerialize.
+      - type: improvement
+        text: Fix multiple channels encoding in PAM methods.
+  - version: v3.6.4
+    changes:
+      - type: improvement
+        text: Exposed MaxIdleConnsPerHost of the transport.
+  - version: v3.6.3
+    changes:
+      - type: improvement
+        text: PAM operations (grant, revoke, audit) now return 403 errors in the Error Callback.
+      - type: improvement
+        text: SetLogging method name changed to LoggingEnabled.
+      - type: improvement
+        text: SetLogOutput added, you can customize the log output now.
+      - type: improvement
+        text: Support to change uuid.
+  - version: v3.6.0
+    changes:
+      - type: feature
+        text: HereNow with state (here now's signature has changed, the response has also changed).
+      - type: feature
+        text: WhereNow.
+      - type: feature
+        text: Global Here Now.
+      - type: feature
+        text: User State (Set, Get, Delete).
+      - type: feature
+        text: Presence heartbeat.
+      - type: improvement
+        text: Presence heartbeat interval.
+      - type: improvement
+        text: nonSubscribeTimeout, retryInterval, connectTimeout, subscribeTimeout are converted to uint16.
+      - type: improvement
+        text: Optimizations.
+      - type: improvement
+        text: Error Callback: All the error messages are routed to this callback channel.
+      - type: feature
+        text: Resume on reconnect.
+      - type: feature
+        text: You can now "Subscribe with timetoken".
+      - type: feature
+        text: Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc.
+      - type: improvement
+        text: Multiple messages received in a single response from the server will now be split into individual messages.
+      - type: improvement
+        text: Non 200 response will now be bubbled to the client.
+
 features:
+  access:
+    - GRANT
+    - AUDIT
+  channel-groups:
+    - ADD-CHANNELS
+    - REMOVE-CHANNELS
+    - LIST-GROUPS
+    - LIST-CHANNELS-IN-GROUP
+  push:
+    - ADD-DEVICE-TO-CHANNELS
+    - REMOVE-DEVICE-FROM-CHANNELS
+    - LIST-CHANNELS-FROM-DEVICE
+    - REMOVE-DEVICE
+  presence:
+    - HERE-NOW
+    - WHERE-NOW
+    - SET-STATE
+    - GET-STATE
+    - HEARTBEAT
   publish:
    - STORE-FLAG
