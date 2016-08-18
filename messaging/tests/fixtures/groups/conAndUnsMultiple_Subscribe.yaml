@@ -8,7 +8,7 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
+      - ua_string=(linux) PubNub-Go/3.9.0
     url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/0?channel-group=Group_ConAndUnsMult_1,Group_ConAndUnsMult_2,Group_ConAndUnsMult_3&uuid=UUID_Multiple_CAU&pnsdk=PubNub-Go%2F3.7.0
     method: GET
   response:

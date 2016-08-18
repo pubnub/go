@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/anovikov1984/go-vcr/cassette"
-	"github.com/anovikov1984/go-vcr/recorder"
+	"github.com/pubnub/go-vcr/cassette"
+	"github.com/pubnub/go-vcr/recorder"
 	"github.com/pubnub/go/messaging"
 	"github.com/pubnub/go/messaging/tests/utils"
 	"github.com/stretchr/testify/assert"
