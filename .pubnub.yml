@@ -93,7 +93,6 @@ changelog:
 features:
   access:
     - GRANT
-    - AUDIT
   channel-groups:
     - ADD-CHANNELS
     - REMOVE-CHANNELS
