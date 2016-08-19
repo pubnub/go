@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/0?channel-group=Group_GroupReceiveSingleMessage&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.7.0
+      - ua_string=(linux) PubNub-Go/3.9.0
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupReceiveSingleMessage&tt=0&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.9.0
     method: GET
   response:
     body: '[[],"14588028428566008"]'
@@ -38,7 +38,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/14588028428566008?channel-group=Group_GroupReceiveSingleMessage&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.7.0
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupReceiveSingleMessage&tt=14588028428566008&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.9.0
     method: GET
   response:
     body: '[["hey"],"14588034994295336","Group_GroupReceiveSingleMessage","Channel_GroupReceiveSingleMessage"]'
@@ -60,5 +60,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/14588034994295336?channel-group=Group_GroupReceiveSingleMessage&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.7.0
+  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupReceiveSingleMessage&tt=14588034994295336&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.9.0
   : {}
