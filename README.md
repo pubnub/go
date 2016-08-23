@@ -3,7 +3,7 @@
 * Google App Engine (1.9.28 - 2015-10-29)
 * Managed VMs (Google Cloud SDK 0.9.70)
 
-[![Build Status](https://travis-ci.org/pubnub/php.svg?branch=master)](https://travis-ci.org/pubnub/php)
+[![Build Status](https://travis-ci.org/pubnub/go.svg?branch=master)](https://travis-ci.org/pubnub/go)
 [![codecov.io](https://codecov.io/github/pubnub/go/coverage.svg?branch=master)](https://codecov.io/github/pubnub/go?branch=master)
 
 ## Contact support@pubnub.com for all questions
