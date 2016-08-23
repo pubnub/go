@@ -246,7 +246,7 @@ func TestPublishStringWithSerialization(t *testing.T) {
 		case err := <-subscribeErrorChannel:
 			assert.Fail(string(err))
 			await <- false
-		case <-timeouts(10):
+		case <-timeouts(15):
 			assert.Fail("Timeout")
 			await <- false
 		}

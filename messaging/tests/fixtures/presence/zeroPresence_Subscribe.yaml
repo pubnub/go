@@ -38,7 +38,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.0
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres,Channel_ZeroPresence/0?uuid=UUID_zeroPresence&tt=14615591687802848&pnsdk=PubNub-Go%2F3.9.0
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres,Channel_ZeroPresence/0?uuid=UUID_zeroPresence&tt=0&pnsdk=PubNub-Go%2F3.9.0
     method: GET
   response:
     body: '[[],"14615591687802848"]'
