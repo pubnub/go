@@ -96,7 +96,7 @@ func Init() (b bool) {
 			fmt.Scanln(&subscribeKey)
 
 			if strings.TrimSpace(subscribeKey) == "" {
-				subscribeKey = "demo"
+				subscribeKey = "sub-c-acd23c76-5ed2-11e6-8ee6-0619f8945a4f"
 			}
 			fmt.Println("Subscribe Key: ", subscribeKey)
 			fmt.Println("")
@@ -104,7 +104,7 @@ func Init() (b bool) {
 			fmt.Println("Please enter a publish key, leave blank for default key.")
 			fmt.Scanln(&publishKey)
 			if strings.TrimSpace(publishKey) == "" {
-				publishKey = "demo"
+				publishKey = "pub-c-39d6d56a-d913-46c3-8b8e-3db890a490ef"
 			}
 			fmt.Println("Publish Key: ", publishKey)
 			fmt.Println("")
@@ -112,7 +112,7 @@ func Init() (b bool) {
 			fmt.Println("Please enter a secret key, leave blank for default key.")
 			fmt.Scanln(&secretKey)
 			if strings.TrimSpace(secretKey) == "" {
-				secretKey = "demo"
+				secretKey = "sec-c-ZGI2OWU0M2QtMDMxMC00ZDFjLWI0MzAtMjQ3MmYzMWM1OTBm"
 			}
 			fmt.Println("Secret Key: ", secretKey)
 			fmt.Println("")
@@ -613,8 +613,7 @@ func ReadLoop() {
 			fmt.Println("ENTER 34 TO Remove Channel Group ")
 			fmt.Println("ENTER 35 TO Set Filter Expression")
 			fmt.Println("ENTER 36 TO Get Filter Expression")
-			fmt.Println("ENTER 37 TO Publish with Meta")
-			fmt.Println("ENTER 38 TO Subscribe to Channel Group with timetoken")
+			fmt.Println("ENTER 37 FOR Publish with Meta")
 			fmt.Println("ENTER 99 FOR Exit")
 			fmt.Println("")
 			showOptions = false
@@ -928,6 +927,9 @@ func ReadLoop() {
 			fmt.Println("Set Filter Expression")
 			filterExp := askString("Filter Expression", false)
 			go pub.SetFilterExpression(filterExp)
+		case "335":
+			fmt.Println("Set preset Filter Expression")
+			go pub.SetFilterExpression("(aoi_x >= 0 && aoi_x <= 2) && (aoi_y >= 0 AND aoi_y <= 2)")
 		case "36":
 			fmt.Println("Get Filter Expression: ", pub.FilterExpression())
 		case "37":
@@ -955,6 +957,12 @@ func ReadLoop() {
 					go publishWithMetaRoutine(channels, msg, meta)
 				}
 			}
+		case "337":
+			channels, _ := askChannel()
+			meta := make(map[string]int)
+			meta["aoi_x"] = 10
+			meta["aoi_y"] = 10
+			go publishWithMetaRoutine(channels, "test", meta)
 		case "38":
 			channelGroups, errReadingChannelGrp := askChannelGroup()
 			if errReadingChannelGrp != nil {
