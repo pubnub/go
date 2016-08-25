@@ -6,10 +6,11 @@ go:
   - 1.4.3
   - 1.5.4
   - 1.6.2
+  - 1.7
 
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
-  - ln -s $GOPATH/src/github.com/anovikov1984/go $GOPATH/src/github.com/pubnub/go
+  - ln -s $GOPATH/src/github.com/pubnub/go
   - go get -t -v ./messaging/...
   - go get github.com/wadey/gocovmerge
 
