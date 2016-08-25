@@ -123,8 +123,8 @@ type workerResponse struct {
 }
 
 func (w *requestWorker) Client() *http.Client {
-	w.TransportMu.RLock()
-	defer w.TransportMu.RUnlock()
+	w.TransportMu.Lock()
+	defer w.TransportMu.Unlock()
 
 	if w.Transport == nil {
 		logInfof("%s: Initializing new transport", w.Name)
