@@ -25,10 +25,10 @@ func init() {
 
 func TestCreateSubscribeURLWithoutTimetoken(t *testing.T) {
 	initLogging()
-	url, timetoken := pubnubSingleChannel.createSubscribeURL("0")
+	url, timetoken := pubnubSingleChannel.createSubscribeURL("0", "")
 
 	assert.Equal(t, url,
-		fmt.Sprintf("/subscribe/my_key/blah/0/0?uuid=%s&%s",
+		fmt.Sprintf("/v2/subscribe/my_key/blah/0?uuid=%s&tt=0&%s",
 			pubnubSingleChannel.GetUUID(), sdkIdentificationParam), "should be equal")
 
 	assert.Equal(t, "0", timetoken)
@@ -36,10 +36,10 @@ func TestCreateSubscribeURLWithoutTimetoken(t *testing.T) {
 
 func TestCreateSubscribeURLWithTimetoken(t *testing.T) {
 	initLogging()
-	url, timetoken := pubnubSingleChannel.createSubscribeURL("123456")
+	url, timetoken := pubnubSingleChannel.createSubscribeURL("123456", "")
 
 	assert.Equal(t, url,
-		fmt.Sprintf("/subscribe/my_key/blah/0/0?uuid=%s&%s",
+		fmt.Sprintf("/v2/subscribe/my_key/blah/0?uuid=%s&tt=0&%s",
 			pubnubSingleChannel.GetUUID(), sdkIdentificationParam), "should be equal")
 
 	assert.Equal(t, "123456", timetoken)
@@ -47,10 +47,10 @@ func TestCreateSubscribeURLWithTimetoken(t *testing.T) {
 
 func TestCreateSubscribeURLMultipleChannels(t *testing.T) {
 	initLogging()
-	url, _ := pubnubThreeChannels.createSubscribeURL("0")
+	url, _ := pubnubThreeChannels.createSubscribeURL("0", "")
 
-	assert.Contains(t, url, fmt.Sprintf("/subscribe/my_key/"), "should be equal")
-	assert.Contains(t, url, fmt.Sprintf("/0/0?uuid=%s&%s",
+	assert.Contains(t, url, fmt.Sprintf("/v2/subscribe/my_key/"), "should be equal")
+	assert.Contains(t, url, fmt.Sprintf("/0?uuid=%s&tt=0&%s",
 		pubnubThreeChannels.GetUUID(), sdkIdentificationParam), "should be equal")
 
 	assert.Contains(t, url, "asdf", "should be equal")
@@ -60,21 +60,21 @@ func TestCreateSubscribeURLMultipleChannels(t *testing.T) {
 
 func TestCreateSubscribeURLSingleCG(t *testing.T) {
 	initLogging()
-	url, _ := pubnubSingleCG.createSubscribeURL("0")
+	url, _ := pubnubSingleCG.createSubscribeURL("0", "")
 
 	assert.Equal(t, url,
-		fmt.Sprintf("/subscribe/my_key/,/0/0?channel-group=qwer&uuid=%s&%s",
+		fmt.Sprintf("/v2/subscribe/my_key/,/0?channel-group=qwer&uuid=%s&tt=0&%s",
 			pubnubSingleCG.GetUUID(), sdkIdentificationParam), "should be equal")
 }
 
 func TestCreateSubscribeURLMultipleCG(t *testing.T) {
 	initLogging()
-	url, _ := pubnubThreeCG.createSubscribeURL("0")
+	url, _ := pubnubThreeCG.createSubscribeURL("0", "")
 
-	assert.Contains(t, url, "/subscribe/my_key/,/0/0?channel-group=",
+	assert.Contains(t, url, "/v2/subscribe/my_key/,/0?channel-group=",
 		"should be equal")
 
-	assert.Contains(t, url, fmt.Sprintf("&uuid=%s&%s",
+	assert.Contains(t, url, fmt.Sprintf("&uuid=%s&tt=0&%s",
 		pubnubThreeCG.GetUUID(), sdkIdentificationParam), "should be equal")
 
 	assert.Contains(t, url, "asdf", "should be equal")
@@ -84,9 +84,9 @@ func TestCreateSubscribeURLMultipleCG(t *testing.T) {
 
 func TestCreateSubscribeURLChannelAndCG(t *testing.T) {
 	initLogging()
-	url, _ := pubnubChannelAndGroup.createSubscribeURL("0")
+	url, _ := pubnubChannelAndGroup.createSubscribeURL("0", "")
 
 	assert.Equal(t, url,
-		fmt.Sprintf("/subscribe/my_key/asdf/0/0?channel-group=qwer&uuid=%s&%s",
+		fmt.Sprintf("/v2/subscribe/my_key/asdf/0?channel-group=qwer&uuid=%s&tt=0&%s",
 			pubnubChannelAndGroup.GetUUID(), sdkIdentificationParam), "should be equal")
 }
