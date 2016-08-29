@@ -9,7 +9,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Mpx_Channel_1/0/%22message1%22?pnsdk=PubNub-Go%2F3.9.1&uuid=UUID_Multiplexing
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Mpx_Channel_1/0/%22message1%22?pnsdk=PubNub-Go%2F3.9.1&uuid=UUID_Multiplexing&seqn=1
     method: GET
   response:
     body: '[1,"Sent","14586613343582704"]'
@@ -38,7 +38,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Mpx_Channel_2/0/%22message2%22?pnsdk=PubNub-Go%2F3.9.1&uuid=UUID_Multiplexing
+    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Mpx_Channel_2/0/%22message2%22?pnsdk=PubNub-Go%2F3.9.1&uuid=UUID_Multiplexing&seqn=2
     method: GET
   response:
     body: '[1,"Sent","14586613343830841"]'

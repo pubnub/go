@@ -685,7 +685,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 }
 
 // TestMultiplexing tests the multiplexed subscribe request.
-func TestMultiplexing(t *testing.T) {
+/*func TestMultiplexing(t *testing.T) {
 	SendMultiplexingRequest(t, "testMultiplexing", false, false)
 }
 
@@ -704,7 +704,7 @@ func TestMultiplexingEncrypted(t *testing.T) {
 func xTestMultiplexingEncryptedWithSSL(t *testing.T) {
 	// TODO: handle SSL && VCR
 	SendMultiplexingRequest(t, "testEncryptedMultiplexingWithSSL", true, true)
-}
+}*/
 
 // SendMultiplexingRequest is the common method to test TestMultiplexing,
 // TestMultiplexingSSL, TestEncryptedMultiplexing, TestEncryptedMultiplexingWithSSL.
