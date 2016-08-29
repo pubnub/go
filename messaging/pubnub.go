@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.9.0
-// Build Date: Aug 04, 2016
+// Version: 3.9.1
+// Build Date: Aug 25, 2016
 package messaging
 
 import (
@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	SDK_VERSION = "3.9.0"
+	SDK_VERSION = "3.9.1"
 	SDK_DATE    = "Aug 04, 2016"
 )
 
@@ -2245,7 +2245,13 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken, region string) (string, str
 	}
 	if pub.FilterExpression() != "" {
 		subscribeURLBuffer.WriteString("&filter-expr=")
-		subscribeURLBuffer.WriteString(url.QueryEscape(pub.FilterExpression()))
+		encodedPath := url.QueryEscape(pub.FilterExpression())
+		encodedPathWithPlusReplaced := strings.Replace(encodedPath, "+", "%20", -1)
+		logMu.Lock()
+		infoLogger.Println(fmt.Sprintf("FilterExpression: %s, encoded: %s, enc2: %s", pub.FilterExpression(), encodedPath, encodedPathWithPlusReplaced))
+		logMu.Unlock()
+
+		subscribeURLBuffer.WriteString(encodedPathWithPlusReplaced)
 	}
 
 	presenceHeartbeatMu.RLock()

@@ -929,7 +929,7 @@ func ReadLoop() {
 			go pub.SetFilterExpression(filterExp)
 		case "335":
 			fmt.Println("Set preset Filter Expression")
-			go pub.SetFilterExpression("(aoi_x >= 0 && aoi_x <= 2) && (aoi_y >= 0 AND aoi_y <= 2)")
+			go pub.SetFilterExpression("(aoi_x >= 0 && aoi_x <= 2) && (aoi_y >= 0 && aoi_y <= 2)")
 		case "36":
 			fmt.Println("Get Filter Expression: ", pub.FilterExpression())
 		case "37":
@@ -960,8 +960,8 @@ func ReadLoop() {
 		case "337":
 			channels, _ := askChannel()
 			meta := make(map[string]int)
-			meta["aoi_x"] = 10
-			meta["aoi_y"] = 10
+			meta["aoi_x"] = 1
+			meta["aoi_y"] = 1
 			go publishWithMetaRoutine(channels, "test", meta)
 		case "38":
 			channelGroups, errReadingChannelGrp := askChannelGroup()
