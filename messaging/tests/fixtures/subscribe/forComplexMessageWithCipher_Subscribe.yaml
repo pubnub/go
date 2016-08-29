@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.0
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplexWithCipher/0?uuid=UUID_SubscriptionConnectedForComplexWithCipher&tt=0&pnsdk=PubNub-Go%2F3.9.0
+      - ua_string=(linux) PubNub-Go/3.9.1
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplexWithCipher/0?uuid=UUID_SubscriptionConnectedForComplexWithCipher&tt=0&pnsdk=PubNub-Go%2F3.9.1
     method: GET
   response:
     body: '[[],"14586610188035175"]'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.0
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplexWithCipher/0?uuid=UUID_SubscriptionConnectedForComplexWithCipher&tt=14586610188035175&pnsdk=PubNub-Go%2F3.9.0
+      - ua_string=(linux) PubNub-Go/3.9.1
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplexWithCipher/0?uuid=UUID_SubscriptionConnectedForComplexWithCipher&tt=14586610188035175&pnsdk=PubNub-Go%2F3.9.1
     method: GET
   response:
     body: '[["Bc846Ri5HK1ixqP/dzAyZq23Z/NBlcPn2UX8h38xTGINs72yF5gtU0t9fFEMxjY+DmezWt0nG7eN7RABrj697tK1nooVHYIxgDLMsjMTw5N0K+rUM823n7LcHfEoXaX8oH2E6zkg6iK5pmT8nlh6LF6Bw1G5zkluT8oTjnbFJcpEvTyT2ZKzcqptgYsE9XZiEn84zv0wjDMxSJzlM7cbe2JpLtR99mdkUf8SMVr+J0ym6Z9c02MKLP6bygWzdG9zTdkLSIxJE3R9Yt76XeRFdrbRNWkuQM/uItDsE23+8RKwZRyAScoDMwFAg+BSa6KF1tS6cJlyjxA8o5e9iWykKuHO0h1uAiapzTx9iZluOH2bVZgTUu1GABjXveMBAkrZ1eG4nVOlytsAr1oSekKvWxzyUEP2kFSrtQbg6oGECb1OMmj5bd21cx0vpDWr/juGT7/n4sBr7gYsWDvBaU7awN9Y7bcq14jtiXq/2iNNW0zoI3xe6+qByimHaiAgVoqO"],"14586613301503994"]'
@@ -60,5 +60,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplexWithCipher/0?uuid=UUID_SubscriptionConnectedForComplexWithCipher&tt=14586613301503994&pnsdk=PubNub-Go%2F3.9.0
+  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplexWithCipher/0?uuid=UUID_SubscriptionConnectedForComplexWithCipher&tt=14586613301503994&pnsdk=PubNub-Go%2F3.9.1
   : {}

@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.0
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=0&pnsdk=PubNub-Go%2F3.9.0
+      - ua_string=(linux) PubNub-Go/3.9.1
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=0&pnsdk=PubNub-Go%2F3.9.1
     method: GET
   response:
     body: '[[],"14588062885529707"]'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.0
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=14588062885529707&pnsdk=PubNub-Go%2F3.9.0
+      - ua_string=(linux) PubNub-Go/3.9.1
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=14588062885529707&pnsdk=PubNub-Go%2F3.9.1
     method: GET
   response:
     body: '[["{\"name\": \"Alex\", \"age\": \"123\"}"],"14588070821139768"]'
@@ -60,5 +60,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=14588070821139768&pnsdk=PubNub-Go%2F3.9.0
+  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=14588070821139768&pnsdk=PubNub-Go%2F3.9.1
   : {}

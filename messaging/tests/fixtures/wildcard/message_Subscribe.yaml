@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/0?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.9.0
+      - ua_string=(linux) PubNub-Go/3.9.1
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/0?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.9.1
     method: GET
   response:
     body: '[[],"14593254433632098"]'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/14593254433632098?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.9.0
+      - ua_string=(linux) PubNub-Go/3.9.1
+    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/14593254433632098?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.9.1
     method: GET
   response:
     body: '[["hey"],"14593254434932405","Channel_SubscribeMajor.*","Channel_SubscribeMajor.Channel_SubscribeMinor"]'
@@ -60,5 +60,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/14593254434932405?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.9.0
+  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscribeMajor.%2A/0/14593254434932405?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.9.1
   : {}
