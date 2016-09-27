@@ -699,7 +699,7 @@ func (pub *Pubnub) Abort() {
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) GrantSubscribe(channel string, read, write bool,
-ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 	checkCallbackNil(errorChannel, true, "GrantSubscribe")
 
@@ -715,7 +715,7 @@ ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) AuditSubscribe(channel, authKey string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
 	checkCallbackNil(errorChannel, true, "AuditSubscribe")
 
@@ -738,7 +738,7 @@ callbackChannel, errorChannel chan []byte) {
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) GrantPresence(channel string, read, write bool, ttl int,
-authKey string, callbackChannel, errorChannel chan []byte) {
+	authKey string, callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GrantPresence")
 	checkCallbackNil(errorChannel, true, "GrantPresence")
 
@@ -756,7 +756,7 @@ authKey string, callbackChannel, errorChannel chan []byte) {
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) AuditPresence(channel, authKey string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditPresence")
 	checkCallbackNil(errorChannel, true, "AuditPresence")
 
@@ -776,7 +776,7 @@ callbackChannel, errorChannel chan []byte) {
 //		 0: permissions will never expire
 //		1..525600: from 1 minute to 1 year(in minutes)
 func (pub *Pubnub) GrantChannelGroup(group string, read, manage bool,
-ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "GrantChannelGroup")
 	checkCallbackNil(errorChannel, true, "GrantChannelGroup")
 
@@ -789,7 +789,7 @@ ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
 // AuditChannelGroup will make a call to display the permissions for a channel
 // group or subkey
 func (pub *Pubnub) AuditChannelGroup(group, authKey string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditChannelGroup")
 	checkCallbackNil(errorChannel, true, "AuditChannelGroup")
 
@@ -853,7 +853,7 @@ func queryEscapeMultiple(q string, splitter string) string {
 
 //  generate params string for channels pam request
 func (pub *Pubnub) pamGenerateParamsForChannel(action, channel string,
-read, write bool, ttl int, authKey string) string {
+	read, write bool, ttl int, authKey string) string {
 
 	var pamURLBuffer bytes.Buffer
 	var params bytes.Buffer
@@ -948,7 +948,7 @@ read, write bool, ttl int, authKey string) string {
 
 //  generate params string for channel groups pam request
 func (pub *Pubnub) pamGenerateParamsForChannelGroup(action, channelGroup string,
-read, manage bool, ttl int, authKey string) string {
+	read, manage bool, ttl int, authKey string) string {
 
 	var pamURLBuffer bytes.Buffer
 	var params bytes.Buffer
@@ -1045,7 +1045,7 @@ read, manage bool, ttl int, authKey string) string {
 
 // executePam is the main method which is called for all PAM requests
 func (pub *Pubnub) executePam(entity, requestURL string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 
 	message := "Secret key is required"
 
@@ -1151,8 +1151,8 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 // callbackChannel: Channel on which to send the response.
 // errorChannel on which the error response is sent.
 func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
-storeInHistory bool, jsonBytes []byte,
-callbackChannel, errorChannel chan []byte) {
+	storeInHistory bool, jsonBytes []byte,
+	callbackChannel, errorChannel chan []byte) {
 
 	u := &url.URL{Path: string(jsonBytes)}
 	encodedPath := u.String()
@@ -1284,7 +1284,7 @@ func invalidChannel(channel string, c chan<- []byte) bool {
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) Publish(channel string, message interface{},
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 
 	pub.PublishExtended(channel, message, true, false, callbackChannel,
 		errorChannel)
@@ -1311,8 +1311,8 @@ callbackChannel, errorChannel chan []byte) {
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) PublishExtended(channel string, message interface{},
-storeInHistory, doNotSerialize bool,
-callbackChannel, errorChannel chan []byte) {
+	storeInHistory, doNotSerialize bool,
+	callbackChannel, errorChannel chan []byte) {
 
 	var publishURLBuffer bytes.Buffer
 	var err error
@@ -1397,7 +1397,7 @@ callbackChannel, errorChannel chan []byte) {
 // action: additional information about action
 // response: message as bytes
 func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
-tp responseType, action responseStatus, response []byte) {
+	tp responseType, action responseStatus, response []byte) {
 
 	var (
 		item       *subscriptionItem
@@ -1469,7 +1469,7 @@ func (pub *Pubnub) sendSuccessResponse(channels, groups string, response []byte)
 
 // Sender for specific go channel
 func sendSuccessResponseToChannel(channel chan<- []byte, items,
-response string) {
+	response string) {
 	ln := len(splitItems(items))
 
 	value := strings.Replace(response, presenceSuffix, "", -1)
@@ -1495,7 +1495,7 @@ func sendResponseWithoutChannel(channel chan<- []byte, response string) {
 }
 
 func (pub *Pubnub) sendConnectionEvent(channels, groups string,
-action connectionAction) {
+	action connectionAction) {
 
 	var item *subscriptionItem
 	var found bool
@@ -1525,7 +1525,7 @@ action connectionAction) {
 }
 
 func (pub *Pubnub) sendConnectionEventTo(channel chan []byte,
-source string, tp responseType, action connectionAction) {
+	source string, tp responseType, action connectionAction) {
 
 	for _, item := range splitItems(source) {
 		switch tp {
@@ -1567,7 +1567,7 @@ func sendErrorResponse(errorChannel chan<- []byte, items, message string) {
 
 // Detailed error sender for non-subscribe requests
 func sendErrorResponseExtended(errorChannel chan<- []byte, items, message,
-details string) {
+	details string) {
 
 	for _, item := range splitItems(items) {
 		value := fmt.Sprintf("[0, \"%s\", %s, \"%s\"]", message, details, item)
@@ -1582,7 +1582,7 @@ details string) {
 
 // Error sender for subscribe requests
 func sendClientSideErrorAboutSources(errorChannel chan<- []byte,
-tp responseType, sources []string, status responseStatus) {
+	tp responseType, sources []string, status responseStatus) {
 	for _, source := range sources {
 		errorChannel <- errorResponse{
 			Reason: status,
@@ -1592,7 +1592,7 @@ tp responseType, sources []string, status responseStatus) {
 }
 
 func (pub *Pubnub) sendSubscribeError(channels, groups, message string,
-reason responseStatus) {
+	reason responseStatus) {
 
 	pub.sendSubscribeErrorHelper(channels, groups, errorResponse{
 		Message: message,
@@ -1601,7 +1601,7 @@ reason responseStatus) {
 }
 
 func (pub *Pubnub) sendSubscribeErrorExtended(channels, groups,
-message, detailedMessage string, reason responseStatus) {
+	message, detailedMessage string, reason responseStatus) {
 
 	pub.sendSubscribeErrorHelper(channels, groups, errorResponse{
 		Message:         message,
@@ -1611,7 +1611,7 @@ message, detailedMessage string, reason responseStatus) {
 }
 
 func (pub *Pubnub) sendSubscribeErrorHelper(channels, groups string,
-errResp errorResponse) {
+	errResp errorResponse) {
 
 	var (
 		item  *subscriptionItem
@@ -1918,7 +1918,7 @@ func (pub *Pubnub) cancelPresenceHeartbeatWorker() {
 // groups: channel groups to subscribe.
 // errorChannel: Channel to send the error response to.
 func (pub *Pubnub) startSubscribeLoop(channels, groups string,
-errorChannel chan<- []byte) {
+	errorChannel chan<- []byte) {
 
 	go pub.retryLoop()
 
@@ -2144,7 +2144,7 @@ func checkQuerystringInit(queryStringInit bool) string {
 }
 
 func (pub *Pubnub) handleSubscribeResponse(response []byte,
-sentTimetoken string, subscribedChannels, subscribedGroups string) {
+	sentTimetoken string, subscribedChannels, subscribedGroups string) {
 
 	var channelNames, groupNames []string
 	// reconnected := pub.resetRetryAndSendResponse()
@@ -2233,7 +2233,7 @@ sentTimetoken string, subscribedChannels, subscribedGroups string) {
 }
 
 func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
-fourth, third, timetoken string) {
+	fourth, third, timetoken string) {
 
 	pub.RLock()
 	thirdChannelGroupExist := pub.groups.Exist(third)
@@ -2323,7 +2323,7 @@ func checkCallbackNil(channelToCheck chan<- []byte, isErrChannel bool, funcName 
 }
 
 func (pub *Pubnub) getSubscribeLoopAction(channels, groups string,
-errorChannel chan<- []byte) subscribeLoopAction {
+	errorChannel chan<- []byte) subscribeLoopAction {
 
 	pub.RLock()
 	defer pub.RUnlock()
@@ -2418,13 +2418,13 @@ errorChannel chan<- []byte) subscribeLoopAction {
 }
 
 func (pub *Pubnub) ChannelGroupSubscribe(groups string,
-callbackChannel chan<- []byte, errorChannel chan<- []byte) {
+	callbackChannel chan<- []byte, errorChannel chan<- []byte) {
 	pub.ChannelGroupSubscribeWithTimetoken(groups, "", callbackChannel,
 		errorChannel)
 }
 
 func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
-callbackChannel chan<- []byte, errorChannel chan<- []byte) {
+	callbackChannel chan<- []byte, errorChannel chan<- []byte) {
 
 	checkCallbackNil(callbackChannel, false, "ChanelGroupSubscribe")
 	checkCallbackNil(errorChannel, true, "ChanelGroupSubscribe")
@@ -2478,7 +2478,7 @@ callbackChannel chan<- []byte, errorChannel chan<- []byte) {
 
 		pub.Unlock()
 	case subscribeLoopDoNothing:
-	// do nothing
+		// do nothing
 	}
 }
 
@@ -2497,7 +2497,7 @@ callbackChannel chan<- []byte, errorChannel chan<- []byte) {
 // errorChannel: channel to send an error response to.
 // eventsChannel: Channel on which to send events like connect/disconnect/reconnect.
 func (pub *Pubnub) Subscribe(channels, timetoken string,
-callbackChannel chan<- []byte, isPresence bool, errorChannel chan<- []byte) {
+	callbackChannel chan<- []byte, isPresence bool, errorChannel chan<- []byte) {
 
 	if invalidChannel(channels, callbackChannel) {
 		return
@@ -2561,7 +2561,7 @@ callbackChannel chan<- []byte, isPresence bool, errorChannel chan<- []byte) {
 	case subscribeLoopDoNothing:
 	// do nothing
 	default:
-	// do nothing
+		// do nothing
 	}
 }
 
@@ -2710,7 +2710,7 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 }
 
 func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
-errorChannel chan []byte) {
+	errorChannel chan []byte) {
 
 	checkCallbackNil(callbackChannel, false, "ChannelGroupUnsubscribe")
 	checkCallbackNil(errorChannel, true, "ChannelGroupUnsubscribe")
@@ -2780,7 +2780,7 @@ errorChannel chan []byte) {
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) PresenceUnsubscribe(channels string, callbackChannel,
-errorChannel chan []byte) {
+	errorChannel chan []byte) {
 
 	pub.Unsubscribe(addPnpresToString(channels), callbackChannel,
 		errorChannel)
@@ -2847,7 +2847,7 @@ func (pub *Pubnub) sendLeaveRequest(channels, groups string) ([]byte, int, error
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) History(channel string, limit int, start, end int64,
-reverse, include_token bool, callbackChannel, errorChannel chan []byte) {
+	reverse, include_token bool, callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "History")
 	checkCallbackNil(errorChannel, true, "History")
 
@@ -2873,8 +2873,8 @@ reverse, include_token bool, callbackChannel, errorChannel chan []byte) {
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
 func (pub *Pubnub) executeHistory(channel string, limit int, start, end int64,
-reverse, include_token bool, callbackChannel, errorChannel chan []byte,
-retryCount int) {
+	reverse, include_token bool, callbackChannel, errorChannel chan []byte,
+	retryCount int) {
 
 	count := retryCount
 	if invalidChannel(channel, callbackChannel) {
@@ -3099,7 +3099,7 @@ func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, ca
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) HereNow(channel, channelGroup string,
-showUuid, includeUserState bool, callbackChannel, errorChannel chan []byte) {
+	showUuid, includeUserState bool, callbackChannel, errorChannel chan []byte) {
 
 	checkCallbackNil(callbackChannel, false, "HereNow")
 	checkCallbackNil(errorChannel, true, "HereNow")
@@ -3117,7 +3117,7 @@ showUuid, includeUserState bool, callbackChannel, errorChannel chan []byte) {
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
 func (pub *Pubnub) executeHereNow(channel, channelGroup string, showUuid,
-includeUserState bool, callbackChannel, errorChannel chan []byte, retryCount int) {
+	includeUserState bool, callbackChannel, errorChannel chan []byte, retryCount int) {
 	count := retryCount
 
 	if invalidChannel(channel, callbackChannel) {
@@ -3189,7 +3189,7 @@ includeUserState bool, callbackChannel, errorChannel chan []byte, retryCount int
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) GetUserState(channel, uuid string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 
 	checkCallbackNil(callbackChannel, false, "GetUserState")
 	checkCallbackNil(errorChannel, true, "GetUserState")
@@ -3209,7 +3209,7 @@ callbackChannel, errorChannel chan []byte) {
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
 func (pub *Pubnub) executeGetUserState(channel, uuid string,
-callbackChannel, errorChannel chan []byte, retryCount int) {
+	callbackChannel, errorChannel chan []byte, retryCount int) {
 
 	count := retryCount
 
@@ -3264,7 +3264,7 @@ callbackChannel, errorChannel chan []byte, retryCount int) {
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) SetUserStateKeyVal(channel, key, val string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 
 	checkCallbackNil(callbackChannel, false, "SetUserState")
 	checkCallbackNil(errorChannel, true, "SetUserState")
@@ -3319,7 +3319,7 @@ callbackChannel, errorChannel chan []byte) {
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) SetUserStateJSON(channel, jsonString string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 
 	checkCallbackNil(callbackChannel, false, "SetUserState")
 	checkCallbackNil(errorChannel, true, "SetUserState")
@@ -3351,7 +3351,7 @@ callbackChannel, errorChannel chan []byte) {
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
 func (pub *Pubnub) executeSetUserState(channel, jsonState string,
-callbackChannel, errorChannel chan []byte, retryCount int) {
+	callbackChannel, errorChannel chan []byte, retryCount int) {
 
 	count := retryCount
 
@@ -3399,7 +3399,7 @@ callbackChannel, errorChannel chan []byte, retryCount int) {
 }
 
 func (pub *Pubnub) ChannelGroupAddChannel(group, channel string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "ChannelGroupAddChannel")
 	checkCallbackNil(errorChannel, true, "ChannelGroupAddChannel")
 
@@ -3407,7 +3407,7 @@ callbackChannel, errorChannel chan []byte) {
 }
 
 func (pub *Pubnub) ChannelGroupRemoveChannel(group, channel string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveChannel")
 	checkCallbackNil(errorChannel, true, "ChannelGroupRemoveChannel")
 
@@ -3415,7 +3415,7 @@ callbackChannel, errorChannel chan []byte) {
 }
 
 func (pub *Pubnub) ChannelGroupListChannels(group string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "ChannelGroupListChannels")
 	checkCallbackNil(errorChannel, true, "ChannelGroupListChannels")
 
@@ -3423,7 +3423,7 @@ callbackChannel, errorChannel chan []byte) {
 }
 
 func (pub *Pubnub) ChannelGroupRemoveGroup(group string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveGroup")
 	checkCallbackNil(errorChannel, true, "ChannelGroupRemoveGroup")
 
@@ -3431,7 +3431,7 @@ callbackChannel, errorChannel chan []byte) {
 }
 
 func (pub *Pubnub) generateStringforCGRequest(action, group,
-channel string) (requestURL bytes.Buffer) {
+	channel string) (requestURL bytes.Buffer) {
 	params := url.Values{}
 
 	requestURL.WriteString("/v1/channel-registration")
@@ -3463,7 +3463,7 @@ channel string) (requestURL bytes.Buffer) {
 }
 
 func (pub *Pubnub) executeChannelGroup(action, group, channel string,
-callbackChannel, errorChannel chan []byte) {
+	callbackChannel, errorChannel chan []byte) {
 
 	requestURL := pub.generateStringforCGRequest(action, group, channel)
 
@@ -3594,7 +3594,7 @@ func parseCipherInterface(data interface{}, cipherKey string) interface{} {
 // pubnub channelname/timetoken/to time in case of detailed history (value 2).
 // error if any.
 func ParseJSON(contents []byte,
-cipherKey string) (string, string, string, error) {
+	cipherKey string) (string, string, string, error) {
 
 	var s interface{}
 
@@ -3647,7 +3647,7 @@ cipherKey string) (string, string, string, error) {
 // Timetoken/from time in case of detailed history as string.
 // error: if any.
 func ParseSubscribeResponse(rawResponse []byte, cipherKey string) (
-messages [][]byte, channels, groups []string, timetoken string, err error) {
+	messages [][]byte, channels, groups []string, timetoken string, err error) {
 
 	var (
 		response interface{}
@@ -3743,7 +3743,7 @@ func ParseInterfaceData(myInterface interface{}) string {
 // response error code if any.
 // error if any.
 func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
-[]byte, int, error) {
+	[]byte, int, error) {
 
 	// TODO: move to pub.connect method
 	requrl := pub.origin + requestURL
@@ -3783,7 +3783,7 @@ func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 // error if any.
 // TODO: merge with httpRequest function
 func (pub *Pubnub) connect(requestURL string, tType transportType,
-opaqueURL string) ([]byte, int, error) {
+	opaqueURL string) ([]byte, int, error) {
 
 	req, err := http.NewRequest("GET", requestURL, nil)
 	if err != nil {
