@@ -90,22 +90,13 @@ func hasNonPresenceChannels(channelsString string) bool {
 }
 
 func logErrorf(format string, v ...interface{}) {
-	logMu.Lock()
-	defer logMu.Unlock()
-
 	errorLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
 func logInfof(format string, v ...interface{}) {
-	logMu.Lock()
-	defer logMu.Unlock()
-
 	infoLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
 func logInfoln(v ...interface{}) {
-	logMu.Lock()
-	defer logMu.Unlock()
-
 	infoLogger.Output(2, fmt.Sprintln(v...))
 }
