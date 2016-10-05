@@ -4031,6 +4031,28 @@ func encodeNonASCIIChars(message string) string {
 	return encodedString
 }
 
+func encodeNonASCIIChars2(message string) string {
+	runeOfMessage := []rune(message)
+	lenOfRune := len(runeOfMessage)
+	encodedString := bytes.NewBuffer(make([]byte, 0, lenOfRune))
+	for i := 0; i < lenOfRune; i++ {
+		intOfRune := uint16(runeOfMessage[i])
+		if intOfRune > 127 {
+			hexOfRune := strconv.FormatUint(uint64(intOfRune), 16)
+			dataLen := len(hexOfRune)
+			paddingNum := 4 - dataLen
+			encodedString.WriteString(`\u`)
+			for i := 0; i < paddingNum; i++ {
+				encodedString.WriteString("0")
+			}
+			encodedString.WriteString(hexOfRune)
+		} else {
+			encodedString.WriteString(string(runeOfMessage[i]))
+		}
+	}
+	return encodedString.String()
+}
+
 // EncryptString creates the base64 encoded encrypted string using the cipherKey.
 // It accepts the following parameters:
 // cipherKey: cipher key to use to encrypt.

@@ -141,3 +141,27 @@ func TestGetSubscribeLoopActionListWithMultipleChannels(t *testing.T) {
 	<-await
 	assert.Equal(subscribeLoopDoNothing, action)
 }
+
+var (
+	testMessage1 = `PRISE EN MAIN - Le Figaro a pu approcher les nouveaux smartphones de Google. Voici nos premières observations. Le premier «smartphone conçu Google». Voilà comment a été présenté mardi le Pixel mardi. Il ne s'agit pas tout à fait de la première`
+	testMessage2 = `Everybody copies everybody. It doesn't mean they're "out of ideas" or "in a technological cul-de-sac" - or at least it doesn't necessarily mean that - it does mean they want to make money and keep users.`
+)
+
+func BenchmarkEncodeNonASCIIChars(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		encodeNonASCIIChars(testMessage1)
+		encodeNonASCIIChars(testMessage2)
+	}
+}
+
+func BenchmarkEncodeNonASCIIChars2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		encodeNonASCIIChars2(testMessage1)
+		encodeNonASCIIChars2(testMessage2)
+	}
+}
+
+func TestEncodeNonASCIIChars2(t *testing.T) {
+	assert.Equal(t, encodeNonASCIIChars(testMessage1), encodeNonASCIIChars2(testMessage1))
+	assert.Equal(t, encodeNonASCIIChars(testMessage2), encodeNonASCIIChars2(testMessage2))
+}
