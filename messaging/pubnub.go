@@ -4011,29 +4011,6 @@ func GenUuid() (string, error) {
 func encodeNonASCIIChars(message string) string {
 	runeOfMessage := []rune(message)
 	lenOfRune := len(runeOfMessage)
-	encodedString := ""
-	for i := 0; i < lenOfRune; i++ {
-		intOfRune := uint16(runeOfMessage[i])
-		if intOfRune > 127 {
-			hexOfRune := strconv.FormatUint(uint64(intOfRune), 16)
-			dataLen := len(hexOfRune)
-			paddingNum := 4 - dataLen
-			prefix := ""
-			for i := 0; i < paddingNum; i++ {
-				prefix += "0"
-			}
-			hexOfRune = prefix + hexOfRune
-			encodedString += bytes.NewBufferString(`\u` + hexOfRune).String()
-		} else {
-			encodedString += string(runeOfMessage[i])
-		}
-	}
-	return encodedString
-}
-
-func encodeNonASCIIChars2(message string) string {
-	runeOfMessage := []rune(message)
-	lenOfRune := len(runeOfMessage)
 	encodedString := bytes.NewBuffer(make([]byte, 0, lenOfRune))
 	for i := 0; i < lenOfRune; i++ {
 		intOfRune := uint16(runeOfMessage[i])

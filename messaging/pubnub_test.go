@@ -154,14 +154,25 @@ func BenchmarkEncodeNonASCIIChars(b *testing.B) {
 	}
 }
 
-func BenchmarkEncodeNonASCIIChars2(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		encodeNonASCIIChars2(testMessage1)
-		encodeNonASCIIChars2(testMessage2)
+func TestEncodeNonASCIIChars(t *testing.T) {
+	cases := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    testMessage1,
+			expected: "PRISE EN MAIN - Le Figaro a pu approcher les nouveaux smartphones de Google. Voici nos premi\\u00e8res observations. Le premier \\u00absmartphone con\\u00e7u Google\\u00bb. Voil\\u00e0 comment a \\u00e9t\\u00e9 pr\\u00e9sent\\u00e9 mardi le Pixel mardi. Il ne s'agit pas tout \\u00e0 fait de la premi\\u00e8re",
+		},
+		{
+			input:    testMessage2,
+			expected: testMessage2, // no non-ascii characters here, so the string should be unchanged
+		},
+		{
+			input:    "",
+			expected: "",
+		},
 	}
-}
-
-func TestEncodeNonASCIIChars2(t *testing.T) {
-	assert.Equal(t, encodeNonASCIIChars(testMessage1), encodeNonASCIIChars2(testMessage1))
-	assert.Equal(t, encodeNonASCIIChars(testMessage2), encodeNonASCIIChars2(testMessage2))
+	for _, tc := range cases {
+		assert.Equal(t, encodeNonASCIIChars(tc.input), tc.expected)
+	}
 }
