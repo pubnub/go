@@ -47,7 +47,7 @@ type requestWorker struct {
 func newRequestWorker(name string, defaultTransport http.RoundTripper,
 	roundTripTimeout uint16) *requestWorker {
 
-	logInfof("%s worker initialized", name)
+	infoLogger.Println("%s worker initialized", name)
 	return &requestWorker{
 		Name:      fmt.Sprintf("%s Worker", name),
 		CancelChs: make(map[string]chan requestCanceledReason),
@@ -59,7 +59,7 @@ func newRequestWorker(name string, defaultTransport http.RoundTripper,
 func (w *requestWorker) Handle(req *http.Request) (
 	resp []byte, statusCode int, err error) {
 
-	logInfof("%s >>> %s", w.Name, req.URL.String())
+	infoLogger.Println("%s >>> %s", w.Name, req.URL.String())
 
 	cancelCh := make(chan requestCanceledReason)
 	w.CancelChsMu.Lock()
@@ -90,13 +90,13 @@ func (w *requestWorker) Handle(req *http.Request) (
 
 	select {
 	case <-time.After(w.Timeout):
-		logInfof("%s: request timeout (%ds)", w.Name, w.Timeout.Seconds())
+		infoLogger.Println("%s: request timeout (%ds)", w.Name, w.Timeout.Seconds())
 		go cancelRequest()
 		go handleCanceledRequest()
 
 		return nil, 0, errRequestTimeout
 	case reason := <-cancelCh:
-		logInfof("%s: request canceled by client: %s", w.Name, req.URL.Opaque)
+		infoLogger.Println("%s: request canceled by client: %s", w.Name, req.URL.Opaque)
 		go cancelRequest()
 		go removeFromCancelers()
 		go handleCanceledRequest()
@@ -127,7 +127,7 @@ func (w *requestWorker) Client() *http.Client {
 	defer w.TransportMu.Unlock()
 
 	if w.Transport == nil {
-		logInfof("%s: Initializing new transport", w.Name)
+		infoLogger.Println("%s: Initializing new transport", w.Name)
 		transport := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			Dial: (&net.Dialer{
@@ -145,7 +145,7 @@ func (w *requestWorker) Client() *http.Client {
 			if err == nil {
 				transport.Proxy = http.ProxyURL(proxyURL)
 			} else {
-				logErrorf("%s: Proxy connection error: %s", w.Name, err.Error())
+				errorLogger.Println("%s: Proxy connection error: %s", w.Name, err.Error())
 			}
 		}
 
@@ -180,7 +180,7 @@ func (w *requestWorker) InvokeRequest(req *http.Request) <-chan *workerResponse 
 
 			if e == nil {
 				contents = bodyContents
-				logInfof("%s <<< %s", w.Name, string(contents))
+				infoLogger.Println("%s <<< %s", w.Name, string(contents))
 				rs.Data = contents
 				rs.StatusCode = response.StatusCode
 			} else {
@@ -189,13 +189,13 @@ func (w *requestWorker) InvokeRequest(req *http.Request) <-chan *workerResponse 
 			}
 		} else {
 			if response != nil {
-				logErrorf("%s: server error: %s, response.StatusCode: %d", w.Name,
+				errorLogger.Println("%s: server error: %s, response.StatusCode: %d", w.Name,
 					err.Error(), response.StatusCode)
 
 				rs.StatusCode = response.StatusCode
 				rs.Error = err
 			} else {
-				logErrorf("%s: connection error: %s", w.Name, err.Error())
+				errorLogger.Println("%s: connection error: %s", w.Name, err.Error())
 
 				rs.Error = err
 			}
@@ -234,7 +234,7 @@ func (w *requestWorker) cancel(reason requestCanceledReason) {
 	w.CancelChsWg.Wait()
 
 	w.CancelChsMu.Lock()
-	logInfof("%s: all pending requests canceled\n", w.Name)
+	infoLogger.Println("%s: all pending requests canceled\n", w.Name)
 	w.CancelChsMu.Unlock()
 
 	if trans, ok := w.Transport.(*http.Transport); ok {
@@ -251,6 +251,6 @@ func (w *requestWorker) SetTransport(trans http.RoundTripper) {
 	w.TransportMu.Lock()
 	defer w.TransportMu.Unlock()
 
-	logInfof("%s: New transport was set", w.Name)
+	infoLogger.Println("%s: New transport was set", w.Name)
 	w.Transport = trans
 }

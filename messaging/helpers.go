@@ -88,15 +88,3 @@ func hasNonPresenceChannels(channelsString string) bool {
 
 	return false
 }
-
-func logErrorf(format string, v ...interface{}) {
-	errorLogger.Output(2, fmt.Sprintf(format, v...))
-}
-
-func logInfof(format string, v ...interface{}) {
-	infoLogger.Output(2, fmt.Sprintf(format, v...))
-}
-
-func logInfoln(v ...interface{}) {
-	infoLogger.Output(2, fmt.Sprintln(v...))
-}

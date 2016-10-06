@@ -1,11 +1,15 @@
+//+build !race
+
 package tests
 
 import (
 	"testing"
-
+	//"sync"
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
 )
+
+//var pnMu sync.RWMutex
 
 func TestErrorNetworkHistory(t *testing.T) {
 	assert := assert.New(t)

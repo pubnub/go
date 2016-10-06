@@ -404,6 +404,7 @@ var once sync.Once
 
 // initLogging initaites the log file if loggingEnabled is true
 func initLogging() {
+	
 	onceBody := func() {
 		infoLogger = log.New(logfileWriter, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
 		errorLogger = log.New(logfileWriter, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
@@ -422,6 +423,18 @@ func initLogging() {
 		warnLogger = log.New(ioutil.Discard, "WARN: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 }
+
+/*func logErrorf(format string, v ...interface{}) {
+	errorLogger.Output(2, fmt.Sprintf(format, v...))
+}
+
+func logInfof(format string, v ...interface{}) {
+	infoLogger.Output(2, fmt.Sprintf(format, v...))
+}
+
+func logInfoln(v ...interface{}) {
+	infoLogger.Output(2, fmt.Sprintln(v...))
+}*/
 
 // SetMaxIdleConnsPerHost is used to set the value of HTTP Transport's MaxIdleConnsPerHost.
 // It restricts how many connections there are which are not actively serving requests, but which the client has not closed.
@@ -687,7 +700,7 @@ func (pub *Pubnub) Abort() {
 		value, _, err := pub.sendLeaveRequest(subscribedChannels, subscribedGroups)
 
 		if err != nil {
-			logErrorf("Request aborted error:%s", err.Error())
+			errorLogger.Println("Request aborted error:%s", err.Error())
 
 			pub.sendSubscribeError(subscribedChannels, subscribedGroups,
 				err.Error(), responseAsIsError)
@@ -695,7 +708,7 @@ func (pub *Pubnub) Abort() {
 			pub.sendSuccessResponse(subscribedChannels, subscribedGroups, value)
 		}
 
-		logInfof("Request aborted for channels: %s", subscribedChannels)
+		infoLogger.Println("Request aborted for channels: %s", subscribedChannels)
 
 		pub.Lock()
 		pub.channels.Abort()
@@ -1482,7 +1495,7 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	source = strings.TrimSpace(source)
 
 	if len(channel) == 0 {
-		logErrorf("RESPONSE: Empty channel value: %s", channel)
+		errorLogger.Println("RESPONSE: Empty channel value: %s", channel)
 	}
 
 	isPresence = strings.HasSuffix(channel, presenceSuffix)
@@ -1502,11 +1515,11 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	}
 
 	if !found {
-		logErrorf("Subscription item for %s response not found: %s\n", tp, itemName)
+		errorLogger.Println("Subscription item for %s response not found: %s\n", tp, itemName)
 		return
 	}
 
-	logInfof("RESPONSE: Subscription to %s '%s', message %s\n", tp, itemName, response)
+	infoLogger.Println("RESPONSE: Subscription to %s '%s', message %s\n", tp, itemName, response)
 
 	item.SuccessChannel <- successResponse{
 		Data:      response,
@@ -1616,7 +1629,7 @@ func sendErrorResponseSimplified(errorChannel chan<- []byte, message string) {
 
 	value := fmt.Sprintf("[0, \"%s\"]", message)
 
-	logInfof("SEND ERROR: simplified: %s", value)
+	infoLogger.Println("SEND ERROR: simplified: %s", value)
 
 	if errorChannel != nil {
 		errorChannel <- []byte(value)
@@ -1629,7 +1642,7 @@ func sendErrorResponse(errorChannel chan<- []byte, items, message string) {
 	for _, item := range splitItems(items) {
 		value := fmt.Sprintf("[0, \"%s\", \"%s\"]", message, item)
 
-		logInfof("SEND ERROR: regular: %s", value)
+		infoLogger.Println("SEND ERROR: regular: %s", value)
 
 		if errorChannel != nil {
 			errorChannel <- []byte(value)
@@ -1644,7 +1657,7 @@ func sendErrorResponseExtended(errorChannel chan<- []byte, items, message,
 	for _, item := range splitItems(items) {
 		value := fmt.Sprintf("[0, \"%s\", %s, \"%s\"]", message, details, item)
 
-		logInfof("SEND ERROR: extended: %s", value)
+		infoLogger.Println("SEND ERROR: extended: %s", value)
 
 		if errorChannel != nil {
 			errorChannel <- []byte(value)
@@ -2018,7 +2031,7 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 			// if network error, for ex.
 			// - closed network connection/connection aborted
 			if err != nil {
-				logErrorf("SUBSCRIPTION: Network Error: %s, response code: %d:", err.Error(), responseCode)
+				errorLogger.Println("SUBSCRIPTION: Network Error: %s, response code: %d:", err.Error(), responseCode)
 
 				// not! Means CloseExistingConnection() was called
 				isConnAbortedError := strings.Contains(err.Error(), connectionAborted)
@@ -2097,11 +2110,11 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 				region = pub.handleSubscribeResponse(value, sentTimeToken,
 					alreadySubscribedChannels, alreadySubscribedChannelGroups)
 			} else {
-				logInfoln("SUBSCRIPTION: Empty subscribe response")
+				infoLogger.Println("SUBSCRIPTION: Empty subscribe response")
 				// TODO: handle else case (send error and sleepForAWhile(true))
 			}
 		} else {
-			logInfoln("SUBSCRIPTION: Stop")
+			infoLogger.Println("SUBSCRIPTION: Stop")
 			break
 		}
 	}
@@ -2149,14 +2162,14 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken, region string) (string, str
 
 	subscribeURLBuffer.WriteString("&tt=")
 	if pub.resetTimeToken {
-		logInfoln("SUBSCRIPTION: resetTimeToken=true")
+		infoLogger.Println("SUBSCRIPTION: resetTimeToken=true")
 
 		sentTimeToken = "0"
 		pub.sentTimeToken = "0"
 		pub.resetTimeToken = false
 		subscribeURLBuffer.WriteString("0")
 	} else {
-		logInfoln("SUBSCRIPTION: resetTimeToken=false")
+		infoLogger.Println("SUBSCRIPTION: resetTimeToken=false")
 		if strings.TrimSpace(pub.timeToken) == "" {
 			pub.timeToken = "0"
 			pub.sentTimeToken = "0"
@@ -2308,7 +2321,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 			connectedNames := pub.channels.ConnectedNames()
 
 			if len(connectedNames) == 0 {
-				logErrorf("SUBSCRIPTION: No connected channels for response: %s", subEnv.Messages)
+				errorLogger.Println("SUBSCRIPTION: No connected channels for response: %s", subEnv.Messages)
 				return ""
 			}
 
@@ -2553,7 +2566,7 @@ func (pub *Pubnub) getSubscribeLoopAction(channels, groups string,
 		returnAction = subscribeLoopDoNothing
 	}
 
-	logInfof("SUBSCRIPTION: Loop %s", returnAction)
+	infoLogger.Println("SUBSCRIPTION: Loop %s", returnAction)
 
 	return returnAction
 }
@@ -3065,12 +3078,12 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start, end int64,
 	value, _, err := pub.httpRequest(historyURLBuffer.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logErrorf("%s", err.Error())
+		errorLogger.Println("%s", err.Error())
 		sendErrorResponse(errorChannel, channel, err.Error())
 	} else {
 		data, returnOne, returnTwo, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logErrorf("%s", errJSON.Error())
+			errorLogger.Println("%s", errJSON.Error())
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
@@ -3138,12 +3151,12 @@ func (pub *Pubnub) executeWhereNow(uuid string, callbackChannel chan []byte, err
 	value, _, err := pub.httpRequest(whereNowURL.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logErrorf("WHERE NOW: Connection error: %s", err.Error())
+		errorLogger.Println("WHERE NOW: Connection error: %s", err.Error())
 		sendErrorResponse(errorChannel, uuid, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logErrorf("WHERE NOW: JSON parsing error: %s", errJSON.Error())
+			errorLogger.Println("WHERE NOW: JSON parsing error: %s", errJSON.Error())
 			sendErrorResponse(errorChannel, uuid, errJSON.Error())
 			if count < maxRetries {
 				count++
@@ -3212,12 +3225,12 @@ func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, ca
 	value, _, err := pub.httpRequest(hereNowURL.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logErrorf("%s", err.Error())
+		errorLogger.Println("%s", err.Error())
 		sendErrorResponseSimplified(errorChannel, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logErrorf("%s", errJSON.Error())
+			errorLogger.Println("%s", errJSON.Error())
 			sendErrorResponseSimplified(errorChannel, errJSON.Error())
 			if count < maxRetries {
 				count++
@@ -3301,12 +3314,12 @@ func (pub *Pubnub) executeHereNow(channel, channelGroup string, showUuid,
 	value, _, err := pub.httpRequest(hereNowURL.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logErrorf("%s", err.Error())
+		errorLogger.Println("%s", err.Error())
 		sendErrorResponse(errorChannel, channel, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logErrorf("%s", errJSON.Error())
+			errorLogger.Println("%s", errJSON.Error())
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
@@ -3376,12 +3389,12 @@ func (pub *Pubnub) executeGetUserState(channel, uuid string,
 	value, _, err := pub.httpRequest(userStateURL.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logErrorf("%s", err.Error())
+		errorLogger.Println("%s", err.Error())
 		sendErrorResponse(errorChannel, channel, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logErrorf("%s", errJSON.Error())
+			errorLogger.Println("%s", errJSON.Error())
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
@@ -3520,12 +3533,12 @@ func (pub *Pubnub) executeSetUserState(channel, jsonState string,
 	value, _, err := pub.httpRequest(userStateURL.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logErrorf("%s", err.Error())
+		errorLogger.Println("%s", err.Error())
 		sendErrorResponse(errorChannel, channel, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logErrorf("%s", errJSON.Error())
+			errorLogger.Println("%s", errJSON.Error())
 			sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
@@ -3611,12 +3624,12 @@ func (pub *Pubnub) executeChannelGroup(action, group, channel string,
 	value, _, err := pub.httpRequest(requestURL.String(), nonSubscribeTrans)
 
 	if err != nil {
-		logErrorf("%s", err.Error())
+		errorLogger.Println("%s", err.Error())
 		sendErrorResponse(errorChannel, group, err.Error())
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			logErrorf("%s", errJSON.Error())
+			errorLogger.Println("%s", errJSON.Error())
 			sendErrorResponse(errorChannel, group, errJSON.Error())
 		} else {
 			callbackChannel <- value
@@ -3766,7 +3779,7 @@ func ParseJSON(contents []byte,
 			}
 		}
 	} else {
-		logErrorf("JSON PARSER: Bad JSON: %s", contents)
+		errorLogger.Println("JSON PARSER: Bad JSON: %s", contents)
 		err = fmt.Errorf(invalidJSON)
 	}
 	return returnData, returnOne, returnTwo, err
@@ -3940,7 +3953,7 @@ func (pub *Pubnub) connect(requestURL string, tType transportType,
 
 	req, err := http.NewRequest("GET", requestURL, nil)
 	if err != nil {
-		logErrorf("HTTP REQUEST: Error while creating request: %s", err.Error())
+		errorLogger.Println("HTTP REQUEST: Error while creating request: %s", err.Error())
 		return nil, 0, err
 	}
 
