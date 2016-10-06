@@ -1125,7 +1125,7 @@ func publishRoutine(channels string, message string) {
 		ch := strings.TrimSpace(channelArray[i])
 		fmt.Println("Publish to channel: ", ch)
 		channel := make(chan []byte)
-		event := "DialStatus: ANSWER\r\nEvent: Dial\r\nPrivilege: call,all\r\nSubEvent: End\r\nChannel: SIP/1180-00001fa3\r\nUniqueID: 1475581272.19470"
+		/*event := "DialStatus: ANSWER\r\nEvent: Dial\r\nPrivilege: call,all\r\nSubEvent: End\r\nChannel: SIP/1180-00001fa3\r\nUniqueID: 1475581272.19470"
 		message2 := struct {
 		Event          string `json:"event"`
 		OrganizationId string `json:"organizationId"`
@@ -1135,7 +1135,8 @@ func publishRoutine(channels string, message string) {
 		"someOrg",
 		"phone",
 	}
-		go pub.Publish(ch, message2, channel, errorChannel)
+		go pub.Publish(ch, message2, channel, errorChannel)*/
+		go pub.Publish(ch, message, channel, errorChannel)
 		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
 	}
 }
