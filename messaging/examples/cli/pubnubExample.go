@@ -667,11 +667,13 @@ func ReadLoop() {
 			} else {
 				fmt.Println("Please enter the message")
 				message, _, err := reader.ReadLine()
+				
 				if err != nil {
 					fmt.Println(err)
 				} else {
 					go publishRoutine(channels, string(message))
 				}
+				//go publishRoutine(channels, message)
 			}
 		case "4":
 			channels, errReadingChannel := askChannel()
@@ -1123,7 +1125,17 @@ func publishRoutine(channels string, message string) {
 		ch := strings.TrimSpace(channelArray[i])
 		fmt.Println("Publish to channel: ", ch)
 		channel := make(chan []byte)
-		go pub.Publish(ch, message, channel, errorChannel)
+		event := "DialStatus: ANSWER\r\nEvent: Dial\r\nPrivilege: call,all\r\nSubEvent: End\r\nChannel: SIP/1180-00001fa3\r\nUniqueID: 1475581272.19470"
+		message2 := struct {
+		Event          string `json:"event"`
+		OrganizationId string `json:"organizationId"`
+		Type           string `json:"type"`
+	}{
+		event,
+		"someOrg",
+		"phone",
+	}
+		go pub.Publish(ch, message2, channel, errorChannel)
 		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
 	}
 }

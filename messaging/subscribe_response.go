@@ -50,7 +50,6 @@ func (env *subscribeEnvelope) getChannelsAndGroups() (channels, channelGroups []
 }
 
 func (msg *subscribeMessage) writeMessageLog(count int) {
-	logMu.Lock()
 	// start logging
 	infoLogger.Println(fmt.Sprintf("-----Message %d-----", count))
 	infoLogger.Println(fmt.Sprintf("Channel, %s", msg.Channel))
@@ -78,6 +77,4 @@ func (msg *subscribeMessage) writeMessageLog(count int) {
 		infoLogger.Println(fmt.Sprintf("UserMetadata, not converted to string"))
 	}
 	// end logging
-
-	logMu.Unlock()
 }
