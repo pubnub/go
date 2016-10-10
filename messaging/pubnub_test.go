@@ -2,7 +2,8 @@ package messaging
 
 import (
 	"testing"
-
+	"log"
+	"io/ioutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,6 +20,7 @@ func TestGetSubscribeLoopActionEmptyLists(t *testing.T) {
 	pubnub := Pubnub{
 		channels: *newSubscriptionEntity(),
 		groups:   *newSubscriptionEntity(),
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
 	errCh := make(chan []byte)
@@ -38,6 +40,7 @@ func TestGetSubscribeLoopActionListWithSingleChannel(t *testing.T) {
 	pubnub := Pubnub{
 		channels: *newSubscriptionEntity(),
 		groups:   *newSubscriptionEntity(),
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
 	existingSuccessChannel := make(chan []byte)
@@ -72,6 +75,7 @@ func TestGetSubscribeLoopActionListWithSingleGroup(t *testing.T) {
 	pubnub := Pubnub{
 		channels: *newSubscriptionEntity(),
 		groups:   *newSubscriptionEntity(),
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
 	existingSuccessChannel := make(chan []byte)
@@ -106,6 +110,7 @@ func TestGetSubscribeLoopActionListWithMultipleChannels(t *testing.T) {
 	pubnub := Pubnub{
 		channels: *newSubscriptionEntity(),
 		groups:   *newSubscriptionEntity(),
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
 	existingSuccessChannel := make(chan []byte)

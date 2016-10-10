@@ -105,13 +105,13 @@ func (e *subscriptionEntity) AddConnected(name string,
 func (e *subscriptionEntity) add(name string, connected bool,
 	successChannel chan<- []byte, errorChannel chan<- []byte) {
 
-	infoLogger.Println("ITEMS: Adding item '%s', connected: %t", name, connected)
+	infoLogger.Printf("INFO: ITEMS: Adding item '%s', connected: %t", name, connected)
 
 	e.Lock()
 	defer e.Unlock()
 
 	if _, ok := e.items[name]; ok {
-		infoLogger.Println("ITEMS: Item '%s' is not added since it's already exists", name)
+		infoLogger.Printf("INFO: ITEMS: Item '%s' is not added since it's already exists", name)
 		return
 	}
 
@@ -126,7 +126,7 @@ func (e *subscriptionEntity) add(name string, connected bool,
 }
 
 func (e *subscriptionEntity) Remove(name string) bool {
-	infoLogger.Println("ITEMS: Removing item '%s'", name)
+	infoLogger.Printf("INFO: ITEMS: Removing item '%s'", name)
 
 	e.Lock()
 	defer e.Unlock()
@@ -237,7 +237,7 @@ func (e *subscriptionEntity) Clear() {
 }
 
 func (e *subscriptionEntity) Abort() {
-	infoLogger.Println("ITEMS: Aborting")
+	infoLogger.Printf("INFO: ITEMS: Aborting")
 
 	e.Lock()
 	defer e.Unlock()
@@ -246,7 +246,7 @@ func (e *subscriptionEntity) Abort() {
 }
 
 func (e *subscriptionEntity) ApplyAbort() {
-	infoLogger.Println("ITEMS: Applying abort")
+	infoLogger.Printf("INFO: ITEMS: Applying abort")
 
 	e.Lock()
 	abortedMarker := e.abortedMarker
@@ -258,7 +258,7 @@ func (e *subscriptionEntity) ApplyAbort() {
 }
 
 func (e *subscriptionEntity) ResetConnected() {
-	infoLogger.Println("ITEMS: Resetting connected flag")
+	infoLogger.Printf("INFO: ITEMS: Resetting connected flag")
 
 	e.Lock()
 	defer e.Unlock()
@@ -269,7 +269,7 @@ func (e *subscriptionEntity) ResetConnected() {
 }
 
 func (e *subscriptionEntity) SetConnected() (changedItemNames []string) {
-	infoLogger.Println("ITEMS: Setting items '%s' as connected",
+	infoLogger.Printf("INFO: ITEMS: Setting items '%s' as connected",
 		strings.Join(changedItemNames, ","))
 
 	e.Lock()
