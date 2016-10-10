@@ -114,7 +114,7 @@ func Test0Presence(t *testing.T) {
 		for {
 			select {
 			case value := <-successPresence:
-				data, _, returnedChannel, err := messaging.ParseJSON(value, "")
+				data, _, returnedChannel, err := pubnubInstance.ParseJSON(value, "")
 				if err != nil {
 					assert.Fail(err.Error())
 				}

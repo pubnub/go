@@ -66,7 +66,7 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 		successChannel, errorChannel)
 	select {
 	case value := <-successChannel:
-		data, _, _, err := messaging.ParseJSON(value, cipherKey)
+		data, _, _, err := pubnubInstance.ParseJSON(value, cipherKey)
 		if err != nil {
 			assert.Fail(err.Error())
 		}
@@ -151,7 +151,7 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 		false, false, successChannel, errorChannel)
 	select {
 	case value := <-successChannel:
-		data, _, _, err := messaging.ParseJSON(value, cipherKey)
+		data, _, _, err := pubnubInstance.ParseJSON(value, cipherKey)
 		if err != nil {
 			assert.Fail(err.Error())
 		}
@@ -185,7 +185,7 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 		false, successChannel, errorChannel)
 	select {
 	case value := <-successChannel:
-		data, _, _, err := messaging.ParseJSON(value, cipherKey)
+		data, _, _, err := pubnubInstance.ParseJSON(value, cipherKey)
 		if err != nil {
 			assert.Fail(err.Error())
 		}
@@ -281,7 +281,7 @@ func TestHistoryWithTimetoken(t *testing.T) {
 	go pubnub.History(channel, count, 0, 0, false, true, successChannel, errorChannel)
 	select {
 	case value := <-successChannel:
-		data, _, _, err := messaging.ParseJSON(value, "")
+		data, _, _, err := pubnub.ParseJSON(value, "")
 		if err != nil {
 			assert.Fail(err.Error())
 		}
