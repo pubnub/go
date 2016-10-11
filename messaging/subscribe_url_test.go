@@ -3,24 +3,27 @@ package messaging
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"log"
 	"testing"
 )
 
 func init() {
-	channelsSingleChannel.Add("blah", successChannel, errorChannel)
+	infoLogger := log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+	channelsSingleChannel.Add("blah", successChannel, errorChannel, infoLogger)
 
-	channelsThreeChannels.Add("qwer", successChannel, errorChannel)
-	channelsThreeChannels.Add("asdf", successChannel, errorChannel)
-	channelsThreeChannels.Add("zxcv", successChannel, errorChannel)
+	channelsThreeChannels.Add("qwer", successChannel, errorChannel, infoLogger)
+	channelsThreeChannels.Add("asdf", successChannel, errorChannel, infoLogger)
+	channelsThreeChannels.Add("zxcv", successChannel, errorChannel, infoLogger)
 
-	channelsSingleCG.Add("qwer", successChannel, errorChannel)
+	channelsSingleCG.Add("qwer", successChannel, errorChannel, infoLogger)
 
-	channelsThreeCG.Add("qwer", successChannel, errorChannel)
-	channelsThreeCG.Add("asdf", successChannel, errorChannel)
-	channelsThreeCG.Add("zxcv", successChannel, errorChannel)
+	channelsThreeCG.Add("qwer", successChannel, errorChannel, infoLogger)
+	channelsThreeCG.Add("asdf", successChannel, errorChannel, infoLogger)
+	channelsThreeCG.Add("zxcv", successChannel, errorChannel, infoLogger)
 
-	channelsChannelAndGroupC.Add("asdf", successChannel, errorChannel)
-	channelsChannelAndGroupG.Add("qwer", successChannel, errorChannel)
+	channelsChannelAndGroupC.Add("asdf", successChannel, errorChannel, infoLogger)
+	channelsChannelAndGroupG.Add("qwer", successChannel, errorChannel, infoLogger)
 }
 
 func TestCreateSubscribeURLWithoutTimetoken(t *testing.T) {

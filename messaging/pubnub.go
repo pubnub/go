@@ -183,7 +183,7 @@ var (
 	valIV = "0123456789012345"
 
 	// If true logs will be written in the log file
-	loggingEnabled       bool
+	loggingEnabled bool
 
 	// This stirng is used as a log file name
 	logfileWriter io.Writer
@@ -195,7 +195,7 @@ var (
 	//errorLogger *log.Logger
 
 	// Logger for warn messages
-	//warnLogger *log.Logger	
+	//warnLogger *log.Logger
 
 	//logMu               sync.Mutex
 
@@ -318,7 +318,7 @@ type Pubnub struct {
 	retryWorker             *requestWorker
 
 	// Logger for info messages
-	infoLogger           *log.Logger
+	infoLogger *log.Logger
 }
 
 // PubnubUnitTest structure used to expose some data for unit tests.
@@ -526,7 +526,7 @@ func (pub *Pubnub) SetUUID(val string) {
 		if err == nil {
 			pub.uuid = url.QueryEscape(uuid)
 		} else {
-			pub.infoLogger.Printf("ERROR: %s",err.Error())
+			pub.infoLogger.Printf("ERROR: %s", err.Error())
 		}
 	} else {
 		pub.uuid = url.QueryEscape(val)
@@ -719,8 +719,8 @@ func (pub *Pubnub) Abort() {
 		pub.infoLogger.Printf("INFO: Request aborted for channels: %s", subscribedChannels)
 
 		pub.Lock()
-		pub.channels.Abort()
-		pub.groups.Abort()
+		pub.channels.Abort(pub.infoLogger)
+		pub.groups.Abort(pub.infoLogger)
 		pub.Unlock()
 	}
 
@@ -1464,8 +1464,8 @@ func (pub *Pubnub) PublishExtendedWithMeta(channel string, message, meta interfa
 		pub.sendErrorResponse(errorChannel, channel, fmt.Sprintf("error in serializing: %s", err))
 	} else {
 		if pub.cipherKey != "" {
-			//Encrypt and Serialize			
-			encrypted := EncryptString(pub.cipherKey, fmt.Sprintf("%s", jsonSerialized))			
+			//Encrypt and Serialize
+			encrypted := EncryptString(pub.cipherKey, fmt.Sprintf("%s", jsonSerialized))
 			jsonEncBytes, errEnc := json.Marshal(encrypted)
 			if errEnc != nil {
 				pub.infoLogger.Printf("ERROR: Publish error: %s", errEnc.Error())
@@ -1763,7 +1763,7 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error) (bool, bool) {
 		pub.sleepForAWhile(true)
 		message := fmt.Sprintf("Error %s, Retry count: %s", err.Error(), strconv.Itoa(retryCountLocal))
 
-		pub.infoLogger.Printf("ERROR: %s",message)
+		pub.infoLogger.Printf("ERROR: %s", message)
 
 		pub.sendSubscribeErrorExtended(subChannels, subChannelGroups,
 			err.Error(), message, responseAsIsError)
@@ -1794,8 +1794,8 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error) (bool, bool) {
 		pub.sendSubscribeError(subChannels, subChannelGroups, "", reponseAbortMaxRetry)
 
 		pub.Lock()
-		pub.channels.ResetConnected()
-		pub.groups.ResetConnected()
+		pub.channels.ResetConnected(pub.infoLogger)
+		pub.groups.ResetConnected(pub.infoLogger)
 		pub.Unlock()
 
 		retryCountLocal = 0
@@ -2053,16 +2053,16 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string,
 						alreadySubscribedChannelGroups, err.Error(), responseAsIsError)
 
 					pub.Lock()
-					pub.channels.ApplyAbort()
-					pub.groups.ApplyAbort()
+					pub.channels.ApplyAbort(pub.infoLogger)
+					pub.groups.ApplyAbort(pub.infoLogger)
 					pub.Unlock()
 					continue
 				}
 
 				if isConnCanceled {
 					pub.Lock()
-					pub.channels.ApplyAbort()
-					pub.groups.ApplyAbort()
+					pub.channels.ApplyAbort(pub.infoLogger)
+					pub.groups.ApplyAbort(pub.infoLogger)
 					pub.Unlock()
 					continue
 				}
@@ -2280,8 +2280,8 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	if len(subEnvelope.Messages) == 0 {
 		if sentTimetoken == "0" {
 			pub.Lock()
-			changedChannels := pub.channels.SetConnected()
-			changedGroups := pub.groups.SetConnected()
+			changedChannels := pub.channels.SetConnected(pub.infoLogger)
+			changedGroups := pub.groups.SetConnected(pub.infoLogger)
 			pub.Unlock()
 
 			if !reconnected {
@@ -2377,7 +2377,7 @@ func (pub *Pubnub) parseMessagesAndSendCallbacks(msg subscribeMessage, timetoken
 	if errMrshal != nil {
 		strPayload, _ := msg.Payload.(string)
 		errMsg := fmt.Sprintf("Error marshalling received payload, %s\nMessage: %s", errMrshal.Error(), strPayload)
-		pub.infoLogger.Printf("ERROR: %s",errMsg)
+		pub.infoLogger.Printf("ERROR: %s", errMsg)
 		message = []byte(errMsg)
 	}
 	// End Extract Message
@@ -2482,7 +2482,7 @@ func (pub *Pubnub) checkCallbackNil(channelToCheck chan<- []byte, isErrChannel b
 			message2 = "Error "
 		}
 		message := fmt.Sprintf("%sCallback is nil for %s", message2, funcName)
-		pub.infoLogger.Printf("ERROR: %s",message)
+		pub.infoLogger.Printf("ERROR: %s", message)
 		panic(message)
 	}
 }
@@ -2603,9 +2603,9 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 
 	for _, u := range groupsArr {
 		if timetokenIsZero {
-			pub.groups.Add(u, callbackChannel, errorChannel)
+			pub.groups.Add(u, callbackChannel, errorChannel, pub.infoLogger)
 		} else {
-			pub.groups.AddConnected(u, callbackChannel, errorChannel)
+			pub.groups.AddConnected(u, callbackChannel, errorChannel, pub.infoLogger)
 		}
 	}
 
@@ -2684,9 +2684,9 @@ func (pub *Pubnub) Subscribe(channels, timetoken string,
 
 	for _, u := range channelArr {
 		if timetokenIsZero {
-			pub.channels.Add(u, callbackChannel, errorChannel)
+			pub.channels.Add(u, callbackChannel, errorChannel, pub.infoLogger)
 		} else {
-			pub.channels.AddConnected(u, callbackChannel, errorChannel)
+			pub.channels.AddConnected(u, callbackChannel, errorChannel, pub.infoLogger)
 		}
 	}
 
@@ -2839,7 +2839,7 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 				connectionUnsubscribed)
 
 			pub.Lock()
-			pub.channels.Remove(channelToUnsub)
+			pub.channels.Remove(channelToUnsub, pub.infoLogger)
 			pub.Unlock()
 
 			unsubscribeChannels += channelToUnsub
@@ -2896,7 +2896,7 @@ func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 				connectionUnsubscribed)
 
 			pub.Lock()
-			pub.groups.Remove(groupToUnsub)
+			pub.groups.Remove(groupToUnsub, pub.infoLogger)
 			pub.Unlock()
 
 			unsubscribeGroups += groupToUnsub
@@ -3733,7 +3733,7 @@ func (pub *Pubnub) parseInterface(vv []interface{}, cipherKey string) string {
 // cipherKey: cipher key to use to decrypt.
 //
 // returns the decrypted data as interface.
-func (pub *Pubnub)  parseCipherInterface(data interface{}, cipherKey string) interface{} {
+func (pub *Pubnub) parseCipherInterface(data interface{}, cipherKey string) interface{} {
 	var intf interface{}
 	decrypted, errDecryption := DecryptString(cipherKey, data.(string))
 	if errDecryption != nil {

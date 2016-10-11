@@ -1,10 +1,10 @@
 package messaging
 
 import (
-	"testing"
-	"log"
-	"io/ioutil"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"log"
+	"testing"
 )
 
 func TestGenUuid(t *testing.T) {
@@ -18,8 +18,8 @@ func TestGenUuid(t *testing.T) {
 func TestGetSubscribeLoopActionEmptyLists(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := Pubnub{
-		channels: *newSubscriptionEntity(),
-		groups:   *newSubscriptionEntity(),
+		channels:   *newSubscriptionEntity(),
+		groups:     *newSubscriptionEntity(),
 		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
@@ -38,8 +38,8 @@ func TestGetSubscribeLoopActionEmptyLists(t *testing.T) {
 func TestGetSubscribeLoopActionListWithSingleChannel(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := Pubnub{
-		channels: *newSubscriptionEntity(),
-		groups:   *newSubscriptionEntity(),
+		channels:   *newSubscriptionEntity(),
+		groups:     *newSubscriptionEntity(),
 		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
@@ -49,7 +49,7 @@ func TestGetSubscribeLoopActionListWithSingleChannel(t *testing.T) {
 	await := make(chan bool)
 
 	pubnub.channels.Add("existing_channel",
-		existingSuccessChannel, existingErrorChannel)
+		existingSuccessChannel, existingErrorChannel, pubnub.infoLogger)
 
 	action := pubnub.getSubscribeLoopAction("", "", errCh)
 	assert.Equal(subscribeLoopDoNothing, action)
@@ -73,8 +73,8 @@ func TestGetSubscribeLoopActionListWithSingleChannel(t *testing.T) {
 func TestGetSubscribeLoopActionListWithSingleGroup(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := Pubnub{
-		channels: *newSubscriptionEntity(),
-		groups:   *newSubscriptionEntity(),
+		channels:   *newSubscriptionEntity(),
+		groups:     *newSubscriptionEntity(),
 		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
@@ -84,7 +84,7 @@ func TestGetSubscribeLoopActionListWithSingleGroup(t *testing.T) {
 	await := make(chan bool)
 
 	pubnub.groups.Add("existing_group",
-		existingSuccessChannel, existingErrorChannel)
+		existingSuccessChannel, existingErrorChannel, pubnub.infoLogger)
 
 	action := pubnub.getSubscribeLoopAction("", "", errCh)
 	assert.Equal(subscribeLoopDoNothing, action)
@@ -108,8 +108,8 @@ func TestGetSubscribeLoopActionListWithSingleGroup(t *testing.T) {
 func TestGetSubscribeLoopActionListWithMultipleChannels(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := Pubnub{
-		channels: *newSubscriptionEntity(),
-		groups:   *newSubscriptionEntity(),
+		channels:   *newSubscriptionEntity(),
+		groups:     *newSubscriptionEntity(),
 		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
@@ -119,9 +119,9 @@ func TestGetSubscribeLoopActionListWithMultipleChannels(t *testing.T) {
 	await := make(chan bool)
 
 	pubnub.channels.Add("ex_ch1",
-		existingSuccessChannel, existingErrorChannel)
+		existingSuccessChannel, existingErrorChannel, pubnub.infoLogger)
 	pubnub.channels.Add("ex_ch2",
-		existingSuccessChannel, existingErrorChannel)
+		existingSuccessChannel, existingErrorChannel, pubnub.infoLogger)
 
 	action := pubnub.getSubscribeLoopAction("ch1,ch2", "", errCh)
 	assert.Equal(subscribeLoopRestart, action)
