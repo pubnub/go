@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=0&pnsdk=PubNub-Go%2F3.9.1
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=0&pnsdk=PubNub-Go%2F3.9.3
     method: GET
   response:
     body: '[[],"14586610210555993",""]'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586610210555993&pnsdk=PubNub-Go%2F3.9.1
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586610210555993&pnsdk=PubNub-Go%2F3.9.3
     method: GET
   response:
     body: '[["message1"],"14586613343588074","Mpx_Channel_1"]'
@@ -66,8 +66,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586613343588074&pnsdk=PubNub-Go%2F3.9.1
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586613343588074&pnsdk=PubNub-Go%2F3.9.3
     method: GET
   response:
     body: '[["message2"],"14586613343837041","Mpx_Channel_2"]'
@@ -89,5 +89,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586613343837041&pnsdk=PubNub-Go%2F3.9.1
+  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586613343837041&pnsdk=PubNub-Go%2F3.9.3
   : {}

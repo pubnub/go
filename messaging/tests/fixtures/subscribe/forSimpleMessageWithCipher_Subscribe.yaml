@@ -8,11 +8,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=0&pnsdk=PubNub-Go%2F3.9.1
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=0&pnsdk=PubNub-Go%2F3.9.3
     method: GET
   response:
-    body: '[[],"14586610176891624"]'
+    body: '{"t":{"t":"14586610176891624","r":4},"m":[]}'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -37,11 +37,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=14586610176891624&pnsdk=PubNub-Go%2F3.9.1
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=14586610176891624&tr=4&pnsdk=PubNub-Go%2F3.9.3
     method: GET
   response:
-    body: '[["HSoHp4g0o/uHfiS1PYXzWw=="],"14586613284460865"]'
+    body: '{"t":{"t":"14586613284460865","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimpleWithCipher","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimpleWithCipher","b":"Channel_SubscriptionConnectedForSimpleWithCipher","d":"HSoHp4g0o/uHfiS1PYXzWw=="}]}'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -60,5 +60,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=14586613284460865&pnsdk=PubNub-Go%2F3.9.1
+  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=14586613284460865&tr=4&pnsdk=PubNub-Go%2F3.9.3
   : {}

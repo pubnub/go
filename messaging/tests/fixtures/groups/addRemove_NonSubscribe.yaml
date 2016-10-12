@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_AddRemove?add=Channel_AddRemove1%2CChannel_AddRemove2&pnsdk=PubNub-Go%2F3.9.1&uuid=UUID_AddRemove_1
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_AddRemove?add=Channel_AddRemove1%2CChannel_AddRemove2&pnsdk=PubNub-Go%2F3.9.3&uuid=UUID_AddRemove_1
     method: GET
   response:
     body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
@@ -44,8 +44,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_AddRemove?pnsdk=PubNub-Go%2F3.9.1&uuid=UUID_AddRemove_1
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_AddRemove?pnsdk=PubNub-Go%2F3.9.3&uuid=UUID_AddRemove_1
     method: GET
   response:
     body: '{"status": 200, "payload": {"channels": ["Channel_AddRemove1", "Channel_AddRemove2"],
@@ -80,8 +80,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_AddRemove?pnsdk=PubNub-Go%2F3.9.1&remove=Channel_AddRemove1&uuid=UUID_AddRemove_2
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_AddRemove?pnsdk=PubNub-Go%2F3.9.3&remove=Channel_AddRemove1&uuid=UUID_AddRemove_2
     method: GET
   response:
     body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
@@ -116,8 +116,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.1
-    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_AddRemove?pnsdk=PubNub-Go%2F3.9.1&uuid=UUID_AddRemove_2
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_AddRemove?pnsdk=PubNub-Go%2F3.9.3&uuid=UUID_AddRemove_2
     method: GET
   response:
     body: '{"status": 200, "payload": {"channels": ["Channel_AddRemove2"], "group":

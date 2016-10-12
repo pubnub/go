@@ -2372,14 +2372,73 @@ func (pub *Pubnub) parseMessagesAndSendCallbacks(msg subscribeMessage, timetoken
 	channel := msg.Channel
 
 	//Extract Message
-	message, errMrshal := json.Marshal(msg.Payload)
+	var message []byte
+	var intf interface{}
+	if pub.cipherKey != "" {
+		//message = []byte(pub.getData(msg.Payload, pub.cipherKey))
+		msgKind := reflect.TypeOf(msg.Payload).Kind()
+		if msgKind == reflect.String {
 
+			intf = pub.parseCipherInterface(msg.Payload, pub.cipherKey)
+			var returnedMessages interface{}
+			errUnmarshalMessages := json.Unmarshal([]byte(intf.(string)), &returnedMessages)
+
+			if errUnmarshalMessages == nil {
+				intf = returnedMessages
+			}
+
+			if intf == nil {
+				intf = msg.Payload
+				pub.infoLogger.Printf("ERROR: intf nil: %s, %s", msgKind, msg.Payload)
+			}
+		} else {
+			pub.infoLogger.Printf("INFO: non string intf :%s, payload: %s", msgKind, msg.Payload)
+			intf = msg.Payload
+		}
+	} else {
+		intf = msg.Payload
+	}
+
+	if reflect.TypeOf(intf).Kind() == reflect.String {
+		unescapeVal, unescapeErr := url.QueryUnescape(intf.(string))
+		if unescapeErr != nil {
+			pub.infoLogger.Printf("ERROR: unescape :%s", unescapeErr.Error())
+		} else {
+			intf = unescapeVal
+		}
+	}
+
+	//messageTemp, errMrshal := json.Marshal(msg.Payload)
+	messageTemp, errMrshal := json.Marshal(intf)
 	if errMrshal != nil {
 		strPayload, _ := msg.Payload.(string)
 		errMsg := fmt.Sprintf("Error marshalling received payload, %s\nMessage: %s", errMrshal.Error(), strPayload)
 		pub.infoLogger.Printf("ERROR: %s", errMsg)
 		message = []byte(errMsg)
+	} else {
+		message = messageTemp
 	}
+
+	/*var intf interface{}
+
+	if pub.cipherKey != "" {
+		decrypted, errDecryption := DecryptString(pub.cipherKey, msg.Payload.(string))
+		if errDecryption != nil {
+			intf = msg.Payload
+		} else {
+			intf = decrypted
+		}
+	} else {
+		intf = msg.Payload
+	}*/
+	//message, errMrshal := json.Marshal(intf)
+
+	/*if errMrshal != nil {
+		strPayload, _ := msg.Payload.(string)
+		errMsg := fmt.Sprintf("Error marshalling received payload, %s\nMessage: %s", errMrshal.Error(), strPayload)
+		pub.infoLogger.Printf("ERROR: %s", errMsg)
+		message = []byte(errMsg)
+	}*/
 	// End Extract Message
 
 	if (len(strings.TrimSpace(msg.SubscriptionMatch)) <= 0) || (channel == msg.SubscriptionMatch) {
@@ -3661,6 +3720,7 @@ func (pub *Pubnub) getData(rawData interface{}, cipherKey string) string {
 	case string:
 		jsonData, err := json.Marshal(fmt.Sprintf("%s", vv[0]))
 		if err == nil {
+			pub.infoLogger.Printf("INFO: returning jsonData %s", jsonData)
 			return string(jsonData)
 		}
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
@@ -3668,9 +3728,11 @@ func (pub *Pubnub) getData(rawData interface{}, cipherKey string) string {
 	case []interface{}:
 		retval := pub.parseInterface(vv, cipherKey)
 		if retval != "" {
+			pub.infoLogger.Printf("INFO: returning []interface, %s", retval)
 			return retval
 		}
 	}
+	pub.infoLogger.Printf("INFO: returning rawdata, %s", rawData)
 	return fmt.Sprintf("%s", rawData)
 }
 

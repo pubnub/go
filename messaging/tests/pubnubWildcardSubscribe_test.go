@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"testing"
-
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"testing"
 )
 
 // TestWildcardSubscribeEnd prints a message on the screen to mark the beginning of
@@ -65,6 +65,9 @@ func TestWildcardSubscriptionMessage(t *testing.T) {
 	minor := "Channel_SubscribeMinor"
 	channel := fmt.Sprintf("%s.%s", major, minor)
 	wildcard := fmt.Sprintf("%s.*", major)
+	messaging.SetLogOutput(os.Stdout)
+	//messaging.LoggingEnabled(true)
+
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	subscribeSuccessChannel := make(chan []byte)

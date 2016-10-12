@@ -8,20 +8,21 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"math/rand"
-	"net/http"
-	"strconv"
-	"strings"
-	"sync"
-	"testing"
-	"time"
-
 	"github.com/pubnub/go-vcr/cassette"
 	"github.com/pubnub/go-vcr/recorder"
 	"github.com/pubnub/go/messaging"
 	"github.com/pubnub/go/messaging/tests/utils"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	//"log"
+	"math/rand"
+	"net/http"
+	//"os"
+	"strconv"
+	"strings"
+	"sync"
+	"testing"
+	"time"
 )
 
 // PamSubKey: key for pam tests
@@ -367,16 +368,21 @@ func ExpectUnsubscribedEvent(t *testing.T,
 
 func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 	cnAction, prAction string, successChannel, errorChannel <-chan []byte) {
-
+	//log.SetOutput(os.Stdout)
+	//log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
+	//log.Printf("groups %d", len(groups))
+	//log.Printf("channels %d", len(channels))
 	var triggeredChannels []string
 	var triggeredGroups []string
 
 	channel := make(chan bool)
 
 	go func() {
+		//log.Printf("waitForEventOnEveryChannel")
 		for {
 			select {
 			case event := <-successChannel:
+				//log.Printf("waitForEventOnEveryChannel success")
 				var ary []interface{}
 
 				eventString := string(event)
@@ -398,6 +404,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 					channel <- true
 					return
 				}
+				//break
 			case err := <-errorChannel:
 				assert.Fail(t, fmt.Sprintf(
 					"Error while expecting for a %s connection event", cnAction),
@@ -406,8 +413,9 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 				return
 			}
 		}
+		//return
 	}()
-
+	//log.Printf("waitForEventOnEveryChannel breaking out")
 	select {
 	case <-channel:
 	case <-timeouts(connectionEventTimeout):
@@ -432,6 +440,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 					assert.Equal(t, prAction, event.Action)
 					assert.Equal(t, 200, event.Status)
 					channel <- true
+					break
 				case err := <-errorChannel:
 					assert.Fail(t,
 						fmt.Sprintf("Error while expecting for a %s presence event", prAction),
