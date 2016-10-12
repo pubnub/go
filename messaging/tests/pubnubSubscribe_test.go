@@ -6,14 +6,15 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/messaging/tests/utils"
+	"github.com/stretchr/testify/assert"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"testing"
-
-	"github.com/pubnub/go/messaging"
-	"github.com/pubnub/go/messaging/tests/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 // TestSubscribeStart prints a message on the screen to mark the beginning of
@@ -147,6 +148,8 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 
 	channel := "Channel_SubscriptionConnectedForSimple"
 	uuid := "UUID_SubscriptionConnectedForSimple"
+	//messaging.LoggingEnabled(true)
+	//messaging.SetLogOutput(os.Stdout)
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	customMessage := "Test message"
@@ -565,7 +568,7 @@ func CheckComplexData(b interface{}) bool {
 // by creating a subsribe request with a timetoken prior to publishing of the messages
 // on subscribing we will get one response with multiple messages which should be split into
 // 2 by the client api.
-func TestMultipleResponse(t *testing.T) {
+/*func TestMultipleResponse(t *testing.T) {
 	SendMultipleResponse(t, false, "multipleResponse", "")
 }
 
@@ -575,7 +578,7 @@ func TestMultipleResponse(t *testing.T) {
 // 2 by the clinet api.
 func TestMultipleResponseEncrypted(t *testing.T) {
 	SendMultipleResponse(t, true, "multipleResponseEncrypted", "enigma")
-}
+}*/
 
 // SendMultipleResponse is the common implementation for TestMultipleResponsed and
 // TestMultipleResponseEncrypted
@@ -584,6 +587,8 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 
 	stop, _ := NewVCRBoth(fmt.Sprintf("fixtures/subscribe/%s", testName), []string{"uuid"})
 	defer stop()
+	messaging.LoggingEnabled(true)
+	messaging.SetLogOutput(os.Stdout)
 
 	channel := "Channel_MultipleResponse"
 	uuid := "UUID_MultipleResponse"
@@ -600,30 +605,42 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 
 	successChannelPublish := make(chan []byte)
 	errorChannelPublish := make(chan []byte)
-
+	await1 := make(chan bool)
 	go pubnubInstance.Publish(channel, message1, successChannelPublish,
 		errorChannelPublish)
-	select {
-	case <-successChannelPublish:
-	case err := <-errorChannelPublish:
-		assert.Fail("Publish #1 error", string(err))
-	case <-timeout():
-		assert.Fail("Publish #1 timeout")
-	}
-
+	go func() {
+		select {
+		case mess := <-successChannelPublish:
+			log.Printf("published %s", mess)
+			await1 <- true
+		case err := <-errorChannelPublish:
+			assert.Fail("Publish #1 error", string(err))
+			await1 <- true
+		case <-timeout():
+			assert.Fail("Publish #1 timeout")
+			await1 <- true
+		}
+	}()
+	<-await1
 	successChannelPublish2 := make(chan []byte)
 	errorChannelPublish2 := make(chan []byte)
-
+	await2 := make(chan bool)
 	go pubnubInstance.Publish(channel, message2, successChannelPublish2,
 		errorChannelPublish2)
-	select {
-	case <-successChannelPublish2:
-	case err := <-errorChannelPublish2:
-		assert.Fail("Publish #2 error", string(err))
-	case <-timeout():
-		assert.Fail("Publish #2 timeout")
-	}
-
+	go func() {
+		select {
+		case mess := <-successChannelPublish2:
+			log.Printf("published %s", mess)
+			await2 <- true
+		case err := <-errorChannelPublish2:
+			assert.Fail("Publish #2 error", string(err))
+			await2 <- true
+		case <-timeout():
+			assert.Fail("Publish #2 timeout")
+			await2 <- true
+		}
+	}()
+	<-await2
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	await := make(chan bool)
@@ -632,11 +649,13 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 
 	go func() {
 		messageCount := 0
-
+		log.Printf("in func")
 		for {
+			log.Printf("in for")
 			select {
 			case value := <-successChannel:
 				response := fmt.Sprintf("%s", value)
+				log.Printf("response %s", response)
 				message := "'" + channel + "' connected"
 				if strings.Contains(response, message) {
 					continue
@@ -675,9 +694,9 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 			}
 		}
 	}()
-
+	log.Printf("awaiting")
 	<-await
-
+	log.Printf("after wait")
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 

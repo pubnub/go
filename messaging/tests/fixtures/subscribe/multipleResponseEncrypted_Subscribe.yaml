@@ -12,7 +12,41 @@ interactions:
     url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_MultipleResponse/0?uuid=UUID_MultipleResponse&tt=0&pnsdk=PubNub-Go%2F3.9.3
     method: GET
   response:
-    body: '[["NEzif8UOAV1bxmYio4KPAw==","xXch1+uwbgGgLOudCKzFSw=="],"14591685625761723"]'
+    body: '{
+  "t": {
+    "t": "14591685625761723",
+    "r": 4
+  },
+  "m": [{
+    "a": "1",
+    "f": 0,
+    "i": "UUID_MultipleResponse",
+    "s": 1,
+    "p": {
+      "t": "14593254434932405",
+      "r": 4
+    },
+    "k": "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f",
+    "c": "Channel_MultipleResponse",
+    "b": "Channel_MultipleResponse",
+    "d": "NEzif8UOAV1bxmYio4KPAw=="
+  },
+  {
+    "a": "1",
+    "f": 0,
+    "i": "UUID_MultipleResponse",
+    "s": 1,
+    "p": {
+      "t": "14593254434932405",
+      "r": 4
+    },
+    "k": "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f",
+    "c": "Channel_MultipleResponse",
+    "b": "Channel_MultipleResponse",
+    "d": "xXch1+uwbgGgLOudCKzFSw=="
+  }
+     ]
+}'
     headers:
       Access-Control-Allow-Methods:
       - GET

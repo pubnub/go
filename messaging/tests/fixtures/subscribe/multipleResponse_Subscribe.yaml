@@ -31,5 +31,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? hhttp://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_MultipleResponse/0?uuid=UUID_MultipleResponse&tt=14591685620543810&tr=4&pnsdk=PubNub-Go%2F3.9.3
+  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_MultipleResponse/0?uuid=UUID_MultipleResponse&tt=14591685620543810&pnsdk=PubNub-Go%2F3.9.3
   : {}
