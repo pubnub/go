@@ -1,9 +1,9 @@
 name: go
-version: 3.9.2
+version: 3.9.3
 schema: 1
 scm: github.com/pubnub/go
 changelog:
-  - version: v3.9.2
+  - version: v3.9.3
     date: 
     changes:
       - type: feature

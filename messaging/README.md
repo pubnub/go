@@ -8,9 +8,11 @@
 
 ###Change log
 
-* 3.9.0
+* 3.9.3
  * PubSub v2
  * Message Filtering
+ * Logger Optimizations
+ * added alternative implementation of encodeNonASCIIChars
 * 3.7.0
  * Subscribe method arguments changed
  * Add authKey argument to all PAM methods
