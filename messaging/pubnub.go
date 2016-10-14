@@ -2344,7 +2344,7 @@ func (pub *Pubnub) extractMessage(msg subscribeMessage) []byte {
 		//message = []byte(pub.getData(msg.Payload, pub.cipherKey))
 		msgKind := reflect.TypeOf(msg.Payload).Kind()
 		if msgKind == reflect.String {
-
+			//pub.infoLogger.Printf("INFO: intf nil: %s, %s", msgKind, msg.Payload)
 			intf = pub.parseCipherInterface(msg.Payload, pub.cipherKey)
 			var returnedMessages interface{}
 			errUnmarshalMessages := json.Unmarshal([]byte(intf.(string)), &returnedMessages)

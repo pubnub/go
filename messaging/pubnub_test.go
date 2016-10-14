@@ -1,10 +1,12 @@
 package messaging
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
+	//"os"
 	"strings"
 	"testing"
 )
@@ -243,4 +245,260 @@ func TestCheckCallbackNil(t *testing.T) {
 	var callbackChannel = make(chan []byte)
 	pubnub.checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 
+}
+
+func TestExtractMessage(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub := Pubnub{
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	response := `{"t":{"t":"14586613280736475","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"Test message"},{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":2,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"Test message2"}]}`
+
+	subEnvelope, newTimetoken, region, _ := pubnub.ParseSubscribeResponse([]byte(response), "")
+	count := 0
+	if subEnvelope.Messages != nil {
+		for _, msg := range subEnvelope.Messages {
+			count++
+			var message = pubnub.extractMessage(msg)
+			var msgStr = string(message)
+			if count == 1 {
+				assert.Equal("\"Test message\"", msgStr)
+			} else {
+				assert.Equal("\"Test message2\"", msgStr)
+			}
+		}
+	}
+	assert.Equal(newTimetoken, "14586613280736475")
+	assert.Equal("4", region)
+	assert.Equal(2, count)
+
+}
+
+func TestExtractMessageCipherNonEncryptedMessage(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub := Pubnub{
+		cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	response := `{"t":{"t":"14586613280736475","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"Test message"},{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":2,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"Test message2"}]}`
+
+	subEnvelope, newTimetoken, region, _ := pubnub.ParseSubscribeResponse([]byte(response), "")
+	count := 0
+	if subEnvelope.Messages != nil {
+		for _, msg := range subEnvelope.Messages {
+			count++
+			var message = pubnub.extractMessage(msg)
+			var msgStr = string(message)
+			if count == 1 {
+				assert.Equal("\"Test message\"", msgStr)
+			} else {
+				assert.Equal("\"Test message2\"", msgStr)
+			}
+		}
+	}
+	assert.Equal(newTimetoken, "14586613280736475")
+	assert.Equal("4", region)
+	assert.Equal(2, count)
+
+}
+
+func TestExtractMessageCipher(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub := Pubnub{
+		cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	response := `{"t":{"t":"14586613280736475","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"HSoHp4g0o/uHfiS1PYXzWw=="},{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":2,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"xXch1+uwbgGgLOudCKzFSw=="}]}`
+
+	subEnvelope, newTimetoken, region, _ := pubnub.ParseSubscribeResponse([]byte(response), "")
+	count := 0
+	if subEnvelope.Messages != nil {
+		for _, msg := range subEnvelope.Messages {
+			count++
+			var message = pubnub.extractMessage(msg)
+			var msgStr = string(message)
+			if count == 1 {
+				assert.Equal("\"Test message\"", msgStr)
+			} else {
+				assert.Equal("\"message2\"", msgStr)
+			}
+		}
+	}
+	assert.Equal(newTimetoken, "14586613280736475")
+	assert.Equal("4", region)
+	assert.Equal(2, count)
+
+}
+
+func TestGetDataCipher(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub := Pubnub{
+		cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	response := `[["h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=","AA9MBpymUzq/bfLCtIKFB+J6L+s3UGm6xPGh9kuXsoQ=","SfGYYp58jU2FGBNNsRk0kZ8KWRjZ6OsG3OxSySd7FF0=","ek+lrKjHCJPp5wYpxWlZcg806w/SWU5dzNYmjqDVb6o=","HrIrwvdGrm3/TM4kCf0EGl5SzcD+JqOXesWtzzc8+UA="],14610686757083461,14610686757935083]`
+	var contents = []byte(response)
+	var s interface{}
+	err := json.Unmarshal(contents, &s)
+	if err == nil {
+		v := s.(interface{})
+		switch vv := v.(type) {
+		case []interface{}:
+			length := len(vv)
+			if length > 0 {
+				msgStr := pubnub.getData(vv[0], pubnub.cipherKey)
+				//pubnub.infoLogger.Printf(msgStr)
+				assert.Equal("[\"Test Message 5\",\"Test Message 6\",\"Test Message 7\",\"Test Message 8\",\"Test Message 9\"]", msgStr)
+			}
+		default:
+			assert.Fail("default fall through")
+		}
+	} else {
+		assert.Fail("Unmarshal failed")
+	}
+}
+
+func TestGetData(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub := Pubnub{
+		//cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	response := "[[\"Test Message 5\",\"Test Message 6\",\"Test Message 7\",\"Test Message 8\",\"Test Message 9\"],14610686757083461,14610686757935083]"
+	var contents = []byte(response)
+	var s interface{}
+	err := json.Unmarshal(contents, &s)
+	if err == nil {
+		v := s.(interface{})
+		switch vv := v.(type) {
+		case []interface{}:
+			length := len(vv)
+			if length > 0 {
+				msgStr := pubnub.getData(vv[0], pubnub.cipherKey)
+				//pubnub.infoLogger.Printf(msgStr)
+				assert.Equal("[\"Test Message 5\",\"Test Message 6\",\"Test Message 7\",\"Test Message 8\",\"Test Message 9\"]", msgStr)
+			}
+		default:
+			assert.Fail("default fall through")
+		}
+	} else {
+		assert.Fail("Unmarshal failed %s", err.Error())
+	}
+}
+
+func TestGetDataCipherNonEnc(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub := Pubnub{
+		cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	response := "[[\"Test Message 5\",\"Test Message 6\",\"Test Message 7\",\"Test Message 8\",\"Test Message 9\"],14610686757083461,14610686757935083]"
+	var contents = []byte(response)
+	var s interface{}
+	err := json.Unmarshal(contents, &s)
+	if err == nil {
+		v := s.(interface{})
+		switch vv := v.(type) {
+		case []interface{}:
+			length := len(vv)
+			if length > 0 {
+				msgStr := pubnub.getData(vv[0], pubnub.cipherKey)
+				//pubnub.infoLogger.Printf(msgStr)
+				assert.Equal("[\"Test Message 5\",\"Test Message 6\",\"Test Message 7\",\"Test Message 8\",\"Test Message 9\"]", msgStr)
+			}
+		default:
+			assert.Fail("default fall through")
+		}
+	} else {
+		assert.Fail("Unmarshal failed %s", err.Error())
+	}
+}
+
+func TestGetDataCipherSingle(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub := Pubnub{
+		cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	response := `["h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=",14610686757083461,14610686757935083]`
+	var contents = []byte(response)
+	var s interface{}
+	err := json.Unmarshal(contents, &s)
+	if err == nil {
+		v := s.(interface{})
+		switch vv := v.(type) {
+		case []interface{}:
+			length := len(vv)
+			if length > 0 {
+				msgStr := pubnub.parseInterface(vv, pubnub.cipherKey)
+				//pubnub.infoLogger.Printf(msgStr)
+				assert.Equal("[\"Test Message 5\",1.461068675708346e+16,1.4610686757935084e+16]", msgStr)
+			}
+		default:
+			assert.Fail("default fall through")
+		}
+	} else {
+		assert.Fail("Unmarshal failed")
+	}
+}
+
+func TestGetDataSingle(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub := Pubnub{
+		//cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	response := "[\"Test Message 5\",14610686757083461,14610686757935083]"
+	var contents = []byte(response)
+	var s interface{}
+	err := json.Unmarshal(contents, &s)
+	if err == nil {
+		v := s.(interface{})
+		switch vv := v.(type) {
+		case []interface{}:
+			msgStr := pubnub.parseInterface(vv, pubnub.cipherKey)
+			assert.Equal("[\"Test Message 5\",1.461068675708346e+16,1.4610686757935084e+16]", msgStr)
+		default:
+			assert.Fail("default fall through")
+		}
+	} else {
+		assert.Fail("Unmarshal failed %s", err.Error())
+	}
+}
+
+func TestGetDataCipherNonEncSingle(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub := Pubnub{
+		cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	response := "[\"Test Message 5\",14610686757083461,14610686757935083]"
+	var contents = []byte(response)
+	var s interface{}
+	err := json.Unmarshal(contents, &s)
+	if err == nil {
+		v := s.(interface{})
+		switch vv := v.(type) {
+		case []interface{}:
+			length := len(vv)
+			if length > 0 {
+				msgStr := pubnub.parseInterface(vv, pubnub.cipherKey)
+				//pubnub.infoLogger.Printf(msgStr)
+				assert.Equal("[\"Test Message 5\",1.461068675708346e+16,1.4610686757935084e+16]", msgStr)
+			}
+		default:
+			assert.Fail("default fall through")
+		}
+	} else {
+		assert.Fail("Unmarshal failed %s", err.Error())
+	}
 }
