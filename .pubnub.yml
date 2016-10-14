@@ -11,7 +11,7 @@ changelog:
       - type: feature
         text: Message Filtering.
       - type: improvement
-        text: logging handling to remove potential data races when using multiple instances
+        text: logging handling to remove potential data races when using multiple instances, logging format changed. Removed mutex around logging statements.
       - type: improvement
         text: added alternative implementation of encodeNonASCIIChars
   - version: v3.8.0

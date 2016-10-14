@@ -190,15 +190,6 @@ var (
 
 	// Logger for info messages
 	infoLogger *log.Logger
-
-	// Logger for error messages
-	//errorLogger *log.Logger
-
-	// Logger for warn messages
-	//warnLogger *log.Logger
-
-	//logMu               sync.Mutex
-
 )
 
 var (
@@ -317,7 +308,7 @@ type Pubnub struct {
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
 
-	// Logger for info messages
+	// pointer ref to logger for info messages, to avoid race conditions
 	infoLogger *log.Logger
 }
 
@@ -412,36 +403,15 @@ var once sync.Once
 
 // initLogging initaites the log file if loggingEnabled is true
 func initLogging() {
-	//pub.logMu.Lock()
-	//logMu.Lock()
-	//log.SetOutput(pub.logfileWriter)
-	//infoLogger2 = log.New(pub.logfileWriter, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile);
-
-	//log.SetPrefix("INFO: ")
 	onceBody := func() {
-		//infoLogger.Printf = log.New(logfileWriter, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
 		infoLogger = log.New(logfileWriter, "", log.Ldate|log.Ltime|log.Lshortfile)
-		//pub.errorLogger = log.New(logfileWriter, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
-		//errorLogger = log.New(logfileWriter, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
-		//pub.warnLogger = log.New(logfileWriter, "WARN: ", log.Ldate|log.Ltime|log.Lshortfile)
-
 		infoLogger.Printf("****************************************")
 	}
 	if (loggingEnabled) && (logfileWriter != nil) {
 		once.Do(onceBody)
 	} else {
-		/*if loggingEnabled {
-			infoLogger = log.New(os.Stdout, "logfile writer not initialized", log.Ldate|log.Ltime|log.Lshortfile)
-		}*/
-		//infoLogger.Printf = log.New(ioutil.Discard, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
 		infoLogger = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
-		//pub.errorLogger = log.New(ioutil.Discard, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
-		//errorLogger = log.New(ioutil.Discard, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
-		//pub.warnLogger = log.New(ioutil.Discard, "WARN: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-	//logMu.Unlock()
-	//pub.logMu.Unlock()
-
 }
 
 // SetMaxIdleConnsPerHost is used to set the value of HTTP Transport's MaxIdleConnsPerHost.
@@ -2367,11 +2337,7 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	return region
 }
 
-func (pub *Pubnub) parseMessagesAndSendCallbacks(msg subscribeMessage, timetoken string) {
-	//msg.Channel, msg.SubscriptionMatch, msg.Payload, msg.PublishTimetokenMetadata.Timetoken
-	channel := msg.Channel
-
-	//Extract Message
+func (pub *Pubnub) extractMessage(msg subscribeMessage) []byte {
 	var message []byte
 	var intf interface{}
 	if pub.cipherKey != "" {
@@ -2418,6 +2384,15 @@ func (pub *Pubnub) parseMessagesAndSendCallbacks(msg subscribeMessage, timetoken
 	} else {
 		message = messageTemp
 	}
+	return message
+}
+
+func (pub *Pubnub) parseMessagesAndSendCallbacks(msg subscribeMessage, timetoken string) {
+	//msg.Channel, msg.SubscriptionMatch, msg.Payload, msg.PublishTimetokenMetadata.Timetoken
+	channel := msg.Channel
+
+	//Extract Message
+	message := pub.extractMessage(msg)
 
 	/*var intf interface{}
 

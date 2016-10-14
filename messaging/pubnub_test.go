@@ -1,9 +1,11 @@
 package messaging
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
+	"strings"
 	"testing"
 )
 
@@ -180,4 +182,65 @@ func TestEncodeNonASCIIChars(t *testing.T) {
 	for _, tc := range cases {
 		assert.Equal(t, encodeNonASCIIChars(tc.input), tc.expected)
 	}
+}
+
+func TestFilterExpression(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := Pubnub{
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	var filterExp = "aoi_x >= 0 AND aoi_x <= 2 AND aoi_y >= 0 AND aoi_y<= 2"
+	pubnub.SetFilterExpression(filterExp)
+	assert.Equal(pubnub.FilterExpression(), filterExp)
+}
+
+func TestCheckCallbackNilException(t *testing.T) {
+	assert := assert.New(t)
+	// Handle errors in defer func with recover.
+	defer func() {
+		if r := recover(); r != nil {
+			var ok bool
+			err, ok := r.(error)
+			if !ok {
+				err = fmt.Errorf("pkg: %v", r)
+				//fmt.Println(err)
+				assert.True(strings.Contains(err.Error(), "Callback is nil for GrantSubscribe"))
+			}
+		}
+
+	}()
+
+	pubnub := Pubnub{
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	var callbackChannel = make(chan []byte)
+	close(callbackChannel)
+	callbackChannel = nil
+	pubnub.checkCallbackNil(callbackChannel, false, "GrantSubscribe")
+
+}
+
+func TestCheckCallbackNil(t *testing.T) {
+	assert := assert.New(t)
+	// Handle errors in defer func with recover.
+	defer func() {
+		if r := recover(); r != nil {
+			var ok bool
+			err, ok := r.(error)
+			if !ok {
+				err = fmt.Errorf("pkg: %v", r)
+				//fmt.Println(err)
+				assert.True(strings.Contains(err.Error(), "Callback is nil for GrantSubscribe"))
+			} else {
+				assert.True(true)
+			}
+		}
+
+	}()
+	pubnub := Pubnub{
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	var callbackChannel = make(chan []byte)
+	pubnub.checkCallbackNil(callbackChannel, false, "GrantSubscribe")
+
 }

@@ -11,7 +11,7 @@
 * 3.9.3
  * PubSub v2
  * Message Filtering
- * Logger Optimizations
+ * Logger Optimizations, logging format changed. Removed mutex around logging statements.
  * added alternative implementation of encodeNonASCIIChars
 * 3.7.0
  * Subscribe method arguments changed
