@@ -502,3 +502,87 @@ func TestGetDataCipherNonEncSingle(t *testing.T) {
 		assert.Fail("Unmarshal failed %s", err.Error())
 	}
 }
+
+func TestInvalidChannel(t *testing.T) {
+	assert := assert.New(t)
+	var errorChannel = make(chan []byte)
+
+	pubnub := Pubnub{
+		cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+
+	go func() {
+		for {
+			select {
+
+			case _, ok := <-errorChannel:
+				if !ok {
+					break
+				}
+				return
+			}
+		}
+
+	}()
+	b := pubnub.invalidChannel(" ,", errorChannel)
+	assert.True(b)
+}
+
+func TestInvalidChannelNeg(t *testing.T) {
+	assert := assert.New(t)
+	var errorChannel = make(chan []byte)
+
+	pubnub := Pubnub{
+		cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+
+	go func() {
+		for {
+			select {
+
+			case _, ok := <-errorChannel:
+				if !ok {
+					break
+				}
+				return
+			}
+		}
+
+	}()
+	b := pubnub.invalidChannel("\"a\"", errorChannel)
+	assert.True(!b)
+}
+
+func TestInvalidMessage(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := Pubnub{
+		cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+
+	response := "[\"Test Message 5\",14610686757083461,14610686757935083]"
+	var contents = []byte(response)
+	var s interface{}
+	err := json.Unmarshal(contents, &s)
+	if err != nil {
+		assert.Fail("json unmashal error", err.Error())
+	}
+	b := pubnub.invalidMessage(s)
+	assert.True(!b)
+}
+
+func TestInvalidMessageFail(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := Pubnub{
+		cipherKey:  "enigma",
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+
+	var s interface{}
+	json.Unmarshal(nil, &s)
+
+	b := pubnub.invalidMessage(s)
+	assert.True(b)
+}
