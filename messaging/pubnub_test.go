@@ -642,6 +642,30 @@ func TestCreateSubscribeURL(t *testing.T) {
 	assert.True(tt == senttt)
 }
 
+func TestCreateSubscribeURLFilterExp(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub.channels = *newSubscriptionEntity()
+	pubnub.groups = *newSubscriptionEntity()
+	var callbackChannel = make(chan []byte)
+	var errorChannel = make(chan []byte)
+
+	channel := "ch"
+	channelGroup := "cg"
+	pubnub.channels.Add(channel, callbackChannel, errorChannel, pubnub.infoLogger)
+	pubnub.groups.Add(channelGroup, callbackChannel, errorChannel, pubnub.infoLogger)
+	pubnub.resetTimeToken = false
+	pubnub.SetFilterExpression("aoi_x >= 0 AND aoi_x <= 2 AND aoi_y >= 0 AND aoi_y<= 2")
+
+	senttt := "14767805072942467"
+	pubnub.timeToken = senttt
+	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
+	//log.SetOutput(os.Stdout)
+	//log.Printf("b:%s, tt:%s", b, tt)
+	assert.True(b == "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.9.3")
+	assert.True(tt == senttt)
+}
+
 func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
@@ -665,19 +689,49 @@ func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	pubnub.userState[channel] = s.(map[string]interface{})
 
 	b := pubnub.createPresenceHeartbeatURL()
-	log.SetOutput(os.Stdout)
-	log.Printf("b:%s", b)
+	//log.SetOutput(os.Stdout)
+	//log.Printf("b:%s", b)
 
 	assert.True(b == "/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.3")
 	presenceHeartbeat = 0
 
 }
 
-/*func TestAddAuthParamToQuery(t *testing.T) {
+//
 
+func TestAddAuthParam(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub.SetAuthenticationKey("authKey")
+	b := pubnub.addAuthParam(true)
+	//log.SetOutput(os.Stdout)
+	//log.Printf("b:%s", b)
+
+	assert.True(b == "&auth=authKey")
 }
 
-func TestCheckQuerystringInit(t *testing.T) {
+func TestAddAuthParamQSTrue(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub.SetAuthenticationKey("authKey")
+	b := pubnub.addAuthParam(false)
+	//log.SetOutput(os.Stdout)
+	//log.Printf("b:%s", b)
+
+	assert.True(b == "?auth=authKey")
+}
+
+func TestAddAuthParamEmpty(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	b := pubnub.addAuthParam(false)
+	//log.SetOutput(os.Stdout)
+	//log.Printf("b:%s", b)
+
+	assert.True(b == "")
+}
+
+/*func TestCheckQuerystringInit(t *testing.T) {
 
 }
 
