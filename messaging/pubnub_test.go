@@ -729,10 +729,24 @@ func TestAddAuthParamEmpty(t *testing.T) {
 	assert.True(b == "")
 }
 
-/*func TestCheckQuerystringInit(t *testing.T) {
+func TestCheckQuerystringInit(t *testing.T) {
+	assert := assert.New(t)
+	b := checkQuerystringInit(false)
+	//log.SetOutput(os.Stdout)
+	//log.Printf("b:%s", b)
 
+	assert.True(b == "?")
+}
+
+func TestCheckQuerystringInitFalse(t *testing.T) {
+	assert := assert.New(t)
+	b := checkQuerystringInit(true)
+	//log.SetOutput(os.Stdout)
+	//log.Printf("b:%s", b)
+
+	assert.True(b == "&")
 }
 
 func TestGetChannelsAndGroups(t *testing.T) {
 
-}*/
+}
