@@ -586,3 +586,74 @@ func TestInvalidMessageFail(t *testing.T) {
 	b := pubnub.invalidMessage(s)
 	assert.True(b)
 }
+
+func TestCreateSubscribeURLReset(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub.channels = *newSubscriptionEntity()
+	pubnub.groups = *newSubscriptionEntity()
+	var callbackChannel = make(chan []byte)
+	var errorChannel = make(chan []byte)
+
+	channel := "ch"
+	channelGroup := "cg"
+	pubnub.channels.Add(channel, callbackChannel, errorChannel, pubnub.infoLogger)
+	pubnub.groups.Add(channelGroup, callbackChannel, errorChannel, pubnub.infoLogger)
+	pubnub.resetTimeToken = true
+	pubnub.SetFilterExpression("aoi_x >= 0")
+	pubnub.userState = make(map[string]map[string]interface{})
+	presenceHeartbeat = 10
+	jsonString := "{\"k\":\"v\"}"
+	var s interface{}
+	json.Unmarshal([]byte(jsonString), &s)
+
+	pubnub.userState[channel] = s.(map[string]interface{})
+
+	senttt := "0"
+	b, tt := pubnub.createSubscribeURL("", "4")
+	//log.SetOutput(os.Stdout)
+	//log.Printf("b:%s, tt:%s", b, tt)
+	assert.True(b == "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.3")
+	assert.True(tt == senttt)
+	presenceHeartbeat = 0
+}
+
+func TestCreateSubscribeURL(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub.channels = *newSubscriptionEntity()
+	pubnub.groups = *newSubscriptionEntity()
+	var callbackChannel = make(chan []byte)
+	var errorChannel = make(chan []byte)
+
+	channel := "ch"
+	channelGroup := "cg"
+	pubnub.channels.Add(channel, callbackChannel, errorChannel, pubnub.infoLogger)
+	pubnub.groups.Add(channelGroup, callbackChannel, errorChannel, pubnub.infoLogger)
+	pubnub.resetTimeToken = false
+	pubnub.SetFilterExpression("aoi_x >= 0")
+
+	senttt := "14767805072942467"
+	pubnub.timeToken = senttt
+	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
+	//log.SetOutput(os.Stdout)
+	//log.Printf("b:%s, tt:%s", b, tt)
+	assert.True(b == "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.9.3")
+	assert.True(tt == senttt)
+}
+
+/*func TestCreatePresenceHeartbeatURL(t *testing.T) {
+
+}
+
+func TestAddAuthParamToQuery(t *testing.T) {
+
+}
+
+func TestCheckQuerystringInit(t *testing.T) {
+
+}
+
+func TestGetChannelsAndGroups(t *testing.T) {
+
+}*/
