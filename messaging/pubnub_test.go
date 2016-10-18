@@ -702,8 +702,6 @@ func TestAddAuthParam(t *testing.T) {
 	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
 	pubnub.SetAuthenticationKey("authKey")
 	b := pubnub.addAuthParam(true)
-	//log.SetOutput(os.Stdout)
-	//log.Printf("b:%s", b)
 
 	assert.True(b == "&auth=authKey")
 }
@@ -713,8 +711,6 @@ func TestAddAuthParamQSTrue(t *testing.T) {
 	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
 	pubnub.SetAuthenticationKey("authKey")
 	b := pubnub.addAuthParam(false)
-	//log.SetOutput(os.Stdout)
-	//log.Printf("b:%s", b)
 
 	assert.True(b == "?auth=authKey")
 }
@@ -723,8 +719,6 @@ func TestAddAuthParamEmpty(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
 	b := pubnub.addAuthParam(false)
-	//log.SetOutput(os.Stdout)
-	//log.Printf("b:%s", b)
 
 	assert.True(b == "")
 }
@@ -732,8 +726,6 @@ func TestAddAuthParamEmpty(t *testing.T) {
 func TestCheckQuerystringInit(t *testing.T) {
 	assert := assert.New(t)
 	b := checkQuerystringInit(false)
-	//log.SetOutput(os.Stdout)
-	//log.Printf("b:%s", b)
 
 	assert.True(b == "?")
 }
@@ -741,12 +733,6 @@ func TestCheckQuerystringInit(t *testing.T) {
 func TestCheckQuerystringInitFalse(t *testing.T) {
 	assert := assert.New(t)
 	b := checkQuerystringInit(true)
-	//log.SetOutput(os.Stdout)
-	//log.Printf("b:%s", b)
 
 	assert.True(b == "&")
-}
-
-func TestGetChannelsAndGroups(t *testing.T) {
-
 }
