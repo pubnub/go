@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
-	"os"
+	//"os"
 	"strings"
 	"testing"
 )
@@ -696,8 +696,6 @@ func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	presenceHeartbeat = 0
 
 }
-
-//
 
 func TestAddAuthParam(t *testing.T) {
 	assert := assert.New(t)
