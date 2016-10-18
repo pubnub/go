@@ -613,8 +613,8 @@ func TestCreateSubscribeURLReset(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.True(b == "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.3")
-	assert.True(tt == senttt)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.3", b)
+	assert.Equal(senttt, tt)
 	presenceHeartbeat = 0
 }
 
@@ -638,8 +638,8 @@ func TestCreateSubscribeURL(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.True(b == "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.9.3")
-	assert.True(tt == senttt)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.9.3", b)
+	assert.Equal(senttt, tt)
 }
 
 func TestCreateSubscribeURLFilterExp(t *testing.T) {
@@ -662,8 +662,8 @@ func TestCreateSubscribeURLFilterExp(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.True(b == "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.9.3")
-	assert.True(tt == senttt)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.9.3", b)
+	assert.Equal(senttt, tt)
 }
 
 func TestCreatePresenceHeartbeatURL(t *testing.T) {
@@ -692,7 +692,7 @@ func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s", b)
 
-	assert.True(b == "/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.3")
+	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.3", b)
 	presenceHeartbeat = 0
 
 }
@@ -703,7 +703,7 @@ func TestAddAuthParam(t *testing.T) {
 	pubnub.SetAuthenticationKey("authKey")
 	b := pubnub.addAuthParam(true)
 
-	assert.True(b == "&auth=authKey")
+	assert.Equal("&auth=authKey", b)
 }
 
 func TestAddAuthParamQSTrue(t *testing.T) {
@@ -712,7 +712,7 @@ func TestAddAuthParamQSTrue(t *testing.T) {
 	pubnub.SetAuthenticationKey("authKey")
 	b := pubnub.addAuthParam(false)
 
-	assert.True(b == "?auth=authKey")
+	assert.Equal("?auth=authKey", b)
 }
 
 func TestAddAuthParamEmpty(t *testing.T) {
@@ -720,19 +720,19 @@ func TestAddAuthParamEmpty(t *testing.T) {
 	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
 	b := pubnub.addAuthParam(false)
 
-	assert.True(b == "")
+	assert.Equal("", b)
 }
 
 func TestCheckQuerystringInit(t *testing.T) {
 	assert := assert.New(t)
 	b := checkQuerystringInit(false)
 
-	assert.True(b == "?")
+	assert.Equal("?", b)
 }
 
 func TestCheckQuerystringInitFalse(t *testing.T) {
 	assert := assert.New(t)
 	b := checkQuerystringInit(true)
 
-	assert.True(b == "&")
+	assert.Equal("&", b)
 }
