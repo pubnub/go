@@ -1161,7 +1161,9 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 // It accepts the following parameters:
 // channel: pubnub channel to publish to
 // publishUrlString: The url to which the message is to be appended.
+// storeInHistory
 // jsonBytes: the message to be sent.
+// metaBytes: meta message
 // callbackChannel: Channel on which to send the response.
 // errorChannel on which the error response is sent.
 func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
@@ -1358,10 +1360,10 @@ func (pub *Pubnub) PublishExtended(channel string, message interface{},
 // It accepts the following parameters:
 // channel: The Pubnub channel to which the message is to be posted.
 // message: message to be posted.
+// meta: meta data for message filtering
 // storeInHistory: Message will be persisted in Storage & Playback db
 // doNotSerialize: Set this option to true if you use your own serializer. In
 // this case passed-in message should be a string or []byte
-// meta: meta data for message filtering
 // callbackChannel: Channel on which to send the response back.
 // errorChannel on which the error response is sent.
 //
@@ -2229,8 +2231,6 @@ func checkQuerystringInit(queryStringInit bool) string {
 func (pub *Pubnub) handleSubscribeResponse(response []byte,
 	sentTimetoken string, subscribedChannels, subscribedGroups string) string {
 
-	//var channelNames, groupNames []string
-	// reconnected := pub.resetRetryAndSendResponse()
 	pub.resetRetry()
 	reconnected := false
 
@@ -2239,7 +2239,6 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 		return ""
 	}
 
-	//data, channelNames, groupNames, newTimetoken, region, errJSON :=
 	subEnvelope, newTimetoken, region, errJSON :=
 		pub.ParseSubscribeResponse(response, pub.cipherKey)
 
@@ -2297,41 +2296,6 @@ func (pub *Pubnub) handleSubscribeResponse(response []byte,
 				pub.parseMessagesAndSendCallbacks(msg, newTimetoken)
 			}
 		}
-
-		/*f len(channelNames) == 0 && len(groupNames) == 0 {
-			connectedNames := pub.channels.ConnectedNames()
-
-			if len(connectedNames) == 0 {
-				pub.infoLogger.Printf("ERROR: SUBSCRIPTION: No connected channels for response: %s", subEnv.Messages)
-				return ""
-			}
-
-			for i := 0; i < len(data); i++ {
-				channelNames = append(channelNames, connectedNames[0])
-			}
-		}
-
-		groupsLen := len(groupNames)
-
-		isChannelGroupOrWildcardedMessage := groupsLen > 0
-
-		for i, message := range data {
-			if channelNames[i] == "" {
-				pub.infoLogger.Printf("ERROR: %s",
-					fmt.Sprintf("Requested index %dout of range in %s. Raw response: %s",
-						i, channelNames, data))
-
-				continue
-			}
-
-			if isChannelGroupOrWildcardedMessage {
-				pub.handleFourElementsSubscribeResponse(message, channelNames[i],
-					groupNames[i], newTimetoken)
-			} else {
-				pub.sendSubscribeResponse(channelNames[i], "", newTimetoken,
-					channelResponse, responseAsIs, message)
-			}
-		}*/
 	}
 
 	return region
@@ -2388,32 +2352,11 @@ func (pub *Pubnub) extractMessage(msg subscribeMessage) []byte {
 }
 
 func (pub *Pubnub) parseMessagesAndSendCallbacks(msg subscribeMessage, timetoken string) {
-	//msg.Channel, msg.SubscriptionMatch, msg.Payload, msg.PublishTimetokenMetadata.Timetoken
 	channel := msg.Channel
 
 	//Extract Message
 	message := pub.extractMessage(msg)
 
-	/*var intf interface{}
-
-	if pub.cipherKey != "" {
-		decrypted, errDecryption := DecryptString(pub.cipherKey, msg.Payload.(string))
-		if errDecryption != nil {
-			intf = msg.Payload
-		} else {
-			intf = decrypted
-		}
-	} else {
-		intf = msg.Payload
-	}*/
-	//message, errMrshal := json.Marshal(intf)
-
-	/*if errMrshal != nil {
-		strPayload, _ := msg.Payload.(string)
-		errMsg := fmt.Sprintf("Error marshalling received payload, %s\nMessage: %s", errMrshal.Error(), strPayload)
-		pub.infoLogger.Printf("ERROR: %s", errMsg)
-		message = []byte(errMsg)
-	}*/
 	// End Extract Message
 
 	if (len(strings.TrimSpace(msg.SubscriptionMatch)) <= 0) || (channel == msg.SubscriptionMatch) {
@@ -2430,67 +2373,6 @@ func (pub *Pubnub) parseMessagesAndSendCallbacks(msg subscribeMessage, timetoken
 		pub.sendSubscribeResponse(channel, msg.SubscriptionMatch, timetoken, channelGroupResponse, responseAsIs, message)
 	}
 }
-
-/*func (pub *Pubnub) handleFourElementsSubscribeResponse(message []byte,
-	fourth, third, timetoken string) {
-
-	pub.RLock()
-	thirdChannelGroupExist := pub.groups.Exist(third)
-	thirdChannelExist := pub.channels.Exist(third)
-	fourthChannelExist := pub.channels.Exist(fourth)
-
-	subscribedChannels := pub.channels.ConnectedNamesString()
-	subscribedGroups := pub.groups.ConnectedNamesString()
-	pub.RUnlock()
-
-	// TODO: exclude this logic into sub-method to cover it with unit tests
-	if third == fourth && fourthChannelExist {
-		pub.sendSubscribeResponse(fourth, "", timetoken, channelResponse, responseAsIs, message)
-	} else if strings.HasSuffix(third, wildcardSuffix) {
-		// Wildcard channel presence event
-		// ["foo.*, "foo.*-pnpres"] foo.*-pnpres/
-		if fourthChannelExist && strings.HasSuffix(fourth, presenceSuffix) {
-			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
-			// REVIEW: probably this is not a place for CG response
-			// Channel group message
-			// ["news, "world"] /news
-		} else if thirdChannelGroupExist && !strings.HasSuffix(fourth, presenceSuffix) {
-			pub.sendSubscribeResponse(fourth, third, timetoken, channelGroupResponse, responseAsIs, message)
-			// Wildcard channel message
-			// ["foo.*, "foo.bar"] foo.*
-		} else if thirdChannelExist && !strings.HasSuffix(fourth, presenceSuffix) {
-			pub.sendSubscribeResponse(fourth, third, timetoken, wildcardResponse, responseAsIs, message)
-			// Wildcard channel presence event while subscribed only to messages
-			// ["foo.*, "foo.bar-pnpres"] foo.*
-			// ["foo.*, "foo.*-pnpres"] foo.*
-		} else if thirdChannelExist && !fourthChannelExist && strings.HasSuffix(fourth, presenceSuffix) {
-			// Message should be ignored
-
-			// Wildcard channel message while subscribed only to presence
-			// ["foo.*, "foo.bar"] foo.*-pnpres
-		} else if !thirdChannelExist && !fourthChannelExist && !strings.HasSuffix(fourth, presenceSuffix) {
-			// Message should be ignored
-		} else {
-			pub.infoLogger.Printf("ERROR: %s",
-				"Unable to handle four-element response, please contact PubNub support with error description:",
-				"\n3rd element:", third,
-				"\n4th element:", fourth,
-			)
-			pub.sendSubscribeError(subscribedChannels, subscribedGroups,
-				"Unable to handle response", responseAsIsError)
-		}
-	} else if third != fourth && thirdChannelGroupExist {
-		pub.sendSubscribeResponse(fourth, third, timetoken, channelGroupResponse, responseAsIs, message)
-	} else {
-		pub.infoLogger.Printf("ERROR: %s",
-			"Unable to handle four-element response, please contact PubNub support with error description:",
-			"\n3rd element:", third,
-			"\n4th element:", fourth,
-		)
-		pub.sendSubscribeError(subscribedChannels, subscribedGroups,
-			"Unable to handle response", responseAsIsError)
-	}
-}*/
 
 // CloseExistingConnection closes the open subscribe/presence connection.
 func (pub *Pubnub) CloseExistingConnection() {
@@ -3838,19 +3720,9 @@ func (pub *Pubnub) ParseJSON(contents []byte,
 // Timetoken/from time in case of detailed history (value 1),
 // pubnub channelname/timetoken/to time in case of detailed history (value 2).
 //
-// It accepts the following parameters:
-// contents: the contents to parse.
-// cipherKey: the key to decrypt the messages (can be empty).
-//
-// returns:
-// messages: as [][]byte.
-// channels: as string.
-// groups: as string.
-// Timetoken/from time in case of detailed history as string.
-// error: if any.
 func (pub *Pubnub) ParseSubscribeResponse(rawResponse []byte, cipherKey string) (
 	subEnv subscribeEnvelope, timetoken, region string, err error) {
-	//messages [][]byte, channels, groups []string, timetoken, region string, err error) {
+
 	res := subscribeEnvelope{}
 	if err := json.Unmarshal(rawResponse, &res); err != nil {
 		pub.infoLogger.Printf("ERROR: Invalid JSON:%s, err %s", string(rawResponse), err.Error())
@@ -3863,67 +3735,6 @@ func (pub *Pubnub) ParseSubscribeResponse(rawResponse []byte, cipherKey string) 
 
 	}
 	return res, timetoken, region, err
-	/*
-		var (
-			response interface{}
-		)
-		err = json.Unmarshal(rawResponse, &response)
-
-		if err != nil {
-			pub.infoLogger.Printf("ERROR: Invalid json:%s", string(rawResponse))
-
-			err = fmt.Errorf(invalidJSON)
-			return
-		}
-
-		v := response.(interface{})
-		switch vv := v.(type) {
-		case []interface{}:
-			length := len(vv)
-
-			if length == 0 {
-				return
-			}
-
-			var messagesArray []interface{}
-
-			// REFACTOR: unmarshaling/marshaling response againg is expensive
-			er := json.Unmarshal([]byte(getData(vv[0], cipherKey)), &messagesArray)
-			if er != nil {
-				err = fmt.Errorf(invalidJSON)
-				return
-			}
-
-			for _, msg := range messagesArray {
-				message, er := json.Marshal(msg)
-
-				if er != nil {
-					err = fmt.Errorf(invalidJSON)
-					return
-				}
-
-				messages = append(messages, message)
-			}
-
-			if length > 1 {
-				timetoken = ParseInterfaceData(vv[1])
-			}
-
-			if length == 3 {
-				channelsString := ParseInterfaceData(vv[2])
-
-				channels = strings.Split(channelsString, ",")
-				groups = []string{}
-			} else if length == 4 {
-				channelsString := ParseInterfaceData(vv[3])
-				groupsString := ParseInterfaceData(vv[2])
-
-				channels = strings.Split(channelsString, ",")
-				groups = strings.Split(groupsString, ",")
-			}
-		}*/
-
-	//return messages, channels, groups, timetoken, region, err
 }
 
 // ParseInterfaceData formats the data to string as per the type of the data.
