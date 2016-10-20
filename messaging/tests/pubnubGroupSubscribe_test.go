@@ -16,7 +16,8 @@ import (
 	"testing"
 )
 
-var pnMu sync.Mutex	
+var pnMu sync.Mutex
+
 // TestGroupSubscribeStart prints a message on the screen to mark the beginning of
 // subscribe tests.
 // PrintTestMessage is defined in the common.go file.

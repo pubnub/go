@@ -7,6 +7,7 @@ go:
   - 1.5.4
   - 1.6.2
   - 1.7.1
+  - 1.7.3
 
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
