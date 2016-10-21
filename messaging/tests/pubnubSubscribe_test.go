@@ -10,7 +10,7 @@ import (
 	"github.com/pubnub/go/messaging/tests/utils"
 	"github.com/stretchr/testify/assert"
 	"log"
-	"os"
+	//"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -570,13 +570,13 @@ func CheckComplexData(b interface{}) bool {
 // 2 by the client api.
 /*func TestMultipleResponse(t *testing.T) {
 	SendMultipleResponse(t, false, "multipleResponse", "")
-}
+}*/
 
 // TestMultipleResponseEncrypted publishes 2 messages and then parses the response
 // by creating a subsribe request with a timetoken prior to publishing of the messages
 // on subscribing we will get one response with multiple messages which should be split into
 // 2 by the clinet api.
-func TestMultipleResponseEncrypted(t *testing.T) {
+/*func TestMultipleResponseEncrypted(t *testing.T) {
 	SendMultipleResponse(t, true, "multipleResponseEncrypted", "enigma")
 }*/
 
@@ -587,8 +587,8 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 
 	stop, _ := NewVCRBoth(fmt.Sprintf("fixtures/subscribe/%s", testName), []string{"uuid"})
 	defer stop()
-	messaging.LoggingEnabled(true)
-	messaging.SetLogOutput(os.Stdout)
+	//messaging.LoggingEnabled(true)
+	//messaging.SetLogOutput(os.Stdout)
 
 	channel := "Channel_MultipleResponse"
 	uuid := "UUID_MultipleResponse"
@@ -704,7 +704,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 }
 
 // TestMultiplexing tests the multiplexed subscribe request.
-/*func TestMultiplexing(t *testing.T) {
+func TestMultiplexing(t *testing.T) {
 	SendMultiplexingRequest(t, "testMultiplexing", false, false)
 }
 
@@ -723,7 +723,7 @@ func TestMultiplexingEncrypted(t *testing.T) {
 func xTestMultiplexingEncryptedWithSSL(t *testing.T) {
 	// TODO: handle SSL && VCR
 	SendMultiplexingRequest(t, "testEncryptedMultiplexingWithSSL", true, true)
-}*/
+}
 
 // SendMultiplexingRequest is the common method to test TestMultiplexing,
 // TestMultiplexingSSL, TestEncryptedMultiplexing, TestEncryptedMultiplexingWithSSL.

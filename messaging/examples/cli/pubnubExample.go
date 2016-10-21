@@ -1025,7 +1025,7 @@ func delUserState(channel, key string) {
 func pamSubscribeRoutine(channels string, read bool, write bool, ttl int) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
-	go pub.GrantSubscribe(channels, read, write, ttl, "", pamChannel, errorChannel)
+	go pub.GrantSubscribe(channels, read, write, ttl, "authkey", pamChannel, errorChannel)
 	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Susbcribe Grant")
 }
 
