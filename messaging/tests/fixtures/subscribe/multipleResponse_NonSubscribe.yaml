@@ -12,7 +12,7 @@ interactions:
     url: http://pubsub.pubnub.com/time/0?pnsdk=PubNub-Go%2F3.9.3&uuid=timeGetter_time_uuid
     method: GET
   response:
-    body: '[14591685620543810]'
+    body: '[14591685625761723]'
     headers:
       Access-Control-Allow-Methods:
       - GET

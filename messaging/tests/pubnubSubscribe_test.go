@@ -9,7 +9,7 @@ import (
 	"github.com/pubnub/go/messaging"
 	"github.com/pubnub/go/messaging/tests/utils"
 	"github.com/stretchr/testify/assert"
-	"log"
+	//"log"
 	//"os"
 	"strconv"
 	"strings"
@@ -568,17 +568,17 @@ func CheckComplexData(b interface{}) bool {
 // by creating a subsribe request with a timetoken prior to publishing of the messages
 // on subscribing we will get one response with multiple messages which should be split into
 // 2 by the client api.
-/*func TestMultipleResponse(t *testing.T) {
+func TestMultipleResponse(t *testing.T) {
 	SendMultipleResponse(t, false, "multipleResponse", "")
-}*/
+}
 
 // TestMultipleResponseEncrypted publishes 2 messages and then parses the response
 // by creating a subsribe request with a timetoken prior to publishing of the messages
 // on subscribing we will get one response with multiple messages which should be split into
 // 2 by the clinet api.
-/*func TestMultipleResponseEncrypted(t *testing.T) {
+func TestMultipleResponseEncrypted(t *testing.T) {
 	SendMultipleResponse(t, true, "multipleResponseEncrypted", "enigma")
-}*/
+}
 
 // SendMultipleResponse is the common implementation for TestMultipleResponsed and
 // TestMultipleResponseEncrypted
@@ -598,7 +598,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 	unsubscribeErrorChannel := make(chan []byte)
 
 	retTime := GetServerTimeString("time_uuid")
-	fmt.Println("time is", retTime)
+	//fmt.Println("time is", retTime)
 
 	message1 := "message1"
 	message2 := "message2"
@@ -610,8 +610,8 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 		errorChannelPublish)
 	go func() {
 		select {
-		case mess := <-successChannelPublish:
-			log.Printf("published %s", mess)
+		case <-successChannelPublish:
+			//log.Printf("published %s", mess)
 			await1 <- true
 		case err := <-errorChannelPublish:
 			assert.Fail("Publish #1 error", string(err))
@@ -629,8 +629,8 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 		errorChannelPublish2)
 	go func() {
 		select {
-		case mess := <-successChannelPublish2:
-			log.Printf("published %s", mess)
+		case <-successChannelPublish2:
+			//log.Printf("published %s", mess)
 			await2 <- true
 		case err := <-errorChannelPublish2:
 			assert.Fail("Publish #2 error", string(err))
@@ -649,13 +649,13 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 
 	go func() {
 		messageCount := 0
-		log.Printf("in func")
+		//log.Printf("in func")
 		for {
-			log.Printf("in for")
+			//log.Printf("in for")
 			select {
 			case value := <-successChannel:
 				response := fmt.Sprintf("%s", value)
-				log.Printf("response %s", response)
+				//log.Printf("response %s", response)
 				message := "'" + channel + "' connected"
 				if strings.Contains(response, message) {
 					continue
@@ -694,9 +694,9 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 			}
 		}
 	}()
-	log.Printf("awaiting")
+	//log.Printf("awaiting")
 	<-await
-	log.Printf("after wait")
+	//log.Printf("after wait")
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
