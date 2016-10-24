@@ -211,7 +211,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 	// pubnub.CloseExistingConnection()
 }
 
-/*func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
+func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	assert := assert.New(t)
 
 	stop, sleep := NewVCRBoth(
@@ -280,7 +280,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 		unsubscribeErrorChannel)
 
 	// pubnub.CloseExistingConnection()
-}*/
+}
 
 // TODO: verify that CG requests are not duplicated
 func xTestGroupSubscriptionPresence(t *testing.T) {
