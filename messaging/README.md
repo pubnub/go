@@ -13,6 +13,7 @@
  * Message Filtering
  * Logger Optimizations, logging format changed. Removed mutex around logging statements.
  * added alternative implementation of encodeNonASCIIChars
+ * Fixed storeInHistory when publishing
 * 3.7.0
  * Subscribe method arguments changed
  * Add authKey argument to all PAM methods
