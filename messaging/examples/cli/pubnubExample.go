@@ -614,6 +614,7 @@ func ReadLoop() {
 			fmt.Println("ENTER 35 TO Set Filter Expression")
 			fmt.Println("ENTER 36 TO Get Filter Expression")
 			fmt.Println("ENTER 37 FOR Publish with Meta")
+			fmt.Println("ENTER 38 FOR Publish with StoreInHistory")
 			fmt.Println("ENTER 99 FOR Exit")
 			fmt.Println("")
 			showOptions = false
@@ -965,7 +966,7 @@ func ReadLoop() {
 			meta["aoi_x"] = 1
 			meta["aoi_y"] = 1
 			go publishWithMetaRoutine(channels, "test", meta)
-		case "38":
+		case "338":
 			channelGroups, errReadingChannelGrp := askChannelGroup()
 			if errReadingChannelGrp != nil {
 				fmt.Println("errReadingChannelGrp: ", errReadingChannelGrp)
@@ -973,7 +974,28 @@ func ReadLoop() {
 				fmt.Println("Running Subscribe for Channel Group")
 				go subscribeChannelGroupRoutine(channelGroups, "")
 			}
+		case "38":
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Please enter the message")
+				message, _, err := reader.ReadLine()
 
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					fmt.Println("Store in history? Enter 'y' for yes or 'n' for no")
+					var storeInHistory = "n"
+					fmt.Scanln(&storeInHistory)
+					storeInHistoryBool := false
+					if storeInHistory == "Y" || storeInHistory == "y" {
+						storeInHistoryBool = true
+					}
+					go publishRoutineStoreInHistory(channels, string(message), storeInHistoryBool)
+				}
+				//go publishRoutine(channels, message)
+			}
 		case "99":
 			fmt.Println("Exiting")
 			pub.Abort()
@@ -1109,6 +1131,16 @@ func publishWithMetaRoutine(channels, message string, meta interface{}) {
 	fmt.Println("Publish to channel: ", ch)
 	callbackChannel := make(chan []byte)
 	go pub.PublishExtendedWithMeta(ch, message, meta, true, false, callbackChannel, errorChannel)
+
+	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
+}
+
+func publishRoutineStoreInHistory(channels, message string, storeInHistory bool) {
+	var errorChannel = make(chan []byte)
+	ch := strings.TrimSpace(channels)
+	fmt.Println("Publish to channel: ", ch)
+	callbackChannel := make(chan []byte)
+	go pub.PublishExtended(ch, message, storeInHistory, false, callbackChannel, errorChannel)
 
 	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
 }

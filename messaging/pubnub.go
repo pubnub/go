@@ -1179,7 +1179,7 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 		sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
 
 	if storeInHistory == false {
-		publishURL = fmt.Sprintf("%s&storeInHistory=0", publishURL)
+		publishURL = fmt.Sprintf("%s&store=0", publishURL)
 	}
 
 	pub.publishCounterMu.Lock()
