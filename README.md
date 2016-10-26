@@ -22,6 +22,6 @@ Learn more at http://www.pubnub.com
 ### For Non Google App Engine
 
 * [PubNub SDK for GO](messaging) (3.9.3)
- * [Example](messaging/example)
+ * [Example](messaging/examples/cli/pubnubExample.go)
 
 ## Contact support@pubnub.com for all questions
