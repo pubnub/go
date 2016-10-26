@@ -96,7 +96,7 @@ func Init() (b bool) {
 			fmt.Scanln(&subscribeKey)
 
 			if strings.TrimSpace(subscribeKey) == "" {
-				subscribeKey = "sub-c-acd23c76-5ed2-11e6-8ee6-0619f8945a4f"
+				subscribeKey = "demo"
 			}
 			fmt.Println("Subscribe Key: ", subscribeKey)
 			fmt.Println("")
@@ -104,7 +104,7 @@ func Init() (b bool) {
 			fmt.Println("Please enter a publish key, leave blank for default key.")
 			fmt.Scanln(&publishKey)
 			if strings.TrimSpace(publishKey) == "" {
-				publishKey = "pub-c-39d6d56a-d913-46c3-8b8e-3db890a490ef"
+				publishKey = "demo"
 			}
 			fmt.Println("Publish Key: ", publishKey)
 			fmt.Println("")
@@ -112,7 +112,7 @@ func Init() (b bool) {
 			fmt.Println("Please enter a secret key, leave blank for default key.")
 			fmt.Scanln(&secretKey)
 			if strings.TrimSpace(secretKey) == "" {
-				secretKey = "sec-c-ZGI2OWU0M2QtMDMxMC00ZDFjLWI0MzAtMjQ3MmYzMWM1OTBm"
+				secretKey = "demo"
 			}
 			fmt.Println("Secret Key: ", secretKey)
 			fmt.Println("")
