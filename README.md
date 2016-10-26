@@ -5,6 +5,7 @@
 
 [![Build Status](https://travis-ci.org/pubnub/go.svg?branch=master)](https://travis-ci.org/pubnub/go)
 [![codecov.io](https://codecov.io/github/pubnub/go/coverage.svg?branch=master)](https://codecov.io/github/pubnub/go?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pubnub/go)](https://goreportcard.com/report/github.com/pubnub/go)
 
 ## Contact support@pubnub.com for all questions
 
