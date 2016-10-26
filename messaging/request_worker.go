@@ -5,12 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
 )
+
+//var pubnub *Pubnub
 
 var (
 	errRequestCanceledToResubscribe = errors.New("pubnub worker: request canceled to resubscribe")
@@ -42,24 +45,27 @@ type requestWorker struct {
 	CancelChs   map[string]chan requestCanceledReason
 	CancelChsMu sync.RWMutex
 	CancelChsWg sync.WaitGroup
+	InfoLogger *log.Logger
 }
 
 func newRequestWorker(name string, defaultTransport http.RoundTripper,
-	roundTripTimeout uint16) *requestWorker {
+	roundTripTimeout uint16, logger *log.Logger) *requestWorker {
 
-	logInfof("%s worker initialized", name)
+	
+	logger.Printf("INFO: %s worker initialized", name)
 	return &requestWorker{
 		Name:      fmt.Sprintf("%s Worker", name),
 		CancelChs: make(map[string]chan requestCanceledReason),
 		Timeout:   time.Duration(roundTripTimeout) * time.Second,
 		Transport: defaultTransport,
+		InfoLogger: logger,
 	}
 }
 
 func (w *requestWorker) Handle(req *http.Request) (
 	resp []byte, statusCode int, err error) {
 
-	logInfof("%s >>> %s", w.Name, req.URL.String())
+	w.InfoLogger.Printf("INFO: %s >>> %s", w.Name, req.URL.String())
 
 	cancelCh := make(chan requestCanceledReason)
 	w.CancelChsMu.Lock()
@@ -90,13 +96,13 @@ func (w *requestWorker) Handle(req *http.Request) (
 
 	select {
 	case <-time.After(w.Timeout):
-		logInfof("%s: request timeout (%ds)", w.Name, w.Timeout.Seconds())
+		w.InfoLogger.Printf("INFO: %s: request timeout (%ds)", w.Name, w.Timeout.Seconds())
 		go cancelRequest()
 		go handleCanceledRequest()
 
 		return nil, 0, errRequestTimeout
 	case reason := <-cancelCh:
-		logInfof("%s: request canceled by client: %s", w.Name, req.URL.Opaque)
+		w.InfoLogger.Printf("INFO: %s: request canceled by client: %s", w.Name, req.URL.Opaque)
 		go cancelRequest()
 		go removeFromCancelers()
 		go handleCanceledRequest()
@@ -127,7 +133,7 @@ func (w *requestWorker) Client() *http.Client {
 	defer w.TransportMu.Unlock()
 
 	if w.Transport == nil {
-		logInfof("%s: Initializing new transport", w.Name)
+		w.InfoLogger.Printf("INFO: %s: Initializing new transport", w.Name)
 		transport := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			Dial: (&net.Dialer{
@@ -145,7 +151,7 @@ func (w *requestWorker) Client() *http.Client {
 			if err == nil {
 				transport.Proxy = http.ProxyURL(proxyURL)
 			} else {
-				logErrorf("%s: Proxy connection error: %s", w.Name, err.Error())
+				w.InfoLogger.Printf("ERROR: %s: Proxy connection error: %s", w.Name, err.Error())
 			}
 		}
 
@@ -180,7 +186,8 @@ func (w *requestWorker) InvokeRequest(req *http.Request) <-chan *workerResponse 
 
 			if e == nil {
 				contents = bodyContents
-				logInfof("%s <<< %s", w.Name, string(contents))
+				//logInfof("%s <<< %s", w.Name, string(contents))
+				w.InfoLogger.Printf("INFO: %s <<< %s", w.Name, string(contents))
 				rs.Data = contents
 				rs.StatusCode = response.StatusCode
 			} else {
@@ -189,13 +196,13 @@ func (w *requestWorker) InvokeRequest(req *http.Request) <-chan *workerResponse 
 			}
 		} else {
 			if response != nil {
-				logErrorf("%s: server error: %s, response.StatusCode: %d", w.Name,
+				w.InfoLogger.Printf("ERROR: %s: server error: %s, response.StatusCode: %d", w.Name,
 					err.Error(), response.StatusCode)
 
 				rs.StatusCode = response.StatusCode
 				rs.Error = err
 			} else {
-				logErrorf("%s: connection error: %s", w.Name, err.Error())
+				w.InfoLogger.Printf("ERROR: %s: connection error: %s", w.Name, err.Error())
 
 				rs.Error = err
 			}
@@ -234,7 +241,7 @@ func (w *requestWorker) cancel(reason requestCanceledReason) {
 	w.CancelChsWg.Wait()
 
 	w.CancelChsMu.Lock()
-	logInfof("%s: all pending requests canceled\n", w.Name)
+	w.InfoLogger.Printf("INFO: %s: all pending requests canceled\n", w.Name)
 	w.CancelChsMu.Unlock()
 
 	if trans, ok := w.Transport.(*http.Transport); ok {
@@ -250,7 +257,7 @@ func (w *requestWorker) GetTransport() http.RoundTripper {
 func (w *requestWorker) SetTransport(trans http.RoundTripper) {
 	w.TransportMu.Lock()
 	defer w.TransportMu.Unlock()
-
-	logInfof("%s: New transport was set", w.Name)
+	
+	w.InfoLogger.Printf("INFO: %s: New transport was set", w.Name)
 	w.Transport = trans
 }

@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.1
-    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetUserStateJSON/uuid/UUID_SetUserStateJSON/data?state=%7B%22testkey%22%3A+%22testval%22%2C%22testkey2%22%3A+%22testval2%22%7D&pnsdk=PubNub-Go%2F3.7.1&uuid=UUID_SetUserStateJSON
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetUserStateJSON/uuid/UUID_SetUserStateJSON/data?state=%7B%22testkey%22%3A+%22testval%22%2C%22testkey2%22%3A+%22testval2%22%7D&pnsdk=PubNub-Go%2F3.9.3&uuid=UUID_SetUserStateJSON
     method: GET
   response:
     body: '{"status": 200, "message": "OK", "payload": {"testkey2": "testval2", "testkey":
@@ -44,8 +44,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.1
-    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetUserStateJSON/uuid/UUID_SetUserStateJSON/data?state=%7B%22testkey%22%3A%22testval%22%7D&pnsdk=PubNub-Go%2F3.7.1&uuid=UUID_SetUserStateJSON
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetUserStateJSON/uuid/UUID_SetUserStateJSON/data?state=%7B%22testkey%22%3A%22testval%22%7D&pnsdk=PubNub-Go%2F3.9.3&uuid=UUID_SetUserStateJSON
     method: GET
   response:
     body: '{"status": 200, "message": "OK", "payload": {"testkey": "testval"}, "service":

@@ -12,8 +12,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	// "os"
 	"strings"
+	"sync"
 	"testing"
 )
+
+var pnMu sync.Mutex
 
 // TestGroupSubscribeStart prints a message on the screen to mark the beginning of
 // subscribe tests.
@@ -92,7 +95,9 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 	defer stop()
 
 	uuid := "UUID_Multiple_CAU"
+	pnMu.Lock()
 	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pnMu.Unlock()
 	groupsString := "Group_ConAndUnsMult_1,Group_ConAndUnsMult_2,Group_ConAndUnsMult_3"
 	groups := strings.Split(groupsString, ",")
 

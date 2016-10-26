@@ -8,11 +8,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/0?uuid=UUID_Multiplexing&pnsdk=PubNub-Go%2F3.7.0
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=0&pnsdk=PubNub-Go%2F3.9.3
     method: GET
   response:
-    body: '[[],"14586610210555993",""]'
+    body: '{"t":{"t":"14586610210555993","r":4},"m":[]}'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -37,11 +37,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/14586610210555993?uuid=UUID_Multiplexing&pnsdk=PubNub-Go%2F3.7.0
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586610210555993&tr=4&pnsdk=PubNub-Go%2F3.9.3
     method: GET
   response:
-    body: '[["message1"],"14586613343588074","Mpx_Channel_1"]'
+    body: '{"t":{"t":"14586613343588074","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimpleWithCipher","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Mpx_Channel_1","b":"Mpx_Channel_1","d":"message1"}]}'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -66,11 +66,11 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/14586613343588074?uuid=UUID_Multiplexing&pnsdk=PubNub-Go%2F3.7.0
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586613343588074&tr=4&pnsdk=PubNub-Go%2F3.9.3
     method: GET
   response:
-    body: '[["message2"],"14586613343837041","Mpx_Channel_2"]'
+    body: '{"t":{"t":"14586613343837041","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimpleWithCipher","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Mpx_Channel_2","b":"Mpx_Channel_2","d":"message2"}]}'
     headers:
       Access-Control-Allow-Methods:
       - GET
@@ -89,5 +89,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0/14586613343837041?uuid=UUID_Multiplexing&pnsdk=PubNub-Go%2F3.7.0
+  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586613343837041&tr=4&pnsdk=PubNub-Go%2F3.9.3
   : {}

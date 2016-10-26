@@ -6,14 +6,15 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/pubnub/go/messaging"
+	"github.com/pubnub/go/messaging/tests/utils"
+	"github.com/stretchr/testify/assert"
+	//"log"
+	//"os"
 	"strconv"
 	"strings"
 	"sync"
 	"testing"
-
-	"github.com/pubnub/go/messaging"
-	"github.com/pubnub/go/messaging/tests/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 // TestSubscribeStart prints a message on the screen to mark the beginning of
@@ -147,6 +148,8 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 
 	channel := "Channel_SubscriptionConnectedForSimple"
 	uuid := "UUID_SubscriptionConnectedForSimple"
+	//messaging.LoggingEnabled(true)
+	//messaging.SetLogOutput(os.Stdout)
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
 
 	customMessage := "Test message"
@@ -584,6 +587,8 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 
 	stop, _ := NewVCRBoth(fmt.Sprintf("fixtures/subscribe/%s", testName), []string{"uuid"})
 	defer stop()
+	//messaging.LoggingEnabled(true)
+	//messaging.SetLogOutput(os.Stdout)
 
 	channel := "Channel_MultipleResponse"
 	uuid := "UUID_MultipleResponse"
@@ -593,37 +598,49 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 	unsubscribeErrorChannel := make(chan []byte)
 
 	retTime := GetServerTimeString("time_uuid")
-	fmt.Println("time is", retTime)
+	//fmt.Println("time is", retTime)
 
 	message1 := "message1"
 	message2 := "message2"
 
 	successChannelPublish := make(chan []byte)
 	errorChannelPublish := make(chan []byte)
-
+	await1 := make(chan bool)
 	go pubnubInstance.Publish(channel, message1, successChannelPublish,
 		errorChannelPublish)
-	select {
-	case <-successChannelPublish:
-	case err := <-errorChannelPublish:
-		assert.Fail("Publish #1 error", string(err))
-	case <-timeout():
-		assert.Fail("Publish #1 timeout")
-	}
-
+	go func() {
+		select {
+		case <-successChannelPublish:
+			//log.Printf("published %s", mess)
+			await1 <- true
+		case err := <-errorChannelPublish:
+			assert.Fail("Publish #1 error", string(err))
+			await1 <- true
+		case <-timeout():
+			assert.Fail("Publish #1 timeout")
+			await1 <- true
+		}
+	}()
+	<-await1
 	successChannelPublish2 := make(chan []byte)
 	errorChannelPublish2 := make(chan []byte)
-
+	await2 := make(chan bool)
 	go pubnubInstance.Publish(channel, message2, successChannelPublish2,
 		errorChannelPublish2)
-	select {
-	case <-successChannelPublish2:
-	case err := <-errorChannelPublish2:
-		assert.Fail("Publish #2 error", string(err))
-	case <-timeout():
-		assert.Fail("Publish #2 timeout")
-	}
-
+	go func() {
+		select {
+		case <-successChannelPublish2:
+			//log.Printf("published %s", mess)
+			await2 <- true
+		case err := <-errorChannelPublish2:
+			assert.Fail("Publish #2 error", string(err))
+			await2 <- true
+		case <-timeout():
+			assert.Fail("Publish #2 timeout")
+			await2 <- true
+		}
+	}()
+	<-await2
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
 	await := make(chan bool)
@@ -632,11 +649,13 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 
 	go func() {
 		messageCount := 0
-
+		//log.Printf("in func")
 		for {
+			//log.Printf("in for")
 			select {
 			case value := <-successChannel:
 				response := fmt.Sprintf("%s", value)
+				//log.Printf("response %s", response)
 				message := "'" + channel + "' connected"
 				if strings.Contains(response, message) {
 					continue
@@ -675,9 +694,9 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 			}
 		}
 	}()
-
+	//log.Printf("awaiting")
 	<-await
-
+	//log.Printf("after wait")
 	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
@@ -840,6 +859,160 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 
 	go pubnubInstance.Unsubscribe(pubnubChannels, unsubscribeSuccessChannel, unsubscribeErrorChannel)
 	ExpectUnsubscribedEvent(t, pubnubChannels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	// pubnubInstance.CloseExistingConnection()
+}
+
+func TestSubscriptionForMessageFiltering(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, _ := NewVCRBoth("fixtures/subscribe/forMessageFiltering", []string{"uuid"})
+	defer stop()
+
+	channel := "Channel_SubscriptionConnectedForMessageFiltering"
+	uuid := "UUID_SubscriptionConnectedForMessageFiltering"
+	//messaging.LoggingEnabled(true)
+	//messaging.SetLogOutput(os.Stdout)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+
+	customMessage := "Test message"
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
+	meta := "{\"meta\":\"filter\"}"
+
+	pubnubInstance.SetFilterExpression(meta)
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				response := fmt.Sprintf("%s", resp)
+				if response != "[]" {
+					message := "'" + channel + "' connected"
+
+					if strings.Contains(response, message) {
+
+						successChannel := make(chan []byte)
+						errorChannel := make(chan []byte)
+
+						go pubnubInstance.PublishExtendedWithMeta(channel, customMessage, meta,
+							true, false, successChannel, errorChannel)
+						select {
+						case <-successChannel:
+						case err := <-errorChannel:
+							assert.Fail(string(err))
+						case <-timeout():
+							assert.Fail("Publish timeout")
+						}
+					} else {
+						assert.Contains(response, customMessage)
+
+						close(await)
+						return
+					}
+				}
+			case err := <-errorChannel:
+				assert.Fail(string(err))
+
+				close(await)
+				return
+			case <-timeouts(10):
+				assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+
+		}
+	}()
+
+	<-await
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	// pubnubInstance.CloseExistingConnection()
+}
+
+func TestSubscriptionForMessageFiltering2(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, _ := NewVCRBoth("fixtures/subscribe/forMessageFiltering2", []string{"uuid"})
+	defer stop()
+
+	channel := "Channel_SubscriptionConnectedForMessageFiltering2"
+	uuid := "UUID_SubscriptionConnectedForMessageFiltering2"
+	//messaging.LoggingEnabled(true)
+	//messaging.SetLogOutput(os.Stdout)
+	//log.SetOutput(os.Stdout)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+
+	customMessage := "Test message"
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
+	meta := "{\"meta\":\"filter\"}"
+
+	pubnubInstance.SetFilterExpression(meta)
+	go pubnubInstance.Subscribe(channel, "", successChannel, false, errorChannel)
+	go func() {
+		for {
+			select {
+			case resp := <-successChannel:
+				response := fmt.Sprintf("%s", resp)
+				if response != "[]" {
+					message := "'" + channel + "' connected"
+
+					if strings.Contains(response, message) {
+
+						successChannel := make(chan []byte)
+						errorChannel := make(chan []byte)
+
+						go pubnubInstance.PublishExtended(channel,
+							customMessage, true, false, successChannel, errorChannel)
+
+						select {
+						case <-successChannel:
+							//log.Printf("message %s", s)
+						case err := <-errorChannel:
+							assert.Fail(string(err))
+						case <-timeout():
+							assert.Fail("Publish timeout")
+						}
+					} else {
+						//log.Printf("message %s", response)
+						assert.Contains(response, customMessage)
+						assert.Fail("message not expected to come in")
+						close(await)
+						return
+					}
+				}
+			case err := <-errorChannel:
+				assert.Fail(string(err))
+
+				close(await)
+				return
+			case <-timeouts(5):
+				//log.Printf("timing out waiting for the message")
+
+				//assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+
+		}
+	}()
+
+	<-await
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 
 	// pubnubInstance.CloseExistingConnection()
 }

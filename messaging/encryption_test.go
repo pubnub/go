@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"testing"
 	"unicode/utf16"
 
@@ -321,7 +323,11 @@ func TestUnicodeDecryption(t *testing.T) {
 	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 
-	data, _, _, err := ParseJSON([]byte(decrypted.(string)), "")
+	pubInstance := Pubnub{
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+
+	data, _, _, err := pubInstance.ParseJSON([]byte(decrypted.(string)), "")
 	assert.NoError(err)
 	assert.Equal("漢語", data)
 }
@@ -362,7 +368,11 @@ func TestGermanDecryption(t *testing.T) {
 	decrypted, decErr := DecryptString("enigma", message)
 	assert.NoError(decErr)
 
-	data, _, _, err := ParseJSON([]byte(decrypted.(string)), "")
+	pubInstance := Pubnub{
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+
+	data, _, _, err := pubInstance.ParseJSON([]byte(decrypted.(string)), "")
 	assert.NoError(err)
 	assert.Equal("ÜÖ", data)
 }

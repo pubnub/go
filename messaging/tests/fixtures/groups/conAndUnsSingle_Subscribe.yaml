@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.7.0
-    url: http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/0?channel-group=Group_GroupSubscriptionConAndUnsSingle&uuid=UUID_GroupSubscriptionConAndUnsSingle&pnsdk=PubNub-Go%2F3.7.0
+      - ua_string=(linux) PubNub-Go/3.9.3
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupSubscriptionConAndUnsSingle&tt=0&uuid=UUID_GroupSubscriptionConAndUnsSingle&pnsdk=PubNub-Go%2F3.9.3
     method: GET
   response:
     body: '[[],"14588034967961806"]'
@@ -31,5 +31,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0/14588034967961806?channel-group=Group_GroupSubscriptionConAndUnsSingle&uuid=UUID_GroupSubscriptionConAndUnsSingle&pnsdk=PubNub-Go%2F3.7.0
+  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupSubscriptionConAndUnsSingle&tt=14588034967961806&uuid=UUID_GroupSubscriptionConAndUnsSingle&pnsdk=PubNub-Go%2F3.9.3
   : {}

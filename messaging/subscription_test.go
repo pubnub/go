@@ -1,19 +1,21 @@
 package messaging
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"log"
+	"testing"
 )
 
 func TestSubscriptionEntity(t *testing.T) {
 	channels := *newSubscriptionEntity()
+	infoLogger := log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	successChannel, errorChannel := CreateSubscriptionChannels()
 
-	channels.Add("qwer", successChannel, errorChannel)
-	channels.Add("asdf", successChannel, errorChannel)
-	channels.Add("zxcv", successChannel, errorChannel)
+	channels.Add("qwer", successChannel, errorChannel, infoLogger)
+	channels.Add("asdf", successChannel, errorChannel, infoLogger)
+	channels.Add("zxcv", successChannel, errorChannel, infoLogger)
 
 	assert.Equal(t, "", channels.ConnectedNamesString(), "should be equal")
 	assert.Len(t, channels.NamesString(), 14, "should be 14")
@@ -35,8 +37,8 @@ func TestSubscriptionPanicOnUndefinedResponseType(t *testing.T) {
 
 func TestSubscriptionRemoveNonExistingItem(t *testing.T) {
 	items := testEntityWithOneItem()
-
-	assert.False(t, items.Remove("blah"))
+	infoLogger := log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+	assert.False(t, items.Remove("blah", infoLogger))
 }
 
 func TestSubscriptionClear(t *testing.T) {
@@ -57,18 +59,18 @@ func TestSubscriptionAbort(t *testing.T) {
 
 	assert.False(items.abortedMarker)
 	assert.Len(items.items, 1)
-
-	items.ApplyAbort()
+	infoLogger := log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+	items.ApplyAbort(infoLogger)
 
 	assert.False(items.abortedMarker)
 	assert.Len(items.items, 1)
 
-	items.Abort()
+	items.Abort(infoLogger)
 
 	assert.True(items.abortedMarker)
 	assert.Len(items.items, 1)
 
-	items.ApplyAbort()
+	items.ApplyAbort(infoLogger)
 
 	assert.True(items.abortedMarker)
 	assert.Zero(len(items.items))
@@ -81,8 +83,8 @@ func TestSubscriptionResetConnected(t *testing.T) {
 	items.items["qwer"].Connected = true
 
 	assert.Equal([]string{"qwer"}, items.ConnectedNames())
-
-	items.ResetConnected()
+	infoLogger := log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+	items.ResetConnected(infoLogger)
 
 	assert.Equal([]string{}, items.ConnectedNames())
 }

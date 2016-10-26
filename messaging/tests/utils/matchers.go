@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/anovikov1984/go-vcr/cassette"
+	"github.com/pubnub/go-vcr/cassette"
 )
 
 var logMu sync.Mutex
