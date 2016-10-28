@@ -1016,7 +1016,7 @@ func ReadLoop() {
 					if replicate == "Y" || replicate == "y" {
 						replicateBool = true
 					}
-					go publishRoutineReplicate(channels, string(message), replicate)
+					go publishRoutineReplicate(channels, string(message), replicateBool)
 				}
 				//go publishRoutine(channels, message)
 			}
@@ -1189,7 +1189,7 @@ func publishRoutineReplicate(channels, message string, replicate bool) {
 	ch := strings.TrimSpace(channels)
 	fmt.Println("Publish to channel: ", ch)
 	callbackChannel := make(chan []byte)
-	go pub.PublishExtendedWithMetaAndReplicate(ch, message, meta, true, false, replicate, callbackChannel, errorChannel)
+	go pub.PublishExtendedWithMetaAndReplicate(ch, message, nil, true, false, replicate, callbackChannel, errorChannel)
 
 	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish with replicate")
 }
