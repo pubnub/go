@@ -129,6 +129,57 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 	}
 }
 
+// TestSuccessCodeAndInfoForComplexMessage sends out a complex message to the pubnub channel
+/*func TestFire(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe(
+		"fixtures/publish/successCodeAndInfoForComplexMessage", []string{"uuid"})
+	defer stop()
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	channel := "successCodeAndInfoForComplexMessage"
+
+	message := "fireTest"
+	await := make(chan bool)
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnubInstance.Fire(channel, message, false, successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Contains(string(msg), "1,")
+		assert.Contains(string(msg), "\"Sent\",")
+		await <- true
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+		await <- true
+	case <-timeout():
+		assert.Fail("Publish timeout")
+		await <- true
+	}
+
+	<-await
+
+	successChannelHis := make(chan []byte)
+	errorChannelHis := make(chan []byte)
+
+	go pubnubInstance.History(channel, 1, 0, 0, false, false,
+		successChannelHis, errorChannelHis)
+	select {
+	case value := <-successChannel:
+		data, _, _, err := pubnubInstance.ParseJSON(value, "")
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		assert.Contains(data, message)
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	}
+}*/
+
 // TestSuccessCodeAndInfoForComplexMessage2 sends out a complex message to the pubnub channel
 func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 	assert := assert.New(t)

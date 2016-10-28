@@ -1399,7 +1399,7 @@ func (pub *Pubnub) PublishExtended(channel string, message interface{},
 func (pub *Pubnub) PublishExtendedWithMeta(channel string, message, meta interface{},
 	storeInHistory, doNotSerialize bool,
 	callbackChannel, errorChannel chan []byte) {
-	pub.PublishExtendedWithMetaAndReplicate(channel, message, nil, storeInHistory, doNotSerialize, true, callbackChannel, errorChannel)
+	pub.PublishExtendedWithMetaAndReplicate(channel, message, meta, storeInHistory, doNotSerialize, true, callbackChannel, errorChannel)
 }
 
 // PublishExtendedWithMetaAndReplicate is the struct Pubnub's instance method that creates a publish request and calls
