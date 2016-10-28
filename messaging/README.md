@@ -10,7 +10,7 @@
 * 3.9.4
  * Fire Method
  * Replicate arg in Publish
-* 3.9.3
+* 3.9.4
  * PubSub v2
  * Message Filtering
  * Logger Optimizations, logging format changed. Removed mutex around logging statements.

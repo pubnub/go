@@ -1504,8 +1504,8 @@ func (pub *Pubnub) PublishExtendedWithMetaAndReplicate(channel string, message, 
 		} else {
 			//messageStr := strings.Replace(string(jsonSerialized), "/", "%2F", -1)
 
-			pub.sendPublishRequest(channel, publishURLBuffer.String(), storeInHistory,
-				string(jsonSerialized), replicate, jsonSerializedMeta, callbackChannel, errorChannel)
+			pub.sendPublishRequest(channel, publishURLBuffer.String(), storeInHistory, replicate,
+				string(jsonSerialized), jsonSerializedMeta, callbackChannel, errorChannel)
 		}
 	}
 }
