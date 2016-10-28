@@ -8,7 +8,7 @@ changelog:
       - 
         text: “Replicate arg in Publish“
         type: feature
-    date: ~
+    date: Oct 28, 16
     version: v3.9.4
   - 
     changes: 
@@ -27,7 +27,7 @@ changelog:
       - 
         text: "Fixed storeInHistory when publishing"
         type: improvement
-    date: ~
+    date: Oct 11, 16
     version: v3.9.3
   - 
     changes: 
@@ -184,4 +184,4 @@ features:
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: "3.9.3"
+version: “3.9.4”
