@@ -62,7 +62,7 @@ var connectionEventTimeout int = 20
 // prefix for presence channels
 var presenceSuffix string = "-pnpres"
 
-// publishSuccessMessage: the reponse that is received when a message is
+// publishSuccessMessage: the response that is received when a message is
 // successfully published on a pubnub channel.
 var publishSuccessMessage = "1,\"Sent\""
 
@@ -420,7 +420,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 	case <-channel:
 	case <-timeouts(connectionEventTimeout):
 		assert.Fail(t, fmt.Sprintf(
-			"Timeout occured for %s event. Expected channels/groups: %s/%s. "+
+			"Timeout occurred for %s event. Expected channels/groups: %s/%s. "+
 				"Received channels/groups: %s/%s\n",
 			cnAction, channels, groups, triggeredChannels, triggeredGroups))
 	}
@@ -455,7 +455,7 @@ func waitForEventOnEveryChannel(t *testing.T, channels, groups []string,
 		case <-channel:
 		case <-timeouts(connectionEventTimeout):
 			assert.Fail(t, fmt.Sprintf(
-				"Timeout occured for %s event. Expected channels/groups: %s/%s. "+
+				"Timeout occurred for %s event. Expected channels/groups: %s/%s. "+
 					"Received channels/groups: %s/%s\n",
 				prAction, channels, groups, triggeredChannels, triggeredGroups))
 		}

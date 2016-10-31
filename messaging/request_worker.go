@@ -45,19 +45,18 @@ type requestWorker struct {
 	CancelChs   map[string]chan requestCanceledReason
 	CancelChsMu sync.RWMutex
 	CancelChsWg sync.WaitGroup
-	InfoLogger *log.Logger
+	InfoLogger  *log.Logger
 }
 
 func newRequestWorker(name string, defaultTransport http.RoundTripper,
 	roundTripTimeout uint16, logger *log.Logger) *requestWorker {
 
-	
 	logger.Printf("INFO: %s worker initialized", name)
 	return &requestWorker{
-		Name:      fmt.Sprintf("%s Worker", name),
-		CancelChs: make(map[string]chan requestCanceledReason),
-		Timeout:   time.Duration(roundTripTimeout) * time.Second,
-		Transport: defaultTransport,
+		Name:       fmt.Sprintf("%s Worker", name),
+		CancelChs:  make(map[string]chan requestCanceledReason),
+		Timeout:    time.Duration(roundTripTimeout) * time.Second,
+		Transport:  defaultTransport,
 		InfoLogger: logger,
 	}
 }
@@ -257,7 +256,7 @@ func (w *requestWorker) GetTransport() http.RoundTripper {
 func (w *requestWorker) SetTransport(trans http.RoundTripper) {
 	w.TransportMu.Lock()
 	defer w.TransportMu.Unlock()
-	
+
 	w.InfoLogger.Printf("INFO: %s: New transport was set", w.Name)
 	w.Transport = trans
 }

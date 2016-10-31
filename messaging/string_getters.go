@@ -4,7 +4,7 @@ var responseStatusName = map[responseStatus]string{
 	responseAlreadySubscribed:  "already subscribed",
 	responseNotSubscribed:      "not subscribed",
 	responseInternetConnIssues: "disconnected due to internet connection issues, trying to reconnect.",
-	reponseAbortMaxRetry:       "aborted due to max retry limit",
+	responseAbortMaxRetry:      "aborted due to max retry limit",
 	responseTimedOut:           "timed out.",
 }
 

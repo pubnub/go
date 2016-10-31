@@ -10,9 +10,13 @@ import (
 var pubnub *messaging.Pubnub
 
 const (
-	PubKey  string = "pub-c-56233908-f9d9-4a35-bd1f-e003bd75870c"
-	SubKey  string = "sub-c-dec8da28-0617-11e6-996b-0619f8945a4f"
-	SecKey  string = "sec-c-MzJkZGQ4MTYtMzNlMi00YzdmLTlkZmYtMWQ1NTczMDlhMTZi"
+	//PubKey
+	PubKey string = "pub-c-56233908-f9d9-4a35-bd1f-e003bd75870c"
+	//SubKey
+	SubKey string = "sub-c-dec8da28-0617-11e6-996b-0619f8945a4f"
+	//SecKey
+	SecKey string = "sec-c-MzJkZGQ4MTYtMzNlMi00YzdmLTlkZmYtMWQ1NTczMDlhMTZi"
+	//Channel
 	Channel string = "blah"
 )
 
