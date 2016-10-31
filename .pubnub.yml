@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: “fixed misspells, some golint changes and gocyclo issues”
+        type: improvement
+    date: Oct 31, 16
+    version: v3.9.4.1
+  - 
+    changes: 
+      - 
         text: “Fire method”
         type: feature
       - 
@@ -184,4 +191,4 @@ features:
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: “3.9.4”
+version: “3.9.4.1”
