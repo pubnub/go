@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.4
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0?uuid=UUID_SubscriptionConnectedForComplex&tt=0&pnsdk=PubNub-Go%2F3.9.4
+      - ua_string=(linux) PubNub-Go/3.9.4.1
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0?uuid=UUID_SubscriptionConnectedForComplex&tt=0&pnsdk=PubNub-Go%2F3.9.4.1
     method: GET
   response:
     body: '{"t":{"t":"14586610179764926","r":4},"m":[]}'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.4
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0?uuid=UUID_SubscriptionConnectedForComplex&tt=14586610179764926&tr=4&pnsdk=PubNub-Go%2F3.9.4
+      - ua_string=(linux) PubNub-Go/3.9.4.1
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0?uuid=UUID_SubscriptionConnectedForComplex&tt=14586610179764926&tr=4&pnsdk=PubNub-Go%2F3.9.4.1
     method: GET
   response:
     body: '{"t":{"t":"14586613295253763","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForComplex","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForComplex","b":"Channel_SubscriptionConnectedForComplex","d":[{"VersionID":"3.4","TimeToken":"13601488652764619","OperationName":"Publish","Channels":["ch1","ch
@@ -62,5 +62,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0?uuid=UUID_SubscriptionConnectedForComplex&tt=14586613295253763&tr=4&pnsdk=PubNub-Go%2F3.9.4
+  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0?uuid=UUID_SubscriptionConnectedForComplex&tt=14586613295253763&tr=4&pnsdk=PubNub-Go%2F3.9.4.1
   : {}

@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.9.4
-// Build Date: Oct 27, 2016
+// Version: 3.9.4.1
+// Build Date: Oct 31, 2016
 package messaging
 
 import (
@@ -29,8 +29,10 @@ import (
 )
 
 const (
-	SDK_VERSION = "3.9.4"
-	SDK_DATE    = "Oct 27, 2016"
+	// SDK_VERSION is the current SDK version
+	SDK_VERSION = "3.9.4.1"
+	// SDK_DATE is the version release date
+	SDK_DATE = "Oct 31, 2016"
 )
 
 type responseStatus int
@@ -41,7 +43,7 @@ const (
 	responseNotSubscribed                                 //2
 	responseAsIs                                          //4
 	responseInternetConnIssues                            //8
-	reponseAbortMaxRetry                                  //16
+	responseAbortMaxRetry                                 //16
 	responseAsIsError                                     //32
 	responseTimedOut                                      //64
 )
@@ -159,7 +161,7 @@ var (
 
 	// The time after which the server expects the contact from the client.
 	// In seconds.
-	// If the server doesnt get an heartbeat request within this time, it will send
+	// If the server doesn't get an heartbeat request within this time, it will send
 	// a "timeout" message
 	presenceHeartbeat uint16 //sec
 
@@ -316,7 +318,7 @@ type Pubnub struct {
 type PubnubUnitTest struct {
 }
 
-// Set a default subscribe transport for subscribe request workers.
+// SetSubscribeTransport a default subscribe transport for subscribe request workers.
 // Will affect only on newly created Pubnub instances
 // To set transport for an already existing instance use instance method with
 // the same name
@@ -327,7 +329,7 @@ func SetSubscribeTransport(transport http.RoundTripper) {
 	subscribeTransport = transport
 }
 
-// Set a default non-subscribe transport for non-subscribe request workers.
+// SetNonSubscribeTransport a default non-subscribe transport for non-subscribe request workers.
 // Will affect only on newly created Pubnub instances
 // To set transport for an already existing instance use instance method with
 // the same name
@@ -519,7 +521,7 @@ func (pub *Pubnub) SetFilterExpression(val string) {
 	pub.CloseExistingConnection()
 }
 
-// ResetCounter resets the publish counter
+// ResetPublishCounter resets the publish counter
 func (pub *Pubnub) ResetPublishCounter() {
 	pub.publishCounterMu.Lock()
 	pub.publishCounter = 0
@@ -644,22 +646,22 @@ func (pubtest *PubnubUnitTest) GetTimeToken(pub *Pubnub) string {
 	return pub.timeToken
 }
 
-// Set custom subscribe transport for a subscribe worker
+// SetSubscribeTransport custom subscribe transport for a subscribe worker
 func (pub *Pubnub) SetSubscribeTransport(trans http.RoundTripper) {
 	pub.subscribeWorker.SetTransport(trans)
 }
 
-// Set custom non-subscribe transport for a subscribe worker
+// SetNonSubscribeTransport custom non-subscribe transport for a subscribe worker
 func (pub *Pubnub) SetNonSubscribeTransport(trans http.RoundTripper) {
 	pub.nonSubscribeWorker.SetTransport(trans)
 }
 
-// Get a reference to the current subscribe transport used by a subscribe worker
+// GetSubscribeTransport a reference to the current subscribe transport used by a subscribe worker
 func (pub *Pubnub) GetSubscribeTransport() http.RoundTripper {
 	return pub.subscribeWorker.GetTransport()
 }
 
-// Get a reference to the current non-subscribe transport used by
+// GetNonSubscribeTransport a reference to the current non-subscribe transport used by
 // a non-subscribe worker
 func (pub *Pubnub) GetNonSubscribeTransport() http.RoundTripper {
 	return pub.nonSubscribeWorker.GetTransport()
@@ -1204,7 +1206,10 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 	}
 
 	value, responseCode, err := pub.httpRequest(publishURL, nonSubscribeTrans)
+	pub.readPublishResponseAndCallSendResponse(channel, value, responseCode, err, callbackChannel, errorChannel)
+}
 
+func (pub *Pubnub) readPublishResponseAndCallSendResponse(channel string, value []byte, responseCode int, err error, callbackChannel, errorChannel chan []byte) {
 	if (responseCode != 200) || (err != nil) {
 		if (value != nil) && (responseCode > 0) {
 			var s []interface{}
@@ -1511,7 +1516,7 @@ func (pub *Pubnub) PublishExtendedWithMetaAndReplicate(channel string, message, 
 }
 
 // sendSubscribeResponse is the struct Pubnub's instance method that sends
-// a reponse to subsribed channels or groups
+// a response to subsribed channels or groups
 //
 // It accepts the following parameters:
 // channel: Channel on which to send the response back.
@@ -1818,7 +1823,7 @@ func (pub *Pubnub) checkForTimeoutAndRetries(err error) (bool, bool) {
 
 	if retryCountLocal >= maxRetries {
 		// TODO: verify generated message
-		pub.sendSubscribeError(subChannels, subChannelGroups, "", reponseAbortMaxRetry)
+		pub.sendSubscribeError(subChannels, subChannelGroups, "", responseAbortMaxRetry)
 
 		pub.Lock()
 		pub.channels.ResetConnected(pub.infoLogger)
@@ -2022,7 +2027,7 @@ func (pub *Pubnub) cancelPresenceHeartbeatWorker() {
 	}
 }
 
-// startSubscribeLoop starts a continuous loop that handles the reponse from pubnub
+// startSubscribeLoop starts a continuous loop that handles the response from pubnub
 // subscribe/presence subscriptions.
 //
 // It creates subscribe request url and posts it.
@@ -2553,12 +2558,14 @@ func (pub *Pubnub) getSubscribeLoopAction(channels, groups string,
 	return returnAction
 }
 
+// ChannelGroupSubscribe subscribes to a channel group
 func (pub *Pubnub) ChannelGroupSubscribe(groups string,
 	callbackChannel chan<- []byte, errorChannel chan<- []byte) {
 	pub.ChannelGroupSubscribeWithTimetoken(groups, "", callbackChannel,
 		errorChannel)
 }
 
+// ChannelGroupSubscribeWithTimetoken subscribes to a channel group with a timetoken
 func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 	callbackChannel chan<- []byte, errorChannel chan<- []byte) {
 
@@ -2845,6 +2852,7 @@ func (pub *Pubnub) Unsubscribe(channels string, callbackChannel, errorChannel ch
 	}
 }
 
+// ChannelGroupUnsubscribe unsubscribes from a channel group
 func (pub *Pubnub) ChannelGroupUnsubscribe(groups string, callbackChannel,
 	errorChannel chan []byte) {
 
@@ -2977,17 +2985,17 @@ func (pub *Pubnub) sendLeaveRequest(channels, groups string) ([]byte, int, error
 // start: start time from where to begin the history messages.
 // end: end time till where to get the history messages.
 // reverse: to fetch the messages in ascending order
-// include_token: to receive a timetoken for each history message
+// includeToken: to receive a timetoken for each history message
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) History(channel string, limit int, start, end int64,
-	reverse, include_token bool, callbackChannel, errorChannel chan []byte) {
+	reverse, includeToken bool, callbackChannel, errorChannel chan []byte) {
 	pub.checkCallbackNil(callbackChannel, false, "History")
 	pub.checkCallbackNil(errorChannel, true, "History")
 
-	pub.executeHistory(channel, limit, start, end, reverse, include_token,
+	pub.executeHistory(channel, limit, start, end, reverse, includeToken,
 		callbackChannel, errorChannel, 0)
 }
 
@@ -3004,12 +3012,12 @@ func (pub *Pubnub) History(channel string, limit int, start, end int64,
 // start: start time from where to begin the history messages.
 // end: end time till where to get the history messages.
 // reverse: to fetch the messages in ascending order
-// include_token: to receive a timetoken for each history message
+// includeToken: to receive a timetoken for each history message
 // callbackChannel on which to send the response.
 // errorChannel on which the error response is sent.
 // retryCount to track the retry logic.
 func (pub *Pubnub) executeHistory(channel string, limit int, start, end int64,
-	reverse, include_token bool, callbackChannel, errorChannel chan []byte,
+	reverse, includeToken bool, callbackChannel, errorChannel chan []byte,
 	retryCount int) {
 
 	count := retryCount
@@ -3035,7 +3043,7 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start, end int64,
 	}
 
 	parameters.WriteString("&include_token=")
-	if include_token == true {
+	if includeToken == true {
 		parameters.WriteString("true")
 	} else {
 		parameters.WriteString("false")
@@ -3069,7 +3077,7 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start, end int64,
 			pub.sendErrorResponse(errorChannel, channel, errJSON.Error())
 			if count < maxRetries {
 				count++
-				pub.executeHistory(channel, limit, start, end, reverse, include_token,
+				pub.executeHistory(channel, limit, start, end, reverse, includeToken,
 					callbackChannel, errorChannel, count)
 			}
 		} else {
@@ -3534,6 +3542,7 @@ func (pub *Pubnub) executeSetUserState(channel, jsonState string,
 	}
 }
 
+// ChannelGroupAddChannel adds channel to a channel group
 func (pub *Pubnub) ChannelGroupAddChannel(group, channel string,
 	callbackChannel, errorChannel chan []byte) {
 	pub.checkCallbackNil(callbackChannel, false, "ChannelGroupAddChannel")
@@ -3542,6 +3551,7 @@ func (pub *Pubnub) ChannelGroupAddChannel(group, channel string,
 	pub.executeChannelGroup("add", group, channel, callbackChannel, errorChannel)
 }
 
+// ChannelGroupRemoveChannel removes channel from a channel group
 func (pub *Pubnub) ChannelGroupRemoveChannel(group, channel string,
 	callbackChannel, errorChannel chan []byte) {
 	pub.checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveChannel")
@@ -3550,6 +3560,7 @@ func (pub *Pubnub) ChannelGroupRemoveChannel(group, channel string,
 	pub.executeChannelGroup("remove", group, channel, callbackChannel, errorChannel)
 }
 
+// ChannelGroupListChannels lists channels of a channel group
 func (pub *Pubnub) ChannelGroupListChannels(group string,
 	callbackChannel, errorChannel chan []byte) {
 	pub.checkCallbackNil(callbackChannel, false, "ChannelGroupListChannels")
@@ -3558,6 +3569,7 @@ func (pub *Pubnub) ChannelGroupListChannels(group string,
 	pub.executeChannelGroup("list_group", group, "", callbackChannel, errorChannel)
 }
 
+// ChannelGroupRemoveGroup removes channels from a channel group
 func (pub *Pubnub) ChannelGroupRemoveGroup(group string,
 	callbackChannel, errorChannel chan []byte) {
 	pub.checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveGroup")
@@ -3718,7 +3730,7 @@ func (pub *Pubnub) parseCipherInterface(data interface{}, cipherKey string) inte
 	return intf
 }
 
-// pub.ParseJSON parses the json data.
+// ParseJSON parses the json data.
 // It extracts the actual data (value 0),
 // Timetoken/from time in case of detailed history (value 1),
 // pubnub channelname/timetoken/to time in case of detailed history (value 2).

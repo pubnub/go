@@ -18,7 +18,7 @@ import (
 func TestPad(t *testing.T) {
 	assert := assert.New(t)
 
-	var bad_msg interface{}
+	var badMsg interface{}
 	b := []byte(`{
 	"kind": "click",
 	"user": {"key" : "user@test.com"},
@@ -27,8 +27,8 @@ func TestPad(t *testing.T) {
 	"url": "http://www.google.com"
 	}`)
 
-	json.Unmarshal(b, &bad_msg)
-	jsonSerialized, _ := json.Marshal(bad_msg)
+	json.Unmarshal(b, &badMsg)
+	jsonSerialized, _ := json.Marshal(badMsg)
 
 	actual := EncryptString("enigma", fmt.Sprintf("%s", jsonSerialized))
 	expected := "yzJ2MMyt8So18nNXm4m3Dl0XuYAOJFj2JXG8P3BGlCsDsqM44ReH15MRGbEkJZCSqgMiX1wUK44Qz8gsTcmGcZm/7KtOa+kRnvgDpNkTuBUrDqSjmYeuBLqRIEIfoGrRNljbFmP1W9Zv8iVbJMmovF+gmNNiIzlC3J9dHK51/OgW7s2EASMQJr3UJZ26PoFmmXY/wYN+2EyRnT4PBRCocQ=="

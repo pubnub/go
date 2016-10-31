@@ -2,9 +2,9 @@ package messaging
 
 import (
 	"fmt"
-	"regexp"
-	"log"
 	"io/ioutil"
+	"log"
+	"regexp"
 	"time"
 )
 
@@ -28,28 +28,28 @@ var (
 		channels:     channelsSingleChannel,
 		subscribeKey: "my_key",
 		uuid:         "my_uuid",
-		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+		infoLogger:   log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
 	pubnubThreeChannels = Pubnub{
 		channels:     channelsThreeChannels,
 		subscribeKey: "my_key",
 		uuid:         "my_uuid",
-		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+		infoLogger:   log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
 	pubnubSingleCG = Pubnub{
 		groups:       channelsSingleCG,
 		subscribeKey: "my_key",
 		uuid:         "my_uuid",
-		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+		infoLogger:   log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
 	pubnubThreeCG = Pubnub{
 		groups:       channelsThreeCG,
 		subscribeKey: "my_key",
 		uuid:         "my_uuid",
-		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+		infoLogger:   log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
 	pubnubChannelAndGroup = Pubnub{
@@ -57,7 +57,7 @@ var (
 		groups:       channelsChannelAndGroupG,
 		subscribeKey: "my_key",
 		uuid:         "my_uuid",
-		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+		infoLogger:   log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 
 	successChannel = make(chan []byte)

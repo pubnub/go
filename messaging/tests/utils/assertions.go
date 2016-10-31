@@ -1,5 +1,6 @@
 package utils
 
+// AssertStringSliceElementsEqual
 func AssertStringSliceElementsEqual(first, second []string) bool {
 	if len(first) != len(second) {
 		return false

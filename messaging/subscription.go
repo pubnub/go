@@ -74,9 +74,8 @@ func (e *subscriptionItem) SetConnected() (changed bool) {
 	if e.Connected == false {
 		e.Connected = true
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 type subscriptionEntity struct {
@@ -136,9 +135,8 @@ func (e *subscriptionEntity) Remove(name string, logger *log.Logger) bool {
 		delete(e.items, name)
 
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 func (e *subscriptionEntity) Length() int {
@@ -154,9 +152,8 @@ func (e *subscriptionEntity) Exist(name string) bool {
 
 	if _, ok := e.items[name]; ok {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 func (e *subscriptionEntity) Empty() bool {
@@ -172,9 +169,8 @@ func (e *subscriptionEntity) Get(name string) (*subscriptionItem, bool) {
 
 	if _, ok := e.items[name]; ok {
 		return e.items[name], true
-	} else {
-		return nil, false
 	}
+	return nil, false
 }
 
 func (e *subscriptionEntity) Names() []string {
@@ -285,6 +281,7 @@ func (e *subscriptionEntity) SetConnected(logger *log.Logger) (changedItemNames 
 	return changedItemNames
 }
 
+// CreateSubscriptionChannels creates channels for subscription
 func CreateSubscriptionChannels() (chan []byte, chan []byte) {
 
 	successResponse := make(chan []byte)

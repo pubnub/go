@@ -17,7 +17,7 @@ import (
 	"github.com/pubnub/go/messaging"
 )
 
-// connectChannels: the conected pubnub channels, multiple channels are stored separated by comma.
+// connectChannels: the connected pubnub channels, multiple channels are stored separated by comma.
 var connectChannels = ""
 
 // ssl: true if the ssl is enabled else false.
@@ -363,14 +363,13 @@ func askChannelGroup() (string, error) {
 func askChannelGroupOptional() (string, error) {
 	fmt.Println("Please enter the channel group name. You can leave it blank.")
 	reader := bufio.NewReader(os.Stdin)
-	channel_groups, _, errReadingChannel := reader.ReadLine()
+	channelGroups, _, errReadingChannel := reader.ReadLine()
 
 	if errReadingChannel != nil {
 		fmt.Println("Error channel group: ", errReadingChannel.Error())
 		return "", errReadingChannel
-	} else {
-		return string(channel_groups), nil
 	}
+	return string(channelGroups), nil
 }
 
 func askQuestionBool(what string, defaultYes bool) bool {

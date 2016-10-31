@@ -11,17 +11,17 @@ func Timeout() <-chan time.Time {
 	return Timeouts(GetNonSubscribeTimeout())
 }
 
-// Timeout channel for subscribe requests
+// SubscribeTimeout: Timeout channel for subscribe requests
 func SubscribeTimeout() <-chan time.Time {
 	return Timeouts(GetSubscribeTimeout())
 }
 
-// Timeout channel with custon timeout value
+// Timeouts: Timeout channel with custon timeout value
 func Timeouts(seconds uint16) <-chan time.Time {
 	return time.After(time.Second * time.Duration(seconds))
 }
 
-// Type for presence events
+// PresenceEvent: Type for presence events
 type PresenceEvent struct {
 	Action    string  `json:"action"`
 	Uuid      string  `json:"uuid"`
@@ -29,7 +29,7 @@ type PresenceEvent struct {
 	Occupancy int     `json:"occupancy"`
 }
 
-// Type for presence response
+// PresenceResonse: Type for presence response
 type PresenceResonse struct {
 	Action  string `json:"action"`
 	Status  int    `json:"status"`
@@ -45,17 +45,15 @@ func stringPresenceOrSubscribe(channel string) string {
 
 	if strings.HasSuffix(channel, presenceSuffix) {
 		return presenceMessage
-	} else {
-		return subscribeMessage
 	}
+	return subscribeMessage
 }
 
 func splitItems(items string) []string {
 	if items == "" {
 		return []string{}
-	} else {
-		return strings.Split(items, ",")
 	}
+	return strings.Split(items, ",")
 }
 
 func addPnpresToString(items string) string {
