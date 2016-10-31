@@ -615,6 +615,8 @@ func ReadLoop() {
 			fmt.Println("ENTER 36 TO Get Filter Expression")
 			fmt.Println("ENTER 37 FOR Publish with Meta")
 			fmt.Println("ENTER 38 FOR Publish with StoreInHistory")
+			fmt.Println("ENTER 39 FOR Publish with replicate")
+			fmt.Println("ENTER 40 FOR Fire")
 			fmt.Println("ENTER 99 FOR Exit")
 			fmt.Println("")
 			showOptions = false
@@ -996,6 +998,43 @@ func ReadLoop() {
 				}
 				//go publishRoutine(channels, message)
 			}
+		case "39":
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Please enter the message")
+				message, _, err := reader.ReadLine()
+
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					fmt.Println("Replicate? Enter 'y' for yes or 'n' for no")
+					var replicate = "n"
+					fmt.Scanln(&replicate)
+					replicateBool := false
+					if replicate == "Y" || replicate == "y" {
+						replicateBool = true
+					}
+					go publishRoutineReplicate(channels, string(message), replicateBool)
+				}
+				//go publishRoutine(channels, message)
+			}
+		case "40":
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Please enter the message")
+				message, _, err := reader.ReadLine()
+
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					go fireRoutine(channels, string(message))
+				}
+				//go publishRoutine(channels, message)
+			}
 		case "99":
 			fmt.Println("Exiting")
 			pub.Abort()
@@ -1132,7 +1171,7 @@ func publishWithMetaRoutine(channels, message string, meta interface{}) {
 	callbackChannel := make(chan []byte)
 	go pub.PublishExtendedWithMeta(ch, message, meta, true, false, callbackChannel, errorChannel)
 
-	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
+	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish with Meta")
 }
 
 func publishRoutineStoreInHistory(channels, message string, storeInHistory bool) {
@@ -1142,7 +1181,27 @@ func publishRoutineStoreInHistory(channels, message string, storeInHistory bool)
 	callbackChannel := make(chan []byte)
 	go pub.PublishExtended(ch, message, storeInHistory, false, callbackChannel, errorChannel)
 
-	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
+	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish with store in history")
+}
+
+func publishRoutineReplicate(channels, message string, replicate bool) {
+	var errorChannel = make(chan []byte)
+	ch := strings.TrimSpace(channels)
+	fmt.Println("Publish to channel: ", ch)
+	callbackChannel := make(chan []byte)
+	go pub.PublishExtendedWithMetaAndReplicate(ch, message, nil, true, false, replicate, callbackChannel, errorChannel)
+
+	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish with replicate")
+}
+
+func fireRoutine(channels string, message string) {
+	var errorChannel = make(chan []byte)
+	ch := strings.TrimSpace(channels)
+	fmt.Println("Publish to channel: ", ch)
+	callbackChannel := make(chan []byte)
+	go pub.Fire(ch, message, false, callbackChannel, errorChannel)
+
+	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Fire")
 }
 
 // PublishRoutine asks the user the message to send to the pubnub channel(s) and

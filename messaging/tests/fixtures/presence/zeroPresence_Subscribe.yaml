@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.3
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=0&pnsdk=PubNub-Go%2F3.9.3
+      - ua_string=(linux) PubNub-Go/3.9.4
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=0&pnsdk=PubNub-Go%2F3.9.4
     method: GET
   response:
     body: '[[],"14615591687540479"]'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.3
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres,Channel_ZeroPresence/0?uuid=UUID_zeroPresence&tt=0&pnsdk=PubNub-Go%2F3.9.3
+      - ua_string=(linux) PubNub-Go/3.9.4
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres,Channel_ZeroPresence/0?uuid=UUID_zeroPresence&tt=0&pnsdk=PubNub-Go%2F3.9.4
     method: GET
   response:
     body: '[[],"14615591687802848"]'
@@ -66,8 +66,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.3
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence,Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=14615591687802848&pnsdk=PubNub-Go%2F3.9.3
+      - ua_string=(linux) PubNub-Go/3.9.4
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence,Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=14615591687802848&pnsdk=PubNub-Go%2F3.9.4
     method: GET
   response:
     body: '[[{"action": "join", "timestamp": 1461559169, "uuid": "UUID_zeroPresence",
@@ -96,8 +96,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.3
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=14615591687540479&pnsdk=PubNub-Go%2F3.9.3
+      - ua_string=(linux) PubNub-Go/3.9.4
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=14615591687540479&pnsdk=PubNub-Go%2F3.9.4
     method: GET
   response:
     body: '[[{"action": "join", "timestamp": 1461559169, "uuid": "UUID_zeroPresence",
@@ -126,8 +126,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.3
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=14615591694446754&pnsdk=PubNub-Go%2F3.9.3
+      - ua_string=(linux) PubNub-Go/3.9.4
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=14615591694446754&pnsdk=PubNub-Go%2F3.9.4
     method: GET
   response:
     body: '[[{"action": "leave", "timestamp": 1461559169, "uuid": "UUID_zeroPresence",
@@ -156,8 +156,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.3
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres,Channel_ZeroPresence/0?uuid=UUID_zeroPresence&tt=14615591694446754&pnsdk=PubNub-Go%2F3.9.3
+      - ua_string=(linux) PubNub-Go/3.9.4
+    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres,Channel_ZeroPresence/0?uuid=UUID_zeroPresence&tt=14615591694446754&pnsdk=PubNub-Go%2F3.9.4
     method: GET
   response:
     body: '[[{"action": "leave", "timestamp": 1461559169, "uuid": "UUID_zeroPresence",
