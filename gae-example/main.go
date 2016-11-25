@@ -3,74 +3,64 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/mux"
-	//"github.com/gorilla/sessions"
+	"github.com/gorilla/sessions"
 	"github.com/pubnub/go/gae/messaging"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
-	//"google.golang.org/appengine/channel"
-	//"google.golang.org/appengine/log"
-	//"html/template"
-	//"math/big"
+	"google.golang.org/appengine/channel"
+	"google.golang.org/appengine/log"
+	"html/template"
+	"math/big"
 	"net/http"
-	//"strconv"
-	//"strings"
+	"strconv"
+	"strings"
 )
 
-//var mainTemplate = template.Must(template.ParseFiles("main.html"))
+var mainTemplate = template.Must(template.ParseFiles("main.html"))
 var subscribeKey = "demo"
 var publishKey = "demo"
 var secretKey = "demo"
 
-//var store = sessions.NewCookieStore([]byte(secretKey))
+var store = sessions.NewCookieStore([]byte(secretKey))
 
-/*func main() {
-	appengine.Main()
-	init()
-}*/
-/*func init() {
-	// Register a handler for /hello URLs.
-	http.HandleFunc("/", hello)
-}
-
-// hello is an HTTP handler that prints "Hello Gopher!"
-func hello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, Gopher!")
-}*/
+//func main(){
+//appengine.Main()
+//init();
+//}
 
 func init() {
-	//http.HandleFunc("/", hello)
-	//router := mux.NewRouter()
-	//router = router.StrictSlash(true)
-	//router.HandleFunc("/", handler)
-	/*router.HandleFunc("/publish", publish)
-	  router.HandleFunc("/globalHereNow", globalHereNow)
-	  router.HandleFunc("/hereNow", hereNow)
-	  router.HandleFunc("/whereNow", whereNow)
-	  router.HandleFunc("/time", getTime)
-	  router.HandleFunc("/setAuthKey", setAuthKey)
-	  router.HandleFunc("/getAuthKey", getAuthKey)
-	  router.HandleFunc("/deleteUserState", deleteUserState)
-	  router.HandleFunc("/setUserStateJson", setUserStateJSON)
-	  router.HandleFunc("/setUserState", setUserState)
-	  router.HandleFunc("/auditPresence", auditPresence)
-	  router.HandleFunc("/revokePresence", revokePresence)
-	  router.HandleFunc("/grantPresence", grantPresence)
-	  router.HandleFunc("/auditSubscribe", auditSubscribe)
-	  router.HandleFunc("/revokeSubscribe", revokeSubscribe)
-	  router.HandleFunc("/grantSubscribe", grantSubscribe)
-	  router.HandleFunc("/getUserState", getUserState)
-	  router.HandleFunc("/signout", signout)
-	  router.HandleFunc("/connect", connect)
-	  router.HandleFunc("/keepAlive", keepAlive)
-	  router.HandleFunc("/detailedHistory", detailedHistory)
-	  router.HandleFunc(`/{rest:[a-zA-Z0-9=\-\/]+}`, handler)*/
+	router := mux.NewRouter()
+	router = router.StrictSlash(true)
+	router.HandleFunc("/", handler)
+	router.HandleFunc("/publish", publish)
+	router.HandleFunc("/globalHereNow", globalHereNow)
+	router.HandleFunc("/hereNow", hereNow)
+	router.HandleFunc("/whereNow", whereNow)
+	router.HandleFunc("/time", getTime)
+	router.HandleFunc("/setAuthKey", setAuthKey)
+	router.HandleFunc("/getAuthKey", getAuthKey)
+	router.HandleFunc("/deleteUserState", deleteUserState)
+	router.HandleFunc("/setUserStateJson", setUserStateJSON)
+	router.HandleFunc("/setUserState", setUserState)
+	router.HandleFunc("/auditPresence", auditPresence)
+	router.HandleFunc("/revokePresence", revokePresence)
+	router.HandleFunc("/grantPresence", grantPresence)
+	router.HandleFunc("/auditSubscribe", auditSubscribe)
+	router.HandleFunc("/revokeSubscribe", revokeSubscribe)
+	router.HandleFunc("/grantSubscribe", grantSubscribe)
+	router.HandleFunc("/getUserState", getUserState)
+	router.HandleFunc("/signout", signout)
+	router.HandleFunc("/connect", connect)
+	router.HandleFunc("/keepAlive", keepAlive)
+	router.HandleFunc("/detailedHistory", detailedHistory)
+	router.HandleFunc(`/{rest:[a-zA-Z0-9=\-\/]+}`, handler)
 
-	//http.Handle("/", router)
-	http.Handle("/", handler)
+	http.Handle("/", router)
+	//http.Handle("/", handler)
 
 }
 
-/*func detailedHistory(w http.ResponseWriter, r *http.Request) {
+func detailedHistory(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
@@ -118,7 +108,7 @@ func init() {
 
 	go pubInstance.History(ctx, w, r, ch, iLimit, iStart, iEnd, bReverse, successChannel, errorChannel)
 	handleResult(ctx, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Detailed History")
-}*/
+}
 
 func createContext(r *http.Request) context.Context {
 	//parent := context.TODO()
@@ -127,7 +117,7 @@ func createContext(r *http.Request) context.Context {
 	return ctx
 }
 
-/*func connect(w http.ResponseWriter, r *http.Request) {
+func connect(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	pubKey := q.Get("pubKey")
 	subKey := q.Get("subKey")
@@ -464,24 +454,19 @@ func getTime(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	go pubInstance.GetTime(c, w, r, successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
-}*/
+}
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	//	c := createContext(r)
-	//log.Infof(c, "IN handler")
+	c := createContext(r)
+	log.Infof(c, "IN handler")
 	uuid := ""
-	//pubInstance :=
-	//messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
-	//pubInstance :=
-	//messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", false, uuid)
-	/*if pubInstance == nil {
+	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	if pubInstance == nil {
 		log.Errorf(c, "Couldn't create pubnub instance")
 		http.Error(w, "Couldn't create pubnub instance", http.StatusInternalServerError)
 		return
-	}*/
-	//nuuid := pubInstance.GetUUID()
-	fmt.Fprint(w, "Hello, Gopher!")
-	/*c := createContext(r)
+	}
+	nuuid := pubInstance.GetUUID()
 
 	session, err := store.Get(r, "example-session")
 	if err != nil {
@@ -508,10 +493,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err1 != nil {
 		log.Errorf(c, "mainTemplate: %v", err1)
-	}*/
+	}
 }
 
-/*func flush(w http.ResponseWriter) {
+func flush(w http.ResponseWriter) {
 	f, ok := w.(http.Flusher)
 	if ok && f != nil {
 		//log.Infof(c, "flush")
@@ -584,4 +569,4 @@ func handleResult(c context.Context, w http.ResponseWriter, r *http.Request, uui
 			return
 		}
 	}
-}*/
+}

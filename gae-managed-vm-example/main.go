@@ -13,12 +13,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var mainTemplate = template.Must(template.ParseFiles("main.html"))
-var subscribeKey = "demo-36"
-var publishKey = "demo-36"
-var secretKey = "demo-36"
+var subscribeKey = "demo"
+var publishKey = "demo"
+var secretKey = "demo"
 var hostname = "localhost"
 var port = ":8080"
 
@@ -541,6 +542,11 @@ func handleResultSubscribe(w http.ResponseWriter, r *http.Request, uuid string, 
 }
 
 func handleResult(w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(time.Duration(timeoutVal) * time.Second)
+		timeout <- true
+	}()
 	for {
 		select {
 
@@ -565,6 +571,10 @@ func handleResult(w http.ResponseWriter, r *http.Request, uuid string, successCh
 				log.Print("Info: fail:", string(failure))
 				sendResponseToChannel(w, string(failure), r, uuid)
 			}
+			return
+		case <-timeout:
+			fmt.Println(fmt.Sprintf("%s Handler timeout after %d secs", action, timeoutVal))
+			fmt.Println("")
 			return
 		}
 	}

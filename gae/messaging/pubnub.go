@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api on google appengine.
-// Build Date: Jul 30, 2015
-// Version: 3.7.0
+// Build Date: Nov 25, 2016
+// Version: 3.9.4.1
 package messaging
 
 //TODO:
@@ -60,7 +60,7 @@ const (
 const (
 	//Sdk Identification Param appended to each request
 	sdkIdentificationParamKey = "pnsdk"
-	sdkIdentificationParamVal = "PubNub-Go-GAE/3.7.0"
+	sdkIdentificationParamVal = "PubNub-Go-GAE/3.9.4.1"
 
 	// This string is appended to all presence channels
 	// to differentiate from the subscribe requests.
@@ -216,7 +216,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go GAE client SDK Version: 3.7.0; Build Date: Jul 30, 2015;"
+	return "PubNub Go GAE client SDK Version: 3.9.4.1; Build Date: Nov 25, 2016;"
 }
 
 // initStore initializes the cookie store using the secret key
@@ -402,6 +402,8 @@ type Pubnub struct {
 	SentTimeToken      string
 	ResetTimeToken     bool
 	UserState          map[string]map[string]interface{}
+	publishCounter     uint64
+	publishCounterMu   sync.Mutex
 }
 
 // PubnubUnitTest structure used to expose some data for unit tests.
@@ -1054,10 +1056,101 @@ func (pub *Pubnub) executeTime(context context.Context, w http.ResponseWriter, r
 // It accepts the following parameters:
 // channel: pubnub channel to publish to
 // publishUrlString: The url to which the message is to be appended.
+// storeInHistory
+// replicate: if replicate is passed as false, append `norep` query param as true (norep=true) when publishing a message
 // jsonBytes: the message to be sent.
+// metaBytes: meta message
 // callbackChannel: Channel on which to send the response.
 // errorChannel on which the error response is sent.
 func (pub *Pubnub) sendPublishRequest(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel, publishURLString string,
+	storeInHistory, replicate bool, jsonBytes string, metaBytes []byte,
+	callbackChannel, errorChannel chan []byte) {
+
+	u := &url.URL{Path: jsonBytes}
+	encodedPath := u.String()
+	log.Infof(context, fmt.Sprintf("Publish: json: %s, encoded: %s", jsonBytes, encodedPath))
+
+	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
+	publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL,
+		sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
+
+	if storeInHistory == false {
+		publishURL = fmt.Sprintf("%s&store=0", publishURL)
+	}
+
+	if !replicate {
+		publishURL = fmt.Sprintf("%s&norep=true", publishURL)
+	}
+
+	pub.publishCounterMu.Lock()
+	pub.publishCounter++
+	counter := strconv.FormatUint(pub.publishCounter, 10)
+	pub.publishCounterMu.Unlock()
+
+	log.Infof(context, fmt.Sprintf("INFO: Publish counter: %s", counter))
+
+	publishURL = fmt.Sprintf("%s&seqn=%s", publishURL, counter)
+
+	if metaBytes != nil {
+		metaEncoded := &url.URL{Path: string(metaBytes)}
+		metaEncodedPath := metaEncoded.String()
+
+		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
+	}
+
+	value, responseCode, err := pub.httpRequest(context, w, r, publishURL, nonSubscribeTrans)
+	pub.readPublishResponseAndCallSendResponse(context, w, r, channel, value, responseCode, err, callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) readPublishResponseAndCallSendResponse(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel string, value []byte, responseCode int, err error, callbackChannel, errorChannel chan []byte) {
+	if (responseCode != 200) || (err != nil) {
+		if (value != nil) && (responseCode > 0) {
+			var s []interface{}
+			errJSON := json.Unmarshal(value, &s)
+
+			if (errJSON == nil) && (len(s) > 0) {
+				if message, ok := s[1].(string); ok {
+					pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, message, strconv.Itoa(responseCode))
+				} else {
+					pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, string(value), strconv.Itoa(responseCode))
+				}
+			} else {
+				log.Infof(context, fmt.Sprintf("ERROR: Publish Error: %s", errJSON.Error()))
+				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, string(value), strconv.Itoa(responseCode))
+			}
+		} else if (err != nil) && (responseCode > 0) {
+			log.Infof(context, fmt.Sprintf("ERROR: Publish Failed: %s, ResponseCode: %d", err.Error(), responseCode))
+			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), strconv.Itoa(responseCode))
+		} else if err != nil {
+			log.Infof(context, fmt.Sprintf("ERROR: Publish Failed: %s", err.Error()))
+			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), "")
+		} else {
+			log.Infof(context, fmt.Sprintf("ERROR: Publish Failed: ResponseCode: %d", responseCode))
+			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, publishFailed, strconv.Itoa(responseCode))
+		}
+	} else {
+		_, _, _, errJSON := ParseJSON(value, pub.CipherKey)
+		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
+			log.Infof(context, fmt.Sprintf("ERROR: Publish Error: %s", errJSON.Error()))
+			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, errJSON.Error(), "")
+		} else {
+			callbackChannel <- value
+		}
+	}
+}
+
+// sendPublishRequest is the struct Pubnub's instance method that posts a publish request and
+// sends back the response to the channel.
+//
+// It accepts the following parameters:
+// channel: pubnub channel to publish to
+// publishUrlString: The url to which the message is to be appended.
+// jsonBytes: the message to be sent.
+// callbackChannel: Channel on which to send the response.
+// errorChannel on which the error response is sent.
+/*func (pub *Pubnub) sendPublishRequest(context context.Context,
 	w http.ResponseWriter, r *http.Request, channel, publishURLString string,
 	storeInHistory bool, jsonBytes []byte,
 	callbackChannel, errorChannel chan []byte) {
@@ -1111,7 +1204,7 @@ func (pub *Pubnub) sendPublishRequest(context context.Context,
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
 		}
 	}
-}
+}*/
 
 func encodeURL(urlString string) string {
 	var reqURL *url.URL
@@ -1172,6 +1265,219 @@ func invalidChannel(channel string, c chan []byte) bool {
 	return false
 }
 
+// Fire is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
+//
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+// Sends storeInHistory as false and replicate as false.
+func (pub *Pubnub) Fire(context context.Context, w http.ResponseWriter,
+	r *http.Request, channel string, message interface{}, doNotSerialize bool,
+	callbackChannel, errorChannel chan []byte) {
+	pub.PublishExtendedWithMetaAndReplicate(context, w, r, channel, message, nil, false, doNotSerialize, false, callbackChannel, errorChannel)
+}
+
+// Publish is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
+//
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+func (pub *Pubnub) Publish(context context.Context, w http.ResponseWriter,
+	r *http.Request, channel string, message interface{},
+	callbackChannel, errorChannel chan []byte) {
+
+	pub.PublishExtendedWithMeta(context, w, r, channel, message, nil, true, false, callbackChannel, errorChannel)
+}
+
+// PublishExtended is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
+//
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// storeInHistory: Message will be persisted in Storage & Playback db
+// doNotSerialize: Set this option to true if you use your own serializer. In
+// this case passed-in message should be a string or []byte
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+func (pub *Pubnub) PublishExtended(context context.Context, w http.ResponseWriter,
+	r *http.Request, channel string, message interface{},
+	storeInHistory, doNotSerialize bool,
+	callbackChannel, errorChannel chan []byte) {
+	pub.PublishExtendedWithMeta(context, w, r, channel, message, nil, storeInHistory, doNotSerialize, callbackChannel, errorChannel)
+}
+
+// PublishExtendedWithMeta is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
+//
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// meta: meta data for message filtering
+// storeInHistory: Message will be persisted in Storage & Playback db
+// doNotSerialize: Set this option to true if you use your own serializer. In
+// this case passed-in message should be a string or []byte
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+func (pub *Pubnub) PublishExtendedWithMeta(context context.Context, w http.ResponseWriter,
+	r *http.Request, channel string, message, meta interface{},
+	storeInHistory, doNotSerialize bool,
+	callbackChannel, errorChannel chan []byte) {
+	pub.PublishExtendedWithMetaAndReplicate(context, w, r, channel, message, meta, storeInHistory, doNotSerialize, true, callbackChannel, errorChannel)
+}
+
+// PublishExtendedWithMetaAndReplicate is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
+//
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// meta: meta data for message filtering
+// storeInHistory: Message will be persisted in Storage & Playback db
+// doNotSerialize: Set this option to true if you use your own serializer. In
+// this case passed-in message should be a string or []byte
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+func (pub *Pubnub) PublishExtendedWithMetaAndReplicate(context context.Context, w http.ResponseWriter,
+	r *http.Request, channel string, message, meta interface{},
+	storeInHistory, doNotSerialize, replicate bool,
+	callbackChannel, errorChannel chan []byte) {
+
+	var publishURLBuffer bytes.Buffer
+	var err, errMeta error
+	var jsonSerialized, jsonSerializedMeta []byte
+
+	checkCallbackNil(callbackChannel, false, "Publish")
+	checkCallbackNil(errorChannel, true, "Publish")
+
+	if pub.PublishKey == "" {
+		log.Warningf(context, fmt.Sprintf("Publish key empty"))
+		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, "Publish key required.", "")
+		return
+	}
+
+	if invalidChannel(channel, callbackChannel) {
+		return
+	}
+
+	if invalidMessage(message) {
+		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, "Invalid Message.", "")
+		return
+	}
+
+	signature := ""
+	if pub.SecretKey != "" {
+		signature = getHmacSha256(pub.SecretKey, fmt.Sprintf("%s/%s/%s/%s/%s", pub.PublishKey, pub.SubscribeKey, pub.SecretKey, channel, message))
+	} else {
+		signature = "0"
+	}
+
+	publishURLBuffer.WriteString("/publish")
+	publishURLBuffer.WriteString("/")
+	publishURLBuffer.WriteString(pub.PublishKey)
+	publishURLBuffer.WriteString("/")
+	publishURLBuffer.WriteString(pub.SubscribeKey)
+	publishURLBuffer.WriteString("/")
+	publishURLBuffer.WriteString(signature)
+	publishURLBuffer.WriteString("/")
+	publishURLBuffer.WriteString(url.QueryEscape(channel))
+	publishURLBuffer.WriteString("/0/")
+
+	if meta != nil {
+		jsonSerializedMeta, errMeta = json.Marshal(meta)
+		if errMeta != nil {
+			panic(fmt.Sprintf("error in serializing meta: %s", errMeta))
+		}
+	}
+
+	if doNotSerialize {
+		switch t := message.(type) {
+		case string:
+			jsonSerialized = []byte(message.(string))
+		case []byte:
+			jsonSerialized = message.([]byte)
+		default:
+			panic(fmt.Sprintf("Unable to send unserialized value of type %s", t))
+		}
+	} else {
+		jsonSerialized, err = json.Marshal(message)
+	}
+
+	if err != nil {
+		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, fmt.Sprintf("error in serializing: %s", err), "")
+	} else {
+
+		if pub.CipherKey != "" {
+			//Encrypt and Serialize
+			encrypted := EncryptString(pub.CipherKey, fmt.Sprintf("%s", jsonSerialized))
+			jsonEncBytes, errEnc := json.Marshal(encrypted)
+			if errEnc != nil {
+				log.Errorf(context, fmt.Sprintf("Publish error: %s", errEnc.Error()))
+				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, fmt.Sprintf("error in serializing: %s", errEnc), "")
+			} else {
+				pub.sendPublishRequest(context, w, r, channel, publishURLBuffer.String(),
+					storeInHistory, replicate, string(jsonEncBytes), jsonSerializedMeta, callbackChannel, errorChannel)
+			}
+		} else {
+			//messageStr := strings.Replace(string(jsonSerialized), "/", "%2F", -1)
+
+			pub.sendPublishRequest(context, w, r, channel, publishURLBuffer.String(), storeInHistory, replicate,
+				string(jsonSerialized), jsonSerializedMeta, callbackChannel, errorChannel)
+		}
+	}
+}
+
 // Publish is the struct Pubnub's instance method that creates a publish request and calls
 // SendPublishRequest to post the request.
 //
@@ -1189,7 +1495,7 @@ func invalidChannel(channel string, c chan []byte) bool {
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) Publish(context context.Context, w http.ResponseWriter,
+/*func (pub *Pubnub) Publish(context context.Context, w http.ResponseWriter,
 	r *http.Request, channel string, message interface{},
 	callbackChannel, errorChannel chan []byte) {
 
@@ -1294,7 +1600,7 @@ func (pub *Pubnub) PublishExtended(context context.Context,
 				storeInHistory, jsonSerialized, callbackChannel, errorChannel)
 		}
 	}
-}
+}*/
 
 // sendResponseToChannel is the struct Pubnub's instance method that sends a reponse on the channel
 // provided as an argument or to the subscribe / presence channel is the argument is nil.
@@ -2601,7 +2907,7 @@ func (pub *Pubnub) connect(context context.Context, w http.ResponseWriter, r *ht
 			Host:   origin,
 			Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
 		}
-		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go-GAE/3.7.0", runtime.GOOS)
+		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go-GAE/3.9.4.1", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
 		if err == nil {
