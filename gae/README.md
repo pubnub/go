@@ -9,10 +9,6 @@
  * Fire Method
  * Replicate arg in Publish
 * 3.9.3
- * PubSub v2
- * Message Filtering
- * Logger Optimizations, logging format changed. Removed mutex around logging statements.
- * added alternative implementation of encodeNonASCIIChars
  * Fixed storeInHistory when publishing
 * 3.7.0 changes
  * Add authKey argument to all PAM methods
