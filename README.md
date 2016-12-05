@@ -1,7 +1,7 @@
 #PubNub 3.9.4.1 client for Go
 * Go (1.2, 1.3, 1.4, 1.5, 1.6, 1.7.3)
 * Google App Engine (1.9.28 - 2015-10-29)
-* Managed VMs (Google Cloud SDK 0.9.70)
+* Managed VMs (Google Cloud SDK 133.0.0)
 
 [![Build Status](https://travis-ci.org/pubnub/go.svg?branch=master)](https://travis-ci.org/pubnub/go)
 [![codecov.io](https://codecov.io/github/pubnub/go/coverage.svg?branch=master)](https://codecov.io/github/pubnub/go?branch=master)
@@ -16,7 +16,7 @@ Learn more at http://www.pubnub.com
 
 ### For Google App Engine
 
-* [PubNub SDK for GAE-GO](gae) (3.7)
+* [PubNub SDK for GAE-GO](gae) (3.9.4.1)
  * [GAE Example](gae-example)
  * [Managed VM Example](gae-managed-vm-example)
 
