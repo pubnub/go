@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.9.4.2
-// Build Date: Dec 21, 2016
+// Version: 3.9.4.3
+// Build Date: Dec 22, 2016
 package messaging
 
 import (
@@ -30,9 +30,9 @@ import (
 
 const (
 	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.9.4.2"
+	SDK_VERSION = "3.9.4.3"
 	// SDK_DATE is the version release date
-	SDK_DATE = "Dec 21, 2016"
+	SDK_DATE = "Dec 22, 2016"
 )
 
 type responseStatus int
@@ -192,6 +192,9 @@ var (
 
 	// Logger for info messages
 	infoLogger *log.Logger
+
+	// enableSubscribeV2Response: set true to enable v2 response
+	enableSubscribeV2Response bool
 )
 
 var (
@@ -422,6 +425,11 @@ func initLogging() {
 func SetMaxIdleConnsPerHost(maxIdleConnsPerHostVal int) {
 	maxIdleConnsPerHost = maxIdleConnsPerHostVal
 }
+
+// EnableSubscribeV2Response set true to enable subscribe v2 response
+/*func EnableSubscribeV2Response(enable bool) {
+	enableSubscribeV2Response = enable
+}*/
 
 // SetProxy sets the global variables for the parameters.
 // It also sets the proxyServerEnabled value to true.
@@ -2415,7 +2423,19 @@ func (pub *Pubnub) parseMessagesAndSendCallbacks(msg subscribeMessage, timetoken
 	channel := msg.Channel
 
 	//Extract Message
-	message := pub.extractMessage(msg)
+	var message []byte
+	if enableSubscribeV2Response {
+		messageTemp, errMrshal := json.Marshal(msg.getMessageResponse())
+		if errMrshal != nil {
+			errMsg := fmt.Sprintf("Error marshalling subscribeMessage struct, %s", errMrshal.Error())
+			pub.infoLogger.Printf("ERROR: %s", errMsg)
+			message = []byte(errMsg)
+		} else {
+			message = messageTemp
+		}
+	} else {
+		message = pub.extractMessage(msg)
+	}
 
 	// End Extract Message
 
@@ -2568,7 +2588,7 @@ func (pub *Pubnub) ChannelGroupSubscribe(groups string,
 // ChannelGroupSubscribeWithTimetoken subscribes to a channel group with a timetoken
 func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 	callbackChannel chan<- []byte, errorChannel chan<- []byte) {
-
+	enableSubscribeV2Response = false
 	pub.checkCallbackNil(callbackChannel, false, "ChanelGroupSubscribe")
 	pub.checkCallbackNil(errorChannel, true, "ChanelGroupSubscribe")
 
@@ -2625,6 +2645,77 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 	}
 }
 
+func (pub *Pubnub) SubscribeV2(channels, channelGroups, timetoken string, withPresence bool,
+	statusChannel chan<- statusResponse,
+	messageChannel chan<- subscribeMessageResponseV2,
+	presenceChannel chan<- presenceMessageResponseV2) {
+	enableSubscribeV2Response = true
+
+	pub.checkCallbackNil(callbackChannel, false, "ChanelGroupSubscribe")
+	pub.checkCallbackNil(errorChannel, true, "ChanelGroupSubscribe")
+
+	loopAction := pub.getSubscribeLoopAction(channels, channelGroups, errorChannel)
+
+	timetokenIsZero := timetoken == "" || timetoken == "0"
+
+	pub.Lock()
+	var groupsArr = strings.Split(channelGroups, ",")
+
+	for _, u := range groupsArr {
+		if timetokenIsZero {
+			pub.groups.Add(u, callbackChannel, errorChannel, pub.infoLogger)
+		} else {
+			pub.groups.AddConnected(u, callbackChannel, errorChannel, pub.infoLogger)
+		}
+	}
+
+	var channelArr = strings.Split(channels, ",")
+
+	for _, u := range channelArr {
+		if timetokenIsZero {
+			pub.channels.Add(u, callbackChannel, errorChannel, pub.infoLogger)
+		} else {
+			pub.channels.AddConnected(u, callbackChannel, errorChannel, pub.infoLogger)
+		}
+	}
+
+	isPresenceHeartbeatRunning := pub.isPresenceHeartbeatRunning
+	pub.Unlock()
+
+	if hasNonPresenceChannels(groups) &&
+		(!pub.channels.HasConnected() && !pub.groups.HasConnected() ||
+			!isPresenceHeartbeatRunning) {
+		go pub.runPresenceHeartbeat()
+	}
+
+	switch loopAction {
+	case subscribeLoopStart:
+		pub.Lock()
+		if strings.TrimSpace(timetoken) != "" {
+			pub.timeToken = timetoken
+			pub.resetTimeToken = false
+		} else {
+			pub.resetTimeToken = true
+		}
+		pub.Unlock()
+
+		go pub.startSubscribeLoop("", groups, errorChannel)
+	case subscribeLoopRestart:
+		pub.closeSubscribe()
+
+		pub.Lock()
+		if strings.TrimSpace(timetoken) != "" {
+			pub.timeToken = timetoken
+			pub.resetTimeToken = false
+		} else {
+			pub.resetTimeToken = true
+		}
+
+		pub.Unlock()
+	case subscribeLoopDoNothing:
+		// do nothing
+}
+
 // Subscribe is the struct Pubnub's instance method which checks for the pub.invalidChannels
 // and returns if true.
 // Initaiates the presence and subscribe response channels.
@@ -2641,7 +2732,7 @@ func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 // eventsChannel: Channel on which to send events like connect/disconnect/reconnect.
 func (pub *Pubnub) Subscribe(channels, timetoken string,
 	callbackChannel chan<- []byte, isPresence bool, errorChannel chan<- []byte) {
-
+	enableSubscribeV2Response = false
 	if pub.invalidChannel(channels, callbackChannel) {
 		return
 	}

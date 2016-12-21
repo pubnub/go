@@ -31,6 +31,48 @@ type subscribeMessage struct {
 	//ReplicationMap interface{} `json:"r"`
 }
 
+type subscribeMessageResponseV2 struct {
+	ChannelGroup             string            `json:"ChannelGroup"`
+	Channel                  string            `json:"Channel"`
+	Payload                  interface{}       `json:"Payload"`
+	IssuingClientId          string            `json:"IssuingClientId"`
+	OriginatingTimetoken     timetokenMetadata `json:"OriginatingTimetoken"`
+	PublishTimetokenMetadata timetokenMetadata `json:"PublishTimetokenMetadata"`
+	UserMetadata             interface{}       `json:"UserMetadata"`
+	//SubscribeKey             string            `json:"SubscribeKey"`
+	//SequenceNumber           uint64            `json:"SequenceNumber"`
+}
+
+type presenceMessageResponseV2 struct {
+	ChannelGroup         string            `json:"ChannelGroup"`
+	Channel              string            `json:"Channel"`
+	IssuingClientId      string            `json:"IssuingClientId"`
+	OriginatingTimetoken timetokenMetadata `json:"OriginatingTimetoken"`
+	UserMetadata         interface{}       `json:"UserMetadata"`
+	State                interface{}       `json:"State"`
+	Event                string            `json:"Event"`
+	UUID                 string            `json:"UUID"`
+	Timestamp            string            `json:"Timestamp"`
+	Occupancy            int               `json:"Occupancy"`
+}
+
+type statusResponse struct {
+}
+
+func (msg *subscribeMessage) getMessageResponse() *subscribeMessageResponse {
+	res := &subscribeMessageResponse{}
+	res.Channel = msg.Channel
+	res.IssuingClientId = msg.IssuingClientId
+	res.OriginatingTimetoken = msg.OriginatingTimetoken
+	res.Payload = msg.Payload
+	res.PublishTimetokenMetadata = msg.PublishTimetokenMetadata
+	res.SequenceNumber = msg.SequenceNumber
+	res.SubscribeKey = msg.SubscribeKey
+	res.ChannelGroup = msg.SubscriptionMatch
+	res.UserMetadata = msg.UserMetadata
+	return res
+}
+
 func (env *subscribeEnvelope) getChannelsAndGroups(pub *Pubnub) (channels, channelGroups []string) {
 	if env.Messages != nil {
 		count := 0
