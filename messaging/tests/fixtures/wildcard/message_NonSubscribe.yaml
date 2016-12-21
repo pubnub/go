@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_SubscribeMajor.Channel_SubscribeMinor/0/%22hey%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=UUID_SubscribeMajor&seqn=1
+      - ua_string=(linux) PubNub-Go/3.9.4.2
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_SubscribeMajor.Channel_SubscribeMinor/0/%22hey%22?pnsdk=PubNub-Go%2F3.9.4.2&uuid=UUID_SubscribeMajor&seqn=1
     method: GET
   response:
     body: '[1,"Sent","14593254434918107"]'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SubscribeMajor.%2A/leave?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.9.4.1
+      - ua_string=(linux) PubNub-Go/3.9.4.2
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SubscribeMajor.%2A/leave?uuid=UUID_SubscribeMajor&pnsdk=PubNub-Go%2F3.9.4.2
     method: GET
   response:
     body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'

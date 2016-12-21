@@ -179,7 +179,7 @@ func Init() (b bool) {
 				fmt.Println("Logging disabled")
 			}
 
-			messaging.SetOrigin("pubsub.pubnub.com")
+			messaging.SetOrigin("ps.pndsn.com")
 
 			var pubInstance = messaging.NewPubnub(publishKey, subscribeKey, secretKey, cipher, ssl, uuid)
 			pub = pubInstance

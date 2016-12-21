@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.9.4.1
-// Build Date: Oct 31, 2016
+// Version: 3.9.4.2
+// Build Date: Dec 21, 2016
 package messaging
 
 import (
@@ -30,9 +30,9 @@ import (
 
 const (
 	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.9.4.1"
+	SDK_VERSION = "3.9.4.2"
 	// SDK_DATE is the version release date
-	SDK_DATE = "Oct 31, 2016"
+	SDK_DATE = "Dec 21, 2016"
 )
 
 type responseStatus int
@@ -147,7 +147,7 @@ var (
 	connectTimeout uint16 = 10 //sec
 
 	// Root url value of pubnub api without the http/https protocol.
-	origin = "pubsub.pubnub.com"
+	origin = "ps.pndsn.com"
 
 	// The time after which the Subscribe/Presence request will timeout.
 	// In seconds.
