@@ -4,6 +4,8 @@
 
 ### Features
 * 3.9.4.2
+ * Changed origin to ps.pndsn.com
+* 3.9.4.1
  * fixed misspells, some golint changes and gocyclo issues
 * 3.9.4
  * Fire Method
