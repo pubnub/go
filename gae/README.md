@@ -1,9 +1,9 @@
 ## Contact support@pubnub.com for all questions
 
-#PubNub 3.9.4.1 client for Google App Engine SDK (1.9.28 - 2015-10-29) using Go
+#PubNub 3.9.4.2 client for Google App Engine SDK (1.9.28 - 2015-10-29) using Go
 
 ### Features
-* 3.9.4.1
+* 3.9.4.2
  * fixed misspells, some golint changes and gocyclo issues
 * 3.9.4
  * Fire Method
