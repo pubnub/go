@@ -3,10 +3,17 @@ changelog:
   - 
     changes: 
       - 
+        text: “Changed origin to ps.pndsn.com”
+        type: improvement
+    date: Dec 21, 16
+    version: v3.9.4.2
+  - 
+    changes: 
+      - 
         text: “fixed misspells, some golint changes and gocyclo issues”
         type: improvement
     date: Oct 31, 16
-    version: v3.9.4.2
+    version: v3.9.4.1
   - 
     changes: 
       - 
