@@ -9,7 +9,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/time/0?pnsdk=PubNub-Go%2F3.9.4.1&uuid=timeGetter_start
+    url: http://ps.pndsn.com/time/0?pnsdk=PubNub-Go%2F3.9.4.1&uuid=timeGetter_start
     method: GET
   response:
     body: '[14610686725684022]'
@@ -38,7 +38,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22XggLXEc7XxPftPda7MAeYbIeTF6QrmMKA1zz/+PKMGo=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=1
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22XggLXEc7XxPftPda7MAeYbIeTF6QrmMKA1zz/+PKMGo=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=1
     method: GET
   response:
     body: '[1,"Sent","14610686725740916"]'
@@ -67,7 +67,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22mAw0tx7L5zEWKIYnvb0FJB08/k38qK2rnD82fN2yy4E=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=2
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22mAw0tx7L5zEWKIYnvb0FJB08/k38qK2rnD82fN2yy4E=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=2
     method: GET
   response:
     body: '[1,"Sent","14610686725959587"]'
@@ -96,7 +96,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22SSWpsb6UwtDt+bwR2RxwNq++q7In4Fv3P+BryUgre3I=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=3
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22SSWpsb6UwtDt+bwR2RxwNq++q7In4Fv3P+BryUgre3I=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=3
     method: GET
   response:
     body: '[1,"Sent","14610686726177522"]'
@@ -125,7 +125,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22ciDFGdEkWXpZhMeSrBEbP3bEfFaZM+6Dsq90VUGA6+I=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=4
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22ciDFGdEkWXpZhMeSrBEbP3bEfFaZM+6Dsq90VUGA6+I=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=4
     method: GET
   response:
     body: '[1,"Sent","14610686726390662"]'
@@ -154,7 +154,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22KY2sTN89UKR6JJB+GdNZqiLzU8JC0acN8ExV3ZwUiJ4=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=5
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22KY2sTN89UKR6JJB+GdNZqiLzU8JC0acN8ExV3ZwUiJ4=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=5
     method: GET
   response:
     body: '[1,"Sent","14610686726607632"]'
@@ -183,7 +183,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/time/0?pnsdk=PubNub-Go%2F3.9.4.1&uuid=timeGetter_mid
+    url: http://ps.pndsn.com/time/0?pnsdk=PubNub-Go%2F3.9.4.1&uuid=timeGetter_mid
     method: GET
   response:
     body: '[14610686757022368]'
@@ -212,7 +212,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=6
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=6
     method: GET
   response:
     body: '[1,"Sent","14610686757083461"]'
@@ -241,7 +241,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22AA9MBpymUzq/bfLCtIKFB+J6L+s3UGm6xPGh9kuXsoQ=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=7
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22AA9MBpymUzq/bfLCtIKFB+J6L+s3UGm6xPGh9kuXsoQ=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=7
     method: GET
   response:
     body: '[1,"Sent","14610686757299827"]'
@@ -270,7 +270,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22SfGYYp58jU2FGBNNsRk0kZ8KWRjZ6OsG3OxSySd7FF0=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=8
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22SfGYYp58jU2FGBNNsRk0kZ8KWRjZ6OsG3OxSySd7FF0=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=8
     method: GET
   response:
     body: '[1,"Sent","14610686757512593"]'
@@ -299,7 +299,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22ek+lrKjHCJPp5wYpxWlZcg806w/SWU5dzNYmjqDVb6o=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=9
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22ek+lrKjHCJPp5wYpxWlZcg806w/SWU5dzNYmjqDVb6o=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=9
     method: GET
   response:
     body: '[1,"Sent","14610686757723807"]'
@@ -328,7 +328,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22HrIrwvdGrm3/TM4kCf0EGl5SzcD+JqOXesWtzzc8+UA=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=10
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/historyParamsFor10EncryptedMessages/0/%22HrIrwvdGrm3/TM4kCf0EGl5SzcD+JqOXesWtzzc8+UA=%22?pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages&seqn=10
     method: GET
   response:
     body: '[1,"Sent","14610686757935083"]'
@@ -357,7 +357,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/time/0?pnsdk=PubNub-Go%2F3.9.4.1&uuid=timeGetter_end
+    url: http://ps.pndsn.com/time/0?pnsdk=PubNub-Go%2F3.9.4.1&uuid=timeGetter_end
     method: GET
   response:
     body: '[14610686788315970]'
@@ -386,7 +386,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/historyParamsFor10EncryptedMessages?count=5&reverse=false&start=14610686725684022&end=14610686757022368&include_token=false&pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages
+    url: http://ps.pndsn.com/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/historyParamsFor10EncryptedMessages?count=5&reverse=false&start=14610686725684022&end=14610686757022368&include_token=false&pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages
     method: GET
   response:
     body: '[["XggLXEc7XxPftPda7MAeYbIeTF6QrmMKA1zz/+PKMGo=","mAw0tx7L5zEWKIYnvb0FJB08/k38qK2rnD82fN2yy4E=","SSWpsb6UwtDt+bwR2RxwNq++q7In4Fv3P+BryUgre3I=","ciDFGdEkWXpZhMeSrBEbP3bEfFaZM+6Dsq90VUGA6+I=","KY2sTN89UKR6JJB+GdNZqiLzU8JC0acN8ExV3ZwUiJ4="],14610686725740916,14610686726607632]'
@@ -421,7 +421,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/historyParamsFor10EncryptedMessages?count=5&reverse=false&start=14610686757022368&end=14610686788315970&include_token=false&pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages
+    url: http://ps.pndsn.com/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/historyParamsFor10EncryptedMessages?count=5&reverse=false&start=14610686757022368&end=14610686788315970&include_token=false&pnsdk=PubNub-Go%2F3.9.4.1&uuid=uuid_historyParamsFor10EncryptedMessages
     method: GET
   response:
     body: '[["h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=","AA9MBpymUzq/bfLCtIKFB+J6L+s3UGm6xPGh9kuXsoQ=","SfGYYp58jU2FGBNNsRk0kZ8KWRjZ6OsG3OxSySd7FF0=","ek+lrKjHCJPp5wYpxWlZcg806w/SWU5dzNYmjqDVb6o=","HrIrwvdGrm3/TM4kCf0EGl5SzcD+JqOXesWtzzc8+UA="],14610686757083461,14610686757935083]'

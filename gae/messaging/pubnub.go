@@ -131,7 +131,7 @@ var (
 	connectTimeout uint16 = 10 //sec
 
 	// Root url value of pubnub api without the http/https protocol.
-	origin = "pubsub.pubnub.com"
+	origin = "ps.pndsn.com"
 
 	// The time after which the Subscribe/Presence request will timeout.
 	// In seconds.

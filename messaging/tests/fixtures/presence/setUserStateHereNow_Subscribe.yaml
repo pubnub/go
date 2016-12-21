@@ -9,7 +9,7 @@ interactions:
       - gzip
       User-Agent:
       - ua_string=(linux) PubNub-Go/3.9.4.1
-    url: http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateHereNow/0?uuid=UUID_SetUserStateHereNow&tt=0&pnsdk=PubNub-Go%2F3.9.4.1
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateHereNow/0?uuid=UUID_SetUserStateHereNow&tt=0&pnsdk=PubNub-Go%2F3.9.4.1
     method: GET
   response:
     body: '[[],"14615710361330684"]'
@@ -31,6 +31,6 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  #? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateHereNow/0?uuid=UUID_SetUserStateHereNow&tt=14615710361330684&state=%7B%22Channel_SetUserStateHereNow%22%3A%7B%22testkey%22%3A%22testval%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.1
-  ? http://pubsub.pubnub.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateHereNow/0?uuid=UUID_SetUserStateHereNow&tt=0&state=%7B%22Channel_SetUserStateHereNow%22%3A%7B%22testkey%22%3A%22testval%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.1
+  #? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateHereNow/0?uuid=UUID_SetUserStateHereNow&tt=14615710361330684&state=%7B%22Channel_SetUserStateHereNow%22%3A%7B%22testkey%22%3A%22testval%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.1
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetUserStateHereNow/0?uuid=UUID_SetUserStateHereNow&tt=0&state=%7B%22Channel_SetUserStateHereNow%22%3A%7B%22testkey%22%3A%22testval%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.1
   : {}
