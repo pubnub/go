@@ -64,10 +64,21 @@ func (e connectionEvent) Bytes() []byte {
 }
 
 type subscriptionItem struct {
-	Name           string
-	SuccessChannel chan<- []byte
-	ErrorChannel   chan<- []byte
-	Connected      bool
+	/*Name           string
+		SuccessChannel chan<- []byte
+		ErrorChannel   chan<- []byte
+		Connected      bool
+	}
+
+	type subscriptionItemV2 struct {*/
+	Name            string
+	SuccessChannel  chan<- []byte
+	ErrorChannel    chan<- []byte
+	MessageChannel  chan<- *PNMessageResult
+	PresenceChannel chan<- *PNPresenceEventResult
+	StatusChannel   chan<- *PNStatus
+	Connected       bool
+	IsV2            bool
 }
 
 func (e *subscriptionItem) SetConnected() (changed bool) {
@@ -120,6 +131,48 @@ func (e *subscriptionEntity) add(name string, connected bool,
 		SuccessChannel: successChannel,
 		ErrorChannel:   errorChannel,
 		Connected:      connected,
+		IsV2:           false,
+	}
+
+	e.items[name] = item
+}
+
+func (e *subscriptionEntity) AddV2(name string,
+	statusChannel chan<- *PNStatus,
+	messageChannel chan<- *PNMessageResult,
+	presenceChannel chan<- *PNPresenceEventResult, logger *log.Logger) {
+	e.addV2(name, false, statusChannel, messageChannel, presenceChannel, logger)
+}
+
+func (e *subscriptionEntity) AddConnectedV2(name string,
+	statusChannel chan<- *PNStatus,
+	messageChannel chan<- *PNMessageResult,
+	presenceChannel chan<- *PNPresenceEventResult, logger *log.Logger) {
+	e.addV2(name, true, statusChannel, messageChannel, presenceChannel, logger)
+}
+
+func (e *subscriptionEntity) addV2(name string, connected bool,
+	statusChannel chan<- *PNStatus,
+	messageChannel chan<- *PNMessageResult,
+	presenceChannel chan<- *PNPresenceEventResult, logger *log.Logger) {
+
+	logger.Printf("INFO: ITEMS: Adding item '%s', connected: %t", name, connected)
+
+	e.Lock()
+	defer e.Unlock()
+
+	if _, ok := e.items[name]; ok {
+		logger.Printf("INFO: ITEMS: Item '%s' is not added since it's already exists", name)
+		return
+	}
+
+	item := &subscriptionItem{
+		Name:            name,
+		StatusChannel:   statusChannel,
+		MessageChannel:  messageChannel,
+		PresenceChannel: presenceChannel,
+		Connected:       connected,
+		IsV2:            true,
 	}
 
 	e.items[name] = item
@@ -266,9 +319,6 @@ func (e *subscriptionEntity) ResetConnected(logger *log.Logger) {
 }
 
 func (e *subscriptionEntity) SetConnected(logger *log.Logger) (changedItemNames []string) {
-	logger.Printf("INFO: ITEMS: Setting items '%s' as connected",
-		strings.Join(changedItemNames, ","))
-
 	e.Lock()
 	defer e.Unlock()
 
@@ -277,6 +327,8 @@ func (e *subscriptionEntity) SetConnected(logger *log.Logger) (changedItemNames 
 			changedItemNames = append(changedItemNames, name)
 		}
 	}
+	logger.Printf("INFO: ITEMS: Setting items '%s' as connected",
+		strings.Join(changedItemNames, ","))
 
 	return changedItemNames
 }
@@ -288,4 +340,16 @@ func CreateSubscriptionChannels() (chan []byte, chan []byte) {
 	errorResponse := make(chan []byte)
 
 	return successResponse, errorResponse
+}
+
+// CreateSubscriptionChannels creates channels for subscription
+func CreateSubscriptionChannelsV2() (chan PNStatus,
+	chan PNMessageResult,
+	chan PNPresenceEventResult) {
+
+	statusChannel := make(chan PNStatus)
+	messageChannel := make(chan PNMessageResult)
+	presenceChannel := make(chan PNPresenceEventResult)
+
+	return statusChannel, messageChannel, presenceChannel
 }

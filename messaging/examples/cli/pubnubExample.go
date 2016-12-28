@@ -1034,6 +1034,14 @@ func ReadLoop() {
 				}
 				//go publishRoutine(channels, message)
 			}
+		case "41":
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Running Subscribe")
+				go subscribeRoutineV2(channels, "")
+			}
 		case "99":
 			fmt.Println("Exiting")
 			pub.Abort()
@@ -1148,6 +1156,53 @@ func subscribeRoutine(channels string, timetoken string) {
 	var subscribeChannel = make(chan []byte)
 	go pub.Subscribe(channels, timetoken, subscribeChannel, false, errorChannel)
 	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+}
+
+// SubscribeRoutine calls the Subscribe routine of the messaging package
+// as a parallel process.
+func subscribeRoutineV2(channels string, timetoken string) {
+	var statusChannel = make(chan *messaging.PNStatus)
+	var messageChannel = make(chan *messaging.PNMessageResult)
+	var presenceChannel = make(chan *messaging.PNPresenceEventResult)
+	go pub.SubscribeV2(channels, "", "", true, statusChannel, messageChannel, presenceChannel)
+	for {
+		select {
+		case response := <-presenceChannel:
+			fmt.Println("****** Presence response ******")
+			fmt.Println("Channel:", response.Channel)
+			fmt.Println("ChannelGroup:", response.ChannelGroup)
+			fmt.Println("Event:", response.Event)
+			fmt.Println("OriginatingTimetoken:", response.OriginatingTimetoken.Timetoken)
+			fmt.Println("IssuingClientId:", string(response.IssuingClientId))
+			fmt.Println("UserMetadata:", response.UserMetadata)
+			fmt.Println("UUID:", response.UUID)
+			fmt.Println("Timestamp:", response.Timestamp)
+			fmt.Println("State:", response.State)
+			fmt.Println("Occupancy:", response.Occupancy)
+			fmt.Println("****** ******")
+		case response := <-messageChannel:
+			fmt.Println("****** Subscribe response ******")
+			fmt.Println("Channel:", response.Channel)
+			fmt.Println("ChannelGroup:", response.ChannelGroup)
+			fmt.Println("Payload:", response.Payload)
+			fmt.Println("OriginatingTimetoken:", response.OriginatingTimetoken.Timetoken)
+			fmt.Println("PublishTimetokenMetadata:", response.PublishTimetokenMetadata.Timetoken)
+			fmt.Println("IssuingClientId:", string(response.IssuingClientId))
+			fmt.Println("UserMetadata:", response.UserMetadata)
+			fmt.Println("****** ******")
+		case err := <-statusChannel:
+			if err.IsError {
+				fmt.Println("Error:", err.ErrorData.Information)
+				fmt.Println("Category:", err.Category)
+			} else if err.Category == messaging.PNConnectedCategory {
+				fmt.Println(fmt.Sprintf("Category: %d", err.Category))
+				fmt.Println("AffectedChannels:", strings.Join(err.AffectedChannels, ","))
+				fmt.Println("AffectedChannelGroups:", strings.Join(err.AffectedChannelGroups, ","))
+			} else {
+				fmt.Println("Category:", err.Category)
+			}
+		}
+	}
 }
 
 // SubscribeRoutine calls the Subscribe routine of the messaging package

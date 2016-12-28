@@ -1,6 +1,8 @@
 package messaging
 
 import (
+	//"encoding/json"
+	"reflect"
 	"strings"
 )
 
@@ -31,7 +33,7 @@ type subscribeMessage struct {
 	//ReplicationMap interface{} `json:"r"`
 }
 
-type subscribeMessageResponseV2 struct {
+type PNMessageResult struct {
 	ChannelGroup             string            `json:"ChannelGroup"`
 	Channel                  string            `json:"Channel"`
 	Payload                  interface{}       `json:"Payload"`
@@ -43,33 +45,125 @@ type subscribeMessageResponseV2 struct {
 	//SequenceNumber           uint64            `json:"SequenceNumber"`
 }
 
-type presenceMessageResponseV2 struct {
+type PNPresenceEventResult struct {
 	ChannelGroup         string            `json:"ChannelGroup"`
 	Channel              string            `json:"Channel"`
 	IssuingClientId      string            `json:"IssuingClientId"`
 	OriginatingTimetoken timetokenMetadata `json:"OriginatingTimetoken"`
 	UserMetadata         interface{}       `json:"UserMetadata"`
-	State                interface{}       `json:"State"`
 	Event                string            `json:"Event"`
 	UUID                 string            `json:"UUID"`
-	Timestamp            string            `json:"Timestamp"`
-	Occupancy            int               `json:"Occupancy"`
+	Timestamp            float64           `json:"Timestamp"`
+	Occupancy            float64           `json:"Occupancy"`
+	State                interface{}       `json:"State"`
 }
 
-type statusResponse struct {
+type PNErrorData struct {
+	Information string `json:"Information"`
+	Throwable   error  `json:"Throwable"`
 }
 
-func (msg *subscribeMessage) getMessageResponse() *subscribeMessageResponse {
-	res := &subscribeMessageResponse{}
+type PNStatus struct {
+	//StatusCode            int         `json:"StatusCode"`
+	IsError               bool             `json:"Error"`
+	ErrorData             PNErrorData      `json:"ErrorData"`
+	AffectedChannels      []string         `json:"AffectedChannels"`
+	AffectedChannelGroups []string         `json:"AffectedChannelGroups"`
+	Category              PNStatusCategory `json:"PNStatusCategory"`
+}
+
+type PNStatusCategory int
+
+// Enums for diff types of connections
+const (
+	PNUnknownCategory PNStatusCategory = 1 << iota
+	PNAcknowledgmentCategory
+	PNAccessDeniedCategory
+	PNTimeoutCategory
+	PNNetworkIssuesCategory
+	PNConnectedCategory
+	PNReconnectedCategory
+	PNDisconnectedCategory
+	PNUnexpectedDisconnectCategory
+	PNCancelledCategory
+	PNBadRequestCategory
+	PNMalformedFilterExpressionCategory
+	PNMalformedResponseCategory
+	PNDecryptionErrorCategory
+	PNTLSConnectionFailedCategory
+	PNTLSUntrustedCertificateCategory
+	PNRequestMessageCountExceededCategory
+)
+
+func createPNStatus(isError bool, message string, throwable error, category PNStatusCategory, AffectedChannels, AffectedChannelGroups []string) *PNStatus {
+	status := &PNStatus{}
+	status.ErrorData = PNErrorData{Information: message, Throwable: throwable}
+	status.IsError = isError
+	status.AffectedChannels = AffectedChannels
+	status.AffectedChannelGroups = AffectedChannelGroups
+	status.Category = category
+	return status
+}
+
+func (msg *subscribeMessage) getMessageResponse() *PNMessageResult {
+	res := &PNMessageResult{}
 	res.Channel = msg.Channel
 	res.IssuingClientId = msg.IssuingClientId
 	res.OriginatingTimetoken = msg.OriginatingTimetoken
 	res.Payload = msg.Payload
 	res.PublishTimetokenMetadata = msg.PublishTimetokenMetadata
-	res.SequenceNumber = msg.SequenceNumber
-	res.SubscribeKey = msg.SubscribeKey
+	//res.SequenceNumber = msg.SequenceNumber
+	//res.SubscribeKey = msg.SubscribeKey
 	res.ChannelGroup = msg.SubscriptionMatch
 	res.UserMetadata = msg.UserMetadata
+	return res
+}
+
+func (msg *subscribeMessage) getPresenceMessageResponse(pub *Pubnub) *PNPresenceEventResult {
+	res := &PNPresenceEventResult{}
+	res.Channel = strings.Replace(msg.Channel, presenceSuffix, "", -1)
+	res.IssuingClientId = msg.IssuingClientId
+	res.OriginatingTimetoken = msg.OriginatingTimetoken
+	res.ChannelGroup = strings.Replace(msg.SubscriptionMatch, presenceSuffix, "", -1)
+	res.UserMetadata = msg.UserMetadata
+
+	payload, ok := msg.Payload.(map[string]interface{})
+	if ok {
+		pub.infoLogger.Printf("Info: converted to PresenceEvent %s", payload)
+		if action, found := payload["action"]; found {
+			res.Event = action.(string)
+		}
+		if uuid, found := payload["uuid"]; found {
+			res.UUID = uuid.(string)
+		}
+		if occupancy, found := payload["occupancy"]; found {
+			res.Occupancy = occupancy.(float64)
+		}
+		if timestamp, found := payload["timestamp"]; found {
+			res.Timestamp = timestamp.(float64)
+		}
+		if data, found := payload["data"]; found {
+			res.State = data
+		}
+		/*if joined, found := payload["joined"]; found {
+			res.Joined = joined
+		}
+		if timedout, found := payload["timedout"]; found {
+			res.Timedout = timedout
+		}
+		if hereNowRefresh, found := payload["here_now_refresh"]; found {
+			res.HereNowRefresh = hereNowRefresh
+		}*/
+	} else {
+		pub.infoLogger.Printf("ERROR: Not converted to PresenceEvent %f", msg.Payload)
+		switch f := msg.Payload.(type) {
+		case *PresenceEvent:
+			pub.infoLogger.Printf("Info: PresenceEvent %s", f.Action)
+		default:
+			pub.infoLogger.Printf("Info: msg.Payload type %s, %s", reflect.TypeOf(msg.Payload), f)
+		}
+	}
+
 	return res
 }
 
