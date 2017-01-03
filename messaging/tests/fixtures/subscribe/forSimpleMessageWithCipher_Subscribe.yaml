@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.4.2
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=0&pnsdk=PubNub-Go%2F3.9.4.2
+      - ua_string=(linux) PubNub-Go/3.9.4.3
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=0&pnsdk=PubNub-Go%2F3.9.4.3
     method: GET
   response:
     body: '{"t":{"t":"14586610176891624","r":4},"m":[]}'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.4.2
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=14586610176891624&tr=4&pnsdk=PubNub-Go%2F3.9.4.2
+      - ua_string=(linux) PubNub-Go/3.9.4.3
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=14586610176891624&tr=4&pnsdk=PubNub-Go%2F3.9.4.3
     method: GET
   response:
     body: '{"t":{"t":"14586613284460865","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimpleWithCipher","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimpleWithCipher","b":"Channel_SubscriptionConnectedForSimpleWithCipher","d":"HSoHp4g0o/uHfiS1PYXzWw=="}]}'
@@ -60,5 +60,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=14586613284460865&tr=4&pnsdk=PubNub-Go%2F3.9.4.2
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForSimpleWithCipher/0?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&tt=14586613284460865&tr=4&pnsdk=PubNub-Go%2F3.9.4.3
   : {}

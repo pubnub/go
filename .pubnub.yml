@@ -6,7 +6,7 @@ changelog:
         text: “Changed origin to ps.pndsn.com”
         type: improvement
     date: Dec 21, 16
-    version: v3.9.4.2
+    version: v3.9.4.3
   - 
     changes: 
       - 
@@ -203,4 +203,4 @@ features:
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: “3.9.4.2”
+version: “3.9.4.3”

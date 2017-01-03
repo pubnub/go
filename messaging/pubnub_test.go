@@ -29,13 +29,13 @@ func TestGetSubscribeLoopActionEmptyLists(t *testing.T) {
 
 	errCh := make(chan []byte)
 
-	action := pubnub.getSubscribeLoopAction("", "", errCh)
+	action := pubnub.getSubscribeLoopAction("", "", errCh, nil)
 	assert.Equal(subscribeLoopDoNothing, action)
 
-	action = pubnub.getSubscribeLoopAction("channel", "", errCh)
+	action = pubnub.getSubscribeLoopAction("channel", "", errCh, nil)
 	assert.Equal(subscribeLoopStart, action)
 
-	action = pubnub.getSubscribeLoopAction("", "group", errCh)
+	action = pubnub.getSubscribeLoopAction("", "group", errCh, nil)
 	assert.Equal(subscribeLoopStart, action)
 }
 
@@ -55,13 +55,13 @@ func TestGetSubscribeLoopActionListWithSingleChannel(t *testing.T) {
 	pubnub.channels.Add("existing_channel",
 		existingSuccessChannel, existingErrorChannel, pubnub.infoLogger)
 
-	action := pubnub.getSubscribeLoopAction("", "", errCh)
+	action := pubnub.getSubscribeLoopAction("", "", errCh, nil)
 	assert.Equal(subscribeLoopDoNothing, action)
 
-	action = pubnub.getSubscribeLoopAction("channel", "", errCh)
+	action = pubnub.getSubscribeLoopAction("channel", "", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
-	action = pubnub.getSubscribeLoopAction("", "group", errCh)
+	action = pubnub.getSubscribeLoopAction("", "group", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
 	// existing
@@ -69,7 +69,7 @@ func TestGetSubscribeLoopActionListWithSingleChannel(t *testing.T) {
 		<-errCh
 		await <- true
 	}()
-	action = pubnub.getSubscribeLoopAction("existing_channel", "", errCh)
+	action = pubnub.getSubscribeLoopAction("existing_channel", "", errCh, nil)
 	<-await
 	assert.Equal(subscribeLoopDoNothing, action)
 }
@@ -90,13 +90,13 @@ func TestGetSubscribeLoopActionListWithSingleGroup(t *testing.T) {
 	pubnub.groups.Add("existing_group",
 		existingSuccessChannel, existingErrorChannel, pubnub.infoLogger)
 
-	action := pubnub.getSubscribeLoopAction("", "", errCh)
+	action := pubnub.getSubscribeLoopAction("", "", errCh, nil)
 	assert.Equal(subscribeLoopDoNothing, action)
 
-	action = pubnub.getSubscribeLoopAction("channel", "", errCh)
+	action = pubnub.getSubscribeLoopAction("channel", "", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
-	action = pubnub.getSubscribeLoopAction("", "group", errCh)
+	action = pubnub.getSubscribeLoopAction("", "group", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
 	// existing
@@ -104,7 +104,7 @@ func TestGetSubscribeLoopActionListWithSingleGroup(t *testing.T) {
 		<-errCh
 		await <- true
 	}()
-	action = pubnub.getSubscribeLoopAction("", "existing_group", errCh)
+	action = pubnub.getSubscribeLoopAction("", "existing_group", errCh, nil)
 	<-await
 	assert.Equal(subscribeLoopDoNothing, action)
 }
@@ -127,17 +127,17 @@ func TestGetSubscribeLoopActionListWithMultipleChannels(t *testing.T) {
 	pubnub.channels.Add("ex_ch2",
 		existingSuccessChannel, existingErrorChannel, pubnub.infoLogger)
 
-	action := pubnub.getSubscribeLoopAction("ch1,ch2", "", errCh)
+	action := pubnub.getSubscribeLoopAction("ch1,ch2", "", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
-	action = pubnub.getSubscribeLoopAction("", "gr1,gr2", errCh)
+	action = pubnub.getSubscribeLoopAction("", "gr1,gr2", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
 	go func() {
 		<-errCh
 		await <- true
 	}()
-	action = pubnub.getSubscribeLoopAction("ch1,ex_ch1,ch2", "", errCh)
+	action = pubnub.getSubscribeLoopAction("ch1,ex_ch1,ch2", "", errCh, nil)
 	<-await
 	assert.Equal(subscribeLoopRestart, action)
 
@@ -146,7 +146,7 @@ func TestGetSubscribeLoopActionListWithMultipleChannels(t *testing.T) {
 		<-errCh
 		await <- true
 	}()
-	action = pubnub.getSubscribeLoopAction("ex_ch1,ex_ch2", "", errCh)
+	action = pubnub.getSubscribeLoopAction("ex_ch1,ex_ch2", "", errCh, nil)
 	<-await
 	assert.Equal(subscribeLoopDoNothing, action)
 }
@@ -613,7 +613,7 @@ func TestCreateSubscribeURLReset(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.2", b)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.3", b)
 	assert.Equal(senttt, tt)
 	presenceHeartbeat = 0
 }
@@ -638,7 +638,7 @@ func TestCreateSubscribeURL(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.9.4.2", b)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.9.4.3", b)
 	assert.Equal(senttt, tt)
 }
 
@@ -662,7 +662,7 @@ func TestCreateSubscribeURLFilterExp(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.9.4.2", b)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.9.4.3", b)
 	assert.Equal(senttt, tt)
 }
 
@@ -692,7 +692,7 @@ func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s", b)
 
-	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.2", b)
+	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.3", b)
 	presenceHeartbeat = 0
 
 }
