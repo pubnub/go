@@ -2,6 +2,7 @@ package messaging
 
 import (
 	//"encoding/json"
+	"errors"
 	"reflect"
 	"strings"
 )
@@ -97,7 +98,12 @@ const (
 
 func createPNStatus(isError bool, message string, throwable error, category PNStatusCategory, AffectedChannels, AffectedChannelGroups []string) *PNStatus {
 	status := &PNStatus{}
-	status.ErrorData = PNErrorData{Information: message, Throwable: throwable}
+	if throwable != nil {
+		status.ErrorData = PNErrorData{Information: message, Throwable: throwable}
+	} else {
+		err := errors.New(message)
+		status.ErrorData = PNErrorData{Information: message, Throwable: err}
+	}
 	status.IsError = isError
 	status.AffectedChannels = AffectedChannels
 	status.AffectedChannelGroups = AffectedChannelGroups

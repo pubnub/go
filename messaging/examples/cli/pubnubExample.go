@@ -30,13 +30,13 @@ var cipher = ""
 var uuid = ""
 
 //
-var publishKey = ""
+var publishKey = "pub-c-25f8616c-9e80-4846-8d47-0a9257f84516"
 
 //
-var subscribeKey = ""
+var subscribeKey = "sub-c-f6e09df0-bd35-11e6-963b-0619f8945a4f"
 
 //
-var secretKey = ""
+var secretKey = "sec-c-Mjk1OGYwNTMtZmMwYS00YjRmLWIxYjctNWU5ZTFlNWJiNDY4"
 
 // a boolean to capture user preference of displaying errors.
 var displayError = true
@@ -1040,7 +1040,15 @@ func ReadLoop() {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
 				fmt.Println("Running Subscribe")
-				go subscribeRoutineV2(channels, "")
+				go subscribeRoutineV2(channels, "", "")
+			}
+		case "42":
+			channels, errReadingChannel := askChannelGroup()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Running Subscribe")
+				go subscribeRoutineV2("", channels, "")
 			}
 		case "99":
 			fmt.Println("Exiting")
@@ -1160,11 +1168,11 @@ func subscribeRoutine(channels string, timetoken string) {
 
 // SubscribeRoutine calls the Subscribe routine of the messaging package
 // as a parallel process.
-func subscribeRoutineV2(channels string, timetoken string) {
+func subscribeRoutineV2(channels string, channelGroups string, timetoken string) {
 	var statusChannel = make(chan *messaging.PNStatus)
 	var messageChannel = make(chan *messaging.PNMessageResult)
 	var presenceChannel = make(chan *messaging.PNPresenceEventResult)
-	go pub.SubscribeV2(channels, "", "", true, statusChannel, messageChannel, presenceChannel)
+	go pub.SubscribeV2(channels, channelGroups, "", true, statusChannel, messageChannel, presenceChannel)
 	for {
 		select {
 		case response := <-presenceChannel:
@@ -1194,6 +1202,8 @@ func subscribeRoutineV2(channels string, timetoken string) {
 			if err.IsError {
 				fmt.Println("Error:", err.ErrorData.Information)
 				fmt.Println("Category:", err.Category)
+				fmt.Println("AffectedChannels:", strings.Join(err.AffectedChannels, ","))
+				fmt.Println("AffectedChannelGroups:", strings.Join(err.AffectedChannelGroups, ","))
 			} else if err.Category == messaging.PNConnectedCategory {
 				fmt.Println(fmt.Sprintf("Category: %d", err.Category))
 				fmt.Println("AffectedChannels:", strings.Join(err.AffectedChannels, ","))
