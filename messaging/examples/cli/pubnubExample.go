@@ -616,6 +616,8 @@ func ReadLoop() {
 			fmt.Println("ENTER 38 FOR Publish with StoreInHistory")
 			fmt.Println("ENTER 39 FOR Publish with replicate")
 			fmt.Println("ENTER 40 FOR Fire")
+			fmt.Println("ENTER 41 FOR Subscribe V2")
+			fmt.Println("ENTER 42 FOR Subscribe Channel Group V2")
 			fmt.Println("ENTER 99 FOR Exit")
 			fmt.Println("")
 			showOptions = false
@@ -1050,6 +1052,14 @@ func ReadLoop() {
 				fmt.Println("Running Subscribe")
 				go subscribeRoutineV2("", channels, "")
 			}
+		case "43":
+			channels, errReadingChannel := askChannelGroup()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Running Subscribe CG")
+				go subscribeRoutineCG(channels, "")
+			}
 		case "99":
 			fmt.Println("Exiting")
 			pub.Abort()
@@ -1163,6 +1173,15 @@ func subscribeRoutine(channels string, timetoken string) {
 	var errorChannel = make(chan []byte)
 	var subscribeChannel = make(chan []byte)
 	go pub.Subscribe(channels, timetoken, subscribeChannel, false, errorChannel)
+	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+}
+
+// SubscribeRoutine calls the Subscribe routine of the messaging package
+// as a parallel process.
+func subscribeRoutineCG(cg string, timetoken string) {
+	var errorChannel = make(chan []byte)
+	var subscribeChannel = make(chan []byte)
+	go pub.ChannelGroupSubscribe(cg, subscribeChannel, errorChannel)
 	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
 }
 

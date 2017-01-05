@@ -1687,11 +1687,7 @@ func (pub *Pubnub) sendConnectionEventToChannelOrChannelGroups(channelsOrChannel
 			item, found = pub.channels.Get(channel)
 		}
 		if found {
-			connEve := connectionEvent{
-				Channel: item.Name,
-				Action:  action,
-				Type:    channelResponse,
-			}
+
 			if item.IsV2 {
 				if isChannelGroup {
 					affectedChannelGroups = append(affectedChannelGroups, channel)
@@ -1700,7 +1696,22 @@ func (pub *Pubnub) sendConnectionEventToChannelOrChannelGroups(channelsOrChannel
 				}
 				item.StatusChannel <- createPNStatus(false, "", nil, PNConnectedCategory, affectedChannels, affectedChannelGroups)
 			} else {
-				item.SuccessChannel <- connEve.Bytes()
+				if isChannelGroup {
+					connEve := connectionEvent{
+						Source: item.Name,
+						Action: action,
+						Type:   channelGroupResponse,
+					}
+					item.SuccessChannel <- connEve.Bytes()
+
+				} else {
+					connEve := connectionEvent{
+						Channel: item.Name,
+						Action:  action,
+						Type:    channelResponse,
+					}
+					item.SuccessChannel <- connEve.Bytes()
+				}
 			}
 		} else {
 			pub.infoLogger.Printf("INFO: sendConnectionEventToChannelOrChannelGroups, Channel not found : %s, %s", channel, isChannelGroup)
