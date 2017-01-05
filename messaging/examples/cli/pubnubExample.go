@@ -1112,7 +1112,7 @@ func pamSubscribeRoutine(channels string, read bool, write bool, ttl int) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
 	go pub.GrantSubscribe(channels, read, write, ttl, "", pamChannel, errorChannel)
-	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Susbcribe Grant")
+	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Subscribe Grant")
 }
 
 // pamPresenceRoutine calls the GrantPresence routine of the messaging package

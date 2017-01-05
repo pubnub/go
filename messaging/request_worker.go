@@ -95,7 +95,7 @@ func (w *requestWorker) Handle(req *http.Request) (
 
 	select {
 	case <-time.After(w.Timeout):
-		w.InfoLogger.Printf("INFO: %s: request timeout (%ds)", w.Name, w.Timeout.Seconds())
+		w.InfoLogger.Printf("INFO: %s: request timeout (%fs)", w.Name, w.Timeout.Seconds())
 		go cancelRequest()
 		go handleCanceledRequest()
 

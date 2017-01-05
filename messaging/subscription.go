@@ -232,7 +232,7 @@ func (e *subscriptionEntity) Names() []string {
 
 	var names = []string{}
 
-	for k, _ := range e.items {
+	for k := range e.items {
 		names = append(names, k)
 	}
 

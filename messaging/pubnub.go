@@ -192,9 +192,6 @@ var (
 
 	// Logger for info messages
 	infoLogger *log.Logger
-
-	// enableSubscribeV2Response: set true to enable v2 response
-	//enableSubscribeV2Response bool
 )
 
 var (
@@ -425,11 +422,6 @@ func initLogging() {
 func SetMaxIdleConnsPerHost(maxIdleConnsPerHostVal int) {
 	maxIdleConnsPerHost = maxIdleConnsPerHostVal
 }
-
-// EnableSubscribeV2Response set true to enable subscribe v2 response
-/*func EnableSubscribeV2Response(enable bool) {
-	enableSubscribeV2Response = enable
-}*/
 
 // SetProxy sets the global variables for the parameters.
 // It also sets the proxyServerEnabled value to true.
@@ -1714,7 +1706,7 @@ func (pub *Pubnub) sendConnectionEventToChannelOrChannelGroups(channelsOrChannel
 				}
 			}
 		} else {
-			pub.infoLogger.Printf("INFO: sendConnectionEventToChannelOrChannelGroups, Channel not found : %s, %s", channel, isChannelGroup)
+			pub.infoLogger.Printf("INFO: sendConnectionEventToChannelOrChannelGroups, Channel not found : %s, %t", channel, isChannelGroup)
 		}
 	}
 

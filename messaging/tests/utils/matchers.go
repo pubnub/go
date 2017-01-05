@@ -172,7 +172,7 @@ func matchQuery(eQuery, aQuery url.Values, ignore, mixed []string) bool {
 		return false
 	}
 
-	for fKey, _ := range eQuery {
+	for fKey := range eQuery {
 		if hasKey(fKey, ignore) {
 			continue
 		}

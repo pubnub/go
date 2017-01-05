@@ -1413,7 +1413,7 @@ func (pub *Pubnub) PublishExtendedWithMetaAndReplicate(context context.Context, 
 	}
 }
 
-// sendResponseToChannel is the struct Pubnub's instance method that sends a reponse on the channel
+// sendResponseToChannel is the struct Pubnub's instance method that sends a response on the channel
 // provided as an argument or to the subscribe / presence channel is the argument is nil.
 //
 // Constructs the response based on the action (1-9). In case the action is 5 sends the response
@@ -1570,7 +1570,7 @@ func checkQuerystringInit(queryStringInit bool) string {
 	return "?"
 }
 
-// parseHttpResponse parses the http response from the orgin for the subscribe resquest
+// parseHttpResponse parses the http response from the origin for the subscribe resquest
 // if errJson is not nil it sends an error response on the error channel.
 // In case of subscribe response it parses the returned data and splits if multiple messages are received.
 //
