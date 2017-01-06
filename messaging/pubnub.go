@@ -1335,7 +1335,9 @@ func (pub *Pubnub) invalidChannelV2(channel string, statusChannel chan *PNStatus
 		message := fmt.Sprintf("Invalid Channel%s: %s", groupText, channel)
 
 		status := createPNStatus(true, message, nil, 0, affectedChannels, affectedChannelGroups)
-		statusChannel <- status
+		if statusChannel != nil {
+			statusChannel <- status
+		}
 		return true
 	}
 
@@ -1685,7 +1687,9 @@ func (pub *Pubnub) sendConnectionEventToChannelOrChannelGroups(channelsOrChannel
 				} else {
 					affectedChannels = append(affectedChannels, channel)
 				}
-				item.StatusChannel <- createPNStatus(false, "", nil, PNConnectedCategory, affectedChannels, affectedChannelGroups)
+				if item.StatusChannel != nil {
+					item.StatusChannel <- createPNStatus(false, "", nil, PNConnectedCategory, affectedChannels, affectedChannelGroups)
+				}
 			} else {
 				if isChannelGroup {
 					connEve := connectionEvent{
@@ -1693,7 +1697,9 @@ func (pub *Pubnub) sendConnectionEventToChannelOrChannelGroups(channelsOrChannel
 						Action: action,
 						Type:   channelGroupResponse,
 					}
-					item.SuccessChannel <- connEve.Bytes()
+					if item.SuccessChannel != nil {
+						item.SuccessChannel <- connEve.Bytes()
+					}
 
 				} else {
 					connEve := connectionEvent{
@@ -1701,7 +1707,9 @@ func (pub *Pubnub) sendConnectionEventToChannelOrChannelGroups(channelsOrChannel
 						Action:  action,
 						Type:    channelResponse,
 					}
-					item.SuccessChannel <- connEve.Bytes()
+					if item.SuccessChannel != nil {
+						item.SuccessChannel <- connEve.Bytes()
+					}
 				}
 			}
 		} else {
@@ -1793,11 +1801,17 @@ func (pub *Pubnub) sendClientSideErrorAboutSources(statusChannel chan *PNStatus,
 				Type:   tp,
 			}.StringForSource(source)
 			if tp == channelResponse {
-				statusChannel <- createPNStatus(true, errResp, nil, PNUnknownCategory, sources, nil)
+				if statusChannel != nil {
+					statusChannel <- createPNStatus(true, errResp, nil, PNUnknownCategory, sources, nil)
+				}
 			} else if tp == channelGroupResponse {
-				statusChannel <- createPNStatus(true, errResp, nil, PNUnknownCategory, nil, sources)
+				if statusChannel != nil {
+					statusChannel <- createPNStatus(true, errResp, nil, PNUnknownCategory, nil, sources)
+				}
 			} else {
-				statusChannel <- createPNStatus(true, errResp, nil, PNUnknownCategory, nil, nil)
+				if statusChannel != nil {
+					statusChannel <- createPNStatus(true, errResp, nil, PNUnknownCategory, nil, nil)
+				}
 			}
 
 		}
@@ -1837,9 +1851,13 @@ func (pub *Pubnub) sendSubscribeErrorHelper(channels, groups string,
 	for _, channel := range affectedChannels {
 		if item, found = pub.channels.Get(channel); found {
 			if item.IsV2 {
-				item.StatusChannel <- createPNStatus(true, errResp.Message, err, PNUnknownCategory, affectedChannels, nil)
+				if item.StatusChannel != nil {
+					item.StatusChannel <- createPNStatus(true, errResp.Message, err, PNUnknownCategory, affectedChannels, nil)
+				}
 			} else {
-				item.ErrorChannel <- errResp.BytesForSource(channel)
+				if item.ErrorChannel != nil {
+					item.ErrorChannel <- errResp.BytesForSource(channel)
+				}
 			}
 		}
 	}
@@ -1849,9 +1867,13 @@ func (pub *Pubnub) sendSubscribeErrorHelper(channels, groups string,
 	for _, group := range affectedChannelGroups {
 		if item, found = pub.groups.Get(group); found {
 			if item.IsV2 {
-				item.StatusChannel <- createPNStatus(true, errResp.Message, err, PNUnknownCategory, nil, affectedChannelGroups)
+				if item.StatusChannel != nil {
+					item.StatusChannel <- createPNStatus(true, errResp.Message, err, PNUnknownCategory, nil, affectedChannelGroups)
+				}
 			} else {
-				item.ErrorChannel <- errResp.BytesForSource(group)
+				if item.ErrorChannel != nil {
+					item.ErrorChannel <- errResp.BytesForSource(group)
+				}
 			}
 		}
 	}
@@ -2801,7 +2823,9 @@ func (pub *Pubnub) SubscribeV2(channels, channelGroups, timetoken string, withPr
 		message := "Either 'channel' or 'channel groups', or both should be provided."
 		pub.infoLogger.Printf(message)
 		status := createPNStatus(true, message, nil, 0, nil, nil)
-		statusChannel <- status
+		if statusChannel != nil {
+			statusChannel <- status
+		}
 		return
 	}
 

@@ -19,6 +19,29 @@ func TestGenUuid(t *testing.T) {
 	assert.Len(uuid, 32)
 }
 
+func InvalidChannelCommon(ch string, isChannelGroup, expected bool, t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid")
+	b := pubnub.invalidChannelV2(ch, nil, isChannelGroup)
+	assert.Equal(b, expected)
+}
+
+func TestInvalidChannelV2(t *testing.T) {
+	InvalidChannelCommon("a, b", false, false, t)
+}
+
+func TestInvalidChannelGroupV2(t *testing.T) {
+	InvalidChannelCommon("a,b", true, false, t)
+}
+
+func TestInvalidChannelFailV2(t *testing.T) {
+	InvalidChannelCommon("a, ", false, true, t)
+}
+
+func TestInvalidChannelGroupFailV2(t *testing.T) {
+	InvalidChannelCommon("", true, true, t)
+}
+
 func TestGetSubscribeLoopActionEmptyLists(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := Pubnub{
