@@ -1557,7 +1557,7 @@ func (pub *Pubnub) PublishExtendedWithMetaAndReplicate(channel string, message, 
 // source: Channel Group or Wildcard Channel on which to send the response back.
 // tp: response type
 // action: additional information about action
-// response: message as bytes
+// msg: message as subscribeMessage
 func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 	tp responseType, action responseStatus, msg subscribeMessage) {
 	pub.infoLogger.Printf("INFO: sendSubscribeResponse, ")
@@ -1596,7 +1596,6 @@ func (pub *Pubnub) sendSubscribeResponse(channel, source, timetoken string,
 		return
 	}
 
-	//pub.infoLogger.Printf("INFO: RESPONSE: Subscription to %s '%s', message %s\n", tp, itemName, response)
 	if item.IsV2 {
 		pub.infoLogger.Printf("INFO: RESPONSE V2: Subscription to %s '%s'\n", tp, itemName)
 		if isPresence {
@@ -1781,12 +1780,14 @@ func (pub *Pubnub) sendClientSideErrorAboutSources(statusChannel chan *PNStatus,
 	tp responseType, sources []string, status responseStatus) {
 	for _, source := range sources {
 		if errorChannel != nil {
+			pub.infoLogger.Printf("INFO: SEND ERROR: errorChannel: %s", status)
 			errorChannel <- errorResponse{
 				Reason: status,
 				Type:   tp,
 			}.BytesForSource(source)
 		}
 		if statusChannel != nil {
+			pub.infoLogger.Printf("INFO: SEND ERROR: statusChannel: %s", status)
 			errResp := errorResponse{
 				Reason: status,
 				Type:   tp,
@@ -2147,7 +2148,6 @@ func (pub *Pubnub) startSubscribeLoop(channels, groups string) {
 	var region string
 
 	for {
-		pub.infoLogger.Printf("in loop")
 		pub.RLock()
 		alreadySubscribedChannels := pub.channels.NamesString()
 		alreadySubscribedChannelGroups := pub.groups.NamesString()
@@ -2512,23 +2512,6 @@ func (pub *Pubnub) extractMessage(msg subscribeMessage) []byte {
 func (pub *Pubnub) parseMessagesAndSendCallbacks(msg subscribeMessage, timetoken string) {
 	channel := msg.Channel
 
-	//Extract Message
-	//var message []byte
-	/*if !enableSubscribeV2Response {
-		messageTemp, errMrshal := json.Marshal(msg.getMessageResponse())
-			if errMrshal != nil {
-				errMsg := fmt.Sprintf("Error marshalling subscribeMessage struct, %s", errMrshal.Error())
-				pub.infoLogger.Printf("ERROR: %s", errMsg)
-				message = []byte(errMsg)
-			} else {
-				message = messageTemp
-			}
-		} else {
-		message = pub.extractMessage(msg)
-	}*/
-
-	// End Extract Message
-
 	if (len(strings.TrimSpace(msg.SubscriptionMatch)) <= 0) || (channel == msg.SubscriptionMatch) {
 		//channel
 		msg.SubscriptionMatch = ""
@@ -2574,7 +2557,7 @@ func (pub *Pubnub) checkCallbackNil(channelToCheck chan<- []byte, isErrChannel b
 	}
 }
 
-// pub.checkCallbackNil checks if the callback channels are nil
+// pub.checkCallbackNil2 checks if the callback channels are nil
 // if nil then the code wil panic as callbacks are mandatory
 func (pub *Pubnub) checkCallbackNilV2(statusChannel chan *PNStatus,
 	messageChannel chan *PNMessageResult,
@@ -2596,24 +2579,61 @@ func (pub *Pubnub) checkCallbackNilV2(statusChannel chan *PNStatus,
 	}
 }
 
+func (pub *Pubnub) checkAlreadySubscribedChannelsOrChannelGroups(channelsOrChannelGroups []string,
+	errorChannel chan<- []byte, statusChannel chan *PNStatus, isChannelGroup bool) ([]string, int, bool) {
+	alreadySubscribedChannelOrChannelGroups := []string{}
+	var subscribedChannelsOrChannelGroups string
+	if isChannelGroup {
+		subscribedChannelsOrChannelGroups = pub.groups.ConnectedNamesString()
+	} else {
+		subscribedChannelsOrChannelGroups = pub.channels.ConnectedNamesString()
+	}
+	channelsOrGroupsModified := false
+
+	for i := 0; i < len(channelsOrChannelGroups); i++ {
+		channelToSub := strings.TrimSpace(channelsOrChannelGroups[i])
+		channelOrGroupExists := false
+		if isChannelGroup {
+			channelOrGroupExists = pub.groups.Exist(channelToSub)
+		} else {
+			channelOrGroupExists = pub.channels.Exist(channelToSub)
+		}
+		if !channelOrGroupExists {
+			if len(subscribedChannelsOrChannelGroups) > 0 {
+				subscribedChannelsOrChannelGroups += ","
+			}
+			subscribedChannelsOrChannelGroups += channelToSub
+
+			channelsOrGroupsModified = true
+		} else {
+			alreadySubscribedChannelOrChannelGroups = append(alreadySubscribedChannelOrChannelGroups, channelToSub)
+		}
+	}
+
+	alreadySubscribedChannelsLen := len(alreadySubscribedChannelOrChannelGroups)
+	pub.infoLogger.Printf("INFO: alreadySubscribedChannelsLen %d", alreadySubscribedChannelsLen)
+	if alreadySubscribedChannelsLen > 0 {
+		var tp responseType
+		if isChannelGroup {
+			tp = channelGroupResponse
+		} else {
+			tp = channelResponse
+		}
+		pub.infoLogger.Printf("INFO: already subscribed %s", alreadySubscribedChannelOrChannelGroups)
+		pub.sendClientSideErrorAboutSources(statusChannel, errorChannel, tp,
+			alreadySubscribedChannelOrChannelGroups, responseAlreadySubscribed)
+	}
+	return alreadySubscribedChannelOrChannelGroups, alreadySubscribedChannelsLen, channelsOrGroupsModified
+}
+
 func (pub *Pubnub) getSubscribeLoopAction(channels, groups string,
 	errorChannel chan<- []byte, statusChannel chan *PNStatus) subscribeLoopAction {
 
 	pub.RLock()
 	defer pub.RUnlock()
 
-	var (
-		channelsModified             bool = false
-		groupsModified               bool = false
-		alreadySubscribedChannelsLen int
-		alreadySubscribedGroupsLen   int
-	)
-
-	// channels
 	newChannels := splitItems(channels)
 	newGroups := splitItems(groups)
-	subscribedChannels := pub.channels.ConnectedNamesString()
-	subscribedChannelGroups := pub.groups.ConnectedNamesString()
 	alreadySubscribedChannels := []string{}
 	alreadySubscribedChannelGroups := []string{}
 
@@ -2622,49 +2642,8 @@ func (pub *Pubnub) getSubscribeLoopAction(channels, groups string,
 	existingGroupsEmpty := pub.groups.Empty()
 	pub.RUnlock()
 
-	for i := 0; i < len(newChannels); i++ {
-		channelToSub := strings.TrimSpace(newChannels[i])
-
-		if !pub.channels.Exist(channelToSub) {
-			if len(subscribedChannels) > 0 {
-				subscribedChannels += ","
-			}
-			subscribedChannels += channelToSub
-
-			channelsModified = true
-		} else {
-			alreadySubscribedChannels = append(alreadySubscribedChannels, channelToSub)
-		}
-	}
-
-	alreadySubscribedChannelsLen = len(alreadySubscribedChannels)
-	if alreadySubscribedChannelsLen > 0 {
-		pub.sendClientSideErrorAboutSources(statusChannel, errorChannel, channelResponse,
-			alreadySubscribedChannels, responseAlreadySubscribed)
-	}
-
-	//groups
-	for i := 0; i < len(newGroups); i++ {
-		groupToSub := strings.TrimSpace(newGroups[i])
-
-		if !pub.groups.Exist(groupToSub) {
-			if len(subscribedChannelGroups) > 0 {
-				subscribedChannelGroups += ","
-			}
-
-			subscribedChannelGroups += groupToSub
-
-			groupsModified = true
-		} else {
-			alreadySubscribedChannelGroups = append(alreadySubscribedChannelGroups, groupToSub)
-		}
-	}
-
-	alreadySubscribedGroupsLen = len(alreadySubscribedChannelGroups)
-	if alreadySubscribedGroupsLen > 0 {
-		pub.sendClientSideErrorAboutSources(statusChannel, errorChannel, channelGroupResponse,
-			alreadySubscribedChannelGroups, responseAlreadySubscribed)
-	}
+	alreadySubscribedChannels, alreadySubscribedChannelsLen, channelsModified := pub.checkAlreadySubscribedChannelsOrChannelGroups(newChannels, errorChannel, statusChannel, false)
+	alreadySubscribedChannelGroups, alreadySubscribedGroupsLen, groupsModified := pub.checkAlreadySubscribedChannelsOrChannelGroups(newGroups, errorChannel, statusChannel, true)
 
 	modified := channelsModified || groupsModified
 	existingEmpty := existingChannelsEmpty && existingGroupsEmpty
@@ -2701,7 +2680,6 @@ func (pub *Pubnub) ChannelGroupSubscribe(groups string,
 // ChannelGroupSubscribeWithTimetoken subscribes to a channel group with a timetoken
 func (pub *Pubnub) ChannelGroupSubscribeWithTimetoken(groups, timetoken string,
 	callbackChannel chan<- []byte, errorChannel chan<- []byte) {
-	//enableSubscribeV2Response = false
 	pub.checkCallbackNil(callbackChannel, false, "ChanelGroupSubscribe")
 	pub.checkCallbackNil(errorChannel, true, "ChanelGroupSubscribe")
 
@@ -2798,12 +2776,27 @@ func addPresenceChannels(channelOrChannelGroups string, withPresence bool) strin
 	return chBuffer.String()
 }
 
+// SubscribeV2 is the struct Pubnub's instance method which checks for the pub.invalidChannelsV2
+// and returns if true.
+// Initaiates the presence and subscribe response channels.
+//
+// If there is no existing subscribe/presence loop running then it starts a
+// new loop with the new pubnub channels.
+// Else closes the existing connections and starts a new loop
+//
+// It accepts the following parameters:
+// channels: comma separated pubnub channel list.
+// channelGroups: comma separated pubnub channel list.
+// timetoken: if timetoken is present the subscribe request is sent using this timetoken
+// withPresence: if true subscribes to the presence channel(s)
+// statusChannel: Channel to send the status
+// messageChannel: Channel to send channel messages.
+// presenceChannel: Channel to send presence messages.
 func (pub *Pubnub) SubscribeV2(channels, channelGroups, timetoken string, withPresence bool,
 	statusChannel chan *PNStatus,
 	messageChannel chan *PNMessageResult,
 	presenceChannel chan *PNPresenceEventResult) {
 
-	//enableSubscribeV2Response = true
 	if pub.invalidChannelV2(channels, statusChannel, false) && pub.invalidChannelV2(channelGroups, statusChannel, true) {
 		message := "Either 'channel' or 'channel groups', or both should be provided."
 		pub.infoLogger.Printf(message)
@@ -2878,7 +2871,6 @@ func (pub *Pubnub) SubscribeV2(channels, channelGroups, timetoken string, withPr
 // eventsChannel: Channel on which to send events like connect/disconnect/reconnect.
 func (pub *Pubnub) Subscribe(channels, timetoken string,
 	callbackChannel chan<- []byte, isPresence bool, errorChannel chan<- []byte) {
-	//enableSubscribeV2Response = false
 
 	if pub.invalidChannel(channels, callbackChannel) {
 		return
@@ -4020,11 +4012,9 @@ func (pub *Pubnub) ParseJSON(contents []byte,
 	return returnData, returnOne, returnTwo, err
 }
 
-// ParseSubscribeResponse
-// It extracts the actual data (value 0),
+// ParseSubscribeResponse extracts the actual data (value 0),
 // Timetoken/from time in case of detailed history (value 1),
 // pubnub channelname/timetoken/to time in case of detailed history (value 2).
-//
 func (pub *Pubnub) ParseSubscribeResponse(rawResponse []byte, cipherKey string) (
 	subEnv subscribeEnvelope, timetoken, region string, err error) {
 

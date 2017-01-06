@@ -1,7 +1,6 @@
 package messaging
 
 import (
-	//"encoding/json"
 	"errors"
 	"reflect"
 	"strings"
@@ -34,6 +33,7 @@ type subscribeMessage struct {
 	//ReplicationMap interface{} `json:"r"`
 }
 
+// PNMessageResult is a struct used to populate a message response for Subscribe v2
 type PNMessageResult struct {
 	ChannelGroup             string            `json:"ChannelGroup"`
 	Channel                  string            `json:"Channel"`
@@ -46,6 +46,7 @@ type PNMessageResult struct {
 	//SequenceNumber           uint64            `json:"SequenceNumber"`
 }
 
+// PNPresenceEventResult is a struct used to populate a presence response for Subscribe v2
 type PNPresenceEventResult struct {
 	ChannelGroup         string            `json:"ChannelGroup"`
 	Channel              string            `json:"Channel"`
@@ -59,11 +60,13 @@ type PNPresenceEventResult struct {
 	State                interface{}       `json:"State"`
 }
 
+// PNErrorData is a struct used to populate the error information, used in Subscribe v2
 type PNErrorData struct {
 	Information string `json:"Information"`
 	Throwable   error  `json:"Throwable"`
 }
 
+// PNStatus is a struct used to populate status of the API call, used in Subscribe v2
 type PNStatus struct {
 	//StatusCode            int         `json:"StatusCode"`
 	IsError               bool             `json:"Error"`
@@ -73,6 +76,7 @@ type PNStatus struct {
 	Category              PNStatusCategory `json:"PNStatusCategory"`
 }
 
+// PNStatusCategory conatins the enums for PNStatus
 type PNStatusCategory int
 
 // Enums for diff types of connections
@@ -100,7 +104,7 @@ func createPNStatus(isError bool, message string, throwable error, category PNSt
 	status := &PNStatus{}
 	if throwable != nil {
 		status.ErrorData = PNErrorData{Information: message, Throwable: throwable}
-	} else {
+	} else if isError && len(message) > 0 {
 		err := errors.New(message)
 		status.ErrorData = PNErrorData{Information: message, Throwable: err}
 	}

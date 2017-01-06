@@ -64,13 +64,6 @@ func (e connectionEvent) Bytes() []byte {
 }
 
 type subscriptionItem struct {
-	/*Name           string
-		SuccessChannel chan<- []byte
-		ErrorChannel   chan<- []byte
-		Connected      bool
-	}
-
-	type subscriptionItemV2 struct {*/
 	Name            string
 	SuccessChannel  chan<- []byte
 	ErrorChannel    chan<- []byte
@@ -342,7 +335,7 @@ func CreateSubscriptionChannels() (chan []byte, chan []byte) {
 	return successResponse, errorResponse
 }
 
-// CreateSubscriptionChannels creates channels for subscription
+// CreateSubscriptionChannelsV2 creates channels for subscription
 func CreateSubscriptionChannelsV2() (chan PNStatus,
 	chan PNMessageResult,
 	chan PNPresenceEventResult) {
