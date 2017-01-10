@@ -184,7 +184,62 @@ func TestFire(t *testing.T) {
 	}
 }
 
-// TestFire sends out a complex message to the pubnub channel
+// TestPublishWithMessageTTL sends out a complex message to the pubnub channel
+func TestPublishWithMessageTTL(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe(
+		"fixtures/publish/publishWithReplicateAndTTL", []string{"uuid"})
+	defer stop()
+	//messaging.SetLogOutput(os.Stdout)
+	//messaging.LoggingEnabled(true)
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	channel := "publishWithReplicate"
+
+	message := "publishWithReplicate"
+	await := make(chan bool)
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnubInstance.PublishExtendedWithMetaReplicateAndTTL(channel, message, nil, true, false, false, 10, successChannel, errorChannel)
+	go func() {
+		select {
+		case msg := <-successChannel:
+			assert.Contains(string(msg), "1,")
+			assert.Contains(string(msg), "\"Sent\",")
+			await <- true
+		case err := <-errorChannel:
+			assert.Fail(string(err))
+			await <- false
+		case <-timeout():
+			assert.Fail("Publish timeout")
+			await <- false
+		}
+	}()
+
+	<-await
+
+	successChannelHis := make(chan []byte)
+	errorChannelHis := make(chan []byte)
+
+	go pubnubInstance.History(channel, 1, 0, 0, false, false,
+		successChannelHis, errorChannelHis)
+	select {
+	case value := <-successChannelHis:
+		data, _, _, err := pubnubInstance.ParseJSON(value, "")
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		assert.Contains(data, message)
+	case err := <-errorChannelHis:
+		assert.Fail(string(err))
+	}
+}
+
+// TestPublishWithReplicate sends out a complex message to the pubnub channel
 func TestPublishWithReplicate(t *testing.T) {
 	assert := assert.New(t)
 

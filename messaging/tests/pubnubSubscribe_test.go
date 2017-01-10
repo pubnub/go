@@ -138,6 +138,76 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 	ExpectUnsubscribedEvent(t, channels, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 }
 
+// TestSubscriptionForSimpleMessageV2 first subscribes to a pubnub channel and then publishes
+// a message on the same pubnub channel. The subscribe response should receive this same message.
+func TestSubscriptionForSimpleMessageV2(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, _ := NewVCRBoth("fixtures/subscribe/forSimpleMessage", []string{"uuid"})
+	defer stop()
+
+	channel := "Channel_SubscriptionConnectedForSimple"
+	uuid := "UUID_SubscriptionConnectedForSimple"
+	//messaging.LoggingEnabled(true)
+	//messaging.SetLogOutput(os.Stdout)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+
+	customMessage := "Test message"
+
+	var statusChannel = make(chan *messaging.PNStatus)
+	var messageChannel = make(chan *messaging.PNMessageResult)
+	var presenceChannel = make(chan *messaging.PNPresenceEventResult)
+
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+	await := make(chan bool)
+	go pubnubInstance.SubscribeV2(channel, "", "", false, statusChannel, messageChannel, presenceChannel)
+	go func() {
+		for {
+			select {
+			case _ = <-presenceChannel:
+			case response := <-messageChannel:
+				assert.Equal(response.Payload, customMessage)
+				close(await)
+				return
+			case err := <-statusChannel:
+				if err.IsError {
+					fmt.Println("Error:", err.ErrorData.Information)
+					fmt.Println("Category:", err.Category)
+					fmt.Println("AffectedChannels:", strings.Join(err.AffectedChannels, ","))
+					fmt.Println("AffectedChannelGroups:", strings.Join(err.AffectedChannelGroups, ","))
+				} else if err.Category == messaging.PNConnectedCategory {
+					successChannel := make(chan []byte)
+					errorChannel := make(chan []byte)
+
+					go pubnubInstance.Publish(channel, customMessage,
+						successChannel, errorChannel)
+					select {
+					case <-successChannel:
+					case err := <-errorChannel:
+						assert.Fail(string(err))
+					case <-timeout():
+						assert.Fail("Publish timeout")
+					}
+				} else {
+					fmt.Println("Category:", err.Category)
+				}
+			case <-timeouts(5):
+				assert.Fail("Subscribe timeout 3s")
+				close(await)
+				return
+			}
+		}
+	}()
+
+	<-await
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+
+	// pubnubInstance.CloseExistingConnection()
+}
+
 // TestSubscriptionForSimpleMessage first subscribes to a pubnub channel and then publishes
 // a message on the same pubnub channel. The subscribe response should receive this same message.
 func TestSubscriptionForSimpleMessage(t *testing.T) {
