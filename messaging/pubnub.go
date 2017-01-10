@@ -1447,13 +1447,34 @@ func (pub *Pubnub) PublishExtendedWithMeta(channel string, message, meta interfa
 	pub.PublishExtendedWithMetaAndReplicate(channel, message, meta, storeInHistory, doNotSerialize, true, callbackChannel, errorChannel)
 }
 
+// PublishExtendedWithMetaAndReplicate is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
+//
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// meta: meta data for message filtering
+// storeInHistory: Message will be persisted in Storage & Playback db
+// doNotSerialize: Set this option to true if you use your own serializer. In
+// this case passed-in message should be a string or []byte
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
 func (pub *Pubnub) PublishExtendedWithMetaAndReplicate(channel string, message, meta interface{},
 	storeInHistory, doNotSerialize, replicate bool,
 	callbackChannel, errorChannel chan []byte) {
 	pub.PublishExtendedWithMetaReplicateAndTTL(channel, message, meta, storeInHistory, doNotSerialize, replicate, -1, callbackChannel, errorChannel)
 }
 
-// PublishExtendedWithMetaAndReplicate is the struct Pubnub's instance method that creates a publish request and calls
+// PublishExtendedWithMetaReplicateAndTTL is the struct Pubnub's instance method that creates a publish request and calls
 // sendPublishRequest to post the request.
 //
 // It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
