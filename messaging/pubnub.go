@@ -1170,7 +1170,7 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 // callbackChannel: Channel on which to send the response.
 // errorChannel on which the error response is sent.
 func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
-	storeInHistory, replicate bool, jsonBytes string, metaBytes []byte,
+	storeInHistory, replicate bool, jsonBytes string, metaBytes []byte, ttl int,
 	callbackChannel, errorChannel chan []byte) {
 
 	u := &url.URL{Path: jsonBytes}
@@ -1187,6 +1187,10 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 
 	if !replicate {
 		publishURL = fmt.Sprintf("%s&norep=true", publishURL)
+	}
+
+	if ttl >= 0 {
+		publishURL = fmt.Sprintf("%s&ttl=%d", publishURL, ttl)
 	}
 
 	pub.publishCounterMu.Lock()
@@ -1443,6 +1447,12 @@ func (pub *Pubnub) PublishExtendedWithMeta(channel string, message, meta interfa
 	pub.PublishExtendedWithMetaAndReplicate(channel, message, meta, storeInHistory, doNotSerialize, true, callbackChannel, errorChannel)
 }
 
+func (pub *Pubnub) PublishExtendedWithMetaAndReplicate(channel string, message, meta interface{},
+	storeInHistory, doNotSerialize, replicate bool,
+	callbackChannel, errorChannel chan []byte) {
+	pub.PublishExtendedWithMetaReplicateAndTTL(channel, message, meta, storeInHistory, doNotSerialize, replicate, -1, callbackChannel, errorChannel)
+}
+
 // PublishExtendedWithMetaAndReplicate is the struct Pubnub's instance method that creates a publish request and calls
 // sendPublishRequest to post the request.
 //
@@ -1464,8 +1474,8 @@ func (pub *Pubnub) PublishExtendedWithMeta(channel string, message, meta interfa
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) PublishExtendedWithMetaAndReplicate(channel string, message, meta interface{},
-	storeInHistory, doNotSerialize, replicate bool,
+func (pub *Pubnub) PublishExtendedWithMetaReplicateAndTTL(channel string, message, meta interface{},
+	storeInHistory, doNotSerialize, replicate bool, ttl int,
 	callbackChannel, errorChannel chan []byte) {
 
 	var publishURLBuffer bytes.Buffer
@@ -1540,13 +1550,13 @@ func (pub *Pubnub) PublishExtendedWithMetaAndReplicate(channel string, message, 
 				pub.sendErrorResponse(errorChannel, channel, fmt.Sprintf("error in serializing: %s", errEnc))
 			} else {
 				pub.sendPublishRequest(channel, publishURLBuffer.String(),
-					storeInHistory, replicate, string(jsonEncBytes), jsonSerializedMeta, callbackChannel, errorChannel)
+					storeInHistory, replicate, string(jsonEncBytes), jsonSerializedMeta, ttl, callbackChannel, errorChannel)
 			}
 		} else {
 			//messageStr := strings.Replace(string(jsonSerialized), "/", "%2F", -1)
 
 			pub.sendPublishRequest(channel, publishURLBuffer.String(), storeInHistory, replicate,
-				string(jsonSerialized), jsonSerializedMeta, callbackChannel, errorChannel)
+				string(jsonSerialized), jsonSerializedMeta, ttl, callbackChannel, errorChannel)
 		}
 	}
 }
