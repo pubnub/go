@@ -30,13 +30,13 @@ var cipher = ""
 var uuid = ""
 
 //
-var publishKey = ""
+var publishKey = "demo"
 
 //
-var subscribeKey = ""
+var subscribeKey = "demo"
 
 //
-var secretKey = ""
+var secretKey = "demo"
 
 // a boolean to capture user preference of displaying errors.
 var displayError = true
@@ -616,6 +616,10 @@ func ReadLoop() {
 			fmt.Println("ENTER 38 FOR Publish with StoreInHistory")
 			fmt.Println("ENTER 39 FOR Publish with replicate")
 			fmt.Println("ENTER 40 FOR Fire")
+			fmt.Println("ENTER 41 FOR Subscribe V2")
+			fmt.Println("ENTER 42 FOR Subscribe Channel Group V2")
+			fmt.Println("ENTER 43 FOR Subscribe Channel Group")
+			fmt.Println("ENTER 44 FOR Publish with TTL")
 			fmt.Println("ENTER 99 FOR Exit")
 			fmt.Println("")
 			showOptions = false
@@ -1034,6 +1038,63 @@ func ReadLoop() {
 				}
 				//go publishRoutine(channels, message)
 			}
+		case "41":
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Running Subscribe")
+				go subscribeRoutineV2(channels, "", "")
+			}
+		case "42":
+			channels, errReadingChannel := askChannelGroup()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Running Subscribe")
+				go subscribeRoutineV2("", channels, "")
+			}
+		case "43":
+			channels, errReadingChannel := askChannelGroup()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Running Subscribe CG")
+				go subscribeRoutineCG(channels, "")
+			}
+		case "44":
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Please enter the message")
+				message, _, err := reader.ReadLine()
+
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					fmt.Println("Replicate? Enter 'y' for yes or 'n' for no")
+					var replicate = "n"
+					fmt.Scanln(&replicate)
+					replicateBool := false
+					if replicate == "Y" || replicate == "y" {
+						replicateBool = true
+					}
+					fmt.Println("Enter TTL in minutes. Default = 10)")
+					input := ""
+					fmt.Scanln(&input)
+
+					ttl := -1
+
+					if ival, err := strconv.Atoi(input); err == nil {
+						ttl = ival
+					} else {
+						ttl = 10
+					}
+					go publishRoutineReplicateWithTTL(channels, string(message), replicateBool, ttl)
+				}
+				//go publishRoutine(channels, message)
+			}
 		case "99":
 			fmt.Println("Exiting")
 			pub.Abort()
@@ -1086,7 +1147,7 @@ func pamSubscribeRoutine(channels string, read bool, write bool, ttl int) {
 	var errorChannel = make(chan []byte)
 	var pamChannel = make(chan []byte)
 	go pub.GrantSubscribe(channels, read, write, ttl, "", pamChannel, errorChannel)
-	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Susbcribe Grant")
+	go handleResult(pamChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Subscribe Grant")
 }
 
 // pamPresenceRoutine calls the GrantPresence routine of the messaging package
@@ -1152,6 +1213,64 @@ func subscribeRoutine(channels string, timetoken string) {
 
 // SubscribeRoutine calls the Subscribe routine of the messaging package
 // as a parallel process.
+func subscribeRoutineCG(cg string, timetoken string) {
+	var errorChannel = make(chan []byte)
+	var subscribeChannel = make(chan []byte)
+	go pub.ChannelGroupSubscribe(cg, subscribeChannel, errorChannel)
+	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+}
+
+// SubscribeRoutine calls the Subscribe routine of the messaging package
+// as a parallel process.
+func subscribeRoutineV2(channels string, channelGroups string, timetoken string) {
+	var statusChannel = make(chan *messaging.PNStatus)
+	var messageChannel = make(chan *messaging.PNMessageResult)
+	var presenceChannel = make(chan *messaging.PNPresenceEventResult)
+	go pub.SubscribeV2(channels, channelGroups, "", true, statusChannel, messageChannel, presenceChannel)
+	for {
+		select {
+		case response := <-presenceChannel:
+			fmt.Println("****** Presence response ******")
+			fmt.Println("Channel:", response.Channel)
+			fmt.Println("ChannelGroup:", response.ChannelGroup)
+			fmt.Println("Event:", response.Event)
+			fmt.Println("OriginatingTimetoken:", response.OriginatingTimetoken.Timetoken)
+			fmt.Println("IssuingClientId:", string(response.IssuingClientId))
+			fmt.Println("UserMetadata:", response.UserMetadata)
+			fmt.Println("UUID:", response.UUID)
+			fmt.Println("Timestamp:", response.Timestamp)
+			fmt.Println("State:", response.State)
+			fmt.Println("Occupancy:", response.Occupancy)
+			fmt.Println("****** ******")
+		case response := <-messageChannel:
+			fmt.Println("****** Subscribe response ******")
+			fmt.Println("Channel:", response.Channel)
+			fmt.Println("ChannelGroup:", response.ChannelGroup)
+			fmt.Println("Payload:", response.Payload)
+			fmt.Println("OriginatingTimetoken:", response.OriginatingTimetoken.Timetoken)
+			fmt.Println("PublishTimetokenMetadata:", response.PublishTimetokenMetadata.Timetoken)
+			fmt.Println("IssuingClientId:", string(response.IssuingClientId))
+			fmt.Println("UserMetadata:", response.UserMetadata)
+			fmt.Println("****** ******")
+		case err := <-statusChannel:
+			if err.IsError {
+				fmt.Println("Error:", err.ErrorData.Information)
+				fmt.Println("Category:", err.Category)
+				fmt.Println("AffectedChannels:", strings.Join(err.AffectedChannels, ","))
+				fmt.Println("AffectedChannelGroups:", strings.Join(err.AffectedChannelGroups, ","))
+			} else if err.Category == messaging.PNConnectedCategory {
+				fmt.Println(fmt.Sprintf("Category: %d", err.Category))
+				fmt.Println("AffectedChannels:", strings.Join(err.AffectedChannels, ","))
+				fmt.Println("AffectedChannelGroups:", strings.Join(err.AffectedChannelGroups, ","))
+			} else {
+				fmt.Println("Category:", err.Category)
+			}
+		}
+	}
+}
+
+// SubscribeRoutine calls the Subscribe routine of the messaging package
+// as a parallel process.
 func subscribeRoutine2(channels string, timetoken string) {
 	var errorChannel = make(chan []byte)
 	var subscribeChannel = make(chan []byte)
@@ -1181,6 +1300,16 @@ func publishRoutineStoreInHistory(channels, message string, storeInHistory bool)
 	go pub.PublishExtended(ch, message, storeInHistory, false, callbackChannel, errorChannel)
 
 	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish with store in history")
+}
+
+func publishRoutineReplicateWithTTL(channels, message string, replicate bool, ttl int) {
+	var errorChannel = make(chan []byte)
+	ch := strings.TrimSpace(channels)
+	fmt.Println("Publish to channel: ", ch)
+	callbackChannel := make(chan []byte)
+	go pub.PublishExtendedWithMetaReplicateAndTTL(ch, message, nil, true, false, replicate, ttl, callbackChannel, errorChannel)
+
+	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "PublishExtendedWithMeta and TTL")
 }
 
 func publishRoutineReplicate(channels, message string, replicate bool) {

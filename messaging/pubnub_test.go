@@ -19,6 +19,29 @@ func TestGenUuid(t *testing.T) {
 	assert.Len(uuid, 32)
 }
 
+func InvalidChannelCommon(ch string, isChannelGroup, expected bool, t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid")
+	b := pubnub.invalidChannelV2(ch, nil, isChannelGroup)
+	assert.Equal(b, expected)
+}
+
+func TestInvalidChannelV2(t *testing.T) {
+	InvalidChannelCommon("a, b", false, false, t)
+}
+
+func TestInvalidChannelGroupV2(t *testing.T) {
+	InvalidChannelCommon("a,b", true, false, t)
+}
+
+func TestInvalidChannelFailV2(t *testing.T) {
+	InvalidChannelCommon("a, ", false, true, t)
+}
+
+func TestInvalidChannelGroupFailV2(t *testing.T) {
+	InvalidChannelCommon("", true, true, t)
+}
+
 func TestGetSubscribeLoopActionEmptyLists(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := Pubnub{
@@ -29,14 +52,356 @@ func TestGetSubscribeLoopActionEmptyLists(t *testing.T) {
 
 	errCh := make(chan []byte)
 
-	action := pubnub.getSubscribeLoopAction("", "", errCh)
+	action := pubnub.getSubscribeLoopAction("", "", errCh, nil)
 	assert.Equal(subscribeLoopDoNothing, action)
 
-	action = pubnub.getSubscribeLoopAction("channel", "", errCh)
+	action = pubnub.getSubscribeLoopAction("channel", "", errCh, nil)
 	assert.Equal(subscribeLoopStart, action)
 
-	action = pubnub.getSubscribeLoopAction("", "group", errCh)
+	action = pubnub.getSubscribeLoopAction("", "group", errCh, nil)
 	assert.Equal(subscribeLoopStart, action)
+}
+
+func TestConnectionEventChannel(t *testing.T) {
+	name := "existing_channel1"
+	sendConnectionEventToChannelOrChannelGroupsCommon(name, false, false, false, t)
+}
+func TestConnectionEventChannelGroup(t *testing.T) {
+	name := "existing_channelGroup1"
+	sendConnectionEventToChannelOrChannelGroupsCommon(name, true, false, false, t)
+}
+func TestConnectionEventChannelV2(t *testing.T) {
+	name := "existing_channel2"
+	sendConnectionEventToChannelOrChannelGroupsCommon(name, false, true, false, t)
+}
+func TestConnectionEventChannelGroupV2(t *testing.T) {
+	name := "existing_channelGroup2"
+	sendConnectionEventToChannelOrChannelGroupsCommon(name, true, true, false, t)
+}
+
+func TestConnectionEventChannelPres(t *testing.T) {
+	name := "existing_channel1-pnpres"
+	sendConnectionEventToChannelOrChannelGroupsCommon(name, false, false, true, t)
+}
+func TestConnectionEventChannelGroupPres(t *testing.T) {
+	name := "existing_channelGroup1-pnpres"
+	sendConnectionEventToChannelOrChannelGroupsCommon(name, true, false, true, t)
+}
+func TestConnectionEventChannelV2Pres(t *testing.T) {
+	name := "existing_channel2-pnpres"
+	sendConnectionEventToChannelOrChannelGroupsCommon(name, false, true, true, t)
+}
+func TestConnectionEventChannelGroupV2Pres(t *testing.T) {
+	name := "existing_channelGroup2-pnpres"
+	sendConnectionEventToChannelOrChannelGroupsCommon(name, true, true, true, t)
+}
+
+func sendConnectionEventToChannelOrChannelGroupsCommon(name string, isChannelGroup, isV2, withPresence bool, t *testing.T) {
+
+	pub := Pubnub{
+		channels:   *newSubscriptionEntity(),
+		groups:     *newSubscriptionEntity(),
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+
+	var statusChannel = make(chan *PNStatus)
+	var messageChannel = make(chan *PNMessageResult)
+	var presenceChannel = make(chan *PNPresenceEventResult)
+
+	existingSuccessChannel := make(chan []byte)
+	existingErrorChannel := make(chan []byte)
+	await := make(chan bool)
+	if isV2 {
+		sendConnectionEventToChannelOrChannelGroupsCommonV2(await, t, name, withPresence, isChannelGroup, statusChannel, messageChannel, presenceChannel)
+		if isChannelGroup {
+
+			pub.groups.AddV2(name, statusChannel, messageChannel, presenceChannel, pub.infoLogger)
+
+			pub.sendConnectionEventToChannelOrChannelGroups(name, true, connectionConnected)
+
+			pub.infoLogger.Printf("INFO: Awaiting: '%s', connected:", name)
+		} else {
+
+			pub.channels.AddV2(name, statusChannel, messageChannel, presenceChannel, pub.infoLogger)
+			pub.sendConnectionEventToChannelOrChannelGroups(name, false, connectionConnected)
+		}
+		<-await
+		pub.infoLogger.Printf("INFO: Awaited: '%s', connected:", name)
+
+	} else {
+		sendConnectionEventToChannelOrChannelGroupsCommonV1(await, t, name, withPresence, isChannelGroup, existingSuccessChannel, existingErrorChannel)
+		if isChannelGroup {
+
+			pub.groups.Add(name, existingSuccessChannel, existingErrorChannel, pub.infoLogger)
+			pub.infoLogger.Printf("INFO: After add: '%s', connected:", name)
+			pub.sendConnectionEventToChannelOrChannelGroups(name, true, connectionConnected)
+		} else {
+			pub.channels.Add(name, existingSuccessChannel, existingErrorChannel, pub.infoLogger)
+			pub.infoLogger.Printf("INFO: after add '%s', connected:", name)
+			pub.sendConnectionEventToChannelOrChannelGroups(name, false, connectionConnected)
+		}
+		pub.infoLogger.Printf("INFO: Awaiting: '%s', connected:", name)
+		go func() {
+			<-existingSuccessChannel
+			<-existingErrorChannel
+
+		}()
+
+		<-await
+		pub.infoLogger.Printf("INFO: Awaited: '%s', connected:", name)
+
+	}
+
+}
+
+func sendConnectionEventToChannelOrChannelGroupsCommonV1(await chan bool, t *testing.T,
+	name string, withPresence, isChannelGroup bool,
+	existingSuccessChannel, existingErrorChannel <-chan []byte) {
+	assert := assert.New(t)
+
+	go func() {
+		for {
+			select {
+			case success, ok := <-existingSuccessChannel:
+				if !ok {
+					break
+				}
+				res := string(success)
+				if res != "[]" {
+
+					//fmt.Println("RES:", res)
+					assert.Contains(res, "connected")
+
+					if withPresence {
+						if strings.Contains(res, presenceSuffix) || (strings.Contains(res, "Presence")) {
+							assert.True(true)
+						}
+
+					} else {
+						assert.Contains(res, name)
+					}
+
+				}
+				await <- true
+				break
+			case failure, ok := <-existingErrorChannel:
+				if !ok {
+					break
+				}
+				if string(failure) != "[]" {
+					await <- true
+				}
+				break
+			}
+		}
+	}()
+
+}
+
+func sendConnectionEventToChannelOrChannelGroupsCommonV2(await chan bool, t *testing.T,
+	name string, withPresence, isChannelGroup bool,
+	statusChannel chan *PNStatus,
+	messageChannel chan *PNMessageResult,
+	presenceChannel chan *PNPresenceEventResult) {
+	assert := assert.New(t)
+	go func() {
+		for {
+			select {
+			case response := <-presenceChannel:
+				if isChannelGroup {
+					assert.Equal(response.ChannelGroup, name)
+				} else {
+					assert.Equal(response.Channel, name)
+				}
+			case response := <-messageChannel:
+				if isChannelGroup {
+					assert.Equal(response.ChannelGroup, name)
+				} else {
+					assert.Equal(response.Channel, name)
+				}
+			case err := <-statusChannel:
+				//fmt.Println(err.AffectedChannelGroups)
+				//fmt.Println(err.AffectedChannels)
+				//fmt.Println(err.Category)
+				if isChannelGroup {
+					chs := strings.Join(err.AffectedChannelGroups, ",")
+					assert.Contains(chs, name)
+					if withPresence {
+						assert.Contains(chs, presenceSuffix)
+					}
+
+				} else {
+					chs := strings.Join(err.AffectedChannels, ",")
+					assert.Contains(chs, name)
+					if withPresence {
+						assert.Contains(chs, presenceSuffix)
+					}
+
+				}
+				assert.Equal(err.Category, PNConnectedCategory)
+
+				//pub.infoLogger.Printf("INFO: Connected: '%s', connected: %s", name, strings.Join(err.AffectedChannelGroups, ","))
+				await <- true
+				break
+			}
+		}
+	}()
+
+}
+
+func TestAddChannelsOrChannelGroups(t *testing.T) {
+	assert := assert.New(t)
+	pub := Pubnub{
+		channels:   *newSubscriptionEntity(),
+		groups:     *newSubscriptionEntity(),
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	var statusChannel = make(chan *PNStatus)
+	var messageChannel = make(chan *PNMessageResult)
+	var presenceChannel = make(chan *PNPresenceEventResult)
+	channelOrChannelGroups := "ch1,ch2"
+	pub.addChannelsOrChannelGroups(channelOrChannelGroups, false, "", statusChannel, messageChannel, presenceChannel)
+	name := "ch1"
+	item, found := pub.channels.Get(name)
+	assert.Equal(item.Name, name)
+	assert.Equal(found, true)
+	assert.Equal(item.Connected, false)
+	channelOrChannelGroups = "cg1,cg2"
+	pub.addChannelsOrChannelGroups(channelOrChannelGroups, true, "", statusChannel, messageChannel, presenceChannel)
+	name = "cg1"
+	item, found = pub.groups.Get(name)
+	assert.Equal(item.Name, name)
+	assert.Equal(found, true)
+	assert.Equal(item.Connected, false)
+	channelOrChannelGroups = "cg3"
+	pub.addChannelsOrChannelGroups(channelOrChannelGroups, true, "1231414515", statusChannel, messageChannel, presenceChannel)
+	name = "cg3"
+	item, found = pub.groups.Get(name)
+	assert.Equal(item.Name, name)
+	assert.Equal(found, true)
+	assert.Equal(item.Connected, true)
+	channelOrChannelGroups = "ch3"
+	pub.addChannelsOrChannelGroups(channelOrChannelGroups, false, "1231414515", statusChannel, messageChannel, presenceChannel)
+	name = "ch3"
+	item, found = pub.channels.Get(name)
+	assert.Equal(item.Name, name)
+	assert.Equal(found, true)
+	assert.Equal(item.Connected, true)
+}
+
+func TestAddPresenceChannels(t *testing.T) {
+	assert := assert.New(t)
+	channels := "ch1,ch2"
+	channelGroups := "cg1,cg2"
+	channels = addPresenceChannels(channels, true)
+	channelGroups = addPresenceChannels(channelGroups, true)
+	assert.Contains(channels, "ch1-pnpres")
+	assert.Contains(channels, "ch2-pnpres")
+	assert.Contains(channelGroups, "cg1-pnpres")
+	assert.Contains(channelGroups, "cg2-pnpres")
+	channels = "ch3,ch4"
+	channelGroups = "cg3,cg4"
+
+	channels = addPresenceChannels(channels, false)
+	channelGroups = addPresenceChannels(channelGroups, false)
+	assert.NotContains(channels, "ch3-pnpres")
+	assert.NotContains(channels, "ch4-pnpres")
+	assert.NotContains(channelGroups, "cg3-pnpres")
+	assert.NotContains(channelGroups, "cg4-pnpres")
+
+}
+
+func TestCheckAlreadySubscribedChannelsOrChannelGroups(t *testing.T) {
+	assert := assert.New(t)
+	pub := Pubnub{
+		channels:   *newSubscriptionEntity(),
+		groups:     *newSubscriptionEntity(),
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+
+	var statusChannel = make(chan *PNStatus)
+	var messageChannel = make(chan *PNMessageResult)
+	var presenceChannel = make(chan *PNPresenceEventResult)
+
+	errorChannel := make(chan []byte)
+	go func() {
+		for {
+			select {
+
+			case _ = <-statusChannel:
+				//fmt.Println(err.AffectedChannelGroups)
+				//fmt.Println(err.AffectedChannels)
+				//fmt.Println(err.Category)
+				/*if isChannelGroup {
+					chs := strings.Join(err.AffectedChannelGroups, ",")
+					assert.Contains(chs, name)
+					if withPresence {
+						assert.Contains(chs, presenceSuffix)
+					}
+
+				} else {
+					chs := strings.Join(err.AffectedChannels, ",")
+					assert.Contains(chs, name)
+					if withPresence {
+						assert.Contains(chs, presenceSuffix)
+					}
+
+				}
+				assert.Equal(err.Category, PNConnectedCategory)
+
+				//pub.infoLogger.Printf("INFO: Connected: '%s', connected: %s", name, strings.Join(err.AffectedChannelGroups, ","))
+				await <- true*/
+				break
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			select {
+
+			case failure, ok := <-errorChannel:
+				if !ok {
+					break
+				}
+				if string(failure) != "[]" {
+					//await <- true
+				}
+				break
+			}
+		}
+	}()
+
+	s := []string{"ch1"}
+	s, i, b := pub.checkAlreadySubscribedChannelsOrChannelGroups(s, errorChannel, statusChannel, false)
+	//fmt.Println("b1:", b)
+	assert.True(b)
+	pub.channels.AddV2("ch1", statusChannel, messageChannel, presenceChannel, pub.infoLogger)
+	s = []string{"cg1"}
+	_, _, b = pub.checkAlreadySubscribedChannelsOrChannelGroups(s, errorChannel, statusChannel, true)
+	//fmt.Println("b2:", b)
+	assert.True(b)
+	pub.groups.AddV2("cg1", statusChannel, messageChannel, presenceChannel, pub.infoLogger)
+	s = []string{"cg1"}
+	_, _, b = pub.checkAlreadySubscribedChannelsOrChannelGroups(s, errorChannel, statusChannel, true)
+	//fmt.Println("b3:", b)
+	assert.False(b)
+	s = []string{"ch1"}
+	s, i, b = pub.checkAlreadySubscribedChannelsOrChannelGroups(s, errorChannel, statusChannel, false)
+	//fmt.Println("b4:", b, s1, i)
+	assert.False(b)
+
+	s = []string{"cg2", "cg3"}
+	s, i, b = pub.checkAlreadySubscribedChannelsOrChannelGroups(s, errorChannel, statusChannel, true)
+	//fmt.Println("b5:", b, s1, i)
+	assert.True(b)
+	assert.Equal(i, 0)
+	s = []string{"ch2", "ch3"}
+
+	s, i, b = pub.checkAlreadySubscribedChannelsOrChannelGroups(s, errorChannel, statusChannel, false)
+	//fmt.Println("b6:", b, s1, i)
+	assert.True(b)
+	assert.Equal(i, 0)
 }
 
 func TestGetSubscribeLoopActionListWithSingleChannel(t *testing.T) {
@@ -55,13 +420,13 @@ func TestGetSubscribeLoopActionListWithSingleChannel(t *testing.T) {
 	pubnub.channels.Add("existing_channel",
 		existingSuccessChannel, existingErrorChannel, pubnub.infoLogger)
 
-	action := pubnub.getSubscribeLoopAction("", "", errCh)
+	action := pubnub.getSubscribeLoopAction("", "", errCh, nil)
 	assert.Equal(subscribeLoopDoNothing, action)
 
-	action = pubnub.getSubscribeLoopAction("channel", "", errCh)
+	action = pubnub.getSubscribeLoopAction("channel", "", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
-	action = pubnub.getSubscribeLoopAction("", "group", errCh)
+	action = pubnub.getSubscribeLoopAction("", "group", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
 	// existing
@@ -69,7 +434,7 @@ func TestGetSubscribeLoopActionListWithSingleChannel(t *testing.T) {
 		<-errCh
 		await <- true
 	}()
-	action = pubnub.getSubscribeLoopAction("existing_channel", "", errCh)
+	action = pubnub.getSubscribeLoopAction("existing_channel", "", errCh, nil)
 	<-await
 	assert.Equal(subscribeLoopDoNothing, action)
 }
@@ -90,13 +455,13 @@ func TestGetSubscribeLoopActionListWithSingleGroup(t *testing.T) {
 	pubnub.groups.Add("existing_group",
 		existingSuccessChannel, existingErrorChannel, pubnub.infoLogger)
 
-	action := pubnub.getSubscribeLoopAction("", "", errCh)
+	action := pubnub.getSubscribeLoopAction("", "", errCh, nil)
 	assert.Equal(subscribeLoopDoNothing, action)
 
-	action = pubnub.getSubscribeLoopAction("channel", "", errCh)
+	action = pubnub.getSubscribeLoopAction("channel", "", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
-	action = pubnub.getSubscribeLoopAction("", "group", errCh)
+	action = pubnub.getSubscribeLoopAction("", "group", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
 	// existing
@@ -104,7 +469,7 @@ func TestGetSubscribeLoopActionListWithSingleGroup(t *testing.T) {
 		<-errCh
 		await <- true
 	}()
-	action = pubnub.getSubscribeLoopAction("", "existing_group", errCh)
+	action = pubnub.getSubscribeLoopAction("", "existing_group", errCh, nil)
 	<-await
 	assert.Equal(subscribeLoopDoNothing, action)
 }
@@ -127,17 +492,17 @@ func TestGetSubscribeLoopActionListWithMultipleChannels(t *testing.T) {
 	pubnub.channels.Add("ex_ch2",
 		existingSuccessChannel, existingErrorChannel, pubnub.infoLogger)
 
-	action := pubnub.getSubscribeLoopAction("ch1,ch2", "", errCh)
+	action := pubnub.getSubscribeLoopAction("ch1,ch2", "", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
-	action = pubnub.getSubscribeLoopAction("", "gr1,gr2", errCh)
+	action = pubnub.getSubscribeLoopAction("", "gr1,gr2", errCh, nil)
 	assert.Equal(subscribeLoopRestart, action)
 
 	go func() {
 		<-errCh
 		await <- true
 	}()
-	action = pubnub.getSubscribeLoopAction("ch1,ex_ch1,ch2", "", errCh)
+	action = pubnub.getSubscribeLoopAction("ch1,ex_ch1,ch2", "", errCh, nil)
 	<-await
 	assert.Equal(subscribeLoopRestart, action)
 
@@ -146,7 +511,7 @@ func TestGetSubscribeLoopActionListWithMultipleChannels(t *testing.T) {
 		<-errCh
 		await <- true
 	}()
-	action = pubnub.getSubscribeLoopAction("ex_ch1,ex_ch2", "", errCh)
+	action = pubnub.getSubscribeLoopAction("ex_ch1,ex_ch2", "", errCh, nil)
 	<-await
 	assert.Equal(subscribeLoopDoNothing, action)
 }
@@ -245,6 +610,57 @@ func TestCheckCallbackNil(t *testing.T) {
 	var callbackChannel = make(chan []byte)
 	pubnub.checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 
+}
+
+func TestCheckCallbackNilV2(t *testing.T) {
+	assert := assert.New(t)
+	// Handle errors in defer func with recover.
+	defer func() {
+		if r := recover(); r != nil {
+			var ok bool
+			err, ok := r.(error)
+			if !ok {
+				err = fmt.Errorf("pkg: %v", r)
+				//fmt.Println(err)
+				assert.True(strings.Contains(err.Error(), "Callback is nil for GrantSubscribe"))
+			} else {
+				assert.True(true)
+			}
+		}
+
+	}()
+	pubnub := Pubnub{
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	var statusChannel = make(chan *PNStatus)
+	var messageChannel = make(chan *PNMessageResult)
+	var presenceChannel = make(chan *PNPresenceEventResult)
+
+	pubnub.checkCallbackNilV2(statusChannel, messageChannel, presenceChannel, "GrantSubscribe", false)
+}
+
+func TestCheckCallbackNilV2Exception(t *testing.T) {
+	assert := assert.New(t)
+	// Handle errors in defer func with recover.
+	defer func() {
+		if r := recover(); r != nil {
+			var ok bool
+			err, ok := r.(error)
+			if !ok {
+				err = fmt.Errorf("pkg: %v", r)
+				//fmt.Println(err)
+				assert.True(strings.Contains(err.Error(), " Callback is nil for function GrantSubscribe"))
+			}
+		}
+
+	}()
+	pubnub := Pubnub{
+		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
+	}
+	var messageChannel = make(chan *PNMessageResult)
+	var presenceChannel = make(chan *PNPresenceEventResult)
+
+	pubnub.checkCallbackNilV2(nil, messageChannel, presenceChannel, "GrantSubscribe", false)
 }
 
 func TestExtractMessage(t *testing.T) {
@@ -613,7 +1029,7 @@ func TestCreateSubscribeURLReset(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.2", b)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.3", b)
 	assert.Equal(senttt, tt)
 	presenceHeartbeat = 0
 }
@@ -638,7 +1054,7 @@ func TestCreateSubscribeURL(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.9.4.2", b)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.9.4.3", b)
 	assert.Equal(senttt, tt)
 }
 
@@ -662,7 +1078,7 @@ func TestCreateSubscribeURLFilterExp(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.9.4.2", b)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.9.4.3", b)
 	assert.Equal(senttt, tt)
 }
 
@@ -692,7 +1108,7 @@ func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s", b)
 
-	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.2", b)
+	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.3", b)
 	presenceHeartbeat = 0
 
 }

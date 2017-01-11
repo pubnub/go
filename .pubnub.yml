@@ -3,6 +3,19 @@ changelog:
   - 
     changes: 
       - 
+        text: “Message TTL”
+        type: improvement
+      - 
+        text: “Subscriber UUID is displayed for Subscribe V2”
+        type: improvement
+      - 
+        text: “Subscribe V2 response”
+        type: improvement
+    date: Jan 11, 16
+    version: v3.9.4.3
+  - 
+    changes: 
+      - 
         text: “Changed origin to ps.pndsn.com”
         type: improvement
     date: Dec 21, 16
@@ -179,6 +192,7 @@ features:
     - PUBLISH-FIRE 
     - PUBLISH-REPLICATION-FLAG
     - PUBLISH-WITH-METADATA
+    - PUBLISH-MESSAGE-TTL
   push: 
     - PUSH-ADD-DEVICE-TO-CHANNELS
     - PUSH-REMOVE-DEVICE-FROM-CHANNELS
@@ -198,9 +212,11 @@ features:
     - SUBSCRIBE-WILDCARD
     - SUBSCRIBE-FILTER-EXPRESSION
     - SUBSCRIBE-WILDCARD
+    - SUBSCRIBE-PUBSUB-V2
+    - SUBSCRIBE-PUBLISHER-UUID
   time: 
     - TIME-TIME
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: “3.9.4.2”
+version: “3.9.4.3”
