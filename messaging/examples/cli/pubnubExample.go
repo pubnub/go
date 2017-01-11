@@ -30,13 +30,13 @@ var cipher = ""
 var uuid = ""
 
 //
-var publishKey = "pub-c-25f8616c-9e80-4846-8d47-0a9257f84516"
+var publishKey = "demo"
 
 //
-var subscribeKey = "sub-c-f6e09df0-bd35-11e6-963b-0619f8945a4f"
+var subscribeKey = "demo"
 
 //
-var secretKey = "sec-c-Mjk1OGYwNTMtZmMwYS00YjRmLWIxYjctNWU5ZTFlNWJiNDY4"
+var secretKey = "demo"
 
 // a boolean to capture user preference of displaying errors.
 var displayError = true
@@ -618,6 +618,8 @@ func ReadLoop() {
 			fmt.Println("ENTER 40 FOR Fire")
 			fmt.Println("ENTER 41 FOR Subscribe V2")
 			fmt.Println("ENTER 42 FOR Subscribe Channel Group V2")
+			fmt.Println("ENTER 43 FOR Subscribe Channel Group")
+			fmt.Println("ENTER 44 FOR Publish with TTL")
 			fmt.Println("ENTER 99 FOR Exit")
 			fmt.Println("")
 			showOptions = false
