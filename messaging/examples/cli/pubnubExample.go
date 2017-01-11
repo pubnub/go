@@ -1060,6 +1060,39 @@ func ReadLoop() {
 				fmt.Println("Running Subscribe CG")
 				go subscribeRoutineCG(channels, "")
 			}
+		case "44":
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Please enter the message")
+				message, _, err := reader.ReadLine()
+
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					fmt.Println("Replicate? Enter 'y' for yes or 'n' for no")
+					var replicate = "n"
+					fmt.Scanln(&replicate)
+					replicateBool := false
+					if replicate == "Y" || replicate == "y" {
+						replicateBool = true
+					}
+					fmt.Println("Enter TTL in minutes. Default = 10)")
+					input := ""
+					fmt.Scanln(&input)
+
+					ttl := -1
+
+					if ival, err := strconv.Atoi(input); err == nil {
+						ttl = ival
+					} else {
+						ttl = 10
+					}
+					go publishRoutineReplicateWithTTL(channels, string(message), replicateBool, ttl)
+				}
+				//go publishRoutine(channels, message)
+			}
 		case "99":
 			fmt.Println("Exiting")
 			pub.Abort()
@@ -1265,6 +1298,16 @@ func publishRoutineStoreInHistory(channels, message string, storeInHistory bool)
 	go pub.PublishExtended(ch, message, storeInHistory, false, callbackChannel, errorChannel)
 
 	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish with store in history")
+}
+
+func publishRoutineReplicateWithTTL(channels, message string, replicate bool, ttl int) {
+	var errorChannel = make(chan []byte)
+	ch := strings.TrimSpace(channels)
+	fmt.Println("Publish to channel: ", ch)
+	callbackChannel := make(chan []byte)
+	go pub.PublishExtendedWithMetaReplicateAndTTL(ch, message, nil, true, false, replicate, ttl, callbackChannel, errorChannel)
+
+	go handleResult(callbackChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "PublishExtendedWithMeta and TTL")
 }
 
 func publishRoutineReplicate(channels, message string, replicate bool) {

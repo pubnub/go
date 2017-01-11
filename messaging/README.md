@@ -8,6 +8,10 @@
 
 ###Change log
 * 3.9.4.3
+ * Message TTL
+ * Subscriber UUID
+ * Subscribe V2
+* 3.9.4.2
  * Changed origin to ps.pndsn.com
 * 3.9.4.1
  * fixed misspells, some golint changes and gocyclo issues
