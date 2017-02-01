@@ -193,11 +193,7 @@ This function is a utility function used in the examples below to handle the non
 
 ```go
 func handleResult(successChannel, errorChannel chan []byte, timeoutVal int64, action string) {
-    timeout := make(chan bool, 1)
-	go func() {
-		time.Sleep(time.Duration(timeoutVal) * time.Second)
-		timeout <- true
-	}()
+    timeout := time.After(time.Duration(timeoutVal) * time.Second)
     for {
         select {
         case success, ok := <-successChannel:
@@ -267,10 +263,10 @@ Initialize a new Pubnub instance.
 ```go
         //Init pubnub instance
 
-        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        successChannel, errorChannel := messaging.CreateSubscriptionChannels()
         go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>,
-        	successChannel, errorChannel, eventsChannel)
-        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
+		"", successChannel, false, errorChannel)
+        go handleSubscribeResult(successChannel, errorChannel, "Subscribe")
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
@@ -279,10 +275,10 @@ Initialize a new Pubnub instance.
 ```go
         //Init pubnub instance
 
-        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
-        go pubInstance.SubscribeWithTimetoken(<pubnub channel, multiple channels can be separated by comma>,
-        	<timetoken to init the request with>, successChannel, errorChannel, eventsChannel)
-        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
+        successChannel, errorChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>,
+		<timetoken to init the request with>, successChannel, false, errorChannel)
+        go handleSubscribeResult(successChannel, errorChannel, "Subscribe with timetoken")
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
@@ -291,10 +287,10 @@ Initialize a new Pubnub instance.
 ```go
         //Init pubnub instance
 
-        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
-        go pubInstance.Subscribe(<pubnub channels, multiple channels can be separated by comma>,
-        	successChannel, errorChannel, eventsChannel)
-        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
+        successChannel, errorChannel := messaging.CreateSubscriptionChannels()
+        go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>,
+		"", successChannel, true, errorChannel)
+        go handleSubscribeResult(successChannel, errorChannel, "Presence")
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 #### Channel Group Subscribe
@@ -302,11 +298,11 @@ Initialize a new Pubnub instance.
 ```go
         //Init pubnub instance
 
-        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        successChannel, errorChannel := messaging.CreateSubscriptionChannels()
         go pubInstance.ChannelGroupSubscribe(
         	<pubnub channel group, multiple channel groupss can be separated by comma>,
-        	successChannel, errorChannel, eventsChannel)
-        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
+        	"", successChannel, errorChannel)
+        go handleSubscribeResult(successChannel, errorChannel, "Channel Group Subscribe")
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
@@ -315,11 +311,11 @@ Initialize a new Pubnub instance.
 ```go
         //Init pubnub instance
 
-        successChannel, errorChannel, eventsChannel := messaging.CreateSubscriptionChannels()
+        successChannel, errorChannel := messaging.CreateSubscriptionChannels()
         go pubInstance.ChannelGroupSubscribeWithTimetoken(
         	<pubnub channel group, multiple channel groupss can be separated by comma>,
-        	<timetoken to init the request with>, successChannel, errorChannel, eventsChannel)
-        go handleSubscribeResult(successChannel, errorChannel, eventsChannel)
+        	<timetoken to init the request with>, successChannel, errorChannel)
+        go handleSubscribeResult(successChannel, errorChannel, "Channel Group Subscribe with timetoken")
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
 
