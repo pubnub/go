@@ -265,7 +265,7 @@ Initialize a new Pubnub instance.
 
         successChannel, errorChannel := messaging.CreateSubscriptionChannels()
         go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>,
-		"", successChannel, false, errorChannel)
+	    "", successChannel, false, errorChannel)
         go handleSubscribeResult(successChannel, errorChannel, "Subscribe")
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
@@ -277,7 +277,7 @@ Initialize a new Pubnub instance.
 
         successChannel, errorChannel := messaging.CreateSubscriptionChannels()
         go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>,
-		<timetoken to init the request with>, successChannel, false, errorChannel)
+	    <timetoken to init the request with>, successChannel, false, errorChannel)
         go handleSubscribeResult(successChannel, errorChannel, "Subscribe with timetoken")
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
@@ -289,7 +289,7 @@ Initialize a new Pubnub instance.
 
         successChannel, errorChannel := messaging.CreateSubscriptionChannels()
         go pubInstance.Subscribe(<pubnub channel, multiple channels can be separated by comma>,
-		"", successChannel, true, errorChannel)
+	    "", successChannel, true, errorChannel)
         go handleSubscribeResult(successChannel, errorChannel, "Presence")
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
@@ -300,8 +300,8 @@ Initialize a new Pubnub instance.
 
         successChannel, errorChannel := messaging.CreateSubscriptionChannels()
         go pubInstance.ChannelGroupSubscribe(
-        	<pubnub channel group, multiple channel groupss can be separated by comma>,
-        	"", successChannel, errorChannel)
+            <pubnub channel group, multiple channel groupss can be separated by comma>,
+            "", successChannel, errorChannel)
         go handleSubscribeResult(successChannel, errorChannel, "Channel Group Subscribe")
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
@@ -313,8 +313,8 @@ Initialize a new Pubnub instance.
 
         successChannel, errorChannel := messaging.CreateSubscriptionChannels()
         go pubInstance.ChannelGroupSubscribeWithTimetoken(
-        	<pubnub channel group, multiple channel groupss can be separated by comma>,
-        	<timetoken to init the request with>, successChannel, errorChannel)
+            <pubnub channel group, multiple channel groupss can be separated by comma>,
+            <timetoken to init the request with>, successChannel, errorChannel)
         go handleSubscribeResult(successChannel, errorChannel, "Channel Group Subscribe with timetoken")
         // please goto the top of this file see the implementation of handleSubscribeResult
 ```
