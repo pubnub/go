@@ -1157,6 +1157,18 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 	}
 }
 
+// encodeJSONAsPathComponent properly encodes serialized JSON
+// for placement within a URI path
+func encodeJSONAsPathComponent(jsonBytes string) string {
+	u := &url.URL{Path: jsonBytes}
+	encodedPath := u.String()
+
+	// Go 1.8 inserts a ./ per RFC 3986 §4.2. Previous versions
+	// will be unaffected by this under the assumption that jsonBytes
+	// represents valid JSON
+	return strings.TrimLeft(encodedPath, "./")
+}
+
 // sendPublishRequest is the struct Pubnub's instance method that posts a publish request and
 // sends back the response to the channel.
 //
@@ -1173,13 +1185,7 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 	storeInHistory, replicate bool, jsonBytes string, metaBytes []byte, ttl int,
 	callbackChannel, errorChannel chan []byte) {
 
-	u := &url.URL{Path: jsonBytes}
-	encodedPath := u.String()
-
-	// Go 1.8 inserts a ./ per RFC 3986 §4.2. Previous versions
-	// will be unaffected by this under the assumption that jsonBytes
-	// represents valid JSON
-	encodedPath = strings.TrimLeft(encodedPath, "./")
+	encodedPath := encodeJSONAsPathComponent(jsonBytes)
 	pub.infoLogger.Printf("INFO: Publish: json: %s, encoded: %s", jsonBytes, encodedPath)
 
 	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
@@ -1208,9 +1214,7 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 	publishURL = fmt.Sprintf("%s&seqn=%s", publishURL, counter)
 
 	if metaBytes != nil {
-		metaEncoded := &url.URL{Path: string(metaBytes)}
-		metaEncodedPath := metaEncoded.String()
-
+		metaEncodedPath := encodeJSONAsPathComponent(string(metaBytes))
 		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
 	}
 
