@@ -843,7 +843,7 @@ func TestGetDataCipherSingle(t *testing.T) {
 		cipherKey:  "enigma",
 		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
-	response := `["h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=",14610686757083461,14610686757935083]`
+	response := `["h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=",9223372036854775808346,10223372036854775808084]`
 	var contents = []byte(response)
 	var s interface{}
 	err := json.Unmarshal(contents, &s)
@@ -855,7 +855,7 @@ func TestGetDataCipherSingle(t *testing.T) {
 			if length > 0 {
 				msgStr := pubnub.parseInterface(vv, pubnub.cipherKey)
 				//pubnub.infoLogger.Printf(msgStr)
-				assert.Equal("[\"Test Message 5\",1.461068675708346e+16,1.4610686757935084e+16]", msgStr)
+				assert.Equal("[\"Test Message 5\",9.223372036854776e+21,1.0223372036854776e+22]", msgStr)
 			}
 		default:
 			assert.Fail("default fall through")
@@ -872,7 +872,7 @@ func TestGetDataSingle(t *testing.T) {
 		//cipherKey:  "enigma",
 		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
-	response := "[\"Test Message 5\",14610686757083461,14610686757935083]"
+	response := "[\"Test Message 5\",9223372036854775808346,10223372036854775808084]"
 	var contents = []byte(response)
 	var s interface{}
 	err := json.Unmarshal(contents, &s)
@@ -881,7 +881,7 @@ func TestGetDataSingle(t *testing.T) {
 		switch vv := v.(type) {
 		case []interface{}:
 			msgStr := pubnub.parseInterface(vv, pubnub.cipherKey)
-			assert.Equal("[\"Test Message 5\",1.461068675708346e+16,1.4610686757935084e+16]", msgStr)
+			assert.Equal("[\"Test Message 5\",9.223372036854776e+21,1.0223372036854776e+22]", msgStr)
 		default:
 			assert.Fail("default fall through")
 		}
@@ -897,7 +897,7 @@ func TestGetDataCipherNonEncSingle(t *testing.T) {
 		cipherKey:  "enigma",
 		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
-	response := "[\"Test Message 5\",14610686757083461,14610686757935083]"
+	response := "[\"Test Message 5\",9223372036854775808346,10223372036854775808084]"
 	var contents = []byte(response)
 	var s interface{}
 	err := json.Unmarshal(contents, &s)
@@ -909,7 +909,7 @@ func TestGetDataCipherNonEncSingle(t *testing.T) {
 			if length > 0 {
 				msgStr := pubnub.parseInterface(vv, pubnub.cipherKey)
 				//pubnub.infoLogger.Printf(msgStr)
-				assert.Equal("[\"Test Message 5\",1.461068675708346e+16,1.4610686757935084e+16]", msgStr)
+				assert.Equal("[\"Test Message 5\",9.223372036854776e+21,1.0223372036854776e+22]", msgStr)
 			}
 		default:
 			assert.Fail("default fall through")
