@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -183,15 +182,6 @@ var (
 
 	// 16 byte IV
 	valIV = "0123456789012345"
-
-	// If true logs will be written in the log file
-	loggingEnabled bool
-
-	// This stirng is used as a log file name
-	logfileWriter io.Writer
-
-	// Logger for info messages
-	infoLogger *log.Logger
 )
 
 var (
@@ -310,7 +300,6 @@ type Pubnub struct {
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
 
-	// pointer ref to logger for info messages, to avoid race conditions
 	infoLogger *log.Logger
 }
 
@@ -351,15 +340,18 @@ func SetNonSubscribeTransport(transport http.RoundTripper) {
 // cipherKey stores the user specific Cipher Key. Accepts empty string if not used.
 // sslOn is true if enabled, else is false.
 // customUuid is the unique identifier, it can be a custom value or sent as empty for automatic generation.
+// logger is a pointer to log.Logger. If it is set to nil logging is disabled.
 //
 // returns the pointer to Pubnub instance.
-func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherKey string, sslOn bool, customUuid string) *Pubnub {
+func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherKey string, sslOn bool, customUuid string, logger *log.Logger) *Pubnub {
 
 	newPubnub := &Pubnub{}
-	initLogging()
-	newPubnub.infoLogger = infoLogger
-	infoLogger.Printf(fmt.Sprintf("Pubnub Init, %s", VersionInfo()))
-	infoLogger.Printf(fmt.Sprintf("OS: %s", runtime.GOOS))
+	if logger == nil {
+		logger = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+	newPubnub.infoLogger = logger
+	newPubnub.infoLogger.Printf(fmt.Sprintf("Pubnub Init, %s", VersionInfo()))
+	newPubnub.infoLogger.Printf(fmt.Sprintf("OS: %s", runtime.GOOS))
 
 	newPubnub.origin = origin
 	newPubnub.publishKey = publishKey
@@ -383,7 +375,7 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 		newPubnub.origin = "http://" + newPubnub.origin
 	}
 
-	infoLogger.Printf(fmt.Sprintf("Origin: %s", newPubnub.origin))
+	newPubnub.infoLogger.Printf(fmt.Sprintf("Origin: %s", newPubnub.origin))
 	//Generate the uuid is custmUuid is not provided
 	newPubnub.SetUUID(customUuid)
 	newPubnub.publishCounter = 0
@@ -401,20 +393,6 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	return newPubnub
 }
 
-var once sync.Once
-
-// initLogging initaites the log file if loggingEnabled is true
-func initLogging() {
-	onceBody := func() {
-		infoLogger = log.New(logfileWriter, "", log.Ldate|log.Ltime|log.Lshortfile)
-		infoLogger.Printf("****************************************")
-	}
-	if (loggingEnabled) && (logfileWriter != nil) {
-		once.Do(onceBody)
-	} else {
-		infoLogger = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
-	}
-}
 
 // SetMaxIdleConnsPerHost is used to set the value of HTTP Transport's MaxIdleConnsPerHost.
 // It restricts how many connections there are which are not actively serving requests, but which the client has not closed.
@@ -453,28 +431,6 @@ func GetResumeOnReconnect() bool {
 	defer resumeOnReconnectMu.RUnlock()
 
 	return resumeOnReconnect
-}
-
-// LoggingEnabled sets the value of loggingEnabled
-// If true logs will be written to the logfileWriter
-// In addition to LoggingEnabled you also need to init
-// the logfileWriter using SetLogOutput
-func LoggingEnabled(val bool) {
-	loggingEnabled = val
-}
-
-// SetLogOutput sets the full path of the logfile
-// Default name is pubnubMessaging.log and is located in the same dir
-// from where the go file is run
-// In addition to this LoggingEnabled should be true for this to work.
-func SetLogOutput(val io.Writer) {
-	logfileWriter = val
-}
-
-// Logging gets the value of loggingEnabled
-// If true logs will be written to a file
-func Logging() bool {
-	return loggingEnabled
 }
 
 // SetAuthenticationKey sets the value of authentication key
