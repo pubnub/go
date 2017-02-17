@@ -1174,7 +1174,7 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 	callbackChannel, errorChannel chan []byte) {
 
 	u := &url.URL{Path: jsonBytes}
-	encodedPath := u.String()
+	encodedPath := u.EscapedPath()
 	pub.infoLogger.Printf("INFO: Publish: json: %s, encoded: %s", jsonBytes, encodedPath)
 
 	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
