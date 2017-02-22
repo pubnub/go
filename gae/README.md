@@ -4,6 +4,9 @@
 
 ### Features
 * 3.9.5
+ * Fix use of escaping JSON during publish
+ * Prefix uuid with 'pn-'
+* 3.9.4.3
  * Changed origin to ps.pndsn.com
 * 3.9.4.1
  * fixed misspells, some golint changes and gocyclo issues
