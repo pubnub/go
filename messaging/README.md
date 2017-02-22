@@ -8,6 +8,9 @@
 
 ###Change log
 * 3.9.5
+ * Fix use of escaping JSON during publish
+ * Prefix uuid with 'pn-'
+* 3.9.4.3
  * Message TTL
  * Subscriber UUID
  * Subscribe V2
