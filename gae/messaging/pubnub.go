@@ -474,7 +474,7 @@ func (pub *Pubnub) SetUUID(context context.Context, w http.ResponseWriter, r *ht
 	if strings.TrimSpace(val) == "" {
 		uuid, err := GenUuid()
 		if err == nil {
-			pub.Uuid = url.QueryEscape(uuid)
+			pub.Uuid = fmt.Sprintf("pn-%s", url.QueryEscape(uuid))
 		} else {
 			log.Errorf(context, err.Error())
 		}
