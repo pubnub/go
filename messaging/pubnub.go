@@ -496,7 +496,7 @@ func (pub *Pubnub) SetUUID(val string) {
 	if strings.TrimSpace(val) == "" {
 		uuid, err := GenUuid()
 		if err == nil {
-			pub.uuid = url.QueryEscape(uuid)
+			pub.uuid = fmt.Sprintf("pn-%s", url.QueryEscape(uuid))
 		} else {
 			pub.infoLogger.Printf("ERROR: %s", err.Error())
 		}
