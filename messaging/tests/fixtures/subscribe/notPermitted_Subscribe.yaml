@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.4.3
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-642a6fca-f5b9-11e5-9086-02ee2ddab7fe/Channel_NotPermitted/0?uuid=UUID_NotPermitted&tt=0&pnsdk=PubNub-Go%2F3.9.4.3
+      - ua_string=(linux) PubNub-Go/3.9.5
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-642a6fca-f5b9-11e5-9086-02ee2ddab7fe/Channel_NotPermitted/0?uuid=UUID_NotPermitted&tt=0&pnsdk=PubNub-Go%2F3.9.5
     method: GET
   response:
     body: |

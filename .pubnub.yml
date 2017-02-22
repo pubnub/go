@@ -12,7 +12,7 @@ changelog:
         text: “Subscribe V2 response”
         type: improvement
     date: Jan 11, 16
-    version: v3.9.4.3
+    version: v3.9.5
   - 
     changes: 
       - 
@@ -219,4 +219,4 @@ features:
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: “3.9.4.3”
+version: “3.9.5”

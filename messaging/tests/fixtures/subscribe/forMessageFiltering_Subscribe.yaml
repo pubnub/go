@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.4.3
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForMessageFiltering/0?uuid=UUID_SubscriptionConnectedForMessageFiltering&tt=0&filter-expr=%7B%22meta%22%3A%22filter%22%7D&pnsdk=PubNub-Go%2F3.9.4.3
+      - ua_string=(linux) PubNub-Go/3.9.5
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForMessageFiltering/0?uuid=UUID_SubscriptionConnectedForMessageFiltering&tt=0&filter-expr=%7B%22meta%22%3A%22filter%22%7D&pnsdk=PubNub-Go%2F3.9.5
     method: GET
   response:
     body: '{"t":{"t":"14586610160063710","r":4},"m":[]}'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.4.3
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForMessageFiltering/0?uuid=UUID_SubscriptionConnectedForMessageFiltering&tt=14586610160063710&tr=4&filter-expr=%7B%22meta%22%3A%22filter%22%7D&pnsdk=PubNub-Go%2F3.9.4.3
+      - ua_string=(linux) PubNub-Go/3.9.5
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForMessageFiltering/0?uuid=UUID_SubscriptionConnectedForMessageFiltering&tt=14586610160063710&tr=4&filter-expr=%7B%22meta%22%3A%22filter%22%7D&pnsdk=PubNub-Go%2F3.9.5
     method: GET
   response:
     body: '{"t":{"t":"14586613280736475","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForMessageFiltering","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForMessageFiltering","b":"Channel_SubscriptionConnectedForMessageFiltering","d":"Test message"}]}'
@@ -60,5 +60,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForMessageFiltering/0?uuid=UUID_SubscriptionConnectedForMessageFiltering&tt=14586613280736475&tr=4&filter-expr=%7B%22meta%22%3A%22filter%22%7D&pnsdk=PubNub-Go%2F3.9.4.3
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForMessageFiltering/0?uuid=UUID_SubscriptionConnectedForMessageFiltering&tt=14586613280736475&tr=4&filter-expr=%7B%22meta%22%3A%22filter%22%7D&pnsdk=PubNub-Go%2F3.9.5
   : {}

@@ -1,9 +1,9 @@
 ## Contact support@pubnub.com for all questions
 
-#PubNub 3.9.4.3 client for Google App Engine SDK (1.9.28 - 2015-10-29) using Go
+#PubNub 3.9.5 client for Google App Engine SDK (1.9.28 - 2015-10-29) using Go
 
 ### Features
-* 3.9.4.3
+* 3.9.5
  * Changed origin to ps.pndsn.com
 * 3.9.4.1
  * fixed misspells, some golint changes and gocyclo issues

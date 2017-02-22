@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api on google appengine.
 // Build Date: Nov 25, 2016
-// Version: 3.9.4.3
+// Version: 3.9.5
 package messaging
 
 //TODO:
@@ -60,7 +60,7 @@ const (
 const (
 	//Sdk Identification Param appended to each request
 	sdkIdentificationParamKey = "pnsdk"
-	sdkIdentificationParamVal = "PubNub-Go-GAE/3.9.4.3"
+	sdkIdentificationParamVal = "PubNub-Go-GAE/3.9.5"
 
 	// This string is appended to all presence channels
 	// to differentiate from the subscribe requests.
@@ -216,7 +216,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go GAE client SDK Version: 3.9.4.3; Build Date: Nov 25, 2016;"
+	return "PubNub Go GAE client SDK Version: 3.9.5; Build Date: Nov 25, 2016;"
 }
 
 // initStore initializes the cookie store using the secret key
@@ -2727,7 +2727,7 @@ func (pub *Pubnub) connect(context context.Context, w http.ResponseWriter, r *ht
 			Host:   origin,
 			Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
 		}
-		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go-GAE/3.9.4.3", runtime.GOOS)
+		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go-GAE/3.9.5", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
 		if err == nil {
