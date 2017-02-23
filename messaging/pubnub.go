@@ -1,5 +1,5 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.9.5
+// Version: 3.10.0
 // Build Date: Feb 22, 2016
 package messaging
 
@@ -29,7 +29,7 @@ import (
 
 const (
 	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.9.5"
+	SDK_VERSION = "3.10.0"
 	// SDK_DATE is the version release date
 	SDK_DATE = "Feb 22, 2016"
 )
@@ -392,7 +392,6 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 
 	return newPubnub
 }
-
 
 // SetMaxIdleConnsPerHost is used to set the value of HTTP Transport's MaxIdleConnsPerHost.
 // It restricts how many connections there are which are not actively serving requests, but which the client has not closed.

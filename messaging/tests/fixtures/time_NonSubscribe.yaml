@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.5
-    url: http://ps.pndsn.com/time/0?pnsdk=PubNub-Go%2F3.9.5&uuid=testTime
+      - ua_string=(linux) PubNub-Go/3.10.0
+    url: http://ps.pndsn.com/time/0?pnsdk=PubNub-Go%2F3.10.0&uuid=testTime
     method: GET
   response:
     body: '[14601341825375121]'

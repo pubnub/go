@@ -229,4 +229,4 @@ features:
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: “3.9.5”
+version: “3.10.0”

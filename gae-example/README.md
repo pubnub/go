@@ -1,4 +1,4 @@
-#PubNub 3.9.5 example Google App Engine using Go
+#PubNub 3.10.0 example Google App Engine using Go
 
 ###Demo Console App (Tested on Google App Engine SDK 1.9.28 - 2015-10-29)
 We've included a demo console app which documents all the functionality of the client, for example:

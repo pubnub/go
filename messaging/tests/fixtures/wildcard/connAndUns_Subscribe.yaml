@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.9.5
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ConnAndUns.%2A/0?uuid=UUID_ConnAndUns&tt=0&pnsdk=PubNub-Go%2F3.9.5
+      - ua_string=(linux) PubNub-Go/3.10.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ConnAndUns.%2A/0?uuid=UUID_ConnAndUns&tt=0&pnsdk=PubNub-Go%2F3.10.0
     method: GET
   response:
     body: '[[],"14588984225303044","",""]'
@@ -31,5 +31,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ConnAndUns.%2A/0?uuid=UUID_ConnAndUns&tt=14588984225303044&pnsdk=PubNub-Go%2F3.9.5
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ConnAndUns.%2A/0?uuid=UUID_ConnAndUns&tt=14588984225303044&pnsdk=PubNub-Go%2F3.10.0
   : {}

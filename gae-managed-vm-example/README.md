@@ -1,4 +1,4 @@
-#PubNub 3.9.5 example Google App Engine Managed VM using Go
+#PubNub 3.10.0 example Google App Engine Managed VM using Go
 
 ###Demo Console App (Tested for Managed VMs on Google Cloud SDK 133.0.0)
 We've included a demo console app which documents all the functionality of the client, for example:
