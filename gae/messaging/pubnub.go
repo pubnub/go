@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api on google appengine.
 // Build Date: Nov 25, 2016
-// Version: 3.9.4.3
+// Version: 3.9.5
 package messaging
 
 //TODO:
@@ -60,7 +60,7 @@ const (
 const (
 	//Sdk Identification Param appended to each request
 	sdkIdentificationParamKey = "pnsdk"
-	sdkIdentificationParamVal = "PubNub-Go-GAE/3.9.4.3"
+	sdkIdentificationParamVal = "PubNub-Go-GAE/3.9.5"
 
 	// This string is appended to all presence channels
 	// to differentiate from the subscribe requests.
@@ -216,7 +216,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go GAE client SDK Version: 3.9.4.3; Build Date: Nov 25, 2016;"
+	return "PubNub Go GAE client SDK Version: 3.9.5; Build Date: Nov 25, 2016;"
 }
 
 // initStore initializes the cookie store using the secret key
@@ -474,7 +474,7 @@ func (pub *Pubnub) SetUUID(context context.Context, w http.ResponseWriter, r *ht
 	if strings.TrimSpace(val) == "" {
 		uuid, err := GenUuid()
 		if err == nil {
-			pub.Uuid = url.QueryEscape(uuid)
+			pub.Uuid = fmt.Sprintf("pn-%s", url.QueryEscape(uuid))
 		} else {
 			log.Errorf(context, err.Error())
 		}
@@ -1050,6 +1050,18 @@ func (pub *Pubnub) executeTime(context context.Context, w http.ResponseWriter, r
 	}
 }
 
+// encodeJSONAsPathComponent properly encodes serialized JSON
+// for placement within a URI path
+func encodeJSONAsPathComponent(jsonBytes string) string {
+	u := &url.URL{Path: jsonBytes}
+	encodedPath := u.String()
+
+	// Go 1.8 inserts a ./ per RFC 3986 §4.2. Previous versions
+	// will be unaffected by this under the assumption that jsonBytes
+	// represents valid JSON
+	return strings.TrimLeft(encodedPath, "./")
+}
+
 // sendPublishRequest is the struct Pubnub's instance method that posts a publish request and
 // sends back the response to the channel.
 //
@@ -1067,8 +1079,7 @@ func (pub *Pubnub) sendPublishRequest(context context.Context,
 	storeInHistory, replicate bool, jsonBytes string, metaBytes []byte,
 	callbackChannel, errorChannel chan []byte) {
 
-	u := &url.URL{Path: string(jsonBytes)}
-	encodedPath := u.String()
+	encodedPath := encodeJSONAsPathComponent(jsonBytes)
 	log.Infof(context, fmt.Sprintf("Publish: json: %s, encoded: %s", string(jsonBytes), encodedPath))
 
 	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
@@ -1093,9 +1104,7 @@ func (pub *Pubnub) sendPublishRequest(context context.Context,
 	publishURL = fmt.Sprintf("%s&seqn=%s", publishURL, counter)
 
 	if metaBytes != nil {
-		metaEncoded := &url.URL{Path: string(metaBytes)}
-		metaEncodedPath := metaEncoded.String()
-
+		metaEncodedPath := encodeJSONAsPathComponent(string(metaBytes))
 		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
 	}
 
@@ -2718,7 +2727,7 @@ func (pub *Pubnub) connect(context context.Context, w http.ResponseWriter, r *ht
 			Host:   origin,
 			Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
 		}
-		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go-GAE/3.9.4.3", runtime.GOOS)
+		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go-GAE/3.9.5", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
 		if err == nil {

@@ -1408,11 +1408,12 @@ func handleUnsubscribeResult(successChannel, errorChannel chan []byte, timeoutVa
 }
 
 func handleResult(successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
-	timeout := make(chan bool, 1)
+	/*timeout := make(chan bool, 1)
 	go func() {
 		time.Sleep(time.Duration(timeoutVal) * time.Second)
 		timeout <- true
-	}()
+	}()*/
+	timeout := time.After(time.Duration(timeoutVal) * time.Second)
 	for {
 		select {
 		case success, ok := <-successChannel:
