@@ -27,7 +27,7 @@ const (
 
 func main() {
 	// messaging.SetLogOutput(os.Stderr)
-	pubnub = messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnub = messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", nil)
 	messaging.SetNonSubscribeTimeout(2)
 
 	send := make(chan string, 40)

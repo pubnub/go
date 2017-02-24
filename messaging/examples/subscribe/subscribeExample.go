@@ -14,7 +14,7 @@ func main() {
 	channels := flag.String("channels", "qwer,qwer-pnpres", "channels to subscribe to")
 	groups := flag.String("groups", "zzz,zzz-pnpres", "channel groups to subscribe to")
 
-	pubnub := messaging.NewPubnub(*publishKey, *subscribeKey, *secretKey, "", false, "")
+	pubnub := messaging.NewPubnub(*publishKey, *subscribeKey, *secretKey, "", false, "", nil)
 
 	go populateGroup(pubnub, "zzz", "asdf")
 

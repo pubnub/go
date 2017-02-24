@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"encoding/binary"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"strconv"
@@ -163,25 +164,26 @@ func Init() (b bool) {
 			var enableLogging = "y"
 			fmt.Scanln(&enableLogging)
 
+			var infoLogger *log.Logger
+
 			if enableLogging == "y" || enableLogging == "Y" {
-				messaging.LoggingEnabled(true)
 				logfileName := "pubnubMessaging.log"
 				f, err := os.OpenFile(logfileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 				if err != nil {
+
 					fmt.Println("error opening file: ", err.Error())
 					fmt.Println("Logging disabled")
 				} else {
 					fmt.Println("Logging enabled writing to ", logfileName)
-					messaging.SetLogOutput(f)
+					infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
 				}
 			} else {
-				messaging.SetResumeOnReconnect(false)
 				fmt.Println("Logging disabled")
 			}
 
 			messaging.SetOrigin("ps.pndsn.com")
 
-			var pubInstance = messaging.NewPubnub(publishKey, subscribeKey, secretKey, cipher, ssl, uuid)
+			var pubInstance = messaging.NewPubnub(publishKey, subscribeKey, secretKey, cipher, ssl, uuid, infoLogger)
 			pub = pubInstance
 
 			SetupProxy()
@@ -1408,11 +1410,12 @@ func handleUnsubscribeResult(successChannel, errorChannel chan []byte, timeoutVa
 }
 
 func handleResult(successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
-	timeout := make(chan bool, 1)
+	/*timeout := make(chan bool, 1)
 	go func() {
 		time.Sleep(time.Duration(timeoutVal) * time.Second)
 		timeout <- true
-	}()
+	}()*/
+	timeout := time.After(time.Duration(timeoutVal) * time.Second)
 	for {
 		select {
 		case success, ok := <-successChannel:

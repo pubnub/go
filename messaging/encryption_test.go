@@ -7,12 +7,12 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
+	"os"
 	"testing"
 	"unicode/utf16"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestPad(t *testing.T) {
@@ -22,7 +22,7 @@ func TestPad(t *testing.T) {
 	b := []byte(`{
 	"kind": "click",
 	"user": {"key" : "user@test.com"},
-	"creationDate": 2416012257208,
+	"creationDate": 9223372036854775808346,
 	"key": "54651fa39868621628000002",
 	"url": "http://www.google.com"
 	}`)
@@ -31,7 +31,7 @@ func TestPad(t *testing.T) {
 	jsonSerialized, _ := json.Marshal(badMsg)
 
 	actual := EncryptString("enigma", fmt.Sprintf("%s", jsonSerialized))
-	expected := "yzJ2MMyt8So18nNXm4m3Dl0XuYAOJFj2JXG8P3BGlCsDsqM44ReH15MRGbEkJZCSqgMiX1wUK44Qz8gsTcmGcZm/7KtOa+kRnvgDpNkTuBUrDqSjmYeuBLqRIEIfoGrRNljbFmP1W9Zv8iVbJMmovF+gmNNiIzlC3J9dHK51/OgW7s2EASMQJr3UJZ26PoFmmXY/wYN+2EyRnT4PBRCocQ=="
+	expected := "yzJ2MMyt8So18nNXm4m3Dqzb1G+as9LDqdlZ+p8iEGi358F5h25wmKrj9FTOPdMQ0TMy/Xhf3hS3+ZRUlv/zLD6/0Ns/c834HQMUmG+6DN9SQy9II3bkUGZu9Bn6Ng/ZmJTrHV7QnkLnjD+pGOHEvqrPEduR5pfA2n9mA3qQNhqFgnsIvffxGB0AqM57NdD3Tlr2ig8A2VI4Lh3DmX7f1Q=="
 
 	assert.Equal(expected, actual)
 }
@@ -489,4 +489,18 @@ type emptyStruct struct {
 type customStruct struct {
 	Foo string
 	Bar []int
+}
+
+func CreateLoggerForTests() *log.Logger {
+	var infoLogger *log.Logger
+	logfileName := "pubnubMessagingTests.log"
+	f, err := os.OpenFile(logfileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("error opening file: ", err.Error())
+		fmt.Println("Logging disabled")
+	} else {
+		//fmt.Println("Logging enabled writing to ", logfileName)
+		infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+	return infoLogger
 }

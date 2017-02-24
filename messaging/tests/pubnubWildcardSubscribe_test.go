@@ -9,7 +9,7 @@ import (
 
 	"github.com/pubnub/go/messaging"
 	"github.com/stretchr/testify/assert"
-	"os"
+	//"os"
 	"testing"
 )
 
@@ -29,7 +29,7 @@ func TestWildcardSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 	major := "Channel_ConnAndUns"
 	wildcard := fmt.Sprintf("%s.*", major)
 	uuid := "UUID_ConnAndUns"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)
@@ -65,10 +65,10 @@ func TestWildcardSubscriptionMessage(t *testing.T) {
 	minor := "Channel_SubscribeMinor"
 	channel := fmt.Sprintf("%s.%s", major, minor)
 	wildcard := fmt.Sprintf("%s.*", major)
-	messaging.SetLogOutput(os.Stdout)
+	//messaging.SetLogOutput(os.Stdout)
 	//messaging.LoggingEnabled(true)
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)

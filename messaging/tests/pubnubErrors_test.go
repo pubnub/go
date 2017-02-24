@@ -15,7 +15,7 @@ func TestErrorNetworkHistory(t *testing.T) {
 	stop := NewAbortedTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -36,7 +36,7 @@ func TestErrorJSONHistory(t *testing.T) {
 	stop := NewBadJSONTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -57,7 +57,7 @@ func TestErrorNetworkGroup(t *testing.T) {
 	stop := NewAbortedTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -79,7 +79,7 @@ func TestErrorJSONGroup(t *testing.T) {
 	stop := NewBadJSONTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -101,7 +101,7 @@ func TestErrorNetworkWhereNow(t *testing.T) {
 	defer stop()
 
 	uuid := "UUID_WhereNow"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -124,7 +124,7 @@ func TestErrorJSONWhereNow(t *testing.T) {
 	defer stop()
 
 	uuid := "UUID_WhereNow"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -146,7 +146,7 @@ func TestErrorNetworkGlobalHereNow(t *testing.T) {
 	stop := NewAbortedTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -167,7 +167,7 @@ func TestErrorJSONGlobalHereNow(t *testing.T) {
 	stop := NewBadJSONTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -188,7 +188,7 @@ func TestErrorNetworkHereNow(t *testing.T) {
 	stop := NewAbortedTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -209,7 +209,7 @@ func TestErrorJSONHereNow(t *testing.T) {
 	stop := NewBadJSONTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -230,7 +230,7 @@ func TestErrorNetworkGetUserState(t *testing.T) {
 	stop := NewAbortedTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -251,7 +251,7 @@ func TestErrorJSONGetUserState(t *testing.T) {
 	stop := NewBadJSONTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -273,7 +273,7 @@ func TestErrorNetworkSetUserState(t *testing.T) {
 	stop := NewAbortedTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -294,7 +294,7 @@ func TestErrorJSONSetUserState(t *testing.T) {
 	stop := NewBadJSONTransport()
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	successGet := make(chan []byte)
 	errorGet := make(chan []byte)
@@ -318,7 +318,7 @@ func TestErrorNetworkUnsubscribe(t *testing.T) {
 	defer stop()
 
 	channel := "Channel_UnsubscribeNetError"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 	pubnubInstance.SetNonSubscribeTransport(abortedTransport)
 
 	subscribeSuccess := make(chan []byte)
@@ -361,7 +361,7 @@ func TestNetworkErrorGroupUnsubscribe(t *testing.T) {
 	defer stop()
 
 	group := "Channel_GroupUnsubscribeNetError"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	createChannelGroups(pubnubInstance, []string{group})
 	defer removeChannelGroups(pubnubInstance, []string{group})

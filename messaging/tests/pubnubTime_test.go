@@ -23,7 +23,7 @@ func TestServerTime(t *testing.T) {
 	stop, _ := NewVCRNonSubscribe("fixtures/time", []string{})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "testTime")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "testTime", CreateLoggerForTests())
 
 	assert := assert.New(t)
 	successChannel := make(chan []byte)

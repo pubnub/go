@@ -196,30 +196,30 @@ func (env *subscribeEnvelope) getChannelsAndGroups(pub *Pubnub) (channels, chann
 
 func (msg *subscribeMessage) writeMessageLog(count int, pub *Pubnub) {
 	// start logging
-	infoLogger.Printf("INFO: -----Message %d-----", count)
-	infoLogger.Printf("INFO: Channel, %s", msg.Channel)
-	infoLogger.Printf("INFO: Flags, %d", msg.Flags)
-	infoLogger.Printf("INFO: IssuingClientId, %s", msg.IssuingClientId)
-	infoLogger.Printf("INFO: OriginatingTimetoken Region, %d", msg.OriginatingTimetoken.Region)
-	infoLogger.Printf("INFO: OriginatingTimetoken Timetoken, %s", msg.OriginatingTimetoken.Timetoken)
-	infoLogger.Printf("INFO: PublishTimetokenMetadata Region, %d", msg.PublishTimetokenMetadata.Region)
-	infoLogger.Printf("INFO: PublishTimetokenMetadata Timetoken, %s", msg.PublishTimetokenMetadata.Timetoken)
+	pub.infoLogger.Printf("INFO: -----Message %d-----", count)
+	pub.infoLogger.Printf("INFO: Channel, %s", msg.Channel)
+	pub.infoLogger.Printf("INFO: Flags, %d", msg.Flags)
+	pub.infoLogger.Printf("INFO: IssuingClientId, %s", msg.IssuingClientId)
+	pub.infoLogger.Printf("INFO: OriginatingTimetoken Region, %d", msg.OriginatingTimetoken.Region)
+	pub.infoLogger.Printf("INFO: OriginatingTimetoken Timetoken, %s", msg.OriginatingTimetoken.Timetoken)
+	pub.infoLogger.Printf("INFO: PublishTimetokenMetadata Region, %d", msg.PublishTimetokenMetadata.Region)
+	pub.infoLogger.Printf("INFO: PublishTimetokenMetadata Timetoken, %s", msg.PublishTimetokenMetadata.Timetoken)
 
 	strPayload, ok := msg.Payload.(string)
 	if ok {
-		infoLogger.Printf("INFO: Payload, %s", strPayload)
+		pub.infoLogger.Printf("INFO: Payload, %s", strPayload)
 	} else {
-		infoLogger.Printf("INFO: Payload, not converted to string %s", msg.Payload)
+		pub.infoLogger.Printf("INFO: Payload, not converted to string %s", msg.Payload)
 	}
-	infoLogger.Printf("INFO: SequenceNumber, %d", msg.SequenceNumber)
-	infoLogger.Printf("INFO: Shard, %s", msg.Shard)
-	infoLogger.Printf("INFO: SubscribeKey, %s", msg.SubscribeKey)
-	infoLogger.Printf("INFO: SubscriptionMatch, %s", msg.SubscriptionMatch)
+	pub.infoLogger.Printf("INFO: SequenceNumber, %d", msg.SequenceNumber)
+	pub.infoLogger.Printf("INFO: Shard, %s", msg.Shard)
+	pub.infoLogger.Printf("INFO: SubscribeKey, %s", msg.SubscribeKey)
+	pub.infoLogger.Printf("INFO: SubscriptionMatch, %s", msg.SubscriptionMatch)
 	strUserMetadata, ok := msg.UserMetadata.(string)
 	if ok {
-		infoLogger.Printf("INFO: UserMetadata, %s", strUserMetadata)
+		pub.infoLogger.Printf("INFO: UserMetadata, %s", strUserMetadata)
 	} else {
-		infoLogger.Printf("INFO: UserMetadata, not converted to string")
+		pub.infoLogger.Printf("INFO: UserMetadata, not converted to string")
 	}
 	// end logging
 }
