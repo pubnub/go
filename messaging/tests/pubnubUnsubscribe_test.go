@@ -23,7 +23,7 @@ func TestUnsubscribeStart(t *testing.T) {
 // The response should contain 'not subscribed'
 func TestUnsubscribeNotSubscribed(t *testing.T) {
 	assert := assert.New(t)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 
 	currentTime := time.Now()
 	channel := "testChannel" + currentTime.Format("20060102150405")
@@ -54,7 +54,7 @@ func TestUnsubscribeChannel(t *testing.T) {
 
 	channel := "Channel_UnsubscribeChannel"
 	uuid := "UUID_UnsubscribeChannel"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	subscribeSuccessChannel := make(chan []byte)
 	subscribeErrorChannel := make(chan []byte)

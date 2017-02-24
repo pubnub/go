@@ -7,12 +7,12 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
+	"os"
 	"testing"
 	"unicode/utf16"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestPad(t *testing.T) {
@@ -489,4 +489,18 @@ type emptyStruct struct {
 type customStruct struct {
 	Foo string
 	Bar []int
+}
+
+func CreateLoggerForTests() *log.Logger {
+	var infoLogger *log.Logger
+	logfileName := "pubnubMessagingTests.log"
+	f, err := os.OpenFile(logfileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("error opening file: ", err.Error())
+		fmt.Println("Logging disabled")
+	} else {
+		//fmt.Println("Logging enabled writing to ", logfileName)
+		infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+	return infoLogger
 }

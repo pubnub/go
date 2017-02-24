@@ -35,7 +35,7 @@ func TestSubscriptionConnectStatus(t *testing.T) {
 
 	channel := "Channel_ConnectStatus"
 	uuid := "UUID_ConnectStatus"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -73,7 +73,7 @@ func TestMultiSubscriptionConnectStatus(t *testing.T) {
 
 	channels := "Channel_ConnectStatus_14,Channel_ConnectStatus_992"
 	uuid := "UUID_ConnectStatus"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	expectedChannels := strings.Split(channels, ",")
 	actualChannels := []string{}
@@ -150,7 +150,7 @@ func TestSubscriptionForSimpleMessageV2(t *testing.T) {
 	uuid := "UUID_SubscriptionConnectedForSimple"
 	//messaging.LoggingEnabled(true)
 	//messaging.SetLogOutput(os.Stdout)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	customMessage := "Test message"
 
@@ -220,7 +220,7 @@ func TestSubscriptionForSimpleMessage(t *testing.T) {
 	uuid := "UUID_SubscriptionConnectedForSimple"
 	//messaging.LoggingEnabled(true)
 	//messaging.SetLogOutput(os.Stdout)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	customMessage := "Test message"
 
@@ -293,7 +293,7 @@ func TestSubscriptionForSimpleMessageWithCipher(t *testing.T) {
 
 	channel := "Channel_SubscriptionConnectedForSimpleWithCipher"
 	uuid := "UUID_SubscriptionConnectedForSimpleWithCipher"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, uuid, CreateLoggerForTests())
 
 	customMessage := "Test message"
 
@@ -365,7 +365,7 @@ func TestSubscriptionForComplexMessage(t *testing.T) {
 
 	channel := "Channel_SubscriptionConnectedForComplex"
 	uuid := "UUID_SubscriptionConnectedForComplex"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	customComplexMessage := InitComplexMessage()
 
@@ -446,7 +446,7 @@ func TestSubscriptionForComplexMessageWithCipher(t *testing.T) {
 
 	channel := "Channel_SubscriptionConnectedForComplexWithCipher"
 	uuid := "UUID_SubscriptionConnectedForComplexWithCipher"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, uuid, CreateLoggerForTests())
 
 	customMessage := InitComplexMessage()
 
@@ -662,7 +662,7 @@ func SendMultipleResponse(t *testing.T, encrypted bool, testName, cipher string)
 
 	channel := "Channel_MultipleResponse"
 	uuid := "UUID_MultipleResponse"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipher, false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipher, false, uuid, CreateLoggerForTests())
 
 	unsubscribeSuccessChannel := make(chan []byte)
 	unsubscribeErrorChannel := make(chan []byte)
@@ -827,7 +827,7 @@ func SendMultiplexingRequest(t *testing.T, testName string, ssl bool, encrypted 
 	pubnubChannels := pubnubChannel1 + "," + pubnubChannel2
 	uuid := "UUID_Multiplexing"
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipher, ssl, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipher, ssl, uuid, CreateLoggerForTests())
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -943,7 +943,7 @@ func TestSubscriptionForMessageFiltering(t *testing.T) {
 	uuid := "UUID_SubscriptionConnectedForMessageFiltering"
 	//messaging.LoggingEnabled(true)
 	//messaging.SetLogOutput(os.Stdout)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	customMessage := "Test message"
 
@@ -1018,7 +1018,7 @@ func TestSubscriptionForMessageFiltering2(t *testing.T) {
 	//messaging.LoggingEnabled(true)
 	//messaging.SetLogOutput(os.Stdout)
 	//log.SetOutput(os.Stdout)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	customMessage := "Test message"
 

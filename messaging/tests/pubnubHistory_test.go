@@ -49,7 +49,7 @@ func DetailedHistoryFor10Messages(t *testing.T, cipherKey string, testName strin
 		[]string{"uuid"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipherKey, false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipherKey, false, "", CreateLoggerForTests())
 
 	message := "Test Message "
 	channel := testName
@@ -127,7 +127,7 @@ func DetailedHistoryParamsFor10Messages(t *testing.T, cipherKey string, secretKe
 	sleep(5)
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", cipherKey, false,
-		fmt.Sprintf("uuid_%s", testName))
+		fmt.Sprintf("uuid_%s", testName), CreateLoggerForTests())
 
 	message := "Test Message "
 	channel := testName
@@ -272,7 +272,7 @@ func TestHistoryWithTimetoken(t *testing.T) {
 	uuid := "UUID_HistoryWithTT"
 	channel := "Channel_HistoryWithTT"
 	message := "Test TT Message "
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	PublishMessages(pubnub, channel, t, 0, count, message, sleep)
 	successChannel := make(chan []byte)

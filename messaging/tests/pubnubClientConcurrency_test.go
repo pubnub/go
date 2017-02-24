@@ -16,7 +16,7 @@ const (
 
 func TestPubnubGrantSubscribeParallelUnsafe(t *testing.T) {
 	wg := sync.WaitGroup{}
-	pubnub := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
+	pubnub := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "", CreateLoggerForTests())
 
 	for j := 0; j < numGrants; j++ {
 		wg.Add(1)

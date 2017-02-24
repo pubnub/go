@@ -24,7 +24,7 @@ func TestPublishStart(t *testing.T) {
 // be an "Invalid Message".
 func TestNullMessage(t *testing.T) {
 	assert := assert.New(t)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 	channel := "nullMessage"
 	var message interface{}
 	message = nil
@@ -51,7 +51,7 @@ func TestSuccessCodeAndInfo(t *testing.T) {
 		[]string{"uuid"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 	channel := "successCodeAndInfo"
 	message := "Pubnub API Usage Example"
 
@@ -79,7 +79,7 @@ func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
 		"fixtures/publish/successCodeAndInfoWithEncryption", []string{"uuid"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "", CreateLoggerForTests())
 	channel := "successCodeAndInfo"
 	message := "Pubnub API Usage Example"
 
@@ -106,7 +106,7 @@ func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
 		"fixtures/publish/successCodeAndInfoForComplexMessage", []string{"uuid"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 	channel := "successCodeAndInfoForComplexMessage"
 
 	customStruct := CustomStruct{
@@ -139,7 +139,7 @@ func TestFire(t *testing.T) {
 	//messaging.SetLogOutput(os.Stdout)
 	//messaging.LoggingEnabled(true)
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 	channel := "fireChannel"
 
 	message := "fireTest"
@@ -194,7 +194,7 @@ func TestPublishWithMessageTTL(t *testing.T) {
 	//messaging.SetLogOutput(os.Stdout)
 	//messaging.LoggingEnabled(true)
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 	channel := "publishWithReplicate"
 
 	message := "publishWithReplicate"
@@ -249,7 +249,7 @@ func TestPublishWithReplicate(t *testing.T) {
 	//messaging.SetLogOutput(os.Stdout)
 	//messaging.LoggingEnabled(true)
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 	channel := "publishWithReplicate"
 
 	message := "publishWithReplicate"
@@ -302,7 +302,7 @@ func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
 		"fixtures/publish/successCodeAndInfoForComplexMessage2", []string{"uuid"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 	channel := "successCodeAndInfoForComplexMessage2"
 
 	customComplexMessage := InitComplexMessage()
@@ -333,7 +333,7 @@ func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
 		[]string{"uuid"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "", CreateLoggerForTests())
 	channel := "successCodeAndInfoForComplexMessage2WithEncryption"
 
 	customComplexMessage := InitComplexMessage()
@@ -366,7 +366,7 @@ func TestPublishStringWithSerialization(t *testing.T) {
 	uuid := "UUID_PublishStringWithSerialization"
 	//messaging.SetLogOutput(os.Stdout)
 	//messaging.LoggingEnabled(true)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 	messageToPost := "{\"name\": \"Alex\", \"age\": \"123\"}"
 
 	successChannel := make(chan []byte)
@@ -460,7 +460,7 @@ func TestPublishStringWithoutSerialization(t *testing.T) {
 	uuid := "UUID_PublishStringWithoutSerialization"
 	//messaging.SetLogOutput(os.Stdout)
 	//messaging.LoggingEnabled(true)
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 	messageToPost := "{\"name\": \"Alex\", \"age\": \"123\"}"
 
 	successChannel := make(chan []byte)

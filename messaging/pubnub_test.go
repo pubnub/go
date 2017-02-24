@@ -21,7 +21,7 @@ func TestGenUuid(t *testing.T) {
 
 func InvalidChannelCommon(ch string, isChannelGroup, expected bool, t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid", CreateLoggerForTests())
 	b := pubnub.invalidChannelV2(ch, nil, isChannelGroup)
 	assert.Equal(b, expected)
 }
@@ -1005,7 +1005,7 @@ func TestInvalidMessageFail(t *testing.T) {
 
 func TestCreateSubscribeURLReset(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)
@@ -1036,7 +1036,7 @@ func TestCreateSubscribeURLReset(t *testing.T) {
 
 func TestCreateSubscribeURL(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)
@@ -1060,7 +1060,7 @@ func TestCreateSubscribeURL(t *testing.T) {
 
 func TestCreateSubscribeURLFilterExp(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)
@@ -1084,7 +1084,7 @@ func TestCreateSubscribeURLFilterExp(t *testing.T) {
 
 func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)
@@ -1115,7 +1115,7 @@ func TestCreatePresenceHeartbeatURL(t *testing.T) {
 
 func TestAddAuthParam(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.SetAuthenticationKey("authKey")
 	b := pubnub.addAuthParam(true)
 
@@ -1124,7 +1124,7 @@ func TestAddAuthParam(t *testing.T) {
 
 func TestAddAuthParamQSTrue(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.SetAuthenticationKey("authKey")
 	b := pubnub.addAuthParam(false)
 
@@ -1133,7 +1133,7 @@ func TestAddAuthParamQSTrue(t *testing.T) {
 
 func TestAddAuthParamEmpty(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	b := pubnub.addAuthParam(false)
 
 	assert.Equal("", b)
