@@ -22,6 +22,7 @@ var publishKey = "demo"
 var secretKey = "demo"
 var hostname = "localhost"
 var port = ":8080"
+var infoLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 var store = sessions.NewCookieStore([]byte(secretKey))
 
@@ -93,9 +94,8 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 func subscribe(w http.ResponseWriter, r *http.Request) {
 	var errorChannel = make(chan []byte)
 	var subscribeChannel = make(chan []byte)
-	messaging.LoggingEnabled(true)
-	messaging.SetLogOutput(os.Stdout)
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, "")
+
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, "", infoLogger)
 
 	go pubInstance.Subscribe("test2", "", subscribeChannel, false, errorChannel)
 	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
@@ -165,7 +165,7 @@ func detailedHistory(w http.ResponseWriter, r *http.Request) {
 		bReverse = true
 	}
 
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
@@ -228,7 +228,7 @@ func getUserState(w http.ResponseWriter, r *http.Request) {
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
 
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
@@ -241,7 +241,7 @@ func deleteUserState(w http.ResponseWriter, r *http.Request) {
 	ch := q.Get("ch")
 	key := q.Get("k")
 	uuid := q.Get("uuid")
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
@@ -254,7 +254,7 @@ func setUserStateJSON(w http.ResponseWriter, r *http.Request) {
 	ch := q.Get("ch")
 	j := q.Get("j")
 	uuid := q.Get("uuid")
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
@@ -268,7 +268,7 @@ func setUserState(w http.ResponseWriter, r *http.Request) {
 	k := q.Get("k")
 	v := q.Get("v")
 	uuid := q.Get("uuid")
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
@@ -280,7 +280,7 @@ func auditPresence(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 	go pubInstance.AuditPresence(ch, "", successChannel, errorChannel)
@@ -291,7 +291,7 @@ func revokePresence(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 	go pubInstance.GrantPresence(ch, false, false, 0, "", successChannel, errorChannel)
@@ -318,7 +318,7 @@ func grantPresence(w http.ResponseWriter, r *http.Request) {
 		iTTL = ival
 	}
 
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 	go pubInstance.GrantPresence(ch, bRead, bWrite, iTTL, "", successChannel, errorChannel)
@@ -330,7 +330,7 @@ func auditSubscribe(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 	go pubInstance.AuditSubscribe(ch, "", successChannel, errorChannel)
@@ -341,7 +341,7 @@ func revokeSubscribe(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 	go pubInstance.GrantSubscribe(ch, false, false, 0, "", successChannel, errorChannel)
@@ -368,7 +368,7 @@ func grantSubscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uuid := q.Get("uuid")
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 	go pubInstance.GrantSubscribe(ch, bRead, bWrite, iTTL, "", successChannel, errorChannel)
@@ -380,7 +380,7 @@ func setAuthKey(w http.ResponseWriter, r *http.Request) {
 	authKey := q.Get("authkey")
 	uuid := q.Get("uuid")
 
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	pubInstance.SetAuthenticationKey(authKey)
 	sendResponseToChannel(w, "Auth key set", r, uuid)
 }
@@ -388,7 +388,7 @@ func setAuthKey(w http.ResponseWriter, r *http.Request) {
 func getAuthKey(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	uuid := q.Get("uuid")
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	sendResponseToChannel(w, "Auth key: "+pubInstance.GetAuthenticationKey(), r, uuid)
 }
 
@@ -401,7 +401,7 @@ func publish(w http.ResponseWriter, r *http.Request) {
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	go pubInstance.Publish(ch, message, successChannel, errorChannel)
 
 	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
@@ -423,7 +423,7 @@ func globalHereNow(w http.ResponseWriter, r *http.Request) {
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	go pubInstance.GlobalHereNow(disableUUID, includeUserState, successChannel, errorChannel)
 	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Global Here Now")
 }
@@ -447,7 +447,7 @@ func hereNow(w http.ResponseWriter, r *http.Request) {
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	go pubInstance.HereNow(channel, "", disableUUID, includeUserState, successChannel, errorChannel)
 	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "HereNow")
 }
@@ -460,7 +460,7 @@ func whereNow(w http.ResponseWriter, r *http.Request) {
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	go pubInstance.WhereNow(whereNowUUID, successChannel, errorChannel)
 	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "WhereNow")
 }
@@ -472,7 +472,7 @@ func getTime(w http.ResponseWriter, r *http.Request) {
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	go pubInstance.GetTime(successChannel, errorChannel)
 	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
 }
@@ -480,7 +480,7 @@ func getTime(w http.ResponseWriter, r *http.Request) {
 func handler(w http.ResponseWriter, r *http.Request) {
 	log.Print("Info: IN handler")
 	uuid := ""
-	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	if pubInstance == nil {
 		log.Print("Error: Couldn't create pubnub instance")
 		http.Error(w, "Couldn't create pubnub instance", http.StatusInternalServerError)

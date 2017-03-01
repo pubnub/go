@@ -27,7 +27,7 @@ func TestSubscriptionToNotPermittedChannel(t *testing.T) {
 	channel := "Channel_NotPermitted"
 	uuid := "UUID_NotPermitted"
 	pubnubInstance := messaging.NewPubnub(PubNoPermissionsKey,
-		SubNoPermissionsKey, "", "", false, uuid)
+		SubNoPermissionsKey, "", "", false, uuid, CreateLoggerForTests())
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -90,7 +90,7 @@ func TestSubscriptionAlreadySubscribed(t *testing.T) {
 
 	channel := "Channel_AlreadySubscribed"
 	uuid := "UUID_AlreadySubscribed"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -185,7 +185,7 @@ func xTestResumeOnReconnectFalse(t *testing.T) {
 	r := GenRandom()
 	assert := assert.New(t)
 	pubnubChannel := fmt.Sprintf("testChannel_subror_%d", r.Intn(20))
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -224,7 +224,7 @@ func TestResumeOnReconnectTrue(t *testing.T) {
 	r := GenRandom()
 	assert := assert.New(t)
 	pubnubChannel := fmt.Sprintf("testChannel_subror_%d", r.Intn(20))
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -263,7 +263,7 @@ func TestGroupSubscriptionAlreadySubscribed(t *testing.T) {
 
 	group := "Group_AlreadySubscribed"
 	uuid := "UUID_AlreadySubscribed"
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	createChannelGroups(pubnub, []string{group})
 	defer removeChannelGroups(pubnub, []string{group})
@@ -304,7 +304,7 @@ func TestGroupSubscriptionNotSubscribed(t *testing.T) {
 
 	group := "Group_NotSubscribed"
 	uuid := "UUID_NotSubscribed"
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	createChannelGroups(pubnub, []string{group})
 	defer removeChannelGroups(pubnub, []string{group})
@@ -335,7 +335,7 @@ func TestGroupSubscriptionToNotExistingChannelGroup(t *testing.T) {
 
 	group := "Group_NotExistingCG"
 	uuid := "UUID_NotExistingCG"
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)

@@ -33,7 +33,7 @@ func TestCustomUuid(t *testing.T) {
 	defer stop()
 
 	uuid := "customuuid"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 	channel := "customUuid"
 
 	successChannel := make(chan []byte)
@@ -93,7 +93,7 @@ func Test0Presence(t *testing.T) {
 	defer stop()
 
 	customUuid := "UUID_zeroPresence"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, customUuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, customUuid, CreateLoggerForTests())
 	channel := "Channel_ZeroPresence"
 
 	successSubscribe := make(chan []byte)
@@ -203,7 +203,7 @@ func TestWhereNow(t *testing.T) {
 
 	uuid := "UUID_WhereNow"
 	channel := "Channel_WhereNow"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid, CreateLoggerForTests())
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -243,7 +243,7 @@ func TestGlobalHereNow(t *testing.T) {
 
 	uuid := "UUID_GlobalWhereNow"
 	channel := "Channel_GlobalWhereNow"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid, CreateLoggerForTests())
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -283,7 +283,7 @@ func TestSetGetUserState(t *testing.T) {
 
 	uuid := "UUID_SetGetUserState"
 	channel := "Channel_SetGetUserState"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid, CreateLoggerForTests())
 
 	key := "testkey"
 	val := "testval"
@@ -341,7 +341,7 @@ func TestSetUserStateHereNow(t *testing.T) {
 
 	channel := "Channel_SetUserStateHereNow"
 	uuid := "UUID_SetUserStateHereNow"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid, CreateLoggerForTests())
 
 	key := "testkey"
 	val := "testval"
@@ -400,7 +400,7 @@ func TestSetUserStateGlobalHereNow(t *testing.T) {
 
 	channel := "Channel_SetUserStateGlobalHereNow"
 	uuid := "UUID_SetUserStateGlobalHereNow"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid, CreateLoggerForTests())
 
 	key := "testkey"
 	val := "testval"
@@ -459,7 +459,7 @@ func TestSetUserStateJSON(t *testing.T) {
 
 	channel := "Channel_SetUserStateJSON"
 	uuid := "UUID_SetUserStateJSON"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid, CreateLoggerForTests())
 
 	key1 := "testkey"
 	val1 := "testval"

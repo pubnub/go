@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: “Prefix uuid with 'pn-'”
+        type: improvement
+      - 
+        text: “Fix use of escaping JSON during publish”
+        type: improvement
+    date: Feb 22, 17
+    version: v3.9.5
+  - 
+    changes: 
+      - 
         text: “Message TTL”
         type: improvement
       - 
@@ -11,7 +21,7 @@ changelog:
       - 
         text: “Subscribe V2 response”
         type: improvement
-    date: Jan 11, 16
+    date: Jan 11, 17
     version: v3.9.4.3
   - 
     changes: 
@@ -219,4 +229,4 @@ features:
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: “3.9.4.3”
+version: “3.10.0”

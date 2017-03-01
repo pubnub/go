@@ -27,7 +27,7 @@ func TestGroupAddRemoveChannel(t *testing.T) {
 
 	uuid := "UUID_AddRemove_1"
 	uuid2 := "UUID_AddRemove_2"
-	pubnub := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid)
+	pubnub := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, uuid, CreateLoggerForTests())
 
 	go pubnub.ChannelGroupAddChannel(group, channels, successChannel, errorChannel)
 	select {

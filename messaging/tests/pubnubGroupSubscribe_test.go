@@ -34,7 +34,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedSingle(t *testing.T) {
 
 	group := "Group_GroupSubscriptionConAndUnsSingle"
 	uuid := "UUID_GroupSubscriptionConAndUnsSingle"
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	createChannelGroups(pubnubInstance, []string{group})
 	defer removeChannelGroups(pubnubInstance, []string{group})
@@ -96,7 +96,7 @@ func TestGroupSubscriptionConnectedAndUnsubscribedMultiple(t *testing.T) {
 
 	uuid := "UUID_Multiple_CAU"
 	pnMu.Lock()
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 	pnMu.Unlock()
 	groupsString := "Group_ConAndUnsMult_1,Group_ConAndUnsMult_2,Group_ConAndUnsMult_3"
 	groups := strings.Split(groupsString, ",")
@@ -221,7 +221,7 @@ func TestGroupSubscriptionReceiveSingleMessage(t *testing.T) {
 	group := "Group_GroupReceiveSingleMessage"
 	channel := "Channel_GroupReceiveSingleMessage"
 	uuid := "UUID_GroupReceiveSingleMessage"
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid)
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
 	populateChannelGroup(pubnub, group, channel)
 	defer removeChannelGroups(pubnub, []string{group})
@@ -292,7 +292,7 @@ func xTestGroupSubscriptionPresence(t *testing.T) {
 	defer stop()
 
 	group := "Group_GroupPresence"
-	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnub := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 	groupPresence := fmt.Sprintf("%s%s", group, presenceSuffix)
 
 	createChannelGroups(pubnub, []string{group})

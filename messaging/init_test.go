@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	initLogging()
+	//initLogging()
 }
 
 var pubnub = Pubnub{

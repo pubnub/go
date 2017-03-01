@@ -18,7 +18,7 @@ func TestPamStart(t *testing.T) {
 func TestSecretKeyRequired(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 	channel := "testSecretKeyRequired"
 
 	successChannel := make(chan []byte)
@@ -44,7 +44,7 @@ func TestGrantAndRevokeSubKeyLevelSubscribe(t *testing.T) {
 		[]string{"uuid", "signature", "timestamp"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "", CreateLoggerForTests())
 	ttl := 4
 	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"r":1,"m":0,"w":1,"subscribe_key":"%s","ttl":%d,"level":"subkey"}}`, PamSubKey, ttl)
 	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"r":0,"m":0,"w":0,"subscribe_key":"%s","ttl":%d,"level":"subkey"}}`, PamSubKey, 1)
@@ -88,7 +88,7 @@ func TestGrantAndRevokeChannelLevelSubscribe(t *testing.T) {
 		[]string{"uuid", "signature", "timestamp"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "", CreateLoggerForTests())
 	channel := "testChannelGrantAndRevokeChannelLevelSubscribe"
 	ttl := 8
 
@@ -134,7 +134,7 @@ func TestGrantChannelLevelSubscribeWithAuth(t *testing.T) {
 		[]string{"uuid", "signature", "timestamp"})
 	defer stop()
 
-	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "")
+	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "", CreateLoggerForTests())
 	channel := "testGrantChannelLevelSubscribeWithAuth"
 	authKey := "myAuthKey"
 

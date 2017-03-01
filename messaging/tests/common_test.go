@@ -14,10 +14,10 @@ import (
 	"github.com/pubnub/go/messaging/tests/utils"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
-	//"log"
+	"log"
 	"math/rand"
 	"net/http"
-	//"os"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -675,7 +675,7 @@ func GetServerTimeString(uuid string) string {
 	errorChannel := make(chan []byte)
 
 	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false,
-		fmt.Sprintf("timeGetter_%s", uuid))
+		fmt.Sprintf("timeGetter_%s", uuid), CreateLoggerForTests())
 
 	go pubnubInstance.GetTime(successChannel, errorChannel)
 	select {
@@ -760,4 +760,18 @@ func removeChannelGroups(pubnub *messaging.Pubnub, groups []string) {
 
 func sleep(seconds int) {
 	time.Sleep(time.Duration(seconds) * time.Second)
+}
+
+func CreateLoggerForTests() *log.Logger {
+	var infoLogger *log.Logger
+	logfileName := "pubnubMessagingTests.log"
+	f, err := os.OpenFile(logfileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("error opening file: ", err.Error())
+		fmt.Println("Logging disabled")
+	} else {
+		//fmt.Println("Logging enabled writing to ", logfileName)
+		infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+	return infoLogger
 }

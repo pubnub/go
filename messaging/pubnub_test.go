@@ -21,7 +21,7 @@ func TestGenUuid(t *testing.T) {
 
 func InvalidChannelCommon(ch string, isChannelGroup, expected bool, t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid", CreateLoggerForTests())
 	b := pubnub.invalidChannelV2(ch, nil, isChannelGroup)
 	assert.Equal(b, expected)
 }
@@ -843,7 +843,7 @@ func TestGetDataCipherSingle(t *testing.T) {
 		cipherKey:  "enigma",
 		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
-	response := `["h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=",14610686757083461,14610686757935083]`
+	response := `["h5Uhyc8uf3h11w5C68QsVenCf7Llvdq5XWLa1RSgdfU=",9223372036854775808346,10223372036854775808084]`
 	var contents = []byte(response)
 	var s interface{}
 	err := json.Unmarshal(contents, &s)
@@ -855,7 +855,7 @@ func TestGetDataCipherSingle(t *testing.T) {
 			if length > 0 {
 				msgStr := pubnub.parseInterface(vv, pubnub.cipherKey)
 				//pubnub.infoLogger.Printf(msgStr)
-				assert.Equal("[\"Test Message 5\",1.461068675708346e+16,1.4610686757935084e+16]", msgStr)
+				assert.Equal("[\"Test Message 5\",9.223372036854776e+21,1.0223372036854776e+22]", msgStr)
 			}
 		default:
 			assert.Fail("default fall through")
@@ -872,7 +872,7 @@ func TestGetDataSingle(t *testing.T) {
 		//cipherKey:  "enigma",
 		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
-	response := "[\"Test Message 5\",14610686757083461,14610686757935083]"
+	response := "[\"Test Message 5\",9223372036854775808346,10223372036854775808084]"
 	var contents = []byte(response)
 	var s interface{}
 	err := json.Unmarshal(contents, &s)
@@ -881,7 +881,7 @@ func TestGetDataSingle(t *testing.T) {
 		switch vv := v.(type) {
 		case []interface{}:
 			msgStr := pubnub.parseInterface(vv, pubnub.cipherKey)
-			assert.Equal("[\"Test Message 5\",1.461068675708346e+16,1.4610686757935084e+16]", msgStr)
+			assert.Equal("[\"Test Message 5\",9.223372036854776e+21,1.0223372036854776e+22]", msgStr)
 		default:
 			assert.Fail("default fall through")
 		}
@@ -897,7 +897,7 @@ func TestGetDataCipherNonEncSingle(t *testing.T) {
 		cipherKey:  "enigma",
 		infoLogger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile),
 	}
-	response := "[\"Test Message 5\",14610686757083461,14610686757935083]"
+	response := "[\"Test Message 5\",9223372036854775808346,10223372036854775808084]"
 	var contents = []byte(response)
 	var s interface{}
 	err := json.Unmarshal(contents, &s)
@@ -909,7 +909,7 @@ func TestGetDataCipherNonEncSingle(t *testing.T) {
 			if length > 0 {
 				msgStr := pubnub.parseInterface(vv, pubnub.cipherKey)
 				//pubnub.infoLogger.Printf(msgStr)
-				assert.Equal("[\"Test Message 5\",1.461068675708346e+16,1.4610686757935084e+16]", msgStr)
+				assert.Equal("[\"Test Message 5\",9.223372036854776e+21,1.0223372036854776e+22]", msgStr)
 			}
 		default:
 			assert.Fail("default fall through")
@@ -1005,7 +1005,7 @@ func TestInvalidMessageFail(t *testing.T) {
 
 func TestCreateSubscribeURLReset(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)
@@ -1029,14 +1029,14 @@ func TestCreateSubscribeURLReset(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.3", b)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.10.0", b)
 	assert.Equal(senttt, tt)
 	presenceHeartbeat = 0
 }
 
 func TestCreateSubscribeURL(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)
@@ -1054,13 +1054,13 @@ func TestCreateSubscribeURL(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.9.4.3", b)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.10.0", b)
 	assert.Equal(senttt, tt)
 }
 
 func TestCreateSubscribeURLFilterExp(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)
@@ -1078,13 +1078,13 @@ func TestCreateSubscribeURLFilterExp(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.9.4.3", b)
+	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.10.0", b)
 	assert.Equal(senttt, tt)
 }
 
 func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)
@@ -1108,14 +1108,14 @@ func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s", b)
 
-	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.9.4.3", b)
+	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.10.0", b)
 	presenceHeartbeat = 0
 
 }
 
 func TestAddAuthParam(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.SetAuthenticationKey("authKey")
 	b := pubnub.addAuthParam(true)
 
@@ -1124,7 +1124,7 @@ func TestAddAuthParam(t *testing.T) {
 
 func TestAddAuthParamQSTrue(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.SetAuthenticationKey("authKey")
 	b := pubnub.addAuthParam(false)
 
@@ -1133,7 +1133,7 @@ func TestAddAuthParamQSTrue(t *testing.T) {
 
 func TestAddAuthParamEmpty(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	b := pubnub.addAuthParam(false)
 
 	assert.Equal("", b)

@@ -51,7 +51,7 @@ func TestCreatePNStatusCG(t *testing.T) {
 func TestGetMessageResponse(t *testing.T) {
 	assert := assert.New(t)
 	resp := `{"t":{"t":"14586613280736475","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"Test message"},{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":2,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"Test message2"}]}`
-	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid", CreateLoggerForTests())
 	subEnvelope, _, _, _ := pubnub.ParseSubscribeResponse([]byte(resp), "")
 	response := subEnvelope.Messages[0].getMessageResponse()
 	assert.Equal(response.Channel, "Channel_SubscriptionConnectedForSimple")
@@ -63,7 +63,7 @@ func TestGetMessageResponse(t *testing.T) {
 
 func TestGetPresenceMessageResponse(t *testing.T) {
 	assert := assert.New(t)
-	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid", CreateLoggerForTests())
 	resp := `{"t":{"t":"14836953233974515","r":4},"m":[{"a":"2","f":0,"p":{"t":"14836953233242541","r":2},"k":"sub-c-f6e09df0-bd35-11e6-963b-0619f8945a4f","c":"test-pnpres","d":{"action": "join", "timestamp": 1483695323, "uuid": "bfce00ff4018fce180438bb04afc8da8", "occupancy": 1},"b":"test-pnpres"}]}`
 	subEnvelope, _, _, _ := pubnub.ParseSubscribeResponse([]byte(resp), "")
 	response := subEnvelope.Messages[0].getPresenceMessageResponse(pubnub)
@@ -78,7 +78,7 @@ func TestGetPresenceMessageResponse(t *testing.T) {
 func TestGetChannelsAndGroupsChannels(t *testing.T) {
 	assert := assert.New(t)
 	response := `{"t":{"t":"14586613280736475","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"Test message"},{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":2,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"Test message2"}]}`
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)
@@ -105,7 +105,7 @@ func TestGetChannelsAndGroupsChannels(t *testing.T) {
 func TestGetChannelsAndGroupsChannelAndChannelGroup(t *testing.T) {
 	assert := assert.New(t)
 	response := `{"t":{"t":"14586613280736475","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":2,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple_CG","d":"Test message2"}]}`
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)
@@ -132,7 +132,7 @@ func TestGetChannelsAndGroupsChannelAndChannelGroup(t *testing.T) {
 func TestGetChannelsAndGroupsWildcard(t *testing.T) {
 	assert := assert.New(t)
 	response := `{"t":{"t":"14586613280736475","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":2,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple.*","d":"Test message2"}]}`
-	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid")
+	pubnub := NewPubnub("demo", "demo", "demo", "enigma", true, "testuuid", CreateLoggerForTests())
 	pubnub.channels = *newSubscriptionEntity()
 	pubnub.groups = *newSubscriptionEntity()
 	var callbackChannel = make(chan []byte)

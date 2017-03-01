@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.9.4.3
-// Build Date: Dec 22, 2016
+// Version: 3.10.0
+// Build Date: Feb 22, 2016
 package messaging
 
 import (
@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -30,9 +29,9 @@ import (
 
 const (
 	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.9.4.3"
+	SDK_VERSION = "3.10.0"
 	// SDK_DATE is the version release date
-	SDK_DATE = "Dec 22, 2016"
+	SDK_DATE = "Feb 22, 2016"
 )
 
 type responseStatus int
@@ -183,15 +182,6 @@ var (
 
 	// 16 byte IV
 	valIV = "0123456789012345"
-
-	// If true logs will be written in the log file
-	loggingEnabled bool
-
-	// This stirng is used as a log file name
-	logfileWriter io.Writer
-
-	// Logger for info messages
-	infoLogger *log.Logger
 )
 
 var (
@@ -310,7 +300,6 @@ type Pubnub struct {
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
 
-	// pointer ref to logger for info messages, to avoid race conditions
 	infoLogger *log.Logger
 }
 
@@ -351,15 +340,18 @@ func SetNonSubscribeTransport(transport http.RoundTripper) {
 // cipherKey stores the user specific Cipher Key. Accepts empty string if not used.
 // sslOn is true if enabled, else is false.
 // customUuid is the unique identifier, it can be a custom value or sent as empty for automatic generation.
+// logger is a pointer to log.Logger. If it is set to nil logging is disabled.
 //
 // returns the pointer to Pubnub instance.
-func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherKey string, sslOn bool, customUuid string) *Pubnub {
+func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherKey string, sslOn bool, customUuid string, logger *log.Logger) *Pubnub {
 
 	newPubnub := &Pubnub{}
-	initLogging()
-	newPubnub.infoLogger = infoLogger
-	infoLogger.Printf(fmt.Sprintf("Pubnub Init, %s", VersionInfo()))
-	infoLogger.Printf(fmt.Sprintf("OS: %s", runtime.GOOS))
+	if logger == nil {
+		logger = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+	newPubnub.infoLogger = logger
+	newPubnub.infoLogger.Printf(fmt.Sprintf("Pubnub Init, %s", VersionInfo()))
+	newPubnub.infoLogger.Printf(fmt.Sprintf("OS: %s", runtime.GOOS))
 
 	newPubnub.origin = origin
 	newPubnub.publishKey = publishKey
@@ -383,7 +375,7 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 		newPubnub.origin = "http://" + newPubnub.origin
 	}
 
-	infoLogger.Printf(fmt.Sprintf("Origin: %s", newPubnub.origin))
+	newPubnub.infoLogger.Printf(fmt.Sprintf("Origin: %s", newPubnub.origin))
 	//Generate the uuid is custmUuid is not provided
 	newPubnub.SetUUID(customUuid)
 	newPubnub.publishCounter = 0
@@ -399,21 +391,6 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.retryWorker = newRequestWorker("Retry", retryTransport, retryInterval, newPubnub.infoLogger)
 
 	return newPubnub
-}
-
-var once sync.Once
-
-// initLogging initaites the log file if loggingEnabled is true
-func initLogging() {
-	onceBody := func() {
-		infoLogger = log.New(logfileWriter, "", log.Ldate|log.Ltime|log.Lshortfile)
-		infoLogger.Printf("****************************************")
-	}
-	if (loggingEnabled) && (logfileWriter != nil) {
-		once.Do(onceBody)
-	} else {
-		infoLogger = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
-	}
 }
 
 // SetMaxIdleConnsPerHost is used to set the value of HTTP Transport's MaxIdleConnsPerHost.
@@ -455,28 +432,6 @@ func GetResumeOnReconnect() bool {
 	return resumeOnReconnect
 }
 
-// LoggingEnabled sets the value of loggingEnabled
-// If true logs will be written to the logfileWriter
-// In addition to LoggingEnabled you also need to init
-// the logfileWriter using SetLogOutput
-func LoggingEnabled(val bool) {
-	loggingEnabled = val
-}
-
-// SetLogOutput sets the full path of the logfile
-// Default name is pubnubMessaging.log and is located in the same dir
-// from where the go file is run
-// In addition to this LoggingEnabled should be true for this to work.
-func SetLogOutput(val io.Writer) {
-	logfileWriter = val
-}
-
-// Logging gets the value of loggingEnabled
-// If true logs will be written to a file
-func Logging() bool {
-	return loggingEnabled
-}
-
 // SetAuthenticationKey sets the value of authentication key
 func (pub *Pubnub) SetAuthenticationKey(val string) {
 	pub.Lock()
@@ -496,7 +451,7 @@ func (pub *Pubnub) SetUUID(val string) {
 	if strings.TrimSpace(val) == "" {
 		uuid, err := GenUuid()
 		if err == nil {
-			pub.uuid = url.QueryEscape(uuid)
+			pub.uuid = fmt.Sprintf("pn-%s", url.QueryEscape(uuid))
 		} else {
 			pub.infoLogger.Printf("ERROR: %s", err.Error())
 		}
@@ -1157,6 +1112,18 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 	}
 }
 
+// encodeJSONAsPathComponent properly encodes serialized JSON
+// for placement within a URI path
+func encodeJSONAsPathComponent(jsonBytes string) string {
+	u := &url.URL{Path: jsonBytes}
+	encodedPath := u.String()
+
+	// Go 1.8 inserts a ./ per RFC 3986 §4.2. Previous versions
+	// will be unaffected by this under the assumption that jsonBytes
+	// represents valid JSON
+	return strings.TrimLeft(encodedPath, "./")
+}
+
 // sendPublishRequest is the struct Pubnub's instance method that posts a publish request and
 // sends back the response to the channel.
 //
@@ -1173,8 +1140,7 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 	storeInHistory, replicate bool, jsonBytes string, metaBytes []byte, ttl int,
 	callbackChannel, errorChannel chan []byte) {
 
-	u := &url.URL{Path: jsonBytes}
-	encodedPath := u.String()
+	encodedPath := encodeJSONAsPathComponent(jsonBytes)
 	pub.infoLogger.Printf("INFO: Publish: json: %s, encoded: %s", jsonBytes, encodedPath)
 
 	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
@@ -1203,9 +1169,7 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 	publishURL = fmt.Sprintf("%s&seqn=%s", publishURL, counter)
 
 	if metaBytes != nil {
-		metaEncoded := &url.URL{Path: string(metaBytes)}
-		metaEncodedPath := metaEncoded.String()
-
+		metaEncodedPath := encodeJSONAsPathComponent(string(metaBytes))
 		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
 	}
 
