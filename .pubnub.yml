@@ -1,7 +1,10 @@
 --- 
 changelog: 
-  - 
+ - 
     changes: 
+      - 
+        text: “Breaking API Change newPubnub has a new parameter where it expects a logger instance. This fixes a rare race condition”
+        type: improvement
       - 
         text: “Prefix uuid with 'pn-'”
         type: improvement
@@ -9,7 +12,7 @@ changelog:
         text: “Fix use of escaping JSON during publish”
         type: improvement
     date: Feb 22, 17
-    version: v3.9.5
+    version: v3.10.0
   - 
     changes: 
       - 
