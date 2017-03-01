@@ -1,5 +1,5 @@
 #PubNub 3.10.0 client for Go
-* Go (1.2, 1.3, 1.4, 1.5, 1.6, 1.7.3)
+* Go (1.2, 1.3, 1.4, 1.5, 1.6, 1.7.3, 1.8)
 * Google App Engine (1.9.28 - 2015-10-29)
 * Managed VMs (Google Cloud SDK 133.0.0)
 
