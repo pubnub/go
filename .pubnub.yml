@@ -1,6 +1,6 @@
 --- 
 changelog: 
- - 
+  - 
     changes: 
       - 
         text: “Breaking API Change newPubnub has a new parameter where it expects a logger instance. This fixes a rare race condition”
