@@ -7,7 +7,8 @@
 * Subscribe method arguments changed
 
 ###Change log
-* 3.9.5
+* 3.10.0
+ * Breaking API Change: newPubnub has a new parameter where it expects a logger instance. This fixes a rare race condition.
  * Fix use of escaping JSON during publish
  * Prefix uuid with 'pn-'
 * 3.9.4.3
