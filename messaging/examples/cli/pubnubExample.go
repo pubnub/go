@@ -184,6 +184,7 @@ func Init() (b bool) {
 			messaging.SetOrigin("ps.pndsn.com")
 
 			var pubInstance = messaging.NewPubnub(publishKey, subscribeKey, secretKey, cipher, ssl, uuid, infoLogger)
+
 			pub = pubInstance
 
 			SetupProxy()

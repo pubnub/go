@@ -8,7 +8,7 @@
 
 ###Change log
 * 3.10.0
- * Breaking API Change: newPubnub has a new parameter where it expects a logger instance. This fixes a rare race condition.
+ * Breaking API Change: newPubnub has a new parameter where it expects a logger instance [Example](#Init). This fixes a rare race condition.
  * Fix use of escaping JSON during publish
  * Prefix uuid with 'pn-'
 * 3.9.4.3
@@ -234,7 +234,19 @@ func handleResult(successChannel, errorChannel chan []byte, timeoutVal int64, ac
 Initialize a new Pubnub instance.
 
 ```go
-        pubInstance := messaging.NewPubnub(<YOUR PUBLISH KEY>, <YOUR SUBSCRIBE KEY>, <SECRET KEY>, <CIPHER>, <SSL ON/OFF>, <UUID>)
+        pubInstance := messaging.NewPubnub(<YOUR PUBLISH KEY>, <YOUR SUBSCRIBE KEY>, <SECRET KEY>, <CIPHER>, <SSL ON/OFF>, <UUID>, <LOGGER>)
+
+    //e.g.
+    /*
+    * var infoLogger *log.Logger
+    * infoLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+    * pubInstance := messaging.NewPubnub("demo", "demo", "demo", "", true, "customuuid", infoLogger)
+    * 
+    * OR
+    * 
+    * pubInstance := messaging.NewPubnub("demo", "demo", "demo", "", true, "customuuid", nil)
+    */
+
 ```
 
 #### Publish
