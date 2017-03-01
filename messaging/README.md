@@ -8,7 +8,7 @@
 
 ###Change log
 * 3.10.0
- * Breaking API Change: newPubnub has a new parameter where it expects a logger instance [Example](#Init). This fixes a rare race condition.
+ * Breaking API Change: newPubnub has a new parameter where it expects a logger instance [Example](#init). This fixes a rare race condition.
  * Fix use of escaping JSON during publish
  * Prefix uuid with 'pn-'
 * 3.9.4.3
