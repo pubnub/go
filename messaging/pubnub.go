@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.10.0
-// Build Date: Feb 22, 2016
+// Version: 3.11.0
+// Build Date: Mar 10, 2017
 package messaging
 
 import (
@@ -15,8 +15,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"golang.org/x/net/context"
+	"golang.org/x/time/rate"
+	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -29,9 +33,9 @@ import (
 
 const (
 	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.10.0"
+	SDK_VERSION = "3.11.0"
 	// SDK_DATE is the version release date
-	SDK_DATE = "Feb 22, 2016"
+	SDK_DATE = "Mar 10, 2017"
 )
 
 type responseStatus int
@@ -299,8 +303,10 @@ type Pubnub struct {
 	presenceHeartbeatWorker *requestWorker
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
-
-	infoLogger *log.Logger
+	publishHTTPClient       *http.Client
+	limiter                 *rate.Limiter
+	ctx                     context.Context
+	infoLogger              *log.Logger
 }
 
 // PubnubUnitTest structure used to expose some data for unit tests.
@@ -389,8 +395,43 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.nonSubscribeWorker = newRequestWorker("Non-Subscribe", nonSubscribeTransport,
 		nonSubscribeTimeout, newPubnub.infoLogger)
 	newPubnub.retryWorker = newRequestWorker("Retry", retryTransport, retryInterval, newPubnub.infoLogger)
+	newPubnub.publishHTTPClient = createPublishHTTPClient()
+	newPubnub.limiter = rate.NewLimiter(20, 10)
+	newPubnub.ctx = context.Background()
 
 	return newPubnub
+}
+
+func createPublishHTTPClient() *http.Client {
+	client := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConnsPerHost: maxIdleConnsPerHost,
+			Dial: (&net.Dialer{
+				Timeout:   time.Duration(connectTimeout) * time.Second,
+				KeepAlive: 30 * time.Minute,
+			}).Dial,
+		},
+
+		Timeout: time.Duration(nonSubscribeTimeout) * time.Second,
+	}
+
+	/*transport.ResponseHeaderTimeout = time.Duration(w.Timeout) * time.Second
+
+	if proxyServerEnabled {
+		proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", proxyUser,
+			proxyPassword, proxyServer, proxyPort))
+
+		if err == nil {
+			transport.Proxy = http.ProxyURL(proxyURL)
+		} else {
+			w.InfoLogger.Printf("ERROR: %s: Proxy connection error: %s", w.Name, err.Error())
+		}
+	}
+
+	transport.MaxIdleConnsPerHost = maxIdleConnsPerHost
+	w.Transport = transport*/
+
+	return client
 }
 
 // SetMaxIdleConnsPerHost is used to set the value of HTTP Transport's MaxIdleConnsPerHost.
@@ -1173,7 +1214,7 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
 	}
 
-	value, responseCode, err := pub.httpRequest(publishURL, nonSubscribeTrans)
+	value, responseCode, err := pub.publishHTTPRequest(publishURL)
 	pub.readPublishResponseAndCallSendResponse(channel, value, responseCode, err, callbackChannel, errorChannel)
 }
 
@@ -4109,6 +4150,90 @@ func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 	return contents, responseStatusCode, err
 }
 
+/*func (pub *Pubnub) validateRequestAndAddHeaders(requestURL string) *http.Request {
+	req, err := http.NewRequest("GET", requestURL, nil)
+	if err != nil {
+		//msg := []byte(fmt.Sprintf("Error Occured. %+v", err))
+		pub.infoLogger.Printf("ERROR: HTTP REQUEST: Error while creating request: %s", err.Error())
+		//ph.publishErrorChannel <- msg
+		return nil, 0, err
+	}
+
+	scheme := "http"
+	if pub.isSSL {
+		scheme = "https"
+	}
+
+	req.URL = &url.URL{
+		Scheme: scheme,
+		Host:   origin,
+		Opaque: fmt.Sprintf("//%s%s", origin, requestURL),
+	}
+
+	// REVIEW: hardcoded client version
+	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS,
+		SDK_VERSION)
+
+	req.Header.Set("User-Agent", useragent)
+	return req
+}*/
+
+func (pub *Pubnub) publishHTTPRequest(requestURL string) (
+	[]byte, int, error) {
+	if err := pub.limiter.Wait(pub.ctx); err != nil {
+		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Limiter: %s", err.Error())
+		return nil, 0, err
+	}
+	//req := pub.validateRequestAndAddHeaders(requestURL)
+	req, err := http.NewRequest("GET", requestURL, nil)
+	if err != nil {
+		//msg := []byte(fmt.Sprintf("Error Occured. %+v", err))
+		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while creating request: %s", err.Error())
+		//ph.publishErrorChannel <- msg
+		return nil, 0, err
+	}
+
+	scheme := "http"
+	if pub.isSSL {
+		scheme = "https"
+	}
+
+	req.URL = &url.URL{
+		Scheme: scheme,
+		Host:   origin,
+		Opaque: fmt.Sprintf("//%s%s", origin, requestURL),
+	}
+
+	// REVIEW: hardcoded client version
+	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS,
+		SDK_VERSION)
+
+	req.Header.Set("User-Agent", useragent)
+
+	response, err := pub.publishHTTPClient.Do(req)
+	if err != nil && response == nil {
+		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while sending request: %s", err.Error())
+		//msg := []byte(fmt.Sprintf("Error sending request to API endpoint. %+v", err))
+		//ph.publishErrorChannel <- msg
+		return nil, 0, err
+	}
+
+	//defer
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while parsing body: %s", err.Error())
+		//msg := []byte(fmt.Sprintf("Couldn't parse response body. %+v", err))
+		//ph.publishErrorChannel <- msg
+		response.Body.Close()
+		return nil, response.StatusCode, err
+	}
+	io.Copy(ioutil.Discard, response.Body)
+	response.Body.Close()
+
+	return body, response.StatusCode, nil
+	//ph.publishSuccessChannel <- body
+}
+
 // connect creates a http request to the pubnub origin and returns the
 // response or the error while connecting.
 //
@@ -4146,6 +4271,7 @@ func (pub *Pubnub) connect(requestURL string, tType transportType,
 		SDK_VERSION)
 
 	req.Header.Set("User-Agent", useragent)
+	//req := pub.validateRequestAndAddHeaders(requestURL)
 
 	switch tType {
 	case subscribeTrans:
