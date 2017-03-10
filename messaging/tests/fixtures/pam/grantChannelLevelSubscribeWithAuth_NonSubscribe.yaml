@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.10.0
-    url: http://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f?auth=myAuthKey&channel=testGrantChannelLevelSubscribeWithAuth&pnsdk=PubNub-Go%2F3.10.0&r=1&timestamp=1457161967&ttl=1&uuid=d1093722407c1fd980ba5ed0e9882d91&w=1&signature=eyvk-U21nVGWGfmV_aIpaAHG5UFW9PYDZ4Bts80yGEU=
+      - ua_string=(linux) PubNub-Go/3.11.0
+    url: http://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f?auth=myAuthKey&channel=testGrantChannelLevelSubscribeWithAuth&pnsdk=PubNub-Go%2F3.11.0&r=1&timestamp=1457161967&ttl=1&uuid=d1093722407c1fd980ba5ed0e9882d91&w=1&signature=eyvk-U21nVGWGfmV_aIpaAHG5UFW9PYDZ4Bts80yGEU=
     method: GET
   response:
     body: '{"message":"Success","payload":{"level":"user","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1,"channel":"testGrantChannelLevelSubscribeWithAuth","auths":{"myAuthKey":{"r":1,"w":1,"m":0}}},"service":"Access

@@ -12,7 +12,7 @@ changelog:
         text: “Fix use of escaping JSON during publish”
         type: improvement
     date: Feb 22, 17
-    version: v3.10.0
+    version: v3.11.0
   - 
     changes: 
       - 
@@ -232,4 +232,4 @@ features:
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: “3.10.0”
+version: “3.11.0”
