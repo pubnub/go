@@ -5,17 +5,18 @@ package main
 import (
 	"bufio"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
+	"github.com/pubnub/go/messaging"
 	"log"
 	"math/big"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 	"unicode/utf16"
 	"unicode/utf8"
-
-	"github.com/pubnub/go/messaging"
 )
 
 // connectChannels: the connected pubnub channels, multiple channels are stored separated by comma.
@@ -31,13 +32,13 @@ var cipher = ""
 var uuid = ""
 
 //
-var publishKey = "demo"
+var publishKey = "demo-36"
 
 //
-var subscribeKey = "demo"
+var subscribeKey = "demo-36"
 
 //
-var secretKey = "demo"
+var secretKey = "demo-36"
 
 // a boolean to capture user preference of displaying errors.
 var displayError = true
@@ -79,129 +80,133 @@ func Init() (b bool) {
 		fmt.Println(err)
 	} else {
 		connectChannels = string(line)
-		if strings.TrimSpace(connectChannels) != "" {
-			fmt.Println("Channel: ", connectChannels)
-			fmt.Println("Enable SSL? Enter n for No, y for Yes")
-			var enableSsl string
-			fmt.Scanln(&enableSsl)
 
-			if enableSsl == "n" || enableSsl == "N" {
-				ssl = false
-				fmt.Println("SSL disabled")
-			} else {
-				ssl = true
-				fmt.Println("SSL enabled")
-			}
-
-			fmt.Println("Please enter a subscribe key, leave blank for default key.")
-			fmt.Scanln(&subscribeKey)
-
-			if strings.TrimSpace(subscribeKey) == "" {
-				subscribeKey = "demo"
-			}
-			fmt.Println("Subscribe Key: ", subscribeKey)
-			fmt.Println("")
-
-			fmt.Println("Please enter a publish key, leave blank for default key.")
-			fmt.Scanln(&publishKey)
-			if strings.TrimSpace(publishKey) == "" {
-				publishKey = "demo"
-			}
-			fmt.Println("Publish Key: ", publishKey)
-			fmt.Println("")
-
-			fmt.Println("Please enter a secret key, leave blank for default key.")
-			fmt.Scanln(&secretKey)
-			if strings.TrimSpace(secretKey) == "" {
-				secretKey = "demo"
-			}
-			fmt.Println("Secret Key: ", secretKey)
-			fmt.Println("")
-
-			fmt.Println("Please enter a CIPHER key, leave blank if you don't want to use this.")
-			fmt.Scanln(&cipher)
-			fmt.Println("Cipher: ", cipher)
-
-			fmt.Println("Please enter a Custom UUID, leave blank for default.")
-			fmt.Scanln(&uuid)
-			fmt.Println("UUID: ", uuid)
-
-			fmt.Println("Display error messages? Enter y for Yes, n for No. Default is Yes")
-			var enableErrorMessages = "y"
-			fmt.Scanln(&enableErrorMessages)
-
-			if enableErrorMessages == "y" || enableErrorMessages == "Y" {
-				displayError = true
-				fmt.Println("Error messages will be displayed")
-			} else {
-				displayError = false
-				fmt.Println("Error messages will not be displayed")
-			}
-
-			fmt.Println("Enable resume on reconnect? Enter y for Yes, n for No. Default is Yes")
-			var enableResumeOnReconnect = "y"
-			fmt.Scanln(&enableResumeOnReconnect)
-
-			if enableResumeOnReconnect == "y" || enableResumeOnReconnect == "Y" {
-				messaging.SetResumeOnReconnect(true)
-				fmt.Println("Resume on reconnect enabled")
-			} else {
-				messaging.SetResumeOnReconnect(false)
-				fmt.Println("Resume on reconnect disabled")
-			}
-
-			fmt.Println("Set subscribe timeout? Enter numerals.")
-			var subscribeTimeout = ""
-			fmt.Scanln(&subscribeTimeout)
-			val, err := strconv.Atoi(subscribeTimeout)
-			if err != nil {
-				fmt.Println("Entered value is invalid. Using default value.")
-			} else {
-				messaging.SetSubscribeTimeout(uint16(val))
-			}
-
-			fmt.Println("Enable logging? Enter y for Yes, n for No. Default is Yes")
-			var enableLogging = "y"
-			fmt.Scanln(&enableLogging)
-
-			var infoLogger *log.Logger
-
-			if enableLogging == "y" || enableLogging == "Y" {
-				logfileName := "pubnubMessaging.log"
-				f, err := os.OpenFile(logfileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-				if err != nil {
-
-					fmt.Println("error opening file: ", err.Error())
-					fmt.Println("Logging disabled")
-				} else {
-					fmt.Println("Logging enabled writing to ", logfileName)
-					infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
-				}
-			} else {
-				fmt.Println("Logging disabled")
-			}
-
-			messaging.SetOrigin("ps.pndsn.com")
-
-			var pubInstance = messaging.NewPubnub(publishKey, subscribeKey, secretKey, cipher, ssl, uuid, infoLogger)
-
-			pub = pubInstance
-
-			SetupProxy()
-
-			presenceHeartbeat := askNumber16("Presence Heartbeat", true)
-			pub.SetPresenceHeartbeat(presenceHeartbeat)
-			fmt.Println(fmt.Sprintf("Presence Heartbeat set to :%d", pub.GetPresenceHeartbeat()))
-
-			presenceHeartbeatInterval := askNumber16("Presence Heartbeat Interval", true)
-			pub.SetPresenceHeartbeat(presenceHeartbeatInterval)
-			fmt.Println(fmt.Sprintf("Presence Heartbeat set to :%d", pub.GetPresenceHeartbeat()))
-
-			fmt.Println("Pubnub instance initialized")
-
-			return true
+		if len(strings.TrimSpace(connectChannels)) == 0 {
+			connectChannels = "test"
 		}
-		fmt.Println("Channel cannot be empty.")
+		fmt.Println("Channel: ", connectChannels)
+		fmt.Println("Enable SSL? Enter n for No, y for Yes")
+		var enableSsl string
+		fmt.Scanln(&enableSsl)
+
+		if enableSsl == "n" || enableSsl == "N" {
+			ssl = false
+			fmt.Println("SSL disabled")
+		} else {
+			ssl = true
+			fmt.Println("SSL enabled")
+		}
+
+		fmt.Println("Please enter a subscribe key, leave blank for default key.")
+		fmt.Scanln(&subscribeKey)
+
+		if strings.TrimSpace(subscribeKey) == "" {
+			subscribeKey = "demo"
+		}
+		fmt.Println("Subscribe Key: ", subscribeKey)
+		fmt.Println("")
+
+		fmt.Println("Please enter a publish key, leave blank for default key.")
+		fmt.Scanln(&publishKey)
+		if strings.TrimSpace(publishKey) == "" {
+			publishKey = "demo"
+		}
+		fmt.Println("Publish Key: ", publishKey)
+		fmt.Println("")
+
+		fmt.Println("Please enter a secret key, leave blank for default key.")
+		fmt.Scanln(&secretKey)
+		if strings.TrimSpace(secretKey) == "" {
+			secretKey = "demo"
+		}
+		fmt.Println("Secret Key: ", secretKey)
+		fmt.Println("")
+
+		fmt.Println("Please enter a CIPHER key, leave blank if you don't want to use this.")
+		fmt.Scanln(&cipher)
+		fmt.Println("Cipher: ", cipher)
+
+		fmt.Println("Please enter a Custom UUID, leave blank for default.")
+		fmt.Scanln(&uuid)
+		fmt.Println("UUID: ", uuid)
+
+		fmt.Println("Display error messages? Enter y for Yes, n for No. Default is Yes")
+		var enableErrorMessages = "y"
+		fmt.Scanln(&enableErrorMessages)
+
+		if enableErrorMessages == "y" || enableErrorMessages == "Y" {
+			displayError = true
+			fmt.Println("Error messages will be displayed")
+		} else {
+			displayError = false
+			fmt.Println("Error messages will not be displayed")
+		}
+
+		fmt.Println("Enable resume on reconnect? Enter y for Yes, n for No. Default is Yes")
+		var enableResumeOnReconnect = "y"
+		fmt.Scanln(&enableResumeOnReconnect)
+
+		if enableResumeOnReconnect == "y" || enableResumeOnReconnect == "Y" {
+			messaging.SetResumeOnReconnect(true)
+			fmt.Println("Resume on reconnect enabled")
+		} else {
+			messaging.SetResumeOnReconnect(false)
+			fmt.Println("Resume on reconnect disabled")
+		}
+
+		fmt.Println("Set subscribe timeout? Enter numerals.")
+		var subscribeTimeout = ""
+		fmt.Scanln(&subscribeTimeout)
+		val, err := strconv.Atoi(subscribeTimeout)
+		if err != nil {
+			fmt.Println("Entered value is invalid. Using default value.")
+		} else {
+			messaging.SetSubscribeTimeout(uint16(val))
+		}
+
+		fmt.Println("Enable logging? Enter y for Yes, n for No. Default is Yes")
+		var enableLogging = "y"
+		fmt.Scanln(&enableLogging)
+
+		var infoLogger *log.Logger
+
+		if enableLogging == "y" || enableLogging == "Y" {
+			logfileName := "pubnubMessaging.log"
+			f, err := os.OpenFile(logfileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+			if err != nil {
+
+				fmt.Println("error opening file: ", err.Error())
+				fmt.Println("Logging disabled")
+			} else {
+				fmt.Println("Logging enabled writing to ", logfileName)
+				infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
+			}
+		} else {
+			fmt.Println("Logging disabled")
+		}
+
+		messaging.SetOrigin("balancer-tj71.devbuild.aws-pdx-1.ps.pn")
+		//messaging.SetOrigin("ps.pndsn.com")
+
+		var pubInstance = messaging.NewPubnub(publishKey, subscribeKey, secretKey, cipher, ssl, uuid, infoLogger)
+
+		pub = pubInstance
+
+		SetupProxy()
+
+		presenceHeartbeat := askNumber16("Presence Heartbeat", true)
+		pub.SetPresenceHeartbeat(presenceHeartbeat)
+		fmt.Println(fmt.Sprintf("Presence Heartbeat set to :%d", pub.GetPresenceHeartbeat()))
+
+		presenceHeartbeatInterval := askNumber16("Presence Heartbeat Interval", true)
+		pub.SetPresenceHeartbeat(presenceHeartbeatInterval)
+		fmt.Println(fmt.Sprintf("Presence Heartbeat set to :%d", pub.GetPresenceHeartbeat()))
+
+		fmt.Println("Pubnub instance initialized")
+
+		return true
+		//}
+		//fmt.Println("Channel cannot be empty.")
 	}
 	return false
 }
@@ -661,15 +666,37 @@ func ReadLoop() {
 			}
 		case "333":
 			//for test
+			fmt.Printf("goroutines start: %d\n", runtime.NumGoroutine())
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
 			} else {
-				for i := 0; i < 100; i++ {
-					go publishRoutine(channels, fmt.Sprintf("%d", i))
-				}
+
+				go func() {
+					for i := 0; i < 100; i++ {
+						publishRoutine(channels, fmt.Sprintf("%d", i))
+					}
+				}()
 			}
+			fmt.Printf("goroutines end: %d\n", runtime.NumGoroutine())
+		case "3333":
+			//for test
+			fmt.Printf("goroutines start: %d\n", runtime.NumGoroutine())
+			channels, errReadingChannel := askChannel()
+
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				nu := askNumber("number of messages to publish")
+				go func() {
+					for i := 0; i < int(nu); i++ {
+						publishRoutine(channels, fmt.Sprintf("%d", i))
+					}
+				}()
+			}
+			fmt.Printf("goroutines end: %d\n", runtime.NumGoroutine())
 		case "3":
+			fmt.Printf("goroutines start: %d\n", runtime.NumGoroutine())
 			channels, errReadingChannel := askChannel()
 			if errReadingChannel != nil {
 				fmt.Println("errReadingChannel: ", errReadingChannel)
@@ -703,6 +730,14 @@ func ReadLoop() {
 			} else {
 				fmt.Println("Running detailed history")
 				go detailedHistoryRoutine(channels)
+			}
+		case "55":
+			channels, errReadingChannel := askChannel()
+			if errReadingChannel != nil {
+				fmt.Println("errReadingChannel: ", errReadingChannel)
+			} else {
+				fmt.Println("Running detailed history")
+				go getAllMessages(0, channels)
 			}
 		case "6":
 			channels, errReadingChannel := askChannel()
@@ -1424,8 +1459,8 @@ func handleResult(successChannel, errorChannel chan []byte, timeoutVal uint16, a
 				break
 			}
 			if string(success) != "[]" {
-				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
-				fmt.Println("")
+				//fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
+				//fmt.Println("")
 			}
 			return
 		case failure, ok := <-errorChannel:
@@ -1504,6 +1539,52 @@ func detailedHistoryRoutine(channels string) {
 		//go _pub.History(ch, 100, 13662867154115803, 13662867243518473, false, channel)
 		go pub.History(ch, 100, 0, 0, false, false, channel, errorChannel)
 		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Detailed History")
+	}
+}
+
+func getAllMessages(timetoken int64, channel string) {
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	count := 100
+
+	for {
+		go pub.History(channel, count, timetoken, 0, false, false, successChannel, errorChannel)
+
+		select {
+		case response := <-successChannel:
+			var parsed []interface{}
+
+			err := json.Unmarshal(response, &parsed)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+
+			msgs := parsed[0].([]interface{})
+			startString := parsed[1].(string)
+			start, err := strconv.Atoi(startString)
+			//endString := parsed[2].(string)
+			//end, err := strconv.Atoi(endString)
+			length := len(msgs)
+
+			if length > 0 {
+				fmt.Println(msgs)
+				//fmt.Println(length)
+				//fmt.Println("start:", start)
+				//fmt.Println("end:", end)
+			}
+
+			if length == 100 {
+				timetoken = int64(start)
+			} else {
+				return
+			}
+		case err := <-errorChannel:
+			fmt.Println(string(err))
+			return
+		case <-messaging.Timeout():
+			fmt.Println("History() timeout")
+			return
+		}
 	}
 }
 

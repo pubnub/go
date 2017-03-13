@@ -5,6 +5,7 @@ package messaging
 
 import (
 	"bytes"
+	//"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
@@ -15,8 +16,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang.org/x/net/context"
-	"golang.org/x/time/rate"
+	//"golang.org/x/net/context"
+	//"golang.org/x/time/rate"
 	"io"
 	"io/ioutil"
 	"log"
@@ -304,9 +305,15 @@ type Pubnub struct {
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
 	publishHTTPClient       *http.Client
-	limiter                 *rate.Limiter
-	ctx                     context.Context
+	maxWorkers              int
+	maxQueue                int
 	infoLogger              *log.Logger
+	publishJobQueue         chan PublishJob
+	//pqp                     *PublishQueueProcessor
+	//limiter                 *rate.Limiter
+	//sem                     chan bool
+	//ctx                     context.Context
+
 }
 
 // PubnubUnitTest structure used to expose some data for unit tests.
@@ -396,9 +403,14 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 		nonSubscribeTimeout, newPubnub.infoLogger)
 	newPubnub.retryWorker = newRequestWorker("Retry", retryTransport, retryInterval, newPubnub.infoLogger)
 	newPubnub.publishHTTPClient = createPublishHTTPClient()
-	newPubnub.limiter = rate.NewLimiter(20, 10)
-	newPubnub.ctx = context.Background()
+	newPubnub.maxWorkers = 20
+	newPubnub.maxQueue = 20000
+	newPubnub.publishJobQueue = make(chan PublishJob, newPubnub.maxQueue)
+	//newPubnub.limiter = rate.NewLimiter(20, 10)
+	//concurrency := 5
+	//newPubnub.sem = make(chan bool, 5) //make(chan bool, concurrency)
 
+	newPubnub.newPublishQueueProcessor(newPubnub.maxWorkers)
 	return newPubnub
 }
 
@@ -1214,8 +1226,22 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
 	}
 
-	value, responseCode, err := pub.publishHTTPRequest(publishURL)
-	pub.readPublishResponseAndCallSendResponse(channel, value, responseCode, err, callbackChannel, errorChannel)
+	//Add to q
+	//channel, publishURL, callbackChannel, errorChannel
+	pub.infoLogger.Printf("INFO: queuing: %s", publishURL)
+
+	publishMessage := PublishJob{
+		Channel:         channel,
+		PublishURL:      publishURL,
+		ErrorChannel:    errorChannel,
+		CallbackChannel: callbackChannel,
+	}
+	pub.publishJobQueue <- publishMessage
+
+	//pub.pqp.Run(pub, publishMessage)
+
+	//value, responseCode, err := pub.publishHTTPRequest(publishURL)
+	//pub.readPublishResponseAndCallSendResponse(channel, value, responseCode, err, callbackChannel, errorChannel)
 }
 
 func (pub *Pubnub) readPublishResponseAndCallSendResponse(channel string, value []byte, responseCode int, err error, callbackChannel, errorChannel chan []byte) {
@@ -4180,10 +4206,19 @@ func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 
 func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 	[]byte, int, error) {
-	if err := pub.limiter.Wait(pub.ctx); err != nil {
+
+	//ctx, _ := context.WithDeadline(context.Background(), time.Duration(nonSubscribeTimeout) * time.Second)
+
+	//ctx := context.WithCancel(parent)
+	/*ctx := context.Background()
+	if err := pub.limiter.Wait(ctx); err != nil {
 		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Limiter: %s", err.Error())
 		return nil, 0, err
 	}
+	pub.limiter.SetLimitAt(now, newLimit)*/
+	//pub.sem <- true
+	//go func(requestURL) {
+
 	//req := pub.validateRequestAndAddHeaders(requestURL)
 	req, err := http.NewRequest("GET", requestURL, nil)
 	if err != nil {
@@ -4220,6 +4255,7 @@ func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 
 	//defer
 	body, err := ioutil.ReadAll(response.Body)
+
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while parsing body: %s", err.Error())
 		//msg := []byte(fmt.Sprintf("Couldn't parse response body. %+v", err))
@@ -4229,7 +4265,7 @@ func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 	}
 	io.Copy(ioutil.Discard, response.Body)
 	response.Body.Close()
-
+	//ctx.Done()
 	return body, response.StatusCode, nil
 	//ph.publishSuccessChannel <- body
 }
