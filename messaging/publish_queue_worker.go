@@ -53,14 +53,14 @@ func (pw PublishWorker) StartPublishWorker(pubnub *Pubnub) {
 
 func (pubnub *Pubnub) newPublishQueueProcessor(maxWorkers int) {
 	//func (pubnub *Pubnub) newPublishQueueProcessor(maxWorkers int) *PublishQueueProcessor {
-	workers := make(chan chan PublishJob, maxWorkers)
-	//sem := make(chan bool, maxWorkers)
+	//workers := make(chan chan PublishJob, maxWorkers)
+	sem := make(chan bool, maxWorkers)
 	pubnub.infoLogger.Printf("INFO: Init PublishQueueProcessor: workers %d", maxWorkers)
 
 	p := &PublishQueueProcessor{
-		Workers:    workers,
+		//Workers:    workers,
 		maxWorkers: maxWorkers,
-		//Sem:        sem,
+		Sem:        sem,
 	}
 	p.Run(pubnub)
 	//go p.process(pubnub)
@@ -70,11 +70,11 @@ func (pubnub *Pubnub) newPublishQueueProcessor(maxWorkers int) {
 func (p *PublishQueueProcessor) Run(pubnub *Pubnub) {
 	//func (p *PublishQueueProcessor) Run(pubnub *Pubnub, publishJob PublishJob) {
 	pubnub.infoLogger.Printf("INFO: PublishQueueProcessor: Running with workers %d", p.maxWorkers)
-	for i := 0; i < p.maxWorkers; i++ {
+	/*for i := 0; i < p.maxWorkers; i++ {
 		pubnub.infoLogger.Printf("INFO: PublishQueueProcessor: StartPublishWorker %d", i)
 		publishWorker := NewPublishWorker(p.Workers, i)
 		publishWorker.StartPublishWorker(pubnub)
-	}
+	}*/
 	go p.process(pubnub)
 	/*p.Sem <- true
 	go func(publishJob PublishJob) {
@@ -96,22 +96,22 @@ func (p *PublishQueueProcessor) process(pubnub *Pubnub) {
 		select {
 		case publishJob := <-pubnub.publishJobQueue:
 			pubnub.infoLogger.Printf("INFO: PublishQueueProcessor process: Got job for channel %s %s", publishJob.Channel, publishJob.PublishURL)
-			//p.Sem <- true
+			p.Sem <- true
 			go func(publishJob PublishJob) {
-				jobChannel := <-p.Workers
-				jobChannel <- publishJob
-				/*defer func() {
+				/*jobChannel := <-p.Workers
+				jobChannel <- publishJob*/
+				defer func() {
 					pubnub.infoLogger.Printf("INFO: StartPublishWorker processing job: Defer job %d", publishJob.PublishURL)
 					b := <-p.Sem
 					pubnub.infoLogger.Printf("INFO: StartPublishWorker processing job: After Defer job %d", b)
 				}()
 
 				pubnub.infoLogger.Printf("INFO: StartPublishWorker processing job FOR CHANNEL %s: Got job %d", publishJob.Channel, publishJob.PublishURL)
-				go func() {
-					pn := pubnub
-					value, responseCode, err := pn.publishHTTPRequest(publishJob.PublishURL)
-					pubnub.readPublishResponseAndCallSendResponse(publishJob.Channel, value, responseCode, err, publishJob.CallbackChannel, publishJob.ErrorChannel)
-				}()*/
+				//go func() {
+				pn := pubnub
+				value, responseCode, err := pn.publishHTTPRequest(publishJob.PublishURL)
+				pubnub.readPublishResponseAndCallSendResponse(publishJob.Channel, value, responseCode, err, publishJob.CallbackChannel, publishJob.ErrorChannel)
+				//}()
 
 			}(publishJob)
 			/*pubnub.infoLogger.Printf("INFO: StartPublishWorker processing job: Got job, check sem %d len:%d", publishJob.PublishURL, len(pubnub.publishJobQueue))
