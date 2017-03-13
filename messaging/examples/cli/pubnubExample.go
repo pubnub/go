@@ -1477,7 +1477,7 @@ func handleResult(successChannel, errorChannel chan []byte, timeoutVal uint16, a
 		case <-timeout:
 			fmt.Println(fmt.Sprintf("%s Handler timeout after %d secs", action, timeoutVal))
 			fmt.Println("")
-			return
+			//return
 		}
 	}
 }

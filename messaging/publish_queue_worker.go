@@ -15,6 +15,7 @@ type PublishWorker struct {
 	Workers    chan chan PublishJob
 	JobChannel chan PublishJob
 	quit       chan bool
+	id         int
 }
 
 type PublishQueueProcessor struct {
@@ -23,10 +24,11 @@ type PublishQueueProcessor struct {
 	Sem        chan bool
 }
 
-func NewPublishWorker(workers chan chan PublishJob) PublishWorker {
+func NewPublishWorker(workers chan chan PublishJob, id int) PublishWorker {
 	return PublishWorker{
 		Workers:    workers,
 		JobChannel: make(chan PublishJob),
+		id:         id,
 	}
 }
 
@@ -34,11 +36,11 @@ func (pw PublishWorker) StartPublishWorker(pubnub *Pubnub) {
 	go func() {
 		for {
 			pw.Workers <- pw.JobChannel
-			pubnub.infoLogger.Printf("INFO: StartPublishWorker: Got job")
+			pubnub.infoLogger.Printf("INFO: StartPublishWorker: Got job", pw.id)
 			select {
 			case publishJob := <-pw.JobChannel:
 
-				pubnub.infoLogger.Printf("INFO: StartPublishWorker processing job FOR CHANNEL %s: Got job %d", publishJob.Channel, publishJob.PublishURL)
+				pubnub.infoLogger.Printf("INFO: StartPublishWorker processing job FOR CHANNEL %s: Got job %s, id:%d", publishJob.Channel, publishJob.PublishURL, pw.id)
 				//go func() {
 				pn := pubnub
 				value, responseCode, err := pn.publishHTTPRequest(publishJob.PublishURL)
@@ -70,7 +72,7 @@ func (p *PublishQueueProcessor) Run(pubnub *Pubnub) {
 	pubnub.infoLogger.Printf("INFO: PublishQueueProcessor: Running with workers %d", p.maxWorkers)
 	for i := 0; i < p.maxWorkers; i++ {
 		pubnub.infoLogger.Printf("INFO: PublishQueueProcessor: StartPublishWorker %d", i)
-		publishWorker := NewPublishWorker(p.Workers)
+		publishWorker := NewPublishWorker(p.Workers, i)
 		publishWorker.StartPublishWorker(pubnub)
 	}
 	go p.process(pubnub)

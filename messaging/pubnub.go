@@ -306,9 +306,9 @@ type Pubnub struct {
 	retryWorker             *requestWorker
 	publishHTTPClient       *http.Client
 	maxWorkers              int
-	maxQueue                int
-	infoLogger              *log.Logger
-	publishJobQueue         chan PublishJob
+	//maxQueue                int
+	infoLogger      *log.Logger
+	publishJobQueue chan PublishJob
 	//pqp                     *PublishQueueProcessor
 	//limiter                 *rate.Limiter
 	//sem                     chan bool
@@ -404,8 +404,8 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.retryWorker = newRequestWorker("Retry", retryTransport, retryInterval, newPubnub.infoLogger)
 	newPubnub.publishHTTPClient = createPublishHTTPClient()
 	newPubnub.maxWorkers = 20
-	newPubnub.maxQueue = 20000
-	newPubnub.publishJobQueue = make(chan PublishJob, newPubnub.maxQueue)
+	//newPubnub.maxQueue = 20000
+	newPubnub.publishJobQueue = make(chan PublishJob) //, newPubnub.maxQueue)
 	//newPubnub.limiter = rate.NewLimiter(20, 10)
 	//concurrency := 5
 	//newPubnub.sem = make(chan bool, 5) //make(chan bool, concurrency)
