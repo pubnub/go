@@ -4244,7 +4244,7 @@ func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 		SDK_VERSION)
 
 	req.Header.Set("User-Agent", useragent)
-
+	pub.infoLogger.Printf("INFO: publishHTTPRequest calling publishHTTPClient.do%s", requestURL)
 	response, err := pub.publishHTTPClient.Do(req)
 	if err != nil && response == nil {
 		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while sending request: %s", err.Error())
@@ -4255,7 +4255,7 @@ func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 
 	//defer
 	body, err := ioutil.ReadAll(response.Body)
-
+	pub.infoLogger.Printf("INFO: publishHTTPRequest readall %s", requestURL)
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while parsing body: %s", err.Error())
 		//msg := []byte(fmt.Sprintf("Couldn't parse response body. %+v", err))
@@ -4264,6 +4264,7 @@ func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 		return nil, response.StatusCode, err
 	}
 	io.Copy(ioutil.Discard, response.Body)
+
 	response.Body.Close()
 	//ctx.Done()
 	return body, response.StatusCode, nil
