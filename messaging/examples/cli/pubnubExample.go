@@ -38,7 +38,7 @@ var publishKey = "demo-36"
 var subscribeKey = "demo-36"
 
 //
-var secretKey = "demo-36"
+var secretKey = ""
 
 // a boolean to capture user preference of displaying errors.
 var displayError = true
@@ -117,7 +117,7 @@ func Init() (b bool) {
 		fmt.Println("Please enter a secret key, leave blank for default key.")
 		fmt.Scanln(&secretKey)
 		if strings.TrimSpace(secretKey) == "" {
-			secretKey = "demo"
+			//secretKey = "demo"
 		}
 		fmt.Println("Secret Key: ", secretKey)
 		fmt.Println("")

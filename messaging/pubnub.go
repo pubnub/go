@@ -307,9 +307,10 @@ type Pubnub struct {
 	presenceHeartbeatWorker *requestWorker
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
-	publishHTTPClient       *http.Client
+	nonSubHTTPClient        *http.Client
 	infoLogger              *log.Logger
-	publishJobQueue         chan PublishJob
+	nonSubJobQueue          chan NonSubJob
+	nonSubQueueProcessor    *NonSubQueueProcessor
 }
 
 // PubnubUnitTest structure used to expose some data for unit tests.
@@ -398,13 +399,14 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.nonSubscribeWorker = newRequestWorker("Non-Subscribe", nonSubscribeTransport,
 		nonSubscribeTimeout, newPubnub.infoLogger)
 	newPubnub.retryWorker = newRequestWorker("Retry", retryTransport, retryInterval, newPubnub.infoLogger)
-	newPubnub.publishHTTPClient = createPublishHTTPClient()
-	newPubnub.publishJobQueue = make(chan PublishJob)
-	newPubnub.newPublishQueueProcessor(maxWorkers)
+	newPubnub.nonSubHTTPClient = createNonSubHTTPClient()
+	newPubnub.nonSubJobQueue = make(chan NonSubJob)
+	newPubnub.nonSubQueueProcessor = newPubnub.newNonSubQueueProcessor(maxWorkers)
+	newPubnub.nonSubQueueProcessor.Run(newPubnub)
 	return newPubnub
 }
 
-func createPublishHTTPClient() *http.Client {
+func createNonSubHTTPClient() *http.Client {
 	client := &http.Client{
 		Transport: &http.Transport{
 			MaxIdleConnsPerHost: maxIdleConnsPerHost,
@@ -703,6 +705,7 @@ func (pub *Pubnub) Abort() {
 	pub.nonSubscribeWorker.Cancel()
 	pub.cancelPresenceHeartbeatWorker()
 	pub.retryWorker.Cancel()
+	pub.nonSubQueueProcessor.Close()
 }
 
 // GrantSubscribe is used to give a subscribe channel read, write permissions
@@ -1074,9 +1077,25 @@ func (pub *Pubnub) executePam(entity, requestURL string,
 		} else {
 			pub.sendErrorResponse(errorChannel, entity, message)
 		}
+		return
 	}
 
-	value, responseCode, err := pub.httpRequest(requestURL, nonSubscribeTrans)
+	pub.infoLogger.Printf("INFO: queuing: %s", requestURL)
+
+	pamMessage := NonSubJob{
+		Channel:         entity,
+		NonSubURL:       requestURL,
+		ErrorChannel:    errorChannel,
+		CallbackChannel: callbackChannel,
+		NonSubMsgType:   messageTypePAM,
+	}
+	pub.nonSubJobQueue <- pamMessage
+
+	//value, responseCode, err := pub.httpRequest(requestURL, nonSubscribeTrans)
+	//pub.handlePAMResponse(entity, value, responseCode, err, callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) handlePAMResponse(entity string, value []byte, responseCode int, err error, callbackChannel, errorChannel chan []byte) {
 	if (responseCode != 200) || (err != nil) {
 		var message = ""
 
@@ -1221,22 +1240,17 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
 	}
 
-	//Add to q
-	//channel, publishURL, callbackChannel, errorChannel
 	pub.infoLogger.Printf("INFO: queuing: %s", publishURL)
 
-	publishMessage := PublishJob{
+	publishMessage := NonSubJob{
 		Channel:         channel,
-		PublishURL:      publishURL,
+		NonSubURL:       publishURL,
 		ErrorChannel:    errorChannel,
 		CallbackChannel: callbackChannel,
+		NonSubMsgType:   messageTypePublish,
 	}
-	pub.publishJobQueue <- publishMessage
+	pub.nonSubJobQueue <- publishMessage
 
-	//pub.pqp.Run(pub, publishMessage)
-
-	//value, responseCode, err := pub.publishHTTPRequest(publishURL)
-	//pub.readPublishResponseAndCallSendResponse(channel, value, responseCode, err, callbackChannel, errorChannel)
 }
 
 func (pub *Pubnub) readPublishResponseAndCallSendResponse(channel string, value []byte, responseCode int, err error, callbackChannel, errorChannel chan []byte) {
@@ -4195,7 +4209,7 @@ func (pub *Pubnub) validateRequestAndAddHeaders(requestURL string) (*http.Reques
 	return req, nil
 }
 
-func (pub *Pubnub) publishHTTPRequest(requestURL string) (
+func (pub *Pubnub) nonSubHTTPRequest(requestURL string) (
 	[]byte, int, error) {
 
 	req, errReq := pub.validateRequestAndAddHeaders(requestURL)
@@ -4203,18 +4217,18 @@ func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 		return nil, 0, errReq
 	}
 
-	pub.infoLogger.Printf("INFO: publishHTTPRequest calling publishHTTPClient.do%s", requestURL)
-	response, err := pub.publishHTTPClient.Do(req)
+	pub.infoLogger.Printf("INFO: nonSubHTTPRequest calling nonSubHTTPClient.do%s", requestURL)
+	response, err := pub.nonSubHTTPClient.Do(req)
 	if err != nil && response == nil {
-		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while sending request: %s", err.Error())
+		pub.infoLogger.Printf("ERROR: NonSub HTTP REQUEST: Error while sending request: %s", err.Error())
 		return nil, 0, err
 	}
 
 	//defer
 	body, err := ioutil.ReadAll(response.Body)
-	pub.infoLogger.Printf("INFO: publishHTTPRequest readall %s", requestURL)
+	pub.infoLogger.Printf("INFO: nonSubHTTPRequest readall %s", requestURL)
 	if err != nil {
-		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while parsing body: %+v", err.Error())
+		pub.infoLogger.Printf("ERROR: NonSub HTTP REQUEST: Error while parsing body: %+v", err.Error())
 		response.Body.Close()
 		return nil, response.StatusCode, err
 	}
