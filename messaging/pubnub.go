@@ -21,7 +21,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"net"
+	//"net"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -406,7 +406,7 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	return newPubnub
 }
 
-func (pub *Pubnub) createNonSubHTTPClient() *http.Client {
+/*func (pub *Pubnub) createNonSubHTTPClient() *http.Client {
 	//TODO: Create a common implemetation to create transport for createNonSubHTTPClient and (w *requestWorker) Client()
 	transport := &http.Transport{
 		MaxIdleConnsPerHost: maxIdleConnsPerHost,
@@ -431,7 +431,7 @@ func (pub *Pubnub) createNonSubHTTPClient() *http.Client {
 		Timeout:   time.Duration(nonSubscribeTimeout) * time.Second,
 	}
 	return client
-}
+}*/
 
 // SetMaxIdleConnsPerHost is used to set the value of HTTP Transport's MaxIdleConnsPerHost.
 // It restricts how many connections there are which are not actively serving requests, but which the client has not closed.
