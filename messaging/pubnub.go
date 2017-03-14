@@ -407,6 +407,7 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 }
 
 func (pub *Pubnub) createNonSubHTTPClient() *http.Client {
+	//TODO: Create a common implemetation to create transport for createNonSubHTTPClient and (w *requestWorker) Client()
 	transport := &http.Transport{
 		MaxIdleConnsPerHost: maxIdleConnsPerHost,
 		Dial: (&net.Dialer{
