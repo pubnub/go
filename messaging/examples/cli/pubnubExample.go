@@ -1459,8 +1459,8 @@ func handleResult(successChannel, errorChannel chan []byte, timeoutVal uint16, a
 				break
 			}
 			if string(success) != "[]" {
-				//fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
-				//fmt.Println("")
+				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
+				fmt.Println("")
 			}
 			return
 		case failure, ok := <-errorChannel:

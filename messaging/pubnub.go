@@ -4146,10 +4146,7 @@ func (pub *Pubnub) ParseInterfaceData(myInterface interface{}) string {
 func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 	[]byte, int, error) {
 
-	// TODO: move to pub.connect method
-	requrl := pub.origin + requestURL
-
-	contents, responseStatusCode, err := pub.connect(requrl, tType, requestURL)
+	contents, responseStatusCode, err := pub.connect(tType, requestURL)
 
 	if err != nil {
 		if strings.Contains(err.Error(), timeout) {
@@ -4171,13 +4168,13 @@ func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 	return contents, responseStatusCode, err
 }
 
-/*func (pub *Pubnub) validateRequestAndAddHeaders(requestURL string) *http.Request {
-	req, err := http.NewRequest("GET", requestURL, nil)
+func (pub *Pubnub) validateRequestAndAddHeaders(requestURL string) (*http.Request, error) {
+	reqURL := pub.origin + requestURL
+
+	req, err := http.NewRequest("GET", reqURL, nil)
 	if err != nil {
-		//msg := []byte(fmt.Sprintf("Error Occured. %+v", err))
 		pub.infoLogger.Printf("ERROR: HTTP REQUEST: Error while creating request: %s", err.Error())
-		//ph.publishErrorChannel <- msg
-		return nil, 0, err
+		return nil, err
 	}
 
 	scheme := "http"
@@ -4191,40 +4188,21 @@ func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 		Opaque: fmt.Sprintf("//%s%s", origin, requestURL),
 	}
 
-	// REVIEW: hardcoded client version
 	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS,
 		SDK_VERSION)
 
 	req.Header.Set("User-Agent", useragent)
-	return req
-}*/
+	return req, nil
+}
 
 func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 	[]byte, int, error) {
 
-	//req := pub.validateRequestAndAddHeaders(requestURL)
-	req, err := http.NewRequest("GET", requestURL, nil)
-	if err != nil {
-		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while creating request: %s", err.Error())
-		return nil, 0, err
+	req, errReq := pub.validateRequestAndAddHeaders(requestURL)
+	if errReq != nil {
+		return nil, 0, errReq
 	}
 
-	scheme := "http"
-	if pub.isSSL {
-		scheme = "https"
-	}
-
-	req.URL = &url.URL{
-		Scheme: scheme,
-		Host:   origin,
-		Opaque: fmt.Sprintf("//%s%s", origin, requestURL),
-	}
-
-	// REVIEW: hardcoded client version
-	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS,
-		SDK_VERSION)
-
-	req.Header.Set("User-Agent", useragent)
 	pub.infoLogger.Printf("INFO: publishHTTPRequest calling publishHTTPClient.do%s", requestURL)
 	response, err := pub.publishHTTPClient.Do(req)
 	if err != nil && response == nil {
@@ -4258,32 +4236,13 @@ func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 // response errorcode if any.
 // error if any.
 // TODO: merge with httpRequest function
-func (pub *Pubnub) connect(requestURL string, tType transportType,
+func (pub *Pubnub) connect(tType transportType,
 	opaqueURL string) ([]byte, int, error) {
 
-	req, err := http.NewRequest("GET", requestURL, nil)
-	if err != nil {
-		pub.infoLogger.Printf("ERROR: HTTP REQUEST: Error while creating request: %s", err.Error())
-		return nil, 0, err
+	req, errReq := pub.validateRequestAndAddHeaders(opaqueURL)
+	if errReq != nil {
+		return nil, 0, errReq
 	}
-
-	scheme := "http"
-	if pub.isSSL {
-		scheme = "https"
-	}
-
-	req.URL = &url.URL{
-		Scheme: scheme,
-		Host:   origin,
-		Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
-	}
-
-	// REVIEW: hardcoded client version
-	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS,
-		SDK_VERSION)
-
-	req.Header.Set("User-Agent", useragent)
-	//req := pub.validateRequestAndAddHeaders(requestURL)
 
 	switch tType {
 	case subscribeTrans:
