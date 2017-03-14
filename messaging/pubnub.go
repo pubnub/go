@@ -308,15 +308,8 @@ type Pubnub struct {
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
 	publishHTTPClient       *http.Client
-	//maxWorkers              int
-	//maxQueue                int
-	infoLogger      *log.Logger
-	publishJobQueue chan PublishJob
-	//pqp                     *PublishQueueProcessor
-	//limiter                 *rate.Limiter
-	//sem                     chan bool
-	//ctx                     context.Context
-
+	infoLogger              *log.Logger
+	publishJobQueue         chan PublishJob
 }
 
 // PubnubUnitTest structure used to expose some data for unit tests.
@@ -406,13 +399,7 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 		nonSubscribeTimeout, newPubnub.infoLogger)
 	newPubnub.retryWorker = newRequestWorker("Retry", retryTransport, retryInterval, newPubnub.infoLogger)
 	newPubnub.publishHTTPClient = createPublishHTTPClient()
-	//newPubnub.maxWorkers = 20
-	//newPubnub.maxQueue = 20000
-	newPubnub.publishJobQueue = make(chan PublishJob) //, newPubnub.maxQueue)
-	//newPubnub.limiter = rate.NewLimiter(20, 10)
-	//concurrency := 5
-	//newPubnub.sem = make(chan bool, 5) //make(chan bool, concurrency)
-
+	newPubnub.publishJobQueue = make(chan PublishJob)
 	newPubnub.newPublishQueueProcessor(maxWorkers)
 	return newPubnub
 }
@@ -4215,24 +4202,10 @@ func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 	[]byte, int, error) {
 
-	//ctx, _ := context.WithDeadline(context.Background(), time.Duration(nonSubscribeTimeout) * time.Second)
-
-	//ctx := context.WithCancel(parent)
-	/*ctx := context.Background()
-	if err := pub.limiter.Wait(ctx); err != nil {
-		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Limiter: %s", err.Error())
-		return nil, 0, err
-	}
-	pub.limiter.SetLimitAt(now, newLimit)*/
-	//pub.sem <- true
-	//go func(requestURL) {
-
 	//req := pub.validateRequestAndAddHeaders(requestURL)
 	req, err := http.NewRequest("GET", requestURL, nil)
 	if err != nil {
-		//msg := []byte(fmt.Sprintf("Error Occured. %+v", err))
 		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while creating request: %s", err.Error())
-		//ph.publishErrorChannel <- msg
 		return nil, 0, err
 	}
 
@@ -4256,8 +4229,6 @@ func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 	response, err := pub.publishHTTPClient.Do(req)
 	if err != nil && response == nil {
 		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while sending request: %s", err.Error())
-		//msg := []byte(fmt.Sprintf("Error sending request to API endpoint. %+v", err))
-		//ph.publishErrorChannel <- msg
 		return nil, 0, err
 	}
 
@@ -4265,18 +4236,14 @@ func (pub *Pubnub) publishHTTPRequest(requestURL string) (
 	body, err := ioutil.ReadAll(response.Body)
 	pub.infoLogger.Printf("INFO: publishHTTPRequest readall %s", requestURL)
 	if err != nil {
-		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while parsing body: %s", err.Error())
-		//msg := []byte(fmt.Sprintf("Couldn't parse response body. %+v", err))
-		//ph.publishErrorChannel <- msg
+		pub.infoLogger.Printf("ERROR: Publish HTTP REQUEST: Error while parsing body: %+v", err.Error())
 		response.Body.Close()
 		return nil, response.StatusCode, err
 	}
 	io.Copy(ioutil.Discard, response.Body)
 
 	response.Body.Close()
-	//ctx.Done()
 	return body, response.StatusCode, nil
-	//ph.publishSuccessChannel <- body
 }
 
 // connect creates a http request to the pubnub origin and returns the
