@@ -32,10 +32,10 @@ var cipher = ""
 var uuid = ""
 
 //
-var publishKey = "demo-36"
+var publishKey = "demo"
 
 //
-var subscribeKey = "demo-36"
+var subscribeKey = "demo"
 
 //
 var secretKey = ""
@@ -70,7 +70,6 @@ func main() {
 func Init() (b bool) {
 	fmt.Println("")
 	fmt.Println(messaging.VersionInfo())
-	messaging.SetMaxIdleConnsPerHost(20)
 	fmt.Println("")
 	fmt.Println("Please enter the channel name(s). Enter multiple channels separated by comma without spaces.")
 	reader := bufio.NewReader(os.Stdin)
@@ -185,8 +184,8 @@ func Init() (b bool) {
 			fmt.Println("Logging disabled")
 		}
 
-		messaging.SetOrigin("balancer-tj71.devbuild.aws-pdx-1.ps.pn")
-		//messaging.SetOrigin("ps.pndsn.com")
+		//messaging.SetOrigin("balancer-tj71.devbuild.aws-pdx-1.ps.pn")
+		messaging.SetOrigin("ps.pndsn.com")
 
 		var pubInstance = messaging.NewPubnub(publishKey, subscribeKey, secretKey, cipher, ssl, uuid, infoLogger)
 
