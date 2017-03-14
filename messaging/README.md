@@ -7,7 +7,9 @@
 * Subscribe method arguments changed
 
 ###Change log
-* 3.11.0
+* 3.1q.0
+ * NonSub goroutine concurrency and worker queues.
+* 3.10.0
  * Breaking API Change: newPubnub has a new parameter where it expects a logger instance [Example](#init). This fixes a rare race condition.
  * Fix use of escaping JSON during publish
  * Prefix uuid with 'pn-'
