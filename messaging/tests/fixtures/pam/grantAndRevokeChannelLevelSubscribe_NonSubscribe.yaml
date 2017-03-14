@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.10.0
-    url: http://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f?channel=testChannelGrantAndRevokeChannelLevelSubscribe&pnsdk=PubNub-Go%2F3.10.0&r=1&timestamp=1457161961&ttl=8&uuid=2675e92b40231861806fdf340d4b6c45&w=1&signature=Q6iIMsqZ5u_oWfdtP2VbG2V6eQVDaYZ6w6I_XoxQ1fE=
+      - ua_string=(linux) PubNub-Go/3.11.0
+    url: http://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f?channel=testChannelGrantAndRevokeChannelLevelSubscribe&pnsdk=PubNub-Go%2F3.11.0&r=1&timestamp=1457161961&ttl=8&uuid=2675e92b40231861806fdf340d4b6c45&w=1&signature=Q6iIMsqZ5u_oWfdtP2VbG2V6eQVDaYZ6w6I_XoxQ1fE=
     method: GET
   response:
     body: '{"message":"Success","payload":{"level":"channel","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":8,"channels":{"testChannelGrantAndRevokeChannelLevelSubscribe":{"r":1,"w":1,"m":0}}},"service":"Access
@@ -40,8 +40,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.10.0
-    url: http://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f?channel=testChannelGrantAndRevokeChannelLevelSubscribe&pnsdk=PubNub-Go%2F3.10.0&r=0&timestamp=1457161967&uuid=2675e92b40231861806fdf340d4b6c45&w=0&signature=3Dp8Bvpo8BSR_i57ckh9hjxjhATFhcVQl4rslYBNxZg=
+      - ua_string=(linux) PubNub-Go/3.11.0
+    url: http://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f?channel=testChannelGrantAndRevokeChannelLevelSubscribe&pnsdk=PubNub-Go%2F3.11.0&r=0&timestamp=1457161967&uuid=2675e92b40231861806fdf340d4b6c45&w=0&signature=3Dp8Bvpo8BSR_i57ckh9hjxjhATFhcVQl4rslYBNxZg=
     method: GET
   response:
     body: '{"message":"Success","payload":{"level":"channel","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1,"channels":{"testChannelGrantAndRevokeChannelLevelSubscribe":{"r":0,"w":0,"m":0}}},"service":"Access

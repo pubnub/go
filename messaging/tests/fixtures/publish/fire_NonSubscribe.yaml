@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.10.0
-    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/fireChannel/0/%22fireTest%22?pnsdk=PubNub-Go%2F3.10.0&uuid=83a979c0407178ba809e6be0c9972c6d&store=0&norep=true&seqn=1
+      - ua_string=(linux) PubNub-Go/3.11.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/fireChannel/0/%22fireTest%22?pnsdk=PubNub-Go%2F3.11.0&uuid=83a979c0407178ba809e6be0c9972c6d&store=0&norep=true&seqn=1
     method: GET
   response:
     body: '[1,"Sent","14615805862249273"]'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.10.0
-    url: http://ps.pndsn.com/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/fireChannel?count=1&reverse=false&include_token=false&pnsdk=PubNub-Go%2F3.10.0&uuid=4ec1923240c7aaf5809466fc7277e02b
+      - ua_string=(linux) PubNub-Go/3.11.0
+    url: http://ps.pndsn.com/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/fireChannel?count=1&reverse=false&include_token=false&pnsdk=PubNub-Go%2F3.11.0&uuid=4ec1923240c7aaf5809466fc7277e02b
     method: GET
   response:
     body: '[[{"message":"Test TT Message 9","timetoken":14615805864620141}],14615805862249273,14615805864620141]'

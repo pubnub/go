@@ -1,10 +1,11 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.10.0
-// Build Date: Feb 22, 2016
+// Version: 3.11.0
+// Build Date: Mar 10, 2017
 package messaging
 
 import (
 	"bytes"
+	//"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
@@ -15,8 +16,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	//"golang.org/x/net/context"
+	//"golang.org/x/time/rate"
+	"io"
 	"io/ioutil"
 	"log"
+	//"net"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -29,9 +34,9 @@ import (
 
 const (
 	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.10.0"
+	SDK_VERSION = "3.11.0"
 	// SDK_DATE is the version release date
-	SDK_DATE = "Feb 22, 2016"
+	SDK_DATE = "Mar 10, 2017"
 )
 
 type responseStatus int
@@ -232,7 +237,10 @@ var (
 	proxyServerEnabled = false
 
 	// Used to set the value of HTTP Transport's MaxIdleConnsPerHost.
-	maxIdleConnsPerHost = 2
+	maxIdleConnsPerHost = 30
+
+	//max concurrent go routines to send requests
+	maxWorkers = 20
 )
 
 // VersionInfo returns the version of the this code along with the build date.
@@ -299,8 +307,10 @@ type Pubnub struct {
 	presenceHeartbeatWorker *requestWorker
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
-
-	infoLogger *log.Logger
+	nonSubHTTPClient        *http.Client
+	infoLogger              *log.Logger
+	nonSubJobQueue          chan NonSubJob
+	nonSubQueueProcessor    *NonSubQueueProcessor
 }
 
 // PubnubUnitTest structure used to expose some data for unit tests.
@@ -389,15 +399,50 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.nonSubscribeWorker = newRequestWorker("Non-Subscribe", nonSubscribeTransport,
 		nonSubscribeTimeout, newPubnub.infoLogger)
 	newPubnub.retryWorker = newRequestWorker("Retry", retryTransport, retryInterval, newPubnub.infoLogger)
+	newPubnub.nonSubHTTPClient = newPubnub.createNonSubHTTPClient()
+	newPubnub.nonSubJobQueue = make(chan NonSubJob)
+	newPubnub.nonSubQueueProcessor = newPubnub.newNonSubQueueProcessor(maxWorkers)
 
 	return newPubnub
 }
+
+/*func (pub *Pubnub) createNonSubHTTPClient() *http.Client {
+	//TODO: Create a common implemetation to create transport for createNonSubHTTPClient and (w *requestWorker) Client()
+	transport := &http.Transport{
+		MaxIdleConnsPerHost: maxIdleConnsPerHost,
+		Dial: (&net.Dialer{
+			Timeout:   time.Duration(connectTimeout) * time.Second,
+			KeepAlive: 30 * time.Minute,
+		}).Dial,
+		ResponseHeaderTimeout: time.Duration(nonSubscribeTimeout) * time.Second,
+	}
+	if proxyServerEnabled {
+		proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", proxyUser,
+			proxyPassword, proxyServer, proxyPort))
+
+		if err == nil {
+			transport.Proxy = http.ProxyURL(proxyURL)
+		} else {
+			pub.infoLogger.Printf("ERROR: createNonSubHTTPClient: Proxy connection error: %s", err.Error())
+		}
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Duration(nonSubscribeTimeout) * time.Second,
+	}
+	return client
+}*/
 
 // SetMaxIdleConnsPerHost is used to set the value of HTTP Transport's MaxIdleConnsPerHost.
 // It restricts how many connections there are which are not actively serving requests, but which the client has not closed.
 // Be careful when increasing MaxIdleConnsPerHost to a large number. It only makes sense to increase idle connections if you are seeing many connections in a short period from the same clients.
 func SetMaxIdleConnsPerHost(maxIdleConnsPerHostVal int) {
 	maxIdleConnsPerHost = maxIdleConnsPerHostVal
+}
+
+// SetMaxWorkers sets the number of concurrent Go Routines to send requests.
+func SetMaxWorkers(maxWorkersVal int) {
+	maxWorkers = maxWorkersVal
 }
 
 // SetProxy sets the global variables for the parameters.
@@ -655,6 +700,7 @@ func (pub *Pubnub) Abort() {
 	pub.nonSubscribeWorker.Cancel()
 	pub.cancelPresenceHeartbeatWorker()
 	pub.retryWorker.Cancel()
+	pub.nonSubQueueProcessor.Close()
 }
 
 // GrantSubscribe is used to give a subscribe channel read, write permissions
@@ -1026,9 +1072,25 @@ func (pub *Pubnub) executePam(entity, requestURL string,
 		} else {
 			pub.sendErrorResponse(errorChannel, entity, message)
 		}
+		return
 	}
 
-	value, responseCode, err := pub.httpRequest(requestURL, nonSubscribeTrans)
+	pub.infoLogger.Printf("INFO: queuing: %s", requestURL)
+
+	pamMessage := NonSubJob{
+		Channel:         entity,
+		NonSubURL:       requestURL,
+		ErrorChannel:    errorChannel,
+		CallbackChannel: callbackChannel,
+		NonSubMsgType:   messageTypePAM,
+	}
+	pub.nonSubJobQueue <- pamMessage
+
+	//value, responseCode, err := pub.httpRequest(requestURL, nonSubscribeTrans)
+	//pub.handlePAMResponse(entity, value, responseCode, err, callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) handlePAMResponse(entity string, value []byte, responseCode int, err error, callbackChannel, errorChannel chan []byte) {
 	if (responseCode != 200) || (err != nil) {
 		var message = ""
 
@@ -1173,8 +1235,17 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
 	}
 
-	value, responseCode, err := pub.httpRequest(publishURL, nonSubscribeTrans)
-	pub.readPublishResponseAndCallSendResponse(channel, value, responseCode, err, callbackChannel, errorChannel)
+	pub.infoLogger.Printf("INFO: queuing: %s", publishURL)
+
+	publishMessage := NonSubJob{
+		Channel:         channel,
+		NonSubURL:       publishURL,
+		ErrorChannel:    errorChannel,
+		CallbackChannel: callbackChannel,
+		NonSubMsgType:   messageTypePublish,
+	}
+	pub.nonSubJobQueue <- publishMessage
+
 }
 
 func (pub *Pubnub) readPublishResponseAndCallSendResponse(channel string, value []byte, responseCode int, err error, callbackChannel, errorChannel chan []byte) {
@@ -4084,10 +4155,7 @@ func (pub *Pubnub) ParseInterfaceData(myInterface interface{}) string {
 func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 	[]byte, int, error) {
 
-	// TODO: move to pub.connect method
-	requrl := pub.origin + requestURL
-
-	contents, responseStatusCode, err := pub.connect(requrl, tType, requestURL)
+	contents, responseStatusCode, err := pub.connect(tType, requestURL)
 
 	if err != nil {
 		if strings.Contains(err.Error(), timeout) {
@@ -4109,6 +4177,62 @@ func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 	return contents, responseStatusCode, err
 }
 
+func (pub *Pubnub) validateRequestAndAddHeaders(requestURL string) (*http.Request, error) {
+	reqURL := pub.origin + requestURL
+
+	req, err := http.NewRequest("GET", reqURL, nil)
+	if err != nil {
+		pub.infoLogger.Printf("ERROR: HTTP REQUEST: Error while creating request: %s", err.Error())
+		return nil, err
+	}
+
+	scheme := "http"
+	if pub.isSSL {
+		scheme = "https"
+	}
+
+	req.URL = &url.URL{
+		Scheme: scheme,
+		Host:   origin,
+		Opaque: fmt.Sprintf("//%s%s", origin, requestURL),
+	}
+
+	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS,
+		SDK_VERSION)
+
+	req.Header.Set("User-Agent", useragent)
+	return req, nil
+}
+
+func (pub *Pubnub) nonSubHTTPRequest(requestURL string) (
+	[]byte, int, error) {
+
+	req, errReq := pub.validateRequestAndAddHeaders(requestURL)
+	if errReq != nil {
+		return nil, 0, errReq
+	}
+
+	pub.infoLogger.Printf("INFO: nonSubHTTPRequest calling nonSubHTTPClient.do%s", requestURL)
+	response, err := pub.nonSubHTTPClient.Do(req)
+	if err != nil && response == nil {
+		pub.infoLogger.Printf("ERROR: NonSub HTTP REQUEST: Error while sending request: %s", err.Error())
+		return nil, 0, err
+	}
+
+	//defer
+	body, err := ioutil.ReadAll(response.Body)
+	pub.infoLogger.Printf("INFO: nonSubHTTPRequest readall %s", requestURL)
+	if err != nil {
+		pub.infoLogger.Printf("ERROR: NonSub HTTP REQUEST: Error while parsing body: %+v", err.Error())
+		response.Body.Close()
+		return nil, response.StatusCode, err
+	}
+	io.Copy(ioutil.Discard, response.Body)
+
+	response.Body.Close()
+	return body, response.StatusCode, nil
+}
+
 // connect creates a http request to the pubnub origin and returns the
 // response or the error while connecting.
 //
@@ -4121,31 +4245,13 @@ func (pub *Pubnub) httpRequest(requestURL string, tType transportType) (
 // response errorcode if any.
 // error if any.
 // TODO: merge with httpRequest function
-func (pub *Pubnub) connect(requestURL string, tType transportType,
+func (pub *Pubnub) connect(tType transportType,
 	opaqueURL string) ([]byte, int, error) {
 
-	req, err := http.NewRequest("GET", requestURL, nil)
-	if err != nil {
-		pub.infoLogger.Printf("ERROR: HTTP REQUEST: Error while creating request: %s", err.Error())
-		return nil, 0, err
+	req, errReq := pub.validateRequestAndAddHeaders(opaqueURL)
+	if errReq != nil {
+		return nil, 0, errReq
 	}
-
-	scheme := "http"
-	if pub.isSSL {
-		scheme = "https"
-	}
-
-	req.URL = &url.URL{
-		Scheme: scheme,
-		Host:   origin,
-		Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
-	}
-
-	// REVIEW: hardcoded client version
-	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS,
-		SDK_VERSION)
-
-	req.Header.Set("User-Agent", useragent)
 
 	switch tType {
 	case subscribeTrans:
