@@ -238,6 +238,9 @@ var (
 
 	// Used to set the value of HTTP Transport's MaxIdleConnsPerHost.
 	maxIdleConnsPerHost = 30
+
+	//max concurrent go routines to send requests
+	maxWorkers = 20
 )
 
 // VersionInfo returns the version of the this code along with the build date.
@@ -305,7 +308,7 @@ type Pubnub struct {
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
 	publishHTTPClient       *http.Client
-	maxWorkers              int
+	//maxWorkers              int
 	//maxQueue                int
 	infoLogger      *log.Logger
 	publishJobQueue chan PublishJob
@@ -403,14 +406,14 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 		nonSubscribeTimeout, newPubnub.infoLogger)
 	newPubnub.retryWorker = newRequestWorker("Retry", retryTransport, retryInterval, newPubnub.infoLogger)
 	newPubnub.publishHTTPClient = createPublishHTTPClient()
-	newPubnub.maxWorkers = 20
+	//newPubnub.maxWorkers = 20
 	//newPubnub.maxQueue = 20000
 	newPubnub.publishJobQueue = make(chan PublishJob) //, newPubnub.maxQueue)
 	//newPubnub.limiter = rate.NewLimiter(20, 10)
 	//concurrency := 5
 	//newPubnub.sem = make(chan bool, 5) //make(chan bool, concurrency)
 
-	newPubnub.newPublishQueueProcessor(newPubnub.maxWorkers)
+	newPubnub.newPublishQueueProcessor(maxWorkers)
 	return newPubnub
 }
 
@@ -451,6 +454,11 @@ func createPublishHTTPClient() *http.Client {
 // Be careful when increasing MaxIdleConnsPerHost to a large number. It only makes sense to increase idle connections if you are seeing many connections in a short period from the same clients.
 func SetMaxIdleConnsPerHost(maxIdleConnsPerHostVal int) {
 	maxIdleConnsPerHost = maxIdleConnsPerHostVal
+}
+
+// SetMaxWorkers sets the number of concurrent Go Routines to send requests.
+func SetMaxWorkers(maxWorkersVal int) {
+	maxWorkers = maxWorkersVal
 }
 
 // SetProxy sets the global variables for the parameters.
