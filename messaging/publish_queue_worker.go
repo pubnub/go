@@ -77,6 +77,7 @@ func (pubnub *Pubnub) newNonSubQueueProcessor(maxWorkers int) *NonSubQueueProces
 		//Sem: sem,
 		//end logic 2
 	}
+	p.Run(pubnub)
 	return p
 }
 

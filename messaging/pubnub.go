@@ -399,28 +399,22 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.nonSubscribeWorker = newRequestWorker("Non-Subscribe", nonSubscribeTransport,
 		nonSubscribeTimeout, newPubnub.infoLogger)
 	newPubnub.retryWorker = newRequestWorker("Retry", retryTransport, retryInterval, newPubnub.infoLogger)
-	newPubnub.nonSubHTTPClient = createNonSubHTTPClient()
+	newPubnub.nonSubHTTPClient = newPubnub.createNonSubHTTPClient()
 	newPubnub.nonSubJobQueue = make(chan NonSubJob)
 	newPubnub.nonSubQueueProcessor = newPubnub.newNonSubQueueProcessor(maxWorkers)
-	newPubnub.nonSubQueueProcessor.Run(newPubnub)
+
 	return newPubnub
 }
 
-func createNonSubHTTPClient() *http.Client {
-	client := &http.Client{
-		Transport: &http.Transport{
-			MaxIdleConnsPerHost: maxIdleConnsPerHost,
-			Dial: (&net.Dialer{
-				Timeout:   time.Duration(connectTimeout) * time.Second,
-				KeepAlive: 30 * time.Minute,
-			}).Dial,
-		},
-
-		Timeout: time.Duration(nonSubscribeTimeout) * time.Second,
+func (pub *Pubnub) createNonSubHTTPClient() *http.Client {
+	transport := &http.Transport{
+		MaxIdleConnsPerHost: maxIdleConnsPerHost,
+		Dial: (&net.Dialer{
+			Timeout:   time.Duration(connectTimeout) * time.Second,
+			KeepAlive: 30 * time.Minute,
+		}).Dial,
+		ResponseHeaderTimeout: time.Duration(nonSubscribeTimeout) * time.Second,
 	}
-
-	/*transport.ResponseHeaderTimeout = time.Duration(w.Timeout) * time.Second
-
 	if proxyServerEnabled {
 		proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", proxyUser,
 			proxyPassword, proxyServer, proxyPort))
@@ -428,13 +422,13 @@ func createNonSubHTTPClient() *http.Client {
 		if err == nil {
 			transport.Proxy = http.ProxyURL(proxyURL)
 		} else {
-			w.InfoLogger.Printf("ERROR: %s: Proxy connection error: %s", w.Name, err.Error())
+			pub.infoLogger.Printf("ERROR: createNonSubHTTPClient: Proxy connection error: %s", err.Error())
 		}
 	}
-
-	transport.MaxIdleConnsPerHost = maxIdleConnsPerHost
-	w.Transport = transport*/
-
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Duration(nonSubscribeTimeout) * time.Second,
+	}
 	return client
 }
 
