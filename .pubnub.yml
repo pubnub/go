@@ -244,7 +244,7 @@ supported-platforms:
       - Linux 2.6.23 or later with glibc, amd64, 386, arm, s390x, ppc64le, CentOS/RHEL 5.x not supported.
       - Mac OS X 10.8 or later, amd64, use the clang or gcc† that comes with Xcode‡ for cgo support.
       - Windows 7 or later, amd64, 386, use MinGW gcc†. No need for cygwin or msys.
-    editor:
+    editors:
       - go1.2
       - go1.3 
       - go1.4 
