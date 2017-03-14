@@ -237,7 +237,7 @@ var (
 	proxyServerEnabled = false
 
 	// Used to set the value of HTTP Transport's MaxIdleConnsPerHost.
-	maxIdleConnsPerHost = 70
+	maxIdleConnsPerHost = 30
 )
 
 // VersionInfo returns the version of the this code along with the build date.

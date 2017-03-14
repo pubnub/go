@@ -53,14 +53,24 @@ func (pw PublishWorker) StartPublishWorker(pubnub *Pubnub) {
 
 func (pubnub *Pubnub) newPublishQueueProcessor(maxWorkers int) {
 	//func (pubnub *Pubnub) newPublishQueueProcessor(maxWorkers int) *PublishQueueProcessor {
+	//logic 1
 	//workers := make(chan chan PublishJob, maxWorkers)
+	//end logic 1
+
+	//logic 2
 	sem := make(chan bool, maxWorkers)
+	//end logic 2
+
 	pubnub.infoLogger.Printf("INFO: Init PublishQueueProcessor: workers %d", maxWorkers)
 
 	p := &PublishQueueProcessor{
+		//logic 1
 		//Workers:    workers,
+		//end logic 1
 		maxWorkers: maxWorkers,
-		Sem:        sem,
+		//logic 2
+		Sem: sem,
+		//end logic 2
 	}
 	p.Run(pubnub)
 	//go p.process(pubnub)
@@ -70,11 +80,13 @@ func (pubnub *Pubnub) newPublishQueueProcessor(maxWorkers int) {
 func (p *PublishQueueProcessor) Run(pubnub *Pubnub) {
 	//func (p *PublishQueueProcessor) Run(pubnub *Pubnub, publishJob PublishJob) {
 	pubnub.infoLogger.Printf("INFO: PublishQueueProcessor: Running with workers %d", p.maxWorkers)
+	//logic 1
 	/*for i := 0; i < p.maxWorkers; i++ {
 		pubnub.infoLogger.Printf("INFO: PublishQueueProcessor: StartPublishWorker %d", i)
 		publishWorker := NewPublishWorker(p.Workers, i)
 		publishWorker.StartPublishWorker(pubnub)
 	}*/
+	//end logic 1
 	go p.process(pubnub)
 	/*p.Sem <- true
 	go func(publishJob PublishJob) {
@@ -96,10 +108,17 @@ func (p *PublishQueueProcessor) process(pubnub *Pubnub) {
 		select {
 		case publishJob := <-pubnub.publishJobQueue:
 			pubnub.infoLogger.Printf("INFO: PublishQueueProcessor process: Got job for channel %s %s", publishJob.Channel, publishJob.PublishURL)
+			//logic 2
 			p.Sem <- true
+			//end logic 2
 			go func(publishJob PublishJob) {
-				/*jobChannel := <-p.Workers
-				jobChannel <- publishJob*/
+				//logic 1
+				//jobChannel := <-p.Workers
+
+				//jobChannel <- publishJob
+				//end logic 1
+
+				//logic 2
 				defer func() {
 					pubnub.infoLogger.Printf("INFO: StartPublishWorker processing job: Defer job %d", publishJob.PublishURL)
 					b := <-p.Sem
@@ -111,7 +130,8 @@ func (p *PublishQueueProcessor) process(pubnub *Pubnub) {
 				pn := pubnub
 				value, responseCode, err := pn.publishHTTPRequest(publishJob.PublishURL)
 				pubnub.readPublishResponseAndCallSendResponse(publishJob.Channel, value, responseCode, err, publishJob.CallbackChannel, publishJob.ErrorChannel)
-				//}()
+				//end logic 2
+				//}()*/
 
 			}(publishJob)
 			/*pubnub.infoLogger.Printf("INFO: StartPublishWorker processing job: Got job, check sem %d len:%d", publishJob.PublishURL, len(pubnub.publishJobQueue))
