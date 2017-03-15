@@ -1,13 +1,12 @@
 ## Contact support@pubnub.com for all questions
 
-#PubNub 3.11.0 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2, 1.5.2, 1.6.2, 1.7.3, 1.8
+# PubNub 3.11.0 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2, 1.5.2, 1.6.2, 1.7.3, 1.8
 
-###Important changes in this version:
-* The authKey argument was added to all PAM method.
-* Subscribe method arguments changed
+### Important changes in this version 3.10.0:
+Breaking API Change: newPubnub has a new parameter where it expects a logger instance [Example](#init). This fixes a rare race condition
 
-###Change log
-* 3.1q.0
+### Change log
+* 3.11.0
  * NonSub goroutine concurrency and worker queues.
 * 3.10.0
  * Breaking API Change: newPubnub has a new parameter where it expects a logger instance [Example](#init). This fixes a rare race condition.
@@ -60,7 +59,7 @@
 * Optimizations
 
 
-###Earlier Features
+### Earlier Features
 
 * Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc
 * This version is not backward compatible. The major change is in the func calls. A new parameter "error callback" is added to the major functions of the pubnub class.
@@ -73,22 +72,22 @@
 * Non 200 response will now be bubbled to the client
 * PAM: To use the PAM features in the example please enable PAM from the Pubnub admin console (https://admin.pubnub.com) and replace the publish, subscribe and secret keys in example/pubnubExample.go (line 124).
 
-###Quick Start Video
+### Quick Start Video
 
 We've put together a quick HOWTO video here http://vimeo.com/93523019
 
-###Get Package
+### Get Package
 
 * Use the command `go get github.com/pubnub/go/messaging` to download and install the package
 
-###Run the example
+### Run the example
 * Built using Eclipse IDE (juno) 
 * Install golang plugin for Eclipse
 * Using Eclipse Project Explorer browse to the directory `$GOPATH/src/github.com/pubnub/go/messaging/example`, where `$GOPATH` is the workspaces directory of go.
 * Run `pubnubExample.go` as a "go application"
 * Look for the application in the "Console" of the Eclipse IDE
 
-###Running Unit tests (instructions for Mac/Linux, for other dev environments the instructions are similar)
+### Running Unit tests (instructions for Mac/Linux, for other dev environments the instructions are similar)
 
 * Open Terminal.
 * Change the directory to 
@@ -96,7 +95,7 @@ We've put together a quick HOWTO video here http://vimeo.com/93523019
 * Run the command `go test -i` to install the packages. 
 * And then run the command `go test` to run test cases.
 
-###Use pubnub in your project
+### Use pubnub in your project
 
 * Install golang plugin for Eclipse.
 * Use the command go get github.com/pubnub/go/messaging to download and install the package.
@@ -129,7 +128,7 @@ fmt.Println("PubNub Api for go;", messaging.VersionInfo())
 
 In addition to Eclipse, this has also been tested with Go 1.0.3 on Linux using IntelliJ IDEA 12.
 
-###Demo Console App
+### Demo Console App
 We've included a demo console app which documents all the functionality of the client, for example:
 
 * Subscribe
@@ -162,7 +161,7 @@ We've included a demo console app which documents all the functionality of the c
 * GlobalHereNow
 * Change UUID 
 
-###Quick Implementation Examples
+### Quick Implementation Examples
 
 #### handleSubscribeResult
 
