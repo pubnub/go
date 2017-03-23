@@ -26,6 +26,7 @@ import (
 	"net/url"
 	"reflect"
 	"runtime"
+	//"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -1186,6 +1187,42 @@ func encodeJSONAsPathComponent(jsonBytes string) string {
 	return strings.TrimLeft(encodedPath, "./")
 }
 
+func (pub *Pubnub) checkSecretKeyAndAddSignature(opURL, requestURL string) string {
+	if len(pub.secretKey) > 0 {
+		timestamp := getUnixTimeStamp()
+		opURL = fmt.Sprintf("%s&timestamp=%s", opURL, timestamp)
+
+		var signatureBuffer bytes.Buffer
+		signatureBuffer.WriteString(pub.subscribeKey)
+		signatureBuffer.WriteString("\n")
+		signatureBuffer.WriteString(pub.publishKey)
+		signatureBuffer.WriteString("\n")
+		signatureBuffer.WriteString(requestURL)
+		signatureBuffer.WriteString("\n")
+
+		var reqURL *url.URL
+		reqURL, urlErr := url.Parse(opURL)
+		if urlErr != nil {
+			pub.infoLogger.Printf("ERROR: Url encoding error: %s", urlErr.Error())
+			return opURL
+		}
+		rawQuery := reqURL.RawQuery
+
+		//sort query
+		query, _ := url.ParseQuery(rawQuery)
+		encodedAndSortedQuery := query.Encode()
+
+		pub.infoLogger.Printf("INFO: query: %s", encodedAndSortedQuery)
+		signatureBuffer.WriteString(encodedAndSortedQuery)
+
+		pub.infoLogger.Printf("INFO: signatureBuffer: %s", signatureBuffer.String())
+		signature := getHmacSha256(pub.secretKey, signatureBuffer.String())
+		opURL = fmt.Sprintf("%s&signature=%s", opURL, signature)
+		return opURL
+	}
+	return opURL
+}
+
 // sendPublishRequest is the struct Pubnub's instance method that posts a publish request and
 // sends back the response to the channel.
 //
@@ -1204,8 +1241,9 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 
 	encodedPath := encodeJSONAsPathComponent(jsonBytes)
 	pub.infoLogger.Printf("INFO: Publish: json: %s, encoded: %s", jsonBytes, encodedPath)
-
 	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
+	requestURL := publishURL
+
 	publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL,
 		sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
 
@@ -1234,6 +1272,8 @@ func (pub *Pubnub) sendPublishRequest(channel, publishURLString string,
 		metaEncodedPath := encodeJSONAsPathComponent(string(metaBytes))
 		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
 	}
+
+	publishURL = pub.checkSecretKeyAndAddSignature(publishURL, requestURL)
 
 	pub.infoLogger.Printf("INFO: queuing: %s", publishURL)
 
