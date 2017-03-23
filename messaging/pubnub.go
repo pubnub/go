@@ -2414,6 +2414,7 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken, region string) (string, str
 	}
 
 	subscribeURLBuffer.WriteString("/0")
+	requestURL := subscribeURLBuffer.String()
 
 	subscribeURLBuffer.WriteString("?")
 
@@ -2481,7 +2482,9 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken, region string) (string, str
 	subscribeURLBuffer.WriteString("&")
 	subscribeURLBuffer.WriteString(sdkIdentificationParam)
 
-	return subscribeURLBuffer.String(), sentTimeToken
+	subscribeUrl = pub.checkSecretKeyAndAddSignature(subscribeURLBuffer.String(), requestURL)
+
+	return subscribeUrl, sentTimeToken
 }
 
 // addAuthParamToQuery adds the authentication key to the URL
