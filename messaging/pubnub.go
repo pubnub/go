@@ -3885,26 +3885,29 @@ func (pub *Pubnub) executeSetUserState(channel, jsonState string,
 
 	uuid := pub.GetUUID()
 
-	var userStateURL bytes.Buffer
-	userStateURL.WriteString("/v2/presence")
-	userStateURL.WriteString("/sub-key/")
-	userStateURL.WriteString(pub.subscribeKey)
-	userStateURL.WriteString("/channel/")
-	userStateURL.WriteString(url.QueryEscape(channel))
-	userStateURL.WriteString("/uuid/")
-	userStateURL.WriteString(uuid)
-	userStateURL.WriteString("/data")
-	userStateURL.WriteString("?state=")
-	userStateURL.WriteString(url.QueryEscape(jsonState))
+	var userStateURLBuffer bytes.Buffer
+	userStateURLBuffer.WriteString("/v2/presence")
+	userStateURLBuffer.WriteString("/sub-key/")
+	userStateURLBuffer.WriteString(pub.subscribeKey)
+	userStateURLBuffer.WriteString("/channel/")
+	userStateURLBuffer.WriteString(url.QueryEscape(channel))
+	userStateURLBuffer.WriteString("/uuid/")
+	userStateURLBuffer.WriteString(uuid)
+	userStateURLBuffer.WriteString("/data")
+	requestURL := userStateURLBuffer.String()
+	userStateURLBuffer.WriteString("?state=")
+	userStateURLBuffer.WriteString(url.QueryEscape(jsonState))
 
-	userStateURL.WriteString(pub.addAuthParam(true))
+	userStateURLBuffer.WriteString(pub.addAuthParam(true))
 
-	userStateURL.WriteString("&")
-	userStateURL.WriteString(sdkIdentificationParam)
-	userStateURL.WriteString("&uuid=")
-	userStateURL.WriteString(pub.GetUUID())
+	userStateURLBuffer.WriteString("&")
+	userStateURLBuffer.WriteString(sdkIdentificationParam)
+	userStateURLBuffer.WriteString("&uuid=")
+	userStateURLBuffer.WriteString(pub.GetUUID())
 
-	value, _, err := pub.httpRequest(userStateURL.String(), nonSubscribeTrans)
+	userStateURL := pub.checkSecretKeyAndAddSignature(userStateURLBuffer.String(), requestURL)
+
+	value, _, err := pub.httpRequest(userStateURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
