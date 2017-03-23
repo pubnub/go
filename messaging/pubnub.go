@@ -3338,7 +3338,7 @@ func (pub *Pubnub) sendLeaveRequest(channels, groups string) ([]byte, int, error
 
 	subscribeUrl := pub.checkSecretKeyAndAddSignature(subscribeURLBuffer.String(), requestURL)
 
-	return pub.httpRequest(subscribeURL, nonSubscribeTrans)
+	return pub.httpRequest(subscribeUrl, nonSubscribeTrans)
 }
 
 // History is the struct Pubnub's instance method which creates and post the History request
