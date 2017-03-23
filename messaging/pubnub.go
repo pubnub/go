@@ -3316,7 +3316,9 @@ func (pub *Pubnub) sendLeaveRequest(channels, groups string) ([]byte, int, error
 		subscribeURLBuffer.WriteString(",")
 	}
 
-	subscribeURLBuffer.WriteString("/leave?uuid=")
+	subscribeURLBuffer.WriteString("/leave")
+	requestURL := subscribeURLBuffer.String()
+	subscribeURLBuffer.WriteString("?uuid=")
 	subscribeURLBuffer.WriteString(pub.GetUUID())
 
 	if len(groups) > 0 {
@@ -3334,7 +3336,9 @@ func (pub *Pubnub) sendLeaveRequest(channels, groups string) ([]byte, int, error
 	subscribeURLBuffer.WriteString("&")
 	subscribeURLBuffer.WriteString(sdkIdentificationParam)
 
-	return pub.httpRequest(subscribeURLBuffer.String(), nonSubscribeTrans)
+	subscribeUrl := pub.checkSecretKeyAndAddSignature(subscribeURLBuffer.String(), requestURL)
+
+	return pub.httpRequest(subscribeURL, nonSubscribeTrans)
 }
 
 // History is the struct Pubnub's instance method which creates and post the History request
