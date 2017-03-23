@@ -3560,10 +3560,12 @@ func (pub *Pubnub) GlobalHereNow(showUuid bool, includeUserState bool, callbackC
 func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
 	count := retryCount
 
-	var hereNowURL bytes.Buffer
-	hereNowURL.WriteString("/v2/presence")
-	hereNowURL.WriteString("/sub-key/")
-	hereNowURL.WriteString(pub.subscribeKey)
+	var hereNowURLBuffer bytes.Buffer
+	hereNowURLBuffer.WriteString("/v2/presence")
+	hereNowURLBuffer.WriteString("/sub-key/")
+	hereNowURLBuffer.WriteString(pub.subscribeKey)
+
+	requestURL := hereNowURLBuffer.String()
 
 	showUuidParam := "1"
 	if showUuid {
@@ -3577,15 +3579,17 @@ func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, ca
 	var params bytes.Buffer
 	params.WriteString(fmt.Sprintf("?disable_uuids=%s&state=%s", showUuidParam, includeUserStateParam))
 
-	hereNowURL.WriteString(params.String())
+	hereNowURLBuffer.WriteString(params.String())
 
-	hereNowURL.WriteString(pub.addAuthParam(true))
-	hereNowURL.WriteString("&")
-	hereNowURL.WriteString(sdkIdentificationParam)
-	hereNowURL.WriteString("&uuid=")
-	hereNowURL.WriteString(pub.GetUUID())
+	hereNowURLBuffer.WriteString(pub.addAuthParam(true))
+	hereNowURLBuffer.WriteString("&")
+	hereNowURLBuffer.WriteString(sdkIdentificationParam)
+	hereNowURLBuffer.WriteString("&uuid=")
+	hereNowURLBuffer.WriteString(pub.GetUUID())
 
-	value, _, err := pub.httpRequest(hereNowURL.String(), nonSubscribeTrans)
+	hereNowURL := pub.checkSecretKeyAndAddSignature(hereNowURLBuffer.String(), requestURL)
+
+	value, _, err := pub.httpRequest(hereNowURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
@@ -3641,12 +3645,14 @@ func (pub *Pubnub) executeHereNow(channel, channelGroup string, showUuid,
 		return
 	}
 
-	var hereNowURL bytes.Buffer
-	hereNowURL.WriteString("/v2/presence")
-	hereNowURL.WriteString("/sub-key/")
-	hereNowURL.WriteString(pub.subscribeKey)
-	hereNowURL.WriteString("/channel/")
-	hereNowURL.WriteString(url.QueryEscape(channel))
+	var hereNowURLBuffer bytes.Buffer
+	hereNowURLBuffer.WriteString("/v2/presence")
+	hereNowURLBuffer.WriteString("/sub-key/")
+	hereNowURLBuffer.WriteString(pub.subscribeKey)
+	hereNowURLBuffer.WriteString("/channel/")
+	hereNowURLBuffer.WriteString(url.QueryEscape(channel))
+
+	requestURL := hereNowURLBuffer.String()
 
 	showUuidParam := "1"
 	if showUuid {
@@ -3660,21 +3666,23 @@ func (pub *Pubnub) executeHereNow(channel, channelGroup string, showUuid,
 	var params bytes.Buffer
 	params.WriteString(fmt.Sprintf("?disable_uuids=%s&state=%s", showUuidParam, includeUserStateParam))
 
-	hereNowURL.WriteString(params.String())
+	hereNowURLBuffer.WriteString(params.String())
 
-	hereNowURL.WriteString(pub.addAuthParam(true))
+	hereNowURLBuffer.WriteString(pub.addAuthParam(true))
 
 	if len(channelGroup) > 0 {
-		hereNowURL.WriteString("&channel-group=")
-		hereNowURL.WriteString(url.QueryEscape(channelGroup))
+		hereNowURLBuffer.WriteString("&channel-group=")
+		hereNowURLBuffer.WriteString(url.QueryEscape(channelGroup))
 	}
 
-	hereNowURL.WriteString("&")
-	hereNowURL.WriteString(sdkIdentificationParam)
-	hereNowURL.WriteString("&uuid=")
-	hereNowURL.WriteString(pub.GetUUID())
+	hereNowURLBuffer.WriteString("&")
+	hereNowURLBuffer.WriteString(sdkIdentificationParam)
+	hereNowURLBuffer.WriteString("&uuid=")
+	hereNowURLBuffer.WriteString(pub.GetUUID())
 
-	value, _, err := pub.httpRequest(hereNowURL.String(), nonSubscribeTrans)
+	hereNowURL := pub.checkSecretKeyAndAddSignature(hereNowURLBuffer.String(), requestURL)
+
+	value, _, err := pub.httpRequest(hereNowURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
