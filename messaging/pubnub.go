@@ -3984,6 +3984,8 @@ func (pub *Pubnub) generateStringforCGRequest(action, group,
 		requestURL.WriteString("/remove")
 	}
 
+	requestURLForSig := requestURL.String()
+
 	if strings.TrimSpace(pub.authenticationKey) != "" {
 		params.Set("auth", pub.authenticationKey)
 	}
@@ -3993,6 +3995,10 @@ func (pub *Pubnub) generateStringforCGRequest(action, group,
 
 	requestURL.WriteString("?")
 	requestURL.WriteString(params.Encode())
+
+	requestURLWithSig := pub.checkSecretKeyAndAddSignature(requestURL.String(), requestURLForSig)
+	requestURL.Reset()
+	requestURL.WriteString(requestURLWithSig)
 
 	return requestURL
 }
