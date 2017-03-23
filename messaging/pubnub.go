@@ -3424,6 +3424,7 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start, end int64,
 	historyURLBuffer.WriteString(pub.subscribeKey)
 	historyURLBuffer.WriteString("/channel/")
 	historyURLBuffer.WriteString(url.QueryEscape(channel))
+	requestURL := historyURLBuffer.String()
 	historyURLBuffer.WriteString("?count=")
 	historyURLBuffer.WriteString(fmt.Sprintf("%d", limit))
 	historyURLBuffer.WriteString(parameters.String())
@@ -3432,7 +3433,9 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start, end int64,
 	historyURLBuffer.WriteString("&uuid=")
 	historyURLBuffer.WriteString(pub.GetUUID())
 
-	value, _, err := pub.httpRequest(historyURLBuffer.String(), nonSubscribeTrans)
+	historyURL := pub.checkSecretKeyAndAddSignature(historyURLBuffer.String(), requestURL)
+
+	value, _, err := pub.httpRequest(historyURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
