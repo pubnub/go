@@ -41,7 +41,7 @@ var SubKey = "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f"
 var PubKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"
 
 // SecKey: key for non-pam tests
-var SecKey = "sec-c-ZjM0NzNmODgtNzE4OC00OTBjLWFhMWMtYjUxZTllYmY5YWE4"
+var SecKey = "" //"sec-c-ZjM0NzNmODgtNzE4OC00OTBjLWFhMWMtYjUxZTllYmY5YWE4"
 
 // SubKey: key for non-pam tests
 var SubNoPermissionsKey = "sub-c-642a6fca-f5b9-11e5-9086-02ee2ddab7fe"
