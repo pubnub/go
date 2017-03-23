@@ -2482,7 +2482,7 @@ func (pub *Pubnub) createSubscribeURL(sentTimeToken, region string) (string, str
 	subscribeURLBuffer.WriteString("&")
 	subscribeURLBuffer.WriteString(sdkIdentificationParam)
 
-	subscribeUrl = pub.checkSecretKeyAndAddSignature(subscribeURLBuffer.String(), requestURL)
+	subscribeUrl := pub.checkSecretKeyAndAddSignature(subscribeURLBuffer.String(), requestURL)
 
 	return subscribeUrl, sentTimeToken
 }
