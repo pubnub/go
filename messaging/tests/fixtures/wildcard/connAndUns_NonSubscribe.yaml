@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.11.0
-    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_ConnAndUns.%2A/leave?uuid=UUID_ConnAndUns&pnsdk=PubNub-Go%2F3.11.0
+      - ua_string=(linux) PubNub-Go/3.12.0
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_ConnAndUns.%2A/leave?uuid=UUID_ConnAndUns&pnsdk=PubNub-Go%2F3.12.0
     method: GET
   response:
     body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
