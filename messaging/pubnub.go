@@ -3490,25 +3490,28 @@ func (pub *Pubnub) WhereNow(uuid string, callbackChannel chan []byte, errorChann
 func (pub *Pubnub) executeWhereNow(uuid string, callbackChannel chan []byte, errorChannel chan []byte, retryCount int) {
 	count := retryCount
 
-	var whereNowURL bytes.Buffer
-	whereNowURL.WriteString("/v2/presence")
-	whereNowURL.WriteString("/sub-key/")
-	whereNowURL.WriteString(pub.subscribeKey)
-	whereNowURL.WriteString("/uuid/")
+	var whereNowURLBuffer bytes.Buffer
+	whereNowURLBuffer.WriteString("/v2/presence")
+	whereNowURLBuffer.WriteString("/sub-key/")
+	whereNowURLBuffer.WriteString(pub.subscribeKey)
+	whereNowURLBuffer.WriteString("/uuid/")
 	if strings.TrimSpace(uuid) == "" {
 		uuid = pub.GetUUID()
 	} else {
 		uuid = url.QueryEscape(uuid)
 	}
-	whereNowURL.WriteString(uuid)
-	whereNowURL.WriteString("?")
-	whereNowURL.WriteString(sdkIdentificationParam)
-	whereNowURL.WriteString("&uuid=")
-	whereNowURL.WriteString(pub.GetUUID())
+	whereNowURLBuffer.WriteString(uuid)
+	requestURL := whereNowURLBuffer.String()
+	whereNowURLBuffer.WriteString("?")
+	whereNowURLBuffer.WriteString(sdkIdentificationParam)
+	whereNowURLBuffer.WriteString("&uuid=")
+	whereNowURLBuffer.WriteString(pub.GetUUID())
 
-	whereNowURL.WriteString(pub.addAuthParam(true))
+	whereNowURLBuffer.WriteString(pub.addAuthParam(true))
 
-	value, _, err := pub.httpRequest(whereNowURL.String(), nonSubscribeTrans)
+	whereNowURL := pub.checkSecretKeyAndAddSignature(whereNowURLBuffer.String(), requestURL)
+
+	value, _, err := pub.httpRequest(whereNowURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: WHERE NOW: Connection error: %s", err.Error())
