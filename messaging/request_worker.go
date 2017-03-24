@@ -186,7 +186,7 @@ func (w *requestWorker) InvokeRequest(req *http.Request) <-chan *workerResponse 
 			if e == nil {
 				contents = bodyContents
 				//logInfof("%s <<< %s", w.Name, string(contents))
-				w.InfoLogger.Printf("INFO: %s <<< %s", w.Name, string(contents))
+				w.InfoLogger.Printf("INFO: %s <<< %s %d", w.Name, string(contents), response.StatusCode)
 				rs.Data = contents
 				rs.StatusCode = response.StatusCode
 			} else {

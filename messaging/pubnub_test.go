@@ -11,6 +11,29 @@ import (
 	"testing"
 )
 
+func TestCheckSecretKeyAndAddSignatureWithSecretKey(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("pam", "pam", "pam", "", true, "testuuid", CreateLoggerForTests())
+	opURL := "/publish/pam/pam/nrOHCskNQktfPYHhDGbeTNsLqmxoOBdBcI8fO221mIs=/test/0/%22test%22?pnsdk=PubNub-Go%2F3.11.0&uuid=pn-481813204005670480c7600f6ee6323c&seqn=1"
+	requestURL := "/v1/channel-registration/sub-key/pam/channel-group/testcg11"
+	response := pubnub.checkSecretKeyAndAddSignature(opURL, requestURL)
+	assert.Contains(response, "/publish/pam/pam/nrOHCskNQktfPYHhDGbeTNsLqmxoOBdBcI8fO221mIs=/test/0/%22test%22?pnsdk=PubNub-Go%2F3.11.0&uuid=pn-481813204005670480c7600f6ee6323c&seqn=1")
+	assert.Contains(response, "signature=")
+	assert.Contains(response, "timestamp=")
+}
+
+func TestCheckSecretKeyAndAddSignatureWithoutSecretKey(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("pam", "pam", "", "", true, "testuuid", CreateLoggerForTests())
+	opURL := "/publish/pam/pam/nrOHCskNQktfPYHhDGbeTNsLqmxoOBdBcI8fO221mIs=/test/0/%22test%22?pnsdk=PubNub-Go%2F3.11.0&uuid=pn-481813204005670480c7600f6ee6323c&seqn=1"
+	requestURL := "/v1/channel-registration/sub-key/pam/channel-group/testcg11"
+	response := pubnub.checkSecretKeyAndAddSignature(opURL, requestURL)
+	assert.Contains(response, "/publish/pam/pam/nrOHCskNQktfPYHhDGbeTNsLqmxoOBdBcI8fO221mIs=/test/0/%22test%22?pnsdk=PubNub-Go%2F3.11.0&uuid=pn-481813204005670480c7600f6ee6323c&seqn=1")
+	assert.NotContains(response, "signature=")
+	assert.NotContains(response, "timetoken=")
+
+}
+
 func TestGenUuid(t *testing.T) {
 	assert := assert.New(t)
 
@@ -1029,7 +1052,7 @@ func TestCreateSubscribeURLReset(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.11.0", b)
+	assert.Contains(b, "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.12.0")
 	assert.Equal(senttt, tt)
 	presenceHeartbeat = 0
 }
@@ -1054,7 +1077,7 @@ func TestCreateSubscribeURL(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.11.0", b)
+	assert.Contains(b, "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.12.0")
 	assert.Equal(senttt, tt)
 }
 
@@ -1078,7 +1101,7 @@ func TestCreateSubscribeURLFilterExp(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Equal("/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.11.0", b)
+	assert.Contains(b, "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.12.0")
 	assert.Equal(senttt, tt)
 }
 
@@ -1108,7 +1131,7 @@ func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s", b)
 
-	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.11.0", b)
+	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.12.0", b)
 	presenceHeartbeat = 0
 
 }
