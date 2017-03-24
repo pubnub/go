@@ -11,6 +11,29 @@ import (
 	"testing"
 )
 
+func TestCheckSecretKeyAndAddSignatureWithSecretKey(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("pam", "pam", "pam", "", true, "testuuid", CreateLoggerForTests())
+	opURL := "/publish/pam/pam/nrOHCskNQktfPYHhDGbeTNsLqmxoOBdBcI8fO221mIs=/test/0/%22test%22?pnsdk=PubNub-Go%2F3.11.0&uuid=pn-481813204005670480c7600f6ee6323c&seqn=1"
+	requestURL := "/v1/channel-registration/sub-key/pam/channel-group/testcg11"
+	response := pubnub.checkSecretKeyAndAddSignature(opURL, requestURL)
+	assert.Contains(response, "/publish/pam/pam/nrOHCskNQktfPYHhDGbeTNsLqmxoOBdBcI8fO221mIs=/test/0/%22test%22?pnsdk=PubNub-Go%2F3.11.0&uuid=pn-481813204005670480c7600f6ee6323c&seqn=1")
+	assert.Contains(response, "signature=")
+	assert.Contains(response, "timestamp=")
+}
+
+func TestCheckSecretKeyAndAddSignatureWithoutSecretKey(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("pam", "pam", "", "", true, "testuuid", CreateLoggerForTests())
+	opURL := "/publish/pam/pam/nrOHCskNQktfPYHhDGbeTNsLqmxoOBdBcI8fO221mIs=/test/0/%22test%22?pnsdk=PubNub-Go%2F3.11.0&uuid=pn-481813204005670480c7600f6ee6323c&seqn=1"
+	requestURL := "/v1/channel-registration/sub-key/pam/channel-group/testcg11"
+	response := pubnub.checkSecretKeyAndAddSignature(opURL, requestURL)
+	assert.Contains(response, "/publish/pam/pam/nrOHCskNQktfPYHhDGbeTNsLqmxoOBdBcI8fO221mIs=/test/0/%22test%22?pnsdk=PubNub-Go%2F3.11.0&uuid=pn-481813204005670480c7600f6ee6323c&seqn=1")
+	assert.NotContains(response, "signature=")
+	assert.NotContains(response, "timetoken=")
+
+}
+
 func TestGenUuid(t *testing.T) {
 	assert := assert.New(t)
 

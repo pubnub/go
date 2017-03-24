@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: “Super Admin”
+        type: improvement
+      - 
+        text: “Non 200 handling on some non subscribe requests”
+        type: improvement
+    date: Mar 23, 17
+    version: v3.12.0
+  - 
+    changes: 
+      - 
         text: “NonSub goroutine concurrency and worker queues”
         type: improvement
     date: Mar 10, 17
@@ -238,7 +248,7 @@ features:
     - TIME-TIME
 supported-platforms:
   - 
-    version: PubNub Go SDK 3.11.0
+    version: PubNub Go SDK
     platforms:
       - FreeBSD 8-STABLE or later, amd64, 386, Debian GNU/kFreeBSD not supported.
       - Linux 2.6.23 or later with glibc, amd64, 386, arm, s390x, ppc64le, CentOS/RHEL 5.x not supported.
@@ -255,4 +265,4 @@ supported-platforms:
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: “3.11.0”
+version: “3.12.0”
