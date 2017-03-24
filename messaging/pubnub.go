@@ -3435,13 +3435,19 @@ func (pub *Pubnub) executeHistory(channel string, limit int, start, end int64,
 
 	historyURL := pub.checkSecretKeyAndAddSignature(historyURLBuffer.String(), requestURL)
 
-	value, _, err := pub.httpRequest(historyURL, nonSubscribeTrans)
+	value, responseCode, err := pub.httpRequest(historyURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
 		pub.sendErrorResponse(errorChannel, channel, err.Error())
+	} else if responseCode != 200 {
+		message := fmt.Sprintf("%s", value)
+		pub.infoLogger.Printf("ERROR: History Error: responseCode %d, message %s", responseCode, message)
+		pub.sendErrorResponse(errorChannel, channel, message)
 	} else {
+		pub.infoLogger.Printf("INFO: %s", string(value))
 		data, returnOne, returnTwo, errJSON := pub.ParseJSON(value, pub.cipherKey)
+		pub.infoLogger.Printf("INFO: %s\n%s\n%s", data, returnOne, returnTwo)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
 			pub.infoLogger.Printf("ERROR: %s", errJSON.Error())
 			pub.sendErrorResponse(errorChannel, channel, errJSON.Error())
@@ -3511,11 +3517,15 @@ func (pub *Pubnub) executeWhereNow(uuid string, callbackChannel chan []byte, err
 
 	whereNowURL := pub.checkSecretKeyAndAddSignature(whereNowURLBuffer.String(), requestURL)
 
-	value, _, err := pub.httpRequest(whereNowURL, nonSubscribeTrans)
+	value, responseCode, err := pub.httpRequest(whereNowURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: WHERE NOW: Connection error: %s", err.Error())
 		pub.sendErrorResponse(errorChannel, uuid, err.Error())
+	} else if responseCode != 200 {
+		message := fmt.Sprintf("%s", value)
+		pub.infoLogger.Printf("ERROR: Where Now Error: responseCode %d, message %s", responseCode, message)
+		pub.sendErrorResponse(errorChannel, uuid, message)
 	} else {
 		_, _, _, errJSON := pub.ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
@@ -3589,11 +3599,15 @@ func (pub *Pubnub) executeGlobalHereNow(showUuid bool, includeUserState bool, ca
 
 	hereNowURL := pub.checkSecretKeyAndAddSignature(hereNowURLBuffer.String(), requestURL)
 
-	value, _, err := pub.httpRequest(hereNowURL, nonSubscribeTrans)
+	value, responseCode, err := pub.httpRequest(hereNowURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
 		pub.sendErrorResponseSimplified(errorChannel, err.Error())
+	} else if responseCode != 200 {
+		message := fmt.Sprintf("%s", value)
+		pub.infoLogger.Printf("ERROR: Global here Now Error: responseCode %d, message %s", responseCode, message)
+		pub.sendErrorResponseSimplified(errorChannel, message)
 	} else {
 		_, _, _, errJSON := pub.ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
@@ -3682,11 +3696,15 @@ func (pub *Pubnub) executeHereNow(channel, channelGroup string, showUuid,
 
 	hereNowURL := pub.checkSecretKeyAndAddSignature(hereNowURLBuffer.String(), requestURL)
 
-	value, _, err := pub.httpRequest(hereNowURL, nonSubscribeTrans)
+	value, responseCode, err := pub.httpRequest(hereNowURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
 		pub.sendErrorResponse(errorChannel, channel, err.Error())
+	} else if responseCode != 200 {
+		message := fmt.Sprintf("%s", value)
+		pub.infoLogger.Printf("ERROR: Here now Error: responseCode %d, message %s", responseCode, message)
+		pub.sendErrorResponse(errorChannel, channel, message)
 	} else {
 		_, _, _, errJSON := pub.ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
@@ -3760,11 +3778,15 @@ func (pub *Pubnub) executeGetUserState(channel, uuid string,
 
 	userStateURL := pub.checkSecretKeyAndAddSignature(userStateURLBuffer.String(), requestURL)
 
-	value, _, err := pub.httpRequest(userStateURL, nonSubscribeTrans)
+	value, responseCode, err := pub.httpRequest(userStateURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
 		pub.sendErrorResponse(errorChannel, channel, err.Error())
+	} else if responseCode != 200 {
+		message := fmt.Sprintf("%s", value)
+		pub.infoLogger.Printf("ERROR: Get User state Error: responseCode %d, message %s", responseCode, message)
+		pub.sendErrorResponse(errorChannel, channel, message)
 	} else {
 		_, _, _, errJSON := pub.ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
@@ -3907,11 +3929,15 @@ func (pub *Pubnub) executeSetUserState(channel, jsonState string,
 
 	userStateURL := pub.checkSecretKeyAndAddSignature(userStateURLBuffer.String(), requestURL)
 
-	value, _, err := pub.httpRequest(userStateURL, nonSubscribeTrans)
+	value, responseCode, err := pub.httpRequest(userStateURL, nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
 		pub.sendErrorResponse(errorChannel, channel, err.Error())
+	} else if responseCode != 200 {
+		message := fmt.Sprintf("%s", value)
+		pub.infoLogger.Printf("ERROR: Set User state Error: responseCode %d, message %s", responseCode, message)
+		pub.sendErrorResponse(errorChannel, channel, message)
 	} else {
 		_, _, _, errJSON := pub.ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
@@ -4008,11 +4034,15 @@ func (pub *Pubnub) executeChannelGroup(action, group, channel string,
 
 	requestURL := pub.generateStringforCGRequest(action, group, channel)
 
-	value, _, err := pub.httpRequest(requestURL.String(), nonSubscribeTrans)
+	value, responseCode, err := pub.httpRequest(requestURL.String(), nonSubscribeTrans)
 
 	if err != nil {
 		pub.infoLogger.Printf("ERROR: %s", err.Error())
 		pub.sendErrorResponse(errorChannel, group, err.Error())
+	} else if responseCode != 200 {
+		message := fmt.Sprintf("%s", value)
+		pub.infoLogger.Printf("ERROR: CG Error: responseCode %d, message %s", responseCode, message)
+		pub.sendErrorResponse(errorChannel, group, message)
 	} else {
 		_, _, _, errJSON := pub.ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
@@ -4150,6 +4180,7 @@ func (pub *Pubnub) ParseJSON(contents []byte,
 
 	if err == nil {
 		v := s.(interface{})
+		pub.infoLogger.Printf("ERROR:  v: %s", v)
 		switch vv := v.(type) {
 		case string:
 			length := len(vv)
