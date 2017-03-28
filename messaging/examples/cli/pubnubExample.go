@@ -1278,7 +1278,12 @@ func subscribeRoutineV2(channels string, channelGroups string, timetoken string)
 			fmt.Println("Timestamp:", response.Timestamp)
 			fmt.Println("State:", response.State)
 			fmt.Println("Occupancy:", response.Occupancy)
-			fmt.Println("Joined:", response.Join)
+			if len(response.Join) > 0 {
+				for _, msg := range response.Join {
+					fmt.Println("Joined:", msg)
+				}
+			}
+
 			fmt.Println("Left:", response.Leave)
 			fmt.Println("TimedOut:", response.Timeout)
 
