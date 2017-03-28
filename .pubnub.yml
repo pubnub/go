@@ -3,10 +3,7 @@ changelog:
   - 
     changes: 
       - 
-        text: “Presence delta ”
-        type: improvement
-      - 
-        text: “Non 200 handling on some non subscribe requests”
+        text: “Presence delta intervals”
         type: improvement
     date: Mar 28, 17
     version: v3.13.0
@@ -225,6 +222,7 @@ features:
     - PRESENCE-SET-STATE
     - PRESENCE-GET-STATE
     - PRESENCE-HEARTBEAT
+    - PRESENCE-DELTAS
   publish: 
     - PUBLISH-STORE-FLAG
     - PUBLISH-RAW-JSON
