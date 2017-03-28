@@ -110,6 +110,38 @@ func TestGetPresenceIntervalDeltasMessageResponseWithoutLeave(t *testing.T) {
 	assert.Equal(response.Occupancy, float64(3))
 }
 
+func TestGetPresenceIntervalDeltasMessageResponseWithoutTimeout(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid", CreateLoggerForTests())
+	resp := `{"t":{"t":"14907007978242728","r":4},"m":[{"a":"2","f":0,"p":{"t":"14907007977513457","r":2},"k":"sub-c-f6e09df0-bd35-11e6-963b-0619f8945a4f","c":"test-pnpres","d":{"action": "interval", "timestamp": 1490700797, "occupancy": 3, "join": ["Client-odx4y", "test"]},"b":"test-pnpres"}]}`
+	subEnvelope, _, _, _ := pubnub.ParseSubscribeResponse([]byte(resp), "")
+	response := subEnvelope.Messages[0].getPresenceMessageResponse(pubnub)
+	assert.Equal(response.Channel, "test")
+	assert.Equal(response.ChannelGroup, "test")
+	assert.Equal(response.Event, "interval")
+	assert.Equal(response.UUID, "")
+	assert.Equal(int(response.Timestamp), 1490700797)
+	assert.Equal(response.Join[0], "Client-odx4y")
+	assert.Equal(response.Join[1], "test")
+	assert.Equal(response.Occupancy, float64(3))
+}
+
+func TestGetPresenceIntervalDeltasMessageResponseWithoutJoin(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("demo", "demo", "demo", "", true, "testuuid", CreateLoggerForTests())
+	resp := `{"t":{"t":"14907007978242728","r":4},"m":[{"a":"2","f":0,"p":{"t":"14907007977513457","r":2},"k":"sub-c-f6e09df0-bd35-11e6-963b-0619f8945a4f","c":"test-pnpres","d":{"action": "interval", "timestamp": 1490700797, "occupancy": 3, "leave": ["Client-odx4y", "test"]},"b":"test-pnpres"}]}`
+	subEnvelope, _, _, _ := pubnub.ParseSubscribeResponse([]byte(resp), "")
+	response := subEnvelope.Messages[0].getPresenceMessageResponse(pubnub)
+	assert.Equal(response.Channel, "test")
+	assert.Equal(response.ChannelGroup, "test")
+	assert.Equal(response.Event, "interval")
+	assert.Equal(response.UUID, "")
+	assert.Equal(int(response.Timestamp), 1490700797)
+	assert.Equal(response.Leave[0], "Client-odx4y")
+	assert.Equal(response.Leave[1], "test")
+	assert.Equal(response.Occupancy, float64(3))
+}
+
 func TestGetChannelsAndGroupsChannels(t *testing.T) {
 	assert := assert.New(t)
 	response := `{"t":{"t":"14586613280736475","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"Test message"},{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimple","s":2,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForSimple","b":"Channel_SubscriptionConnectedForSimple","d":"Test message2"}]}`
