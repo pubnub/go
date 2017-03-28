@@ -32,10 +32,10 @@ var cipher = ""
 var uuid = ""
 
 //
-var publishKey = "pub-c-25f8616c-9e80-4846-8d47-0a9257f84516"
+var publishKey = "demo"
 
 //
-var subscribeKey = "sub-c-f6e09df0-bd35-11e6-963b-0619f8945a4f"
+var subscribeKey = "demo"
 
 //
 var secretKey = ""
