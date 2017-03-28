@@ -1257,6 +1257,15 @@ func subscribeRoutineCG(cg string, timetoken string) {
 	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
 }
 
+func PrintInterfaceSlice(intf []interface{}, what string) {
+	if len(intf) > 0 {
+		for _, msg := range intf {
+			fmt.Println(what, ":", msg)
+		}
+	}
+
+}
+
 // SubscribeRoutine calls the Subscribe routine of the messaging package
 // as a parallel process.
 func subscribeRoutineV2(channels string, channelGroups string, timetoken string) {
@@ -1278,14 +1287,10 @@ func subscribeRoutineV2(channels string, channelGroups string, timetoken string)
 			fmt.Println("Timestamp:", response.Timestamp)
 			fmt.Println("State:", response.State)
 			fmt.Println("Occupancy:", response.Occupancy)
-			if len(response.Join) > 0 {
-				for _, msg := range response.Join {
-					fmt.Println("Joined:", msg)
-				}
-			}
 
-			fmt.Println("Left:", response.Leave)
-			fmt.Println("TimedOut:", response.Timeout)
+			PrintInterfaceSlice(response.Join, "Joined")
+			PrintInterfaceSlice(response.Leave, "Left")
+			PrintInterfaceSlice(response.Timeout, "TimedOut")
 
 			fmt.Println("****** ******")
 		case response := <-messageChannel:
