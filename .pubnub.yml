@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: “Presence delta ”
+        type: improvement
+      - 
+        text: “Non 200 handling on some non subscribe requests”
+        type: improvement
+    date: Mar 28, 17
+    version: v3.13.0
+  - 
+    changes: 
+      - 
         text: “Super Admin”
         type: improvement
       - 
