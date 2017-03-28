@@ -57,6 +57,9 @@ type PNPresenceEventResult struct {
 	UUID                 string            `json:"UUID"`
 	Timestamp            float64           `json:"Timestamp"`
 	Occupancy            float64           `json:"Occupancy"`
+	Join                 []string          `json:"Join"`
+	Timeout              []string          `json:"Timeout"`
+	Leave                []string          `json:"Leave"`
 	State                interface{}       `json:"State"`
 }
 
@@ -154,6 +157,15 @@ func (msg *subscribeMessage) getPresenceMessageResponse(pub *Pubnub) *PNPresence
 		}
 		if data, found := payload["data"]; found {
 			res.State = data
+		}
+		if data, found := payload["join"]; found {
+			res.Join = data.([]string)
+		}
+		if data, found := payload["timeout"]; found {
+			res.Timeout = data.([]string)
+		}
+		if data, found := payload["leave"]; found {
+			res.Leave = data.([]string)
 		}
 		/*if joined, found := payload["joined"]; found {
 			res.Joined = joined
