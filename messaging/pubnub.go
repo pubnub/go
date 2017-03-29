@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.12.0
-// Build Date: Mar 23, 2017
+// Version: 3.13.0
+// Build Date: Mar 28, 2017
 package messaging
 
 import (
@@ -16,17 +16,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	//"golang.org/x/net/context"
-	//"golang.org/x/time/rate"
 	"io"
 	"io/ioutil"
 	"log"
-	//"net"
 	"net/http"
 	"net/url"
 	"reflect"
 	"runtime"
-	//"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -35,9 +31,9 @@ import (
 
 const (
 	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.12.0"
+	SDK_VERSION = "3.13.0"
 	// SDK_DATE is the version release date
-	SDK_DATE = "Mar 23, 2017"
+	SDK_DATE = "Mar 28, 2017"
 )
 
 type responseStatus int

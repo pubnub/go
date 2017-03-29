@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: “Presence delta intervals”
+        type: improvement
+    date: Mar 28, 17
+    version: v3.13.0
+  - 
+    changes: 
+      - 
         text: “Super Admin”
         type: improvement
       - 
@@ -215,6 +222,7 @@ features:
     - PRESENCE-SET-STATE
     - PRESENCE-GET-STATE
     - PRESENCE-HEARTBEAT
+    - PRESENCE-DELTAS
   publish: 
     - PUBLISH-STORE-FLAG
     - PUBLISH-RAW-JSON
