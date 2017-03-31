@@ -7,58 +7,58 @@ Breaking API Change: newPubnub has a new parameter where it expects a logger ins
 
 ### Change log
 * 3.13.0
- * Presence Delta Intervals
+  * Presence Delta Intervals
 * 3.12.0
- * Super admin
+  * Super admin
 * 3.11.0
- * NonSub goroutine concurrency and worker queues.
+  * NonSub goroutine concurrency and worker queues.
 * 3.10.0
- * Breaking API Change: newPubnub has a new parameter where it expects a logger instance [Example](#init). This fixes a rare race condition.
- * Fix use of escaping JSON during publish
- * Prefix uuid with 'pn-'
+  * Breaking API Change: newPubnub has a new parameter where it expects a logger instance [Example](#init). This fixes a rare race condition.
+  * Fix use of escaping JSON during publish
+  * Prefix uuid with 'pn-'
 * 3.9.4.3
- * Message TTL
- * Subscriber UUID
- * Subscribe V2
+  * Message TTL
+  * Subscriber UUID
+  * Subscribe V2
 * 3.9.4.2
- * Changed origin to ps.pndsn.com
+  * Changed origin to ps.pndsn.com
 * 3.9.4.1
- * fixed misspells, some golint changes and gocyclo issues
+  * fixed misspells, some golint changes and gocyclo issues
 * 3.9.4
- * Fire Method
- * Replicate arg in Publish
+  * Fire Method
+  * Replicate arg in Publish
 * 3.9.3
- * PubSub v2
- * Message Filtering
- * Logger Optimizations, logging format changed. Removed mutex around logging statements.
- * added alternative implementation of encodeNonASCIIChars
- * Fixed storeInHistory when publishing
+  * PubSub v2
+  * Message Filtering
+  * Logger Optimizations, logging format changed. Removed mutex around logging statements.
+  * added alternative implementation of encodeNonASCIIChars
+  * Fixed storeInHistory when publishing
 * 3.7.0
- * Subscribe method arguments changed
- * Add authKey argument to all PAM methods
- * Add Channel Group Methods
- * Add PublishExtended() method that extends existing Publish() with 2 bool options: storeInHistory and doNotSerialize
- * Fix multiple channels encoding in PAM methods
+  * Subscribe method arguments changed
+  * Add authKey argument to all PAM methods
+  * Add Channel Group Methods
+  * Add PublishExtended() method that extends existing Publish() with 2 bool options: storeInHistory and doNotSerialize
+  * Fix multiple channels encoding in PAM methods
 * 3.6.4
- * Exposed MaxIdleConnsPerHost of the transport
+  * Exposed MaxIdleConnsPerHost of the transport
 * 3.6.3
- * PAM operations (grant, revoke, audit) now return 403 errors in the Error Callback
+  * PAM operations (grant, revoke, audit) now return 403 errors in the Error Callback
 * SetLogging method name changed to LoggingEnabled
 * SetLogOutput added, you can customize the log output now 
 * Support to change uuid
 * 3.6 features 
- * HereNow with state (here now's signature has changed, the response has also changed)
- * WhereNow
- * Global Here Now
- * User State (Set, Get, Delete)
- * Presence heartbeat 
- * Presence heartbeat interval
+  * HereNow with state (here now's signature has changed, the response has also changed)
+  * WhereNow
+  * Global Here Now
+  * User State (Set, Get, Delete)
+  * Presence heartbeat 
+  * Presence heartbeat interval
 
 * These are converted to uint16
- * nonSubscribeTimeout
- * retryInterval
- * connectTimeout
- * subscribeTimeout
+  * nonSubscribeTimeout
+  * retryInterval
+  * connectTimeout
+  * subscribeTimeout
 
 * Optimizations
 
