@@ -6,6 +6,8 @@
 Breaking API Change: newPubnub has a new parameter where it expects a logger instance [Example](#init). This fixes a rare race condition
 
 ### Change log
+* 3.14.0
+  * Fixed a corner case panic
 * 3.13.0
   * Presence Delta Intervals
 * 3.12.0
