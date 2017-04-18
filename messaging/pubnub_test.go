@@ -7,9 +7,66 @@ import (
 	"io/ioutil"
 	"log"
 	//"os"
+	"errors"
 	"strings"
 	"testing"
 )
+
+func TestReadPublishResponseAndCallSendResponseTooLong(t *testing.T) {
+	value := []byte(`{"status":414,"service":"Balancer","error":true,"message":"Request URI Too Long"}`)
+	err := errors.New("Test error")
+	responseCode := 404
+
+	ReadPublishResponseAndCallSendResponseCommon(t, value, responseCode, err)
+}
+
+func TestReadPublishResponseAndCallSendResponseSquareBrackets(t *testing.T) {
+	value := []byte("[]")
+	err := errors.New("Test error")
+	responseCode := 404
+
+	ReadPublishResponseAndCallSendResponseCommon(t, value, responseCode, err)
+}
+
+func TestReadPublishResponseAndCallSendResponseErrNil(t *testing.T) {
+	value := []byte("[]")
+	responseCode := 200
+
+	ReadPublishResponseAndCallSendResponseCommon(t, value, responseCode, nil)
+}
+
+func ReadPublishResponseAndCallSendResponseCommon(t *testing.T, value []byte, responseCode int, err error) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("pam", "pam", "pam", "", true, "testuuid", CreateLoggerForTests())
+	channel := "testChannel"
+	var callbackChannel = make(chan []byte)
+	var errorChannel = make(chan []byte)
+	await := make(chan bool)
+	//value := []byte("[]")
+
+	go pubnub.readPublishResponseAndCallSendResponse(channel, value, responseCode, err, callbackChannel, errorChannel)
+
+	go func() {
+		for {
+			select {
+			case success, _ := <-callbackChannel:
+				fmt.Println(fmt.Sprintf("Response: %s ", success))
+				assert.Contains(fmt.Sprintf("%s", success), string(value))
+				await <- true
+				break
+			case failure, _ := <-errorChannel:
+				fmt.Println(fmt.Sprintf("Error Callback: %s", failure))
+
+				assert.Contains(fmt.Sprintf("%s", failure), fmt.Sprintf("%d", responseCode))
+				assert.Contains(fmt.Sprintf("%s", failure), string(value))
+				await <- true
+				break
+			}
+		}
+	}()
+
+	<-await
+}
 
 func TestCheckSecretKeyAndAddSignatureWithSecretKey(t *testing.T) {
 	assert := assert.New(t)

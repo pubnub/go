@@ -359,6 +359,7 @@ func NewPubnub(publishKey string, subscribeKey string, secretKey string, cipherK
 	newPubnub.infoLogger = logger
 	newPubnub.infoLogger.Printf(fmt.Sprintf("Pubnub Init, %s", VersionInfo()))
 	newPubnub.infoLogger.Printf(fmt.Sprintf("OS: %s", runtime.GOOS))
+	newPubnub.infoLogger.Printf(fmt.Sprintf("Go Version: %s", runtime.Version()))
 
 	newPubnub.origin = origin
 	newPubnub.publishKey = publishKey
