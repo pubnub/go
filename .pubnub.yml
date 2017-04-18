@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: “Fixed a corner case panic”
+        type: improvement
+    date: Apr 18, 17
+    version: v3.14.0
+  - 
+    changes: 
+      - 
         text: “Presence delta intervals”
         type: improvement
     date: Mar 28, 17

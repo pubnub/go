@@ -7,9 +7,106 @@ import (
 	"io/ioutil"
 	"log"
 	//"os"
+	"errors"
 	"strings"
 	"testing"
 )
+
+func TestReadPublishResponseAndCallSendResponseTooLong(t *testing.T) {
+	value := []byte(`{"status":414,"service":"Balancer","error":true,"message":"Request URI Too Long"}`)
+	err := errors.New("Test error")
+	responseCode := 404
+
+	ReadPublishResponseAndCallSendResponseCommon(t, value, responseCode, err)
+}
+
+func TestReadPublishResponseAndCallSendResponseSquareBrackets(t *testing.T) {
+	value := []byte("[]")
+	err := errors.New("Test error")
+	responseCode := 404
+
+	ReadPublishResponseAndCallSendResponseCommon(t, value, responseCode, err)
+}
+
+func TestReadPublishResponseAndCallSendResponseErrNil(t *testing.T) {
+	value := []byte("[]")
+	responseCode := 200
+
+	ReadPublishResponseAndCallSendResponseCommon(t, value, responseCode, nil)
+}
+
+func TestReadPublishResponseAndCallSendResponseValueAndErrNil(t *testing.T) {
+	responseCode := 400
+
+	ReadPublishResponseAndCallSendResponseCommon(t, nil, responseCode, nil)
+}
+
+func TestReadPublishResponseAndCallSendResponseValueNil(t *testing.T) {
+	responseCode := 400
+	err := errors.New("Test error")
+	ReadPublishResponseAndCallSendResponseCommon(t, nil, responseCode, err)
+}
+
+func TestReadPublishResponseAndCallSendResponseRespCodeZeroValueNotNull(t *testing.T) {
+	responseCode := 400
+	value := []byte(`[{"status":414,"service":"Balancer","error":true,"message":"Request URI Too Long"}]`)
+	err := errors.New("Test error")
+	ReadPublishResponseAndCallSendResponseCommon(t, value, responseCode, err)
+}
+
+func TestReadPublishResponseAndCallSendResponseValueNilRespCodeZero(t *testing.T) {
+	responseCode := 0
+	err := errors.New("Test error")
+	ReadPublishResponseAndCallSendResponseCommon(t, nil, responseCode, err)
+}
+
+func TestReadPublishResponseAndCallSendResponseRespCodeZeroStringValue(t *testing.T) {
+	responseCode := 400
+	value := []byte(`["status"]`)
+	err := errors.New("Test error")
+	ReadPublishResponseAndCallSendResponseCommonWithResult(t, value, responseCode, err, "status")
+}
+
+func ReadPublishResponseAndCallSendResponseCommon(t *testing.T, value []byte, responseCode int, err error) {
+	ReadPublishResponseAndCallSendResponseCommonWithResult(t, value, responseCode, err, "")
+}
+
+func ReadPublishResponseAndCallSendResponseCommonWithResult(t *testing.T, value []byte, responseCode int, err error, result string) {
+	assert := assert.New(t)
+	pubnub := NewPubnub("pam", "pam", "pam", "", true, "testuuid", CreateLoggerForTests())
+	channel := "testChannel"
+	var callbackChannel = make(chan []byte)
+	var errorChannel = make(chan []byte)
+	await := make(chan bool)
+	//value := []byte("[]")
+
+	go pubnub.readPublishResponseAndCallSendResponse(channel, value, responseCode, err, callbackChannel, errorChannel)
+
+	go func() {
+		for {
+			select {
+			case success, _ := <-callbackChannel:
+				//fmt.Println(fmt.Sprintf("Response: %s ", success))
+				assert.Contains(fmt.Sprintf("%s", success), string(value))
+				await <- true
+				break
+			case failure, _ := <-errorChannel:
+				//fmt.Println(fmt.Sprintf("Error Callback: %s", failure))
+
+				assert.Contains(fmt.Sprintf("%s", failure), fmt.Sprintf("%d", responseCode))
+				if len(result) > 0 {
+					assert.Contains(fmt.Sprintf("%s", failure), string(result))
+				} else {
+					assert.Contains(fmt.Sprintf("%s", failure), string(value))
+				}
+				await <- true
+				break
+			}
+		}
+	}()
+
+	<-await
+}
 
 func TestCheckSecretKeyAndAddSignatureWithSecretKey(t *testing.T) {
 	assert := assert.New(t)
@@ -1052,7 +1149,7 @@ func TestCreateSubscribeURLReset(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Contains(b, "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.13.0")
+	assert.Contains(b, "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=0&tr=4&filter-expr=aoi_x%20%3E%3D%200&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.14.0")
 	assert.Equal(senttt, tt)
 	presenceHeartbeat = 0
 }
@@ -1077,7 +1174,7 @@ func TestCreateSubscribeURL(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Contains(b, "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.13.0")
+	assert.Contains(b, "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200&pnsdk=PubNub-Go%2F3.14.0")
 	assert.Equal(senttt, tt)
 }
 
@@ -1101,7 +1198,7 @@ func TestCreateSubscribeURLFilterExp(t *testing.T) {
 	b, tt := pubnub.createSubscribeURL("14767805072942467", "4")
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s, tt:%s", b, tt)
-	assert.Contains(b, "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.13.0")
+	assert.Contains(b, "/v2/subscribe/demo/ch/0?channel-group=cg&uuid=testuuid&tt=14767805072942467&tr=4&filter-expr=aoi_x%20%3E%3D%200%20AND%20aoi_x%20%3C%3D%202%20AND%20aoi_y%20%3E%3D%200%20AND%20aoi_y%3C%3D%202&pnsdk=PubNub-Go%2F3.14.0")
 	assert.Equal(senttt, tt)
 }
 
@@ -1131,7 +1228,7 @@ func TestCreatePresenceHeartbeatURL(t *testing.T) {
 	//log.SetOutput(os.Stdout)
 	//log.Printf("b:%s", b)
 
-	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.13.0", b)
+	assert.Equal("/v2/presence/sub_key/demo/channel/ch/heartbeat?channel-group=cg&uuid=testuuid&heartbeat=10&state=%7B%22ch%22%3A%7B%22k%22%3A%22v%22%7D%7D&pnsdk=PubNub-Go%2F3.14.0", b)
 	presenceHeartbeat = 0
 
 }
