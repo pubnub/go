@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.13.0
-// Build Date: Mar 28, 2017
+// Version: 3.14.0
+// Build Date: Apr 18, 2017
 package messaging
 
 import (
@@ -31,9 +31,9 @@ import (
 
 const (
 	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.13.0"
+	SDK_VERSION = "3.14.0"
 	// SDK_DATE is the version release date
-	SDK_DATE = "Mar 28, 2017"
+	SDK_DATE = "Apr 18, 2017"
 )
 
 type responseStatus int
@@ -1296,8 +1296,11 @@ func (pub *Pubnub) readPublishResponseAndCallSendResponse(channel string, value 
 				} else {
 					pub.sendErrorResponseExtended(errorChannel, channel, string(value), strconv.Itoa(responseCode))
 				}
-			} else {
+			} else if errJSON != nil {
 				pub.infoLogger.Printf("ERROR: Publish Error: %s", errJSON.Error())
+				pub.sendErrorResponseExtended(errorChannel, channel, string(value), strconv.Itoa(responseCode))
+			} else {
+				pub.infoLogger.Printf("ERROR: Publish Error 2: %s", string(value))
 				pub.sendErrorResponseExtended(errorChannel, channel, string(value), strconv.Itoa(responseCode))
 			}
 		} else if (err != nil) && (responseCode > 0) {
