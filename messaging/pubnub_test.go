@@ -35,7 +35,43 @@ func TestReadPublishResponseAndCallSendResponseErrNil(t *testing.T) {
 	ReadPublishResponseAndCallSendResponseCommon(t, value, responseCode, nil)
 }
 
+func TestReadPublishResponseAndCallSendResponseValueAndErrNil(t *testing.T) {
+	responseCode := 400
+
+	ReadPublishResponseAndCallSendResponseCommon(t, nil, responseCode, nil)
+}
+
+func TestReadPublishResponseAndCallSendResponseValueNil(t *testing.T) {
+	responseCode := 400
+	err := errors.New("Test error")
+	ReadPublishResponseAndCallSendResponseCommon(t, nil, responseCode, err)
+}
+
+func TestReadPublishResponseAndCallSendResponseRespCodeZeroValueNotNull(t *testing.T) {
+	responseCode := 400
+	value := []byte(`[{"status":414,"service":"Balancer","error":true,"message":"Request URI Too Long"}]`)
+	err := errors.New("Test error")
+	ReadPublishResponseAndCallSendResponseCommon(t, value, responseCode, err)
+}
+
+func TestReadPublishResponseAndCallSendResponseValueNilRespCodeZero(t *testing.T) {
+	responseCode := 0
+	err := errors.New("Test error")
+	ReadPublishResponseAndCallSendResponseCommon(t, nil, responseCode, err)
+}
+
+func TestReadPublishResponseAndCallSendResponseRespCodeZeroStringValue(t *testing.T) {
+	responseCode := 400
+	value := []byte(`["status"]`)
+	err := errors.New("Test error")
+	ReadPublishResponseAndCallSendResponseCommonWithResult(t, value, responseCode, err, "status")
+}
+
 func ReadPublishResponseAndCallSendResponseCommon(t *testing.T, value []byte, responseCode int, err error) {
+	ReadPublishResponseAndCallSendResponseCommonWithResult(t, value, responseCode, err, "")
+}
+
+func ReadPublishResponseAndCallSendResponseCommonWithResult(t *testing.T, value []byte, responseCode int, err error, result string) {
 	assert := assert.New(t)
 	pubnub := NewPubnub("pam", "pam", "pam", "", true, "testuuid", CreateLoggerForTests())
 	channel := "testChannel"
@@ -50,15 +86,19 @@ func ReadPublishResponseAndCallSendResponseCommon(t *testing.T, value []byte, re
 		for {
 			select {
 			case success, _ := <-callbackChannel:
-				fmt.Println(fmt.Sprintf("Response: %s ", success))
+				//fmt.Println(fmt.Sprintf("Response: %s ", success))
 				assert.Contains(fmt.Sprintf("%s", success), string(value))
 				await <- true
 				break
 			case failure, _ := <-errorChannel:
-				fmt.Println(fmt.Sprintf("Error Callback: %s", failure))
+				//fmt.Println(fmt.Sprintf("Error Callback: %s", failure))
 
 				assert.Contains(fmt.Sprintf("%s", failure), fmt.Sprintf("%d", responseCode))
-				assert.Contains(fmt.Sprintf("%s", failure), string(value))
+				if len(result) > 0 {
+					assert.Contains(fmt.Sprintf("%s", failure), string(result))
+				} else {
+					assert.Contains(fmt.Sprintf("%s", failure), string(value))
+				}
 				await <- true
 				break
 			}
