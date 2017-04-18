@@ -281,4 +281,4 @@ supported-platforms:
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: “3.13.0”
+version: “3.14.0”
