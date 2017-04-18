@@ -1293,33 +1293,42 @@ func (pub *Pubnub) readPublishResponseAndCallSendResponse(channel string, value 
 
 			if (errJSON == nil) && (len(s) > 0) {
 				if message, ok := s[1].(string); ok {
+					fmt.Println("1")
 					pub.sendErrorResponseExtended(errorChannel, channel, message, strconv.Itoa(responseCode))
 				} else {
+					fmt.Println("2")
 					pub.sendErrorResponseExtended(errorChannel, channel, string(value), strconv.Itoa(responseCode))
 				}
 			} else if errJSON != nil {
+				fmt.Println("3")
 				pub.infoLogger.Printf("ERROR: Publish Error: %s", errJSON.Error())
 				pub.sendErrorResponseExtended(errorChannel, channel, string(value), strconv.Itoa(responseCode))
 			} else {
+				fmt.Println("4")
 				pub.infoLogger.Printf("ERROR: Publish Error 2: %s", string(value))
 				pub.sendErrorResponseExtended(errorChannel, channel, string(value), strconv.Itoa(responseCode))
 			}
 		} else if (err != nil) && (responseCode > 0) {
+			fmt.Println("5")
 			pub.infoLogger.Printf("ERROR: Publish Failed: %s, ResponseCode: %d", err.Error(), responseCode)
 			pub.sendErrorResponseExtended(errorChannel, channel, err.Error(), strconv.Itoa(responseCode))
 		} else if err != nil {
+			fmt.Println("6")
 			pub.infoLogger.Printf("ERROR: Publish Failed: %s", err.Error())
 			pub.sendErrorResponse(errorChannel, channel, err.Error())
 		} else {
+			fmt.Println("7")
 			pub.infoLogger.Printf("ERROR: Publish Failed: ResponseCode: %d", responseCode)
 			pub.sendErrorResponseExtended(errorChannel, channel, publishFailed, strconv.Itoa(responseCode))
 		}
 	} else {
 		_, _, _, errJSON := pub.ParseJSON(value, pub.cipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
+			fmt.Println("8")
 			pub.infoLogger.Printf("ERROR: Publish Error: %s", errJSON.Error())
 			pub.sendErrorResponse(errorChannel, channel, errJSON.Error())
 		} else {
+			fmt.Println("9")
 			callbackChannel <- value
 		}
 	}
