@@ -1,7 +1,9 @@
 package pubnub
 
 import (
+	"context"
 	"fmt"
+	"net/url"
 )
 
 const PUBLISH_GET_PATH = "/publish/%s/%s/0/%s/%s/%s"
@@ -12,10 +14,12 @@ type Publish struct {
 
 	pubnub *PubNub
 
-	channel string
-	message interface{}
+	Channel string
+	Message interface{}
+	UsePost bool
 
-	usePost bool
+	SuccessChannel chan interface{}
+	ErrorChannel   chan error
 }
 
 func NewPublish(pubnub *PubNub) *Publish {
@@ -23,30 +27,39 @@ func NewPublish(pubnub *PubNub) *Publish {
 		pubnub: pubnub,
 	}
 }
-
-func (e *Publish) Channel(ch string) *Publish {
-	e.channel = ch
-	return e
+func (e *Publish) PubNub() *PubNub {
+	return e.pubnub
 }
 
-func (e *Publish) Message(msg interface{}) *Publish {
-	// TODO: serialize
-	e.message = msg
-	return e
-}
-
-func (e *Publish) BuildPath() string {
-	if e.usePost == true {
-		return fmt.Sprintf(PUBLISH_GET_PATH, e.pubnub.PNConfig.SubscribeKey)
+func (e *Publish) buildPath() string {
+	if e.UsePost == true {
+		return fmt.Sprintf(PUBLISH_POST_PATH, e.pubnub.PNConfig.PublishKey, e.pubnub.PNConfig.SubscribeKey, e.Channel,
+			"0")
 	}
 
-	return fmt.Sprintf(PUBLISH_POST_PATH)
+	return fmt.Sprintf(PUBLISH_GET_PATH,
+		e.pubnub.PNConfig.PublishKey,
+		e.pubnub.PNConfig.SubscribeKey,
+		e.Channel,
+		"0",
+		e.Message)
 }
 
-func (e *Publish) BuildQuery() map[string]string {
-	return make(map[string]string)
+func (e *Publish) Execute() (interface{}, error) {
+	panic("not implemented")
 }
 
-func (e *Publish) BuildBody() string {
+func (e *Publish) ExecuteWithContext(ctx context.Context) (interface{}, error) {
+	// TODO: execute with context
+	return executeRequest(ctx, e, e.SuccessChannel, e.ErrorChannel)
+}
+
+func (e *Publish) buildQuery() *url.Values {
+	q := defaultQuery()
+	q.Set("blah", "hey")
+	return q
+}
+
+func (e *Publish) buildBody() string {
 	return ""
 }
