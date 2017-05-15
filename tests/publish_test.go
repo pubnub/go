@@ -15,10 +15,10 @@ import (
 	pubnub ".."
 )
 
-var pnconfig *pubnub.PNConfiguration
+var pnconfig *pubnub.Config
 
 func init() {
-	pnconfig = pubnub.NewPNConfiguration()
+	pnconfig = pubnub.NewConfig()
 	pnconfig.PublishKey = "my_pub_key"
 	pnconfig.SubscribeKey = "my_sub_key"
 	pnconfig.SecretKey = "my_secret_key"

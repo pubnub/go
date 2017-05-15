@@ -33,13 +33,16 @@ func (e *Publish) PubNub() *PubNub {
 
 func (e *Publish) buildPath() string {
 	if e.UsePost == true {
-		return fmt.Sprintf(PUBLISH_POST_PATH, e.pubnub.PNConfig.PublishKey, e.pubnub.PNConfig.SubscribeKey, e.Channel,
+		return fmt.Sprintf(PUBLISH_POST_PATH,
+			e.pubnub.Config.PublishKey,
+			e.pubnub.Config.SubscribeKey,
+			e.Channel,
 			"0")
 	}
 
 	return fmt.Sprintf(PUBLISH_GET_PATH,
-		e.pubnub.PNConfig.PublishKey,
-		e.pubnub.PNConfig.SubscribeKey,
+		e.pubnub.Config.PublishKey,
+		e.pubnub.Config.SubscribeKey,
 		e.Channel,
 		"0",
 		e.Message)
@@ -56,7 +59,9 @@ func (e *Publish) ExecuteWithContext(ctx context.Context) (interface{}, error) {
 
 func (e *Publish) buildQuery() *url.Values {
 	q := defaultQuery()
+
 	q.Set("blah", "hey")
+
 	return q
 }
 

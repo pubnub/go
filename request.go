@@ -13,7 +13,7 @@ func executeRequest(ctx context.Context, e Endpoint,
 	err := make(chan error)
 
 	eCtx, _ := context.WithTimeout(ctx,
-		time.Duration(e.PubNub().PNConfig.NonSubscribeRequestTimeout)*time.Second)
+		time.Duration(e.PubNub().Config.NonSubscribeRequestTimeout)*time.Second)
 
 	go func() {
 		url := buildUrl(e)

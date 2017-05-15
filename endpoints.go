@@ -30,7 +30,7 @@ func defaultQuery() *url.Values {
 func buildUrl(e Endpoint) string {
 	var buffer bytes.Buffer
 
-	if e.PubNub().PNConfig.Secure == true {
+	if e.PubNub().Config.Secure == true {
 		buffer.WriteString("https")
 	} else {
 		buffer.WriteString("http")
@@ -38,7 +38,7 @@ func buildUrl(e Endpoint) string {
 
 	buffer.WriteString("://")
 
-	buffer.WriteString(e.PubNub().PNConfig.Origin)
+	buffer.WriteString(e.PubNub().Config.Origin)
 	buffer.WriteString(e.buildPath())
 	buffer.WriteString("?")
 

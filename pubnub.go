@@ -1,21 +1,21 @@
 package pubnub
 
 type PubNub struct {
-	PNConfig *PNConfiguration
+	Config *Config
 }
 
 func (pn *PubNub) Publish() *Publish {
 	return NewPublish(pn)
 }
 
-func NewPubNub(pnconf *PNConfiguration) *PubNub {
+func NewPubNub(pnconf *Config) *PubNub {
 	return &PubNub{
-		PNConfig: pnconf,
+		Config: pnconf,
 	}
 }
 
 func NewPubNubDemo() *PubNub {
 	return &PubNub{
-		PNConfig: NewPNConfigurationDemo(),
+		Config: NewDemoConfig(),
 	}
 }

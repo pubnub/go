@@ -9,7 +9,7 @@ import (
 var pubnub *PubNub
 
 func init() {
-	pnconfig := NewPNConfiguration()
+	pnconfig := NewConfig()
 	pnconfig.PublishKey = "my_pub_key"
 	pnconfig.SubscribeKey = "my_sub_key"
 	pnconfig.SecretKey = "my_secret_key"

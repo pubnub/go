@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var pnconfig *PNConfiguration
+var pnconfig *Config
 
 func init() {
-	pnconfig = NewPNConfiguration()
+	pnconfig = NewConfig()
 
 	pnconfig.PublishKey = "myPub"
 	pnconfig.SubscribeKey = "mySub"
@@ -44,7 +44,7 @@ func (e *fakeEndpoint) PubNub() *PubNub {
 // TODO: fix assertion (strings aren't equal)
 func AestBuildUrl(t *testing.T) {
 	assert := assert.New(t)
-	pnconfig = NewPNConfiguration()
+	pnconfig = NewConfig()
 	pn := NewPubNub(pnconfig)
 	e := &fakeEndpoint{
 		pubnub: pn,
