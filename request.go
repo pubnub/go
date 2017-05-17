@@ -25,45 +25,53 @@ func executeRequest(ctx context.Context, e Endpoint,
 
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
+			log.Println("pubnub: request: Error response", err)
 			eErrCh <- err
 			return
 		}
 
 		res, err := client.Do(req)
 		if err != nil {
-			log.Println("pubnub: Error response")
+			log.Println("pubnub: request: Error response", err)
 			errCh <- err
 		}
 
-		// TODO: Do not parse request if context is cancelled/deadline has reached
 		okCh <- res
 	}()
 
 	select {
 	case res := <-okCh:
-		// TODO: move this logic into a separate func
-		log.Println("> ok2")
-		if res.StatusCode == 200 {
-			// TODO: move 1st case above
-			log.Println("> Status", res.Status)
+		resp, err := parseResponse(res)
+		if resp != nil {
 			if eOkCh != nil {
-				eOkCh <- res
+				eOkCh <- resp
 			}
-			return res, nil
+			return resp, nil
 		} else {
-			myerr := errors.New(fmt.Sprintf("Response error: %s", res.Status))
-			eErrCh <- myerr
-			return nil, myerr
+			if eErrCh != nil {
+				eErrCh <- err
+			}
+			return nil, err
 		}
 	case er := <-errCh:
-		log.Println("> err")
 		if eErrCh != nil {
 			eErrCh <- er
 		}
 		return nil, er
-		// TODO: do not return nil for sync call
+
 	case <-eCtx.Done():
-		log.Println("> ctx done")
+		log.Println("pubnub: request: context done")
 		return nil, nil
+	}
+}
+
+func parseResponse(resp *http.Response) (interface{}, error) {
+	if resp.StatusCode == 200 {
+		log.Println("pubnub: OK >>>", resp.Status, resp.Body)
+		return resp, nil
+	} else {
+		myerr := errors.New(fmt.Sprintf("Response error: %s", resp.Status))
+		log.Println("pubnub: ERROR >>>", resp.Status, resp.Body)
+		return nil, myerr
 	}
 }
