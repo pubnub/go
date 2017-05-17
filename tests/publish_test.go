@@ -30,8 +30,8 @@ func init() {
 
 func TestPublishContextTimeoutSync(t *testing.T) {
 	assert := assert.New(t)
-	seconds := 3
-	timeout := time.Duration(seconds) * time.Second
+	ms := 1500
+	timeout := time.Duration(ms) * time.Millisecond
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -58,7 +58,6 @@ func TestPublishContextTimeoutSync(t *testing.T) {
 			err <- er
 		}
 	}()
-
 	select {
 	case resp := <-ok:
 		assert.Fail("Received success instead of context deadline: %v", resp)
@@ -109,6 +108,44 @@ func TestContextCancelSync(t *testing.T) {
 		assert.Fail(fmt.Sprintf("Received error instead of context deadline: %v", er.Error()))
 	case <-ctx.Done():
 		assert.Equal(ctx.Err().Error(), "context canceled")
+	}
+
+	shutdown <- true
+}
+
+func TestRequestTimeoutSync(t *testing.T) {
+	assert := assert.New(t)
+	shutdown := make(chan bool)
+
+	go servePublish(2, shutdown)
+
+	pn := pubnub.NewPubNub(pnconfig)
+	publish := pn.Publish()
+
+	publish.Channel = "news"
+	publish.Message = "hey"
+
+	ok := make(chan interface{})
+	err := make(chan error)
+
+	go func() {
+		resp, er := publish.Execute()
+		log.Println("got", resp, err)
+
+		if resp != nil {
+			ok <- resp
+		}
+
+		if er != nil {
+			err <- er
+		}
+	}()
+
+	select {
+	case <-ok:
+		assert.Fail("Success response while error expected")
+	case er := <-err:
+		assert.Equal(er.Error(), "Get http://localhost:3000/publish/my_pub_key/my_sub_key/0/news/0/hey?blah=hey&pnsdk=4&uuid=TODO-setup-uuid: net/http: timeout awaiting response headers")
 	}
 
 	shutdown <- true
@@ -165,6 +202,7 @@ func TestContextDeadlineAsync(t *testing.T) {
 
 	cancel()
 
+	// TODO: add assertions
 	select {
 	case <-ctx.Done():
 		log.Println("Deadline exceeded")
@@ -177,7 +215,7 @@ func TestContextDeadlineAsync(t *testing.T) {
 	done <- true
 }
 
-func AestPublishTimeoutAsync(t *testing.T) {
+func TestPublishTimeoutAsync(t *testing.T) {
 	done := make(chan bool)
 	go servePublish(pnconfig.NonSubscribeRequestTimeout+1, done)
 
@@ -187,7 +225,7 @@ func AestPublishTimeoutAsync(t *testing.T) {
 
 	publish.Channel = "news"
 	publish.Message = "hey"
-	// Async
+
 	ok := make(chan interface{})
 	err := make(chan error)
 
@@ -195,7 +233,6 @@ func AestPublishTimeoutAsync(t *testing.T) {
 	publish.ErrorChannel = err
 
 	go publish.Execute()
-	fmt.Println("async gone..")
 
 	select {
 	case resp := <-ok:
@@ -207,10 +244,79 @@ func AestPublishTimeoutAsync(t *testing.T) {
 	done <- true
 }
 
+func TestRequestTimeoutAsync(t *testing.T) {
+	assert := assert.New(t)
+	shutdown := make(chan bool)
+	ok := make(chan interface{})
+	err := make(chan error)
+
+	go servePublish(2, shutdown)
+
+	pn := pubnub.NewPubNub(pnconfig)
+	publish := pn.Publish()
+
+	publish.Channel = "news"
+	publish.Message = "hey"
+	publish.SuccessChannel = ok
+	publish.ErrorChannel = err
+
+	go publish.Execute()
+
+	select {
+	case <-ok:
+		assert.Fail("Success response while error expected")
+	case er := <-err:
+		assert.Equal(er.Error(), "Get http://localhost:3000/publish/my_pub_key/my_sub_key/0/news/0/hey?blah=hey&pnsdk=4&uuid=TODO-setup-uuid: net/http: timeout awaiting response headers")
+	}
+
+	shutdown <- true
+}
+
+func TestPublishErrorServerResponse(t *testing.T) {
+	// assert := assert.New(t)
+	shutdown := make(chan bool)
+	ok := make(chan interface{})
+	err := make(chan error)
+
+	go servePublish(0, shutdown)
+
+	pnconfig.PublishKey = "wrong_pub_key"
+
+	// client := pubnub.NewHttpClient(pnconfig.ConnectionTimeout,
+	// 	pnconfig.NonSubscribeRequestTimeout)
+	pn := pubnub.NewPubNub(pnconfig)
+	publish := pn.Publish()
+
+	publish.Channel = "news"
+	publish.Message = "hey"
+	publish.SuccessChannel = ok
+	publish.ErrorChannel = err
+
+	go publish.Execute()
+
+	select {
+	case resp := <-ok:
+		log.Println(resp)
+	case er := <-err:
+		log.Println(er)
+	}
+
+	shutdown <- true
+}
+
 func makeResponseRoot(hangSeconds int) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+
+		log.Printf("Sleeping %d seconds\n", hangSeconds)
 		time.Sleep(time.Duration(hangSeconds) * time.Second)
-		fmt.Fprint(w, "[1, \"Sent\", 123]")
+
+		if vars["pubKey"] == "my_pub_key" {
+			fmt.Fprint(w, "[1, \"Sent\", 123]")
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "[{\"eror\": true}]")
+		}
 	}
 }
 

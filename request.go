@@ -2,44 +2,68 @@ package pubnub
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log"
 	"net/http"
-	"time"
 )
 
 func executeRequest(ctx context.Context, e Endpoint,
-	eOk chan interface{}, eErr chan error) (interface{}, error) {
+	eOkCh chan interface{}, eErrCh chan error) (interface{}, error) {
 
-	ok := make(chan interface{})
-	err := make(chan error)
+	okCh := make(chan *http.Response)
+	errCh := make(chan error)
 
-	eCtx, _ := context.WithTimeout(ctx,
-		time.Duration(e.PubNub().Config.NonSubscribeRequestTimeout)*time.Second)
+	eCtx, _ := context.WithCancel(context.Background())
 
 	go func() {
+		cnTimeout := e.PubNub().Config.ConnectionTimeout
+		nonSubTimeout := e.PubNub().Config.NonSubscribeRequestTimeout
 		url := buildUrl(e)
-		req, er := http.NewRequest("GET", url, nil)
-		// TODO: seems here should be a non default client
-		resp, er := http.DefaultClient.Do(req.WithContext(eCtx))
+
+		client := NewHttpClient(cnTimeout, nonSubTimeout)
+
+		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
-			err <- er
-		} else {
-			ok <- resp
+			eErrCh <- err
+			return
 		}
+
+		res, err := client.Do(req)
+		if err != nil {
+			log.Println("pubnub: Error response")
+			errCh <- err
+		}
+
+		// TODO: Do not parse request if context is cancelled/deadline has reached
+		okCh <- res
 	}()
 
 	select {
-	case resp := <-ok:
-		if eOk != nil {
-			eOk <- resp
+	case res := <-okCh:
+		// TODO: move this logic into a separate func
+		log.Println("> ok2")
+		if res.StatusCode == 200 {
+			// TODO: move 1st case above
+			log.Println("> Status", res.Status)
+			if eOkCh != nil {
+				eOkCh <- res
+			}
+			return res, nil
+		} else {
+			myerr := errors.New(fmt.Sprintf("Response error: %s", res.Status))
+			eErrCh <- myerr
+			return nil, myerr
 		}
-
-		return resp, nil
-	case er := <-err:
-		if eErr != nil {
-			eErr <- er
+	case er := <-errCh:
+		log.Println("> err")
+		if eErrCh != nil {
+			eErrCh <- er
 		}
 		return nil, er
+		// TODO: do not return nil for sync call
 	case <-eCtx.Done():
+		log.Println("> ctx done")
 		return nil, nil
 	}
 }
