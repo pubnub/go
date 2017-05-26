@@ -97,7 +97,7 @@ We've put together a quick HOWTO video here http://vimeo.com/93523019
 
 * Open Terminal.
 * Change the directory to 
-`<eclipse-workspace>/src/github.com/pubnub/go/messaging/tests.`
+`<project-workspace>/src/github.com/pubnub/go/messaging/tests.`
 * Run the command `go test -i` to install the packages. 
 * And then run the command `go test` to run test cases.
 
