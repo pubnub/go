@@ -5,17 +5,14 @@ import (
 	"net/url"
 )
 
-type Endpoint interface {
+type endpointOpts interface {
+	config() Config
+	validate() error
+
 	buildPath() string
 	buildQuery() *url.Values
 	// or bytes[]?
 	buildBody() string
-	PubNub() *PubNub
-}
-
-type TransactionalEndpoint interface {
-	Sync() (interface{}, error)
-	Async()
 }
 
 func defaultQuery() *url.Values {
@@ -27,10 +24,10 @@ func defaultQuery() *url.Values {
 	return v
 }
 
-func buildUrl(e Endpoint) string {
+func buildUrl(o endpointOpts) string {
 	var buffer bytes.Buffer
 
-	if e.PubNub().Config.Secure == true {
+	if o.config().Secure == true {
 		buffer.WriteString("https")
 	} else {
 		buffer.WriteString("http")
@@ -38,11 +35,11 @@ func buildUrl(e Endpoint) string {
 
 	buffer.WriteString("://")
 
-	buffer.WriteString(e.PubNub().Config.Origin)
-	buffer.WriteString(e.buildPath())
+	buffer.WriteString(o.config().Origin)
+	buffer.WriteString(o.buildPath())
 	buffer.WriteString("?")
 
-	buffer.WriteString(e.buildQuery().Encode())
+	buffer.WriteString(o.buildQuery().Encode())
 
 	return buffer.String()
 }

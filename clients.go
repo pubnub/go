@@ -8,7 +8,7 @@ import (
 
 func NewHttpClient(connectTimeout int, nonSubscribeTimeout int) *http.Client {
 	transport := &http.Transport{
-		MaxIdleConns: 30,
+		// MaxIdleConns: 30,
 		Dial: (&net.Dialer{
 			Timeout: time.Duration(connectTimeout) * time.Second,
 		}).Dial,

@@ -16,15 +16,15 @@ func init() {
 	pnconfig.SubscribeKey = "mySub"
 }
 
-type fakeEndpoint struct {
+type fakeEndpointOpts struct {
 	pubnub *PubNub
 }
 
-func (e *fakeEndpoint) buildPath() string {
+func (o *fakeEndpointOpts) buildPath() string {
 	return "/my/path"
 }
 
-func (e *fakeEndpoint) buildQuery() *url.Values {
+func (o *fakeEndpointOpts) buildQuery() *url.Values {
 	q := &url.Values{}
 
 	q.Set("a", "2")
@@ -33,12 +33,16 @@ func (e *fakeEndpoint) buildQuery() *url.Values {
 	return q
 }
 
-func (e *fakeEndpoint) buildBody() string {
+func (o *fakeEndpointOpts) buildBody() string {
 	return "myBody"
 }
 
-func (e *fakeEndpoint) PubNub() *PubNub {
-	return e.pubnub
+func (o *fakeEndpointOpts) config() Config {
+	return *o.pubnub.Config
+}
+
+func (o *fakeEndpointOpts) validate() error {
+	return nil
 }
 
 // TODO: fix assertion (strings aren't equal)
@@ -46,7 +50,7 @@ func AestBuildUrl(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig = NewConfig()
 	pn := NewPubNub(pnconfig)
-	e := &fakeEndpoint{
+	e := &fakeEndpointOpts{
 		pubnub: pn,
 	}
 

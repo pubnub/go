@@ -3,16 +3,13 @@ package pntests
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
+	pubnub "github.com/pubnub/go"
+	"github.com/pubnub/go/pnerr"
 	"github.com/stretchr/testify/assert"
-
-	//pubnub "github.com/pubnub/go"
-	pubnub ".."
 )
 
 var pnconfig *pubnub.Config
@@ -24,13 +21,13 @@ func init() {
 	pnconfig.SecretKey = "my_secret_key"
 	pnconfig.Origin = "localhost:3000"
 	pnconfig.Secure = false
-	pnconfig.ConnectionTimeout = 1
+	pnconfig.ConnectionTimeout = 2
 	pnconfig.NonSubscribeRequestTimeout = 2
 }
 
 func TestPublishContextTimeoutSync(t *testing.T) {
 	assert := assert.New(t)
-	ms := 1500
+	ms := 500
 	timeout := time.Duration(ms) * time.Millisecond
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -40,75 +37,55 @@ func TestPublishContextTimeoutSync(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pnconfig)
 
-	publish := pn.Publish()
+	res, err := pn.PublishWithContext(ctx, &pubnub.PublishOpts{
+		Channel: "ch",
+		Message: "hey",
+	})
 
-	publish.Channel = "news"
-	publish.Message = "hey"
-
-	ok := make(chan interface{})
-	err := make(chan error)
-
-	go func() {
-		resp, er := publish.ExecuteWithContext(ctx)
-		if resp != nil {
-			ok <- resp
-		}
-
-		if er != nil {
-			err <- er
-		}
-	}()
-	select {
-	case resp := <-ok:
-		assert.Fail("Received success instead of context deadline: %v", resp)
-	case er := <-err:
-		assert.Fail(fmt.Sprintf("Received error instead of context deadline: %v", er.Error()))
-	case <-ctx.Done():
-		assert.Equal(ctx.Err().Error(), "context deadline exceeded")
-	case <-time.After(timeout + time.Duration(1)*time.Second):
-		assert.Fail("Context cancellation doesn't work")
+	if err == nil {
+		assert.Fail("Received success instead of context deadline: %v", res)
+		return
 	}
+
+	assert.Equal(fmt.Sprintf(connectionErrorTemplate,
+		"Failed to execute request"), err.Error())
+
+	assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
+		"context deadline exceeded")
 
 	shutdown <- true
 }
 
-func TestContextCancelSync(t *testing.T) {
+func TestPublishContextCancel(t *testing.T) {
 	assert := assert.New(t)
-	ctx, cancel := context.WithCancel(context.Background())
+	ms := 500
+	timeout := time.Duration(ms) * time.Millisecond
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 
 	shutdown := make(chan bool)
 	go servePublish(pnconfig.NonSubscribeRequestTimeout+1, shutdown)
-
-	pn := pubnub.NewPubNub(pnconfig)
-	publish := pn.Publish()
-
-	publish.Channel = "news"
-	publish.Message = "hey"
-
-	ok := make(chan interface{})
-	err := make(chan error)
-
 	go func() {
-		resp, er := publish.ExecuteWithContext(ctx)
-		if resp != nil {
-			ok <- resp
-		}
-
-		if er != nil {
-			err <- er
-		}
+		time.Sleep(300 * time.Millisecond)
+		cancel()
 	}()
 
-	cancel()
+	pn := pubnub.NewPubNub(pnconfig)
 
-	select {
-	case resp := <-ok:
-		assert.Fail("Received success instead of context deadline: %v", resp)
-	case er := <-err:
-		assert.Fail(fmt.Sprintf("Received error instead of context deadline: %v", er.Error()))
-	case <-ctx.Done():
-		assert.Equal(ctx.Err().Error(), "context canceled")
+	res, err := pn.PublishWithContext(ctx, &pubnub.PublishOpts{
+		Channel: "ch",
+		Message: "hey",
+	})
+
+	if err == nil {
+		assert.Fail("Received success instead of context deadline: %v", res)
+		return
 	}
+
+	assert.Equal(fmt.Sprintf(connectionErrorTemplate,
+		"Failed to execute request"), err.Error())
+
+	assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
+		"context canceled")
 
 	shutdown <- true
 }
@@ -120,219 +97,114 @@ func TestRequestTimeoutSync(t *testing.T) {
 	go servePublish(2, shutdown)
 
 	pn := pubnub.NewPubNub(pnconfig)
-	publish := pn.Publish()
 
-	publish.Channel = "news"
-	publish.Message = "hey"
-
-	ok := make(chan interface{})
-	err := make(chan error)
-
-	go func() {
-		resp, er := publish.Execute()
-		log.Println("got", resp, err)
-
-		if resp != nil {
-			ok <- resp
-		}
-
-		if er != nil {
-			err <- er
-		}
-	}()
-
-	select {
-	case <-ok:
-		assert.Fail("Success response while error expected")
-	case er := <-err:
-		assert.Equal(er.Error(), "Get http://localhost:3000/publish/my_pub_key/my_sub_key/0/news/0/hey?blah=hey&pnsdk=4&uuid=TODO-setup-uuid: net/http: timeout awaiting response headers")
+	params := &pubnub.PublishOpts{
+		Channel: "ch1",
+		Message: "hey",
+		UsePost: false,
 	}
+
+	_, err := pn.Publish(params)
+
+	assert.Equal(fmt.Sprintf(connectionErrorTemplate,
+		"Failed to execute request"), err.Error())
+	assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
+		"timeout awaiting response headers")
 
 	shutdown <- true
 }
 
-func TestContextCancelAsync(t *testing.T) {
-	done := make(chan bool)
-	ctx, cancel := context.WithCancel(context.Background())
-
-	go servePublish(pnconfig.NonSubscribeRequestTimeout+1, done)
-
-	pn := pubnub.NewPubNub(pnconfig)
-	publish := pn.Publish()
-
-	ok := make(chan interface{})
-	err := make(chan error)
-
-	publish.Channel = "news"
-	publish.Message = "hey"
-	publish.SuccessChannel = ok
-	publish.ErrorChannel = err
-
-	go publish.ExecuteWithContext(ctx)
-
-	cancel()
-
-	select {
-	case <-ctx.Done():
-		assert.Equal(t, ctx.Err().Error(), "context canceled")
-	}
-
-	done <- true
-}
-
-func TestContextDeadlineAsync(t *testing.T) {
-	done := make(chan bool)
-	d := time.Now().Add(50 * time.Millisecond)
-	ctx, cancel := context.WithDeadline(context.Background(), d)
-
-	go servePublish(pnconfig.NonSubscribeRequestTimeout+1, done)
-
-	pn := pubnub.NewPubNub(pnconfig)
-	publish := pn.Publish()
-
-	ok := make(chan interface{})
-	err := make(chan error)
-
-	publish.Channel = "news"
-	publish.Message = "hey"
-	publish.SuccessChannel = ok
-	publish.ErrorChannel = err
-
-	go publish.ExecuteWithContext(ctx)
-
-	cancel()
-
-	// TODO: add assertions
-	select {
-	case <-ctx.Done():
-		log.Println("Deadline exceeded")
-	case resp := <-ok:
-		log.Println(resp)
-	case er := <-err:
-		log.Fatal(er)
-	}
-
-	done <- true
-}
-
-func TestPublishTimeoutAsync(t *testing.T) {
-	done := make(chan bool)
-	go servePublish(pnconfig.NonSubscribeRequestTimeout+1, done)
-
-	pn := pubnub.NewPubNub(pnconfig)
-
-	publish := pn.Publish()
-
-	publish.Channel = "news"
-	publish.Message = "hey"
-
-	ok := make(chan interface{})
-	err := make(chan error)
-
-	publish.SuccessChannel = ok
-	publish.ErrorChannel = err
-
-	go publish.Execute()
-
-	select {
-	case resp := <-ok:
-		log.Println(resp)
-	case er := <-err:
-		log.Println(er)
-	}
-
-	done <- true
-}
-
-func TestRequestTimeoutAsync(t *testing.T) {
+func TestPublishMissingPublishKey(t *testing.T) {
 	assert := assert.New(t)
-	shutdown := make(chan bool)
-	ok := make(chan interface{})
-	err := make(chan error)
 
-	go servePublish(2, shutdown)
+	cfg := pubnub.NewConfig()
+	cfg.SubscribeKey = "demo"
+	cfg.PublishKey = ""
 
-	pn := pubnub.NewPubNub(pnconfig)
-	publish := pn.Publish()
+	pn := pubnub.NewPubNub(cfg)
 
-	publish.Channel = "news"
-	publish.Message = "hey"
-	publish.SuccessChannel = ok
-	publish.ErrorChannel = err
-
-	go publish.Execute()
-
-	select {
-	case <-ok:
-		assert.Fail("Success response while error expected")
-	case er := <-err:
-		assert.Equal(er.Error(), "Get http://localhost:3000/publish/my_pub_key/my_sub_key/0/news/0/hey?blah=hey&pnsdk=4&uuid=TODO-setup-uuid: net/http: timeout awaiting response headers")
+	params := &pubnub.PublishOpts{
+		Channel: "ch",
+		Message: "hey",
 	}
 
-	shutdown <- true
+	_, err := pn.Publish(params)
+
+	assert.Contains(err.Error(), "pubnub: Missing Publish Key")
 }
 
-func TestPublishErrorServerResponse(t *testing.T) {
-	// assert := assert.New(t)
-	shutdown := make(chan bool)
-	ok := make(chan interface{})
-	err := make(chan error)
+func TestPublishMissingMessage(t *testing.T) {
+	assert := assert.New(t)
 
-	go servePublish(0, shutdown)
+	cfg := pubnub.NewConfig()
+	cfg.PublishKey = "0a5c823c-c1fd-4c3f-b31a-8a0b545fa463"
+	cfg.SubscribeKey = "sub-c-d69e3958-1528-11e7-bc52-02ee2ddab7fe"
 
-	pnconfig.PublishKey = "wrong_pub_key"
+	pn := pubnub.NewPubNub(cfg)
 
-	// client := pubnub.NewHttpClient(pnconfig.ConnectionTimeout,
-	// 	pnconfig.NonSubscribeRequestTimeout)
-	pn := pubnub.NewPubNub(pnconfig)
-	publish := pn.Publish()
+	_, err := pn.Publish(&pubnub.PublishOpts{
+		Channel: "hey",
+	})
 
-	publish.Channel = "news"
-	publish.Message = "hey"
-	publish.SuccessChannel = ok
-	publish.ErrorChannel = err
-
-	go publish.Execute()
-
-	select {
-	case resp := <-ok:
-		log.Println(resp)
-	case er := <-err:
-		log.Println(er)
-	}
-
-	shutdown <- true
+	assert.Contains(err.Error(), "pubnub: Missing Message")
 }
 
-func makeResponseRoot(hangSeconds int) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
+func TestPublishMissingChannel(t *testing.T) {
+	assert := assert.New(t)
 
-		log.Printf("Sleeping %d seconds\n", hangSeconds)
-		time.Sleep(time.Duration(hangSeconds) * time.Second)
+	cfg := pubnub.NewConfig()
+	cfg.PublishKey = "0a5c823c-c1fd-4c3f-b31a-8a0b545fa463"
+	cfg.SubscribeKey = "sub-c-d69e3958-1528-11e7-bc52-02ee2ddab7fe"
 
-		if vars["pubKey"] == "my_pub_key" {
-			fmt.Fprint(w, "[1, \"Sent\", 123]")
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, "[{\"eror\": true}]")
-		}
-	}
+	pn := pubnub.NewPubNub(cfg)
+
+	_, err := pn.Publish(&pubnub.PublishOpts{
+		Message: "hey",
+	})
+
+	assert.Contains(err.Error(), "pubnub: Missing Channel")
 }
 
-func servePublish(hangSeconds int, done chan bool) {
-	r := mux.NewRouter()
-	r.HandleFunc("/publish/{pubKey}/{subKey}/0/{channel}/0/{msg}",
-		makeResponseRoot(hangSeconds))
+func TestPublishServerError(t *testing.T) {
+	assert := assert.New(t)
 
-	s := &http.Server{
-		Addr:    ":3000",
-		Handler: r,
-	}
+	cfg := pamConfigCopy()
+	pn := pubnub.NewPubNub(cfg)
 
-	go s.ListenAndServe()
+	_, err := pn.Publish(&pubnub.PublishOpts{
+		Channel: "ch",
+		Message: "hey",
+	})
 
-	<-done
-	log.Println("closing server")
-	s.Close()
+	assert.Equal(fmt.Sprintf(serverErrorTemplate, 403), err.Error())
+}
+
+func TestPublishNetworkError(t *testing.T) {
+	assert := assert.New(t)
+
+	cfg := pamConfigCopy()
+	cfg.Origin = "foo.bar"
+	pn := pubnub.NewPubNub(cfg)
+
+	_, err := pn.Publish(&pubnub.PublishOpts{
+		Channel: "ch",
+		Message: "hey",
+	})
+
+	assert.Equal(fmt.Sprintf(connectionErrorTemplate,
+		"Failed to execute request"), err.Error())
+
+	assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
+		"dial tcp: lookup")
+}
+
+func TestNewRequestErrorHost(t *testing.T) {
+	assert := assert.New(t)
+
+	client := &http.Client{}
+	r, _ := http.NewRequest("GET", "http://aaaaaa.com/", nil)
+
+	_, err := client.Do(r)
+
+	assert.Contains(err.Error(), "no such host")
 }
