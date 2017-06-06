@@ -265,7 +265,7 @@ func DeleteSession(context context.Context, w http.ResponseWriter, r *http.Reque
 		session.Values["pubInstance"] = ""
 		session.Options = GetSessionsOptionsObject(-1)
 		session.Save(r, w)
-		log.Infof(context, "Deleted Session %s")
+		// log.Infof(context, "Deleted Session %s")
 	}
 }
 
@@ -305,8 +305,8 @@ func New(context context.Context, uuid string, w http.ResponseWriter, r *http.Re
 		session.Values["pubInstance"] != nil {
 		if val, ok := session.Values["pubInstance"].(*Pubnub); ok {
 			pubInstance = val
-			uuidn1 := pubInstance.GetUUID()
-			log.Infof(context, "retrieved instance %s", uuidn1)
+			// uuidn1 := pubInstance.GetUUID()
+			// log.Infof(context, "retrieved instance %s", uuidn1)
 		}
 	} else {
 		if err != nil {
@@ -316,7 +316,7 @@ func New(context context.Context, uuid string, w http.ResponseWriter, r *http.Re
 			log.Errorf(context, "Session nil")
 		}
 		if session.Values["pubInstance"] == nil {
-			log.Errorf(context, "pubInstance nil")
+			// log.Errorf(context, "pubInstance nil")
 		}
 	}
 
@@ -324,7 +324,7 @@ func New(context context.Context, uuid string, w http.ResponseWriter, r *http.Re
 		pubKey := publishKey
 		subKey := subscribeKey
 		secKey := secretKey
-		log.Infof(context, "Creating NEW session")
+		// log.Infof(context, "Creating NEW session")
 		pubInstance = NewPubnub(context, w, r, pubKey, subKey, secKey, cipher, ssl, uuid)
 		writeSession(context, w, r, pubInstance, session)
 	}
@@ -424,8 +424,8 @@ type PubnubUnitTest struct {
 //
 // returns the pointer to Pubnub instance.
 func NewPubnub(context context.Context, w http.ResponseWriter, r *http.Request, publishKey string, subscribeKey string, secretKey string, cipherKey string, sslOn bool, customUuid string) *Pubnub {
-	log.Infof(context, fmt.Sprintf("Pubnub Init, %s", VersionInfo()))
-	log.Infof(context, fmt.Sprintf("OS: %s", runtime.GOOS))
+	// log.Infof(context, fmt.Sprintf("Pubnub Init, %s", VersionInfo()))
+	// log.Infof(context, fmt.Sprintf("OS: %s", runtime.GOOS))
 
 	newPubnub := &Pubnub{}
 	newPubnub.Origin = origin
@@ -446,7 +446,7 @@ func NewPubnub(context context.Context, w http.ResponseWriter, r *http.Request, 
 		newPubnub.Origin = "http://" + newPubnub.Origin
 	}
 
-	log.Infof(context, fmt.Sprintf("Origin: %s", newPubnub.Origin))
+	// log.Infof(context, fmt.Sprintf("Origin: %s", newPubnub.Origin))
 	//Generate the uuid is custmUuid is not provided
 	newPubnub.SetUUID(context, w, r, customUuid)
 
@@ -1044,7 +1044,7 @@ func (pub *Pubnub) executeTime(context context.Context, w http.ResponseWriter, r
 				pub.executeTime(context, w, r, callbackChannel, errorChannel, count)
 			}
 		} else {
-			log.Infof(context, fmt.Sprintf("Time: %s", value))
+			// log.Infof(context, fmt.Sprintf("Time: %s", value))
 			callbackChannel <- []byte(fmt.Sprintf("%s", value))
 		}
 	}
@@ -2245,7 +2245,7 @@ func (pub *Pubnub) SetUserStateKeyVal(context context.Context, w http.ResponseWr
 	if stateJSON == "null" {
 		stateJSON = "{}"
 	}
-	log.Infof(context, fmt.Sprintf("SetUserStateKeyVal jsonSerialized: %s %s", jsonSerialized, stateJSON))
+	// log.Infof(context, fmt.Sprintf("SetUserStateKeyVal jsonSerialized: %s %s", jsonSerialized, stateJSON))
 	saveSession(context, w, r, pub)
 	pub.executeSetUserState(context, w, r, channel, stateJSON, callbackChannel, errorChannel, 0)
 }
@@ -2613,7 +2613,7 @@ func ParseInterfaceData(myInterface interface{}) string {
 func (pub *Pubnub) httpRequest(context context.Context, w http.ResponseWriter, r *http.Request, requestURL string, action int) ([]byte, int, error) {
 	requrl := pub.Origin + requestURL
 
-	log.Infof(context, fmt.Sprintf("url: %s", requrl))
+	// log.Infof(context, fmt.Sprintf("url: %s", requrl))
 
 	contents, responseStatusCode, err := pub.connect(context, w, r, requrl, action, requestURL)
 
