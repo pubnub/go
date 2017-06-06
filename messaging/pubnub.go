@@ -298,13 +298,14 @@ type Pubnub struct {
 	requestCloserMu      sync.RWMutex
 	currentSubscribeReq  *http.Request
 	filterExpression     string
+	nonSubHTTPClientMu   sync.Mutex
+	nonSubHTTPClient     *http.Client
 
 	// TODO: expose setters
 	subscribeWorker         *requestWorker
 	presenceHeartbeatWorker *requestWorker
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
-	nonSubHTTPClient        *http.Client
 	infoLogger              *log.Logger
 	nonSubJobQueue          chan NonSubJob
 	nonSubQueueProcessor    *NonSubQueueProcessor
@@ -663,6 +664,20 @@ func (pub *Pubnub) GetSubscribeTransport() http.RoundTripper {
 // a non-subscribe worker
 func (pub *Pubnub) GetNonSubscribeTransport() http.RoundTripper {
 	return pub.nonSubscribeWorker.GetTransport()
+}
+
+// SetNonSubscribeHTTPClient custom non-subscribe HTTP client
+func (pub *Pubnub) SetNonSubscribeHTTPClient(client *http.Client) {
+	pub.nonSubHTTPClientMu.Lock()
+	defer pub.nonSubHTTPClientMu.Unlock()
+	pub.nonSubHTTPClient = client
+}
+
+// GetNonSubscribeHTTPClient a reference to the current non-subscribe HTTP client
+func (pub *Pubnub) GetNonSubscribeHTTPClient() *http.Client {
+	pub.nonSubHTTPClientMu.Lock()
+	defer pub.nonSubHTTPClientMu.Unlock()
+	return pub.nonSubHTTPClient
 }
 
 // Abort is the struct Pubnub's instance method that closes the open connections for both subscribe
@@ -4318,7 +4333,7 @@ func (pub *Pubnub) nonSubHTTPRequest(requestURL string) (
 	}
 
 	pub.infoLogger.Printf("INFO: nonSubHTTPRequest calling nonSubHTTPClient.do%s", requestURL)
-	response, err := pub.nonSubHTTPClient.Do(req)
+	response, err := pub.GetNonSubscribeHTTPClient().Do(req)
 	if err != nil && response == nil {
 		pub.infoLogger.Printf("ERROR: NonSub HTTP REQUEST: Error while sending request: %s", err.Error())
 		return nil, 0, err
