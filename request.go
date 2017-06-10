@@ -18,15 +18,10 @@ func executeRequest(opts endpointOpts) (interface{}, error) {
 	}
 
 	url := buildUrl(opts)
-	config := opts.config()
 
 	log.Println("pubnub: >>> %s", url)
 
-	cnTimeout := config.ConnectionTimeout
-	nonSubTimeout := config.NonSubscribeRequestTimeout
-
-	// TODO: fetch client reference from options
-	client := NewHttpClient(cnTimeout, nonSubTimeout)
+	client := opts.client()
 
 	// TODO: can be POST
 	req, err := http.NewRequest("GET", url, nil)
@@ -64,12 +59,8 @@ func executeRequestWithContext(ctx context.Context,
 	}
 
 	url := buildUrl(opts)
-	config := opts.config()
 
-	cnTimeout := config.ConnectionTimeout
-	nonSubTimeout := config.NonSubscribeRequestTimeout
-
-	client := NewHttpClient(cnTimeout, nonSubTimeout)
+	client := opts.client()
 
 	// TODO: can be POST
 	req, err := http.NewRequest("GET", url, nil)

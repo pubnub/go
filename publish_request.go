@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	// "net/http"
+
 	"net/http"
 	"net/url"
 
@@ -59,8 +60,7 @@ func PublishRequestWithContext(ctx context.Context,
 }
 
 type PublishOpts struct {
-	pubnub    *PubNub
-	Transport *http.Client
+	pubnub *PubNub
 
 	Channel string
 	Message interface{}
@@ -73,6 +73,10 @@ type PublishResponse struct {
 
 func (o *PublishOpts) config() Config {
 	return *o.pubnub.Config
+}
+
+func (o *PublishOpts) client() *http.Client {
+	return o.pubnub.GetClient()
 }
 
 func (o *PublishOpts) validate() error {

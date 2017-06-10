@@ -42,15 +42,18 @@ func (pn *PubNub) PublishWithContext(ctx context.Context,
 	return PublishRequestWithContext(ctx, pn, opts)
 }
 
-// func (pn *PubNub) SimplePublish(string channel, byte []msg) {
-// 	return "", []byte(msg)
-// }
-
+// Set a client for transactional requests
 func (pn *PubNub) SetClient(c *http.Client) {
 	pn.client = c
 }
 
+// Set a client for transactional requests
 func (pn *PubNub) GetClient() *http.Client {
+	if pn.client == nil {
+		pn.client = NewHttpClient(pn.Config.ConnectionTimeout,
+			pn.Config.NonSubscribeRequestTimeout)
+	}
+
 	return pn.client
 }
 

@@ -2,11 +2,13 @@ package pubnub
 
 import (
 	"bytes"
+	"net/http"
 	"net/url"
 )
 
 type endpointOpts interface {
 	config() Config
+	client() *http.Client
 	validate() error
 
 	buildPath() string
