@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/pubnub/go/pnerr"
@@ -36,7 +35,7 @@ func (pn *PubNub) Publish(opts *PublishOpts) (PublishResponse, error) {
 	return res, err
 }
 
-func (pn *PubNub) PublishWithContext(ctx context.Context,
+func (pn *PubNub) PublishWithContext(ctx Context,
 	opts *PublishOpts) (PublishResponse, error) {
 
 	return PublishRequestWithContext(ctx, pn, opts)

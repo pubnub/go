@@ -3,6 +3,7 @@ package pubnub
 import (
 	"net/url"
 	"testing"
+	"net/http"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -39,6 +40,10 @@ func (o *fakeEndpointOpts) buildBody() string {
 
 func (o *fakeEndpointOpts) config() Config {
 	return *o.pubnub.Config
+}
+
+func (o *fakeEndpointOpts) client() *http.Client {
+	return o.pubnub.GetClient()
 }
 
 func (o *fakeEndpointOpts) validate() error {

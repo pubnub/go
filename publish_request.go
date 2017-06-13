@@ -4,7 +4,6 @@ import (
 
 	// "errors"
 
-	"context"
 	"fmt"
 
 	// "net/http"
@@ -44,7 +43,7 @@ func PublishRequest(pn *PubNub, opts *PublishOpts) (PublishResponse, error) {
 	}, nil
 }
 
-func PublishRequestWithContext(ctx context.Context,
+func PublishRequestWithContext(ctx Context,
 	pn *PubNub, opts *PublishOpts) (PublishResponse, error) {
 	opts.pubnub = pn
 

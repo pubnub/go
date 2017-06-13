@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -50,7 +49,7 @@ func executeRequest(opts endpointOpts) (interface{}, error) {
 	return val, nil
 }
 
-func executeRequestWithContext(ctx context.Context,
+func executeRequestWithContext(ctx Context,
 	opts endpointOpts) (interface{}, error) {
 
 	err := opts.validate()
@@ -69,7 +68,8 @@ func executeRequestWithContext(ctx context.Context,
 		return nil, err
 	}
 
-	res, err := client.Do(req.WithContext(ctx))
+	setRequestContext(req, ctx)
+	res, err := client.Do(req)
 	// Host lookup failed
 	if err != nil {
 		e := pnerr.NewConnectionError("Failed to execute request", err)
