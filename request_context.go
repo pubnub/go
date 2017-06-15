@@ -2,8 +2,12 @@
 
 package pubnub
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
-func setRequestContext(r *http.Request, ctx Context) {
-	r = r.WithContext(ctx)
+func setRequestContext(r *http.Request, ctx Context) *http.Request {
+	fmt.Println("new way")
+	return r.WithContext(ctx)
 }

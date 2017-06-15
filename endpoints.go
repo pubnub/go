@@ -9,6 +9,7 @@ import (
 type endpointOpts interface {
 	config() Config
 	client() *http.Client
+	context() Context
 	validate() error
 
 	buildPath() string

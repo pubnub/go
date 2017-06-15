@@ -29,49 +29,18 @@ func executeRequest(opts endpointOpts) (interface{}, error) {
 		return nil, err
 	}
 
+	ctx := opts.context()
+	if ctx != nil {
+		// with !go1.7 you can't assign context directly to a request,
+		// the request.cancel is mapped to the ctx.Done() channel instead
+		// go1.7 can assign context to an executed request
+		req = setRequestContext(req, ctx)
+	}
+
 	res, err := client.Do(req)
 	// Host lookup failed
 	if err != nil {
 		log.Println(err.Error())
-		e := pnerr.NewConnectionError("Failed to execute request", err)
-
-		log.Println(e.Error())
-
-		return nil, e
-	}
-
-	val, err := parseResponse(res)
-	// Already wrapped error
-	if err != nil {
-		return nil, err
-	}
-
-	return val, nil
-}
-
-func executeRequestWithContext(ctx Context,
-	opts endpointOpts) (interface{}, error) {
-
-	err := opts.validate()
-	if err != nil {
-		return nil, err
-	}
-
-	url := buildUrl(opts)
-
-	client := opts.client()
-
-	// TODO: can be POST
-	req, err := http.NewRequest("GET", url, nil)
-	fmt.Println(err)
-	if err != nil {
-		return nil, err
-	}
-
-	setRequestContext(req, ctx)
-	res, err := client.Do(req)
-	// Host lookup failed
-	if err != nil {
 		e := pnerr.NewConnectionError("Failed to execute request", err)
 
 		log.Println(e.Error())

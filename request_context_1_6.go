@@ -2,8 +2,12 @@
 
 package pubnub
 
-import "net/http"
+import (
+	"net/http"
+)
 
-func setRequestContext(r *http.Request, ctx Context) {
+func setRequestContext(r *http.Request, ctx Context) *http.Request {
 	r.Cancel = ctx.Done()
+	// fmt.Println("old way")
+	return r
 }

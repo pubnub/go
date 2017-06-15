@@ -1,14 +1,12 @@
 package pubnub
 
 import (
+	"net/http"
 	"net/url"
 	"testing"
-	"net/http"
 
 	"github.com/stretchr/testify/assert"
 )
-
-var pnconfig *Config
 
 func init() {
 	pnconfig = NewConfig()
@@ -48,6 +46,10 @@ func (o *fakeEndpointOpts) client() *http.Client {
 
 func (o *fakeEndpointOpts) validate() error {
 	return nil
+}
+
+func (o *fakeEndpointOpts) context() Context {
+	return o.context()
 }
 
 // TODO: fix assertion (strings aren't equal)

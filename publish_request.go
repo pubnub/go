@@ -1,17 +1,11 @@
 package pubnub
 
 import (
-
-	// "errors"
-
 	"fmt"
-
-	// "net/http"
+	"strconv"
 
 	"net/http"
 	"net/url"
-
-	"github.com/pubnub/go/pnerr"
 )
 
 const PUBLISH_GET_PATH = "/publish/%s/%s/0/%s/%s/%s"
@@ -46,13 +40,13 @@ func PublishRequest(pn *PubNub, opts *PublishOpts) (PublishResponse, error) {
 func PublishRequestWithContext(ctx Context,
 	pn *PubNub, opts *PublishOpts) (PublishResponse, error) {
 	opts.pubnub = pn
+	opts.ctx = ctx
 
-	resp, err := executeRequestWithContext(ctx, opts)
+	resp, err := executeRequest(opts)
 	if err != nil {
 		return PublishResponse{}, err
 	}
 
-	fmt.Println(resp)
 	return PublishResponse{
 		Timestamp: 123,
 	}, nil
@@ -61,9 +55,17 @@ func PublishRequestWithContext(ctx Context,
 type PublishOpts struct {
 	pubnub *PubNub
 
+	Ttl     int
 	Channel string
 	Message interface{}
-	UsePost bool
+	Meta    interface{}
+
+	UsePost     bool
+	ShouldStore bool
+	Serialize   bool
+	Replicate   bool
+
+	ctx Context
 }
 
 type PublishResponse struct {
@@ -76,6 +78,10 @@ func (o *PublishOpts) config() Config {
 
 func (o *PublishOpts) client() *http.Client {
 	return o.pubnub.GetClient()
+}
+
+func (o *PublishOpts) context() Context {
+	return o.ctx
 }
 
 func (o *PublishOpts) validate() error {
@@ -98,6 +104,36 @@ func (o *PublishOpts) validate() error {
 	return nil
 }
 
+func (o *PublishOpts) customParams() map[string]string {
+	params := make(map[string]string)
+
+	if o.Meta != nil {
+		params["meta"] = o.Meta.(string)
+	}
+
+	if o.ShouldStore {
+		params["store"] = "1"
+	} else {
+		params["store"] = "0"
+	}
+
+	if o.Ttl != 0 {
+		params["ttl"] = strconv.Itoa(o.Ttl)
+	}
+
+	params["seqn"] = strconv.Itoa(<-o.pubnub.publishSequence)
+
+	if o.Replicate {
+		params["norep"] = "true"
+	}
+
+	return params
+}
+
+func (o *PublishOpts) buildData() string {
+	return ""
+}
+
 func (o *PublishOpts) buildPath() string {
 	if o.UsePost == true {
 		return fmt.Sprintf(PUBLISH_POST_PATH,
@@ -117,8 +153,11 @@ func (o *PublishOpts) buildPath() string {
 
 func (o *PublishOpts) buildQuery() *url.Values {
 	q := defaultQuery()
+	params := o.customParams()
 
-	q.Set("blah", "hey")
+	for k, v := range params {
+		q.Set(k, v)
+	}
 
 	return q
 }
@@ -127,11 +166,22 @@ func (o *PublishOpts) buildBody() string {
 	return ""
 }
 
-func (o *PublishOpts) validateParams() error {
-	if o.pubnub.Config.PublishKey == "" {
-		return pnerr.NewValidationError(
-			fmt.Sprintf("Publish key was expected but got: %s", o.pubnub.Config.PublishKey))
+func (o *PublishOpts) httpMethod() string {
+	if o.UsePost {
+		return "POST"
+	} else {
+		return "GET"
 	}
+}
 
-	return nil
+func (o *PublishOpts) isAuthRequired() bool {
+	return true
+}
+
+func (o *PublishOpts) requestTimeout() int {
+	return o.pubnub.Config.NonSubscribeRequestTimeout
+}
+
+func (o *PublishOpts) connectTimeout() int {
+	return o.pubnub.Config.ConnectionTimeout
 }

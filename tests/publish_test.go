@@ -1,7 +1,6 @@
 package pntests
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -25,15 +24,18 @@ func init() {
 	pnconfig.NonSubscribeRequestTimeout = 2
 }
 
+// !go1.8 returns just "request canceled" error for canceled context
+// go1.8 returns "context deadline exceeded" error in such case
 func TestPublishContextTimeoutSync(t *testing.T) {
 	assert := assert.New(t)
 	ms := 500
 	timeout := time.Duration(ms) * time.Millisecond
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := contextWithTimeout(backgroundContext, timeout)
 	defer cancel()
 
-	shutdown := make(chan bool)
-	go servePublish(pnconfig.NonSubscribeRequestTimeout+1, shutdown)
+	close := make(chan bool)
+	closed := make(chan bool)
+	go servePublish(pnconfig.NonSubscribeRequestTimeout+1, close, closed)
 
 	pn := pubnub.NewPubNub(pnconfig)
 
@@ -51,19 +53,21 @@ func TestPublishContextTimeoutSync(t *testing.T) {
 		"Failed to execute request"), err.Error())
 
 	assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
-		"context deadline exceeded")
+		ERR_CONTEXT_DEADLINE)
 
-	shutdown <- true
+	close <- true
+	<-closed
 }
 
 func TestPublishContextCancel(t *testing.T) {
 	assert := assert.New(t)
 	ms := 500
 	timeout := time.Duration(ms) * time.Millisecond
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := contextWithTimeout(backgroundContext, timeout)
 
-	shutdown := make(chan bool)
-	go servePublish(pnconfig.NonSubscribeRequestTimeout+1, shutdown)
+	close := make(chan bool)
+	closed := make(chan bool)
+	go servePublish(pnconfig.NonSubscribeRequestTimeout+1, close, closed)
 	go func() {
 		time.Sleep(300 * time.Millisecond)
 		cancel()
@@ -85,16 +89,18 @@ func TestPublishContextCancel(t *testing.T) {
 		"Failed to execute request"), err.Error())
 
 	assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
-		"context canceled")
+		ERR_CONTEXT_CANCELLED)
 
-	shutdown <- true
+	close <- true
+	<-closed
 }
 
-func TestRequestTimeoutSync(t *testing.T) {
+func TestPublishTimeoutSync(t *testing.T) {
 	assert := assert.New(t)
-	shutdown := make(chan bool)
 
-	go servePublish(2, shutdown)
+	close := make(chan bool)
+	closed := make(chan bool)
+	go servePublish(pnconfig.NonSubscribeRequestTimeout+1, close, closed)
 
 	pn := pubnub.NewPubNub(pnconfig)
 
@@ -111,7 +117,8 @@ func TestRequestTimeoutSync(t *testing.T) {
 	assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
 		"timeout awaiting response headers")
 
-	shutdown <- true
+	close <- true
+	<-closed
 }
 
 func TestPublishMissingPublishKey(t *testing.T) {

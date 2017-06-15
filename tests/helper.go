@@ -3,6 +3,7 @@ package pntests
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -46,19 +47,30 @@ func makeResponseRoot(hangSeconds int) func(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func servePublish(hangSeconds int, done chan bool) {
+func servePublish(hangSeconds int, close, closed chan bool) {
 	r := mux.NewRouter()
 	r.HandleFunc("/publish/{pubKey}/{subKey}/0/{channel}/0/{msg}",
 		makeResponseRoot(hangSeconds))
 
 	s := &http.Server{
-		Addr:    ":3000",
 		Handler: r,
 	}
 
-	go s.ListenAndServe()
+	l, err := net.Listen("tcp", ":3000")
+	if err != nil {
+		panic(err)
+	}
 
-	<-done
-	log.Println("closing server")
-	s.Close()
+	go func() {
+		<-close
+		fmt.Println(">>> closing listener")
+		l.Close()
+		fmt.Println("<<< listener closed")
+
+		// HACK: let the server release resources before a next test started
+		time.Sleep(2000 * time.Millisecond)
+		closed <- true
+	}()
+
+	s.Serve(l)
 }
