@@ -11,6 +11,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -18,6 +19,17 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 )
+
+type PNMessage struct {
+	Messages []DeployMessage
+	Id       string
+	Channel  string
+}
+
+type DeployMessage struct {
+	Server string `json:"Server"`
+	Repo   string `json:"Repo"`
+}
 
 // connectChannels: the connected pubnub channels, multiple channels are stored separated by comma.
 var connectChannels = ""
@@ -1297,6 +1309,19 @@ func subscribeRoutineV2(channels string, channelGroups string, timetoken string)
 			fmt.Println("****** Subscribe response ******")
 			fmt.Println("Channel:", response.Channel)
 			fmt.Println("ChannelGroup:", response.ChannelGroup)
+
+			//message := []PNMessage{}
+
+			payload, ok := response.Payload.(map[string]interface{})
+			if ok {
+				if action, found := payload["Server"]; found {
+					println(action.(string))
+				}
+			} else {
+
+				println("not of []pn", reflect.TypeOf(response.Payload))
+			}
+
 			fmt.Println("Payload:", response.Payload)
 			fmt.Println("OriginatingTimetoken:", response.OriginatingTimetoken.Timetoken)
 			fmt.Println("PublishTimetokenMetadata:", response.PublishTimetokenMetadata.Timetoken)
@@ -1406,7 +1431,8 @@ func publishRoutine(channels string, message string) {
 			"phone",
 		}
 			go pub.Publish(ch, message2, channel, errorChannel)*/
-		go pub.Publish(ch, message, channel, errorChannel)
+		message2 := DeployMessage{"s", "r"}
+		go pub.Publish(ch, message2, channel, errorChannel)
 		go handleResult(channel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
 	}
 }
@@ -1503,6 +1529,22 @@ func handleSubscribeResult(successChannel, errorChannel chan []byte, action stri
 				break
 			}
 			if string(success) != "[]" {
+				if !strings.Contains(string(success), "Subscription to channel ") {
+					//message := []PNMessage{}
+					type m struct {
+						s string
+						r string
+					}
+					var message []struct {
+						message []map[string]string
+						tt      string
+						ch      string
+					}
+					err := json.Unmarshal(success, &message)
+					if err != nil {
+						fmt.Println(err.Error())
+					}
+				}
 				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
 				fmt.Println("")
 			}

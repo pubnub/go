@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.14.0
-// Build Date: Apr 18, 2017
+// Version: 3.15.0
+// Build Date: Jun 19, 2017
 package messaging
 
 import (
@@ -31,9 +31,9 @@ import (
 
 const (
 	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.14.0"
+	SDK_VERSION = "3.15.0"
 	// SDK_DATE is the version release date
-	SDK_DATE = "Apr 18, 2017"
+	SDK_DATE = "Jun 19, 2017"
 )
 
 type responseStatus int
