@@ -30,10 +30,10 @@ import (
 )
 
 const (
-	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.15.0"
-	// SDK_DATE is the version release date
-	SDK_DATE = "Jun 19, 2017"
+	// sdkVersion is the current SDK version
+	sdkVersion = "3.15.0"
+	// sdkDate is the version release date
+	sdkDate = "Jun 19, 2017"
 )
 
 type responseStatus int
@@ -70,7 +70,7 @@ const (
 var (
 	//Sdk Identification Param appended to each request
 	sdkIdentificationParamKey = "pnsdk"
-	sdkIdentificationParamVal = fmt.Sprintf("PubNub-Go/%s", SDK_VERSION)
+	sdkIdentificationParamVal = fmt.Sprintf("PubNub-Go/%s", sdkVersion)
 )
 
 const (
@@ -243,7 +243,7 @@ var (
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
 	return fmt.Sprintf("PubNub Go client SDK Version: %s; Build Date: %s",
-		SDK_VERSION, SDK_DATE)
+		sdkVersion, sdkDate)
 }
 
 // Pubnub structure.
@@ -4317,8 +4317,7 @@ func (pub *Pubnub) validateRequestAndAddHeaders(requestURL string) (*http.Reques
 		Opaque: fmt.Sprintf("//%s%s", origin, requestURL),
 	}
 
-	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS,
-		SDK_VERSION)
+	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS, sdkVersion)
 
 	req.Header.Set("User-Agent", useragent)
 	return req, nil
