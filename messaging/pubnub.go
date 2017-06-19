@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.14.0
-// Build Date: Apr 18, 2017
+// Version: 3.15.0
+// Build Date: Jun 19, 2017
 package messaging
 
 import (
@@ -30,10 +30,10 @@ import (
 )
 
 const (
-	// SDK_VERSION is the current SDK version
-	SDK_VERSION = "3.14.0"
-	// SDK_DATE is the version release date
-	SDK_DATE = "Apr 18, 2017"
+	// sdkVersion is the current SDK version
+	sdkVersion = "3.15.0"
+	// sdkDate is the version release date
+	sdkDate = "Jun 19, 2017"
 )
 
 type responseStatus int
@@ -70,7 +70,7 @@ const (
 var (
 	//Sdk Identification Param appended to each request
 	sdkIdentificationParamKey = "pnsdk"
-	sdkIdentificationParamVal = fmt.Sprintf("PubNub-Go/%s", SDK_VERSION)
+	sdkIdentificationParamVal = fmt.Sprintf("PubNub-Go/%s", sdkVersion)
 )
 
 const (
@@ -243,7 +243,7 @@ var (
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
 	return fmt.Sprintf("PubNub Go client SDK Version: %s; Build Date: %s",
-		SDK_VERSION, SDK_DATE)
+		sdkVersion, sdkDate)
 }
 
 // Pubnub structure.
@@ -298,13 +298,14 @@ type Pubnub struct {
 	requestCloserMu      sync.RWMutex
 	currentSubscribeReq  *http.Request
 	filterExpression     string
+	nonSubHTTPClientMu   sync.Mutex
+	nonSubHTTPClient     *http.Client
 
 	// TODO: expose setters
 	subscribeWorker         *requestWorker
 	presenceHeartbeatWorker *requestWorker
 	nonSubscribeWorker      *requestWorker
 	retryWorker             *requestWorker
-	nonSubHTTPClient        *http.Client
 	infoLogger              *log.Logger
 	nonSubJobQueue          chan NonSubJob
 	nonSubQueueProcessor    *NonSubQueueProcessor
@@ -663,6 +664,20 @@ func (pub *Pubnub) GetSubscribeTransport() http.RoundTripper {
 // a non-subscribe worker
 func (pub *Pubnub) GetNonSubscribeTransport() http.RoundTripper {
 	return pub.nonSubscribeWorker.GetTransport()
+}
+
+// SetNonSubscribeHTTPClient custom non-subscribe HTTP client
+func (pub *Pubnub) SetNonSubscribeHTTPClient(client *http.Client) {
+	pub.nonSubHTTPClientMu.Lock()
+	defer pub.nonSubHTTPClientMu.Unlock()
+	pub.nonSubHTTPClient = client
+}
+
+// GetNonSubscribeHTTPClient a reference to the current non-subscribe HTTP client
+func (pub *Pubnub) GetNonSubscribeHTTPClient() *http.Client {
+	pub.nonSubHTTPClientMu.Lock()
+	defer pub.nonSubHTTPClientMu.Unlock()
+	return pub.nonSubHTTPClient
 }
 
 // Abort is the struct Pubnub's instance method that closes the open connections for both subscribe
@@ -4302,8 +4317,7 @@ func (pub *Pubnub) validateRequestAndAddHeaders(requestURL string) (*http.Reques
 		Opaque: fmt.Sprintf("//%s%s", origin, requestURL),
 	}
 
-	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS,
-		SDK_VERSION)
+	useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go/%s", runtime.GOOS, sdkVersion)
 
 	req.Header.Set("User-Agent", useragent)
 	return req, nil
@@ -4318,7 +4332,7 @@ func (pub *Pubnub) nonSubHTTPRequest(requestURL string) (
 	}
 
 	pub.infoLogger.Printf("INFO: nonSubHTTPRequest calling nonSubHTTPClient.do%s", requestURL)
-	response, err := pub.nonSubHTTPClient.Do(req)
+	response, err := pub.GetNonSubscribeHTTPClient().Do(req)
 	if err != nil && response == nil {
 		pub.infoLogger.Printf("ERROR: NonSub HTTP REQUEST: Error while sending request: %s", err.Error())
 		return nil, 0, err

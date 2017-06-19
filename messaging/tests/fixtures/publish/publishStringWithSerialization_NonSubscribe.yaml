@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.14.0
-    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_PublishStringWithSerialization/0/%22%7B%5C%22name%5C%22:%20%5C%22Alex%5C%22,%20%5C%22age%5C%22:%20%5C%22123%5C%22%7D%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_PublishStringWithSerialization&seqn=1
+      - ua_string=(linux) PubNub-Go/3.15.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_PublishStringWithSerialization/0/%22%7B%5C%22name%5C%22:%20%5C%22Alex%5C%22,%20%5C%22age%5C%22:%20%5C%22123%5C%22%7D%22?pnsdk=PubNub-Go%2F3.15.0&uuid=UUID_PublishStringWithSerialization&seqn=1
     method: GET
   response:
     body: '[1,"Sent","14588070821147008"]'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.14.0
-    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_PublishStringWithSerialization/leave?uuid=UUID_PublishStringWithSerialization&pnsdk=PubNub-Go%2F3.14.0
+      - ua_string=(linux) PubNub-Go/3.15.0
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_PublishStringWithSerialization/leave?uuid=UUID_PublishStringWithSerialization&pnsdk=PubNub-Go%2F3.15.0
     method: GET
   response:
     body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
