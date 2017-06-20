@@ -1,6 +1,6 @@
 // +build !go1.7
 
-package pntests
+package e2e
 
 import (
 	"time"

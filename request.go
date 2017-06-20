@@ -1,29 +1,31 @@
 package pubnub
 
 import (
-	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/pubnub/go/pnerr"
 )
 
-func executeRequest(opts endpointOpts) (interface{}, error) {
+func executeRequest(opts endpointOpts) ([]byte, error) {
 	err := opts.validate()
 	if err != nil {
 		return nil, err
 	}
 
-	url := buildUrl(opts)
+	url, err := buildUrl(opts)
+	if err != nil {
+		return nil, err
+	}
 
-	log.Println("pubnub: >>> %s", url)
-
-	client := opts.client()
+	log.Println("pubnub: >>>", url)
 
 	// TODO: can be POST
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := newRequest("GET", url, nil)
 	fmt.Println(err)
 	if err != nil {
 		return nil, err
@@ -37,6 +39,7 @@ func executeRequest(opts endpointOpts) (interface{}, error) {
 		req = setRequestContext(req, ctx)
 	}
 
+	client := opts.client()
 	res, err := client.Do(req)
 	// Host lookup failed
 	if err != nil {
@@ -57,17 +60,39 @@ func executeRequest(opts endpointOpts) (interface{}, error) {
 	return val, nil
 }
 
-func parseResponse(resp *http.Response) (interface{}, error) {
+func newRequest(method string, u *url.URL, body io.Reader) (*http.Request,
+	error) {
+
+	rc, ok := body.(io.ReadCloser)
+	if !ok && body != nil {
+		rc = ioutil.NopCloser(body)
+	}
+
+	req := &http.Request{
+		Method:     method,
+		URL:        u,
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header:     make(http.Header),
+		Body:       rc,
+		Host:       u.Host,
+	}
+
+	return req, nil
+}
+
+func parseResponse(resp *http.Response) ([]byte, error) {
 	if resp.StatusCode != 200 {
 		// Errors like 400, 403, 500
+		log.Println(resp.Body)
+
 		e := pnerr.NewServerError(resp.StatusCode, resp.Body)
 
 		log.Println(e.Error())
 
 		return nil, e
 	}
-
-	log.Println("pubnub: OK >>>", resp.Status, resp.Body)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -77,15 +102,7 @@ func parseResponse(resp *http.Response) (interface{}, error) {
 		return nil, e
 	}
 
-	var value []byte
+	log.Println("pubnub: <<<", resp.Status, string(body))
 
-	err = json.Unmarshal(body, &value)
-	if err != nil {
-		e := pnerr.NewResponseParsingError("Error unmarshalling response", resp.Body, err)
-		log.Println(e)
-
-		return nil, e
-	}
-
-	return value, nil
+	return body, nil
 }

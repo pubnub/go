@@ -1,6 +1,6 @@
-// +build !go1.8
+// +build go1.8
 
-package pntests
+package e2e
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	ERR_CONTEXT_CANCELLED = "request canceled"
-	ERR_CONTEXT_DEADLINE  = "request canceled"
+	ERR_CONTEXT_CANCELLED = "context deadline exceeded"
+	ERR_CONTEXT_DEADLINE  = "context deadline exceeded"
 )
 
 func contextWithTimeout(parent context.Context,

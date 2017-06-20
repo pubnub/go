@@ -12,23 +12,33 @@ type endpointOpts interface {
 	context() Context
 	validate() error
 
-	buildPath() string
-	buildQuery() *url.Values
+	buildPath() (string, error)
+	buildQuery() (*url.Values, error)
 	// or bytes[]?
-	buildBody() string
+	buildBody() (string, error)
 }
 
-func defaultQuery() *url.Values {
+func defaultQuery(uuid string) *url.Values {
 	v := &url.Values{}
 
-	v.Set("pnsdk", "4")
-	v.Set("uuid", "TODO-setup-uuid")
+	v.Set("pnsdk", "PubNub-Go/4.0.0")
+	v.Set("uuid", uuid)
 
 	return v
 }
 
-func buildUrl(o endpointOpts) string {
+func buildUrl(o endpointOpts) (*url.URL, error) {
 	var buffer bytes.Buffer
+
+	path, err := o.buildPath()
+	if err != nil {
+		return &url.URL{}, err
+	}
+
+	query, err := o.buildQuery()
+	if err != nil {
+		return &url.URL{}, err
+	}
 
 	if o.config().Secure == true {
 		buffer.WriteString("https")
@@ -36,13 +46,21 @@ func buildUrl(o endpointOpts) string {
 		buffer.WriteString("http")
 	}
 
+	retUrl := &url.URL{
+		Path:     path,
+		Scheme:   "https",
+		Host:     o.config().Origin,
+		RawQuery: query.Encode(),
+	}
+
 	buffer.WriteString("://")
 
 	buffer.WriteString(o.config().Origin)
-	buffer.WriteString(o.buildPath())
+	buffer.WriteString(path)
 	buffer.WriteString("?")
 
-	buffer.WriteString(o.buildQuery().Encode())
+	buffer.WriteString(query.Encode())
 
-	return buffer.String()
+	// return buffer.String(), nil
+	return retUrl, nil
 }

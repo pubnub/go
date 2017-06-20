@@ -19,21 +19,21 @@ type fakeEndpointOpts struct {
 	pubnub *PubNub
 }
 
-func (o *fakeEndpointOpts) buildPath() string {
-	return "/my/path"
+func (o *fakeEndpointOpts) buildPath() (string, error) {
+	return "/my/path", nil
 }
 
-func (o *fakeEndpointOpts) buildQuery() *url.Values {
+func (o *fakeEndpointOpts) buildQuery() (*url.Values, error) {
 	q := &url.Values{}
 
 	q.Set("a", "2")
 	q.Set("b", "hey")
 
-	return q
+	return q, nil
 }
 
-func (o *fakeEndpointOpts) buildBody() string {
-	return "myBody"
+func (o *fakeEndpointOpts) buildBody() (string, error) {
+	return "myBody", nil
 }
 
 func (o *fakeEndpointOpts) config() Config {
@@ -61,6 +61,7 @@ func AestBuildUrl(t *testing.T) {
 		pubnub: pn,
 	}
 
-	url := buildUrl(e)
+	url, err := buildUrl(e)
+	assert.Nil(err)
 	assert.Equal("https://ps.pndns.com/my/path?a=2&b=hey", url)
 }

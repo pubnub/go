@@ -1,4 +1,4 @@
-package pntests
+package e2e
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ import (
 )
 
 var pamConfig *pubnub.Config
+var config *pubnub.Config
 
 var (
 	serverErrorTemplate     = "pubnub/server: Server respond with error code %d"
@@ -20,9 +21,19 @@ var (
 )
 
 func init() {
+	config = pubnub.NewConfig()
+	config.PublishKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"
+	config.SubscribeKey = "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f"
+
 	pamConfig = pubnub.NewConfig()
 	pamConfig.PublishKey = "pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb"
 	pamConfig.SubscribeKey = "sub-c-90c51098-c040-11e5-a316-0619f8945a4f"
+}
+
+func configCopy() *pubnub.Config {
+	cfg := new(pubnub.Config)
+	*cfg = *config
+	return cfg
 }
 
 func pamConfigCopy() *pubnub.Config {
@@ -66,8 +77,6 @@ func servePublish(hangSeconds int, close, closed chan bool) {
 		fmt.Println(">>> closing listener")
 		l.Close()
 		fmt.Println("<<< listener closed")
-
-		// HACK: let the server release resources before a next test started
 		time.Sleep(2000 * time.Millisecond)
 		closed <- true
 	}()

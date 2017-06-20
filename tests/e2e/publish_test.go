@@ -1,4 +1,4 @@
-package pntests
+package e2e
 
 import (
 	"fmt"
@@ -8,20 +8,60 @@ import (
 
 	pubnub "github.com/pubnub/go"
 	"github.com/pubnub/go/pnerr"
+	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
 var pnconfig *pubnub.Config
 
+const RESP_SUCCESS = `[1,"Sent","14981595400555832"]`
+
 func init() {
 	pnconfig = pubnub.NewConfig()
-	pnconfig.PublishKey = "my_pub_key"
-	pnconfig.SubscribeKey = "my_sub_key"
-	pnconfig.SecretKey = "my_secret_key"
-	pnconfig.Origin = "localhost:3000"
-	pnconfig.Secure = false
-	pnconfig.ConnectionTimeout = 2
-	pnconfig.NonSubscribeRequestTimeout = 2
+	pnconfig.PublishKey = "pub_key"
+	pnconfig.SubscribeKey = "sub_key"
+	pnconfig.SecretKey = "secret_key"
+	// pnconfig.ConnectionTimeout = 2
+	// pnconfig.NonSubscribeRequestTimeout = 2
+}
+
+func TestPublishSuccessNotStubbed(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+
+	res, err := pn.Publish(&pubnub.PublishOpts{
+		Channel: "ch",
+		Message: "hey",
+	})
+
+	assert.Nil(err)
+	assert.True(14981595400555832 < res.Timestamp)
+}
+
+// TODO: build http interceptor (probably Transport)
+func TestPublishSuccessStubbed(t *testing.T) {
+	assert := assert.New(t)
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/publish/pub_key/sub_key/0/ch/0/%22hey%22",
+		Query:              "seqn=1&store=0",
+		ResponseBody:       RESP_SUCCESS,
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(pnconfig)
+	pn.SetClient(interceptor.GetClient())
+
+	res, err := pn.Publish(&pubnub.PublishOpts{
+		Channel:   "ch",
+		Message:   "hey",
+		Transport: interceptor.Transport,
+	})
+
+	assert.Nil(err)
+	assert.Equal(14981595400555832, res.Timestamp)
 }
 
 // !go1.8 returns just "request canceled" error for canceled context
