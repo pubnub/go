@@ -49,7 +49,7 @@ func (pn *PubNub) SetClient(c *http.Client) {
 // Set a client for transactional requests
 func (pn *PubNub) GetClient() *http.Client {
 	if pn.client == nil {
-		pn.client = NewHttpClient(pn.Config.ConnectionTimeout,
+		pn.client = NewHttpClient(pn.Config.ConnectTimeout,
 			pn.Config.NonSubscribeRequestTimeout)
 	}
 

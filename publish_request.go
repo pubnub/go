@@ -210,5 +210,5 @@ func (o *PublishOpts) requestTimeout() int {
 }
 
 func (o *PublishOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectionTimeout
+	return o.pubnub.Config.ConnectTimeout
 }

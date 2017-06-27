@@ -12,11 +12,11 @@ func NewHttpClient(connectTimeout int, nonSubscribeTimeout int) *http.Client {
 		Dial: (&net.Dialer{
 			Timeout: time.Duration(connectTimeout) * time.Second,
 		}).Dial,
-		ResponseHeaderTimeout: time.Duration(nonSubscribeTimeout) * time.Second,
 	}
 
 	client := &http.Client{
 		Transport: transport,
+		Timeout:   time.Duration(nonSubscribeTimeout) * time.Second,
 	}
 
 	return client
