@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"testing"
 
-	utils "github.com/pubnub/go/utils"
 	h "github.com/pubnub/go/tests/helpers"
+	utils "github.com/pubnub/go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -248,7 +248,7 @@ func TestPublishEncryptDecryptValidation(t *testing.T) {
 	assert.Equal("hey", msg)
 }
 
-func TestPublishSequenceCounter(t *testing.T){
+func TestPublishSequenceCounter(t *testing.T) {
 	assert := assert.New(t)
 
 	meta := make(map[string]string)
@@ -263,10 +263,11 @@ func TestPublishSequenceCounter(t *testing.T){
 		pubnub:  pubnub,
 		Meta:    meta,
 	}
-	counter := <-opts.pubnub.publishSequence
-
-	_, err := opts.buildQuery()
-	assert.Nil(err)
-
-	assert.Equal(<-opts.pubnub.publishSequence, counter+2)
+	for i := 1; i <= MaxSequence; i++ {
+		counter := <-opts.pubnub.publishSequence
+		if counter+1 == MaxSequence {
+			assert.Equal(<-opts.pubnub.publishSequence, 1)
+			break
+		}
+	}
 }
