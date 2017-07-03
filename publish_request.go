@@ -23,7 +23,6 @@ func PublishRequest(pn *PubNub, opts *PublishOpts) (PublishResponse, error) {
 	if err != nil {
 		return PublishResponse{}, err
 	}
-
 	var value []interface{}
 
 	err = json.Unmarshal(resp, &value)
@@ -123,15 +122,23 @@ func (o *PublishOpts) buildPath() (string, error) {
 			"0"), nil
 	}
 
-	message, err := utils.ValueAsString(o.Message)
+	var message []byte
+	var err error
+
+	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
+		msg := utils.EncryptString(cipherKey, string(message))
+
+		o.Message = []byte(msg)
+	}
+
+	message, err = utils.ValueAsString(o.Message)
 	if err != nil {
 		return "", err
 	}
 
-	// TODO: Encrypt if required
+	// TODO: issue: default urlencoding happens incorrectly
 
 	// TODO: urlencode
-	// msg := utils.PathEscape(string(message))
 
 	return fmt.Sprintf(PUBLISH_GET_PATH,
 		o.pubnub.Config.PublishKey,
@@ -146,8 +153,8 @@ func (o *PublishOpts) buildQuery() (*url.Values, error) {
 
 	if o.Meta != nil {
 		// TODO: serialize
-
-		q.Set("meta", o.Meta.(string))
+		meta, _ := utils.ValueAsString(o.Meta)
+		q.Set("meta", string(meta))
 	}
 
 	if o.DoNotStore {
@@ -170,26 +177,37 @@ func (o *PublishOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *PublishOpts) buildBody() (string, error) {
+func (o *PublishOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
-		var msg string
+		var msg []byte
 
 		if o.Serialize {
-			_, err := utils.ValueAsString(o.Message)
+			m, err := utils.ValueAsString(o.Message)
 			if err != nil {
-				return "", err
+				return []byte{}, err
+			}
+			msg = []byte(m)
+		} else {
+			if s, ok := o.Message.(string); ok {
+				msg = []byte(s)
+			} else {
+				err := pnerr.NewBuildRequestError("Type error, only string is expected")
+				return []byte{}, err
 			}
 		}
 
-		if o.pubnub.Config.Crypto {
-			//TODO: Encrypt function
-			// return fmt.Sprintf('"', msg, '"')
+		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
+			enc := utils.EncryptString(cipherKey, string(msg))
+			msg, err := utils.ValueAsString(enc)
+			if err != nil {
+				return []byte{}, err
+			}
+			return []byte(msg), nil
 		} else {
 			return msg, nil
 		}
-		return "", nil
 	} else {
-		return "", nil
+		return []byte{}, nil
 	}
 }
 

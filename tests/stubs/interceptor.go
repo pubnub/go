@@ -111,9 +111,9 @@ func (i *interceptTransport) RoundTrip(req *http.Request) (*http.Response,
 		ProtoMinor:       0,
 		Request:          req,
 		TransferEncoding: nil,
-		Body:             http.NoBody,
+		Body:             ioutil.NopCloser(bytes.NewBufferString("No Stub Matched")),
 		Close:            true,
-		ContentLength:    0,
+		ContentLength:    256,
 	}, nil
 }
 

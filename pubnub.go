@@ -60,7 +60,6 @@ func NewPubNub(pnconf *Config) *PubNub {
 	publishSequence := make(chan int)
 
 	go runPublishSequenceManager(MaxSequence, publishSequence)
-
 	return &PubNub{
 		Config:          pnconf,
 		publishSequence: publishSequence,

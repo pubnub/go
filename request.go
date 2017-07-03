@@ -1,7 +1,7 @@
 package pubnub
 
 import (
-	"fmt"
+	"bytes"
 	"io"
 	"io/ioutil"
 	"log"
@@ -23,10 +23,22 @@ func executeRequest(opts endpointOpts) ([]byte, error) {
 	}
 
 	log.Println("pubnub: >>>", url)
+	log.Println(opts.httpMethod())
 
-	// TODO: can be POST
-	req, err := newRequest("GET", url, nil)
-	fmt.Println(err)
+	var req *http.Request
+
+	if opts.httpMethod() == "POST" {
+		b, err := opts.buildBody()
+		if err != nil {
+			return nil, err
+		}
+
+		body := bytes.NewReader(b)
+		req, err = newRequest("POST", url, body)
+	} else {
+		req, err = newRequest("GET", url, nil)
+	}
+
 	if err != nil {
 		return nil, err
 	}

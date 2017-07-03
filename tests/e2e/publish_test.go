@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -24,14 +25,19 @@ func init() {
 	pnconfig.NonSubscribeRequestTimeout = 2
 }
 
+// NOTICE: not stubbed publish
 func TestPublishSuccessNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
 
+	pn.Config.CipherKey = "enigma"
+
 	res, err := pn.Publish(&pubnub.PublishOpts{
-		Channel: "ch",
-		Message: "hey",
+		Channel:   "ch",
+		Message:   "hey",
+		UsePost:   true,
+		Serialize: true,
 	})
 
 	assert.Nil(err)
@@ -61,6 +67,33 @@ func TestPublishSuccess(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(14981595400555832, res.Timestamp)
+}
+
+func TestPublishSuccessSlice(t *testing.T) {
+	// assert := assert.New(t)
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/publish/pub_key/sub_key/0/ch/0/%5B%22hey1%22,%22hey2%22,%22hey3%22%5D",
+		Query:              "seqn=1&store=0",
+		ResponseBody:       RESP_SUCCESS,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(pnconfig)
+	pn.SetClient(interceptor.GetClient())
+
+	_, err := pn.Publish(&pubnub.PublishOpts{
+		Channel:   "ch",
+		Message:   []string{"hey", "hey2", "hey3"},
+		Transport: interceptor.Transport,
+	})
+
+	log.Println(err)
+
+	// assert.Nil(err)
+	// assert.Equal(14981595400555832, res.Timestamp)
 }
 
 // !go1.8 returns just "request canceled" error for canceled context

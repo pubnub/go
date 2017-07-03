@@ -59,7 +59,7 @@ type ServerError struct {
 func (e ServerError) Error() string {
 	return fmt.Sprintf(
 		"pubnub/server: Server respond with error code %d: %s", e.StatusCode,
-		e.Body)
+		string(e.Body))
 }
 
 func NewServerError(statusCode int, body io.ReadCloser) *ServerError {

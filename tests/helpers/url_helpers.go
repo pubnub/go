@@ -137,11 +137,19 @@ func isValueInSlice(item interface{}, slice interface{}) bool {
 	return false
 }
 
-// Assertion wrapper for tests
+// Assertion wrappers for tests
 func AssertPathsEqual(t *testing.T, expectedString, actualString string,
 	itemsPositions []int) {
 	match := PathsEqual(expectedString, actualString, itemsPositions)
 
 	assert.True(t, match, "Paths are not equal:\nExpected: %s\nActual:   %s\n",
+		expectedString, actualString)
+}
+
+func AssertQueriesEqual(t *testing.T, expectedString, actualString *url.Values,
+	ignoreKeys, mixedKeys []string) {
+	match := QueriesEqual(expectedString, actualString, ignoreKeys, mixedKeys)
+
+	assert.True(t, match, "Queries are not equal:\nExpected: %s\nActual: %s\n",
 		expectedString, actualString)
 }

@@ -32,8 +32,8 @@ func (o *fakeEndpointOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *fakeEndpointOpts) buildBody() (string, error) {
-	return "myBody", nil
+func (o *fakeEndpointOpts) buildBody() ([]byte, error) {
+	return []byte("myBody"), nil
 }
 
 func (o *fakeEndpointOpts) config() Config {
@@ -50,6 +50,10 @@ func (o *fakeEndpointOpts) validate() error {
 
 func (o *fakeEndpointOpts) context() Context {
 	return o.context()
+}
+
+func (o *fakeEndpointOpts) httpMethod() string {
+	return "GET"
 }
 
 // TODO: fix assertion (strings aren't equal)

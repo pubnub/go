@@ -8,8 +8,8 @@ type Config struct {
 	SecretKey    string
 	Origin       string
 	Uuid         string
+	CipherKey    string
 	Secure       bool
-	Crypto       bool
 
 	// TODO: timeout assignment in http.Client/http.Transport should be
 	// completely reviewed due language concerns.

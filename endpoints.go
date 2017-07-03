@@ -15,7 +15,9 @@ type endpointOpts interface {
 	buildPath() (string, error)
 	buildQuery() (*url.Values, error)
 	// or bytes[]?
-	buildBody() (string, error)
+	buildBody() ([]byte, error)
+
+	httpMethod() string
 }
 
 func defaultQuery(uuid string) *url.Values {
