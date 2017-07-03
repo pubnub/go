@@ -30,15 +30,28 @@ type PubNub struct {
 	client          *http.Client
 }
 
+// TODO: replace result with a pointer
 func (pn *PubNub) Publish(opts *PublishOpts) (PublishResponse, error) {
 	res, err := PublishRequest(pn, opts)
 	return res, err
 }
 
+// TODO: replace result with a pointer
 func (pn *PubNub) PublishWithContext(ctx Context,
 	opts *PublishOpts) (PublishResponse, error) {
 
 	return PublishRequestWithContext(ctx, pn, opts)
+}
+
+func (pn *PubNub) History(opts *HistoryOpts) (*HistoryResponse, error) {
+	res, err := HistoryRequest(pn, opts)
+	return res, err
+}
+
+func (pn *PubNub) HistoryWithContext(ctx Context,
+	opts *HistoryOpts) (*HistoryResponse, error) {
+
+	return HistoryRequestWithContext(ctx, pn, opts)
 }
 
 // Set a client for transactional requests
