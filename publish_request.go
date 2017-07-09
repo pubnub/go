@@ -135,7 +135,6 @@ func (o *PublishOpts) buildPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	// TODO: issue: default urlencoding happens incorrectly
 
 	// TODO: urlencode

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	h "github.com/pubnub/go/tests/helpers"
-	utils "github.com/pubnub/go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -236,16 +235,22 @@ func TestPublishStore(t *testing.T) {
 	assert.Empty(body)
 }
 
-func TestPublishEncryptDecryptValidation(t *testing.T) {
+func TestPublishEncrypt(t *testing.T) {
 	assert := assert.New(t)
 
-	encrypted := utils.EncryptString("enigma", "hey")
+	pnconfig.CipherKey = "testCipher"
 
-	msg, err := utils.DecryptString("enigma",
-		encrypted)
+	opts := &PublishOpts{
+		Channel: "ch",
+		Message: "hey",
+		pubnub:  pubnub,
+	}
 
+	path, err := opts.buildPath()
 	assert.Nil(err)
-	assert.Equal("hey", msg)
+
+	assert.Equal(
+		"/publish/pub_key/sub_key/0/ch/0/\"cmdMU0tZNnZFSjZCL0RpVk5Zc2lwQT09\"", path)
 }
 
 func TestPublishSequenceCounter(t *testing.T) {

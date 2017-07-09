@@ -13,20 +13,12 @@ func TestHistorySuccessNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	// for i := 0; i <= 10; i++ {
-	// 	_, err := pn.Publish(&pubnub.PublishOpts{
-	// 		Channel:    "ch",
-	// 		Message:    fmt.Sprintf("hey%d", i),
-	// 		DoNotStore: true,
-	// 	})
-	//
-	// 	assert.Nil(err)
-	// }
-
 	res, err := pn.History(&pubnub.HistoryOpts{
 		Channel: "ch",
 	})
 	assert.Nil(err)
 
 	log.Println(res)
+
+	assert.True(14981595400555832 < res.StartTimetoken)
 }

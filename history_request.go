@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/pubnub/go/pnerr"
+	"github.com/pubnub/go/utils"
 
 	"net/http"
 	"net/url"
@@ -28,7 +29,7 @@ func HistoryRequest(pn *PubNub, opts *HistoryOpts) (*HistoryResponse, error) {
 	fmt.Println(string(rawJson))
 
 	// TODO: just return the function call after finishing implementation
-	r, err := newHistoryResponse(rawJson)
+	r, err := newHistoryResponse(rawJson, opts.config().CipherKey)
 	if err != nil {
 		return emptyHistoryResp, nil
 	}
@@ -165,7 +166,7 @@ type HistoryResponse struct {
 	EndTimetoken   int64
 }
 
-func newHistoryResponse(jsonBytes []byte) (*HistoryResponse, error) {
+func newHistoryResponse(jsonBytes []byte, cipherKey string) (*HistoryResponse, error) {
 	resp := &HistoryResponse{}
 
 	var value interface{}
@@ -184,6 +185,23 @@ func newHistoryResponse(jsonBytes []byte) (*HistoryResponse, error) {
 		items := make([]HistoryResponseItem, len(msgs))
 
 		for k, val := range msgs {
+			if cipherKey != "" {
+				v, ok := val.(string)
+				var err error
+
+				if ok {
+					val, err = unmarshalWithDecrypt(v, cipherKey)
+					if err != nil {
+						e := pnerr.NewResponseParsingError("Error unmarshalling response",
+							ioutil.NopCloser(bytes.NewBufferString(v)), err)
+
+						return emptyHistoryResp, e
+					}
+				}
+
+				msgs[k] = val
+			}
+
 			if _, ok := val.(string); ok {
 				items[k].Message = val
 
@@ -257,4 +275,21 @@ func newHistoryResponse(jsonBytes []byte) (*HistoryResponse, error) {
 type HistoryResponseItem struct {
 	Message   interface{}
 	Timetoken int64
+}
+
+func unmarshalWithDecrypt(val string, cipherKey string) (interface{}, error) {
+	v, err := utils.DecryptString(cipherKey, val)
+	if err != nil {
+		return nil, err
+	}
+
+	value := v.(string)
+
+	var result interface{}
+	err = json.Unmarshal([]byte(value), &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
