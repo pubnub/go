@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -45,6 +46,9 @@ func EncryptString(cipherKey string, message string) string {
 // error if any.
 func DecryptString(cipherKey string, message string) (
 	retVal interface{}, err error) {
+	if message == "" {
+		return "**decrypt error***", errors.New("message is empty")
+	}
 
 	block, aesErr := aesCipher(cipherKey)
 	if aesErr != nil {

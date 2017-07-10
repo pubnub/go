@@ -28,13 +28,7 @@ func HistoryRequest(pn *PubNub, opts *HistoryOpts) (*HistoryResponse, error) {
 
 	fmt.Println(string(rawJson))
 
-	// TODO: just return the function call after finishing implementation
-	r, err := newHistoryResponse(rawJson, opts.config().CipherKey)
-	if err != nil {
-		return emptyHistoryResp, nil
-	}
-
-	return r, nil
+	return newHistoryResponse(rawJson, opts.config().CipherKey)
 }
 
 func HistoryRequestWithContext(ctx Context,
@@ -186,10 +180,10 @@ func newHistoryResponse(jsonBytes []byte, cipherKey string) (*HistoryResponse, e
 
 		for k, val := range msgs {
 			if cipherKey != "" {
-				v, ok := val.(string)
 				var err error
 
-				if ok {
+				switch v := val.(type) {
+				case string:
 					val, err = unmarshalWithDecrypt(v, cipherKey)
 					if err != nil {
 						e := pnerr.NewResponseParsingError("Error unmarshalling response",
@@ -197,48 +191,67 @@ func newHistoryResponse(jsonBytes []byte, cipherKey string) (*HistoryResponse, e
 
 						return emptyHistoryResp, e
 					}
+					break
+				case map[string]interface{}:
+					msg, ok := v["pn_other"].(string)
+					if !ok {
+						e := pnerr.NewResponseParsingError("Decription error: ",
+							ioutil.NopCloser(bytes.NewBufferString("message is empty")), nil)
+
+						return emptyHistoryResp, e
+					}
+					val, err = unmarshalWithDecrypt(msg, cipherKey)
+					if err != nil {
+						e := pnerr.NewResponseParsingError("Error unmarshalling response",
+							ioutil.NopCloser(bytes.NewBufferString(err.Error())), err)
+
+						return emptyHistoryResp, e
+					}
+					break
+				default:
+					e := pnerr.NewResponseParsingError("Decription error: ",
+						ioutil.NopCloser(bytes.NewBufferString("message is empty")), nil)
+
+					return emptyHistoryResp, e
 				}
 
 				msgs[k] = val
 			}
 
-			if _, ok := val.(string); ok {
+			switch v := val.(type) {
+			case string:
 				items[k].Message = val
 
 				items = append(items, items[k])
-			}
-
-			if _, ok := val.(float64); ok {
+				break
+			case float64:
 				items[k].Message = val
 
 				items = append(items, items[k])
-			}
-
-			if m, ok := val.(map[string]interface{}); ok {
-				if m["timetoken"] != nil {
-					for k, value := range msgs {
-						msg := value.(map[string]interface{})
-
-						timetoken := msg["timetoken"].(float64)
-
-						items[k].Message = msg["message"]
-						items[k].Timetoken = int64(timetoken)
-
-						items = append(items, items[k])
+				break
+			case map[string]interface{}:
+				if v["timetoken"] != nil {
+					for key, value := range v {
+						if key == "timetoken" {
+							tt := value.(float64)
+							items[k].Timetoken = int64(tt)
+						} else {
+							items[k].Message = value
+						}
 					}
 				} else {
 					for k, value := range msgs {
 						items[k].Message = value
-
-						items = append(items, items[k])
 					}
 				}
-			}
-
-			if v, ok := val.([]interface{}); ok {
+				break
+			case []interface{}:
 				items[k].Message = v
 
 				items = append(items, items[k])
+				break
+			default:
+				continue
 			}
 		}
 
