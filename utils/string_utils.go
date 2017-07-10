@@ -3,9 +3,15 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	uuid "github.com/satori/go.uuid"
 )
+
+func ChannelsAsString(channels []string) ([]byte, error) {
+	// TODO: channels should be optionally encoded
+	return []byte(strings.Join(channels, ",")), nil
+}
 
 // PubNub - specific serializer
 func ValueAsString(value interface{}) ([]byte, error) {

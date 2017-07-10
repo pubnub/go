@@ -25,9 +25,11 @@ var (
 // No server connection will be established when you create a new PubNub object.
 // To establish a new connection use Subscribe() function of PubNub type.
 type PubNub struct {
-	Config          *Config
-	publishSequence chan int
-	client          *http.Client
+	Config              *Config
+	publishSequence     chan int
+	subscriptionManager *SubscriptionManager
+	client              *http.Client
+	subscribeClient     *http.Client
 }
 
 // TODO: replace result with a pointer
@@ -44,14 +46,22 @@ func (pn *PubNub) PublishWithContext(ctx Context,
 }
 
 func (pn *PubNub) History(opts *HistoryOpts) (*HistoryResponse, error) {
-	res, err := HistoryRequest(pn, opts)
-	return res, err
+	return HistoryRequest(pn, opts)
 }
 
 func (pn *PubNub) HistoryWithContext(ctx Context,
 	opts *HistoryOpts) (*HistoryResponse, error) {
 
 	return HistoryRequestWithContext(ctx, pn, opts)
+}
+
+// TODO: use builder instead plain arguments
+func (pn *PubNub) Subscribe(subOperation *SubscribeOperation) {
+	pn.subscriptionManager.adaptSubscribe(subOperation)
+}
+
+func (pn *PubNub) AddListener(listener *Listener) {
+	pn.subscriptionManager.AddListener(listener)
 }
 
 // Set a client for transactional requests
@@ -69,14 +79,29 @@ func (pn *PubNub) GetClient() *http.Client {
 	return pn.client
 }
 
+// Set a client for transactional requests
+func (pn *PubNub) GetSubscribeClient() *http.Client {
+	if pn.subscribeClient == nil {
+		pn.subscribeClient = NewHttpClient(pn.Config.ConnectTimeout,
+			pn.Config.SubscribeRequestTimeout)
+	}
+
+	return pn.subscribeClient
+}
+
 func NewPubNub(pnconf *Config) *PubNub {
 	publishSequence := make(chan int)
 
 	go runPublishSequenceManager(MaxSequence, publishSequence)
-	return &PubNub{
+
+	pn := &PubNub{
 		Config:          pnconf,
 		publishSequence: publishSequence,
 	}
+
+	pn.subscriptionManager = newSubscriptionManager(pn)
+
+	return pn
 }
 
 func NewPubNubDemo() *PubNub {
