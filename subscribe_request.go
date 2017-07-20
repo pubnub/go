@@ -30,9 +30,6 @@ type SubscribeOpts struct {
 	Timetoken    int64
 	WithPresence bool
 
-	// TODO should use custom transport
-	Transport http.RoundTripper
-
 	ctx Context
 }
 
@@ -41,7 +38,7 @@ func (o *SubscribeOpts) config() Config {
 }
 
 func (o *SubscribeOpts) client() *http.Client {
-	return o.pubnub.GetClient()
+	return o.pubnub.GetSubscribeClient()
 }
 
 func (o *SubscribeOpts) context() Context {

@@ -137,7 +137,6 @@ func (m *SubscriptionManager) startSubscribeLoop(messages chan<- interface{}) {
 			Groups:    combinedGroups,
 			Timetoken: m.timetoken,
 			ctx:       m.ctx,
-			Transport: m.pubnub.GetSubscribeClient().Transport,
 			// 	// transport
 			// 	// config/subkey
 			// 	// config/uuid
