@@ -1,6 +1,8 @@
 package pubnub
 
-import "sync"
+import (
+	"sync"
+)
 
 type Listener struct {
 	Status   chan PNStatus
@@ -43,20 +45,26 @@ func (m *ListenerManager) removeListener(listener *Listener) {
 
 func (m *ListenerManager) announceStatus(status *PNStatus) {
 	m.RLock()
-	defer m.RUnlock()
 
-	for l, _ := range m.listeners {
-		l.Status <- *status
-	}
+	go func() {
+		defer m.RUnlock()
+
+		for l, _ := range m.listeners {
+			l.Status <- *status
+		}
+	}()
 }
 
 func (m *ListenerManager) announceMessage(message *PNMessage) {
 	m.RLock()
-	defer m.RUnlock()
 
-	for l, _ := range m.listeners {
-		l.Message <- *message
-	}
+	go func() {
+		defer m.RUnlock()
+
+		for l, _ := range m.listeners {
+			l.Message <- *message
+		}
+	}()
 }
 
 func (m *ListenerManager) announcePresence(presence *PNPresence) {
@@ -68,6 +76,69 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	}
 }
 
-type PNStatus int
-type PNMessage int
-type PNPresence int
+type StatusCategory int
+type OperationType int
+
+const (
+	UnknownCategory StatusCategory = 1 << iota
+	TimeoutCategory
+	ConnectedCategory
+	DisconnectedCategory
+	CancelledCategory
+	AcknowledgmentCategory
+	BadRequestCategory
+)
+
+const (
+	PNUnsubscribeOperation OperationType = 1 << iota
+	PNSubscribeOperation
+)
+
+type PNStatus struct {
+	Category  StatusCategory
+	Operation OperationType
+
+	ErrorData     error
+	Error         bool
+	TlsEnabled    bool
+	StatusCode    int
+	Uuid          string
+	AuthKey       string
+	Origin        string
+	ClientRequest interface{}
+
+	AffectedChannels      []string
+	AffectedChannelGroups []string
+}
+
+type PNMessage struct {
+	Message      interface{}
+	UserMetadata interface{}
+
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
+	Publisher         string
+	Timetoken         string
+}
+
+type PNPresence struct {
+	Event             string
+	Uuid              string
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
+
+	Occupancy int
+	Timetoken int64
+	Timestamp int64
+
+	UserMetadata map[string]interface{}
+	State        interface{}
+
+	Join    []string
+	Leave   []string
+	Timeout []string
+}

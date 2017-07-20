@@ -55,13 +55,20 @@ func (pn *PubNub) HistoryWithContext(ctx Context,
 	return HistoryRequestWithContext(ctx, pn, opts)
 }
 
-// TODO: use builder instead plain arguments
-func (pn *PubNub) Subscribe(subOperation *SubscribeOperation) {
-	pn.subscriptionManager.adaptSubscribe(subOperation)
+func (pn *PubNub) Subscribe(operation *SubscribeOperation) {
+	pn.subscriptionManager.adaptSubscribe(operation)
+}
+
+func (pn *PubNub) Unsubscribe(operation *UnsubscribeOperation) {
+	pn.subscriptionManager.adaptUnsubscribe(operation)
 }
 
 func (pn *PubNub) AddListener(listener *Listener) {
 	pn.subscriptionManager.AddListener(listener)
+}
+
+func (pn *PubNub) Leave(opts *LeaveOpts) error {
+	return LeaveRequest(pn, opts)
 }
 
 // Set a client for transactional requests

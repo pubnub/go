@@ -1,10 +1,10 @@
 package pubnub
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
-	"log"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -15,7 +15,8 @@ type SubscriptionManager struct {
 	stateManager    *StateManager
 	pubnub          *PubNub
 
-	ctx Context
+	ctx             Context
+	subscribeCancel func()
 
 	// Store the latest timetoken to subscribe with, null by default to get the
 	// latest timetoken.
@@ -62,7 +63,9 @@ func newSubscriptionManager(pubnub *PubNub) *SubscriptionManager {
 
 	manager.subscriptionStateAnnounced = false
 
-	messages := make(chan interface{}, 1000)
+	manager.ctx, manager.subscribeCancel = context.WithCancel(context.Background())
+
+	messages := make(chan subscribeMessage, 1000)
 
 	go manager.startSubscribeLoop(messages)
 	go subscribeMessageWorker(manager.listenerManager, messages)
@@ -99,13 +102,35 @@ func (m *SubscriptionManager) adaptSubscribe(
 }
 
 func (m *SubscriptionManager) adaptUnsubscribe(
-	unsubscribeOperation UnsubscribeOperation) {
+	unsubscribeOperation *UnsubscribeOperation) {
 	m.stateManager.adaptUnsubscribeBuilder(unsubscribeOperation)
 
 	m.subscriptionStateAnnounced = false
 
-	//TODO:
-	//Leave
+	err := m.pubnub.Leave(&LeaveOpts{
+		Channels:      unsubscribeOperation.Channels,
+		ChannelGroups: unsubscribeOperation.ChannelGroups,
+	})
+
+	if err != nil {
+		m.listenerManager.announceStatus(&PNStatus{
+			Category:              BadRequestCategory,
+			ErrorData:             err,
+			Error:                 true,
+			Operation:             PNUnsubscribeOperation,
+			AffectedChannels:      m.Channels,
+			AffectedChannelGroups: m.ChannelGroups,
+		})
+	} else {
+		m.listenerManager.announceStatus(&PNStatus{
+			Category:              AcknowledgmentCategory,
+			StatusCode:            200,
+			Operation:             PNUnsubscribeOperation,
+			Uuid:                  m.pubnub.Config.Uuid,
+			AffectedChannels:      unsubscribeOperation.Channels,
+			AffectedChannelGroups: unsubscribeOperation.ChannelGroups,
+		})
+	}
 
 	if m.stateManager.isEmpty() {
 		m.region = 0
@@ -115,17 +140,19 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 		m.storedTimetoken = m.timetoken
 		m.timetoken = 0
 	}
+	m.reconnect()
 }
 
 // TODO: how to stop/reconnect?
-func (m *SubscriptionManager) startSubscribeLoop(messages chan<- interface{}) {
+func (m *SubscriptionManager) startSubscribeLoop(messages chan<- subscribeMessage) {
 	for true {
-		log.Println("loop")
 		combinedChannels := m.stateManager.prepareChannelList(true)
 		combinedGroups := m.stateManager.prepareGroupList(true)
 
 		if len(combinedChannels) == 0 && len(combinedGroups) == 0 {
-			log.Println("stop")
+			m.listenerManager.announceStatus(&PNStatus{
+				Category: DisconnectedCategory,
+			})
 			break
 		}
 
@@ -146,27 +173,43 @@ func (m *SubscriptionManager) startSubscribeLoop(messages chan<- interface{}) {
 		// TODO: use context to be able to stop request
 		res, err := executeRequest(opts)
 		if err != nil {
+			if strings.Contains(err.Error(), "context canceled") {
+				m.listenerManager.announceStatus(&PNStatus{
+					Category: CancelledCategory,
+				})
+				continue
+			}
 			// TODO: handle timeout
 			// TODO: handle canceled
 			// TODO: handle error
-			return
+			break
 		}
 
 		if m.subscriptionStateAnnounced == false {
-			// TODO: announce connect status event
+			m.listenerManager.announceStatus(&PNStatus{
+				Category: ConnectedCategory,
+			})
+
+			m.subscriptionStateAnnounced = true
 		}
 
 		var envelope subscribeEnvelope
 		err = json.Unmarshal(res, &envelope)
 		if err != nil {
-			// TODO: send error to status
+			m.listenerManager.announceStatus(&PNStatus{
+				Category:              BadRequestCategory,
+				ErrorData:             err,
+				Error:                 true,
+				Operation:             PNSubscribeOperation,
+				AffectedChannels:      m.Channels,
+				AffectedChannelGroups: m.ChannelGroups,
+			})
 		}
-		fmt.Printf("parsed: %#v\n", envelope)
-		// TODO: fetch messages and if any, push them to the worker queue
 
+		// TODO: fetch messages and if any, push them to the worker queue
 		if len(envelope.Messages) > 0 {
 			for message := range envelope.Messages {
-				messages <- message
+				messages <- envelope.Messages[message]
 			}
 		}
 
@@ -176,8 +219,14 @@ func (m *SubscriptionManager) startSubscribeLoop(messages chan<- interface{}) {
 		} else {
 			tt, err := strconv.ParseInt(envelope.Metadata.Timetoken, 10, 64)
 			if err != nil {
-				// TODO: error
-				log.Panicln("nil timetoken", envelope.Metadata)
+				m.listenerManager.announceStatus(&PNStatus{
+					Category:              BadRequestCategory,
+					ErrorData:             err,
+					Error:                 true,
+					Operation:             PNSubscribeOperation,
+					AffectedChannels:      m.Channels,
+					AffectedChannelGroups: m.ChannelGroups,
+				})
 			}
 
 			m.timetoken = tt
@@ -188,17 +237,74 @@ func (m *SubscriptionManager) startSubscribeLoop(messages chan<- interface{}) {
 }
 
 type subscribeEnvelope struct {
-	Messages []interface{} `json:"m"`
+	Messages []subscribeMessage `json:"m"`
 	Metadata struct {
 		Timetoken string `json:"t"`
 		Region    int8   `json:"r"`
 	} `json:"t"`
 }
 
-func subscribeMessageWorker(lm *ListenerManager, messages <-chan interface{}) {
+type subscribeMessage struct {
+	Shard             string      `json:"a"`
+	SubscriptionMatch string      `json:"b"`
+	Channel           string      `json:"c"`
+	IssuingClientId   string      `json:"i"`
+	SubscribeKey      string      `json:"k"`
+	Flags             int         `json:"f"`
+	Payload           interface{} `json:"d"`
+	UserMetadata      interface{} `json:"u"`
+
+	PublishMetaData publishMetadata `json:"p"`
+}
+
+type publishMetadata struct {
+	PublishTimetoken string `json:"t"`
+	Region           int    `json:"r"`
+}
+
+type originationMetadata struct {
+	Timetoken int64 `json:"t"`
+	Region    int   `json:"r"`
+}
+
+func subscribeMessageWorker(lm *ListenerManager, messages <-chan subscribeMessage) {
 	for message := range messages {
-		fmt.Println(">>>", message)
-		// TODO: parse
+		processSubscribePayload(lm, message)
+	}
+}
+
+func processSubscribePayload(lm *ListenerManager, payload subscribeMessage) {
+	channel := payload.Channel
+	subscriptionMatch := payload.SubscriptionMatch
+	publishMetadata := payload.PublishMetaData
+
+	if channel != "" && channel == subscriptionMatch {
+		subscriptionMatch = ""
+	}
+
+	if strings.Contains(channel, "-pnpres") {
+		//TODO: presencePayload
+	} else {
+		actualCh := ""
+		subscribedCh := channel
+
+		if subscriptionMatch != "" {
+			actualCh = channel
+			subscribedCh = subscriptionMatch
+		}
+
+		pnMessageResult := &PNMessage{
+			Message:           payload.Payload,
+			ActualChannel:     actualCh,
+			SubscribedChannel: subscribedCh,
+			Channel:           channel,
+			Subscription:      subscriptionMatch,
+			Timetoken:         publishMetadata.PublishTimetoken,
+			Publisher:         payload.IssuingClientId,
+			UserMetadata:      payload.UserMetadata,
+		}
+
+		lm.announceMessage(pnMessageResult)
 	}
 }
 
@@ -206,6 +312,9 @@ func (m *SubscriptionManager) AddListener(listener *Listener) {
 	m.listenerManager.addListener(listener)
 }
 
-func reconnect() {
-
+func (m *SubscriptionManager) reconnect() {
+	if m.ctx != nil && m.subscribeCancel != nil {
+		m.subscribeCancel()
+		m.ctx, m.subscribeCancel = context.WithCancel(context.Background())
+	}
 }

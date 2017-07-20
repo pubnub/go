@@ -21,7 +21,8 @@ type SubscriptionItem struct {
 
 func newStateManager() *StateManager {
 	return &StateManager{
-		channels: make(map[string]*SubscriptionItem),
+		channels:         make(map[string]*SubscriptionItem),
+		presenceChannels: make(map[string]*SubscriptionItem),
 	}
 }
 
@@ -93,7 +94,7 @@ func (m *StateManager) adaptStateBuilder(stateOperation StateOperation) {
 	}
 }
 
-func (m *StateManager) adaptUnsubscribeBuilder(unsubscribeOperation UnsubscribeOperation) {
+func (m *StateManager) adaptUnsubscribeBuilder(unsubscribeOperation *UnsubscribeOperation) {
 	m.Lock()
 	defer m.Unlock()
 
