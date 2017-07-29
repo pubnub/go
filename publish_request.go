@@ -135,16 +135,15 @@ func (o *PublishOpts) buildPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// TODO: issue: default urlencoding happens incorrectly
 
-	// TODO: urlencode
+	stringifiedMessage := utils.UrlEncode(string(message))
 
 	return fmt.Sprintf(PUBLISH_GET_PATH,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,
 		o.Channel,
 		"0",
-		message), nil
+		stringifiedMessage), nil
 }
 
 func (o *PublishOpts) buildQuery() (*url.Values, error) {
@@ -228,4 +227,8 @@ func (o *PublishOpts) requestTimeout() int {
 
 func (o *PublishOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
+}
+
+func (o *PublishOpts) operationType() PNOperationType {
+	return PNPublishOperation
 }

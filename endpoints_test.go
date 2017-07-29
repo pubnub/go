@@ -56,6 +56,10 @@ func (o *fakeEndpointOpts) httpMethod() string {
 	return "GET"
 }
 
+func (o *fakeEndpointOpts) operationType() PNOperationType {
+	return PNSubscribeOperation
+}
+
 // TODO: fix assertion (strings aren't equal)
 func AestBuildUrl(t *testing.T) {
 	assert := assert.New(t)

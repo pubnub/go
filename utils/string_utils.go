@@ -3,14 +3,19 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"sort"
 	"strings"
 
 	uuid "github.com/satori/go.uuid"
 )
 
-func ChannelsAsString(channels []string) ([]byte, error) {
-	// TODO: channels should be optionally encoded
-	return []byte(strings.Join(channels, ",")), nil
+func JoinChannels(channels []string) []byte {
+	if len(channels) == 0 {
+		return []byte(",")
+	}
+
+	return []byte(strings.Join(channels, ","))
 }
 
 // PubNub - specific serializer
@@ -29,3 +34,90 @@ func ValueAsString(value interface{}) ([]byte, error) {
 func Uuid() string {
 	return uuid.NewV4().String()
 }
+
+func sortQueries(params *url.Values) []string {
+	sortedKeys := make([]string, len(*params))
+	i := 0
+
+	for k, _ := range *params {
+		sortedKeys[i] = k
+		i++
+	}
+
+	sort.Strings(sortedKeys)
+
+	return sortedKeys
+}
+
+func PreparePamParams(params *url.Values) string {
+	sortedKeys := sortQueries(params)
+	stringifiedQuery := ""
+	i := 0
+
+	for _, v := range sortedKeys {
+		if i == len(sortedKeys)-1 {
+			stringifiedQuery += fmt.Sprintf("%s=%s", v, pamEncode((*params)[v][0]))
+		} else {
+			stringifiedQuery += fmt.Sprintf("%s=%s&", v, pamEncode((*params)[v][0]))
+		}
+
+		i++
+	}
+
+	return stringifiedQuery
+}
+
+func pamEncode(value string) string {
+	// *!'()[]~
+	stringifiedParam := UrlEncode(value)
+
+	var replacer = strings.NewReplacer(
+		"*", "%2A",
+		"!", "%21",
+		"'", "%27",
+		"(", "%28",
+		")", "%29",
+		"[", "%5B",
+		"]", "%5D",
+		"~", "%7E")
+
+	stringifiedParam = replacer.Replace(stringifiedParam)
+
+	return stringifiedParam
+}
+
+func QueryToString(query *url.Values) string {
+	stringifiedQuery := ""
+	i := 0
+
+	for k, v := range *query {
+		if i == len(*query)-1 {
+			stringifiedQuery += fmt.Sprintf("%s=%s", k, v[0])
+		} else {
+			stringifiedQuery += fmt.Sprintf("%s=%s&", k, v[0])
+		}
+
+		i++
+	}
+
+	return stringifiedQuery
+}
+
+func UrlEncode(s string) string {
+	v := url.QueryEscape(s)
+
+	// TODO move replacer to the top
+	var replacer = strings.NewReplacer(
+		"+", "%20",
+	)
+
+	return replacer.Replace(v)
+}
+
+// func UrlEncodeQueryPart(key, value string) string {
+// 	v := &url.Values{}
+//
+// 	v.Set(key, value)
+//
+// 	return v.Encode()[len(key)+1:]
+// }

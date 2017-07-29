@@ -265,3 +265,21 @@ func TestPublishNetworkError(t *testing.T) {
 	assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
 		"dial tcp: lookup")
 }
+
+// WARNING: not mocked request
+func TestPublishSigned(t *testing.T) {
+	assert := assert.New(t)
+
+	config := pamConfigCopy()
+	config.Uuid = SPECIAL_CHARACTERS
+	config.AuthKey = SPECIAL_CHANNEL
+
+	pn := pubnub.NewPubNub(config)
+
+	_, err := pn.Publish(&pubnub.PublishOpts{
+		Channel: "ch",
+		Message: []string{"hey", "hey2", "hey3"},
+	})
+
+	assert.Nil(err)
+}

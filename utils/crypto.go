@@ -139,7 +139,7 @@ func encodeNonASCIIChars(message string) string {
 // input: input to hash.
 //
 // returns the hash.
-func getHmacSha256(secretKey string, input string) string {
+func GetHmacSha256(secretKey string, input string) string {
 	hmacSha256 := hmac.New(sha256.New, []byte(secretKey))
 	hmacSha256.Write([]byte(input))
 	rawSig := base64.StdEncoding.EncodeToString(hmacSha256.Sum(nil))

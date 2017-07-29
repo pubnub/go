@@ -1,6 +1,7 @@
 package pubnub
 
 type PNStatusCategory int
+type PNOperationType int
 
 const (
 	PNUnknownCategory PNStatusCategory = 1 << iota
@@ -20,4 +21,29 @@ const (
 	PNTLSConnectionFailedCategory
 	PNTLSUntrustedCertificateCategory
 	PNRequestMessageCountExceededCategory
+)
+
+const (
+	PNSubscribeOperation PNOperationType = 1 << iota
+	PNUnsubscribeOperation
+	PNPublishOperation
+	PNHistoryOperation
+	PNFetchMessagesOperation
+	PNWhereNowOperation
+	PNHereNowOperation
+	PNHeartBeatOperation
+	PNSetStateOperation
+	PNGetStateOperation
+	PNAddChannelsToChannelGroupOperation
+	PNRemoveChannelFromChannelGroupOperation
+	PNChannelGroupOperation
+	PNRemoveGroupOperation
+	PNChannelsForGroupOperation
+	PNPushNotificationsEnabledChannelsOperation
+	PNAddPushNotificationsOnChannelsOperation
+	PNRemovePushNotificationsFromChannelsOperation
+	PNRemoveAllPushNotificationsOperation
+	PNTimeOperation
+	PNAccessManagerGrant
+	PNAccessManagerRevoke
 )

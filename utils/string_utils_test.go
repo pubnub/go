@@ -20,3 +20,10 @@ func TestUuid(t *testing.T) {
 
 	assert.Len(Uuid(), 36)
 }
+
+func TestUrlEncode(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal("%5B%22hey1%22%2C%20%22hey2%22%2C%20%22hey3%5D",
+		UrlEncode(`["hey1", "hey2", "hey3]`))
+}

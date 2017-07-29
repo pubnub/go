@@ -37,11 +37,7 @@ func (o *LeaveOpts) httpMethod() string {
 }
 
 func (o *LeaveOpts) buildPath() (string, error) {
-	channels, err := utils.ChannelsAsString(o.Channels)
-
-	if err != nil {
-		return "", err
-	}
+	channels := utils.JoinChannels(o.Channels)
 
 	if string(channels) == "" {
 		channels = []byte(",")
@@ -56,7 +52,7 @@ func (o *LeaveOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
 	if len(o.ChannelGroups) > 0 {
-		channelGroup, _ := utils.ChannelsAsString(o.ChannelGroups)
+		channelGroup := utils.JoinChannels(o.ChannelGroups)
 		q.Set("channel-group", string(channelGroup))
 	}
 
@@ -85,4 +81,8 @@ func (o *LeaveOpts) validate() error {
 	}
 
 	return nil
+}
+
+func (o *LeaveOpts) operationType() PNOperationType {
+	return PNUnsubscribeOperation
 }

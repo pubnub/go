@@ -14,13 +14,12 @@ const (
 
 // Errors
 var (
-	ErrMissingPubKey  = pnerr.NewValidationError("pubnub: Missing Publish Key")
-	ErrMissingSubKey  = pnerr.NewValidationError("pubnub: Missing Subscribe Key")
-	ErrMissingChannel = pnerr.NewValidationError("pubnub: Missing Channel")
-	ErrMissingMessage = pnerr.NewValidationError("pubnub: Missing Message")
+	ErrMissingPubKey    = pnerr.NewValidationError("pubnub: Missing Publish Key")
+	ErrMissingSubKey    = pnerr.NewValidationError("pubnub: Missing Subscribe Key")
+	ErrMissingChannel   = pnerr.NewValidationError("pubnub: Missing Channel")
+	ErrMissingMessage   = pnerr.NewValidationError("pubnub: Missing Message")
+	ErrMissingSecretKey = pnerr.NewValidationError("pubnub: Missing Secret Key")
 )
-
-// TODO: pn.UnsubscribeAll() to be deferred
 
 // No server connection will be established when you create a new PubNub object.
 // To establish a new connection use Subscribe() function of PubNub type.
@@ -55,6 +54,15 @@ func (pn *PubNub) HistoryWithContext(ctx Context,
 	return HistoryRequestWithContext(ctx, pn, opts)
 }
 
+func (pn *PubNub) Grant(opts *GrantOpts) (*GrantResponse, error) {
+	return GrantRequest(pn, opts)
+}
+
+func (pn *PubNub) GrantWithContext(ctx Context, opts *GrantOpts) (
+	*GrantResponse, error) {
+
+	return GrantRequestWithContext(ctx, pn, opts)
+}
 func (pn *PubNub) Subscribe(operation *SubscribeOperation) {
 	pn.subscriptionManager.adaptSubscribe(operation)
 }
@@ -67,9 +75,15 @@ func (pn *PubNub) AddListener(listener *Listener) {
 	pn.subscriptionManager.AddListener(listener)
 }
 
+func (pn *PubNub) RemoveListener(listener *Listener) {
+	pn.subscriptionManager.RemoveListener(listener)
+}
+
 func (pn *PubNub) Leave(opts *LeaveOpts) error {
 	return LeaveRequest(pn, opts)
 }
+
+// func (pn *PubNub) SetState(opts )
 
 // Set a client for transactional requests
 func (pn *PubNub) SetClient(c *http.Client) {
@@ -94,6 +108,18 @@ func (pn *PubNub) GetSubscribeClient() *http.Client {
 	}
 
 	return pn.subscribeClient
+}
+
+func (pn *PubNub) GetSubscribedChannels() []string {
+	return pn.subscriptionManager.getSubscribedChannels()
+}
+
+func (pn *PubNub) GetSubscribedGroups() []string {
+	return pn.subscriptionManager.getSubscribedGroups()
+}
+
+func (pn *PubNub) UnsubscribeAll() {
+	pn.subscriptionManager.unsubscribeAll()
 }
 
 func NewPubNub(pnconf *Config) *PubNub {

@@ -6,6 +6,7 @@ type Config struct {
 	PublishKey   string
 	SubscribeKey string
 	SecretKey    string
+	AuthKey      string
 	Origin       string
 	Uuid         string
 	CipherKey    string

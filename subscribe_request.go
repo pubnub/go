@@ -62,15 +62,7 @@ func (o *SubscribeOpts) validate() error {
 }
 
 func (o *SubscribeOpts) buildPath() (string, error) {
-	channels, err := utils.ChannelsAsString(o.Channels)
-
-	if err != nil {
-		return "", err
-	}
-
-	if string(channels) == "" {
-		channels = []byte(",")
-	}
+	channels := utils.JoinChannels(o.Channels)
 
 	return fmt.Sprintf(SUBSCRIBE_PATH,
 		o.pubnub.Config.SubscribeKey,
@@ -82,7 +74,7 @@ func (o *SubscribeOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
 	if len(o.Groups) > 0 {
-		channelGroup, _ := utils.ChannelsAsString(o.Groups)
+		channelGroup := utils.JoinChannels(o.Groups)
 		q.Set("channel-group", string(channelGroup))
 	}
 
@@ -119,4 +111,8 @@ func (o *SubscribeOpts) requestTimeout() int {
 
 func (o *SubscribeOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
+}
+
+func (o *SubscribeOpts) operationType() PNOperationType {
+	return PNSubscribeOperation
 }

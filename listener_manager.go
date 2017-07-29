@@ -1,20 +1,21 @@
 package pubnub
 
 import (
+	"log"
 	"sync"
 )
 
 type Listener struct {
-	Status   chan PNStatus
-	Message  chan PNMessage
-	Presence chan PNPresence
+	Status   chan *PNStatus
+	Message  chan *PNMessage
+	Presence chan *PNPresence
 }
 
 func NewListener() *Listener {
 	return &Listener{
-		Status:   make(chan PNStatus),
-		Message:  make(chan PNMessage),
-		Presence: make(chan PNPresence),
+		Status:   make(chan *PNStatus),
+		Message:  make(chan *PNMessage),
+		Presence: make(chan *PNPresence),
 	}
 }
 
@@ -49,8 +50,10 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 	go func() {
 		defer m.RUnlock()
 
+		log.Println("current status")
+		log.Println(status)
 		for l, _ := range m.listeners {
-			l.Status <- *status
+			l.Status <- status
 		}
 	}()
 }
@@ -62,7 +65,7 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 		defer m.RUnlock()
 
 		for l, _ := range m.listeners {
-			l.Message <- *message
+			l.Message <- message
 		}
 	}()
 }
@@ -72,39 +75,56 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	defer m.RUnlock()
 
 	for l, _ := range m.listeners {
-		l.Presence <- *presence
+		l.Presence <- presence
 	}
 }
 
 type StatusCategory int
-type OperationType int
 
 const (
-	UnknownCategory StatusCategory = 1 << iota
+	UnknownCategory StatusCategory = 1 + iota
+	// Request timeout reached
 	TimeoutCategory
+	// Subscribe received an initial timetoken
 	ConnectedCategory
+	// Disconnected due network error
 	DisconnectedCategory
+	// Context cancelled
 	CancelledCategory
+	LoopStopCategory
 	AcknowledgmentCategory
 	BadRequestCategory
+	AccessDeniedCategory
 )
 
-const (
-	PNUnsubscribeOperation OperationType = 1 << iota
-	PNSubscribeOperation
-)
+var categories = [...]string{
+	"Unknown",
+	"Timeout",
+	"Connected",
+	"Disconnected",
+	"Cancelled",
+	"Loop Stop",
+	"Acknowledgment",
+	"Bad Request",
+	"Access Denied",
+}
+
+func (c StatusCategory) String() string {
+	return categories[c-1]
+}
 
 type PNStatus struct {
 	Category  StatusCategory
-	Operation OperationType
+	Operation PNOperationType
 
-	ErrorData     error
-	Error         bool
-	TlsEnabled    bool
-	StatusCode    int
-	Uuid          string
-	AuthKey       string
-	Origin        string
+	ErrorData  error
+	Error      bool
+	TlsEnabled bool
+	StatusCode int
+	Uuid       string
+	AuthKey    string
+	Origin     string
+	// Should be same for non-google environment
 	ClientRequest interface{}
 
 	AffectedChannels      []string
@@ -120,7 +140,7 @@ type PNMessage struct {
 	Channel           string
 	Subscription      string
 	Publisher         string
-	Timetoken         string
+	Timetoken         int64
 }
 
 type PNPresence struct {

@@ -3,12 +3,18 @@ package e2e
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"time"
 
 	mux "github.com/gorilla/mux"
 	pubnub "github.com/pubnub/go"
+)
+
+const (
+	SPECIAL_CHARACTERS = "-.,_~:/?#[]@!$&'()*+;=`|"
+	SPECIAL_CHANNEL    = "-._~:/?#[]@!$&'()*+;=`|"
 )
 
 var pamConfig *pubnub.Config
@@ -28,6 +34,7 @@ func init() {
 	pamConfig = pubnub.NewConfig()
 	pamConfig.PublishKey = "pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb"
 	pamConfig.SubscribeKey = "sub-c-90c51098-c040-11e5-a316-0619f8945a4f"
+	pamConfig.SecretKey = "sec-c-ZDA1ZTdlNzAtYzU4Zi00MmEwLTljZmItM2ZhMDExZTE2ZmQ5"
 }
 
 func configCopy() *pubnub.Config {
@@ -40,6 +47,10 @@ func pamConfigCopy() *pubnub.Config {
 	config := new(pubnub.Config)
 	*config = *pamConfig
 	return config
+}
+
+func randomized(prefix string) string {
+	return fmt.Sprintf("%s-%d", prefix, rand.Intn(10000000))
 }
 
 func makeResponseRoot(hangSeconds int) func(w http.ResponseWriter, r *http.Request) {

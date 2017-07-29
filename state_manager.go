@@ -23,6 +23,8 @@ func newStateManager() *StateManager {
 	return &StateManager{
 		channels:         make(map[string]*SubscriptionItem),
 		presenceChannels: make(map[string]*SubscriptionItem),
+		groups:           make(map[string]*SubscriptionItem),
+		presenceGroups:   make(map[string]*SubscriptionItem),
 	}
 }
 

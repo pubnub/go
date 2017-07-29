@@ -26,8 +26,6 @@ func HistoryRequest(pn *PubNub, opts *HistoryOpts) (*HistoryResponse, error) {
 		return emptyHistoryResp, err
 	}
 
-	fmt.Println(string(rawJson))
-
 	return newHistoryResponse(rawJson, opts.config().CipherKey)
 }
 
@@ -152,6 +150,10 @@ func (o *HistoryOpts) requestTimeout() int {
 
 func (o *HistoryOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
+}
+
+func (o *HistoryOpts) operationType() PNOperationType {
+	return PNHistoryOperation
 }
 
 type HistoryResponse struct {
