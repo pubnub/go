@@ -64,8 +64,8 @@ func (pn *PubNub) SetStateWithContext(ctx Context, opts *SetStateOpts) (
 	return SetStateRequestWithContext(ctx, pn, opts)
 }
 
-func (pn *PubNub) Grant(opts *GrantOpts) (*GrantResponse, error) {
-	return GrantRequest(pn, opts)
+func (pn *PubNub) Grant() *grantBuilder {
+	return newGrantBuilder(pn)
 }
 
 func (pn *PubNub) GrantWithContext(ctx Context, opts *GrantOpts) (
