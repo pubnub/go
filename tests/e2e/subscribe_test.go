@@ -489,3 +489,39 @@ func xTestSubscribeWithTimetoken(t *testing.T) {
 
 	<-doneSubscribe
 }
+
+func TestSubscribeSuperCall(t *testing.T) {
+	doneSubscribe := make(chan bool)
+	config := pamConfigCopy()
+	config.Uuid = SPECIAL_CHARACTERS
+	config.AuthKey = SPECIAL_CHARACTERS
+
+	pn := pubnub.NewPubNub(config)
+	listener := pubnub.NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.ConnectedCategory:
+					doneSubscribe <- true
+				}
+			case message := <-listener.Message:
+				fmt.Println(message)
+			case presence := <-listener.Presence:
+				fmt.Println(presence)
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe(&pubnub.SubscribeOperation{
+		Channels:      []string{SPECIAL_CHANNEL},
+		ChannelGroups: []string{SPECIAL_CHANNEL},
+		Timetoken:     int64(1337),
+	})
+
+	<-doneSubscribe
+}

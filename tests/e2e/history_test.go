@@ -142,3 +142,23 @@ func TestHistoryPNOtherError(t *testing.T) {
 
 	pnconfig.CipherKey = ""
 }
+
+func TestHistorySuperCall(t *testing.T) {
+	assert := assert.New(t)
+
+	config := pamConfigCopy()
+
+	config.Uuid = SPECIAL_CHARACTERS
+	config.AuthKey = SPECIAL_CHARACTERS
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	_, err := pn.History(&pubnub.HistoryOpts{
+		Channel:          SPECIAL_CHANNEL,
+		Count:            100,
+		Reverse:          true,
+		IncludeTimetoken: true,
+	})
+
+	assert.Nil(err)
+}

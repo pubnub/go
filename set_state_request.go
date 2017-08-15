@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -17,7 +16,7 @@ const SET_STATE_PATH = "/v2/presence/sub-key/%s/channel/%s/uuid/%s/data"
 
 var emptySetStateResponse *SetStateResponse
 
-func SetStateRequest(pn *PubNub, opts *LeaveOpts) (*SetStateResponse, error) {
+func SetStateRequest(pn *PubNub, opts *SetStateOpts) (*SetStateResponse, error) {
 	opts.pubnub = pn
 	rawJson, err := executeRequest(opts)
 	if err != nil {
@@ -28,7 +27,7 @@ func SetStateRequest(pn *PubNub, opts *LeaveOpts) (*SetStateResponse, error) {
 }
 
 func SetStateRequestWithContext(ctx Context, pn *PubNub,
-	opts *HistoryOpts) (*SetStateResponse, error) {
+	opts *SetStateOpts) (*SetStateResponse, error) {
 	opts.pubnub = pn
 	opts.ctx = ctx
 
@@ -41,6 +40,7 @@ func SetStateRequestWithContext(ctx Context, pn *PubNub,
 }
 
 type SetStateOpts struct {
+	// State can recieve only map
 	State         interface{}
 	Channels      []string
 	ChannelGroups []string
@@ -66,11 +66,9 @@ func (o *SetStateOpts) validate() error {
 		return ErrMissingSubKey
 	}
 
-	if len(o.Channels) == 0 || len(o.ChannelGroups) == 0 {
+	if len(o.Channels) == 0 && len(o.ChannelGroups) == 0 {
 		return pnerr.NewValidationError("Channel or channel group is missing")
 	}
-
-	log.Println(o.State)
 
 	if o.State == nil {
 		return pnerr.NewValidationError("State missing")
@@ -80,12 +78,12 @@ func (o *SetStateOpts) validate() error {
 }
 
 func (o *SetStateOpts) buildPath() (string, error) {
-	channels := utils.JoinChannels(o.Channels)
+	channels := utils.UrlEncode(string(utils.JoinChannels(o.Channels)))
 
 	return fmt.Sprintf(SET_STATE_PATH,
 		o.pubnub.Config.SubscribeKey,
 		channels,
-		o.pubnub.Config.Uuid,
+		utils.UrlEncode(o.pubnub.Config.Uuid),
 	), nil
 }
 
@@ -131,6 +129,10 @@ func (o *SetStateOpts) requestTimeout() int {
 
 func (o *SetStateOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
+}
+
+func (o *SetStateOpts) operationType() PNOperationType {
+	return PNSetStateOperation
 }
 
 func newSetStateResponse(jsonBytes []byte) (*SetStateResponse, error) {

@@ -1,18 +1,12 @@
 package pubnub
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/pubnub/go/pnerr"
 )
 
 const GRANT_PATH = "/v1/auth/grant/sub-key/%s"
@@ -184,78 +178,149 @@ type PNAccessManagerKeyData struct {
 	ManageEnabled bool
 }
 
+type PNPAMEntityData struct {
+	Name          string
+	AuthKeys      []string
+	ReadEnabled   bool
+	WriteEnabled  bool
+	ManageEnabled bool
+	Ttl           int
+}
+
 func newGrantResponse(jsonBytes []byte) (*GrantResponse, error) {
 	resp := &GrantResponse{}
-
-	var value interface{}
-
-	err := json.Unmarshal(jsonBytes, &value)
-	if err != nil {
-		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
-
-		return emptyGrantResponse, e
-	}
-
-	// constructedChannels := make(map[string]map[string]*PNAccessManagerKeyData)
-	// constructedGroups := make(map[string]map[string]*PNAccessManagerKeyData)
-	grantResp := &GrantResponse{}
-
-	grantData, _ := value.(map[string]interface{})
-	payload := grantData["payload"]
-	parsedPayload := payload.(map[string]interface{})
-
-	log.Println(parsedPayload)
-	if val, ok := parsedPayload["channel"]; ok {
-		log.Println(val)
-		channelName := parsedPayload["channel"]
-		log.Println(channelName)
-		constructedAuthKey := make(map[string]*PNAccessManagerKeyData)
-
-		auths, _ := parsedPayload["auths"].(map[string]interface{})
-
-		for authKeyName, value := range auths {
-			auth, _ := value.(map[string]interface{})
-
-			resp := PNAccessManagerKeyData{}
-
-			if val, ok := auth["r"]; ok {
-				if val == "1" {
-					resp.ReadEnabled = true
-				} else {
-					resp.ReadEnabled = false
-				}
-			}
-
-			if val, ok := auth["w"]; ok {
-				if val == "1" {
-					resp.WriteEnabled = true
-				} else {
-					resp.WriteEnabled = false
-				}
-			}
-
-			if val, ok := auth["m"]; ok {
-				if val == "1" {
-					resp.ManageEnabled = true
-				} else {
-					resp.ManageEnabled = false
-				}
-			}
-
-			if val, ok := auth["ttl"]; ok {
-				parsedVal, _ := val.(int)
-				grantResp.Ttl = parsedVal
-			}
-
-			constructedAuthKey[authKeyName] = &resp
-		}
-
-		log.Println("======")
-		log.Println(constructedAuthKey)
-
-		// resp := &PNAccessManagerKeyData{}
-	}
+	//
+	// var value interface{}
+	//
+	// err := json.Unmarshal(jsonBytes, &value)
+	// if err != nil {
+	// 	e := pnerr.NewResponseParsingError("Error unmarshalling response",
+	// 		ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+	//
+	// 	return emptyGrantResponse, e
+	// }
+	//
+	// constructedChannels := make(map[string]map[string]*PNPAMEntityData)
+	// constructedGroups := make(map[string]map[string]*PNPAMEntityData)
+	// grantResp := &GrantResponse{}
+	//
+	// grantData, _ := value.(map[string]interface{})
+	// payload := grantData["payload"]
+	// parsedPayload := payload.(map[string]interface{})
+	// auths, _ := parsedPayload["auths"].(map[string]interface{})
+	//
+	// if val, ok := parsedPayload["channel"]; ok {
+	// 	var ttl int
+	// 	channelName := parsedPayload["channel"]
+	// 	constructedAuthKey := make(map[string]*PNAccessManagerKeyData)
+	// 	entityData := PNPAMEntityData{
+	// 		Name: channelName,
+	// 	}
+	//
+	// 	for authKeyName, value := range auths {
+	// 		auth, _ := value.(map[string]interface{})
+	//
+	// 		managerKeyData := PNAccessManagerKeyData{}
+	//
+	// 		if val, ok := auth["r"]; ok {
+	// 			if val == "1" {
+	// 				managerKeyData.ReadEnabled = true
+	// 			} else {
+	// 				managerKeyData.ReadEnabled = false
+	// 			}
+	// 		}
+	//
+	// 		if val, ok := auth["w"]; ok {
+	// 			if val == "1" {
+	// 				managerKeyData.WriteEnabled = true
+	// 			} else {
+	// 				managerKeyData.WriteEnabled = false
+	// 			}
+	// 		}
+	//
+	// 		if val, ok := auth["m"]; ok {
+	// 			if val == "1" {
+	// 				managerKeyData.ManageEnabled = true
+	// 			} else {
+	// 				managerKeyData.ManageEnabled = false
+	// 			}
+	// 		}
+	//
+	// 		if val, ok := auth["ttl"]; ok {
+	// 			parsedVal, _ := val.(int)
+	// 			entityData.Ttl = parsedVal
+	// 			ttl = parsedVal
+	// 		}
+	//
+	// 		constructedAuthKey[authKeyName] = &resp
+	// 	}
+	//
+	// 	entityData.AuthKeys = constructedAuthKey
+	// 	entityData.Ttl = ttl
+	// 	constructedChannels[channelName] = entityData
+	// }
+	//
+	// if val, ok := parsedPayload["channel-group"]; ok {
+	// 	var ttl int
+	// 	groupName := val
+	// 	constructedAuthKey := make(map[string]*PNAccessManagerKeyData)
+	// 	entityData := PNPAMEntityData{
+	// 		Name: groupName,
+	// 	}
+	//
+	// 	if groupString, ok := val.(string); ok {
+	// 		for authKeyName, value := range auths {
+	// 			auth, _ := value.(map[string]interface{})
+	//
+	// 			resp := PNPAMEntityData{}
+	// 			resp.Name = groupName
+	//
+	// 			if val, ok := auth["r"]; ok {
+	// 				if val == "1" {
+	// 					resp.ReadEnabled = true
+	// 				} else {
+	// 					resp.ReadEnabled = false
+	// 				}
+	// 			}
+	//
+	// 			if val, ok := auth["w"]; ok {
+	// 				if val == "1" {
+	// 					resp.WriteEnabled = true
+	// 				} else {
+	// 					resp.WriteEnabled = false
+	// 				}
+	// 			}
+	//
+	// 			if val, ok := auth["m"]; ok {
+	// 				if val == "1" {
+	// 					resp.ManageEnabled = true
+	// 				} else {
+	// 					resp.ManageEnabled = false
+	// 				}
+	// 			}
+	//
+	// 			if val, ok := auth["ttl"]; ok {
+	// 				parsedVal, _ := val.(int)
+	// 				grantResp.Ttl = parsedVal
+	// 			}
+	//
+	// 			constructedAuthKey[authKeyName] = &resp
+	// 		}
+	//
+	// 		entityData.AuthKeys = constructedAuthKey
+	// 		entityData.Ttl = ttl
+	// 		constructedGroups[groupName] = entityData
+	// 	}
+	//
+	// 	if groupSlice, ok := val.(map[string]interface{}); ok {
+	// 		var ttl int
+	// 		groupName := val
+	// 		constructedAuthKey := make(map[string]*PNAccessManagerKeyData)
+	// 		entityData := PNPAMEntityData{
+	// 			Name: groupName,
+	// 		}
+	// 	}
+	// }
 
 	return resp, nil
 }

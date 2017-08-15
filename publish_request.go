@@ -118,7 +118,7 @@ func (o *PublishOpts) buildPath() (string, error) {
 		return fmt.Sprintf(PUBLISH_POST_PATH,
 			o.pubnub.Config.PublishKey,
 			o.pubnub.Config.SubscribeKey,
-			o.Channel,
+			utils.UrlEncode(o.Channel),
 			"0"), nil
 	}
 
@@ -141,7 +141,7 @@ func (o *PublishOpts) buildPath() (string, error) {
 	return fmt.Sprintf(PUBLISH_GET_PATH,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,
-		o.Channel,
+		utils.UrlEncode(o.Channel),
 		"0",
 		stringifiedMessage), nil
 }

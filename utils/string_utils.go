@@ -15,7 +15,13 @@ func JoinChannels(channels []string) []byte {
 		return []byte(",")
 	}
 
-	return []byte(strings.Join(channels, ","))
+	var encodedChannels []string
+
+	for _, value := range channels {
+		encodedChannels = append(encodedChannels, UrlEncode(value))
+	}
+
+	return []byte(strings.Join(encodedChannels, ","))
 }
 
 // PubNub - specific serializer

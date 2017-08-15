@@ -54,6 +54,16 @@ func (pn *PubNub) HistoryWithContext(ctx Context,
 	return HistoryRequestWithContext(ctx, pn, opts)
 }
 
+func (pn *PubNub) SetState(opts *SetStateOpts) (*SetStateResponse, error) {
+	return SetStateRequest(pn, opts)
+}
+
+func (pn *PubNub) SetStateWithContext(ctx Context, opts *SetStateOpts) (
+	*SetStateResponse, error) {
+
+	return SetStateRequestWithContext(ctx, pn, opts)
+}
+
 func (pn *PubNub) Grant(opts *GrantOpts) (*GrantResponse, error) {
 	return GrantRequest(pn, opts)
 }
@@ -82,8 +92,6 @@ func (pn *PubNub) RemoveListener(listener *Listener) {
 func (pn *PubNub) Leave(opts *LeaveOpts) error {
 	return LeaveRequest(pn, opts)
 }
-
-// func (pn *PubNub) SetState(opts )
 
 // Set a client for transactional requests
 func (pn *PubNub) SetClient(c *http.Client) {

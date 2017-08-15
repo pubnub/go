@@ -2,7 +2,6 @@ package pubnub
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -48,7 +47,6 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 	if err != nil {
 		return &url.URL{}, err
 	}
-	log.Println("new query", query)
 
 	if o.config().SecretKey != "" {
 		timestamp := time.Now().Unix()
@@ -69,21 +67,27 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 		signature = utils.GetHmacSha256(o.config().SecretKey, signedInput)
 	}
 
-	// if o.operationType() == PNPublishOperation {
-	// 	q, _ := o.buildQuery()
-	// 	v := q.Get("meta")
-	// 	if v != "" {
-	// 		query.Set("meta", utils.UrlEncode(v))
-	// 	}
-	// }
-	//
-	// if v := query.Get("uuid"); v != "" {
-	// 	query.Set("uuid", utils.UrlEncode(v))
-	// }
-	//
-	// if v := query.Get("auth"); v != "" {
-	// 	query.Set("auth", utils.UrlEncode(v))
-	// }
+	if o.operationType() == PNPublishOperation {
+		q, _ := o.buildQuery()
+		v := q.Get("meta")
+		if v != "" {
+			query.Set("meta", v)
+		}
+	}
+
+	if o.operationType() == PNSetStateOperation {
+		q, _ := o.buildQuery()
+		v := q.Get("state")
+		query.Set("state", v)
+	}
+
+	if v := query.Get("uuid"); v != "" {
+		query.Set("uuid", v)
+	}
+
+	if v := query.Get("auth"); v != "" {
+		query.Set("auth", v)
+	}
 
 	stringifiedQuery = utils.PreparePamParams(query)
 
@@ -91,8 +95,10 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 		stringifiedQuery += fmt.Sprintf("&signature=%s", signature)
 	}
 
+	path = fmt.Sprintf("//%s%s", o.config().Origin, path)
+
 	retUrl := &url.URL{
-		Path:     path,
+		Opaque:   path,
 		Scheme:   "https",
 		Host:     o.config().Origin,
 		RawQuery: stringifiedQuery,

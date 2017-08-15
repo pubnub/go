@@ -283,3 +283,22 @@ func TestPublishSigned(t *testing.T) {
 
 	assert.Nil(err)
 }
+
+func TestPublishSuperCall(t *testing.T) {
+	assert := assert.New(t)
+
+	config := pamConfigCopy()
+	config.Uuid = SPECIAL_CHARACTERS
+	config.AuthKey = SPECIAL_CHANNEL
+
+	pn := pubnub.NewPubNub(config)
+
+	_, err := pn.Publish(&pubnub.PublishOpts{
+		Channel: SPECIAL_CHANNEL,
+		Message: []string{SPECIAL_CHARACTERS, SPECIAL_CHARACTERS,
+			SPECIAL_CHARACTERS},
+		Meta: SPECIAL_CHARACTERS,
+	})
+
+	assert.Nil(err)
+}

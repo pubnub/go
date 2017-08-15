@@ -1,7 +1,6 @@
 package e2e
 
 import (
-	"log"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -36,7 +35,28 @@ func TestGrantMultipleMixed(t *testing.T) {
 		AuthKeys: []string{"my-auth-key-1", "my-auth-key-2"},
 	})
 
-	log.Println(res)
 	assert.Nil(err)
 	assert.NotNil(res)
+}
+
+func TestGrantSuperCall(t *testing.T) {
+	assert := assert.New(t)
+
+	config := pamConfigCopy()
+
+	config.Uuid = SPECIAL_CHARACTERS
+	config.AuthKey = SPECIAL_CHARACTERS
+
+	pn := pubnub.NewPubNub(config)
+
+	_, err := pn.Grant(&pubnub.GrantOpts{
+		Channels: []string{SPECIAL_CHANNEL},
+		Groups:   []string{SPECIAL_CHANNEL},
+		Write:    true,
+		Read:     true,
+		Manage:   true,
+		AuthKeys: []string{SPECIAL_CHARACTERS},
+	})
+
+	assert.Nil(err)
 }
