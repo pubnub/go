@@ -68,10 +68,8 @@ func (pn *PubNub) Grant() *grantBuilder {
 	return newGrantBuilder(pn)
 }
 
-func (pn *PubNub) GrantWithContext(ctx Context, opts *GrantOpts) (
-	*GrantResponse, error) {
-
-	return GrantRequestWithContext(ctx, pn, opts)
+func (pn *PubNub) GrantWithContext(ctx Context) *grantBuilder {
+	return newGrantBuilderWithContext(pn, ctx)
 }
 func (pn *PubNub) Subscribe(operation *SubscribeOperation) {
 	pn.subscriptionManager.adaptSubscribe(operation)

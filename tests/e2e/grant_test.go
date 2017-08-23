@@ -1,7 +1,6 @@
 package e2e
 
 import (
-	"log"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -17,27 +16,6 @@ func TestGrantSucccessNotStubbed(t *testing.T) {
 		Read(true).Write(true).Manage(true).
 		AuthKeys([]string{"pam-key"}).Channels([]string{"ch1"}).
 		Execute()
-
-	assert.Nil(err)
-	assert.NotNil(res)
-}
-
-func TestGrantCustomHandler(t *testing.T) {
-	assert := assert.New(t)
-
-	pn := pubnub.NewPubNub(pamConfigCopy())
-
-	opts := pubnub.GrantOpts{
-		Read:  true,
-		Write: false,
-	}
-
-	rawJson, err := executeRequest(b.opts)
-	if err != nil {
-		return emptyGrantResponse, err
-	}
-
-	return newGrantResponse(rawJson)
 
 	assert.Nil(err)
 	assert.NotNil(res)
@@ -211,7 +189,6 @@ func TestGrantMultipleGroupsWithAuth(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(res)
 
-	log.Println(res.ChannelGroups["cg1"].AuthKeys)
 	assert.True(res.ChannelGroups["cg1"].AuthKeys["my-pam-key"].WriteEnabled)
 	assert.True(res.ChannelGroups["cg1"].AuthKeys["my-pam-key"].ReadEnabled)
 	assert.False(res.ChannelGroups["cg1"].AuthKeys["my-pam-key"].ManageEnabled)

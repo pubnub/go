@@ -48,13 +48,16 @@ type SubscriptionManager struct {
 	region int8
 
 	subscriptionStateAnnounced bool
+
+	filterExpression string
 }
 
 type SubscribeOperation struct {
-	Channels        []string
-	ChannelGroups   []string
-	PresenceEnabled bool
-	Timetoken       int64
+	Channels         []string
+	ChannelGroups    []string
+	PresenceEnabled  bool
+	Timetoken        int64
+	FilterExpression string
 }
 
 type UnsubscribeOperation struct {
@@ -121,6 +124,10 @@ func (m *SubscriptionManager) adaptSubscribe(
 
 	if m.timetoken != 0 {
 		m.storedTimetoken = m.timetoken
+	}
+
+	if subscribeOperation.FilterExpression != "" {
+		m.filterExpression = subscribeOperation.FilterExpression
 	}
 
 	m.timetoken = 0
@@ -194,13 +201,15 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		tt := m.timetoken
 		ctx := m.ctx
+		filterExpr := m.filterExpression
 
 		opts := &SubscribeOpts{
-			pubnub:    m.pubnub,
-			Channels:  combinedChannels,
-			Groups:    combinedGroups,
-			Timetoken: tt,
-			ctx:       ctx,
+			pubnub:           m.pubnub,
+			Channels:         combinedChannels,
+			Groups:           combinedGroups,
+			Timetoken:        tt,
+			FilterExpression: filterExpr,
+			ctx:              ctx,
 			// 	// transport
 			// 	// config/subkey
 			// 	// config/uuid

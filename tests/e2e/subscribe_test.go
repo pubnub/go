@@ -410,7 +410,7 @@ func TestSubscribe403Error(t *testing.T) {
 	<-doneSubscribe
 }
 
-func TestSubscribeWithMeta(t *testing.T) {
+func xTestSubscribeWithMeta(t *testing.T) {
 	assert := assert.New(t)
 
 	doneSubscribe := make(chan bool)
@@ -456,9 +456,7 @@ func TestSubscribeWithMeta(t *testing.T) {
 	}
 }
 
-func xTestSubscribeWithTimetoken(t *testing.T) {
-	// assert := assert.New(t)
-
+func TestSubscribeWithTimetoken(t *testing.T) {
 	doneSubscribe := make(chan bool)
 
 	pn := pubnub.NewPubNub(configCopy())
@@ -521,6 +519,70 @@ func TestSubscribeSuperCall(t *testing.T) {
 		Channels:      []string{SPECIAL_CHANNEL},
 		ChannelGroups: []string{SPECIAL_CHANNEL},
 		Timetoken:     int64(1337),
+	})
+
+	<-doneSubscribe
+}
+
+func TestSubscribeWithFilter(t *testing.T) {
+	doneSubscribe := make(chan bool)
+
+	pn := pubnub.NewPubNub(configCopy())
+	listener := pubnub.NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.ConnectedCategory:
+					doneSubscribe <- true
+				}
+			case message := <-listener.Message:
+				fmt.Println(message)
+			case presence := <-listener.Presence:
+				fmt.Println(presence)
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe(&pubnub.SubscribeOperation{
+		Channels:         []string{"ch"},
+		FilterExpression: "foo=bar",
+	})
+
+	<-doneSubscribe
+}
+
+func TestSubscribeWithEncrypt(t *testing.T) {
+	doneSubscribe := make(chan bool)
+
+	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.SecretKey = "my-secret"
+	listener := pubnub.NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.ConnectedCategory:
+					doneSubscribe <- true
+				}
+			case message := <-listener.Message:
+				fmt.Println(message)
+			case presence := <-listener.Presence:
+				fmt.Println(presence)
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe(&pubnub.SubscribeOperation{
+		Channels: []string{"ch"},
 	})
 
 	<-doneSubscribe

@@ -18,7 +18,7 @@ const GRANT_PATH = "/v1/auth/grant/sub-key/%s"
 
 var emptyGrantResponse *GrantResponse
 
-func GrantRequestWithContext(ctx Context, pn *PubNub, opts *GrantOpts) (
+func GrantRequestWithContext(ctx Context, pn *PubNub, opts *grantOpts) (
 	*GrantResponse, error) {
 	opts.pubnub = pn
 	opts.ctx = ctx
@@ -32,13 +32,24 @@ func GrantRequestWithContext(ctx Context, pn *PubNub, opts *GrantOpts) (
 }
 
 type grantBuilder struct {
-	opts *GrantOpts
+	opts *grantOpts
 }
 
 func newGrantBuilder(pubnub *PubNub) *grantBuilder {
 	builder := grantBuilder{
-		opts: &GrantOpts{
+		opts: &grantOpts{
 			pubnub: pubnub,
+		},
+	}
+
+	return &builder
+}
+
+func newGrantBuilderWithContext(pubnub *PubNub, context Context) *grantBuilder {
+	builder := grantBuilder{
+		opts: &grantOpts{
+			pubnub: pubnub,
+			ctx:    context,
 		},
 	}
 
@@ -101,7 +112,7 @@ func (b *grantBuilder) Execute() (*GrantResponse, error) {
 }
 
 // TODO: make private
-type GrantOpts struct {
+type grantOpts struct {
 	pubnub *PubNub
 	ctx    Context
 
@@ -128,19 +139,19 @@ type GrantOpts struct {
 	SetTtl    bool
 }
 
-func (o *GrantOpts) config() Config {
+func (o *grantOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *GrantOpts) client() *http.Client {
+func (o *grantOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *GrantOpts) context() Context {
+func (o *grantOpts) context() Context {
 	return o.ctx
 }
 
-func (o *GrantOpts) validate() error {
+func (o *grantOpts) validate() error {
 	if o.config().PublishKey == "" {
 		return ErrMissingPubKey
 	}
@@ -156,11 +167,11 @@ func (o *GrantOpts) validate() error {
 	return nil
 }
 
-func (o *GrantOpts) buildPath() (string, error) {
+func (o *grantOpts) buildPath() (string, error) {
 	return fmt.Sprintf(GRANT_PATH, o.pubnub.Config.SubscribeKey), nil
 }
 
-func (o *GrantOpts) buildQuery() (*url.Values, error) {
+func (o *grantOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
 	if o.SetRead {
@@ -211,27 +222,27 @@ func (o *GrantOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *GrantOpts) buildBody() ([]byte, error) {
+func (o *grantOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *GrantOpts) httpMethod() string {
+func (o *grantOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *GrantOpts) isAuthRequired() bool {
+func (o *grantOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *GrantOpts) requestTimeout() int {
+func (o *grantOpts) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *GrantOpts) connectTimeout() int {
+func (o *grantOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *GrantOpts) operationType() PNOperationType {
+func (o *grantOpts) operationType() PNOperationType {
 	return PNAccessManagerGrant
 }
 
