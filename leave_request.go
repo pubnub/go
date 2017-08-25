@@ -10,7 +10,7 @@ import (
 
 const LEAVE_PATH = "/v2/presence/sub-key/%s/channel/%s/leave"
 
-func LeaveRequest(pn *PubNub, opts *LeaveOpts) error {
+func LeaveRequest(pn *PubNub, opts *leaveOpts) error {
 	opts.pubnub = pn
 	_, err := executeRequest(opts)
 	if err != nil {
@@ -20,7 +20,51 @@ func LeaveRequest(pn *PubNub, opts *LeaveOpts) error {
 	return nil
 }
 
-type LeaveOpts struct {
+type leaveBuilder struct {
+	opts *leaveOpts
+}
+
+func newLeaveBuilder(pubnub *PubNub) *leaveBuilder {
+	builder := leaveBuilder{
+		opts: &leaveOpts{
+			pubnub: pubnub,
+		},
+	}
+
+	return &builder
+}
+
+func newLeaveBuilderWithContext(pubnub *PubNub, context Context) *leaveBuilder {
+	builder := leaveBuilder{
+		opts: &leaveOpts{
+			pubnub: pubnub,
+			ctx:    context,
+		},
+	}
+
+	return &builder
+}
+
+func (b *leaveBuilder) Channels(channels []string) *leaveBuilder {
+	b.opts.Channels = channels
+	return b
+}
+
+func (b *leaveBuilder) ChannelGroups(groups []string) *leaveBuilder {
+	b.opts.ChannelGroups = groups
+	return b
+}
+
+func (b *leaveBuilder) Execute() error {
+	_, err := executeRequest(b.opts)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type leaveOpts struct {
 	Channels      []string
 	ChannelGroups []string
 
@@ -28,15 +72,15 @@ type LeaveOpts struct {
 	ctx    Context
 }
 
-func (o *LeaveOpts) buildBody() ([]byte, error) {
+func (o *leaveOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *LeaveOpts) httpMethod() string {
+func (o *leaveOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *LeaveOpts) buildPath() (string, error) {
+func (o *leaveOpts) buildPath() (string, error) {
 	channels := utils.JoinChannels(o.Channels)
 
 	if string(channels) == "" {
@@ -48,7 +92,7 @@ func (o *LeaveOpts) buildPath() (string, error) {
 		channels), nil
 }
 
-func (o *LeaveOpts) buildQuery() (*url.Values, error) {
+func (o *leaveOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
 	if len(o.ChannelGroups) > 0 {
@@ -59,19 +103,19 @@ func (o *LeaveOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *LeaveOpts) client() *http.Client {
+func (o *leaveOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *LeaveOpts) config() Config {
+func (o *leaveOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *LeaveOpts) context() Context {
+func (o *leaveOpts) context() Context {
 	return o.ctx
 }
 
-func (o *LeaveOpts) validate() error {
+func (o *leaveOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return ErrMissingSubKey
 	}
@@ -83,6 +127,6 @@ func (o *LeaveOpts) validate() error {
 	return nil
 }
 
-func (o *LeaveOpts) operationType() PNOperationType {
+func (o *leaveOpts) operationType() PNOperationType {
 	return PNUnsubscribeOperation
 }

@@ -22,7 +22,7 @@ func init() {
 func TestHistoryRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &HistoryOpts{
+	opts := &historyOpts{
 		Channel: "ch",
 		pubnub:  pubnub,
 	}
@@ -53,7 +53,7 @@ func TestHistoryRequestBasic(t *testing.T) {
 func TestHistoryRequestAllParams(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &HistoryOpts{
+	opts := &historyOpts{
 		Channel:          "ch",
 		Start:            "100000",
 		End:              "200000",

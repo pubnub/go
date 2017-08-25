@@ -56,6 +56,10 @@ func PathsEqual(expectedString, actualString string,
 	expected := strings.Split(expectedString, "/")
 	actual := strings.Split(actualString, "/")
 
+	if len(actual) != len(expected) {
+		return false
+	}
+
 	for k, v := range expected {
 		if !isValueInSlice(k, mixedPositions) {
 			if v != actual[k] {

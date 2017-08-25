@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"log"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -15,9 +16,7 @@ func TestHistorySuccessNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.History(&pubnub.HistoryOpts{
-		Channel: "ch",
-	})
+	_, err := pn.History().Channel("ch").Execute()
 
 	assert.Nil(err)
 }
@@ -26,14 +25,14 @@ func TestHistoryCallWithAllParams(t *testing.T) {
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
 
-	res, err := pn.History(&pubnub.HistoryOpts{
-		Channel:          "ch",
-		Count:            2,
-		IncludeTimetoken: true,
-		Reverse:          true,
-		Start:            "1",
-		End:              "2",
-	})
+	res, err := pn.History().
+		Channel("ch").
+		Count(2).
+		IncludeTimetoken(true).
+		Reverse(true).
+		Start("1").
+		End("2").
+		Execute()
 
 	assert.Nil(err)
 	assert.NotNil(res)
@@ -47,17 +46,19 @@ func TestHistorySuccess(t *testing.T) {
 		Path:               "/v2/history/sub-key/sub_key/channel/ch",
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       HISTORY_RESP_SUCCESS,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,
 	})
 
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.History(&pubnub.HistoryOpts{
-		Channel:   "ch",
-		Transport: interceptor.Transport,
-	})
+	res, err := pn.History().
+		Channel("ch").
+		Transport(interceptor.Transport).
+		Execute()
+
+	log.Println(res)
 
 	assert.Nil(err)
 	assert.Equal(int64(1234), res.StartTimetoken)
@@ -82,17 +83,17 @@ func TestHistoryEncryptedPNOther(t *testing.T) {
 		Path:               "/v2/history/sub-key/sub_key/channel/ch",
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       `[[{"pn_other":"6QoqmS9CnB3W9+I4mhmL7w=="}],14606134331557852,14606134485013970]`,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},
 		ResponseStatusCode: 200,
 	})
 
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.History(&pubnub.HistoryOpts{
-		Channel:   "ch",
-		Transport: interceptor.Transport,
-	})
+	res, err := pn.History().
+		Channel("ch").
+		Transport(interceptor.Transport).
+		Execute()
 
 	assert.Nil(err)
 	assert.Equal(1, len(res.Messages))
@@ -106,9 +107,9 @@ func TestHistoryMissingChannel(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pnconfig)
 
-	res, err := pn.History(&pubnub.HistoryOpts{
-		Channel: "",
-	})
+	res, err := pn.History().
+		Channel("").
+		Execute()
 
 	assert.Nil(res)
 	assert.Contains(err.Error(), "Missing Channel")
@@ -125,17 +126,17 @@ func TestHistoryPNOtherError(t *testing.T) {
 		Path:               "/v2/history/sub-key/sub_key/channel/ch",
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       `[[{"pn_other":""}],14606134331557852,14606134485013970]`,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},
 		ResponseStatusCode: 200,
 	})
 
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.History(&pubnub.HistoryOpts{
-		Channel:   "ch",
-		Transport: interceptor.Transport,
-	})
+	res, err := pn.History().
+		Channel("ch").
+		Transport(interceptor.Transport).
+		Execute()
 
 	assert.Nil(res)
 	assert.Contains(err.Error(), "message is empty")
@@ -153,12 +154,12 @@ func TestHistorySuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	_, err := pn.History(&pubnub.HistoryOpts{
-		Channel:          SPECIAL_CHANNEL,
-		Count:            100,
-		Reverse:          true,
-		IncludeTimetoken: true,
-	})
+	_, err := pn.History().
+		Channel(SPECIAL_CHANNEL).
+		Count(100).
+		Reverse(true).
+		IncludeTimetoken(true).
+		Execute()
 
 	assert.Nil(err)
 }

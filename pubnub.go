@@ -32,36 +32,29 @@ type PubNub struct {
 }
 
 // TODO: replace result with a pointer
-func (pn *PubNub) Publish(opts *PublishOpts) (PublishResponse, error) {
-	res, err := PublishRequest(pn, opts)
-	return res, err
+func (pn *PubNub) Publish() *publishBuilder {
+	return newPublishBuilder(pn)
 }
 
 // TODO: replace result with a pointer
-func (pn *PubNub) PublishWithContext(ctx Context,
-	opts *PublishOpts) (PublishResponse, error) {
-
-	return PublishRequestWithContext(ctx, pn, opts)
+func (pn *PubNub) PublishWithContext(ctx Context) *publishBuilder {
+	return newPublishBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) History(opts *HistoryOpts) (*HistoryResponse, error) {
-	return HistoryRequest(pn, opts)
+func (pn *PubNub) History() *historyBuilder {
+	return newHistoryBuilder(pn)
 }
 
-func (pn *PubNub) HistoryWithContext(ctx Context,
-	opts *HistoryOpts) (*HistoryResponse, error) {
-
-	return HistoryRequestWithContext(ctx, pn, opts)
+func (pn *PubNub) HistoryWithContext(ctx Context) *historyBuilder {
+	return newHistoryBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) SetState(opts *SetStateOpts) (*SetStateResponse, error) {
-	return SetStateRequest(pn, opts)
+func (pn *PubNub) SetState() *setStateBuilder {
+	return newSetStateBuilder(pn)
 }
 
-func (pn *PubNub) SetStateWithContext(ctx Context, opts *SetStateOpts) (
-	*SetStateResponse, error) {
-
-	return SetStateRequestWithContext(ctx, pn, opts)
+func (pn *PubNub) SetStateWithContext(ctx Context) *setStateBuilder {
+	return newSetStateBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) Grant() *grantBuilder {
@@ -87,8 +80,12 @@ func (pn *PubNub) RemoveListener(listener *Listener) {
 	pn.subscriptionManager.RemoveListener(listener)
 }
 
-func (pn *PubNub) Leave(opts *LeaveOpts) error {
-	return LeaveRequest(pn, opts)
+func (pn *PubNub) Leave() *leaveBuilder {
+	return newLeaveBuilder(pn)
+}
+
+func (pn *PubNub) LeaveWithContext(ctx Context) *leaveBuilder {
+	return newLeaveBuilderWithContext(pn, ctx)
 }
 
 // Set a client for transactional requests

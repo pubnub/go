@@ -111,7 +111,6 @@ func (b *grantBuilder) Execute() (*GrantResponse, error) {
 	return newGrantResponse(rawJson)
 }
 
-// TODO: make private
 type grantOpts struct {
 	pubnub *PubNub
 	ctx    Context

@@ -146,10 +146,8 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 	m.subscriptionStateAnnounced = false
 
 	go func() {
-		err := m.pubnub.Leave(&LeaveOpts{
-			Channels:      unsubscribeOperation.Channels,
-			ChannelGroups: unsubscribeOperation.ChannelGroups,
-		})
+		err := m.pubnub.Leave().Channels(unsubscribeOperation.Channels).
+			ChannelGroups(unsubscribeOperation.ChannelGroups).Execute()
 
 		if err != nil {
 			m.listenerManager.announceStatus(&PNStatus{

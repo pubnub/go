@@ -48,7 +48,8 @@ func (s *Stub) Match(req *http.Request) bool {
 		return false
 	}
 
-	if !helpers.PathsEqual(s.Path, req.URL.EscapedPath(), s.MixedPathPositions) {
+	parsedUrl, _ := req.URL.Parse(req.URL.String())
+	if !helpers.PathsEqual(s.Path, parsedUrl.EscapedPath(), s.MixedPathPositions) {
 		return false
 	}
 

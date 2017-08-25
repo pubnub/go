@@ -19,7 +19,7 @@ const MAX_COUNT = 100
 
 var emptyHistoryResp *HistoryResponse
 
-func HistoryRequest(pn *PubNub, opts *HistoryOpts) (*HistoryResponse, error) {
+func HistoryRequest(pn *PubNub, opts *historyOpts) (*HistoryResponse, error) {
 	opts.pubnub = pn
 	rawJson, err := executeRequest(opts)
 	if err != nil {
@@ -30,7 +30,7 @@ func HistoryRequest(pn *PubNub, opts *HistoryOpts) (*HistoryResponse, error) {
 }
 
 func HistoryRequestWithContext(ctx Context,
-	pn *PubNub, opts *HistoryOpts) (*HistoryResponse, error) {
+	pn *PubNub, opts *historyOpts) (*HistoryResponse, error) {
 	opts.pubnub = pn
 	opts.ctx = ctx
 
@@ -42,7 +42,77 @@ func HistoryRequestWithContext(ctx Context,
 	return emptyHistoryResp, nil
 }
 
-type HistoryOpts struct {
+type historyBuilder struct {
+	opts *historyOpts
+}
+
+func newHistoryBuilder(pubnub *PubNub) *historyBuilder {
+	builder := historyBuilder{
+		opts: &historyOpts{
+			pubnub: pubnub,
+		},
+	}
+
+	return &builder
+}
+
+func newHistoryBuilderWithContext(pubnub *PubNub,
+	context Context) *historyBuilder {
+	builder := historyBuilder{
+		opts: &historyOpts{
+			pubnub: pubnub,
+			ctx:    context,
+		},
+	}
+
+	return &builder
+}
+
+func (b *historyBuilder) Channel(ch string) *historyBuilder {
+	b.opts.Channel = ch
+	return b
+}
+
+func (b *historyBuilder) Start(start string) *historyBuilder {
+	b.opts.Start = start
+	return b
+}
+
+func (b *historyBuilder) End(end string) *historyBuilder {
+	b.opts.End = end
+	return b
+}
+
+func (b *historyBuilder) Count(count int) *historyBuilder {
+	b.opts.Count = count
+	return b
+}
+
+func (b *historyBuilder) Reverse(r bool) *historyBuilder {
+	b.opts.Reverse = r
+	return b
+}
+
+func (b *historyBuilder) IncludeTimetoken(i bool) *historyBuilder {
+	b.opts.IncludeTimetoken = i
+	return b
+}
+
+func (b *historyBuilder) Transport(tr http.RoundTripper) *historyBuilder {
+	b.opts.Transport = tr
+	return b
+}
+
+func (b *historyBuilder) Execute() (*HistoryResponse, error) {
+	rawJson, err := executeRequest(b.opts)
+	if err != nil {
+		return emptyHistoryResp, err
+	}
+
+	return newHistoryResponse(rawJson, b.opts.config().CipherKey)
+}
+
+type historyOpts struct {
 	pubnub *PubNub
 
 	Channel string
@@ -67,19 +137,19 @@ type HistoryOpts struct {
 	ctx Context
 }
 
-func (o *HistoryOpts) config() Config {
+func (o *historyOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *HistoryOpts) client() *http.Client {
+func (o *historyOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *HistoryOpts) context() Context {
+func (o *historyOpts) context() Context {
 	return o.ctx
 }
 
-func (o *HistoryOpts) validate() error {
+func (o *historyOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return ErrMissingSubKey
 	}
@@ -91,13 +161,13 @@ func (o *HistoryOpts) validate() error {
 	return nil
 }
 
-func (o *HistoryOpts) buildPath() (string, error) {
+func (o *historyOpts) buildPath() (string, error) {
 	return fmt.Sprintf(HISTORY_PATH,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.Channel)), nil
 }
 
-func (o *HistoryOpts) buildQuery() (*url.Values, error) {
+func (o *historyOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
 	if o.Start != "" {
@@ -132,27 +202,27 @@ func (o *HistoryOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *HistoryOpts) buildBody() ([]byte, error) {
+func (o *historyOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *HistoryOpts) httpMethod() string {
+func (o *historyOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *HistoryOpts) isAuthRequired() bool {
+func (o *historyOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *HistoryOpts) requestTimeout() int {
+func (o *historyOpts) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *HistoryOpts) connectTimeout() int {
+func (o *historyOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *HistoryOpts) operationType() PNOperationType {
+func (o *historyOpts) operationType() PNOperationType {
 	return PNHistoryOperation
 }
 

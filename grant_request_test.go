@@ -22,7 +22,7 @@ func init() {
 func TestGrantRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &GrantOpts{
+	opts := &grantOpts{
 		AuthKeys: []string{"my-auth-key"},
 		Channels: []string{"ch"},
 		Groups:   []string{"cg"},

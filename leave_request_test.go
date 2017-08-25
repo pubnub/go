@@ -22,7 +22,7 @@ func init() {
 func TestLeaveRequestSingleChannel(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &LeaveOpts{
+	opts := &leaveOpts{
 		Channels: []string{"ch"},
 		pubnub:   pubnub,
 	}
@@ -40,7 +40,7 @@ func TestLeaveRequestSingleChannel(t *testing.T) {
 func TestLeaveRequestMultipleChannels(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &LeaveOpts{
+	opts := &leaveOpts{
 		Channels: []string{"ch1", "ch2", "ch3"},
 		pubnub:   pubnub,
 	}
@@ -58,7 +58,7 @@ func TestLeaveRequestMultipleChannels(t *testing.T) {
 func TestLeaveRequestSingleChannelGroup(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &LeaveOpts{
+	opts := &leaveOpts{
 		ChannelGroups: []string{"cg"},
 		pubnub:        pubnub,
 	}
@@ -75,7 +75,7 @@ func TestLeaveRequestSingleChannelGroup(t *testing.T) {
 func TestLeaveRequestMultipleChannelGroups(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &LeaveOpts{
+	opts := &leaveOpts{
 		ChannelGroups: []string{"cg1", "cg2", "cg3"},
 		pubnub:        pubnub,
 	}
@@ -92,7 +92,7 @@ func TestLeaveRequestMultipleChannelGroups(t *testing.T) {
 func TestLeaveRequestChannelsAndGroups(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &LeaveOpts{
+	opts := &leaveOpts{
 		Channels:      []string{"ch1", "ch2", "ch3"},
 		ChannelGroups: []string{"cg1", "cg2", "cg3"},
 		pubnub:        pubnub,

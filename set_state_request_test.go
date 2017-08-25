@@ -25,7 +25,7 @@ func TestSetStateRequestBasic(t *testing.T) {
 	state["name"] = "Alex"
 	state["count"] = 5
 
-	opts := &SetStateOpts{
+	opts := &setStateOpts{
 		Channels:      []string{"ch"},
 		ChannelGroups: []string{"cg"},
 		State:         state,
@@ -59,7 +59,7 @@ func TestSetStateRequestBasic(t *testing.T) {
 func TestSetStateMultipleChannels(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &SetStateOpts{
+	opts := &setStateOpts{
 		Channels: []string{"ch1", "ch2", "ch3"},
 		pubnub:   pubnub,
 	}
@@ -80,7 +80,7 @@ func TestSetStateMultipleChannels(t *testing.T) {
 func TestSetStateMultipleChannelGroups(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &SetStateOpts{
+	opts := &setStateOpts{
 		ChannelGroups: []string{"cg1", "cg2", "cg3"},
 		pubnub:        pubnub,
 	}

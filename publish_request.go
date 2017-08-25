@@ -17,49 +17,22 @@ import (
 const PUBLISH_GET_PATH = "/publish/%s/%s/0/%s/%s/%s"
 const PUBLISH_POST_PATH = "/publish/%s/%s/0/%s/%s"
 
-func PublishRequest(pn *PubNub, opts *PublishOpts) (PublishResponse, error) {
-	opts.pubnub = pn
-	resp, err := executeRequest(opts)
-	if err != nil {
-		return PublishResponse{}, err
-	}
-	var value []interface{}
-
-	err = json.Unmarshal(resp, &value)
-	if err != nil {
-		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(resp))), err)
-
-		return PublishResponse{}, e
-	}
-
-	timeString := value[2].(string)
-	timestamp, err := strconv.Atoi(timeString)
-	if err != nil {
-		return PublishResponse{}, err
-	}
-
-	return PublishResponse{
-		Timestamp: timestamp,
-	}, nil
-}
+var emptyPublishResponse *PublishResponse
 
 func PublishRequestWithContext(ctx Context,
-	pn *PubNub, opts *PublishOpts) (PublishResponse, error) {
+	pn *PubNub, opts *publishOpts) (*PublishResponse, error) {
 	opts.pubnub = pn
 	opts.ctx = ctx
 
 	_, err := executeRequest(opts)
 	if err != nil {
-		return PublishResponse{}, err
+		return emptyPublishResponse, err
 	}
 
-	return PublishResponse{
-		Timestamp: 123,
-	}, nil
+	return emptyPublishResponse, err
 }
 
-type PublishOpts struct {
+type publishOpts struct {
 	pubnub *PubNub
 
 	Ttl     int
@@ -81,19 +54,123 @@ type PublishResponse struct {
 	Timestamp int
 }
 
-func (o *PublishOpts) config() Config {
+type publishBuilder struct {
+	opts *publishOpts
+}
+
+func newPublishResponse(jsonBytes []byte) (*PublishResponse, error) {
+	var value []interface{}
+
+	err := json.Unmarshal(jsonBytes, &value)
+	if err != nil {
+		e := pnerr.NewResponseParsingError("Error unmarshalling response",
+			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+
+		return emptyPublishResponse, e
+	}
+
+	timeString := value[2].(string)
+	timestamp, err := strconv.Atoi(timeString)
+	if err != nil {
+		return emptyPublishResponse, err
+	}
+
+	return &PublishResponse{
+		Timestamp: timestamp,
+	}, nil
+}
+
+func newPublishBuilder(pubnub *PubNub) *publishBuilder {
+	builder := publishBuilder{
+		opts: &publishOpts{
+			pubnub: pubnub,
+		},
+	}
+
+	return &builder
+}
+
+func newPublishBuilderWithContext(pubnub *PubNub, context Context) *publishBuilder {
+	builder := publishBuilder{
+		opts: &publishOpts{
+			pubnub: pubnub,
+			ctx:    context,
+		},
+	}
+
+	return &builder
+}
+
+func (b *publishBuilder) Ttl(ttl int) *publishBuilder {
+	b.opts.Ttl = ttl
+
+	return b
+}
+
+func (b *publishBuilder) Channel(ch string) *publishBuilder {
+	b.opts.Channel = ch
+
+	return b
+}
+
+func (b *publishBuilder) Message(msg interface{}) *publishBuilder {
+	b.opts.Message = msg
+
+	return b
+}
+
+func (b *publishBuilder) Meta(meta interface{}) *publishBuilder {
+	b.opts.Meta = meta
+
+	return b
+}
+
+func (b *publishBuilder) UsePost(post bool) *publishBuilder {
+	b.opts.UsePost = post
+
+	return b
+}
+
+func (b *publishBuilder) DoNotStore(store bool) *publishBuilder {
+	b.opts.DoNotStore = store
+
+	return b
+}
+
+func (b *publishBuilder) Serialize(serialize bool) *publishBuilder {
+	b.opts.Serialize = serialize
+
+	return b
+}
+
+func (b *publishBuilder) DoNotReplicate(repl bool) *publishBuilder {
+	b.opts.DoNotReplicate = repl
+
+	return b
+}
+
+func (b *publishBuilder) Execute() (*PublishResponse, error) {
+	rawJson, err := executeRequest(b.opts)
+	if err != nil {
+		return emptyPublishResponse, err
+	}
+
+	return newPublishResponse(rawJson)
+}
+
+func (o *publishOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *PublishOpts) client() *http.Client {
+func (o *publishOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *PublishOpts) context() Context {
+func (o *publishOpts) context() Context {
 	return o.ctx
 }
 
-func (o *PublishOpts) validate() error {
+func (o *publishOpts) validate() error {
 	if o.config().PublishKey == "" {
 		return ErrMissingPubKey
 	}
@@ -113,7 +190,7 @@ func (o *PublishOpts) validate() error {
 	return nil
 }
 
-func (o *PublishOpts) buildPath() (string, error) {
+func (o *publishOpts) buildPath() (string, error) {
 	if o.UsePost == true {
 		return fmt.Sprintf(PUBLISH_POST_PATH,
 			o.pubnub.Config.PublishKey,
@@ -136,17 +213,15 @@ func (o *PublishOpts) buildPath() (string, error) {
 		return "", err
 	}
 
-	stringifiedMessage := utils.UrlEncode(string(message))
-
 	return fmt.Sprintf(PUBLISH_GET_PATH,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.Channel),
 		"0",
-		stringifiedMessage), nil
+		utils.UrlEncode(string(message))), nil
 }
 
-func (o *PublishOpts) buildQuery() (*url.Values, error) {
+func (o *publishOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
 	if o.Meta != nil {
@@ -175,7 +250,7 @@ func (o *PublishOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *PublishOpts) buildBody() ([]byte, error) {
+func (o *publishOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		var msg []byte
 
@@ -209,7 +284,7 @@ func (o *PublishOpts) buildBody() ([]byte, error) {
 	}
 }
 
-func (o *PublishOpts) httpMethod() string {
+func (o *publishOpts) httpMethod() string {
 	if o.UsePost {
 		return "POST"
 	} else {
@@ -217,18 +292,18 @@ func (o *PublishOpts) httpMethod() string {
 	}
 }
 
-func (o *PublishOpts) isAuthRequired() bool {
+func (o *publishOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *PublishOpts) requestTimeout() int {
+func (o *publishOpts) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *PublishOpts) connectTimeout() int {
+func (o *publishOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *PublishOpts) operationType() PNOperationType {
+func (o *publishOpts) operationType() PNOperationType {
 	return PNPublishOperation
 }

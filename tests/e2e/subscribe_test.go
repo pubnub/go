@@ -101,10 +101,7 @@ func TestSubscribePublishUnsubscribeSingle(t *testing.T) {
 
 	<-doneSubscribe
 
-	pn.Publish(&pubnub.PublishOpts{
-		Channel: "ch",
-		Message: "hey",
-	})
+	pn.Publish().Channel("ch").Message("hey").Execute()
 
 	<-donePublish
 
@@ -131,10 +128,7 @@ func TestSubscribePublishUnsubscribeMultiple(t *testing.T) {
 				switch status.Category {
 				case pubnub.ConnectedCategory:
 					go func() {
-						pn.Publish(&pubnub.PublishOpts{
-							Channel: "ch2",
-							Message: "hey",
-						})
+						pn.Publish().Channel("ch").Message("hey").Execute()
 					}()
 					continue
 				}

@@ -25,7 +25,7 @@ func init() {
 func AssertSuccessPublishGet(t *testing.T, expectedString string, message interface{}) {
 	assert := assert.New(t)
 
-	opts := &PublishOpts{
+	opts := &publishOpts{
 		Channel: "ch",
 		Message: message,
 		pubnub:  pubnub,
@@ -48,7 +48,7 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 func AssertSuccessPublishPost(t *testing.T, expectedBody string, message interface{}) {
 	assert := assert.New(t)
 
-	opts := &PublishOpts{
+	opts := &publishOpts{
 		Channel:   "ch",
 		Message:   message,
 		pubnub:    pubnub,
@@ -129,7 +129,7 @@ func TestPublishDoNotSerializePost(t *testing.T) {
 
 	message := "{\"one\":\"hey\"}"
 
-	opts := &PublishOpts{
+	opts := &publishOpts{
 		Channel: "ch",
 		Message: message,
 		pubnub:  pubnub,
@@ -159,7 +159,7 @@ func TestPublishDoNotSerializeInvalidPost(t *testing.T) {
 	msgMap["two"] = "hey2"
 	msgMap["three"] = "hey3"
 
-	opts := &PublishOpts{
+	opts := &publishOpts{
 		Channel: "ch",
 		Message: msgMap,
 		pubnub:  pubnub,
@@ -189,7 +189,7 @@ func TestPublishMeta(t *testing.T) {
 	meta["two"] = "hey2"
 	meta["three"] = "hey3"
 
-	opts := &PublishOpts{
+	opts := &publishOpts{
 		Channel: "ch",
 		Message: "hey",
 		pubnub:  pubnub,
@@ -214,7 +214,7 @@ func TestPublishMeta(t *testing.T) {
 func TestPublishStore(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &PublishOpts{
+	opts := &publishOpts{
 		Channel:    "ch",
 		Message:    "hey",
 		pubnub:     pubnub,
@@ -240,7 +240,7 @@ func TestPublishEncrypt(t *testing.T) {
 
 	pnconfig.CipherKey = "testCipher"
 
-	opts := &PublishOpts{
+	opts := &publishOpts{
 		Channel: "ch",
 		Message: "hey",
 		pubnub:  pubnub,
@@ -262,7 +262,7 @@ func TestPublishSequenceCounter(t *testing.T) {
 	meta["two"] = "hey2"
 	meta["three"] = "hey3"
 
-	opts := &PublishOpts{
+	opts := &publishOpts{
 		Channel: "ch",
 		Message: "hey",
 		pubnub:  pubnub,

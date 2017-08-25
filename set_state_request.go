@@ -16,7 +16,7 @@ const SET_STATE_PATH = "/v2/presence/sub-key/%s/channel/%s/uuid/%s/data"
 
 var emptySetStateResponse *SetStateResponse
 
-func SetStateRequest(pn *PubNub, opts *SetStateOpts) (*SetStateResponse, error) {
+func SetStateRequest(pn *PubNub, opts *setStateOpts) (*SetStateResponse, error) {
 	opts.pubnub = pn
 	rawJson, err := executeRequest(opts)
 	if err != nil {
@@ -27,7 +27,7 @@ func SetStateRequest(pn *PubNub, opts *SetStateOpts) (*SetStateResponse, error) 
 }
 
 func SetStateRequestWithContext(ctx Context, pn *PubNub,
-	opts *SetStateOpts) (*SetStateResponse, error) {
+	opts *setStateOpts) (*SetStateResponse, error) {
 	opts.pubnub = pn
 	opts.ctx = ctx
 
@@ -39,8 +39,56 @@ func SetStateRequestWithContext(ctx Context, pn *PubNub,
 	return emptySetStateResponse, nil
 }
 
-type SetStateOpts struct {
-	// State can recieve only map
+type setStateBuilder struct {
+	opts *setStateOpts
+}
+
+func newSetStateBuilder(pubnub *PubNub) *setStateBuilder {
+	builder := setStateBuilder{
+		opts: &setStateOpts{
+			pubnub: pubnub,
+		},
+	}
+
+	return &builder
+}
+
+func newSetStateBuilderWithContext(pubnub *PubNub, context Context) *setStateBuilder {
+	builder := setStateBuilder{
+		opts: &setStateOpts{
+			pubnub: pubnub,
+			ctx:    context,
+		},
+	}
+
+	return &builder
+}
+
+func (b *setStateBuilder) State(state interface{}) *setStateBuilder {
+	b.opts.State = state
+	return b
+}
+
+func (b *setStateBuilder) Channels(channels []string) *setStateBuilder {
+	b.opts.Channels = channels
+	return b
+}
+
+func (b *setStateBuilder) ChannelGroups(groups []string) *setStateBuilder {
+	b.opts.ChannelGroups = groups
+	return b
+}
+
+func (b *setStateBuilder) Execute() (*SetStateResponse, error) {
+	rawJson, err := executeRequest(b.opts)
+	if err != nil {
+		return emptySetStateResponse, err
+	}
+
+	return newSetStateResponse(rawJson)
+}
+
+type setStateOpts struct {
 	State         interface{}
 	Channels      []string
 	ChannelGroups []string
@@ -49,19 +97,19 @@ type SetStateOpts struct {
 	ctx    Context
 }
 
-func (o *SetStateOpts) config() Config {
+func (o *setStateOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *SetStateOpts) client() *http.Client {
+func (o *setStateOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *SetStateOpts) context() Context {
+func (o *setStateOpts) context() Context {
 	return o.ctx
 }
 
-func (o *SetStateOpts) validate() error {
+func (o *setStateOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return ErrMissingSubKey
 	}
@@ -77,8 +125,8 @@ func (o *SetStateOpts) validate() error {
 	return nil
 }
 
-func (o *SetStateOpts) buildPath() (string, error) {
-	channels := utils.UrlEncode(string(utils.JoinChannels(o.Channels)))
+func (o *setStateOpts) buildPath() (string, error) {
+	channels := string(utils.JoinChannels(o.Channels))
 
 	return fmt.Sprintf(SET_STATE_PATH,
 		o.pubnub.Config.SubscribeKey,
@@ -87,7 +135,7 @@ func (o *SetStateOpts) buildPath() (string, error) {
 	), nil
 }
 
-func (o *SetStateOpts) buildQuery() (*url.Values, error) {
+func (o *setStateOpts) buildQuery() (*url.Values, error) {
 	var err error
 	var state, groups []byte
 
@@ -111,27 +159,27 @@ func (o *SetStateOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *SetStateOpts) buildBody() ([]byte, error) {
+func (o *setStateOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *SetStateOpts) httpMethod() string {
+func (o *setStateOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *SetStateOpts) isAuthRequired() bool {
+func (o *setStateOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *SetStateOpts) requestTimeout() int {
+func (o *setStateOpts) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *SetStateOpts) connectTimeout() int {
+func (o *setStateOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *SetStateOpts) operationType() PNOperationType {
+func (o *setStateOpts) operationType() PNOperationType {
 	return PNSetStateOperation
 }
 
