@@ -5,7 +5,7 @@
 ###Important changes in this version:
 The package name has been modified to "messaging" from "pubnubMessaging". 
 
-###Change log
+###Change log:
 * SetLogging method name changed to LoggingEnabled
 * SetLogOutput added, you can customize the log output now 
 * Support to change uuid
