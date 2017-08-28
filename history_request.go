@@ -73,13 +73,15 @@ func (b *historyBuilder) Channel(ch string) *historyBuilder {
 	return b
 }
 
-func (b *historyBuilder) Start(start string) *historyBuilder {
+func (b *historyBuilder) Start(start int64) *historyBuilder {
 	b.opts.Start = start
+	b.opts.SetStart = true
 	return b
 }
 
-func (b *historyBuilder) End(end string) *historyBuilder {
+func (b *historyBuilder) End(end int64) *historyBuilder {
 	b.opts.End = end
+	b.opts.SetEnd = true
 	return b
 }
 
@@ -117,11 +119,8 @@ type historyOpts struct {
 
 	Channel string
 
-	// Stringified timetoken, default: not set
-	Start string
-
-	// Stringified timetoken, default: not set
-	End string
+	Start int64
+	End   int64
 
 	// defualt: 100
 	Count int
@@ -131,6 +130,10 @@ type historyOpts struct {
 
 	// default: false
 	IncludeTimetoken bool
+
+	// nil hacks
+	SetStart bool
+	SetEnd   bool
 
 	Transport http.RoundTripper
 
@@ -170,24 +173,12 @@ func (o *historyOpts) buildPath() (string, error) {
 func (o *historyOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
-	if o.Start != "" {
-		i, err := strconv.Atoi(o.Start)
-		if err != nil {
-			// TODO: wrap error
-			return nil, err
-		}
-
-		q.Set("start", strconv.Itoa(i))
+	if o.SetStart {
+		q.Set("start", strconv.FormatInt(o.Start, 10))
 	}
 
-	if o.End != "" {
-		i, err := strconv.Atoi(o.End)
-		if err != nil {
-			// TODO: wrap error
-			return nil, err
-		}
-
-		q.Set("end", strconv.Itoa(i))
+	if o.SetEnd {
+		q.Set("end", strconv.FormatInt(o.End, 10))
 	}
 
 	if o.Count > 0 && o.Count <= MAX_COUNT {

@@ -30,8 +30,8 @@ func TestHistoryCallWithAllParams(t *testing.T) {
 		Count(2).
 		IncludeTimetoken(true).
 		Reverse(true).
-		Start("1").
-		End("2").
+		Start(int64(1)).
+		End(int64(2)).
 		Execute()
 
 	assert.Nil(err)

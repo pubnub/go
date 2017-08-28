@@ -55,8 +55,8 @@ func TestHistoryRequestAllParams(t *testing.T) {
 
 	opts := &historyOpts{
 		Channel:          "ch",
-		Start:            "100000",
-		End:              "200000",
+		Start:            int64(100000),
+		End:              int64(200000),
 		Reverse:          false,
 		Count:            3,
 		IncludeTimetoken: true,

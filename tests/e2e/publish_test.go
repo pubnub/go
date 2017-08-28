@@ -60,7 +60,7 @@ func TestPublishSuccess(t *testing.T) {
 	assert.Nil(err)
 }
 
-func aTestPublishSuccessSlice(t *testing.T) {
+func TestPublishSuccessSlice(t *testing.T) {
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
@@ -77,7 +77,7 @@ func aTestPublishSuccessSlice(t *testing.T) {
 
 	_, err := pn.Publish().
 		Channel("ch").
-		Message([]string{"hey", "hey2", "hey3"}).
+		Message([]string{"hey1", "hey2", "hey3"}).
 		Execute()
 
 	assert.Nil(err)
