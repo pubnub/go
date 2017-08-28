@@ -213,10 +213,10 @@ func TestPublishStore(t *testing.T) {
 	assert := assert.New(t)
 
 	opts := &publishOpts{
-		Channel:    "ch",
-		Message:    "hey",
-		pubnub:     pubnub,
-		DoNotStore: true,
+		Channel:     "ch",
+		Message:     "hey",
+		pubnub:      pubnub,
+		ShouldStore: true,
 	}
 
 	query, err := opts.buildQuery()

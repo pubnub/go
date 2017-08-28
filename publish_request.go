@@ -41,13 +41,17 @@ type publishOpts struct {
 	Meta    interface{}
 
 	UsePost        bool
-	DoNotStore     bool
+	ShouldStore    bool
 	Serialize      bool
 	DoNotReplicate bool
 
 	Transport http.RoundTripper
 
 	ctx Context
+
+	// nil hacks
+	SetTtl         bool
+	SetShouldStore bool
 }
 
 type PublishResponse struct {
@@ -131,8 +135,9 @@ func (b *publishBuilder) UsePost(post bool) *publishBuilder {
 	return b
 }
 
-func (b *publishBuilder) DoNotStore(store bool) *publishBuilder {
-	b.opts.DoNotStore = store
+func (b *publishBuilder) ShouldStore(store bool) *publishBuilder {
+	b.opts.ShouldStore = store
+	b.opts.SetShouldStore = true
 
 	return b
 }
@@ -233,18 +238,22 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 	if o.Meta != nil {
 		// TODO: serialize
 		meta, _ := utils.ValueAsString(o.Meta)
+		// TODO: handle error
 		q.Set("meta", string(meta))
 	}
 
-	if o.DoNotStore {
-		q.Set("store", "1")
-	} else {
-		q.Set("store", "0")
+	if o.SetShouldStore {
+		if o.ShouldStore {
+			q.Set("store", "1")
+		} else {
+			q.Set("store", "0")
+		}
 	}
 
-	// TODO: 0 value?
-	if o.Ttl > 0 {
-		q.Set("ttl", strconv.Itoa(o.Ttl))
+	if o.SetTtl {
+		if o.Ttl > 0 {
+			q.Set("ttl", strconv.Itoa(o.Ttl))
+		}
 	}
 
 	q.Set("seqn", strconv.Itoa(<-o.pubnub.publishSequence))
