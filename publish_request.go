@@ -149,6 +149,12 @@ func (b *publishBuilder) DoNotReplicate(repl bool) *publishBuilder {
 	return b
 }
 
+func (b *publishBuilder) Transport(tr http.RoundTripper) *publishBuilder {
+	b.opts.Transport = tr
+
+	return b
+}
+
 func (b *publishBuilder) Execute() (*PublishResponse, error) {
 	rawJson, err := executeRequest(b.opts)
 	if err != nil {

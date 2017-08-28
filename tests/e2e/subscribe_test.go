@@ -128,7 +128,7 @@ func TestSubscribePublishUnsubscribeMultiple(t *testing.T) {
 				switch status.Category {
 				case pubnub.ConnectedCategory:
 					go func() {
-						pn.Publish().Channel("ch").Message("hey").Execute()
+						pn.Publish().Channel("ch1").Message("hey").Execute()
 					}()
 					continue
 				}

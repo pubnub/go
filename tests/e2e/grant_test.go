@@ -143,6 +143,8 @@ func TestGrantSingleGroupWithAuth(t *testing.T) {
 	res, err := pn.Grant().
 		Groups([]string{"cg1"}).
 		AuthKeys([]string{"my-pam-key"}).
+		Write(true).
+		Read(true).
 		Execute()
 
 	assert.Nil(err)

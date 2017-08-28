@@ -12,7 +12,10 @@ func TestSetStateSucessNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.SetState().State("my-random-state").Channels([]string{"ch"}).
+	state := make(map[string]string)
+	state["age"] = "20"
+
+	_, err := pn.SetState().State(state).Channels([]string{"ch"}).
 		ChannelGroups([]string{"cg"}).Execute()
 
 	assert.Nil(err)
@@ -34,8 +37,10 @@ func TestSetStateSuperCall(t *testing.T) {
 	state := make(map[string]string)
 	state["qwerty"] = SPECIAL_CHARACTERS
 
-	_, err := pn.SetState().State(state).Channels([]string{SPECIAL_CHANNEL}).
-		ChannelGroups([]string{SPECIAL_CHANNEL}).Execute()
+	_, err := pn.SetState().State(state).Channels([]string{setStateCharacters}).
+		ChannelGroups([]string{SPECIAL_CHARACTERS}).
+		State(state).
+		Execute()
 
 	assert.Nil(err)
 }
