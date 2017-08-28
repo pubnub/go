@@ -58,25 +58,29 @@ func newGrantBuilderWithContext(pubnub *PubNub, context Context) *grantBuilder {
 
 func (b *grantBuilder) Read(read bool) *grantBuilder {
 	b.opts.Read = read
-	b.opts.SetRead = true
 
 	return b
 }
 
 func (b *grantBuilder) Write(write bool) *grantBuilder {
 	b.opts.Write = write
-	b.opts.SetWrite = true
 
 	return b
 }
 
 func (b *grantBuilder) Manage(manage bool) *grantBuilder {
 	b.opts.Manage = manage
-	b.opts.SetManage = true
 
 	return b
 }
 
+// Set time in minutes for which granted permissions are valid.
+//
+// Min: 1
+// Max: 525600
+// Default: 1440
+//
+// Setting value to 0 will apply the grant indefinitely (forever grant).
 func (b *grantBuilder) Ttl(ttl int) *grantBuilder {
 	b.opts.Ttl = ttl
 	b.opts.SetTtl = true
@@ -132,10 +136,7 @@ type grantOpts struct {
 	Ttl int
 
 	// nil hacks
-	SetRead   bool
-	SetWrite  bool
-	SetManage bool
-	SetTtl    bool
+	SetTtl bool
 }
 
 func (o *grantOpts) config() Config {
@@ -173,28 +174,22 @@ func (o *grantOpts) buildPath() (string, error) {
 func (o *grantOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
-	if o.SetRead {
-		if o.Read {
-			q.Set("r", "1")
-		} else {
-			q.Set("r", "0")
-		}
+	if o.Read {
+		q.Set("r", "1")
+	} else {
+		q.Set("r", "0")
 	}
 
-	if o.SetWrite {
-		if o.Write {
-			q.Set("w", "1")
-		} else {
-			q.Set("w", "0")
-		}
+	if o.Write {
+		q.Set("w", "1")
+	} else {
+		q.Set("w", "0")
 	}
 
-	if o.SetManage {
-		if o.Manage {
-			q.Set("m", "1")
-		} else {
-			q.Set("m", "0")
-		}
+	if o.Manage {
+		q.Set("m", "1")
+	} else {
+		q.Set("m", "0")
 	}
 
 	if len(o.AuthKeys) > 0 {
