@@ -10,6 +10,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/////////////////////////////
+/////////////////////////////
+// Structure
+// - Channel Subscription
+// - Groups Subscription
+// - Misc
+/////////////////////////////
+/////////////////////////////
+
+/////////////////////////////
+// Channel Subscription
+/////////////////////////////
+
 func TestSubscribeUnsubscribe(t *testing.T) {
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)
@@ -62,13 +75,17 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+
+	assert.Zero(len(pn.GetSubscribedChannels()))
+	assert.Zero(len(pn.GetSubscribedGroups()))
 }
 
-func TestSubscribePublishUnsubscribeSingle(t *testing.T) {
+func TestSubscribePublishUnsubscribe(t *testing.T) {
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)
 	doneUnsubscribe := make(chan bool)
 	donePublish := make(chan bool)
+	errChan := make(chan string)
 
 	pn := pubnub.NewPubNub(configCopy())
 
@@ -87,8 +104,8 @@ func TestSubscribePublishUnsubscribeSingle(t *testing.T) {
 			case message := <-listener.Message:
 				assert.Equal(message.Message, "hey")
 				donePublish <- true
-			case presence := <-listener.Presence:
-				fmt.Println(presence)
+			case <-listener.Presence:
+				errChan <- "Got presence while awaiting for a status event"
 			}
 		}
 	}()
@@ -99,20 +116,40 @@ func TestSubscribePublishUnsubscribeSingle(t *testing.T) {
 		Channels: []string{"ch"},
 	})
 
-	<-doneSubscribe
+	select {
+	case <-doneSubscribe:
+	case err := <-errChan:
+		assert.Fail(err)
+		return
+	}
 
 	pn.Publish().Channel("ch").Message("hey").Execute()
 
-	<-donePublish
+	select {
+	case <-donePublish:
+	case err := <-errChan:
+		assert.Fail(err)
+		return
+	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
 		Channels: []string{"ch"},
 	})
 
-	<-doneUnsubscribe
+	select {
+	case <-doneUnsubscribe:
+	case err := <-errChan:
+		assert.Fail(err)
+	}
+
+	assert.Zero(len(pn.GetSubscribedChannels()))
+	assert.Zero(len(pn.GetSubscribedGroups()))
 }
 
-func TestSubscribePublishUnsubscribeMultiple(t *testing.T) {
+// Also tests:
+// - test operations like publish/unsubscribe invoked inside another goroutine
+// - test unsubscribe all
+func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	assert := assert.New(t)
 	doneUnsubscribe := make(chan bool)
 	errChan := make(chan string)
@@ -148,14 +185,12 @@ func TestSubscribePublishUnsubscribeMultiple(t *testing.T) {
 						message.Message)
 				}
 			case <-listener.Presence:
-				// ignore
+				errChan <- "Got presence while awaiting for a status event"
 			}
 		}
 	}()
 
 	pn.AddListener(listener)
-	defer pn.RemoveListener(listener)
-	defer pn.UnsubscribeAll()
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		Channels: []string{"ch1", "ch2"},
@@ -166,10 +201,16 @@ func TestSubscribePublishUnsubscribeMultiple(t *testing.T) {
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+
+	pn.RemoveListener(listener)
+	pn.UnsubscribeAll()
+
+	assert.Zero(len(pn.GetSubscribedChannels()))
+	assert.Zero(len(pn.GetSubscribedGroups()))
 }
 
 // TODO
-func aTestSubscribePresenceSingleChannel(t *testing.T) {
+func xTestJoinLeave(t *testing.T) {
 	assert := assert.New(t)
 
 	// await both connected event on emitter and join presence event received
@@ -259,6 +300,10 @@ func aTestSubscribePresenceSingleChannel(t *testing.T) {
 		assert.Fail(err)
 	}
 }
+
+/////////////////////////////
+// Channel Group Subscription
+/////////////////////////////
 
 // TODO
 func aTestSubscribePresenceSingleGroup(t *testing.T) {
@@ -355,6 +400,10 @@ func aTestSubscribePresenceSingleGroup(t *testing.T) {
 	}
 }
 
+/////////////////////////////
+// Unsubscribe
+/////////////////////////////
+
 func TestUnsubscribeAll(t *testing.T) {
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
@@ -374,7 +423,12 @@ func TestUnsubscribeAll(t *testing.T) {
 	assert.Equal(len(pn.GetSubscribedGroups()), 0)
 }
 
-// TODO
+/////////////////////////////
+// Misc
+/////////////////////////////
+
+// TODO: add error handlers
+// TODO: verify currect status event broadcasted
 func TestSubscribe403Error(t *testing.T) {
 	doneSubscribe := make(chan bool)
 
@@ -406,6 +460,7 @@ func TestSubscribe403Error(t *testing.T) {
 	<-doneSubscribe
 }
 
+// TODO: implement using request stubs
 func xTestSubscribeWithMeta(t *testing.T) {
 	assert := assert.New(t)
 
@@ -441,18 +496,11 @@ func xTestSubscribeWithMeta(t *testing.T) {
 	})
 
 	<-doneSubscribe
-
-	select {
-	case msg := <-doneMeta:
-		meta, ok := msg.(map[string]interface{})
-		assert.True(ok)
-		message, ok := meta["message"].(string)
-		assert.True(ok)
-		assert.Equal(message, "hello")
-	}
 }
 
-func TestSubscribeWithTimetoken(t *testing.T) {
+// TODO: use request stub to verify timetoken is set correctly
+// TODO: add error handlers
+func xTestSubscribeWithCustomTimetoken(t *testing.T) {
 	doneSubscribe := make(chan bool)
 
 	pn := pubnub.NewPubNub(configCopy())
@@ -479,42 +527,6 @@ func TestSubscribeWithTimetoken(t *testing.T) {
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		Channels:  []string{"ch"},
 		Timetoken: int64(1337),
-	})
-
-	<-doneSubscribe
-}
-
-func TestSubscribeSuperCall(t *testing.T) {
-	doneSubscribe := make(chan bool)
-	config := pamConfigCopy()
-	config.Uuid = SPECIAL_CHARACTERS
-	config.AuthKey = SPECIAL_CHARACTERS
-
-	pn := pubnub.NewPubNub(config)
-	listener := pubnub.NewListener()
-
-	go func() {
-		for {
-			select {
-			case status := <-listener.Status:
-				switch status.Category {
-				case pubnub.ConnectedCategory:
-					doneSubscribe <- true
-				}
-			case message := <-listener.Message:
-				fmt.Println(message)
-			case presence := <-listener.Presence:
-				fmt.Println(presence)
-			}
-		}
-	}()
-
-	pn.AddListener(listener)
-
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:      []string{SPECIAL_CHANNEL},
-		ChannelGroups: []string{SPECIAL_CHANNEL},
-		Timetoken:     int64(1337),
 	})
 
 	<-doneSubscribe
@@ -552,7 +564,8 @@ func TestSubscribeWithFilter(t *testing.T) {
 	<-doneSubscribe
 }
 
-func TestSubscribeWithEncrypt(t *testing.T) {
+// TODO: add publish, check for unencrypted message
+func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 	doneSubscribe := make(chan bool)
 
 	pn := pubnub.NewPubNub(configCopy())
@@ -579,6 +592,42 @@ func TestSubscribeWithEncrypt(t *testing.T) {
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		Channels: []string{"ch"},
+	})
+
+	<-doneSubscribe
+}
+
+func TestSubscribeSuperCall(t *testing.T) {
+	doneSubscribe := make(chan bool)
+	config := pamConfigCopy()
+	config.Uuid = SPECIAL_CHARACTERS
+	config.AuthKey = SPECIAL_CHARACTERS
+
+	pn := pubnub.NewPubNub(config)
+	listener := pubnub.NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.ConnectedCategory:
+					doneSubscribe <- true
+				}
+			case message := <-listener.Message:
+				fmt.Println(message)
+			case presence := <-listener.Presence:
+				fmt.Println(presence)
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe(&pubnub.SubscribeOperation{
+		Channels:      []string{SPECIAL_CHANNEL},
+		ChannelGroups: []string{SPECIAL_CHANNEL},
+		Timetoken:     int64(1337),
 	})
 
 	<-doneSubscribe
