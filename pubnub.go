@@ -88,6 +88,14 @@ func (pn *PubNub) LeaveWithContext(ctx Context) *leaveBuilder {
 	return newLeaveBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) Heartbeat() *heartbeatBuilder {
+	return newHeartbeatBuilder(pn)
+}
+
+func (pn *PubNub) HeartbeatWithContext(ctx Context) *heartbeatBuilder {
+	return newHeartbeatBuilderWithContext(pn, ctx)
+}
+
 // Set a client for transactional requests
 func (pn *PubNub) SetClient(c *http.Client) {
 	pn.client = c

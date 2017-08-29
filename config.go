@@ -23,6 +23,8 @@ type Config struct {
 
 	// http.Client.Timeout for subscribe requests only
 	SubscribeRequestTimeout int
+
+	PresenceTimeout int
 }
 
 func NewDemoConfig() *Config {
@@ -43,5 +45,6 @@ func NewConfig() *Config {
 		ConnectTimeout:             10,
 		NonSubscribeRequestTimeout: 10,
 		SubscribeRequestTimeout:    310,
+		PresenceTimeout:            10,
 	}
 }
