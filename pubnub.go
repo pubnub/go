@@ -14,11 +14,12 @@ const (
 
 // Errors
 var (
-	ErrMissingPubKey    = pnerr.NewValidationError("pubnub: Missing Publish Key")
-	ErrMissingSubKey    = pnerr.NewValidationError("pubnub: Missing Subscribe Key")
-	ErrMissingChannel   = pnerr.NewValidationError("pubnub: Missing Channel")
-	ErrMissingMessage   = pnerr.NewValidationError("pubnub: Missing Message")
-	ErrMissingSecretKey = pnerr.NewValidationError("pubnub: Missing Secret Key")
+	ErrMissingPubKey       = pnerr.NewValidationError("pubnub: Missing Publish Key")
+	ErrMissingSubKey       = pnerr.NewValidationError("pubnub: Missing Subscribe Key")
+	ErrMissingChannel      = pnerr.NewValidationError("pubnub: Missing Channel")
+	ErrMissingChannelGroup = pnerr.NewValidationError("pubnub: Missing Channel Group")
+	ErrMissingMessage      = pnerr.NewValidationError("pubnub: Missing Message")
+	ErrMissingSecretKey    = pnerr.NewValidationError("pubnub: Missing Secret Key")
 )
 
 // No server connection will be established when you create a new PubNub object.
@@ -66,6 +67,10 @@ func (pn *PubNub) GrantWithContext(ctx Context) *grantBuilder {
 }
 func (pn *PubNub) Subscribe(operation *SubscribeOperation) {
 	pn.subscriptionManager.adaptSubscribe(operation)
+}
+
+func (pn *PubNub) SetSubscribeClient(client *http.Client) {
+	pn.subscribeClient = client
 }
 
 func (pn *PubNub) Unsubscribe(operation *UnsubscribeOperation) {
@@ -131,6 +136,24 @@ func (pn *PubNub) GetSubscribedGroups() []string {
 
 func (pn *PubNub) UnsubscribeAll() {
 	pn.subscriptionManager.unsubscribeAll()
+}
+
+func (pn *PubNub) AddChannelChannelGroup() *addChannelChannelGroupBuilder {
+	return newAddChannelChannelGroupBuilder(pn)
+}
+
+func (pn *PubNub) AddChannelChannelGroupWithContext(
+	ctx Context) *addChannelChannelGroupBuilder {
+	return newAddChannelChannelGroupBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) RemoveChannelChannelGroup() *removeChannelChannelGroupBuilder {
+	return newRemoveChannelChannelGroupBuilder(pn)
+}
+
+func (pn *PubNub) RemoveChannelChannelGroupWithContext(
+	ctx Context) *removeChannelChannelGroupBuilder {
+	return newRemoveChannelChannelGroupBuilderWithContext(pn, ctx)
 }
 
 func NewPubNub(pnconf *Config) *PubNub {

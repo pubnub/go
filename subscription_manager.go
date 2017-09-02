@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -33,6 +34,7 @@ type SubscriptionManager struct {
 	listenerManager *ListenerManager
 	stateManager    *StateManager
 	pubnub          *PubNub
+	transport       http.RoundTripper
 
 	messages        chan subscribeMessage
 	ctx             Context
@@ -58,6 +60,7 @@ type SubscribeOperation struct {
 	PresenceEnabled  bool
 	Timetoken        int64
 	FilterExpression string
+	Transport        http.RoundTripper
 }
 
 type UnsubscribeOperation struct {
@@ -85,12 +88,10 @@ func newSubscriptionManager(pubnub *PubNub) *SubscriptionManager {
 	manager.timetoken = 0
 	manager.storedTimetoken = -1
 	manager.subscriptionStateAnnounced = false
-	// manager.ctx, manager.subscribeCancel = context.WithCancel(context.Background())
+	manager.ctx, manager.subscribeCancel = context.WithCancel(context.Background())
 	manager.messages = make(chan subscribeMessage, 1000)
 	manager.Unlock()
 
-	// go manager.startSubscribeLoop()
-	// go manager.startSubscribeLoopWithRoutine()
 	go subscribeMessageWorker(manager.listenerManager, manager.messages)
 
 	// actions:
@@ -199,15 +200,14 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		tt := m.timetoken
 		ctx := m.ctx
-		filterExpr := m.filterExpression
 
 		opts := &SubscribeOpts{
-			pubnub:           m.pubnub,
-			Channels:         combinedChannels,
-			Groups:           combinedGroups,
-			Timetoken:        tt,
-			FilterExpression: filterExpr,
-			ctx:              ctx,
+			pubnub:    m.pubnub,
+			Channels:  combinedChannels,
+			Groups:    combinedGroups,
+			Timetoken: tt,
+			Transport: m.transport,
+			ctx:       ctx,
 			// 	// transport
 			// 	// config/subkey
 			// 	// config/uuid
@@ -224,8 +224,26 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				continue
 			}
 
+			if strings.Contains(err.Error(), "Forbidden") {
+				m.listenerManager.announceStatus(&PNStatus{
+					Category: AccessDeniedCategory,
+				})
+				break
+			}
+
+			if strings.Contains(err.Error(), "400") ||
+				strings.Contains(err.Error(), "Bad Request") {
+				m.listenerManager.announceStatus(&PNStatus{
+					Category: BadRequestCategory,
+				})
+				break
+			}
+
+			m.listenerManager.announceStatus(&PNStatus{
+				Category: UnknownCategory,
+			})
+
 			// TODO: handle timeout
-			// TODO: handle canceled
 			// TODO: handle error
 			break
 		}
@@ -255,8 +273,8 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		// TODO: fetch messages and if any, push them to the worker queue
 		if len(envelope.Messages) > 0 {
-			for message := range envelope.Messages {
-				m.messages <- envelope.Messages[message]
+			for _, message := range envelope.Messages {
+				m.messages <- message
 			}
 		}
 
@@ -281,123 +299,6 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		m.region = envelope.Metadata.Region
 	}
-}
-
-// TODO: how to stop/reconnect?
-func (m *SubscriptionManager) startSubscribeLoopWithRoutine() {
-	m.log("loop")
-	m.stopSubscribeLoop()
-
-	combinedChannels := m.stateManager.prepareChannelList(true)
-	combinedGroups := m.stateManager.prepareGroupList(true)
-
-	if len(combinedChannels) == 0 && len(combinedGroups) == 0 {
-		m.listenerManager.announceStatus(&PNStatus{
-			Category: DisconnectedCategory,
-		})
-		m.log("no channels left to subscribe")
-		// return
-	}
-
-	// TODO: invoke subscribe with context
-	// TODO: fields should be local and not exposed to users
-	m.RLock()
-	tt := m.timetoken
-	ctx := m.ctx
-	m.RUnlock()
-
-	opts := &SubscribeOpts{
-		pubnub:    m.pubnub,
-		Channels:  combinedChannels,
-		Groups:    combinedGroups,
-		Timetoken: tt,
-		ctx:       ctx,
-		// 	// transport
-		// 	// config/subkey
-		// 	// config/uuid
-		// 	// config/timeouts
-	}
-
-	m.subscriptionLock.Lock()
-	defer m.subscriptionLock.Unlock()
-
-	// TODO: use context to be able to stop request
-	res, err := executeRequest(opts)
-	log.Println("following")
-	if err != nil {
-		if strings.Contains(err.Error(), "context canceled") {
-			m.listenerManager.announceStatus(&PNStatus{
-				Category: CancelledCategory,
-			})
-			// return
-		}
-
-		// log.Println(err.StatusCode)
-
-		// TODO: handle timeout
-		// TODO: handle canceled
-		// TODO: handle error
-		// return
-	}
-
-	m.RLock()
-	announced := m.subscriptionStateAnnounced
-	m.RUnlock()
-
-	if announced == false {
-		m.listenerManager.announceStatus(&PNStatus{
-			Category: ConnectedCategory,
-		})
-
-		m.Lock()
-		m.subscriptionStateAnnounced = true
-		m.Unlock()
-	}
-
-	var envelope subscribeEnvelope
-	err = json.Unmarshal(res, &envelope)
-	if err != nil {
-		m.listenerManager.announceStatus(&PNStatus{
-			Category:              BadRequestCategory,
-			ErrorData:             err,
-			Error:                 true,
-			Operation:             PNSubscribeOperation,
-			AffectedChannels:      combinedChannels,
-			AffectedChannelGroups: combinedGroups,
-		})
-	}
-
-	// TODO: fetch messages and if any, push them to the worker queue
-	if len(envelope.Messages) > 0 {
-		for message := range envelope.Messages {
-			m.messages <- envelope.Messages[message]
-		}
-	}
-
-	m.Lock()
-	if m.storedTimetoken != -1 {
-		m.timetoken = m.storedTimetoken
-		m.storedTimetoken = -1
-	} else {
-		tt, err := strconv.ParseInt(envelope.Metadata.Timetoken, 10, 64)
-		if err != nil {
-			m.listenerManager.announceStatus(&PNStatus{
-				Category:              BadRequestCategory,
-				ErrorData:             err,
-				Error:                 true,
-				Operation:             PNSubscribeOperation,
-				AffectedChannels:      combinedChannels,
-				AffectedChannelGroups: combinedGroups,
-			})
-		}
-
-		m.timetoken = tt
-	}
-
-	m.region = envelope.Metadata.Region
-	m.Unlock()
-
-	go m.startSubscribeLoopWithRoutine()
 }
 
 type subscribeEnvelope struct {
@@ -546,7 +447,6 @@ func (m *SubscriptionManager) reconnect() {
 	m.log("reconnect")
 
 	go m.startSubscribeLoop()
-	// go m.startSubscribeLoopWithRoutine()
 }
 
 func (m *SubscriptionManager) disconnect() {

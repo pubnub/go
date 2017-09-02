@@ -25,6 +25,8 @@ type Config struct {
 	SubscribeRequestTimeout int
 
 	PresenceTimeout int
+
+	FilterExpression string
 }
 
 func NewDemoConfig() *Config {

@@ -48,6 +48,10 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 		return &url.URL{}, err
 	}
 
+	if o.config().FilterExpression != "" {
+		query.Set("filter-expr", o.config().FilterExpression)
+	}
+
 	if o.config().SecretKey != "" {
 		timestamp := time.Now().Unix()
 		query.Set("timestamp", strconv.Itoa(int(timestamp)))

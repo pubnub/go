@@ -24,11 +24,12 @@ type SubscribeOpts struct {
 	Channels []string
 	Groups   []string
 
-	Region           string
-	FilterExpression string
+	Region string
 
 	Timetoken    int64
 	WithPresence bool
+
+	Transport http.RoundTripper
 
 	ctx Context
 }
@@ -76,10 +77,6 @@ func (o *SubscribeOpts) buildQuery() (*url.Values, error) {
 	if len(o.Groups) > 0 {
 		channelGroup := utils.JoinChannels(o.Groups)
 		q.Set("channel-group", string(channelGroup))
-	}
-
-	if o.FilterExpression != "" {
-		q.Set("filter-expr", o.FilterExpression)
 	}
 
 	if o.Timetoken != 0 {
