@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"log"
 	"sync"
 )
 
@@ -50,8 +49,6 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 	go func() {
 		defer m.RUnlock()
 
-		log.Println("current status")
-		log.Println(status)
 		for l, _ := range m.listeners {
 			l.Status <- status
 		}

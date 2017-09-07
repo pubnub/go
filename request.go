@@ -14,6 +14,7 @@ import (
 func executeRequest(opts endpointOpts) ([]byte, error) {
 	err := opts.validate()
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -21,7 +22,6 @@ func executeRequest(opts endpointOpts) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	log.Println("pubnub: >>>", url)
 	log.Println(opts.httpMethod())
 

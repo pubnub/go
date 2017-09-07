@@ -11,6 +11,7 @@ const (
 	PNNetworkIssuesCategory
 	PNConnectedCategory
 	PNReconnectedCategory
+	PNUnsubscribedCategory
 	PNDisconnectedCategory
 	PNUnexpectedDisconnectCategory
 	PNCancelledCategory

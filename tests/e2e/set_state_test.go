@@ -38,7 +38,7 @@ func TestSetStateSuperCall(t *testing.T) {
 	state["qwerty"] = SPECIAL_CHARACTERS
 
 	_, err := pn.SetState().State(state).Channels([]string{setStateCharacters}).
-		ChannelGroups([]string{SPECIAL_CHARACTERS}).
+		ChannelGroups([]string{setStateCharacters}).
 		State(state).
 		Execute()
 

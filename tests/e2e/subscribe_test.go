@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -212,9 +213,12 @@ func TestJoinLeaveChannel(t *testing.T) {
 	assert := assert.New(t)
 
 	// await both connected event on emitter and join presence event received
+	var wg sync.WaitGroup
+	wg.Add(2)
+
 	donePresenceConnect := make(chan bool)
-	doneConnect := make(chan bool)
-	done := make(chan bool)
+	doneJoin := make(chan bool)
+	doneLeave := make(chan bool)
 	errChan := make(chan string)
 
 	configEmitter := configCopy()
@@ -236,7 +240,8 @@ func TestJoinLeaveChannel(t *testing.T) {
 			case status := <-listenerEmitter.Status:
 				switch status.Category {
 				case pubnub.ConnectedCategory:
-					doneConnect <- true
+					wg.Done()
+					return
 				}
 			case <-listenerEmitter.Message:
 				errChan <- "Got message while awaiting for a status event"
@@ -261,6 +266,7 @@ func TestJoinLeaveChannel(t *testing.T) {
 				errChan <- fmt.Sprintf("Unexpected message: %s",
 					message.Message)
 			case presence := <-listenerPresenceListener.Presence:
+				// ignore join event of presence listener
 				if presence.Uuid == configPresenceListener.Uuid {
 					continue
 				}
@@ -269,10 +275,12 @@ func TestJoinLeaveChannel(t *testing.T) {
 
 				if presence.Event == "leave" {
 					assert.Equal(configEmitter.Uuid, presence.Uuid)
-					done <- true
+					doneLeave <- true
+					return
 				} else {
 					assert.Equal("join", presence.Event)
 					assert.Equal(configEmitter.Uuid, presence.Uuid)
+					wg.Done()
 				}
 			}
 		}
@@ -290,16 +298,23 @@ func TestJoinLeaveChannel(t *testing.T) {
 	case <-donePresenceConnect:
 	case err := <-errChan:
 		assert.Fail(err)
+		return
 	}
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		Channels: []string{"ch-join"},
 	})
 
+	go func() {
+		wg.Wait()
+		doneJoin <- true
+	}()
+
 	select {
-	case <-doneConnect:
+	case <-doneJoin:
 	case err := <-errChan:
 		assert.Fail(err)
+		return
 	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
@@ -307,15 +322,11 @@ func TestJoinLeaveChannel(t *testing.T) {
 	})
 
 	select {
-	case <-done:
+	case <-doneLeave:
 	case err := <-errChan:
 		assert.Fail(err)
+		return
 	}
-
-	pn.RemoveChannelChannelGroup().
-		Channels([]string{"ch-join"}).
-		Group("cg").
-		Execute()
 }
 
 /////////////////////////////
@@ -355,10 +366,12 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 
 	pn.AddListener(listener)
 
-	pn.AddChannelChannelGroup().
+	_, err := pn.AddChannelChannelGroup().
 		Channels([]string{"ch"}).
 		Group("cg").
 		Execute()
+
+	assert.Nil(err)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		ChannelGroups: []string{"cg"},
@@ -382,6 +395,11 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
+
+	_, err = pn.RemoveChannelChannelGroup().
+		Channels([]string{"ch"}).
+		Group("cg").
+		Execute()
 }
 
 func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
@@ -408,16 +426,19 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 			case message := <-listener.Message:
 				donePublish <- true
 				assert.Equal("hey", message.Message)
+				assert.Equal("ch", message.Channel)
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 			}
 		}
 	}()
 
-	pn.AddChannelChannelGroup().
+	_, err := pn.AddChannelChannelGroup().
 		Channels([]string{"ch"}).
 		Group("cg1").
 		Execute()
+
+	assert.Nil(err)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		ChannelGroups: []string{"cg1", "cg2"},
@@ -447,69 +468,6 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 
 	pn.UnsubscribeAll()
 
-	assert.Equal(len(pn.GetSubscribedGroups()), 0)
-}
-
-func TestSubscribeCGPublishUnsubscribe(t *testing.T) {
-	assert := assert.New(t)
-	doneSubscribe := make(chan bool)
-	donePublish := make(chan bool)
-	doneUnsubscribe := make(chan bool)
-	errChan := make(chan string)
-
-	pn := pubnub.NewPubNub(configCopy())
-	listener := pubnub.NewListener()
-	pn.AddListener(listener)
-	go func() {
-		for {
-			select {
-			case status := <-listener.Status:
-				switch status.Category {
-				case pubnub.ConnectedCategory:
-					doneSubscribe <- true
-				case pubnub.DisconnectedCategory:
-					doneUnsubscribe <- true
-				}
-			case message := <-listener.Message:
-				donePublish <- true
-				assert.Equal("hey", message.Message)
-			case <-listener.Presence:
-				errChan <- "Got presence while awaiting for a status event"
-			}
-		}
-	}()
-
-	pn.AddChannelChannelGroup().
-		Channels([]string{"ch"}).
-		Group("cg1").
-		Execute()
-
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups: []string{"cg1"},
-	})
-
-	assert.Equal(len(pn.GetSubscribedGroups()), 1)
-
-	select {
-	case <-doneSubscribe:
-	case err := <-errChan:
-		assert.Fail(err)
-		return
-	}
-
-	pn.Publish().Channel("ch").Message("hey").Execute()
-
-	select {
-	case <-donePublish:
-	case err := <-errChan:
-		assert.Fail(err)
-		return
-	}
-
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		ChannelGroups: []string{"cg1"},
-	})
-
 	select {
 	case <-doneUnsubscribe:
 	case err := <-errChan:
@@ -518,13 +476,23 @@ func TestSubscribeCGPublishUnsubscribe(t *testing.T) {
 	}
 
 	assert.Equal(len(pn.GetSubscribedGroups()), 0)
+
+	_, err = pn.RemoveChannelChannelGroup().
+		Channels([]string{"ch"}).
+		Group("cg1").
+		Execute()
+
+	assert.Nil(err)
 }
 
 func TestSubscribeJoinLeaveGroup(t *testing.T) {
 	assert := assert.New(t)
 
+	// await both connected event on emitter and join presence event received
+	var wg sync.WaitGroup
+	wg.Add(2)
+
 	donePresenceConnect := make(chan bool)
-	doneEmitterConnect := make(chan bool)
 	doneJoinEvent := make(chan bool)
 	doneLeaveEvent := make(chan bool)
 	errChan := make(chan string)
@@ -548,7 +516,8 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 			case status := <-listenerEmitter.Status:
 				switch status.Category {
 				case pubnub.ConnectedCategory:
-					doneEmitterConnect <- true
+					wg.Done()
+					return
 				}
 			case <-listenerEmitter.Message:
 				errChan <- "Got message while awaiting for a status event"
@@ -573,18 +542,21 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 				errChan <- "Got message while awaiting for a status event"
 				return
 			case presence := <-listenerPresenceListener.Presence:
+				// ignore join event of presence listener
 				if presence.Uuid == configPresenceListener.Uuid {
 					continue
 				}
 
-				assert.Equal(presence.Channel, "ch-j")
-
-				if presence.Event == "join" {
-					doneJoinEvent <- true
-				}
+				assert.Equal(presence.Channel, "my-channel")
 
 				if presence.Event == "leave" {
+					assert.Equal(configEmitter.Uuid, presence.Uuid)
 					doneLeaveEvent <- true
+					return
+				} else {
+					assert.Equal("join", presence.Event)
+					assert.Equal(configEmitter.Uuid, presence.Uuid)
+					wg.Done()
 				}
 			}
 		}
@@ -594,12 +566,12 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 	pnPresenceListener.AddListener(listenerPresenceListener)
 
 	pnPresenceListener.AddChannelChannelGroup().
-		Channels([]string{"ch-j"}).
-		Group("cg").
+		Channels([]string{"my-channel"}).
+		Group("my-group").
 		Execute()
 
 	pnPresenceListener.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups:   []string{"cg"},
+		ChannelGroups:   []string{"my-group"},
 		PresenceEnabled: true,
 	})
 
@@ -610,8 +582,13 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 	}
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch-j"},
+		ChannelGroups: []string{"my-group"},
 	})
+
+	go func() {
+		wg.Wait()
+		doneJoinEvent <- true
+	}()
 
 	select {
 	case <-doneJoinEvent:
@@ -619,14 +596,8 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 		assert.Fail(err)
 	}
 
-	select {
-	case <-doneEmitterConnect:
-	case err := <-errChan:
-		assert.Fail(err)
-	}
-
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{"ch-j"},
+		ChannelGroups: []string{"my-group"},
 	})
 
 	select {
@@ -717,6 +688,9 @@ func TestSubscribe403Error(t *testing.T) {
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+
+	assert.Zero(len(pn.GetSubscribedChannels()))
+	assert.Zero(len(pn.GetSubscribedGroups()))
 }
 
 func TestSubscribeWithMeta(t *testing.T) {
@@ -777,6 +751,7 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 		Method:             "GET",
 		Path:               "/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/ch/0",
 		ResponseBody:       `{"t":{"t":"14607577960932487","r":1},"m":[{"a":"4","f":0,"i":"Client-g5d4g","p":{"t":"14607577960925503","r":1},"k":"sub-c-4cec9f8e-01fa-11e6-8180-0619f8945a4f","c":"coolChannel","d":{"text":"Enter Message Here"},"b":"coolChan-bnel"}]}`,
+		Query:              "tt=1337",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
 	})
@@ -889,7 +864,7 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 	errChan := make(chan string)
 
 	config := configCopy()
-	config.CipherKey = "hey"
+	config.CipherKey = "my-key"
 	pn := pubnub.NewPubNub(config)
 	listener := pubnub.NewListener()
 
@@ -902,7 +877,7 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 					doneConnect <- true
 				}
 			case message := <-listener.Message:
-				assert.Equal(message.Message, "hey")
+				assert.Equal("hey", message.Message)
 				donePublish <- true
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
@@ -924,6 +899,7 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 	}
 
 	pn.Publish().
+		UsePost(true).
 		Channel("ch").
 		Message("hey").
 		Execute()
@@ -967,8 +943,8 @@ func TestSubscribeSuperCall(t *testing.T) {
 	pn.AddListener(listener)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:      []string{SPECIAL_CHANNEL},
-		ChannelGroups: []string{SPECIAL_CHANNEL},
+		Channels:      []string{SPECIAL_CHANNEL + "channel"},
+		ChannelGroups: []string{SPECIAL_CHANNEL + "cg"},
 		Timetoken:     int64(1337),
 	})
 
@@ -977,36 +953,4 @@ func TestSubscribeSuperCall(t *testing.T) {
 	case err := <-errChan:
 		assert.Fail(err)
 	}
-}
-
-// TODO
-func xTestSubscribeTimeoutError(t *testing.T) {
-	doneSubscribe := make(chan bool)
-	config := configCopy()
-	pn := pubnub.NewPubNub(config)
-	listener := pubnub.NewListener()
-
-	go func() {
-		for {
-			select {
-			case status := <-listener.Status:
-				switch status.Category {
-				case pubnub.ConnectedCategory:
-					doneSubscribe <- true
-				}
-			case <-listener.Message:
-				// ignore
-			case <-listener.Presence:
-				// ignore
-			}
-		}
-	}()
-
-	pn.AddListener(listener)
-
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
-	})
-
-	<-doneSubscribe
 }

@@ -120,7 +120,7 @@ func (o *leaveOpts) validate() error {
 		return ErrMissingSubKey
 	}
 
-	if len(o.Channels) == 0 {
+	if len(o.Channels) == 0 && len(o.ChannelGroups) == 0 {
 		return ErrMissingChannel
 	}
 

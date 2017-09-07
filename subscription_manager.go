@@ -9,7 +9,14 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/pubnub/go/utils"
 )
+
+// Events:
+// - ConnectedCategory - after connection established
+// - DisconnectedCategory - after subscription loop stops for any reason (no
+// channels left or error happend)
 
 // Unsubscribe.
 // When you unsubscirbe from channel or channel group the following events
@@ -228,6 +235,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				m.listenerManager.announceStatus(&PNStatus{
 					Category: AccessDeniedCategory,
 				})
+				m.unsubscribeAll()
 				break
 			}
 
@@ -236,6 +244,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				m.listenerManager.announceStatus(&PNStatus{
 					Category: BadRequestCategory,
 				})
+				m.unsubscribeAll()
 				break
 			}
 
@@ -274,7 +283,28 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		// TODO: fetch messages and if any, push them to the worker queue
 		if len(envelope.Messages) > 0 {
 			for _, message := range envelope.Messages {
-				m.messages <- message
+				if m.pubnub.Config.CipherKey != "" {
+					msg, _ := message.Payload.(string)
+					decryptedMsg, err := utils.DecryptString(m.pubnub.Config.CipherKey, msg)
+
+					if err != nil {
+						m.listenerManager.announceStatus(&PNStatus{
+							Category:              BadRequestCategory,
+							ErrorData:             err,
+							Error:                 true,
+							Operation:             PNSubscribeOperation,
+							AffectedChannels:      combinedChannels,
+							AffectedChannelGroups: combinedGroups,
+						})
+						break
+					}
+
+					message.Payload = decryptedMsg
+
+					m.messages <- message
+				} else {
+					m.messages <- message
+				}
 			}
 		}
 
@@ -299,6 +329,15 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		m.region = envelope.Metadata.Region
 	}
+}
+
+func (m *SubscriptionManager) startHeartbeatLoop() {
+	m.stopHeartbeat()
+
+}
+
+func (m *SubscriptionManager) stopHeartbeat() {
+
 }
 
 type subscribeEnvelope struct {
@@ -447,6 +486,7 @@ func (m *SubscriptionManager) reconnect() {
 	m.log("reconnect")
 
 	go m.startSubscribeLoop()
+	go m.startHeartbeatLoop()
 }
 
 func (m *SubscriptionManager) disconnect() {
