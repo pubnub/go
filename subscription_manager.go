@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/pubnub/go/utils"
 )
@@ -33,6 +34,12 @@ import (
 // object. You may wish to create a shallow copy of either the response or the
 // response message by you own to not affect the other listeners.
 
+// Heartbeat:
+// - Heartbeat is enabled by default.
+// - Default presence timeout is 300 seconds.
+// - The first Heartbeat request will be scheduled to be executed after
+// getHeartbeatInterval() seconds (default - 149).
+
 type SubscriptionManager struct {
 	sync.RWMutex
 
@@ -43,9 +50,15 @@ type SubscriptionManager struct {
 	pubnub          *PubNub
 	transport       http.RoundTripper
 
-	messages        chan subscribeMessage
-	ctx             Context
+	hbMutex sync.Mutex
+	hbTimer *time.Ticker
+	hbDone  chan bool
+
+	messages chan subscribeMessage
+	ctx      Context
+	// hCtx            Context
 	subscribeCancel func()
+	heartbeatCancel func()
 
 	// Store the latest timetoken to subscribe with, null by default to get the
 	// latest timetoken.
@@ -57,6 +70,7 @@ type SubscriptionManager struct {
 	region int8
 
 	subscriptionStateAnnounced bool
+	heartbeatStopCalled        bool
 
 	filterExpression string
 }
@@ -96,6 +110,7 @@ func newSubscriptionManager(pubnub *PubNub) *SubscriptionManager {
 	manager.storedTimetoken = -1
 	manager.subscriptionStateAnnounced = false
 	manager.ctx, manager.subscribeCancel = context.WithCancel(context.Background())
+	// manager.hCtx, manager.heartbeatCancel = context.WithCancel(context.Background())
 	manager.messages = make(chan subscribeMessage, 1000)
 	manager.Unlock()
 
@@ -142,7 +157,6 @@ func (m *SubscriptionManager) adaptSubscribe(
 
 	m.Unlock()
 
-	log.Println("subscribe reconnect")
 	m.reconnect()
 }
 
@@ -224,11 +238,18 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		// TODO: use context to be able to stop request
 		res, err := executeRequest(opts)
 		if err != nil {
+			if strings.Contains(err.Error(), "timeout") {
+				m.listenerManager.announceStatus(&PNStatus{
+					Category: TimeoutCategory,
+				})
+				continue
+			}
+
 			if strings.Contains(err.Error(), "context canceled") {
 				m.listenerManager.announceStatus(&PNStatus{
 					Category: CancelledCategory,
 				})
-				continue
+				break
 			}
 
 			if strings.Contains(err.Error(), "Forbidden") {
@@ -331,13 +352,96 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 	}
 }
 
-func (m *SubscriptionManager) startHeartbeatLoop() {
+func (m *SubscriptionManager) startHeartbeatTimer() {
 	m.stopHeartbeat()
+	m.log("heartbeat: new timer")
 
+	m.hbMutex.Lock()
+	m.hbDone = make(chan bool)
+	m.hbTimer = time.NewTicker(time.Duration(
+		m.pubnub.Config.HeartbeatInterval) * time.Second)
+
+	go func() {
+		m.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> timer")
+		defer m.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< timer")
+		defer m.hbMutex.Unlock()
+		defer func() {
+			m.hbDone = nil
+		}()
+
+		for {
+			select {
+			case <-m.hbTimer.C:
+				m.performHeartbeatLoop()
+			case <-m.hbDone:
+				m.log("heartbeat: loop: after stop")
+				return
+			}
+		}
+	}()
 }
 
 func (m *SubscriptionManager) stopHeartbeat() {
+	m.log("heartbeat: loop: stopping...")
 
+	if m.hbTimer != nil {
+		m.hbTimer.Stop()
+		m.log("heartbeat: loop: timer stopped")
+	}
+
+	if m.hbDone != nil {
+		m.hbDone <- true
+		m.log("heartbeat: loop: done channel stopped")
+		// } else {
+		// m.log("!!! done channel is'n empty")
+	}
+}
+
+func (m *SubscriptionManager) performHeartbeatLoop() error {
+	presenceChannels := m.stateManager.prepareChannelList(false)
+	presenceGroups := m.stateManager.prepareGroupList(false)
+	stateStorage := m.stateManager.createStatePayload()
+
+	if len(presenceChannels) == 0 && len(presenceGroups) == 0 {
+		m.log("heartbeat: no channels left")
+		m.stopHeartbeat()
+		return nil
+	}
+
+	res, err := newHeartbeatBuilder(m.pubnub).
+		Channels(presenceChannels).
+		ChannelGroups(presenceGroups).
+		State(stateStorage).
+		Execute()
+
+	if err != nil {
+		errStatus := &PNStatus{
+			Operation: PNHeartBeatOperation,
+			Category:  BadRequestCategory,
+			Error:     true,
+			ErrorData: err,
+		}
+
+		m.listenerManager.announceStatus(errStatus)
+
+		return err
+	}
+
+	parsedRes, _ := res.(map[string]interface{})
+	hbStatus := &PNStatus{
+		Category:  UnknownCategory,
+		Error:     false,
+		Operation: PNHeartBeatOperation,
+	}
+
+	if v, ok := parsedRes["status"]; ok {
+		statusCode, _ := v.(int)
+		hbStatus.StatusCode = statusCode
+	}
+
+	m.listenerManager.announceStatus(hbStatus)
+
+	return nil
 }
 
 type subscribeEnvelope struct {
@@ -486,14 +590,15 @@ func (m *SubscriptionManager) reconnect() {
 	m.log("reconnect")
 
 	go m.startSubscribeLoop()
-	go m.startHeartbeatLoop()
+	m.startHeartbeatTimer()
 }
 
 func (m *SubscriptionManager) disconnect() {
 	m.log("disconnect")
 
-	// m.stopHeartbeat()
+	m.stopHeartbeat()
 	m.stopSubscribeLoop()
+	// TODO: stop reconnection manager
 }
 
 func (m *SubscriptionManager) stopSubscribeLoop() {

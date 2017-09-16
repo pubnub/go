@@ -80,8 +80,6 @@ func newRequest(method string, u *url.URL, body io.Reader) (*http.Request,
 		rc = ioutil.NopCloser(body)
 	}
 
-	log.Println(*u)
-
 	req := &http.Request{
 		Method:     method,
 		URL:        u,

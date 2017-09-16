@@ -1,6 +1,12 @@
 package pubnub
 
-import "github.com/pubnub/go/utils"
+import (
+	"github.com/pubnub/go/utils"
+)
+
+const (
+	PRESENCE_TIMEOUT = 300
+)
 
 type Config struct {
 	PublishKey   string
@@ -24,6 +30,8 @@ type Config struct {
 	// http.Client.Timeout for subscribe requests only
 	SubscribeRequestTimeout int
 
+	HeartbeatInterval int
+
 	PresenceTimeout int
 
 	FilterExpression string
@@ -40,13 +48,29 @@ func NewDemoConfig() *Config {
 }
 
 func NewConfig() *Config {
-	return &Config{
+	c := Config{
 		Origin:                     "ps.pndsn.com",
 		Secure:                     true,
 		Uuid:                       utils.Uuid(),
 		ConnectTimeout:             10,
 		NonSubscribeRequestTimeout: 10,
 		SubscribeRequestTimeout:    310,
-		PresenceTimeout:            10,
 	}
+
+	c.SetPresenceTimeout(PRESENCE_TIMEOUT)
+
+	return &c
+}
+
+// TODO: validate timeout >= n
+func (c *Config) SetPresenceTimeoutWithCustomInterval(
+	timeout, interval int) *Config {
+	c.PresenceTimeout = timeout
+	c.HeartbeatInterval = interval
+
+	return c
+}
+
+func (c *Config) SetPresenceTimeout(timeout int) *Config {
+	return c.SetPresenceTimeoutWithCustomInterval(timeout, (timeout/2)-1)
 }

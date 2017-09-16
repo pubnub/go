@@ -12,7 +12,7 @@ func TestSetStateSucessNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	state := make(map[string]string)
+	state := make(map[string]interface{})
 	state["age"] = "20"
 
 	_, err := pn.SetState().State(state).Channels([]string{"ch"}).
@@ -34,7 +34,7 @@ func TestSetStateSuperCall(t *testing.T) {
 	config.AuthKey = SPECIAL_CHANNEL
 
 	pn := pubnub.NewPubNub(config)
-	state := make(map[string]string)
+	state := make(map[string]interface{})
 	state["qwerty"] = SPECIAL_CHARACTERS
 
 	_, err := pn.SetState().State(state).Channels([]string{setStateCharacters}).

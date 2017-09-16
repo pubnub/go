@@ -1,15 +1,17 @@
 package pubnub
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/pubnub/go/utils"
 )
 
-const HEARTBEAT_PATH = "/v2/presence/sub-key/%s/channel/%s/hearbeat"
+const HEARTBEAT_PATH = "/v2/presence/sub-key/%s/channel/%s/heartbeat"
 
 type heartbeatBuilder struct {
 	opts *heartbeatOpts
@@ -55,6 +57,22 @@ func (b *heartbeatBuilder) ChannelGroups(cg []string) *heartbeatBuilder {
 	return b
 }
 
+func (b *heartbeatBuilder) Execute() (interface{}, error) {
+	rawJson, err := executeRequest(b.opts)
+	if err != nil {
+		return "", err
+	}
+
+	var value interface{}
+
+	err = json.Unmarshal(rawJson, &value)
+	if err != nil {
+		return nil, err
+	}
+
+	return value, nil
+}
+
 type heartbeatOpts struct {
 	pubnub *PubNub
 
@@ -91,12 +109,14 @@ func (o *heartbeatOpts) validate() error {
 }
 
 func (o *heartbeatOpts) buildPath() (string, error) {
+	channels := string(utils.JoinChannels(o.Channels))
+
 	return fmt.Sprintf(HEARTBEAT_PATH,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(strings.Join(o.Channels, ","))), nil
+		channels), nil
 }
 
-func (o *heartbeatOpts) buildQuery() (string, error) {
+func (o *heartbeatOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
 	q.Set("heartbeat", strconv.Itoa(o.pubnub.Config.PresenceTimeout))
@@ -108,10 +128,12 @@ func (o *heartbeatOpts) buildQuery() (string, error) {
 	if o.State != nil {
 		state, _ := utils.ValueAsString(o.State)
 		// TODO: handle error
-		q.Set("state", string(state))
+		if string(state) != "{}" {
+			q.Set("state", string(state))
+		}
 	}
 
-	return "", nil
+	return q, nil
 }
 
 func (o *heartbeatOpts) buildBody() ([]byte, error) {

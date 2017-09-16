@@ -93,11 +93,11 @@ func (pn *PubNub) LeaveWithContext(ctx Context) *leaveBuilder {
 	return newLeaveBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) Heartbeat() *heartbeatBuilder {
+func (pn *PubNub) heartbeat() *heartbeatBuilder {
 	return newHeartbeatBuilder(pn)
 }
 
-func (pn *PubNub) HeartbeatWithContext(ctx Context) *heartbeatBuilder {
+func (pn *PubNub) heartbeatWithContext(ctx Context) *heartbeatBuilder {
 	return newHeartbeatBuilderWithContext(pn, ctx)
 }
 

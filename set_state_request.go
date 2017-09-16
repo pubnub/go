@@ -64,7 +64,7 @@ func newSetStateBuilderWithContext(pubnub *PubNub, context Context) *setStateBui
 	return &builder
 }
 
-func (b *setStateBuilder) State(state interface{}) *setStateBuilder {
+func (b *setStateBuilder) State(state map[string]interface{}) *setStateBuilder {
 	b.opts.State = state
 	return b
 }
@@ -80,6 +80,13 @@ func (b *setStateBuilder) ChannelGroups(groups []string) *setStateBuilder {
 }
 
 func (b *setStateBuilder) Execute() (*SetStateResponse, error) {
+	stateOperation := StateOperation{}
+	stateOperation.channels = b.opts.Channels
+	stateOperation.channelGroups = b.opts.ChannelGroups
+	stateOperation.state = b.opts.State
+
+	b.opts.pubnub.subscriptionManager.adaptState(stateOperation)
+
 	rawJson, err := executeRequest(b.opts)
 	if err != nil {
 		return emptySetStateResponse, err
@@ -89,7 +96,7 @@ func (b *setStateBuilder) Execute() (*SetStateResponse, error) {
 }
 
 type setStateOpts struct {
-	State         interface{}
+	State         map[string]interface{}
 	Channels      []string
 	ChannelGroups []string
 

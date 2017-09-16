@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net"
@@ -95,4 +96,18 @@ func servePublish(hangSeconds int, close, closed chan bool) {
 	}()
 
 	s.Serve(l)
+}
+
+type fakeTransport struct {
+	Status     string
+	StatusCode int
+	Body       io.ReadCloser
+}
+
+func (t fakeTransport) RoundTrip(*http.Request) (*http.Response, error) {
+	return &http.Response{
+		Status:     t.Status,
+		StatusCode: t.StatusCode,
+		Body:       t.Body,
+	}, nil
 }
