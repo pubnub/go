@@ -20,6 +20,7 @@ var (
 	ErrMissingChannelGroup = pnerr.NewValidationError("pubnub: Missing Channel Group")
 	ErrMissingMessage      = pnerr.NewValidationError("pubnub: Missing Message")
 	ErrMissingSecretKey    = pnerr.NewValidationError("pubnub: Missing Secret Key")
+	ErrMissingUuid         = pnerr.NewValidationError("pubnub: Missing Uuid")
 )
 
 // No server connection will be established when you create a new PubNub object.
@@ -180,6 +181,22 @@ func (pn *PubNub) GetState() *getStateBuilder {
 
 func (pn *PubNub) GetStateWithContext(ctx Context) *getStateBuilder {
 	return newGetStateBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) HereNow() *hereNowBuilder {
+	return newHereNowBuilder(pn)
+}
+
+func (pn *PubNub) HereNowWithContext(ctx Context) *hereNowBuilder {
+	return newHereNowBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) WhereNow() *whereNowBuilder {
+	return newWhereNowBuilder(pn)
+}
+
+func (pn *PubNub) WhereNowWithContext(ctx Context) *whereNowBuilder {
+	return newWhereNowBuilderWithContext(pn, ctx)
 }
 
 func NewPubNub(pnconf *Config) *PubNub {
