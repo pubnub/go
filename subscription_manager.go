@@ -356,15 +356,21 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 	m.stopHeartbeat()
 	m.log("heartbeat: new timer")
 
+	// TODO: remove extra logs
+	m.log("hb: acquiring lock")
 	m.hbMutex.Lock()
+	m.log("hb: lock acquired")
 	m.hbDone = make(chan bool)
 	m.hbTimer = time.NewTicker(time.Duration(
 		m.pubnub.Config.HeartbeatInterval) * time.Second)
 
 	go func() {
+		// TODO: remove extra logs
 		m.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> timer")
 		defer m.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< timer")
+		defer m.log("hb: lock released")
 		defer m.hbMutex.Unlock()
+		defer m.log("hb: releasing lock")
 		defer func() {
 			m.hbDone = nil
 		}()
@@ -392,8 +398,6 @@ func (m *SubscriptionManager) stopHeartbeat() {
 	if m.hbDone != nil {
 		m.hbDone <- true
 		m.log("heartbeat: loop: done channel stopped")
-		// } else {
-		// m.log("!!! done channel is'n empty")
 	}
 }
 
@@ -404,7 +408,7 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 
 	if len(presenceChannels) == 0 && len(presenceGroups) == 0 {
 		m.log("heartbeat: no channels left")
-		m.stopHeartbeat()
+		go m.stopHeartbeat()
 		return nil
 	}
 
