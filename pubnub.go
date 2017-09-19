@@ -156,6 +156,32 @@ func (pn *PubNub) RemoveChannelChannelGroupWithContext(
 	return newRemoveChannelChannelGroupBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) DeleteChannelGroup() *deleteChannelGroupBuilder {
+	return newDeleteChannelGroupBuilder(pn)
+}
+
+func (pn *PubNub) DeleteChannelGroupWithContext(
+	ctx Context) *deleteChannelGroupBuilder {
+	return newDeleteChannelGroupBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) ListAllChannelsChannelGroup() *allChannelGroupBuilder {
+	return newAllChannelGroupBuilder(pn)
+}
+
+func (pn *PubNub) ListAllChannelsChannelGroupWithContext(
+	ctx Context) *allChannelGroupBuilder {
+	return newAllChannelGroupBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetState() *getStateBuilder {
+	return newGetStateBuilder(pn)
+}
+
+func (pn *PubNub) GetStateWithContext(ctx Context) *getStateBuilder {
+	return newGetStateBuilderWithContext(pn, ctx)
+}
+
 func NewPubNub(pnconf *Config) *PubNub {
 	publishSequence := make(chan int)
 

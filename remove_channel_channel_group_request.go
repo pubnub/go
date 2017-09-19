@@ -136,7 +136,7 @@ func (o *removeChannelOpts) connectTimeout() int {
 }
 
 func (o *removeChannelOpts) operationType() PNOperationType {
-	return PNHistoryOperation
+	return PNRemoveChannelFromChannelGroupOperation
 }
 
 type RemoveChannelChannelGroupResponse struct {

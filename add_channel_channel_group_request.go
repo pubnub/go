@@ -171,7 +171,7 @@ func (o *addChannelOpts) connectTimeout() int {
 }
 
 func (o *addChannelOpts) operationType() PNOperationType {
-	return PNHistoryOperation
+	return PNAddChannelsToChannelGroupOperation
 }
 
 type AddChannelChannelGroupResponse struct {
