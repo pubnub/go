@@ -18,19 +18,6 @@ const GRANT_PATH = "/v1/auth/grant/sub-key/%s"
 
 var emptyGrantResponse *GrantResponse
 
-func GrantRequestWithContext(ctx Context, pn *PubNub, opts *grantOpts) (
-	*GrantResponse, error) {
-	opts.pubnub = pn
-	opts.ctx = ctx
-
-	_, err := executeRequest(opts)
-	if err != nil {
-		return emptyGrantResponse, err
-	}
-
-	return emptyGrantResponse, nil
-}
-
 type grantBuilder struct {
 	opts *grantOpts
 }
@@ -106,13 +93,13 @@ func (b *grantBuilder) Groups(groups []string) *grantBuilder {
 	return b
 }
 
-func (b *grantBuilder) Execute() (*GrantResponse, error) {
-	rawJson, err := executeRequest(b.opts)
+func (b *grantBuilder) Execute() (*GrantResponse, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyGrantResponse, err
+		return emptyGrantResponse, status, err
 	}
 
-	return newGrantResponse(rawJson)
+	return newGrantResponse(rawJson, status)
 }
 
 type grantOpts struct {
@@ -270,7 +257,8 @@ type PNAccessManagerKeyData struct {
 	Ttl           int
 }
 
-func newGrantResponse(jsonBytes []byte) (*GrantResponse, error) {
+func newGrantResponse(jsonBytes []byte, status StatusResponse) (
+	*GrantResponse, StatusResponse, error) {
 	resp := &GrantResponse{}
 	var value interface{}
 
@@ -279,7 +267,7 @@ func newGrantResponse(jsonBytes []byte) (*GrantResponse, error) {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyGrantResponse, e
+		return emptyGrantResponse, status, e
 	}
 
 	constructedChannels := make(map[string]*PNPAMEntityData)
@@ -525,7 +513,7 @@ func newGrantResponse(jsonBytes []byte) (*GrantResponse, error) {
 		resp.Ttl = int(parsedValue)
 	}
 
-	return resp, nil
+	return resp, status, nil
 }
 
 func fetchChannel(channelName string,

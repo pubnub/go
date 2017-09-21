@@ -16,29 +16,6 @@ const SET_STATE_PATH = "/v2/presence/sub-key/%s/channel/%s/uuid/%s/data"
 
 var emptySetStateResponse *SetStateResponse
 
-func SetStateRequest(pn *PubNub, opts *setStateOpts) (*SetStateResponse, error) {
-	opts.pubnub = pn
-	rawJson, err := executeRequest(opts)
-	if err != nil {
-		return emptySetStateResponse, err
-	}
-
-	return newSetStateResponse(rawJson)
-}
-
-func SetStateRequestWithContext(ctx Context, pn *PubNub,
-	opts *setStateOpts) (*SetStateResponse, error) {
-	opts.pubnub = pn
-	opts.ctx = ctx
-
-	_, err := executeRequest(opts)
-	if err != nil {
-		return emptySetStateResponse, err
-	}
-
-	return emptySetStateResponse, nil
-}
-
 type setStateBuilder struct {
 	opts *setStateOpts
 }
@@ -79,7 +56,7 @@ func (b *setStateBuilder) ChannelGroups(groups []string) *setStateBuilder {
 	return b
 }
 
-func (b *setStateBuilder) Execute() (*SetStateResponse, error) {
+func (b *setStateBuilder) Execute() (*SetStateResponse, StatusResponse, error) {
 	stateOperation := StateOperation{}
 	stateOperation.channels = b.opts.Channels
 	stateOperation.channelGroups = b.opts.ChannelGroups
@@ -87,12 +64,12 @@ func (b *setStateBuilder) Execute() (*SetStateResponse, error) {
 
 	b.opts.pubnub.subscriptionManager.adaptState(stateOperation)
 
-	rawJson, err := executeRequest(b.opts)
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptySetStateResponse, err
+		return emptySetStateResponse, status, err
 	}
 
-	return newSetStateResponse(rawJson)
+	return newSetStateResponse(rawJson, status)
 }
 
 type setStateOpts struct {
@@ -190,7 +167,8 @@ func (o *setStateOpts) operationType() PNOperationType {
 	return PNSetStateOperation
 }
 
-func newSetStateResponse(jsonBytes []byte) (*SetStateResponse, error) {
+func newSetStateResponse(jsonBytes []byte, status StatusResponse) (
+	*SetStateResponse, StatusResponse, error) {
 	resp := &SetStateResponse{}
 
 	var value interface{}
@@ -200,7 +178,7 @@ func newSetStateResponse(jsonBytes []byte) (*SetStateResponse, error) {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptySetStateResponse, e
+		return emptySetStateResponse, status, e
 	}
 
 	v, _ := value.(map[string]interface{})
@@ -208,7 +186,7 @@ func newSetStateResponse(jsonBytes []byte) (*SetStateResponse, error) {
 
 	resp.State = val
 
-	return resp, nil
+	return resp, status, nil
 }
 
 type SetStateResponse struct {

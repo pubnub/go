@@ -45,13 +45,13 @@ func (b *deleteChannelGroupBuilder) ChannelGroup(
 }
 
 func (b *deleteChannelGroupBuilder) Execute() (
-	*DeleteChannelGroupResponse, error) {
-	_, err := executeRequest(b.opts)
+	*DeleteChannelGroupResponse, StatusResponse, error) {
+	_, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyDeleteChannelGroupResponse, err
+		return emptyDeleteChannelGroupResponse, status, err
 	}
 
-	return emptyDeleteChannelGroupResponse, nil
+	return emptyDeleteChannelGroupResponse, status, nil
 }
 
 type deleteChannelGroupOpts struct {

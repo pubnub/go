@@ -12,7 +12,7 @@ func TestGrantSucccessNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, err := pn.Grant().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
 		AuthKeys([]string{"pam-key"}).Channels([]string{"ch1"}).
 		Execute()
@@ -26,7 +26,7 @@ func TestGrantMultipleMixed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, err := pn.Grant().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
 		AuthKeys([]string{"my-auth-key-1", "my-auth-key-2"}).
 		Channels([]string{"ch1", "ch2", "ch3"}).
@@ -42,7 +42,7 @@ func TestGrantSingleChannel(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, err := pn.Grant().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		Channels([]string{"ch1"}).
 		Execute()
@@ -59,7 +59,7 @@ func TestGrantSingleChannelWithAuth(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, err := pn.Grant().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(false).
 		AuthKeys([]string{"my-pam-key"}).
 		Channels([]string{"ch1"}).
@@ -77,7 +77,7 @@ func TestGrantMultipleChannels(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, err := pn.Grant().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		Channels([]string{"ch1", "ch2"}).
 		Execute()
@@ -99,7 +99,7 @@ func TestGrantMultipleChannelsWithAuth(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, err := pn.Grant().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		AuthKeys([]string{"my-pam-key"}).
 		Channels([]string{"ch1", "ch2"}).
@@ -122,7 +122,7 @@ func TestGrantSingleGroup(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, err := pn.Grant().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		Groups([]string{"cg1"}).
 		Execute()
@@ -140,7 +140,7 @@ func TestGrantSingleGroupWithAuth(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, err := pn.Grant().
+	res, _, err := pn.Grant().
 		Groups([]string{"cg1"}).
 		AuthKeys([]string{"my-pam-key"}).
 		Write(true).
@@ -160,7 +160,7 @@ func TestGrantMultipleGroups(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, err := pn.Grant().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		Groups([]string{"cg1", "cg2"}).
 		Execute()
@@ -182,7 +182,7 @@ func TestGrantMultipleGroupsWithAuth(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, err := pn.Grant().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		AuthKeys([]string{"my-pam-key"}).
 		Groups([]string{"cg1", "cg2"}).
@@ -210,7 +210,7 @@ func TestGrantSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, err := pn.Grant().
+	_, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
 		AuthKeys([]string{SPECIAL_CHARACTERS}).
 		Channels([]string{SPECIAL_CHANNEL}).

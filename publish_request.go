@@ -19,19 +19,6 @@ const PUBLISH_POST_PATH = "/publish/%s/%s/0/%s/%s"
 
 var emptyPublishResponse *PublishResponse
 
-func PublishRequestWithContext(ctx Context,
-	pn *PubNub, opts *publishOpts) (*PublishResponse, error) {
-	opts.pubnub = pn
-	opts.ctx = ctx
-
-	_, err := executeRequest(opts)
-	if err != nil {
-		return emptyPublishResponse, err
-	}
-
-	return emptyPublishResponse, err
-}
-
 type publishOpts struct {
 	pubnub *PubNub
 
@@ -62,7 +49,8 @@ type publishBuilder struct {
 	opts *publishOpts
 }
 
-func newPublishResponse(jsonBytes []byte) (*PublishResponse, error) {
+func newPublishResponse(jsonBytes []byte, status StatusResponse) (
+	*PublishResponse, StatusResponse, error) {
 	var value []interface{}
 
 	err := json.Unmarshal(jsonBytes, &value)
@@ -70,18 +58,18 @@ func newPublishResponse(jsonBytes []byte) (*PublishResponse, error) {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyPublishResponse, e
+		return emptyPublishResponse, status, e
 	}
 
 	timeString := value[2].(string)
 	timestamp, err := strconv.Atoi(timeString)
 	if err != nil {
-		return emptyPublishResponse, err
+		return emptyPublishResponse, status, err
 	}
 
 	return &PublishResponse{
 		Timestamp: timestamp,
-	}, nil
+	}, status, nil
 }
 
 func newPublishBuilder(pubnub *PubNub) *publishBuilder {
@@ -160,13 +148,13 @@ func (b *publishBuilder) Transport(tr http.RoundTripper) *publishBuilder {
 	return b
 }
 
-func (b *publishBuilder) Execute() (*PublishResponse, error) {
-	rawJson, err := executeRequest(b.opts)
+func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyPublishResponse, err
+		return emptyPublishResponse, status, err
 	}
 
-	return newPublishResponse(rawJson)
+	return newPublishResponse(rawJson, status)
 }
 
 func (o *publishOpts) config() Config {

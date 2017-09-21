@@ -10,16 +10,6 @@ import (
 
 const LEAVE_PATH = "/v2/presence/sub-key/%s/channel/%s/leave"
 
-func LeaveRequest(pn *PubNub, opts *leaveOpts) error {
-	opts.pubnub = pn
-	_, err := executeRequest(opts)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 type leaveBuilder struct {
 	opts *leaveOpts
 }
@@ -55,13 +45,13 @@ func (b *leaveBuilder) ChannelGroups(groups []string) *leaveBuilder {
 	return b
 }
 
-func (b *leaveBuilder) Execute() error {
-	_, err := executeRequest(b.opts)
+func (b *leaveBuilder) Execute() (StatusResponse, error) {
+	_, status, err := executeRequest(b.opts)
 	if err != nil {
-		return err
+		return status, err
 	}
 
-	return nil
+	return status, nil
 }
 
 type leaveOpts struct {

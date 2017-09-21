@@ -12,7 +12,7 @@ func TestGetStateNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.GetState().
+	_, _, err := pn.GetState().
 		Channels([]string{"ch"}).
 		ChannelGroups([]string{"cg"}).
 		Execute()
@@ -33,7 +33,7 @@ func TestGetStateSuperCall(t *testing.T) {
 	config.Uuid = validCharacters
 	config.AuthKey = SPECIAL_CHARACTERS
 
-	_, err := pn.GetState().
+	_, _, err := pn.GetState().
 		Channels([]string{validCharacters}).
 		ChannelGroups([]string{validCharacters}).
 		Execute()
@@ -50,14 +50,14 @@ func TestGetStateSucess(t *testing.T) {
 	state["age"] = "20"
 	state["name"] = "John Doe"
 
-	_, err := pn.SetState().
+	_, _, err := pn.SetState().
 		State(state).
 		Channels([]string{"ch"}).
 		Execute()
 
 	assert.Nil(err)
 
-	res, err := pn.GetState().
+	res, _, err := pn.GetState().
 		Channels([]string{"ch"}).
 		Execute()
 

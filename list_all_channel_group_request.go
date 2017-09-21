@@ -48,13 +48,14 @@ func (b *allChannelGroupBuilder) ChannelGroup(
 	return b
 }
 
-func (b *allChannelGroupBuilder) Execute() (*AllChannelGroupResponse, error) {
-	rawJson, err := executeRequest(b.opts)
+func (b *allChannelGroupBuilder) Execute() (
+	*AllChannelGroupResponse, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyAllChannelGroupResponse, err
+		return emptyAllChannelGroupResponse, status, err
 	}
 
-	return newAllChannelGroupResponse(rawJson)
+	return newAllChannelGroupResponse(rawJson, status)
 }
 
 type allChannelGroupOpts struct {
@@ -132,8 +133,8 @@ type AllChannelGroupResponse struct {
 	Group    string
 }
 
-func newAllChannelGroupResponse(jsonBytes []byte) (
-	*AllChannelGroupResponse, error) {
+func newAllChannelGroupResponse(jsonBytes []byte, status StatusResponse) (
+	*AllChannelGroupResponse, StatusResponse, error) {
 	resp := &AllChannelGroupResponse{}
 
 	var value interface{}
@@ -143,7 +144,7 @@ func newAllChannelGroupResponse(jsonBytes []byte) (
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyAllChannelGroupResponse, e
+		return emptyAllChannelGroupResponse, status, e
 	}
 
 	if parsedValue, ok := value.(map[string]interface{}); ok {
@@ -166,5 +167,5 @@ func newAllChannelGroupResponse(jsonBytes []byte) (
 		}
 	}
 
-	return resp, nil
+	return resp, status, nil
 }

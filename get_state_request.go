@@ -63,13 +63,13 @@ func (b *getStateBuilder) Transport(
 }
 
 func (b *getStateBuilder) Execute() (
-	*GetStateResponse, error) {
-	rawJson, err := executeRequest(b.opts)
+	*GetStateResponse, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyGetStateResp, err
+		return emptyGetStateResp, status, err
 	}
 
-	return newGetStateResponse(rawJson)
+	return newGetStateResponse(rawJson, status)
 }
 
 type getStateOpts struct {
@@ -151,8 +151,8 @@ type GetStateResponse struct {
 	State map[string]interface{}
 }
 
-func newGetStateResponse(jsonBytes []byte) (
-	*GetStateResponse, error) {
+func newGetStateResponse(jsonBytes []byte, status StatusResponse) (
+	*GetStateResponse, StatusResponse, error) {
 
 	resp := &GetStateResponse{}
 
@@ -163,7 +163,7 @@ func newGetStateResponse(jsonBytes []byte) (
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyGetStateResp, e
+		return emptyGetStateResp, status, e
 	}
 
 	if parsedValue, ok := value.(map[string]interface{}); ok {
@@ -172,5 +172,5 @@ func newGetStateResponse(jsonBytes []byte) (
 		}
 	}
 
-	return resp, nil
+	return resp, status, nil
 }

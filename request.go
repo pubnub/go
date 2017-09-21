@@ -11,16 +11,53 @@ import (
 	"github.com/pubnub/go/pnerr"
 )
 
-func executeRequest(opts endpointOpts) ([]byte, error) {
+type StatusResponse struct {
+	Error error
+
+	Category  PNStatusCategory
+	Operation PNOperationType
+
+	StatusCode int
+
+	TlsEnabled bool
+
+	Uuid             string
+	AuthKey          string
+	Origin           string
+	OriginalResponse string
+
+	AffectedChannels      []string
+	AffectedChannelGroups []string
+}
+
+type ResponseInfo struct {
+	Operation PNOperationType
+
+	StatusCode int
+
+	TlsEnabled bool
+
+	Origin  string
+	Uuid    string
+	AuthKey string
+
+	OriginalResponse *http.Response
+}
+
+func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	err := opts.validate()
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return nil,
+			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
+			err
 	}
 
 	url, err := buildUrl(opts)
 	if err != nil {
-		return nil, err
+		return nil,
+			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
+			err
 	}
 	log.Println("pubnub: >>>", url)
 	log.Println(opts.httpMethod())
@@ -30,7 +67,9 @@ func executeRequest(opts endpointOpts) ([]byte, error) {
 	if opts.httpMethod() == "POST" {
 		b, err := opts.buildBody()
 		if err != nil {
-			return nil, err
+			return nil,
+				createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
+				err
 		}
 
 		body := bytes.NewReader(b)
@@ -40,7 +79,9 @@ func executeRequest(opts endpointOpts) ([]byte, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return nil,
+			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
+			err
 	}
 
 	ctx := opts.context()
@@ -60,16 +101,39 @@ func executeRequest(opts endpointOpts) ([]byte, error) {
 
 		log.Println(e.Error())
 
-		return nil, e
+		return nil,
+			createStatus(PNUnknownCategory, "", ResponseInfo{}, e),
+			e
 	}
 
-	val, err := parseResponse(res)
+	val, status, err := parseResponse(res)
 	// Already wrapped error
 	if err != nil {
-		return nil, err
+		return nil, status, err
 	}
 
-	return val, nil
+	responseInfo := ResponseInfo{
+		StatusCode:       res.StatusCode,
+		OriginalResponse: res,
+		Operation:        opts.operationType(),
+		Origin:           url.Host,
+	}
+
+	if url.Scheme == "https" {
+		responseInfo.TlsEnabled = true
+	}
+
+	if uuid, ok := url.Query()["uuid"]; ok {
+		responseInfo.Uuid = uuid[0]
+	}
+
+	if auth, ok := url.Query()["auth"]; ok {
+		responseInfo.AuthKey = auth[0]
+	}
+
+	status = createStatus(PNUnknownCategory, string(val), responseInfo, nil)
+
+	return val, status, nil
 }
 
 func newRequest(method string, u *url.URL, body io.Reader) (*http.Request,
@@ -94,7 +158,9 @@ func newRequest(method string, u *url.URL, body io.Reader) (*http.Request,
 	return req, nil
 }
 
-func parseResponse(resp *http.Response) ([]byte, error) {
+func parseResponse(resp *http.Response) ([]byte, StatusResponse, error) {
+	status := StatusResponse{}
+
 	if resp.StatusCode != 200 {
 		// Errors like 400, 403, 500
 		log.Println(resp.Body)
@@ -103,7 +169,21 @@ func parseResponse(resp *http.Response) ([]byte, error) {
 
 		log.Println(e.Error())
 
-		return nil, e
+		if resp.StatusCode == 408 {
+			status = createStatus(PNTimeoutCategory, "", ResponseInfo{}, e)
+
+			return nil, status, e
+		}
+
+		if resp.StatusCode == 400 {
+			status = createStatus(PNBadRequestCategory, "", ResponseInfo{}, e)
+
+			return nil, status, e
+		}
+
+		status = createStatus(PNUnknownCategory, "", ResponseInfo{}, e)
+
+		return nil, status, e
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -111,10 +191,35 @@ func parseResponse(resp *http.Response) ([]byte, error) {
 		e := pnerr.NewResponseParsingError("Error reading response body", resp.Body, err)
 		log.Println(e)
 
-		return nil, e
+		return nil, status, e
 	}
 
 	log.Println("pubnub: <<<", resp.Status, string(body))
 
-	return body, nil
+	return body, status, nil
+}
+
+func createStatus(category PNStatusCategory, response string,
+	responseInfo ResponseInfo, err error) StatusResponse {
+	resp := StatusResponse{}
+
+	if response != "" {
+		resp.OriginalResponse = response
+	}
+
+	if err != nil {
+		resp.Error = err
+	}
+
+	resp.StatusCode = responseInfo.StatusCode
+	resp.TlsEnabled = responseInfo.TlsEnabled
+	resp.Origin = responseInfo.Origin
+	resp.Uuid = responseInfo.Uuid
+	resp.AuthKey = responseInfo.AuthKey
+	resp.Operation = responseInfo.Operation
+	resp.Category = category
+	resp.AffectedChannels = []string{}
+	resp.AffectedChannelGroups = []string{}
+
+	return resp
 }

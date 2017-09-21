@@ -12,7 +12,7 @@ func TestAddChannelChannelGroupNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelChannelGroup().
 		Channels([]string{"ch"}).
 		Group("cg").
 		Execute()
@@ -25,7 +25,7 @@ func TestAddChannelChannelGroupMissingGroup(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelChannelGroup().
 		Channels([]string{"ch"}).
 		Execute()
 
@@ -37,7 +37,7 @@ func TestAddChannelChannelGroupMissingChannel(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelChannelGroup().
 		Group("cg").
 		Execute()
 
@@ -59,7 +59,7 @@ func TestAddChannelChannelGroupSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelChannelGroup().
 		Channels([]string{validCharacters}).
 		Group(validCharacters).
 		Execute()
@@ -74,14 +74,14 @@ func TestAddChannelChannelGroupSuccessAdded(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()
 
 	assert.Nil(err)
 
-	res, err := pn.ListAllChannelsChannelGroup().
+	res, _, err := pn.ListAllChannelsChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
 
@@ -90,7 +90,7 @@ func TestAddChannelChannelGroupSuccessAdded(t *testing.T) {
 	assert.Equal(myChannel, res.Channels[0])
 	assert.Equal(myGroup, res.Group)
 
-	_, err = pn.RemoveChannelChannelGroup().
+	_, _, err = pn.RemoveChannelChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()

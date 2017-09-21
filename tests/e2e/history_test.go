@@ -16,7 +16,7 @@ func TestHistorySuccessNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.History().Channel("ch").Execute()
+	_, _, err := pn.History().Channel("ch").Execute()
 
 	assert.Nil(err)
 }
@@ -25,7 +25,7 @@ func TestHistoryCallWithAllParams(t *testing.T) {
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
 
-	res, err := pn.History().
+	res, _, err := pn.History().
 		Channel("ch").
 		Count(2).
 		IncludeTimetoken(true).
@@ -53,7 +53,7 @@ func TestHistorySuccess(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.History().
+	res, _, err := pn.History().
 		Channel("ch").
 		Transport(interceptor.Transport).
 		Execute()
@@ -90,7 +90,7 @@ func TestHistoryEncryptedPNOther(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.History().
+	res, _, err := pn.History().
 		Channel("ch").
 		Transport(interceptor.Transport).
 		Execute()
@@ -107,7 +107,7 @@ func TestHistoryMissingChannel(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pnconfig)
 
-	res, err := pn.History().
+	res, _, err := pn.History().
 		Channel("").
 		Execute()
 
@@ -133,7 +133,7 @@ func TestHistoryPNOtherError(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.History().
+	res, _, err := pn.History().
 		Channel("ch").
 		Transport(interceptor.Transport).
 		Execute()
@@ -154,7 +154,7 @@ func TestHistorySuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	_, err := pn.History().
+	_, _, err := pn.History().
 		Channel(SPECIAL_CHANNEL).
 		Count(100).
 		Reverse(true).

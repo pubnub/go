@@ -15,7 +15,7 @@ func TestSetStateSucessNotStubbed(t *testing.T) {
 	state := make(map[string]interface{})
 	state["age"] = "20"
 
-	_, err := pn.SetState().State(state).Channels([]string{"ch"}).
+	_, _, err := pn.SetState().State(state).Channels([]string{"ch"}).
 		ChannelGroups([]string{"cg"}).Execute()
 
 	assert.Nil(err)
@@ -37,7 +37,7 @@ func TestSetStateSuperCall(t *testing.T) {
 	state := make(map[string]interface{})
 	state["qwerty"] = SPECIAL_CHARACTERS
 
-	_, err := pn.SetState().State(state).Channels([]string{setStateCharacters}).
+	_, _, err := pn.SetState().State(state).Channels([]string{setStateCharacters}).
 		ChannelGroups([]string{setStateCharacters}).
 		State(state).
 		Execute()

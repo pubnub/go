@@ -168,7 +168,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 	m.subscriptionStateAnnounced = false
 
 	go func() {
-		err := m.pubnub.Leave().Channels(unsubscribeOperation.Channels).
+		_, err := m.pubnub.Leave().Channels(unsubscribeOperation.Channels).
 			ChannelGroups(unsubscribeOperation.ChannelGroups).Execute()
 
 		if err != nil {
@@ -236,7 +236,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		}
 
 		// TODO: use context to be able to stop request
-		res, err := executeRequest(opts)
+		res, _, err := executeRequest(opts)
 		if err != nil {
 			if strings.Contains(err.Error(), "timeout") {
 				m.listenerManager.announceStatus(&PNStatus{
@@ -408,7 +408,7 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 		return nil
 	}
 
-	res, err := newHeartbeatBuilder(m.pubnub).
+	res, _, err := newHeartbeatBuilder(m.pubnub).
 		Channels(presenceChannels).
 		ChannelGroups(presenceGroups).
 		State(stateStorage).

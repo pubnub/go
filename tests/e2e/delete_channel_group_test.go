@@ -12,7 +12,7 @@ func TestRemoveChannelGroupNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.DeleteChannelGroup().
+	_, _, err := pn.DeleteChannelGroup().
 		ChannelGroup("cg").
 		Execute()
 
@@ -24,7 +24,7 @@ func TestRemoveChannelGroupMissingGroup(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.DeleteChannelGroup().
+	_, _, err := pn.DeleteChannelGroup().
 		Execute()
 
 	assert.Contains(err.Error(), "Missing Channel Group")
@@ -45,7 +45,7 @@ func TestRemoveChannelGroupSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, err := pn.DeleteChannelGroup().
+	_, _, err := pn.DeleteChannelGroup().
 		ChannelGroup(validCharacters).
 		Execute()
 
@@ -59,21 +59,21 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()
 
 	assert.Nil(err)
 
-	_, err = pn.RemoveChannelChannelGroup().
+	_, _, err = pn.RemoveChannelChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()
 
 	assert.Nil(err)
 
-	res, err := pn.ListAllChannelsChannelGroup().
+	res, _, err := pn.ListAllChannelsChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
 

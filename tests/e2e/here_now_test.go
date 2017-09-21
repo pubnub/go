@@ -13,7 +13,7 @@ func TestHereNowNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.HereNow().
+	_, _, err := pn.HereNow().
 		Channels([]string{"ch"}).
 		Execute()
 
@@ -35,7 +35,7 @@ func TestHereNowMultipleChannelsWithState(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.HereNow().
+	res, _, err := pn.HereNow().
 		Channels([]string{"ch1", "ch2"}).
 		IncludeState(true).
 		Execute()
@@ -63,7 +63,7 @@ func TestMultipleChannelWithoutStateSync(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub_key/sub_key/channel/game1",
+		Path:               "/v2/presence/sub_key/sub_key/channel/game1,game2",
 		Query:              "state=0",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"payload\": {\"channels\": {\"game1\": {\"uuids\": [\"a3ffd012-a3b9-478c-8705-64089f24d71e\"], \"occupancy\": 1}}, \"total_channels\": 1, \"total_occupancy\": 1}, \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
@@ -73,8 +73,8 @@ func TestMultipleChannelWithoutStateSync(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.HereNow().
-		Channels([]string{"game1"}).
+	res, _, err := pn.HereNow().
+		Channels([]string{"game1", "game2"}).
 		IncludeState(false).
 		Execute()
 
@@ -87,7 +87,37 @@ func TestMultipleChannelWithoutStateSync(t *testing.T) {
 	assert.Equal(map[string]interface{}(nil), res.Channels[0].Occupants[0].State)
 
 	assert.Nil(err)
+}
 
+func TestHereNowMultipleChannelsWithoutUuids(t *testing.T) {
+	assert := assert.New(t)
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v2/presence/sub_key/sub_key/channel/game1,game2",
+		Query:              "state=0&disable-uuids=1",
+		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"payload\": {\"channels\": {\"game1\": {\"occupancy\": 1}}, \"total_channels\": 1, \"total_occupancy\": 1}, \"service\": \"Presence\"}",
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(pnconfig)
+	pn.SetClient(interceptor.GetClient())
+
+	res, _, err := pn.HereNow().
+		Channels([]string{"game1", "game2"}).
+		IncludeState(false).
+		IncludeUuids(false).
+		Execute()
+
+	assert.Equal(1, res.TotalChannels)
+	assert.Equal(1, res.TotalOccupancy)
+
+	assert.Equal("game1", res.Channels[0].ChannelName)
+	assert.Equal(1, res.Channels[0].Occupancy)
+	assert.Equal(0, len(res.Channels[0].Occupants))
+
+	assert.Nil(err)
 }
 
 func TestHereNowSingleChannelWithState(t *testing.T) {
@@ -106,7 +136,7 @@ func TestHereNowSingleChannelWithState(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.HereNow().
+	res, _, err := pn.HereNow().
 		Channels([]string{"game1"}).
 		IncludeState(true).
 		Execute()
@@ -140,7 +170,7 @@ func TestHereNowSingleChannelWithoutState(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.HereNow().
+	res, _, err := pn.HereNow().
 		Channels([]string{"game1"}).
 		IncludeState(false).
 		Execute()
@@ -174,7 +204,7 @@ func TestHereNowSingleChannelAndGroup(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	res, err := pn.HereNow().
+	res, _, err := pn.HereNow().
 		Channels([]string{"game1"}).
 		ChannelGroups([]string{"cg"}).
 		IncludeState(true).

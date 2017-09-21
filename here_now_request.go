@@ -70,13 +70,13 @@ func (b *hereNowBuilder) IncludeUuids(uuid bool) *hereNowBuilder {
 	return b
 }
 
-func (b *hereNowBuilder) Execute() (*HereNowResponse, error) {
-	rawJson, err := executeRequest(b.opts)
+func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyHereNowResponse, err
+		return emptyHereNowResponse, status, err
 	}
 
-	return newHereNowResponse(rawJson, b.opts.Channels)
+	return newHereNowResponse(rawJson, b.opts.Channels, status)
 }
 
 type hereNowOpts struct {
@@ -191,7 +191,8 @@ type HereNowOccupantsData struct {
 	State map[string]interface{}
 }
 
-func newHereNowResponse(jsonBytes []byte, channelNames []string) (*HereNowResponse, error) {
+func newHereNowResponse(jsonBytes []byte, channelNames []string,
+	status StatusResponse) (*HereNowResponse, StatusResponse, error) {
 	resp := &HereNowResponse{}
 
 	var value interface{}
@@ -201,7 +202,7 @@ func newHereNowResponse(jsonBytes []byte, channelNames []string) (*HereNowRespon
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyHereNowResponse, e
+		return emptyHereNowResponse, status, e
 	}
 
 	if parsedValue, ok := value.(map[string]interface{}); ok {
@@ -226,31 +227,29 @@ func newHereNowResponse(jsonBytes []byte, channelNames []string) (*HereNowRespon
 
 						resp.Channels = channels
 
-						log.Println("----")
-						log.Println(resp)
-						return resp, nil
+						return resp, status, nil
 					} else if len(val) == 1 {
 						resp.TotalChannels = 1
 
-						if totalOcc, ok := parsedValue["total_occupancy"].(int); ok {
-							resp.TotalOccupancy = totalOcc
+						if totalOcc, ok := parsedPayload["total_occupancy"].(float64); ok {
+							resp.TotalOccupancy = int(totalOcc)
 						}
 
 						resp.Channels = append(resp.Channels, HereNowChannelData{
-							channelNames[0], 0, []HereNowOccupantsData{},
+							channelNames[0], 1, []HereNowOccupantsData{},
 						})
 
-						return resp, nil
+						return resp, status, nil
 					} else {
-						if totalCh, ok := parsedValue["total_channels"].(int); ok {
-							resp.TotalChannels = totalCh
+						if totalCh, ok := parsedValue["total_channels"].(float64); ok {
+							resp.TotalChannels = int(totalCh)
 						}
 
-						if totalOcc, ok := parsedValue["total_occupancy"].(int); ok {
-							resp.TotalOccupancy = totalOcc
+						if totalOcc, ok := parsedValue["total_occupancy"].(float64); ok {
+							resp.TotalOccupancy = int(totalOcc)
 						}
 
-						return resp, nil
+						return resp, status, nil
 					}
 				}
 			}
@@ -268,14 +267,11 @@ func newHereNowResponse(jsonBytes []byte, channelNames []string) (*HereNowRespon
 				channelNames[0], 0, []HereNowOccupantsData{},
 			})
 
-			return resp, nil
+			return resp, status, nil
 			// single
 		} else if _, ok := parsedValue["uuids"]; ok {
 			if uuids, ok := parsedValue["uuids"].([]interface{}); ok {
-				log.Println("========")
-				log.Println(uuids)
 				occupants := []HereNowOccupantsData{}
-
 				for _, user := range uuids {
 					if u, ok := user.(string); ok {
 						empty := make(map[string]interface{})
@@ -315,8 +311,7 @@ func newHereNowResponse(jsonBytes []byte, channelNames []string) (*HereNowRespon
 				})
 			}
 
-			log.Println(resp)
-			return resp, nil
+			return resp, status, nil
 		} else {
 			resp.TotalChannels = 1
 
@@ -332,13 +327,11 @@ func newHereNowResponse(jsonBytes []byte, channelNames []string) (*HereNowRespon
 				[]HereNowOccupantsData{},
 			})
 
-			return resp, nil
+			return resp, status, nil
 		}
 	}
 
-	log.Println(value)
-
-	return resp, nil
+	return resp, status, nil
 }
 
 func parseChannelData(channelName string, rawData interface{}) HereNowChannelData {

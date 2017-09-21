@@ -12,7 +12,7 @@ func TestListAllChannelGroup(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.ListAllChannelsChannelGroup().
+	_, _, err := pn.ListAllChannelsChannelGroup().
 		ChannelGroup("cg").
 		Execute()
 
@@ -24,7 +24,7 @@ func TestListAllChannelGroupMissingGroup(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.DeleteChannelGroup().
+	_, _, err := pn.DeleteChannelGroup().
 		Execute()
 
 	assert.Contains(err.Error(), "Missing Channel Group")
@@ -45,7 +45,7 @@ func TestListAllChannelGroupSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, err := pn.ListAllChannelsChannelGroup().
+	_, _, err := pn.ListAllChannelsChannelGroup().
 		ChannelGroup(validCharacters).
 		Execute()
 
@@ -59,14 +59,14 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()
 
 	assert.Nil(err)
 
-	res, err := pn.ListAllChannelsChannelGroup().
+	res, _, err := pn.ListAllChannelsChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
 
@@ -75,7 +75,7 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 	assert.Equal(myChannel, res.Channels[0])
 	assert.Equal(myGroup, res.Group)
 
-	_, err = pn.RemoveChannelChannelGroup().
+	_, _, err = pn.RemoveChannelChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()

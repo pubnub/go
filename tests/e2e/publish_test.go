@@ -19,7 +19,6 @@ func init() {
 	pnconfig = pubnub.NewConfig()
 	pnconfig.PublishKey = "pub_key"
 	pnconfig.SubscribeKey = "sub_key"
-	// pnconfig.SecretKey = "secret_key"
 	pnconfig.ConnectTimeout = 2
 	pnconfig.NonSubscribeRequestTimeout = 2
 }
@@ -32,7 +31,7 @@ func TestPublishSuccessNotStubbed(t *testing.T) {
 
 	pn.Config.CipherKey = "enigma"
 
-	res, err := pn.Publish().
+	res, _, err := pn.Publish().
 		Channel("ch").Message("hey").UsePost(true).Serialize(true).Execute()
 
 	assert.Nil(err)
@@ -55,7 +54,7 @@ func TestPublishSuccess(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	_, err := pn.Publish().Channel("ch").Message("hey").Execute()
+	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
 
 	assert.Nil(err)
 }
@@ -75,7 +74,7 @@ func TestPublishSuccessSlice(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(interceptor.GetClient())
 
-	_, err := pn.Publish().
+	_, _, err := pn.Publish().
 		Channel("ch").
 		Message([]string{"hey1", "hey2", "hey3"}).
 		Execute()
@@ -95,7 +94,7 @@ func TestPublishContextTimeout(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(stubs.NewSleeperClient(ms + 3000))
 
-	res, err := pn.PublishWithContext(ctx).Channel("ch").Message("hey").Execute()
+	res, _, err := pn.PublishWithContext(ctx).Channel("ch").Message("hey").Execute()
 
 	if err == nil {
 		assert.Fail("Received success instead of context deadline: %v", res)
@@ -124,7 +123,7 @@ func TestPublishContextCancel(t *testing.T) {
 	pn := pubnub.NewPubNub(pnconfig)
 	pn.SetClient(stubs.NewSleeperClient(ms + 3000))
 
-	res, err := pn.PublishWithContext(ctx).Channel("ch").Message("hey").Execute()
+	res, _, err := pn.PublishWithContext(ctx).Channel("ch").Message("hey").Execute()
 
 	if err == nil {
 		assert.Fail("Received success instead of context deadline: %v", res)
@@ -146,7 +145,7 @@ func ATestPublishTimeout(t *testing.T) {
 	pn.SetClient(stubs.NewSleeperClient(
 		pnconfig.NonSubscribeRequestTimeout*1000 + 1000))
 
-	_, err := pn.Publish().Channel("ch").Message("hey").
+	_, _, err := pn.Publish().Channel("ch").Message("hey").
 		UsePost(false).Execute()
 
 	assert.Equal(fmt.Sprintf(connectionErrorTemplate,
@@ -165,7 +164,7 @@ func TestPublishMissingPublishKey(t *testing.T) {
 
 	pn := pubnub.NewPubNub(cfg)
 
-	_, err := pn.Publish().Channel("ch").Message("hey").Execute()
+	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
 
 	assert.Contains(err.Error(), "pubnub: Missing Publish Key")
 }
@@ -179,7 +178,7 @@ func TestPublishMissingMessage(t *testing.T) {
 
 	pn := pubnub.NewPubNub(cfg)
 
-	_, err := pn.Publish().Channel("ch").Execute()
+	_, _, err := pn.Publish().Channel("ch").Execute()
 
 	assert.Contains(err.Error(), "pubnub: Missing Message")
 }
@@ -193,7 +192,7 @@ func TestPublishMissingChannel(t *testing.T) {
 
 	pn := pubnub.NewPubNub(cfg)
 
-	_, err := pn.Publish().Message("hey").Execute()
+	_, _, err := pn.Publish().Message("hey").Execute()
 
 	assert.Contains(err.Error(), "pubnub: Missing Channel")
 }
@@ -205,7 +204,7 @@ func xTestPublishServerError(t *testing.T) {
 	cfg := pamConfigCopy()
 	pn := pubnub.NewPubNub(cfg)
 
-	_, err := pn.Publish().Channel("ch").Message("hey").Execute()
+	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
 
 	assert.Contains(err.Error(), fmt.Sprintf(serverErrorTemplate, 403))
 }
@@ -217,7 +216,7 @@ func TestPublishNetworkError(t *testing.T) {
 	cfg.Origin = "foo.bar"
 	pn := pubnub.NewPubNub(cfg)
 
-	_, err := pn.Publish().Channel("ch").Message("hey").Execute()
+	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
 
 	assert.Contains(err.Error(), fmt.Sprintf(connectionErrorTemplate,
 		"Failed to execute request"))
@@ -238,7 +237,7 @@ func TestPublishSigned(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, err := pn.Publish().Channel("ch").
+	_, _, err := pn.Publish().Channel("ch").
 		Message([]string{"hey", "hey2", "hey3"}).Execute()
 
 	assert.Nil(err)
@@ -253,7 +252,7 @@ func TestPublishSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, err := pn.Publish().Channel(SPECIAL_CHANNEL).
+	_, _, err := pn.Publish().Channel(SPECIAL_CHANNEL).
 		Message([]string{SPECIAL_CHARACTERS, SPECIAL_CHARACTERS,
 			SPECIAL_CHARACTERS}).Meta(SPECIAL_CHARACTERS).Execute()
 

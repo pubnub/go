@@ -13,7 +13,7 @@ func TestRemoveChannelChannelGroupNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.RemoveChannelChannelGroup().
+	_, _, err := pn.RemoveChannelChannelGroup().
 		Channels([]string{"ch"}).
 		Group("cg").
 		Execute()
@@ -26,7 +26,7 @@ func TestRemoveChannelChannelGroupMissingChannel(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.RemoveChannelChannelGroup().
+	_, _, err := pn.RemoveChannelChannelGroup().
 		Group("cg").
 		Execute()
 
@@ -38,7 +38,7 @@ func TestRemoveChannelChannelGroupMissingGroup(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.RemoveChannelChannelGroup().
+	_, _, err := pn.RemoveChannelChannelGroup().
 		Channels([]string{"ch"}).
 		Execute()
 
@@ -60,7 +60,7 @@ func TestRemoveChannelChannelGroupSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, err := pn.RemoveChannelChannelGroup().
+	_, _, err := pn.RemoveChannelChannelGroup().
 		Channels([]string{validCharacters}).
 		Group(validCharacters).
 		Execute()
@@ -76,14 +76,14 @@ func TestRemoveChannelChannelGroupSuccess(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelChannelGroup().
 		Channels([]string{myChannel, myAnotherChannel}).
 		Group(myGroup).
 		Execute()
 
 	assert.Nil(err)
 
-	res, err := pn.ListAllChannelsChannelGroup().
+	res, _, err := pn.ListAllChannelsChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
 
@@ -94,7 +94,7 @@ func TestRemoveChannelChannelGroupSuccess(t *testing.T) {
 	assert.Equal(myAnotherChannel, res.Channels[0])
 	assert.Equal(myGroup, res.Group)
 
-	_, err = pn.RemoveChannelChannelGroup().
+	_, _, err = pn.RemoveChannelChannelGroup().
 		Channels([]string{myChannel, myAnotherChannel}).
 		Group(myGroup).
 		Execute()
@@ -104,7 +104,7 @@ func TestRemoveChannelChannelGroupSuccess(t *testing.T) {
 	// await for remove channels
 	<-time.After(1 * time.Second)
 
-	res, err = pn.ListAllChannelsChannelGroup().
+	res, _, err = pn.ListAllChannelsChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
 

@@ -199,6 +199,14 @@ func (pn *PubNub) WhereNowWithContext(ctx Context) *whereNowBuilder {
 	return newWhereNowBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) Time() *timeBuilder {
+	return newTimeBuilder(pn)
+}
+
+func (pn *PubNub) TimeWithContext(ctx Context) *timeBuilder {
+	return newTimeBuilderWithContext(pn, ctx)
+}
+
 func NewPubNub(pnconf *Config) *PubNub {
 	publishSequence := make(chan int)
 

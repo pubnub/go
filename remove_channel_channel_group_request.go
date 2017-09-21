@@ -52,13 +52,14 @@ func (b *removeChannelChannelGroupBuilder) Group(
 	return b
 }
 
-func (b *removeChannelChannelGroupBuilder) Execute() (*RemoveChannelChannelGroupResponse, error) {
-	rawJson, err := executeRequest(b.opts)
+func (b *removeChannelChannelGroupBuilder) Execute() (
+	*RemoveChannelChannelGroupResponse, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyRemoveChannelChannelGroupResponse, err
+		return emptyRemoveChannelChannelGroupResponse, status, err
 	}
 
-	return newRemoveChannelChannelGroupResponse(rawJson)
+	return newRemoveChannelChannelGroupResponse(rawJson, status)
 }
 
 type removeChannelOpts struct {
@@ -142,6 +143,8 @@ func (o *removeChannelOpts) operationType() PNOperationType {
 type RemoveChannelChannelGroupResponse struct {
 }
 
-func newRemoveChannelChannelGroupResponse(jsonBytes []byte) (*RemoveChannelChannelGroupResponse, error) {
-	return emptyRemoveChannelChannelGroupResponse, nil
+func newRemoveChannelChannelGroupResponse(jsonBytes []byte,
+	status StatusResponse) (*RemoveChannelChannelGroupResponse,
+	StatusResponse, error) {
+	return emptyRemoveChannelChannelGroupResponse, status, nil
 }

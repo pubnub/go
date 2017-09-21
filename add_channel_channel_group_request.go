@@ -13,31 +13,6 @@ const ADD_CHANNEL_CHANNEL_GROUP_PATH = "/v1/channel-registration/sub-key/%s/chan
 
 var emptyAddChannelChannelGroupResp *AddChannelChannelGroupResponse
 
-func AddChannelChannelGroupRequest(pn *PubNub, opts *addChannelOpts) (
-	*AddChannelChannelGroupResponse, error) {
-	opts.pubnub = pn
-	rawJson, err := executeRequest(opts)
-	if err != nil {
-		return emptyAddChannelChannelGroupResp, err
-	}
-
-	return newAddChannelChannelGroupsResponse(rawJson)
-}
-
-func AddChannelChannelGroupRequestWithContext(ctx Context,
-	pn *PubNub, opts *addChannelOpts) (
-	*AddChannelChannelGroupResponse, error) {
-	opts.pubnub = pn
-	opts.ctx = ctx
-
-	rawJson, err := executeRequest(opts)
-	if err != nil {
-		return emptyAddChannelChannelGroupResp, err
-	}
-
-	return newAddChannelChannelGroupsResponse(rawJson)
-}
-
 type addChannelChannelGroupBuilder struct {
 	opts *addChannelOpts
 }
@@ -87,13 +62,13 @@ func (b *addChannelChannelGroupBuilder) Transport(
 }
 
 func (b *addChannelChannelGroupBuilder) Execute() (
-	*AddChannelChannelGroupResponse, error) {
-	rawJson, err := executeRequest(b.opts)
+	*AddChannelChannelGroupResponse, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyAddChannelChannelGroupResp, err
+		return emptyAddChannelChannelGroupResp, status, err
 	}
 
-	return newAddChannelChannelGroupsResponse(rawJson)
+	return newAddChannelChannelGroupsResponse(rawJson, status)
 }
 
 type addChannelOpts struct {
@@ -177,8 +152,8 @@ func (o *addChannelOpts) operationType() PNOperationType {
 type AddChannelChannelGroupResponse struct {
 }
 
-func newAddChannelChannelGroupsResponse(jsonBytes []byte) (
-	*AddChannelChannelGroupResponse, error) {
+func newAddChannelChannelGroupsResponse(jsonBytes []byte, status StatusResponse) (
+	*AddChannelChannelGroupResponse, StatusResponse, error) {
 
-	return emptyAddChannelChannelGroupResp, nil
+	return emptyAddChannelChannelGroupResp, status, nil
 }

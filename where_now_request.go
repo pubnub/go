@@ -47,13 +47,13 @@ func (b *whereNowBuilder) Uuid(uuid string) *whereNowBuilder {
 	return b
 }
 
-func (b *whereNowBuilder) Execute() (*WhereNowResponse, error) {
-	rawJson, err := executeRequest(b.opts)
+func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyWhereNowResponse, err
+		return emptyWhereNowResponse, status, err
 	}
 
-	return newWhereNowResponse(rawJson)
+	return newWhereNowResponse(rawJson, status)
 }
 
 type whereNowOpts struct {
@@ -130,7 +130,8 @@ type WhereNowResponse struct {
 	Channels []string
 }
 
-func newWhereNowResponse(jsonBytes []byte) (*WhereNowResponse, error) {
+func newWhereNowResponse(jsonBytes []byte, status StatusResponse) (
+	*WhereNowResponse, StatusResponse, error) {
 	resp := &WhereNowResponse{}
 
 	var value interface{}
@@ -140,7 +141,7 @@ func newWhereNowResponse(jsonBytes []byte) (*WhereNowResponse, error) {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyWhereNowResponse, e
+		return emptyWhereNowResponse, status, e
 	}
 
 	if parsedValue, ok := value.(map[string]interface{}); ok {
@@ -155,5 +156,5 @@ func newWhereNowResponse(jsonBytes []byte) (*WhereNowResponse, error) {
 		}
 	}
 
-	return resp, nil
+	return resp, status, nil
 }

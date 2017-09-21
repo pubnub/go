@@ -19,29 +19,6 @@ const MAX_COUNT = 100
 
 var emptyHistoryResp *HistoryResponse
 
-func HistoryRequest(pn *PubNub, opts *historyOpts) (*HistoryResponse, error) {
-	opts.pubnub = pn
-	rawJson, err := executeRequest(opts)
-	if err != nil {
-		return emptyHistoryResp, err
-	}
-
-	return newHistoryResponse(rawJson, opts.config().CipherKey)
-}
-
-func HistoryRequestWithContext(ctx Context,
-	pn *PubNub, opts *historyOpts) (*HistoryResponse, error) {
-	opts.pubnub = pn
-	opts.ctx = ctx
-
-	_, err := executeRequest(opts)
-	if err != nil {
-		return emptyHistoryResp, err
-	}
-
-	return emptyHistoryResp, nil
-}
-
 type historyBuilder struct {
 	opts *historyOpts
 }
@@ -105,13 +82,13 @@ func (b *historyBuilder) Transport(tr http.RoundTripper) *historyBuilder {
 	return b
 }
 
-func (b *historyBuilder) Execute() (*HistoryResponse, error) {
-	rawJson, err := executeRequest(b.opts)
+func (b *historyBuilder) Execute() (*HistoryResponse, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyHistoryResp, err
+		return emptyHistoryResp, status, err
 	}
 
-	return newHistoryResponse(rawJson, b.opts.config().CipherKey)
+	return newHistoryResponse(rawJson, b.opts.config().CipherKey, status)
 }
 
 type historyOpts struct {
@@ -223,7 +200,8 @@ type HistoryResponse struct {
 	EndTimetoken   int64
 }
 
-func newHistoryResponse(jsonBytes []byte, cipherKey string) (*HistoryResponse, error) {
+func newHistoryResponse(jsonBytes []byte, cipherKey string,
+	status StatusResponse) (*HistoryResponse, StatusResponse, error) {
 	resp := &HistoryResponse{}
 
 	var value interface{}
@@ -233,7 +211,7 @@ func newHistoryResponse(jsonBytes []byte, cipherKey string) (*HistoryResponse, e
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyHistoryResp, e
+		return emptyHistoryResp, status, e
 	}
 
 	switch v := value.(type) {
@@ -252,7 +230,7 @@ func newHistoryResponse(jsonBytes []byte, cipherKey string) (*HistoryResponse, e
 						e := pnerr.NewResponseParsingError("Error unmarshalling response",
 							ioutil.NopCloser(bytes.NewBufferString(v)), err)
 
-						return emptyHistoryResp, e
+						return emptyHistoryResp, status, e
 					}
 					break
 				case map[string]interface{}:
@@ -261,21 +239,21 @@ func newHistoryResponse(jsonBytes []byte, cipherKey string) (*HistoryResponse, e
 						e := pnerr.NewResponseParsingError("Decription error: ",
 							ioutil.NopCloser(bytes.NewBufferString("message is empty")), nil)
 
-						return emptyHistoryResp, e
+						return emptyHistoryResp, status, e
 					}
 					val, err = unmarshalWithDecrypt(msg, cipherKey)
 					if err != nil {
 						e := pnerr.NewResponseParsingError("Error unmarshalling response",
 							ioutil.NopCloser(bytes.NewBufferString(err.Error())), err)
 
-						return emptyHistoryResp, e
+						return emptyHistoryResp, status, e
 					}
 					break
 				default:
 					e := pnerr.NewResponseParsingError("Decription error: ",
 						ioutil.NopCloser(bytes.NewBufferString("message is empty")), nil)
 
-					return emptyHistoryResp, e
+					return emptyHistoryResp, status, e
 				}
 
 				msgs[k] = val
@@ -323,7 +301,7 @@ func newHistoryResponse(jsonBytes []byte, cipherKey string) (*HistoryResponse, e
 			e := pnerr.NewResponseParsingError("Error parsing response",
 				ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-			return emptyHistoryResp, e
+			return emptyHistoryResp, status, e
 		}
 
 		endTimetoken, ok := v[2].(float64)
@@ -331,7 +309,7 @@ func newHistoryResponse(jsonBytes []byte, cipherKey string) (*HistoryResponse, e
 			e := pnerr.NewResponseParsingError("Error parsing response",
 				ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-			return emptyHistoryResp, e
+			return emptyHistoryResp, status, e
 		}
 
 		resp.Messages = items
@@ -342,10 +320,10 @@ func newHistoryResponse(jsonBytes []byte, cipherKey string) (*HistoryResponse, e
 		e := pnerr.NewResponseParsingError("Error parsing response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyHistoryResp, e
+		return emptyHistoryResp, status, e
 	}
 
-	return resp, nil
+	return resp, status, nil
 }
 
 type HistoryResponseItem struct {

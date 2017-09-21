@@ -57,20 +57,20 @@ func (b *heartbeatBuilder) ChannelGroups(cg []string) *heartbeatBuilder {
 	return b
 }
 
-func (b *heartbeatBuilder) Execute() (interface{}, error) {
-	rawJson, err := executeRequest(b.opts)
+func (b *heartbeatBuilder) Execute() (interface{}, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return "", err
+		return "", status, err
 	}
 
 	var value interface{}
 
 	err = json.Unmarshal(rawJson, &value)
 	if err != nil {
-		return nil, err
+		return nil, status, err
 	}
 
-	return value, nil
+	return value, status, nil
 }
 
 type heartbeatOpts struct {
