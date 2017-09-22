@@ -296,9 +296,11 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 	})
 }
 
+// TODO: move this test to the manual section
 func TestTorm(t *testing.T) {
 	assert := assert.New(t)
-	ch := "hbtest"
+	first := "first"
+	second := "second"
 	emitterUuid := randomized("emitter")
 
 	var wg sync.WaitGroup
@@ -340,7 +342,7 @@ func TestTorm(t *testing.T) {
 	pn.AddListener(listenerEmitter)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
+		Channels: []string{first},
 	})
 
 	go func() {
@@ -364,7 +366,7 @@ func TestTorm(t *testing.T) {
 	time.Sleep(8 * time.Second)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
+		Channels: []string{first},
 	})
 
 	fmt.Println("Subscribed again")
@@ -372,7 +374,7 @@ func TestTorm(t *testing.T) {
 	time.Sleep(8 * time.Second)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"anotherCh"},
+		Channels: []string{second},
 	})
 
 	fmt.Println("Subsccribed to another channel again")
@@ -380,7 +382,7 @@ func TestTorm(t *testing.T) {
 	time.Sleep(8 * time.Second)
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{ch, "anotherCh"},
+		Channels: []string{first, second},
 	})
 
 	fmt.Println("Unsubscribed")
