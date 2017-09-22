@@ -9,6 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	fakeResponseState = StatusResponse{}
+)
+
 func init() {
 	pnconfig = NewConfig()
 
@@ -89,7 +93,7 @@ func TestHistoryResponseParsingStringMessages(t *testing.T) {
 
 	jsonString := []byte(`[["hey-1","hey-two","hey-1","hey-1","hey-1","hey0","hey1","hey2","hey3","hey4","hey5","hey6","hey7","hey8","hey9","hey10","hey0","hey1","hey2","hey3","hey4","hey5","hey6","hey7","hey8","hey9","hey10","hey0","hey1","hey2","hey3","hey4","hey5","hey6","hey7","hey8","hey9","hey10"],14991775432719844,14991868111600528]`)
 
-	resp, err := newHistoryResponse(jsonString, "")
+	resp, _, err := newHistoryResponse(jsonString, "", fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -105,7 +109,7 @@ func TestHistoryResponseParsingStringWithTimetoken(t *testing.T) {
 
 	jsonString := []byte(`[[{"timetoken":1111,"message":"hey-1"},{"timetoken":2222,"message":"hey-2"},{"timetoken":3333,"message":"hey-3"}],14991775432719844,14991868111600528]`)
 
-	resp, err := newHistoryResponse(jsonString, "")
+	resp, _, err := newHistoryResponse(jsonString, "", fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -121,7 +125,7 @@ func TestHistoryResponseParsingInt(t *testing.T) {
 
 	jsonString := []byte(`[[1,2,3,4,5,6,7],14991775432719844,14991868111600528]`)
 
-	resp, err := newHistoryResponse(jsonString, "")
+	resp, _, err := newHistoryResponse(jsonString, "", fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -136,7 +140,7 @@ func TestHistoryResponseParsingSlice(t *testing.T) {
 
 	jsonString := []byte(`[[[1,2,3],["one","two","three"]],14991775432719844,14991868111600528]`)
 
-	resp, err := newHistoryResponse(jsonString, "")
+	resp, _, err := newHistoryResponse(jsonString, "", fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -152,7 +156,7 @@ func TestHistoryResponseParsingMap(t *testing.T) {
 
 	jsonString := []byte(`[[{"one":1,"two":2},{"three":3,"four":4}],14991775432719844,14991868111600528]`)
 
-	resp, err := newHistoryResponse(jsonString, "")
+	resp, _, err := newHistoryResponse(jsonString, "", fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -168,7 +172,7 @@ func TestHistoryResponseParsingSliceInMapWithTimetoken(t *testing.T) {
 
 	jsonString := []byte(`[[{"message":[1,2,3,["one","two","three"]],"timetoken":1111}],14991775432719844,14991868111600528]`)
 
-	resp, err := newHistoryResponse(jsonString, "")
+	resp, _, err := newHistoryResponse(jsonString, "", fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -184,7 +188,7 @@ func TestHistoryResponseParsingMapInSlice(t *testing.T) {
 
 	jsonString := []byte(`[[[{"one":"two","three":[5,6]}]],14991775432719844,14991868111600528]`)
 
-	resp, err := newHistoryResponse(jsonString, "")
+	resp, _, err := newHistoryResponse(jsonString, "", fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -204,7 +208,7 @@ func TestHistoryEncrypt(t *testing.T) {
 
 	jsonString := []byte(`[["MnwzPGdVgz2osQCIQJviGg=="],14991775432719844,14991868111600528]`)
 
-	resp, err := newHistoryResponse(jsonString, pnconfig.CipherKey)
+	resp, _, err := newHistoryResponse(jsonString, pnconfig.CipherKey, fakeResponseState)
 	assert.Nil(err)
 
 	messages := resp.Messages
@@ -217,7 +221,7 @@ func TestHistoryEncryptSlice(t *testing.T) {
 
 	jsonString := []byte(`[["gwkdY8qcv60GM/PslArWQsdXrQ6LwJD2HoaEfy0CjMc="],14991775432719844,14991868111600528]`)
 
-	resp, err := newHistoryResponse(jsonString, pnconfig.CipherKey)
+	resp, _, err := newHistoryResponse(jsonString, pnconfig.CipherKey, fakeResponseState)
 	assert.Nil(err)
 
 	messages := resp.Messages
@@ -230,7 +234,7 @@ func TestHistoryEncryptMap(t *testing.T) {
 
 	jsonString := []byte(`[["wIC13nvJcI4vBtWNFVUu0YDiqREr9kavB88xeyWTweDS363Yl84RCWqOHWTol4aY"],14991775432719844,14991868111600528]`)
 
-	resp, err := newHistoryResponse(jsonString, pnconfig.CipherKey)
+	resp, _, err := newHistoryResponse(jsonString, pnconfig.CipherKey, fakeResponseState)
 	assert.Nil(err)
 
 	messages := resp.Messages
