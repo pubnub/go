@@ -24,8 +24,8 @@ type SubscribeOpts struct {
 	Channels []string
 	Groups   []string
 
-	Region string
-
+	Heartbeat    int
+	Region       string
 	Timetoken    int64
 	WithPresence bool
 
@@ -85,6 +85,11 @@ func (o *SubscribeOpts) buildQuery() (*url.Values, error) {
 
 	if o.Region != "" {
 		q.Set("tr", o.Region)
+	}
+
+	// hb timeout should be at least 4 seconds
+	if o.Heartbeat >= 4 {
+		q.Set("heartbeat", fmt.Sprintf("%d", o.Heartbeat))
 	}
 
 	return q, nil

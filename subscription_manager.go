@@ -228,11 +228,8 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			Groups:    combinedGroups,
 			Timetoken: tt,
 			Transport: m.transport,
+			Heartbeat: m.pubnub.Config.PresenceTimeout,
 			ctx:       ctx,
-			// 	// transport
-			// 	// config/subkey
-			// 	// config/uuid
-			// 	// config/timeouts
 		}
 
 		// TODO: use context to be able to stop request

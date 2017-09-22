@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/pubnub/go/pnerr"
 )
@@ -26,6 +27,8 @@ var (
 // No server connection will be established when you create a new PubNub object.
 // To establish a new connection use Subscribe() function of PubNub type.
 type PubNub struct {
+	sync.RWMutex
+
 	Config              *Config
 	publishSequence     chan int
 	subscriptionManager *SubscriptionManager
@@ -70,10 +73,6 @@ func (pn *PubNub) Subscribe(operation *SubscribeOperation) {
 	pn.subscriptionManager.adaptSubscribe(operation)
 }
 
-func (pn *PubNub) SetSubscribeClient(client *http.Client) {
-	pn.subscribeClient = client
-}
-
 func (pn *PubNub) Unsubscribe(operation *UnsubscribeOperation) {
 	pn.subscriptionManager.adaptUnsubscribe(operation)
 }
@@ -104,11 +103,16 @@ func (pn *PubNub) heartbeatWithContext(ctx Context) *heartbeatBuilder {
 
 // Set a client for transactional requests
 func (pn *PubNub) SetClient(c *http.Client) {
+	pn.Lock()
 	pn.client = c
+	pn.Unlock()
 }
 
 // Set a client for transactional requests
 func (pn *PubNub) GetClient() *http.Client {
+	pn.Lock()
+	defer pn.Unlock()
+
 	if pn.client == nil {
 		pn.client = NewHttpClient(pn.Config.ConnectTimeout,
 			pn.Config.NonSubscribeRequestTimeout)
@@ -117,9 +121,18 @@ func (pn *PubNub) GetClient() *http.Client {
 	return pn.client
 }
 
+func (pn *PubNub) SetSubscribeClient(client *http.Client) {
+	pn.Lock()
+	pn.subscribeClient = client
+	pn.Unlock()
+}
+
 // Set a client for transactional requests
 func (pn *PubNub) GetSubscribeClient() *http.Client {
+	pn.Lock()
+	defer pn.Unlock()
 	if pn.subscribeClient == nil {
+
 		pn.subscribeClient = NewHttpClient(pn.Config.ConnectTimeout,
 			pn.Config.SubscribeRequestTimeout)
 	}

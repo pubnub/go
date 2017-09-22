@@ -2,6 +2,9 @@ package e2e
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -11,9 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TODO: test the certain url be requested using stubs
-// TODO: test timeout event be trigerred on presence channel (using live keys)
-func TestHeartbeatCustomTimeoutEvent(t *testing.T) {
+func TestHeartbeatTimeoutEvent(t *testing.T) {
 	assert := assert.New(t)
 	ch := "hbtest"
 	emitterUuid := randomized("emitter")
@@ -124,12 +125,14 @@ func TestHeartbeatCustomTimeoutEvent(t *testing.T) {
 		return
 	}
 
-	fmt.Println("update client with fake transport...")
-	// TODO: how to break heartbeat loop? = break transport or client
-	// pn.GetClient().Transport = fakeTransport{}
-	// TODO: and await timeout
-
-	// pnPresenceListener.SetSubscribeClient(interceptor.GetClient())
+	cl := pubnub.NewHttpClient(15, 15)
+	cl.Transport = fakeTransport{
+		Status:     "200 OK",
+		StatusCode: 200,
+		// WARNING: can be read only once
+		Body: ioutil.NopCloser(strings.NewReader("Hijacked response")),
+	}
+	pn.SetClient(cl)
 
 	select {
 	case <-doneTimeout:
@@ -141,7 +144,7 @@ func TestHeartbeatCustomTimeoutEvent(t *testing.T) {
 	}
 }
 
-func TestHeartbeatBasicRequest(t *testing.T) {
+func TestHeartbeatStubbedRequest(t *testing.T) {
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
@@ -220,6 +223,8 @@ func TestHeartbeatBasicRequest(t *testing.T) {
 	})
 }
 
+// Test triggers BadRequestCategory in subscription.Status channel
+// for failed HB call
 func TestHeartbeatRequestWithError(t *testing.T) {
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
@@ -296,8 +301,12 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 	})
 }
 
-// TODO: move this test to the manual section
-func TestTorm(t *testing.T) {
+// - subscribe 'first'
+// - unsubscribeAll
+// - subscribe 'first'
+// - subscribe 'second'
+// - unsubscribe 'first', 'second'
+func TestRandomizedBehaviour(t *testing.T) {
 	assert := assert.New(t)
 	first := "first"
 	second := "second"
@@ -356,37 +365,37 @@ func TestTorm(t *testing.T) {
 		return
 	}
 
-	fmt.Println("Sleeping 8s")
+	log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
 	pn.UnsubscribeAll()
 
-	fmt.Println("Unsubscribed")
-	fmt.Println("Sleeping 8s")
+	log.Println("Unsubscribed")
+	log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		Channels: []string{first},
 	})
 
-	fmt.Println("Subscribed again")
-	fmt.Println("Sleeping 8s")
+	log.Println("Subscribed again")
+	log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		Channels: []string{second},
 	})
 
-	fmt.Println("Subsccribed to another channel again")
-	fmt.Println("Sleeping 8s")
+	log.Println("Subsccribed to another channel again")
+	log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
 		Channels: []string{first, second},
 	})
 
-	fmt.Println("Unsubscribed")
-	fmt.Println("Sleeping 8s")
+	log.Println("Unsubscribed")
+	log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
 	select {

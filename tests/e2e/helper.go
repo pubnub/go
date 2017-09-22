@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -110,4 +111,8 @@ func (t fakeTransport) RoundTrip(*http.Request) (*http.Response, error) {
 		StatusCode: t.StatusCode,
 		Body:       t.Body,
 	}, nil
+}
+
+func (t fakeTransport) Dial(string, string) (net.Conn, error) {
+	return nil, errors.New("ooops!")
 }
