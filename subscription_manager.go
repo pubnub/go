@@ -409,7 +409,7 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 		return nil
 	}
 
-	res, _, err := newHeartbeatBuilder(m.pubnub).
+	_, status, err := newHeartbeatBuilder(m.pubnub).
 		Channels(presenceChannels).
 		ChannelGroups(presenceGroups).
 		State(stateStorage).
@@ -428,16 +428,11 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 		return err
 	}
 
-	parsedRes, _ := res.(map[string]interface{})
 	hbStatus := &PNStatus{
-		Category:  UnknownCategory,
-		Error:     false,
-		Operation: PNHeartBeatOperation,
-	}
-
-	if v, ok := parsedRes["status"]; ok {
-		statusCode, _ := v.(int)
-		hbStatus.StatusCode = statusCode
+		Category:   UnknownCategory,
+		Error:      false,
+		Operation:  PNHeartBeatOperation,
+		StatusCode: status.StatusCode,
 	}
 
 	m.listenerManager.announceStatus(hbStatus)
