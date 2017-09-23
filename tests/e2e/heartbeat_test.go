@@ -301,12 +301,13 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 	})
 }
 
+// NOTICE: snippet for manual hb testing
 // - subscribe 'first'
 // - unsubscribeAll
 // - subscribe 'first'
 // - subscribe 'second'
 // - unsubscribe 'first', 'second'
-func TestRandomizedBehaviour(t *testing.T) {
+func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 	assert := assert.New(t)
 	first := "first"
 	second := "second"
