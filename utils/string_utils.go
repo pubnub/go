@@ -31,7 +31,6 @@ func ValueAsString(value interface{}) ([]byte, error) {
 		return []byte(fmt.Sprintf("\"%s\"", t)), nil
 	default:
 		val, err := json.Marshal(value)
-		fmt.Printf("Marshaled %s to %s\n", value, val)
 		return val, err
 	}
 }
