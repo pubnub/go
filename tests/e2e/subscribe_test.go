@@ -154,6 +154,9 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	doneUnsubscribe := make(chan bool)
 	errChan := make(chan string)
 
+	ch1 := "my-sub-ch-1"
+	ch2 := "my-sub-ch-2"
+
 	pn := pubnub.NewPubNub(configCopy())
 
 	listener := pubnub.NewListener()
@@ -165,20 +168,20 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 				switch status.Category {
 				case pubnub.ConnectedCategory:
 					go func() {
-						pn.Publish().Channel("ch1").Message("hey").Execute()
+						pn.Publish().Channel(ch1).Message("hey").Execute()
 					}()
 					continue
 				}
 
 				if len(status.AffectedChannels) == 1 &&
 					status.Operation == pubnub.PNUnsubscribeOperation {
-					assert.Equal(status.AffectedChannels[0], "ch2")
+					assert.Equal(status.AffectedChannels[0], ch2)
 					doneUnsubscribe <- true
 				}
 			case message := <-listener.Message:
 				if message.Message == "hey" {
 					pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-						Channels: []string{"ch2"},
+						Channels: []string{ch2},
 					})
 				} else {
 					errChan <- fmt.Sprintf("Unexpected message: %s",
@@ -193,7 +196,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	pn.AddListener(listener)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch1", "ch2"},
+		Channels: []string{ch1, ch2},
 	})
 
 	select {
@@ -639,7 +642,7 @@ func TestSubscribe403Error(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/ch/0",
-		Query:              "",
+		Query:              "heartbeat=300",
 		ResponseBody:       `{"message":"Forbidden","payload":{"channels":["ch1", "ch2"], "channel-groups":[":cg1", ":cg2"]},"error":true,"service":"Access Manager","status":403}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 403,
@@ -698,7 +701,7 @@ func TestSubscribeWithMeta(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/ch/0",
-		Query:              "",
+		Query:              "heartbeat=300",
 		ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","u":"my-data","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid", "tt"},
 		ResponseStatusCode: 200,

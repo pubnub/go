@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"log"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -83,8 +84,9 @@ func TestMultipleChannelWithoutStateSync(t *testing.T) {
 
 	assert.Equal("game1", res.Channels[0].ChannelName)
 	assert.Equal(1, res.Channels[0].Occupancy)
+	log.Println(res.Channels[0])
 	assert.Equal("a3ffd012-a3b9-478c-8705-64089f24d71e", res.Channels[0].Occupants[0].Uuid)
-	assert.Equal(map[string]interface{}(nil), res.Channels[0].Occupants[0].State)
+	assert.Equal(map[string]interface{}{}, res.Channels[0].Occupants[0].State)
 
 	assert.Nil(err)
 }

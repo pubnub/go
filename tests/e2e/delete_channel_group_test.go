@@ -54,8 +54,8 @@ func TestRemoveChannelGroupSuperCall(t *testing.T) {
 
 func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	assert := assert.New(t)
-	myChannel := "my-channel"
-	myGroup := "my-unique-group"
+	myChannel := "my-channel-remove"
+	myGroup := "my-unique-group-remove"
 
 	pn := pubnub.NewPubNub(configCopy())
 

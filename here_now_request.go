@@ -212,7 +212,7 @@ func newHereNowResponse(jsonBytes []byte, channelNames []string,
 
 			if parsedPayload, ok := payload.(map[string]interface{}); ok {
 				if val, ok := parsedPayload["channels"].(map[string]interface{}); ok {
-					if len(val) > 1 {
+					if len(val) > 0 {
 						for channelName, rawData := range val {
 							channels = append(channels, parseChannelData(channelName, rawData))
 						}
@@ -303,7 +303,7 @@ func newHereNowResponse(jsonBytes []byte, channelNames []string,
 					occup = int(occupancy)
 					resp.TotalOccupancy = int(occupancy)
 				}
-				log.Println(channelNames)
+
 				resp.Channels = append(resp.Channels, HereNowChannelData{
 					channelNames[0],
 					occup,

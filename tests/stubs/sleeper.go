@@ -41,6 +41,12 @@ func (s *Sleeper) RoundTrip(req *http.Request) (*http.Response,
 			Close:            true,
 			ContentLength:    0,
 		}, nil
+		// build !1.7
+		// case <-req.Cancel:
+		// return nil, errors.New("request canceled")
+		// }
+
+		// build 1.8
 	case <-req.Context().Done():
 		return nil, req.Context().Err()
 	}

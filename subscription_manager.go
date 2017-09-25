@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -10,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"context"
 
 	"github.com/pubnub/go/utils"
 )
@@ -219,8 +220,10 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			break
 		}
 
+		m.Lock()
 		tt := m.timetoken
 		ctx := m.ctx
+		m.Unlock()
 
 		opts := &SubscribeOpts{
 			pubnub:    m.pubnub,
@@ -275,7 +278,9 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			break
 		}
 
+		m.Lock()
 		announced := m.subscriptionStateAnnounced
+		m.Unlock()
 
 		if announced == false {
 			m.listenerManager.announceStatus(&PNStatus{
@@ -327,8 +332,10 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		}
 
 		if m.storedTimetoken != -1 {
+			m.Lock()
 			m.timetoken = m.storedTimetoken
 			m.storedTimetoken = -1
+			m.Unlock()
 		} else {
 			tt, err := strconv.ParseInt(envelope.Metadata.Timetoken, 10, 64)
 			if err != nil {
