@@ -111,18 +111,9 @@ func QueryToString(query *url.Values) string {
 func UrlEncode(s string) string {
 	v := url.QueryEscape(s)
 
-	// TODO move replacer to the top
 	var replacer = strings.NewReplacer(
 		"+", "%20",
 	)
 
 	return replacer.Replace(v)
 }
-
-// func UrlEncodeQueryPart(key, value string) string {
-// 	v := &url.Values{}
-//
-// 	v.Set(key, value)
-//
-// 	return v.Encode()[len(key)+1:]
-// }

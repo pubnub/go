@@ -108,7 +108,6 @@ func TestPublishContextTimeout(t *testing.T) {
 		ERR_CONTEXT_DEADLINE)
 }
 
-// TODO: replace with transport listener
 func TestPublishContextCancel(t *testing.T) {
 	assert := assert.New(t)
 	ms := 500
@@ -137,22 +136,22 @@ func TestPublishContextCancel(t *testing.T) {
 		ERR_CONTEXT_CANCELLED)
 }
 
-// TODO: fix this test after timeouts refactoring
-func ATestPublishTimeout(t *testing.T) {
+func TestPublishTimeout(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pnconfig)
-	pn.SetClient(stubs.NewSleeperClient(
-		pnconfig.NonSubscribeRequestTimeout*1000 + 1000))
+	pn.Config.NonSubscribeRequestTimeout = 1
 
-	_, _, err := pn.Publish().Channel("ch").Message("hey").
-		UsePost(false).Execute()
+	_, _, err := pn.Publish().
+		Channel("ch").
+		Message("hey").
+		UsePost(false).
+		Execute()
 
-	assert.Equal(fmt.Sprintf(connectionErrorTemplate,
-		"Failed to execute request"), err.Error())
+	assert.Contains(err.Error(), "Failed to execute request")
 
 	assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
-		"timeout awaiting response headers")
+		"exceeded while awaiting headers")
 }
 
 func TestPublishMissingPublishKey(t *testing.T) {

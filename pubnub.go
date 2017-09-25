@@ -36,12 +36,10 @@ type PubNub struct {
 	subscribeClient     *http.Client
 }
 
-// TODO: replace result with a pointer
 func (pn *PubNub) Publish() *publishBuilder {
 	return newPublishBuilder(pn)
 }
 
-// TODO: replace result with a pointer
 func (pn *PubNub) PublishWithContext(ctx Context) *publishBuilder {
 	return newPublishBuilderWithContext(pn, ctx)
 }

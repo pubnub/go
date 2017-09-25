@@ -273,8 +273,6 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				Category: UnknownCategory,
 			})
 
-			// TODO: handle timeout
-			// TODO: handle error
 			break
 		}
 
@@ -303,7 +301,6 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			})
 		}
 
-		// TODO: fetch messages and if any, push them to the worker queue
 		if len(envelope.Messages) > 0 {
 			for _, message := range envelope.Messages {
 				if m.pubnub.Config.CipherKey != "" {
@@ -360,21 +357,13 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 	m.stopHeartbeat()
 	m.log("heartbeat: new timer")
 
-	// TODO: remove extra logs
-	m.log("hb: acquiring lock")
 	m.hbMutex.Lock()
-	m.log("hb: lock acquired")
 	m.hbDone = make(chan bool)
 	m.hbTimer = time.NewTicker(time.Duration(
 		m.pubnub.Config.HeartbeatInterval) * time.Second)
 
 	go func() {
-		// TODO: remove extra logs
-		m.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> timer")
-		defer m.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< timer")
-		defer m.log("hb: lock released")
 		defer m.hbMutex.Unlock()
-		defer m.log("hb: releasing lock")
 		defer func() {
 			m.hbDone = nil
 		}()

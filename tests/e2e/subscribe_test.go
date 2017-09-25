@@ -370,14 +370,14 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	pn.AddListener(listener)
 
 	_, _, err := pn.AddChannelChannelGroup().
-		Channels([]string{"ch"}).
-		Group("cg").
+		Channels([]string{"subscribe-ch"}).
+		Group("subscribe-cg").
 		Execute()
 
 	assert.Nil(err)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups: []string{"cg"},
+		ChannelGroups: []string{"subscribe-cg"},
 	})
 
 	select {
@@ -387,7 +387,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		ChannelGroups: []string{"cg"},
+		ChannelGroups: []string{"subscribe-cg"},
 	})
 
 	select {
@@ -400,8 +400,8 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	assert.Zero(len(pn.GetSubscribedGroups()))
 
 	_, _, err = pn.RemoveChannelChannelGroup().
-		Channels([]string{"ch"}).
-		Group("cg").
+		Channels([]string{"subscribe-ch"}).
+		Group("subscribe-cg").
 		Execute()
 }
 

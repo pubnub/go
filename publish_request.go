@@ -224,9 +224,11 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
 	if o.Meta != nil {
-		// TODO: serialize
-		meta, _ := utils.ValueAsString(o.Meta)
-		// TODO: handle error
+		meta, err := utils.ValueAsString(o.Meta)
+		if err != nil {
+			return &url.Values{}, err
+		}
+
 		q.Set("meta", string(meta))
 	}
 

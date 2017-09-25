@@ -44,17 +44,31 @@ func TestHereNowMultipleChannelsWithState(t *testing.T) {
 	assert.Equal(2, res.TotalChannels)
 	assert.Equal(3, res.TotalOccupancy)
 
-	assert.Equal("ch1", res.Channels[0].ChannelName)
-	assert.Equal(1, res.Channels[0].Occupancy)
-	assert.Equal("user1", res.Channels[0].Occupants[0].Uuid)
-	assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[0].Occupants[0].State)
+	if res.Channels[0].ChannelName == "ch1" {
+		assert.Equal("ch1", res.Channels[0].ChannelName)
+		assert.Equal(1, res.Channels[0].Occupancy)
+		assert.Equal("user1", res.Channels[0].Occupants[0].Uuid)
+		assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[0].Occupants[0].State)
 
-	assert.Equal("ch2", res.Channels[1].ChannelName)
-	assert.Equal(2, res.Channels[1].Occupancy)
-	assert.Equal("user1", res.Channels[1].Occupants[0].Uuid)
-	assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[1].Occupants[0].State)
-	assert.Equal("user3", res.Channels[1].Occupants[1].Uuid)
-	assert.Equal(map[string]interface{}{"age": float64(30)}, res.Channels[1].Occupants[1].State)
+		assert.Equal("ch2", res.Channels[1].ChannelName)
+		assert.Equal(2, res.Channels[1].Occupancy)
+		assert.Equal("user1", res.Channels[1].Occupants[0].Uuid)
+		assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[1].Occupants[0].State)
+		assert.Equal("user3", res.Channels[1].Occupants[1].Uuid)
+		assert.Equal(map[string]interface{}{"age": float64(30)}, res.Channels[1].Occupants[1].State)
+	} else if res.Channels[1].ChannelName == "ch2" {
+		assert.Equal("ch1", res.Channels[1].ChannelName)
+		assert.Equal(1, res.Channels[1].Occupancy)
+		assert.Equal("user1", res.Channels[1].Occupants[0].Uuid)
+		assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[1].Occupants[0].State)
+
+		assert.Equal("ch2", res.Channels[0].ChannelName)
+		assert.Equal(2, res.Channels[0].Occupancy)
+		assert.Equal("user1", res.Channels[0].Occupants[0].Uuid)
+		assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[0].Occupants[0].State)
+		assert.Equal("user3", res.Channels[0].Occupants[1].Uuid)
+		assert.Equal(map[string]interface{}{"age": float64(30)}, res.Channels[0].Occupants[1].State)
+	}
 
 	assert.Nil(err)
 }

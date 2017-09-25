@@ -18,9 +18,6 @@ type Config struct {
 	CipherKey    string
 	Secure       bool
 
-	// TODO: timeout assignment in http.Client/http.Transport should be
-	// completely reviewed due language concerns.
-
 	// net.Dialer.Timeout
 	ConnectTimeout int
 
@@ -62,7 +59,6 @@ func NewConfig() *Config {
 	return &c
 }
 
-// TODO: validate timeout >= n
 func (c *Config) SetPresenceTimeoutWithCustomInterval(
 	timeout, interval int) *Config {
 	c.PresenceTimeout = timeout

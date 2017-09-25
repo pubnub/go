@@ -60,8 +60,7 @@ func (o *fakeEndpointOpts) operationType() PNOperationType {
 	return PNSubscribeOperation
 }
 
-// TODO: fix assertion (strings aren't equal)
-func AestBuildUrl(t *testing.T) {
+func TestBuildUrl(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig = NewConfig()
 	pn := NewPubNub(pnconfig)
@@ -70,6 +69,7 @@ func AestBuildUrl(t *testing.T) {
 	}
 
 	url, err := buildUrl(e)
+
 	assert.Nil(err)
-	assert.Equal("https://ps.pndns.com/my/path?a=2&b=hey", url)
+	assert.Equal("https://ps.pndsn.com/my/path?a=2&b=hey", url.RequestURI())
 }

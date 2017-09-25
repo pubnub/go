@@ -54,6 +54,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	}
 
 	url, err := buildUrl(opts)
+
 	if err != nil {
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),

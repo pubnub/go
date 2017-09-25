@@ -126,8 +126,11 @@ func (o *heartbeatOpts) buildQuery() (*url.Values, error) {
 	}
 
 	if o.State != nil {
-		state, _ := utils.ValueAsString(o.State)
-		// TODO: handle error
+		state, err := utils.ValueAsString(o.State)
+		if err != nil {
+			return &url.Values{}, err
+		}
+
 		if string(state) != "{}" {
 			q.Set("state", string(state))
 		}
