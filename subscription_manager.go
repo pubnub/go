@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -108,7 +107,7 @@ func newSubscriptionManager(pubnub *PubNub) *SubscriptionManager {
 	manager.timetoken = 0
 	manager.storedTimetoken = -1
 	manager.subscriptionStateAnnounced = false
-	manager.ctx, manager.subscribeCancel = context.WithCancel(context.Background())
+	manager.ctx, manager.subscribeCancel = contextWithCancel(backgroundContext)
 	manager.messages = make(chan subscribeMessage, 1000)
 	manager.Unlock()
 
@@ -596,7 +595,7 @@ func (m *SubscriptionManager) stopSubscribeLoop() {
 	if m.ctx != nil && m.subscribeCancel != nil {
 		m.subscribeCancel()
 		m.Lock()
-		m.ctx, m.subscribeCancel = context.WithCancel(context.Background())
+		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
 		m.Unlock()
 	}
 }

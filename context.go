@@ -1,6 +1,8 @@
 package pubnub
 
-import "time"
+import (
+	"time"
+)
 
 type Context interface {
 	Deadline() (deadline time.Time, ok bool)
