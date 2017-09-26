@@ -14,7 +14,7 @@ const HISTORY_RESP_SUCCESS = `[[{"timetoken":1111,"message":{"a":11,"b":22}},{"t
 func TestHistorySuccessNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
-	pn := pubnub.NewPubNub(configCopy())
+	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.History().Channel("ch").Execute()
 
@@ -43,14 +43,14 @@ func TestHistorySuccess(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub_key/channel/ch",
+		Path:               "/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch",
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       HISTORY_RESP_SUCCESS,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,
 	})
 
-	pn := pubnub.NewPubNub(pnconfig)
+	pn := pubnub.NewPubNub(config)
 	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.History().
@@ -75,19 +75,19 @@ func TestHistorySuccess(t *testing.T) {
 func TestHistoryEncryptedPNOther(t *testing.T) {
 	assert := assert.New(t)
 
-	pnconfig.CipherKey = "hello"
+	config.CipherKey = "hello"
 
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub_key/channel/ch",
+		Path:               "/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch",
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       `[[{"pn_other":"6QoqmS9CnB3W9+I4mhmL7w=="}],14606134331557852,14606134485013970]`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},
 		ResponseStatusCode: 200,
 	})
 
-	pn := pubnub.NewPubNub(pnconfig)
+	pn := pubnub.NewPubNub(config)
 	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.History().
@@ -99,13 +99,13 @@ func TestHistoryEncryptedPNOther(t *testing.T) {
 	assert.Equal(1, len(res.Messages))
 	assert.Equal(map[string]interface{}{"text": "hey"}, res.Messages[0].Message)
 
-	pnconfig.CipherKey = ""
+	config.CipherKey = ""
 }
 
 func TestHistoryMissingChannel(t *testing.T) {
 	assert := assert.New(t)
 
-	pn := pubnub.NewPubNub(pnconfig)
+	pn := pubnub.NewPubNub(config)
 
 	res, _, err := pn.History().
 		Channel("").
@@ -118,19 +118,19 @@ func TestHistoryMissingChannel(t *testing.T) {
 func TestHistoryPNOtherError(t *testing.T) {
 	assert := assert.New(t)
 
-	pnconfig.CipherKey = "hello"
+	config.CipherKey = "hello"
 
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub_key/channel/ch",
+		Path:               "/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch",
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       `[[{"pn_other":""}],14606134331557852,14606134485013970]`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},
 		ResponseStatusCode: 200,
 	})
 
-	pn := pubnub.NewPubNub(pnconfig)
+	pn := pubnub.NewPubNub(config)
 	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.History().
@@ -141,7 +141,7 @@ func TestHistoryPNOtherError(t *testing.T) {
 	assert.Nil(res)
 	assert.Contains(err.Error(), "message is empty")
 
-	pnconfig.CipherKey = ""
+	config.CipherKey = ""
 }
 
 func TestHistorySuperCall(t *testing.T) {

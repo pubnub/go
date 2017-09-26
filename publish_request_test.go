@@ -9,19 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var pnconfig *Config
-var pubnub *PubNub
-
-func init() {
-	pnconfig = NewConfig()
-
-	pnconfig.PublishKey = "pub_key"
-	pnconfig.SubscribeKey = "sub_key"
-	pnconfig.SecretKey = "secret_key"
-
-	pubnub = NewPubNub(pnconfig)
-}
-
 func AssertSuccessPublishGet(t *testing.T, expectedString string, message interface{}) {
 	assert := assert.New(t)
 

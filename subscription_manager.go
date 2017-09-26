@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -9,8 +10,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"context"
 
 	"github.com/pubnub/go/utils"
 )
@@ -55,9 +54,8 @@ type SubscriptionManager struct {
 	hbTimer *time.Ticker
 	hbDone  chan bool
 
-	messages chan subscribeMessage
-	ctx      Context
-	// hCtx            Context
+	messages        chan subscribeMessage
+	ctx             Context
 	subscribeCancel func()
 	heartbeatCancel func()
 
@@ -111,7 +109,6 @@ func newSubscriptionManager(pubnub *PubNub) *SubscriptionManager {
 	manager.storedTimetoken = -1
 	manager.subscriptionStateAnnounced = false
 	manager.ctx, manager.subscribeCancel = context.WithCancel(context.Background())
-	// manager.hCtx, manager.heartbeatCancel = context.WithCancel(context.Background())
 	manager.messages = make(chan subscribeMessage, 1000)
 	manager.Unlock()
 

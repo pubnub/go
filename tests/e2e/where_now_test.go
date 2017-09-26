@@ -26,14 +26,14 @@ func TestWhereNowMultipleChannels(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub_key/uuid/person-uuid",
+		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/uuid/person-uuid",
 		Query:              "",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"payload\": {\"channels\": [\"a\",\"b\"]}, \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
 	})
 
-	pn := pubnub.NewPubNub(pnconfig)
+	pn := pubnub.NewPubNub(config)
 	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.WhereNow().
@@ -50,7 +50,7 @@ func TestWhereNowMultipleChannels(t *testing.T) {
 func TestWhereNowNoUuid(t *testing.T) {
 	assert := assert.New(t)
 
-	pn := pubnub.NewPubNub(configCopy())
+	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.WhereNow().
 		Execute()

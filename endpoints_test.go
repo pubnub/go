@@ -8,13 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func init() {
-	pnconfig = NewConfig()
-
-	pnconfig.PublishKey = "myPub"
-	pnconfig.SubscribeKey = "mySub"
-}
-
 type fakeEndpointOpts struct {
 	pubnub *PubNub
 }
@@ -62,8 +55,10 @@ func (o *fakeEndpointOpts) operationType() PNOperationType {
 
 func TestBuildUrl(t *testing.T) {
 	assert := assert.New(t)
-	pnconfig = NewConfig()
-	pn := NewPubNub(pnconfig)
+
+	pnc := NewConfig()
+	pn := NewPubNub(pnc)
+
 	e := &fakeEndpointOpts{
 		pubnub: pn,
 	}
