@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.15.0
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Channel_GroupUnsubscribeNetError&tt=0&uuid=ed80209240a2c5b38037801644ec1c42&pnsdk=PubNub-Go%2F3.15.0
+      - ua_string=(linux) PubNub-Go/3.16.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Channel_GroupUnsubscribeNetError&tt=0&uuid=ed80209240a2c5b38037801644ec1c42&pnsdk=PubNub-Go%2F3.16.0
     method: GET
   response:
     body: '[[],"14606269433069896"]'
@@ -31,5 +31,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Channel_GroupUnsubscribeNetError&tt=14606269433069896&uuid=ed80209240a2c5b38037801644ec1c42&pnsdk=PubNub-Go%2F3.15.0
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Channel_GroupUnsubscribeNetError&tt=14606269433069896&uuid=ed80209240a2c5b38037801644ec1c42&pnsdk=PubNub-Go%2F3.16.0
   : {}

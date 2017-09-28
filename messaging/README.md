@@ -1,12 +1,12 @@
 ## Contact support@pubnub.com for all questions
 
-# PubNub 3.15.0 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2, 1.5.2, 1.6.2, 1.7.3, 1.8
+# PubNub 3.16.0 client for Go 1.0.3, 1.1, 1.3, 1.3.1, 1.4.2, 1.5.2, 1.6.2, 1.7.3, 1.8
 
 ### Important changes from version 3.10.0 onwards:
 Breaking API Change: newPubnub has a new parameter where it expects a logger instance [Example](#init). This fixes a rare race condition
 
 ### Change log
-* 3.15.0
+* 3.16.0
   * Fixed a corner case panic
 * 3.13.0
   * Presence Delta Intervals
