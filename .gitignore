@@ -24,4 +24,4 @@ _testmain.go
 .idea
 
 coverage.txt
-
+*.out
