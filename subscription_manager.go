@@ -49,9 +49,10 @@ type SubscriptionManager struct {
 	pubnub          *PubNub
 	transport       http.RoundTripper
 
-	hbMutex sync.Mutex
-	hbTimer *time.Ticker
-	hbDone  chan bool
+	hbLoopMutex sync.RWMutex
+	hbDataMutex sync.RWMutex
+	hbTimer     *time.Ticker
+	hbDone      chan bool
 
 	messages        chan subscribeMessage
 	ctx             Context
@@ -353,22 +354,29 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 	m.stopHeartbeat()
 	m.log("heartbeat: new timer")
 
-	m.hbMutex.Lock()
+	m.hbLoopMutex.Lock()
+	m.hbDataMutex.Lock()
 	m.hbDone = make(chan bool)
 	m.hbTimer = time.NewTicker(time.Duration(
 		m.pubnub.Config.HeartbeatInterval) * time.Second)
+	m.hbDataMutex.Unlock()
 
 	go func() {
-		defer m.hbMutex.Unlock()
+		defer m.hbLoopMutex.Unlock()
 		defer func() {
 			m.hbDone = nil
 		}()
 
 		for {
+			m.hbDataMutex.RLock()
+			timerCh := m.hbTimer.C
+			doneCh := m.hbDone
+			m.hbDataMutex.RUnlock()
+
 			select {
-			case <-m.hbTimer.C:
+			case <-timerCh:
 				m.performHeartbeatLoop()
-			case <-m.hbDone:
+			case <-doneCh:
 				m.log("heartbeat: loop: after stop")
 				return
 			}
@@ -379,6 +387,7 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 func (m *SubscriptionManager) stopHeartbeat() {
 	m.log("heartbeat: loop: stopping...")
 
+	m.hbDataMutex.Lock()
 	if m.hbTimer != nil {
 		m.hbTimer.Stop()
 		m.log("heartbeat: loop: timer stopped")
@@ -388,6 +397,7 @@ func (m *SubscriptionManager) stopHeartbeat() {
 		m.hbDone <- true
 		m.log("heartbeat: loop: done channel stopped")
 	}
+	m.hbDataMutex.Unlock()
 }
 
 func (m *SubscriptionManager) performHeartbeatLoop() error {
