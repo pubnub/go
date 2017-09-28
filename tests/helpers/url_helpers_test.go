@@ -120,13 +120,13 @@ func TestMixedQueriesEqual(t *testing.T) {
 
 func TestMixedQueriesNotEqual(t *testing.T) {
 	expected := &url.Values{}
-	expected.Set("channel", "ch1,ch2,ch3")
-	expected.Set("uuid", utils.Uuid())
+	expected.Set("heartbeat", "300")
+	expected.Set("hey", "123")
 
 	actual := &url.Values{}
-	actual.Set("channel", "ch2,ch1,ch4")
+	actual.Set("heartbeat", "300")
+	actual.Set("pnsdk", utils.Uuid())
 	actual.Set("uuid", utils.Uuid())
-
-	assert.False(t, QueriesEqual(expected, actual, []string{"uuid"},
-		[]string{"channel"}))
+	assert.False(t, QueriesEqual(expected, actual, []string{"pnsdk", "uuid", "tt"},
+		[]string{}))
 }

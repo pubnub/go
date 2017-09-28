@@ -120,6 +120,12 @@ func QueriesEqual(expectedString, actualString *url.Values,
 		}
 	}
 
+	for k, _ := range *expectedString {
+		if val := actualString.Get(k); val == "" {
+			return false
+		}
+	}
+
 	return true
 }
 
