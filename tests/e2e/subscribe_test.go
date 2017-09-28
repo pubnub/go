@@ -154,8 +154,11 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	doneUnsubscribe := make(chan bool)
 	errChan := make(chan string)
 
-	ch1 := "my-sub-ch-1"
-	ch2 := "my-sub-ch-2"
+	ch1 := randomized("sub-ch1")
+	ch2 := randomized("sub-ch2")
+
+	// hey2push := heyIterator(1)
+	// hey2pull := heyIterator(1)
 
 	pn := pubnub.NewPubNub(configCopy())
 
@@ -168,6 +171,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 				switch status.Category {
 				case pubnub.ConnectedCategory:
 					go func() {
+						// pn.Publish().Channel(ch1).Message(<-hey2push).Execute()
 						pn.Publish().Channel(ch1).Message("hey").Execute()
 					}()
 					continue
@@ -179,6 +183,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 					doneUnsubscribe <- true
 				}
 			case message := <-listener.Message:
+				// if message.Message == <-hey2pull {
 				if message.Message == "hey" {
 					pn.Unsubscribe(&pubnub.UnsubscribeOperation{
 						Channels: []string{ch2},
@@ -696,12 +701,12 @@ func TestSubscribe403Error(t *testing.T) {
 	assert.Zero(len(pn.GetSubscribedGroups()))
 }
 
-func TestSubscribeWithMeta(t *testing.T) {
+func TestSubscribeParseUserMeta(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/ch/0",
-		Query:              "heartbeat=300",
+		Query:              "heartbeat=300&hey=123",
 		ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","u":"my-data","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid", "tt"},
 		ResponseStatusCode: 200,
@@ -741,6 +746,8 @@ func TestSubscribeWithMeta(t *testing.T) {
 		Channels: []string{"ch"},
 	})
 
+	pn.UnsubscribeAll()
+
 	select {
 	case <-doneMeta:
 	case err := <-errChan:
@@ -754,7 +761,7 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 		Method:             "GET",
 		Path:               "/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/ch/0",
 		ResponseBody:       `{"t":{"t":"14607577960932487","r":1},"m":[{"a":"4","f":0,"i":"Client-g5d4g","p":{"t":"14607577960925503","r":1},"k":"sub-c-4cec9f8e-01fa-11e6-8180-0619f8945a4f","c":"coolChannel","d":{"text":"Enter Message Here"},"b":"coolChan-bnel"}]}`,
-		Query:              "tt=1337",
+		Query:              "heartbeat=300&tt=1337",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
 	})
@@ -788,6 +795,8 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 		Channels:  []string{"ch"},
 		Timetoken: int64(1337),
 	})
+
+	pn.UnsubscribeAll()
 
 	select {
 	case <-doneSubscribe:

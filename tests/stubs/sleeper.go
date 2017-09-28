@@ -25,7 +25,7 @@ func NewSleeperClient(timeout int) *http.Client {
 func (s *Sleeper) RoundTrip(req *http.Request) (*http.Response,
 	error) {
 	// function helper for 1.6
-	cancel := GetRequestCancelChannel(req)
+	cancel := GetRequestCancel(req)
 
 	select {
 	case <-time.After(time.Duration(s.Timeout) * time.Millisecond):

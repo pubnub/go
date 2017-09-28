@@ -116,3 +116,17 @@ func (t fakeTransport) RoundTrip(*http.Request) (*http.Response, error) {
 func (t fakeTransport) Dial(string, string) (net.Conn, error) {
 	return nil, errors.New("ooops!")
 }
+
+func heyIterator(count int) <-chan string {
+	channel := make(chan string)
+
+	init := "hey-"
+
+	go func() {
+		for i := 1; i <= i; i++ {
+			channel <- fmt.Sprintf("%s%d", init, i)
+		}
+	}()
+
+	return channel
+}

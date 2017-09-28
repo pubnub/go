@@ -56,7 +56,8 @@ func (s *Stub) Match(req *http.Request) bool {
 	expectedQuery, _ := url.ParseQuery(s.Query)
 	actualQuery := req.URL.Query()
 
-	fmt.Println(expectedQuery, "\n", actualQuery)
+	fmt.Println("ex", expectedQuery, "\nact", actualQuery)
+	// panic("hey")
 	if !helpers.QueriesEqual(&expectedQuery,
 		&actualQuery,
 		s.IgnoreQueryKeys,

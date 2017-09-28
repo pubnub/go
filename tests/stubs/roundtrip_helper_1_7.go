@@ -4,16 +4,13 @@ package stubs
 
 import "net/http"
 
-func GetRequestCancelChannel(req *http.Request) chan error {
-	cancel := make(chan error)
+func GetRequestCancel(req *http.Request) <-chan error {
+	channel := make(chan error)
 
-	go func() {
-		select {
-		case <-req.Context().Done():
-			cancel <- req.Context().Err()
-			return
-		}
+	func() {
+		<-req.Context().Done()
+		channel <- req.Context().Err()
 	}()
 
-	return cancel
+	return channel
 }
