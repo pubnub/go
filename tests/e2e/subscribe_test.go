@@ -727,6 +727,9 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 			case status := <-listener.Status:
 				// ignore status messages
 				log.Println(">>>>>>>>>>>>>>>status", status)
+				if status.Error {
+					errChan <- fmt.Sprintf("Status Error: %s", status.Category)
+				}
 			case message := <-listener.Message:
 				meta, ok := message.UserMetadata.(string)
 				if !ok {
