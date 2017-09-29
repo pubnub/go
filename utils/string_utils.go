@@ -10,6 +10,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// TODO: return string
 func JoinChannels(channels []string) []byte {
 	if len(channels) == 0 {
 		return []byte(",")
@@ -108,6 +109,7 @@ func QueryToString(query *url.Values) string {
 	return stringifiedQuery
 }
 
+// TODO: verify the helper is used where supposed to
 func UrlEncode(s string) string {
 	v := url.QueryEscape(s)
 

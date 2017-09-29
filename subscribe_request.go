@@ -24,10 +24,11 @@ type SubscribeOpts struct {
 	Channels []string
 	Groups   []string
 
-	Heartbeat    int
-	Region       string
-	Timetoken    int64
-	WithPresence bool
+	Heartbeat        int
+	Region           string
+	Timetoken        int64
+	FilterExpression string
+	WithPresence     bool
 
 	Transport http.RoundTripper
 
@@ -85,6 +86,10 @@ func (o *SubscribeOpts) buildQuery() (*url.Values, error) {
 
 	if o.Region != "" {
 		q.Set("tr", o.Region)
+	}
+
+	if o.FilterExpression != "" {
+		q.Set("filter-expr", utils.UrlEncode(o.FilterExpression))
 	}
 
 	// hb timeout should be at least 4 seconds

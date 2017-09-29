@@ -58,14 +58,14 @@ func (b *hereNowBuilder) ChannelGroups(cg []string) *hereNowBuilder {
 
 func (b *hereNowBuilder) IncludeState(state bool) *hereNowBuilder {
 	b.opts.IncludeState = state
-	b.opts.SetState = true
+	b.opts.SetIncludeState = true
 
 	return b
 }
 
 func (b *hereNowBuilder) IncludeUuids(uuid bool) *hereNowBuilder {
 	b.opts.IncludeUuids = uuid
-	b.opts.SetUuids = true
+	b.opts.SetIncludeUuids = true
 
 	return b
 }
@@ -88,9 +88,8 @@ type hereNowOpts struct {
 	IncludeUuids bool
 	IncludeState bool
 
-	// nil hacks
-	SetState bool
-	SetUuids bool
+	SetIncludeState bool
+	SetIncludeUuids bool
 
 	Transport http.RoundTripper
 
@@ -135,11 +134,11 @@ func (o *hereNowOpts) buildQuery() (*url.Values, error) {
 		q.Set("channel-group", strings.Join(o.ChannelGroups, ","))
 	}
 
-	if o.SetState && o.IncludeState {
+	if o.SetIncludeState && o.IncludeState {
 		q.Set("state", "1")
 	}
 
-	if o.SetUuids && !o.IncludeUuids {
+	if o.SetIncludeUuids && !o.IncludeUuids {
 		q.Set("disable-uuids", "1")
 	}
 

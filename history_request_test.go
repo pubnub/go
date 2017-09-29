@@ -51,6 +51,8 @@ func TestHistoryRequestAllParams(t *testing.T) {
 		Channel:          "ch",
 		Start:            int64(100000),
 		End:              int64(200000),
+		SetStart:         true,
+		SetEnd:           true,
 		Reverse:          false,
 		Count:            3,
 		IncludeTimetoken: true,

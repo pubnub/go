@@ -223,13 +223,14 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		m.Unlock()
 
 		opts := &SubscribeOpts{
-			pubnub:    m.pubnub,
-			Channels:  combinedChannels,
-			Groups:    combinedGroups,
-			Timetoken: tt,
-			Transport: m.transport,
-			Heartbeat: m.pubnub.Config.PresenceTimeout,
-			ctx:       ctx,
+			pubnub:           m.pubnub,
+			Channels:         combinedChannels,
+			Groups:           combinedGroups,
+			Timetoken:        tt,
+			Transport:        m.transport,
+			Heartbeat:        m.pubnub.Config.PresenceTimeout,
+			FilterExpression: m.pubnub.Config.FilterExpression,
+			ctx:              ctx,
 		}
 
 		res, _, err := executeRequest(opts)

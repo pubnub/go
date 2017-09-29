@@ -42,11 +42,13 @@ func TestHereNowMultipleWithOpts(t *testing.T) {
 	assert := assert.New(t)
 
 	opts := &hereNowOpts{
-		Channels:      []string{"ch1", "ch2", "ch3"},
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		IncludeUuids:  false,
-		IncludeState:  true,
-		pubnub:        pubnub,
+		Channels:        []string{"ch1", "ch2", "ch3"},
+		ChannelGroups:   []string{"cg1", "cg2", "cg3"},
+		IncludeUuids:    false,
+		IncludeState:    true,
+		SetIncludeState: true,
+		SetIncludeUuids: true,
+		pubnub:          pubnub,
 	}
 
 	path, err := opts.buildPath()
