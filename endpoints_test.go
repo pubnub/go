@@ -49,7 +49,7 @@ func (o *fakeEndpointOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *fakeEndpointOpts) operationType() PNOperationType {
+func (o *fakeEndpointOpts) operationType() OperationType {
 	return PNSubscribeOperation
 }
 

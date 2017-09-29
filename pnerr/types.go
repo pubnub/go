@@ -23,9 +23,9 @@ func (e ValidationError) Error() string {
 	return fmt.Sprintf("pubnub/validation: %s", e.message)
 }
 
-func NewValidationError(msg string) *ValidationError {
+func NewValidationError(endpoint, msg string) *ValidationError {
 	return &ValidationError{
-		message: msg,
+		message: fmt.Sprintf("pubnub: %s: %s", endpoint, msg),
 	}
 }
 

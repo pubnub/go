@@ -131,11 +131,11 @@ func (o *historyOpts) context() Context {
 
 func (o *historyOpts) validate() error {
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if o.Channel == "" {
-		return ErrMissingChannel
+		return newValidationError(o, StrMissingChannel)
 	}
 
 	return nil

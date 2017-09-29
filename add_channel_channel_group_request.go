@@ -97,15 +97,15 @@ func (o *addChannelOpts) context() Context {
 
 func (o *addChannelOpts) validate() error {
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if len(o.Channels) == 0 {
-		return ErrMissingChannel
+		return newValidationError(o, StrMissingChannel)
 	}
 
 	if o.Group == "" {
-		return ErrMissingChannelGroup
+		return newValidationError(o, StrMissingChannelGroup)
 	}
 
 	return nil

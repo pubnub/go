@@ -78,11 +78,11 @@ func (o *deleteChannelGroupOpts) context() Context {
 
 func (o *deleteChannelGroupOpts) validate() error {
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if o.ChannelGroup == "" {
-		return ErrMissingChannelGroup
+		return newValidationError(o, StrMissingChannelGroup)
 	}
 
 	return nil

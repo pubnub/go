@@ -110,11 +110,8 @@ func (o *hereNowOpts) context() Context {
 }
 
 func (o *hereNowOpts) validate() error {
-	log.Println(o)
-	log.Println(o.config())
-	log.Println(o.config())
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	return nil

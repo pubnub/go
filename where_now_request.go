@@ -80,11 +80,11 @@ func (o *whereNowOpts) context() Context {
 
 func (o *whereNowOpts) validate() error {
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if o.Uuid == "" {
-		return ErrMissingUuid
+		return newValidationError(o, StrMissingUuid)
 	}
 
 	return nil

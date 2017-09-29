@@ -140,15 +140,15 @@ func (o *grantOpts) context() Context {
 
 func (o *grantOpts) validate() error {
 	if o.config().PublishKey == "" {
-		return ErrMissingPubKey
+		return newValidationError(o, StrMissingPubKey)
 	}
 
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if o.config().SecretKey == "" {
-		return ErrMissingSecretKey
+		return newValidationError(o, StrMissingSecretKey)
 	}
 
 	return nil

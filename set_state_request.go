@@ -95,15 +95,15 @@ func (o *setStateOpts) context() Context {
 
 func (o *setStateOpts) validate() error {
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if len(o.Channels) == 0 && len(o.ChannelGroups) == 0 {
-		return pnerr.NewValidationError("Channel or channel group is missing")
+		return newValidationError(o, "Missing Channel or Channel Group")
 	}
 
 	if o.State == nil {
-		return pnerr.NewValidationError("State missing")
+		return newValidationError(o, "Missing State")
 	}
 
 	return nil

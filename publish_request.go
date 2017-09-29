@@ -171,19 +171,19 @@ func (o *publishOpts) context() Context {
 
 func (o *publishOpts) validate() error {
 	if o.config().PublishKey == "" {
-		return ErrMissingPubKey
+		return newValidationError(o, StrMissingPubKey)
 	}
 
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if o.Channel == "" {
-		return ErrMissingChannel
+		return newValidationError(o, StrMissingChannel)
 	}
 
 	if o.Message == nil {
-		return ErrMissingMessage
+		return newValidationError(o, StrMissingMessage)
 	}
 
 	return nil

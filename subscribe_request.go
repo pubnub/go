@@ -48,15 +48,15 @@ func (o *SubscribeOpts) context() Context {
 
 func (o *SubscribeOpts) validate() error {
 	if o.config().PublishKey == "" {
-		return ErrMissingPubKey
+		return newValidationError(o, StrMissingPubKey)
 	}
 
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if len(o.Channels) == 0 && len(o.Groups) == 0 {
-		return ErrMissingChannel
+		return newValidationError(o, StrMissingChannel)
 	}
 
 	return nil

@@ -3,8 +3,6 @@ package pubnub
 import (
 	"net/http"
 	"sync"
-
-	"github.com/pubnub/go/pnerr"
 )
 
 // Default constants
@@ -12,16 +10,14 @@ const (
 	Version     = "4.0.0-alpha"
 	MaxSequence = 65535
 )
-
-// Errors
-var (
-	ErrMissingPubKey       = pnerr.NewValidationError("pubnub: Missing Publish Key")
-	ErrMissingSubKey       = pnerr.NewValidationError("pubnub: Missing Subscribe Key")
-	ErrMissingChannel      = pnerr.NewValidationError("pubnub: Missing Channel")
-	ErrMissingChannelGroup = pnerr.NewValidationError("pubnub: Missing Channel Group")
-	ErrMissingMessage      = pnerr.NewValidationError("pubnub: Missing Message")
-	ErrMissingSecretKey    = pnerr.NewValidationError("pubnub: Missing Secret Key")
-	ErrMissingUuid         = pnerr.NewValidationError("pubnub: Missing Uuid")
+const (
+	StrMissingPubKey       = "Missing Publish Key"
+	StrMissingSubKey       = "Missing Subscribe Key"
+	StrMissingChannel      = "Missing Channel"
+	StrMissingChannelGroup = "Missing Channel Group"
+	StrMissingMessage      = "Missing Message"
+	StrMissingSecretKey    = "Missing Secret Key"
+	StrMissingUuid         = "Missing Uuid"
 )
 
 // No server connection will be established when you create a new PubNub object.

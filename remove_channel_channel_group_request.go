@@ -88,15 +88,15 @@ func (o *removeChannelOpts) context() Context {
 
 func (o *removeChannelOpts) validate() error {
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if len(o.Channels) == 0 {
-		return ErrMissingChannel
+		return newValidationError(o, StrMissingChannel)
 	}
 
 	if o.Group == "" {
-		return ErrMissingChannelGroup
+		return newValidationError(o, StrMissingChannelGroup)
 	}
 
 	return nil

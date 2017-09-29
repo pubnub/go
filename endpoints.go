@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
 )
 
@@ -109,4 +110,8 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 	}
 
 	return retUrl, nil
+}
+
+func newValidationError(o endpointOpts, msg string) error {
+	return pnerr.NewValidationError(o.operationType().String(), msg)
 }

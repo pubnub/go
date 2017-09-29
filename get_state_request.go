@@ -98,11 +98,11 @@ func (o *getStateOpts) context() Context {
 
 func (o *getStateOpts) validate() error {
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if len(o.Channels) == 0 && len(o.ChannelGroups) == 0 {
-		return ErrMissingChannel
+		return newValidationError(o, "Missing Channel or Channel Group")
 	}
 
 	return nil

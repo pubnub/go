@@ -82,11 +82,11 @@ func (o *allChannelGroupOpts) context() Context {
 
 func (o *allChannelGroupOpts) validate() error {
 	if o.config().SubscribeKey == "" {
-		return ErrMissingSubKey
+		return newValidationError(o, StrMissingSubKey)
 	}
 
 	if o.ChannelGroup == "" {
-		return ErrMissingChannelGroup
+		return newValidationError(o, StrMissingChannelGroup)
 	}
 
 	return nil
