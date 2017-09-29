@@ -76,43 +76,9 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	}
 }
 
-type StatusCategory int
-
-const (
-	UnknownCategory StatusCategory = 1 + iota
-	// Request timeout reached
-	TimeoutCategory
-	// Subscribe received an initial timetoken
-	ConnectedCategory
-	// Disconnected due network error
-	DisconnectedCategory
-	// Context cancelled
-	CancelledCategory
-	LoopStopCategory
-	AcknowledgmentCategory
-	BadRequestCategory
-	AccessDeniedCategory
-)
-
-var categories = [...]string{
-	"Unknown",
-	"Timeout",
-	"Connected",
-	"Disconnected",
-	"Cancelled",
-	"Loop Stop",
-	"Acknowledgment",
-	"Bad Request",
-	"Access Denied",
-}
-
-func (c StatusCategory) String() string {
-	return categories[c-1]
-}
-
 type PNStatus struct {
 	Category  StatusCategory
-	Operation PNOperationType
+	Operation OperationType
 
 	ErrorData  error
 	Error      bool

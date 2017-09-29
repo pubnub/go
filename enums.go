@@ -1,31 +1,27 @@
 package pubnub
 
-type PNStatusCategory int
-type PNOperationType int
+type StatusCategory int
+type OperationType int
 
 const (
-	PNUnknownCategory PNStatusCategory = 1 << iota
-	PNAcknowledgmentCategory
-	PNAccessDeniedCategory
+	PNUnknownCategory StatusCategory = 1 + iota
+	// Request timeout reached
 	PNTimeoutCategory
-	PNNetworkIssuesCategory
+	// Subscribe received an initial timetoken
 	PNConnectedCategory
-	PNReconnectedCategory
-	PNUnsubscribedCategory
+	// Disconnected due network error
 	PNDisconnectedCategory
-	PNUnexpectedDisconnectCategory
+	// Context cancelled
 	PNCancelledCategory
+	PNLoopStopCategory
+	PNAcknowledgmentCategory
 	PNBadRequestCategory
-	PNMalformedFilterExpressionCategory
-	PNMalformedResponseCategory
-	PNDecryptionErrorCategory
-	PNTLSConnectionFailedCategory
-	PNTLSUntrustedCertificateCategory
-	PNRequestMessageCountExceededCategory
+	PNAccessDeniedCategory
+	PNNoStubMatchedCategory
 )
 
 const (
-	PNSubscribeOperation PNOperationType = 1 << iota
+	PNSubscribeOperation OperationType = 1 + iota
 	PNUnsubscribeOperation
 	PNPublishOperation
 	PNHistoryOperation
@@ -48,3 +44,20 @@ const (
 	PNAccessManagerGrant
 	PNAccessManagerRevoke
 )
+
+var categories = [...]string{
+	"Unknown",
+	"Timeout",
+	"Connected",
+	"Disconnected",
+	"Cancelled",
+	"Loop Stop",
+	"Acknowledgment",
+	"Bad Request",
+	"Access Denied",
+	"No Stub Matched",
+}
+
+func (c StatusCategory) String() string {
+	return categories[c-1]
+}

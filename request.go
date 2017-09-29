@@ -14,8 +14,8 @@ import (
 type StatusResponse struct {
 	Error error
 
-	Category  PNStatusCategory
-	Operation PNOperationType
+	Category  StatusCategory
+	Operation OperationType
 
 	StatusCode int
 
@@ -31,7 +31,7 @@ type StatusResponse struct {
 }
 
 type ResponseInfo struct {
-	Operation PNOperationType
+	Operation OperationType
 
 	StatusCode int
 
@@ -200,7 +200,7 @@ func parseResponse(resp *http.Response) ([]byte, StatusResponse, error) {
 	return body, status, nil
 }
 
-func createStatus(category PNStatusCategory, response string,
+func createStatus(category StatusCategory, response string,
 	responseInfo ResponseInfo, err error) StatusResponse {
 	resp := StatusResponse{}
 

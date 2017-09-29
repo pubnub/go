@@ -143,7 +143,7 @@ func (o *getStateOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *getStateOpts) operationType() PNOperationType {
+func (o *getStateOpts) operationType() OperationType {
 	return PNGetStateOperation
 }
 

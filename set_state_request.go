@@ -163,7 +163,7 @@ func (o *setStateOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *setStateOpts) operationType() PNOperationType {
+func (o *setStateOpts) operationType() OperationType {
 	return PNSetStateOperation
 }
 

@@ -115,6 +115,6 @@ func (o *SubscribeOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *SubscribeOpts) operationType() PNOperationType {
+func (o *SubscribeOpts) operationType() OperationType {
 	return PNSubscribeOperation
 }

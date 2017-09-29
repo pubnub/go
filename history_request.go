@@ -190,7 +190,7 @@ func (o *historyOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *historyOpts) operationType() PNOperationType {
+func (o *historyOpts) operationType() OperationType {
 	return PNHistoryOperation
 }
 

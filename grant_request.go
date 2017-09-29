@@ -223,7 +223,7 @@ func (o *grantOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *grantOpts) operationType() PNOperationType {
+func (o *grantOpts) operationType() OperationType {
 	return PNAccessManagerGrant
 }
 

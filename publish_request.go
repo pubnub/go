@@ -309,6 +309,6 @@ func (o *publishOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *publishOpts) operationType() PNOperationType {
+func (o *publishOpts) operationType() OperationType {
 	return PNPublishOperation
 }

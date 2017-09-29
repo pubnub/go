@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"testing"
 
@@ -38,9 +39,9 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
-				case pubnub.DisconnectedCategory:
+				case pubnub.PNDisconnectedCategory:
 					doneUnsubscribe <- true
 					return
 				}
@@ -96,9 +97,9 @@ func TestSubscribePublishUnsubscribe(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
-				case pubnub.DisconnectedCategory:
+				case pubnub.PNDisconnectedCategory:
 					doneUnsubscribe <- true
 				}
 			case message := <-listener.Message:
@@ -169,7 +170,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					go func() {
 						// pn.Publish().Channel(ch1).Message(<-hey2push).Execute()
 						pn.Publish().Channel(ch1).Message("hey").Execute()
@@ -247,7 +248,7 @@ func TestJoinLeaveChannel(t *testing.T) {
 			select {
 			case status := <-listenerEmitter.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					wg.Done()
 					return
 				}
@@ -267,7 +268,7 @@ func TestJoinLeaveChannel(t *testing.T) {
 			select {
 			case status := <-listenerPresenceListener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					donePresenceConnect <- true
 				}
 			case message := <-listenerPresenceListener.Message:
@@ -356,9 +357,9 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
-				case pubnub.DisconnectedCategory:
+				case pubnub.PNDisconnectedCategory:
 					doneUnsubscribe <- true
 					return
 				}
@@ -426,9 +427,9 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
-				case pubnub.DisconnectedCategory:
+				case pubnub.PNDisconnectedCategory:
 					doneUnsubscribe <- true
 				}
 			case message := <-listener.Message:
@@ -523,7 +524,7 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 			select {
 			case status := <-listenerEmitter.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					wg.Done()
 					return
 				}
@@ -543,7 +544,7 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 			select {
 			case status := <-listenerPresenceListener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					donePresenceConnect <- true
 				}
 			case <-listenerPresenceListener.Message:
@@ -667,9 +668,9 @@ func TestSubscribe403Error(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
-				case pubnub.AccessDeniedCategory:
+				case pubnub.PNAccessDeniedCategory:
 					doneAccessDenied <- true
 				}
 			case <-listener.Message:
@@ -723,8 +724,9 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 	go func() {
 		for {
 			select {
-			case <-listener.Status:
+			case status := <-listener.Status:
 				// ignore status messages
+				log.Println(">>>>>>>>>>>>>>>status", status)
 			case message := <-listener.Message:
 				meta, ok := message.UserMetadata.(string)
 				if !ok {
@@ -820,7 +822,7 @@ func TestSubscribeWithFilter(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
 				}
 			case message := <-listener.Message:
@@ -885,7 +887,7 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneConnect <- true
 				}
 			case message := <-listener.Message:
@@ -939,7 +941,7 @@ func TestSubscribeSuperCall(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
 				}
 			case <-listener.Message:

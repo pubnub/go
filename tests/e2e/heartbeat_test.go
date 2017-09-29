@@ -47,7 +47,7 @@ func TestHeartbeatTimeoutEvent(t *testing.T) {
 			select {
 			case status := <-listenerEmitter.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					wg.Done()
 					return
 				}
@@ -67,7 +67,7 @@ func TestHeartbeatTimeoutEvent(t *testing.T) {
 			select {
 			case status := <-listenerPresenceListener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					donePresenceConnect <- true
 				}
 			case message := <-listenerPresenceListener.Message:
@@ -187,7 +187,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 				}
 
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneConnect <- true
 				}
 			case <-listener.Message:
@@ -263,9 +263,9 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneConnect <- true
-				case pubnub.BadRequestCategory:
+				case pubnub.PNBadRequestCategory:
 					doneHeartbeat <- true
 				}
 			case <-listener.Message:
@@ -335,7 +335,7 @@ func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 			select {
 			case status := <-listenerEmitter.Status:
 				switch status.Category {
-				case pubnub.ConnectedCategory:
+				case pubnub.PNConnectedCategory:
 					doneJoin <- true
 					return
 				}

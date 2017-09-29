@@ -159,6 +159,6 @@ func (o *heartbeatOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *heartbeatOpts) operationType() PNOperationType {
+func (o *heartbeatOpts) operationType() OperationType {
 	return PNHeartBeatOperation
 }

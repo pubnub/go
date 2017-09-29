@@ -117,6 +117,6 @@ func (o *leaveOpts) validate() error {
 	return nil
 }
 
-func (o *leaveOpts) operationType() PNOperationType {
+func (o *leaveOpts) operationType() OperationType {
 	return PNUnsubscribeOperation
 }

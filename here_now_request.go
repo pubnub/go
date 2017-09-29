@@ -169,7 +169,7 @@ func (o *hereNowOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *hereNowOpts) operationType() PNOperationType {
+func (o *hereNowOpts) operationType() OperationType {
 	return PNHereNowOperation
 }
 

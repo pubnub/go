@@ -136,7 +136,7 @@ func (o *removeChannelOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *removeChannelOpts) operationType() PNOperationType {
+func (o *removeChannelOpts) operationType() OperationType {
 	return PNRemoveChannelFromChannelGroupOperation
 }
 

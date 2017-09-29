@@ -122,7 +122,7 @@ func (o *whereNowOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *whereNowOpts) operationType() PNOperationType {
+func (o *whereNowOpts) operationType() OperationType {
 	return PNWhereNowOperation
 }
 

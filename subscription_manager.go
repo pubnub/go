@@ -171,7 +171,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 
 		if err != nil {
 			m.listenerManager.announceStatus(&PNStatus{
-				Category:              BadRequestCategory,
+				Category:              PNBadRequestCategory,
 				ErrorData:             err,
 				Error:                 true,
 				Operation:             PNUnsubscribeOperation,
@@ -180,7 +180,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 			})
 		} else {
 			m.listenerManager.announceStatus(&PNStatus{
-				Category:              AcknowledgmentCategory,
+				Category:              PNAcknowledgmentCategory,
 				StatusCode:            200,
 				Operation:             PNUnsubscribeOperation,
 				Uuid:                  m.pubnub.Config.Uuid,
@@ -211,7 +211,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		if len(combinedChannels) == 0 && len(combinedGroups) == 0 {
 			m.listenerManager.announceStatus(&PNStatus{
-				Category: DisconnectedCategory,
+				Category: PNDisconnectedCategory,
 			})
 			m.log("no channels left to subscribe")
 			break
@@ -232,26 +232,25 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			ctx:       ctx,
 		}
 
-		// TODO: use context to be able to stop request
 		res, _, err := executeRequest(opts)
 		if err != nil {
 			if strings.Contains(err.Error(), "timeout") {
 				m.listenerManager.announceStatus(&PNStatus{
-					Category: TimeoutCategory,
+					Category: PNTimeoutCategory,
 				})
 				continue
 			}
 
 			if strings.Contains(err.Error(), "context canceled") {
 				m.listenerManager.announceStatus(&PNStatus{
-					Category: CancelledCategory,
+					Category: PNCancelledCategory,
 				})
 				break
 			}
 
 			if strings.Contains(err.Error(), "Forbidden") {
 				m.listenerManager.announceStatus(&PNStatus{
-					Category: AccessDeniedCategory,
+					Category: PNAccessDeniedCategory,
 				})
 				m.unsubscribeAll()
 				break
@@ -260,14 +259,24 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			if strings.Contains(err.Error(), "400") ||
 				strings.Contains(err.Error(), "Bad Request") {
 				m.listenerManager.announceStatus(&PNStatus{
-					Category: BadRequestCategory,
+					Category: PNBadRequestCategory,
+				})
+				m.unsubscribeAll()
+				break
+			}
+
+			// For testing purpose
+			if strings.Contains(err.Error(), "530") ||
+				strings.Contains(err.Error(), "No Stub Matched") {
+				m.listenerManager.announceStatus(&PNStatus{
+					Category: PNNoStubMatchedCategory,
 				})
 				m.unsubscribeAll()
 				break
 			}
 
 			m.listenerManager.announceStatus(&PNStatus{
-				Category: UnknownCategory,
+				Category: PNUnknownCategory,
 			})
 
 			break
@@ -279,7 +288,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		if announced == false {
 			m.listenerManager.announceStatus(&PNStatus{
-				Category: ConnectedCategory,
+				Category: PNConnectedCategory,
 			})
 
 			m.subscriptionStateAnnounced = true
@@ -289,7 +298,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		err = json.Unmarshal(res, &envelope)
 		if err != nil {
 			m.listenerManager.announceStatus(&PNStatus{
-				Category:              BadRequestCategory,
+				Category:              PNBadRequestCategory,
 				ErrorData:             err,
 				Error:                 true,
 				Operation:             PNSubscribeOperation,
@@ -306,7 +315,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 					if err != nil {
 						m.listenerManager.announceStatus(&PNStatus{
-							Category:              BadRequestCategory,
+							Category:              PNBadRequestCategory,
 							ErrorData:             err,
 							Error:                 true,
 							Operation:             PNSubscribeOperation,
@@ -334,7 +343,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			tt, err := strconv.ParseInt(envelope.Metadata.Timetoken, 10, 64)
 			if err != nil {
 				m.listenerManager.announceStatus(&PNStatus{
-					Category:              BadRequestCategory,
+					Category:              PNBadRequestCategory,
 					ErrorData:             err,
 					Error:                 true,
 					Operation:             PNSubscribeOperation,
@@ -420,7 +429,7 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 	if err != nil {
 		errStatus := &PNStatus{
 			Operation: PNHeartBeatOperation,
-			Category:  BadRequestCategory,
+			Category:  PNBadRequestCategory,
 			Error:     true,
 			ErrorData: err,
 		}
@@ -431,7 +440,7 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 	}
 
 	hbStatus := &PNStatus{
-		Category:   UnknownCategory,
+		Category:   PNUnknownCategory,
 		Error:      false,
 		Operation:  PNHeartBeatOperation,
 		StatusCode: status.StatusCode,
@@ -506,7 +515,7 @@ func processSubscribePayload(lm *ListenerManager, payload subscribeMessage) {
 
 		if presencePayload, ok = payload.Payload.(map[string]interface{}); !ok {
 			lm.announceStatus(&PNStatus{
-				Category:         UnknownCategory,
+				Category:         PNUnknownCategory,
 				ErrorData:        errors.New("Response presence parsing error"),
 				Error:            true,
 				Operation:        PNSubscribeOperation,

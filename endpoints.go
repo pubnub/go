@@ -22,7 +22,7 @@ type endpointOpts interface {
 	buildBody() ([]byte, error)
 
 	httpMethod() string
-	operationType() PNOperationType
+	operationType() OperationType
 }
 
 func defaultQuery(uuid string) *url.Values {

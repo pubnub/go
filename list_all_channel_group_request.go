@@ -124,7 +124,7 @@ func (o *allChannelGroupOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *allChannelGroupOpts) operationType() PNOperationType {
+func (o *allChannelGroupOpts) operationType() OperationType {
 	return PNChannelsForGroupOperation
 }
 

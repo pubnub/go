@@ -107,7 +107,7 @@ func (o *timeOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *timeOpts) operationType() PNOperationType {
+func (o *timeOpts) operationType() OperationType {
 	return PNTimeOperation
 }
 

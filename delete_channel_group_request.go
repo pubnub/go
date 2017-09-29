@@ -122,6 +122,6 @@ func (o *deleteChannelGroupOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *deleteChannelGroupOpts) operationType() PNOperationType {
+func (o *deleteChannelGroupOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
 }
