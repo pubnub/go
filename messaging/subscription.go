@@ -75,7 +75,7 @@ type subscriptionItem struct {
 }
 
 func (e *subscriptionItem) SetConnected() (changed bool) {
-	if e.Connected == false {
+	if !e.Connected {
 		e.Connected = true
 		return true
 	}
@@ -295,7 +295,7 @@ func (e *subscriptionEntity) ApplyAbort(logger *log.Logger) {
 	abortedMarker := e.abortedMarker
 	e.Unlock()
 
-	if abortedMarker == true {
+	if abortedMarker {
 		e.Clear()
 	}
 }
@@ -316,7 +316,7 @@ func (e *subscriptionEntity) SetConnected(logger *log.Logger) (changedItemNames 
 	defer e.Unlock()
 
 	for name, item := range e.items {
-		if item.SetConnected() == true {
+		if item.SetConnected() {
 			changedItemNames = append(changedItemNames, name)
 		}
 	}
