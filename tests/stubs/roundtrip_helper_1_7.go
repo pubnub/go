@@ -4,7 +4,7 @@ package stubs
 
 import "net/http"
 
-func GetRequestCancel(req *http.Request) <-chan error {
+func GetRequestCancelChannel(req *http.Request) <-chan error {
 	channel := make(chan error)
 
 	func() {

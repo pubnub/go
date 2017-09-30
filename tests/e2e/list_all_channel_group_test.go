@@ -55,7 +55,7 @@ func TestListAllChannelGroupSuperCall(t *testing.T) {
 func TestListAllChannelGroupSuccess(t *testing.T) {
 	assert := assert.New(t)
 	myChannel := "my-channel"
-	myGroup := "my-unique-group"
+	myGroup := randomized("my-group")
 
 	pn := pubnub.NewPubNub(configCopy())
 

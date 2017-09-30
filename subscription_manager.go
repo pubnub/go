@@ -70,8 +70,6 @@ type SubscriptionManager struct {
 
 	subscriptionStateAnnounced bool
 	heartbeatStopCalled        bool
-
-	filterExpression string
 }
 
 type SubscribeOperation struct {
@@ -137,6 +135,7 @@ func (m *SubscriptionManager) adaptSubscribe(
 		subscribeOperation.PresenceEnabled)
 	m.Lock()
 
+	// TODO: rename subscriptionStatusAnnounced
 	m.subscriptionStateAnnounced = false
 
 	if subscribeOperation.Timetoken != 0 {
@@ -145,10 +144,6 @@ func (m *SubscriptionManager) adaptSubscribe(
 
 	if m.timetoken != 0 {
 		m.storedTimetoken = m.timetoken
-	}
-
-	if subscribeOperation.FilterExpression != "" {
-		m.filterExpression = subscribeOperation.FilterExpression
 	}
 
 	m.timetoken = 0
@@ -292,7 +287,9 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				Category: PNConnectedCategory,
 			})
 
+			m.Lock()
 			m.subscriptionStateAnnounced = true
+			m.Unlock()
 		}
 
 		var envelope subscribeEnvelope
@@ -339,7 +336,6 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			m.Lock()
 			m.timetoken = m.storedTimetoken
 			m.storedTimetoken = -1
-			m.Unlock()
 		} else {
 			tt, err := strconv.ParseInt(envelope.Metadata.Timetoken, 10, 64)
 			if err != nil {
@@ -353,10 +349,12 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				})
 			}
 
+			m.Lock()
 			m.timetoken = tt
 		}
 
 		m.region = envelope.Metadata.Region
+		m.Unlock()
 	}
 }
 
@@ -374,7 +372,9 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 	go func() {
 		defer m.hbLoopMutex.Unlock()
 		defer func() {
+			m.hbDataMutex.Lock()
 			m.hbDone = nil
+			m.hbDataMutex.Unlock()
 		}()
 
 		for {

@@ -72,7 +72,7 @@ func TestRemoveChannelChannelGroupSuccess(t *testing.T) {
 	assert := assert.New(t)
 	myChannel := "my-channel"
 	myAnotherChannel := "my-another-channel"
-	myGroup := "my-unique-group"
+	myGroup := randomized("my-group")
 
 	pn := pubnub.NewPubNub(configCopy())
 

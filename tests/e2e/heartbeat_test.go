@@ -16,7 +16,7 @@ import (
 
 func TestHeartbeatTimeoutEvent(t *testing.T) {
 	assert := assert.New(t)
-	ch := "hbtest"
+	ch := randomized("hb-te")
 	emitterUuid := randomized("emitter")
 
 	var wg sync.WaitGroup
@@ -136,6 +136,7 @@ func TestHeartbeatTimeoutEvent(t *testing.T) {
 
 	select {
 	case <-doneTimeout:
+		pn.UnsubscribeAll()
 	case <-time.After(8 * time.Second):
 		assert.Fail("No timeout event received in 8 seconds")
 	case err := <-errChan:

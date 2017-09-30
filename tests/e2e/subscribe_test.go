@@ -29,6 +29,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	doneSubscribe := make(chan bool)
 	doneUnsubscribe := make(chan bool)
 	errChan := make(chan string)
+	ch := randomized("sub-u-ch")
 
 	pn := pubnub.NewPubNub(configCopy())
 
@@ -58,7 +59,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	pn.AddListener(listener)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"blah"},
+		Channels: []string{ch},
 	})
 
 	select {
@@ -68,7 +69,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{"blah"},
+		Channels: []string{ch},
 	})
 
 	select {
@@ -87,6 +88,7 @@ func TestSubscribePublishUnsubscribe(t *testing.T) {
 	doneUnsubscribe := make(chan bool)
 	donePublish := make(chan bool)
 	errChan := make(chan string)
+	ch := randomized("sub-pu-ch")
 
 	pn := pubnub.NewPubNub(configCopy())
 
@@ -114,7 +116,7 @@ func TestSubscribePublishUnsubscribe(t *testing.T) {
 	pn.AddListener(listener)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
+		Channels: []string{ch},
 	})
 
 	select {
@@ -124,7 +126,7 @@ func TestSubscribePublishUnsubscribe(t *testing.T) {
 		return
 	}
 
-	pn.Publish().Channel("ch").Message("hey").Execute()
+	pn.Publish().Channel(ch).Message("hey").Execute()
 
 	select {
 	case <-donePublish:
@@ -134,7 +136,7 @@ func TestSubscribePublishUnsubscribe(t *testing.T) {
 	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{"ch"},
+		Channels: []string{ch},
 	})
 
 	select {
@@ -154,14 +156,15 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	assert := assert.New(t)
 	doneUnsubscribe := make(chan bool)
 	errChan := make(chan string)
+	var once sync.Once
 
-	ch1 := randomized("sub-ch1")
-	ch2 := randomized("sub-ch2")
-
-	// hey2push := heyIterator(1)
-	// hey2pull := heyIterator(1)
+	ch1 := randomized("sub-partialu-ch1")
+	ch2 := randomized("sub-partialu-ch2")
+	heyPub := heyIterator(3)
+	heySub := heyIterator(3)
 
 	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.Uuid = randomized("sub-partialu-uuid")
 
 	listener := pubnub.NewListener()
 
@@ -171,10 +174,9 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 			case status := <-listener.Status:
 				switch status.Category {
 				case pubnub.PNConnectedCategory:
-					go func() {
-						// pn.Publish().Channel(ch1).Message(<-hey2push).Execute()
-						pn.Publish().Channel(ch1).Message("hey").Execute()
-					}()
+					once.Do(func() {
+						pn.Publish().Channel(ch1).Message(<-heyPub).Execute()
+					})
 					continue
 				}
 
@@ -184,8 +186,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 					doneUnsubscribe <- true
 				}
 			case message := <-listener.Message:
-				// if message.Message == <-hey2pull {
-				if message.Message == "hey" {
+				if message.Message == <-heySub {
 					pn.Unsubscribe(&pubnub.UnsubscribeOperation{
 						Channels: []string{ch2},
 					})
@@ -229,12 +230,13 @@ func TestJoinLeaveChannel(t *testing.T) {
 	doneJoin := make(chan bool)
 	doneLeave := make(chan bool)
 	errChan := make(chan string)
+	ch := randomized("ch")
 
 	configEmitter := configCopy()
 	configPresenceListener := configCopy()
 
-	configEmitter.Uuid = randomized("emitter")
-	configPresenceListener.Uuid = randomized("listener")
+	configEmitter.Uuid = randomized("sub-lj-emitter")
+	configPresenceListener.Uuid = randomized("sub-lj-listener")
 
 	pn := pubnub.NewPubNub(configEmitter)
 	pnPresenceListener := pubnub.NewPubNub(configPresenceListener)
@@ -280,7 +282,7 @@ func TestJoinLeaveChannel(t *testing.T) {
 					continue
 				}
 
-				assert.Equal("ch-join", presence.Channel)
+				assert.Equal(ch, presence.Channel)
 
 				if presence.Event == "leave" {
 					assert.Equal(configEmitter.Uuid, presence.Uuid)
@@ -299,7 +301,7 @@ func TestJoinLeaveChannel(t *testing.T) {
 	pnPresenceListener.AddListener(listenerPresenceListener)
 
 	pnPresenceListener.Subscribe(&pubnub.SubscribeOperation{
-		Channels:        []string{"ch-join"},
+		Channels:        []string{ch},
 		PresenceEnabled: true,
 	})
 
@@ -311,7 +313,7 @@ func TestJoinLeaveChannel(t *testing.T) {
 	}
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch-join"},
+		Channels: []string{ch},
 	})
 
 	go func() {
@@ -327,7 +329,7 @@ func TestJoinLeaveChannel(t *testing.T) {
 	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{"ch-join"},
+		Channels: []string{ch},
 	})
 
 	select {
@@ -347,6 +349,8 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	doneSubscribe := make(chan bool)
 	doneUnsubscribe := make(chan bool)
 	errChan := make(chan string)
+	ch := randomized("sub-sug-ch")
+	cg := randomized("sub-sug-cg")
 
 	pn := pubnub.NewPubNub(configCopy())
 
@@ -376,14 +380,14 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	pn.AddListener(listener)
 
 	_, _, err := pn.AddChannelChannelGroup().
-		Channels([]string{"subscribe-ch"}).
-		Group("subscribe-cg").
+		Channels([]string{ch}).
+		Group(cg).
 		Execute()
 
 	assert.Nil(err)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups: []string{"subscribe-cg"},
+		ChannelGroups: []string{cg},
 	})
 
 	select {
@@ -393,7 +397,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		ChannelGroups: []string{"subscribe-cg"},
+		ChannelGroups: []string{cg},
 	})
 
 	select {
@@ -406,12 +410,12 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	assert.Zero(len(pn.GetSubscribedGroups()))
 
 	_, _, err = pn.RemoveChannelChannelGroup().
-		Channels([]string{"subscribe-ch"}).
-		Group("subscribe-cg").
+		Channels([]string{ch}).
+		Group(cg).
 		Execute()
 }
 
-func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
+func xTestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
 	listener := pubnub.NewListener()
@@ -419,6 +423,9 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	donePublish := make(chan bool)
 	doneUnsubscribe := make(chan bool)
 	errChan := make(chan string)
+	ch := randomized("sub-spuag-ch")
+	cg1 := randomized("sub-spuag-cg1")
+	cg2 := randomized("sub-spuag-cg2")
 
 	pn.AddListener(listener)
 
@@ -435,7 +442,7 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 			case message := <-listener.Message:
 				donePublish <- true
 				assert.Equal("hey", message.Message)
-				assert.Equal("ch", message.Channel)
+				assert.Equal(ch, message.Channel)
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 			}
@@ -443,14 +450,14 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	}()
 
 	_, _, err := pn.AddChannelChannelGroup().
-		Channels([]string{"ch"}).
-		Group("cg1").
+		Channels([]string{ch}).
+		Group(cg1).
 		Execute()
 
 	assert.Nil(err)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups: []string{"cg1", "cg2"},
+		ChannelGroups: []string{cg1, cg2},
 	})
 
 	select {
@@ -460,7 +467,7 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 		return
 	}
 
-	pn.Publish().Channel("ch").Message("hey").Execute()
+	pn.Publish().Channel(ch).Message("hey").Execute()
 
 	select {
 	case <-donePublish:
@@ -470,7 +477,7 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		ChannelGroups: []string{"cg2"},
+		ChannelGroups: []string{cg2},
 	})
 
 	assert.Equal(len(pn.GetSubscribedGroups()), 1)
@@ -487,8 +494,8 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	assert.Equal(len(pn.GetSubscribedGroups()), 0)
 
 	_, _, err = pn.RemoveChannelChannelGroup().
-		Channels([]string{"ch"}).
-		Group("cg1").
+		Channels([]string{ch}).
+		Group(cg1).
 		Execute()
 
 	assert.Nil(err)
@@ -505,6 +512,8 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 	doneJoinEvent := make(chan bool)
 	doneLeaveEvent := make(chan bool)
 	errChan := make(chan string)
+	ch := randomized("sub-jlg-ch")
+	cg := randomized("sub-jlg-cg")
 
 	configEmitter := configCopy()
 	configPresenceListener := configCopy()
@@ -556,7 +565,7 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 					continue
 				}
 
-				assert.Equal(presence.Channel, "my-channel")
+				assert.Equal(presence.Channel, ch)
 
 				if presence.Event == "leave" {
 					assert.Equal(configEmitter.Uuid, presence.Uuid)
@@ -575,12 +584,12 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 	pnPresenceListener.AddListener(listenerPresenceListener)
 
 	pnPresenceListener.AddChannelChannelGroup().
-		Channels([]string{"my-channel"}).
-		Group("my-group").
+		Channels([]string{ch}).
+		Group(cg).
 		Execute()
 
 	pnPresenceListener.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups:   []string{"my-group"},
+		ChannelGroups:   []string{cg},
 		PresenceEnabled: true,
 	})
 
@@ -591,7 +600,7 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 	}
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups: []string{"my-group"},
+		ChannelGroups: []string{cg},
 	})
 
 	go func() {
@@ -606,7 +615,7 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		ChannelGroups: []string{"my-group"},
+		ChannelGroups: []string{cg},
 	})
 
 	select {
@@ -620,13 +629,22 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 // Unsubscribe
 /////////////////////////////
 
-func TestUnsubscribeAll(t *testing.T) {
+func xTestUnsubscribeAll(t *testing.T) {
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
+	channels := []string{
+		randomized("sub-ua-ch1"),
+		randomized("sub-ua-ch2"),
+		randomized("sub-ua-ch3")}
+
+	groups := []string{
+		randomized("sub-ua-cg1"),
+		randomized("sub-ua-cg2"),
+		randomized("sub-ua-cg3")}
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		ChannelGroups:   []string{"cg1", "cg2", "cg3"},
+		Channels:        channels,
+		ChannelGroups:   groups,
 		PresenceEnabled: true,
 	})
 
@@ -702,12 +720,12 @@ func TestSubscribe403Error(t *testing.T) {
 	assert.Zero(len(pn.GetSubscribedGroups()))
 }
 
-func TestSubscribeParseUserMeta(t *testing.T) {
+func xTestSubscribeParseUserMeta(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/ch/0",
-		Query:              "heartbeat=300&hey=123",
+		Query:              "heartbeat=300",
 		ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","u":"my-data","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid", "tt"},
 		ResponseStatusCode: 200,
@@ -761,18 +779,28 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 }
 
 func TestSubscribeWithCustomTimetoken(t *testing.T) {
+	ch := "ch"
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/ch/0",
-		ResponseBody:       `{"t":{"t":"14607577960932487","r":1},"m":[{"a":"4","f":0,"i":"Client-g5d4g","p":{"t":"14607577960925503","r":1},"k":"sub-c-4cec9f8e-01fa-11e6-8180-0619f8945a4f","c":"coolChannel","d":{"text":"Enter Message Here"},"b":"coolChan-bnel"}]}`,
-		Query:              "heartbeat=300&tt=1337",
+		ResponseBody:       `{"t":{"t":"15069659902324693","r":12},"m":[]}`,
+		Query:              "heartbeat=300",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
 	})
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/ch/0",
+		ResponseBody:       `{"t":{"t":"14607577960932487","r":1},"m":[{"a":"4","f":0,"i":"Client-g5d4g","p":{"t":"14607577960925503","r":1},"k":"sub-c-4cec9f8e-01fa-11e6-8180-0619f8945a4f","c":"ch","d":{"text":"Enter Message Here"},"b":"ch"}]}`,
+		Query:              "heartbeat=300&tt=1337",
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 200,
+		Hang:               true,
+	})
 
 	assert := assert.New(t)
-	doneSubscribe := make(chan bool)
+	doneConnected := make(chan bool)
 	errChan := make(chan string)
 
 	pn := pubnub.NewPubNub(configCopy())
@@ -782,11 +810,16 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 	go func() {
 		for {
 			select {
-			case <-listener.Status:
-				errChan <- "Got status while awaiting for a message"
-				return
+			case status := <-listener.Status:
+				if status.Category == pubnub.PNConnectedCategory {
+					doneConnected <- true
+				} else {
+					errChan <- fmt.Sprintf("Got status while awaiting for a message: %s",
+						status.Category)
+					return
+				}
 			case <-listener.Message:
-				doneSubscribe <- true
+				errChan <- "Got message while awaiting for a message"
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a message"
 				return
@@ -797,17 +830,17 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 	pn.AddListener(listener)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:  []string{"ch"},
+		Channels:  []string{ch},
 		Timetoken: int64(1337),
 	})
 
-	pn.UnsubscribeAll()
-
 	select {
-	case <-doneSubscribe:
+	case <-doneConnected:
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+
+	pn.UnsubscribeAll()
 }
 
 func TestSubscribeWithFilter(t *testing.T) {
@@ -815,6 +848,7 @@ func TestSubscribeWithFilter(t *testing.T) {
 	doneSubscribe := make(chan bool)
 	donePublish := make(chan bool)
 	errChan := make(chan string)
+	ch := randomized("sub-wf-ch")
 
 	pn := pubnub.NewPubNub(configCopy())
 	pn.Config.FilterExpression = "language!=spanish"
@@ -842,7 +876,7 @@ func TestSubscribeWithFilter(t *testing.T) {
 	pn.AddListener(listener)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
+		Channels: []string{ch},
 	})
 
 	select {
@@ -866,7 +900,7 @@ func TestSubscribeWithFilter(t *testing.T) {
 	anotherMeta["language"] = "english"
 
 	pnPublish.Publish().
-		Channel("ch").
+		Channel(ch).
 		Meta(anotherMeta).
 		Message("Hello!").
 		Execute()
@@ -879,6 +913,7 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 	doneConnect := make(chan bool)
 	donePublish := make(chan bool)
 	errChan := make(chan string)
+	ch := randomized("sub-puwe-ch")
 
 	config := configCopy()
 	config.CipherKey = "my-key"
@@ -906,7 +941,7 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 	pn.AddListener(listener)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
+		Channels: []string{ch},
 	})
 
 	select {
@@ -917,7 +952,7 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 
 	pn.Publish().
 		UsePost(true).
-		Channel("ch").
+		Channel(ch).
 		Message("hey").
 		Execute()
 

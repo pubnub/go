@@ -45,7 +45,11 @@ func TestPublishSuccess(t *testing.T) {
 	pn := pubnub.NewPubNub(config)
 	pn.SetClient(interceptor.GetClient())
 
-	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
+	_, _, err := pn.Publish().
+		Channel("ch").
+		Message("hey").
+		ShouldStore(false).
+		Execute()
 
 	assert.Nil(err)
 }
@@ -68,6 +72,7 @@ func TestPublishSuccessSlice(t *testing.T) {
 	_, _, err := pn.Publish().
 		Channel("ch").
 		Message([]string{"hey1", "hey2", "hey3"}).
+		ShouldStore(false).
 		Execute()
 
 	assert.Nil(err)
@@ -77,15 +82,18 @@ func TestPublishSuccessSlice(t *testing.T) {
 // go1.8 returns "context deadline exceeded" error in such case
 func TestPublishContextTimeout(t *testing.T) {
 	assert := assert.New(t)
-	ms := 500
+	ms := 50
 	timeout := time.Duration(ms) * time.Millisecond
 	ctx, cancel := contextWithTimeout(backgroundContext, timeout)
 	defer cancel()
 
 	pn := pubnub.NewPubNub(config)
-	pn.SetClient(stubs.NewSleeperClient(ms + 3000))
+	// pn.SetClient(stubs.NewSleeperClient(ms + 3000))
 
-	res, _, err := pn.PublishWithContext(ctx).Channel("ch").Message("hey").Execute()
+	res, _, err := pn.PublishWithContext(ctx).
+		Channel("ch").
+		Message("hey").
+		Execute()
 
 	if err == nil {
 		assert.Fail("Received success instead of context deadline: %v", res)
@@ -106,14 +114,17 @@ func TestPublishContextCancel(t *testing.T) {
 	ctx, cancel := contextWithTimeout(backgroundContext, timeout)
 
 	go func() {
-		time.Sleep(300 * time.Millisecond)
+		time.Sleep(30 * time.Millisecond)
 		cancel()
 	}()
 
 	pn := pubnub.NewPubNub(config)
-	pn.SetClient(stubs.NewSleeperClient(ms + 3000))
+	// pn.SetClient(stubs.NewSleeperClient(ms + 3000))
 
-	res, _, err := pn.PublishWithContext(ctx).Channel("ch").Message("hey").Execute()
+	res, _, err := pn.PublishWithContext(ctx).
+		Channel("ch").
+		Message("hey").
+		Execute()
 
 	if err == nil {
 		assert.Fail("Received success instead of context deadline: %v", res)
@@ -156,7 +167,7 @@ func TestPublishMissingPublishKey(t *testing.T) {
 
 	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
 
-	assert.Contains(err.Error(), "pubnub: Missing Publish Key")
+	assert.Contains(err.Error(), "Publish: Missing Publish Key")
 }
 
 func TestPublishMissingMessage(t *testing.T) {
@@ -170,7 +181,7 @@ func TestPublishMissingMessage(t *testing.T) {
 
 	_, _, err := pn.Publish().Channel("ch").Execute()
 
-	assert.Contains(err.Error(), "pubnub: Missing Message")
+	assert.Contains(err.Error(), "Publish: Missing Message")
 }
 
 func TestPublishMissingChannel(t *testing.T) {
@@ -184,7 +195,7 @@ func TestPublishMissingChannel(t *testing.T) {
 
 	_, _, err := pn.Publish().Message("hey").Execute()
 
-	assert.Contains(err.Error(), "pubnub: Missing Channel")
+	assert.Contains(err.Error(), "Publish: Missing Channel")
 }
 
 // Grant permissions added from another sdk

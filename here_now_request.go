@@ -136,10 +136,14 @@ func (o *hereNowOpts) buildQuery() (*url.Values, error) {
 
 	if o.SetIncludeState && o.IncludeState {
 		q.Set("state", "1")
+	} else if o.SetIncludeState && !o.IncludeState {
+		q.Set("state", "0")
 	}
 
 	if o.SetIncludeUuids && !o.IncludeUuids {
 		q.Set("disable-uuids", "1")
+	} else if o.SetIncludeUuids && o.IncludeUuids {
+		q.Set("disable-uuids", "0")
 	}
 
 	return q, nil

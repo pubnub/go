@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/pubnub/go/tests/helpers"
 )
@@ -40,9 +41,14 @@ type Stub struct {
 	MixedPathPositions []int
 	IgnoreQueryKeys    []string
 	MixedQueryKeys     []string
+	Hang               bool
 }
 
 func (s *Stub) Match(req *http.Request) bool {
+	if s.Hang {
+		time.Sleep(1000 * time.Second)
+	}
+
 	if s.Method != req.Method {
 		log.Printf("Methods are not equal: %s != %s\n", s.Method, req.Method)
 		return false
