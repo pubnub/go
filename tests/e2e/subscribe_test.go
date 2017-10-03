@@ -769,8 +769,6 @@ func xTestSubscribeParseUserMeta(t *testing.T) {
 		Channels: []string{"ch"},
 	})
 
-	pn.UnsubscribeAll()
-
 	select {
 	case <-doneMeta:
 	case err := <-errChan:

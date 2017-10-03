@@ -146,11 +146,12 @@ func TestHeartbeatTimeoutEvent(t *testing.T) {
 }
 
 func TestHeartbeatStubbedRequest(t *testing.T) {
+	ch := randomized("ch-hsr")
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch/heartbeat",
+		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/" + ch + "/heartbeat",
 		Query:              "heartbeat=6",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -159,7 +160,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch/leave",
+		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/" + ch + "/leave",
 		Query:              "",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\", \"action\": \"leave\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -202,7 +203,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 	}()
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
+		Channels: []string{ch},
 	})
 
 	select {
@@ -220,18 +221,19 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{"ch"},
+		Channels: []string{ch},
 	})
 }
 
 // Test triggers BadRequestCategory in subscription.Status channel
 // for failed HB call
 func TestHeartbeatRequestWithError(t *testing.T) {
+	ch := randomized("ch-hrwe")
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch/heartbeat",
+		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/" + ch + "/heartbeat",
 		Query:              "heartbeat=6",
 		ResponseBody:       "{\"status\": 404, \"message\": \"Not Found\", \"error\": \"1\", \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -240,7 +242,7 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch/leave",
+		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/" + ch + "/leave",
 		Query:              "",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\", \"action\": \"leave\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -280,7 +282,7 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 	}()
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
+		Channels: []string{ch},
 	})
 
 	select {
@@ -298,7 +300,7 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 	}
 
 	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{"ch"},
+		Channels: []string{ch},
 	})
 }
 

@@ -434,6 +434,7 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 			Error:     true,
 			ErrorData: err,
 		}
+		log.Println(err)
 
 		m.listenerManager.announceStatus(errStatus)
 

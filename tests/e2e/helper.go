@@ -4,13 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net"
 	"net/http"
 	"time"
 
-	mux "github.com/gorilla/mux"
 	pubnub "github.com/pubnub/go"
 )
 
@@ -55,48 +53,6 @@ func pamConfigCopy() *pubnub.Config {
 
 func randomized(prefix string) string {
 	return fmt.Sprintf("%s-%d", prefix, rand.Intn(10000000))
-}
-
-func makeResponseRoot(hangSeconds int) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-
-		log.Printf("Sleeping %d seconds\n", hangSeconds)
-		time.Sleep(time.Duration(hangSeconds) * time.Second)
-
-		if vars["pubKey"] == "my_pub_key" {
-			fmt.Fprint(w, "[1, \"Sent\", 123]")
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, "[{\"eror\": true}]")
-		}
-	}
-}
-
-func servePublish(hangSeconds int, close, closed chan bool) {
-	r := mux.NewRouter()
-	r.HandleFunc("/publish/{pubKey}/{subKey}/0/{channel}/0/{msg}",
-		makeResponseRoot(hangSeconds))
-
-	s := &http.Server{
-		Handler: r,
-	}
-
-	l, err := net.Listen("tcp", ":3000")
-	if err != nil {
-		panic(err)
-	}
-
-	go func() {
-		<-close
-		fmt.Println(">>> closing listener")
-		l.Close()
-		fmt.Println("<<< listener closed")
-		time.Sleep(2000 * time.Millisecond)
-		closed <- true
-	}()
-
-	s.Serve(l)
 }
 
 type fakeTransport struct {
