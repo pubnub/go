@@ -1,0 +1,19 @@
+language: go
+
+go:
+  - 1.6.4
+  - 1.7.6
+  - 1.8.3
+  - 1.9
+
+install:
+  - mkdir -p $GOPATH/src/github.com/pubnub
+  - ln -s $GOPATH/src/github.com/pubnub/go
+  # - go get -t -v ./messaging/...
+  - go get github.com/wadey/gocovmerge
+
+script:
+  - bash ./scripts/run-tests.sh
+
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
