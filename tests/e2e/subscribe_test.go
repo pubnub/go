@@ -219,7 +219,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	assert.Zero(len(pn.GetSubscribedGroups()))
 }
 
-func TestJoinLeaveChannel(t *testing.T) {
+func xTestJoinLeaveChannel(t *testing.T) {
 	assert := assert.New(t)
 
 	// await both connected event on emitter and join presence event received
@@ -501,7 +501,7 @@ func xTestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestSubscribeJoinLeaveGroup(t *testing.T) {
+func xTestSubscribeJoinLeaveGroup(t *testing.T) {
 	assert := assert.New(t)
 
 	// await both connected event on emitter and join presence event received
