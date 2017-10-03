@@ -7,6 +7,10 @@ Breaking API Change: newPubnub has a new parameter where it expects a logger ins
 
 ### Change log
 * 3.16.0
+  * Subscribe v2 Abort Fix
+* 3.15.0
+  * Add support for setting the non subscribe HTTP client
+* 3.14.0
   * Fixed a corner case panic
 * 3.13.0
   * Presence Delta Intervals
