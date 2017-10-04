@@ -46,8 +46,8 @@ func TestGrantAndRevokeSubKeyLevelSubscribe(t *testing.T) {
 
 	pubnubInstance := messaging.NewPubnub(PamPubKey, PamSubKey, PamSecKey, "", false, "", CreateLoggerForTests())
 	ttl := 4
-	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"r":1,"m":0,"w":1,"subscribe_key":"%s","ttl":%d,"level":"subkey"}}`, PamSubKey, ttl)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"r":0,"m":0,"w":0,"subscribe_key":"%s","ttl":%d,"level":"subkey"}}`, PamSubKey, 1)
+	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"subscribe_key":"%s","ttl":%d,"r":1,"w":1,"m":0,"d":0,"level":"subkey"}}`, PamSubKey, ttl)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"level":"subkey","subscribe_key":"%s","ttl":%d,"r":0,"w":0,"m":0,"d":0}}`, PamSubKey, 1)
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -92,8 +92,8 @@ func TestGrantAndRevokeChannelLevelSubscribe(t *testing.T) {
 	channel := "testChannelGrantAndRevokeChannelLevelSubscribe"
 	ttl := 8
 
-	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"m":0,"w":1}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, ttl)
-	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":0,"m":0,"w":0}},"subscribe_key":"%s","ttl":%d,"level":"channel"}}`, channel, PamSubKey, 1)
+	message := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"channels":{"%s":{"r":1,"w":1,"m":0,"d":0}},"level":"channel","subscribe_key":"%s","ttl":%d}}`, channel, PamSubKey, ttl)
+	message2 := fmt.Sprintf(`{"status":200,"service":"Access Manager","message":"Success","payload":{"ttl":%d,"channels":{"%s":{"w":0,"m":0,"d":0,"r":0}},"level":"channel","subscribe_key":"%s"}}`, 1, channel, PamSubKey)
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
@@ -140,12 +140,12 @@ func TestGrantChannelLevelSubscribeWithAuth(t *testing.T) {
 
 	ttl := 1
 	expected := fmt.Sprintf(`{
-		"auths":{"%s":{"r":1,"m":0,"w":1}},
+		"auths":{"%s":{"d":0,"m":0,"r":1,"w":1}},
 		"channel":"%s",
 		"level":"user",
-		"ttl":%d,
-		"subscribe_key":"%s"
-	}`, authKey, channel, ttl, PamSubKey)
+		"subscribe_key":"%s",
+		"ttl":%d
+	}`, authKey, channel, PamSubKey, ttl)
 
 	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
