@@ -599,7 +599,7 @@ func (m *SubscriptionManager) reconnect() {
 	m.log("reconnect")
 
 	go m.startSubscribeLoop()
-	m.startHeartbeatTimer()
+	go m.startHeartbeatTimer()
 }
 
 func (m *SubscriptionManager) disconnect() {

@@ -219,7 +219,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	assert.Zero(len(pn.GetSubscribedGroups()))
 }
 
-func xTestJoinLeaveChannel(t *testing.T) {
+func TestJoinLeaveChannel(t *testing.T) {
 	assert := assert.New(t)
 
 	// await both connected event on emitter and join presence event received
@@ -415,7 +415,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 		Execute()
 }
 
-func xTestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
+func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
 	listener := pubnub.NewListener()
@@ -501,7 +501,7 @@ func xTestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	assert.Nil(err)
 }
 
-func xTestSubscribeJoinLeaveGroup(t *testing.T) {
+func TestSubscribeJoinLeaveGroup(t *testing.T) {
 	assert := assert.New(t)
 
 	// await both connected event on emitter and join presence event received
@@ -629,7 +629,7 @@ func xTestSubscribeJoinLeaveGroup(t *testing.T) {
 // Unsubscribe
 /////////////////////////////
 
-func xTestUnsubscribeAll(t *testing.T) {
+func TestUnsubscribeAll(t *testing.T) {
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
 	channels := []string{
@@ -720,7 +720,7 @@ func TestSubscribe403Error(t *testing.T) {
 	assert.Zero(len(pn.GetSubscribedGroups()))
 }
 
-func xTestSubscribeParseUserMeta(t *testing.T) {
+func TestSubscribeParseUserMeta(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
