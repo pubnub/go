@@ -5,6 +5,7 @@ import (
 	"log"
 	"sync"
 	"testing"
+	"time"
 
 	pubnub "github.com/pubnub/go"
 	"github.com/pubnub/go/tests/stubs"
@@ -179,9 +180,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 					})
 					continue
 				}
-
-				if len(status.AffectedChannels) == 1 &&
-					status.Operation == pubnub.PNUnsubscribeOperation {
+				if len(status.AffectedChannels) == 1 && status.Operation == pubnub.PNUnsubscribeOperation {
 					assert.Equal(status.AffectedChannels[0], ch2)
 					doneUnsubscribe <- true
 				}
@@ -386,6 +385,9 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 
 	assert.Nil(err)
 
+	// await for adding channels
+	time.Sleep(3 * time.Second)
+
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		ChannelGroups: []string{cg},
 	})
@@ -455,6 +457,9 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
+
+	// await for adding channel
+	time.Sleep(2 * time.Second)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		ChannelGroups: []string{cg1, cg2},

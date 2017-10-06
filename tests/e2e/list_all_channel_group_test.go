@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	pubnub "github.com/pubnub/go"
 	"github.com/stretchr/testify/assert"
@@ -65,6 +66,9 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
+
+	// await for adding channel
+	time.Sleep(2 * time.Second)
 
 	res, _, err := pn.ListAllChannelsChannelGroup().
 		ChannelGroup(myGroup).

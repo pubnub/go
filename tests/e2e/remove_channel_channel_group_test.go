@@ -83,6 +83,9 @@ func TestRemoveChannelChannelGroupSuccess(t *testing.T) {
 
 	assert.Nil(err)
 
+	// await for adding channels
+	time.Sleep(2 * time.Second)
+
 	res, _, err := pn.ListAllChannelsChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
