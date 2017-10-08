@@ -2,6 +2,14 @@ package pubnub
 
 type StatusCategory int
 type OperationType int
+type ReconnectionPolicy int
+
+// TODO: add prefix
+const (
+	PNNonePolicy ReconnectionPolicy = 1 + iota
+	PNLinearPolicy
+	PNExponentialPolicy
+)
 
 const (
 	PNUnknownCategory StatusCategory = 1 + iota
@@ -18,6 +26,8 @@ const (
 	PNBadRequestCategory
 	PNAccessDeniedCategory
 	PNNoStubMatchedCategory
+	PNReconnectedCategory
+	PNReconnectionAttemptsExhausted
 )
 
 const (

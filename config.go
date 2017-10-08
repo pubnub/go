@@ -31,7 +31,11 @@ type Config struct {
 
 	PresenceTimeout int
 
+	MaximumReconnectionRetries int
+
 	FilterExpression string
+
+	PNReconnectionPolicy ReconnectionPolicy
 }
 
 func NewDemoConfig() *Config {

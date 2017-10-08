@@ -1009,3 +1009,55 @@ func TestSubscribeSuperCall(t *testing.T) {
 		assert.Fail(err)
 	}
 }
+
+func TestReconnectionExhaustion(t *testing.T) {
+	assert := assert.New(t)
+	doneSubscribe := make(chan bool)
+	errChan := make(chan string)
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/ch/0",
+		ResponseBody:       "",
+		Query:              "heartbeat=300",
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 400,
+	})
+
+	config.MaximumReconnectionRetries = 1
+	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
+	pn := pubnub.NewPubNub(config)
+	pn.SetSubscribeClient(interceptor.GetClient())
+	listener := pubnub.NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.PNReconnectedCategory:
+					doneSubscribe <- true
+				}
+			case <-listener.Message:
+				errChan <- "Got message while awaiting for a status event"
+				return
+			case <-listener.Presence:
+				errChan <- "Got presence while awaiting for a status event"
+				return
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe(&pubnub.SubscribeOperation{
+		Channels: []string{"ch"},
+	})
+
+	select {
+	case <-doneSubscribe:
+	case err := <-errChan:
+		assert.Fail(err)
+	}
+}

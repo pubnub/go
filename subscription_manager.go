@@ -44,10 +44,11 @@ type SubscriptionManager struct {
 
 	subscriptionLock sync.Mutex
 
-	listenerManager *ListenerManager
-	stateManager    *StateManager
-	pubnub          *PubNub
-	transport       http.RoundTripper
+	listenerManager     *ListenerManager
+	stateManager        *StateManager
+	pubnub              *PubNub
+	reconnectionManager *ReconnectionManager
+	transport           http.RoundTripper
 
 	hbLoopMutex sync.RWMutex
 	hbDataMutex sync.RWMutex
@@ -108,9 +109,39 @@ func newSubscriptionManager(pubnub *PubNub) *SubscriptionManager {
 	manager.subscriptionStateAnnounced = false
 	manager.ctx, manager.subscribeCancel = contextWithCancel(backgroundContext)
 	manager.messages = make(chan subscribeMessage, 1000)
+	manager.reconnectionManager = newReconnectionManager(pubnub)
 	manager.Unlock()
 
 	go subscribeMessageWorker(manager.listenerManager, manager.messages)
+
+	manager.reconnectionManager.HandleReconnection(func() {
+		go manager.reconnect()
+
+		manager.subscriptionStateAnnounced = true
+		combinedChannels := manager.stateManager.prepareChannelList(true)
+		combinedGroups := manager.stateManager.prepareGroupList(true)
+
+		manager.listenerManager.announceStatus(&PNStatus{
+			Error:                 false,
+			AffectedChannels:      combinedChannels,
+			AffectedChannelGroups: combinedGroups,
+			Category:              PNReconnectedCategory,
+		})
+	})
+
+	manager.reconnectionManager.HandleOnMaxReconnectionExhaustion(func() {
+		combinedChannels := manager.stateManager.prepareChannelList(true)
+		combinedGroups := manager.stateManager.prepareGroupList(true)
+
+		manager.listenerManager.announceStatus(&PNStatus{
+			Error:                 false,
+			AffectedChannels:      combinedChannels,
+			AffectedChannelGroups: combinedGroups,
+			Category:              PNReconnectionAttemptsExhausted,
+		})
+
+		manager.disconnect()
+	})
 
 	// actions:
 	// add channel
@@ -236,6 +267,8 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				})
 				continue
 			}
+
+			go m.reconnectionManager.startPolling()
 
 			if strings.Contains(err.Error(), "context canceled") {
 				m.listenerManager.announceStatus(&PNStatus{
@@ -607,7 +640,7 @@ func (m *SubscriptionManager) disconnect() {
 
 	m.stopHeartbeat()
 	m.stopSubscribeLoop()
-	// TODO: stop reconnection manager
+	m.reconnectionManager.stopHeartbeatTimer()
 }
 
 func (m *SubscriptionManager) stopSubscribeLoop() {
