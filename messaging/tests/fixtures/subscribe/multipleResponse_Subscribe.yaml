@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.16.0
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_MultipleResponse/0?uuid=UUID_MultipleResponse&tt=14591685625761723&pnsdk=PubNub-Go%2F3.16.0
+      - ua_string=(linux) PubNub-Go/3.17.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_MultipleResponse/0?uuid=UUID_MultipleResponse&tt=14591685625761723&pnsdk=PubNub-Go%2F3.17.0
     method: GET
   response:
     body: '{"t":{"t":"14591685620543810","r":4},"m":[{"a":"5","f":0,"i":"UUID_MultipleResponse","s":2,"p":{"t":"14772988006938898","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_MultipleResponse","d":"message1"},{"a":"5","f":0,"i":"UUID_MultipleResponse","s":3,"p":{"t":"14772988006938898","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_MultipleResponse","d":"message2"}]}'
@@ -31,5 +31,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_MultipleResponse/0?uuid=UUID_MultipleResponse&tt=14591685620543810&tr=4&pnsdk=PubNub-Go%2F3.16.0
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_MultipleResponse/0?uuid=UUID_MultipleResponse&tt=14591685620543810&tr=4&pnsdk=PubNub-Go%2F3.17.0
   : {}

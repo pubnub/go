@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.16.0
-    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/successCodeAndInfoForComplexMessage/0/%7B%22Foo%22:%22hi%21%22,%22Bar%22:%5B1,2,3,4,5%5D%7D?pnsdk=PubNub-Go%2F3.16.0&uuid=be2f216440b27fbe8050e1a0cd5386e4&seqn=1
+      - ua_string=(linux) PubNub-Go/3.17.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/successCodeAndInfoForComplexMessage/0/%7B%22Foo%22:%22hi%21%22,%22Bar%22:%5B1,2,3,4,5%5D%7D?pnsdk=PubNub-Go%2F3.17.0&uuid=be2f216440b27fbe8050e1a0cd5386e4&seqn=1
     method: GET
   response:
     body: '[1,"Sent","14570044383524662"]'

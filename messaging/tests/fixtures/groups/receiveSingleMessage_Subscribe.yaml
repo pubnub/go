@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.16.0
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupReceiveSingleMessage&tt=0&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.16.0
+      - ua_string=(linux) PubNub-Go/3.17.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupReceiveSingleMessage&tt=0&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.17.0
     method: GET
   response:
     body: '{"t":{"t":"14588028428566008","r":4},"m":[]}'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.16.0
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupReceiveSingleMessage&uuid=UUID_GroupReceiveSingleMessage&tt=14588028428566008&tr=4&pnsdk=PubNub-Go%2F3.16.0
+      - ua_string=(linux) PubNub-Go/3.17.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupReceiveSingleMessage&uuid=UUID_GroupReceiveSingleMessage&tt=14588028428566008&tr=4&pnsdk=PubNub-Go%2F3.17.0
     method: GET
   response:
     body: '{"t":{"t":"14588034994295336","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimpleWithCipher","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_GroupReceiveSingleMessage","b":"Group_GroupReceiveSingleMessage","d":"hey"}]}'
@@ -60,5 +60,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupReceiveSingleMessage&tt=14588034994295336&tr=4&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.16.0
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_GroupReceiveSingleMessage&tt=14588034994295336&tr=4&uuid=UUID_GroupReceiveSingleMessage&pnsdk=PubNub-Go%2F3.17.0
   : {}
