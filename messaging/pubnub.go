@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api.
-// Version: 3.15.0
-// Build Date: Jun 19, 2017
+// Version: 3.16.0
+// Build Date: Sep 28, 2017
 package messaging
 
 import (
@@ -31,9 +31,9 @@ import (
 
 const (
 	// sdkVersion is the current SDK version
-	sdkVersion = "3.15.0"
+	sdkVersion = "3.16.0"
 	// sdkDate is the version release date
-	sdkDate = "Jun 19, 2017"
+	sdkDate = "Sep 28, 2017"
 )
 
 type responseStatus int
@@ -686,6 +686,7 @@ func (pub *Pubnub) Abort() {
 	subscribedGroups := pub.groups.ConnectedNamesString()
 
 	if subscribedChannels != "" || subscribedGroups != "" {
+		pub.infoLogger.Printf("INFO: aborting subscribedChannels or subscribedGroups:%s == %s", subscribedChannels, subscribedGroups)
 		value, _, err := pub.sendLeaveRequest(subscribedChannels, subscribedGroups)
 
 		if err != nil {
@@ -694,6 +695,8 @@ func (pub *Pubnub) Abort() {
 			pub.sendSubscribeError(subscribedChannels, subscribedGroups,
 				err.Error(), responseAsIsError)
 		} else {
+			pub.infoLogger.Printf("INFO: value:%s", value)
+
 			pub.sendSuccessResponse(subscribedChannels, subscribedGroups, value)
 		}
 
@@ -703,6 +706,8 @@ func (pub *Pubnub) Abort() {
 		pub.channels.Abort(pub.infoLogger)
 		pub.groups.Abort(pub.infoLogger)
 		pub.Unlock()
+	} else {
+		pub.infoLogger.Printf("INFO: subscribedChannels or subscribedGroups empty:%s == %s", subscribedChannels, subscribedGroups)
 	}
 
 	pub.subscribeWorker.Cancel()
@@ -1716,18 +1721,27 @@ func (pub *Pubnub) sendSuccessResponse(channels, groups string, response []byte)
 		channel, found := pub.channels.Get(itemName)
 		if !found {
 			pub.infoLogger.Printf("ERROR: Channel '%s' not found\n", itemName)
+			continue
 		}
-
-		channel.SuccessChannel <- response
+		if(channel.IsV2){
+			channel.StatusChannel <- createPNStatus(false, "", nil, PNCancelledCategory, []string{itemName}, nil)
+		} else {
+			channel.SuccessChannel <- response
+		}
 	}
 
 	for _, itemName := range splitItems(groups) {
 		group, found := pub.channels.Get(itemName)
 		if !found {
 			pub.infoLogger.Printf("ERROR: Group '%s' not found\n", itemName)
+			continue
 		}
+		if(group.IsV2){
+			group.StatusChannel <- createPNStatus(false, "", nil, PNCancelledCategory, nil, []string{itemName})
+		} else {
 
-		group.SuccessChannel <- response
+			group.SuccessChannel <- response
+		}
 	}
 }
 

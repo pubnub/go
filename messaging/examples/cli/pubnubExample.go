@@ -185,7 +185,7 @@ func Init() (b bool) {
 		}
 
 		//messaging.SetOrigin("balancer-tj71.devbuild.aws-pdx-1.ps.pn")
-		messaging.SetOrigin("ps.pndsn.com")
+		messaging.SetOrigin("beta-2017q3.pubnub.com");//"ps.pndsn.com")
 
 		var pubInstance = messaging.NewPubnub(publishKey, subscribeKey, secretKey, cipher, ssl, uuid, infoLogger)
 

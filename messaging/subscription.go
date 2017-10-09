@@ -336,7 +336,7 @@ func CreateSubscriptionChannels() (chan []byte, chan []byte) {
 }
 
 // CreateSubscriptionChannelsV2 creates channels for subscription
-func CreateSubscriptionChannelsV2() (chan PNStatus,
+/*func CreateSubscriptionChannelsV2() (chan PNStatus,
 	chan PNMessageResult,
 	chan PNPresenceEventResult) {
 
@@ -345,4 +345,4 @@ func CreateSubscriptionChannelsV2() (chan PNStatus,
 	presenceChannel := make(chan PNPresenceEventResult)
 
 	return statusChannel, messageChannel, presenceChannel
-}
+}*/
