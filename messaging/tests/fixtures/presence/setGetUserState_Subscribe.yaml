@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.17.0
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetGetUserState/0?uuid=UUID_SetGetUserState&tt=0&pnsdk=PubNub-Go%2F3.17.0
+      - ua_string=(linux) PubNub-Go/3.16.1
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetGetUserState/0?uuid=UUID_SetGetUserState&tt=0&pnsdk=PubNub-Go%2F3.16.1
     method: GET
   response:
     body: '[[],"14615710323529829"]'
@@ -31,7 +31,7 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetGetUserState/0?uuid=UUID_SetGetUserState&tt=14615710323529829&pnsdk=PubNub-Go%2F3.17.0
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetGetUserState/0?uuid=UUID_SetGetUserState&tt=14615710323529829&pnsdk=PubNub-Go%2F3.16.1
   : {}
-  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetGetUserState/0?uuid=UUID_SetGetUserState&tt=0&state=%7B%22Channel_SetGetUserState%22%3A%7B%22testkey%22%3A%22testval%22%7D%7D&pnsdk=PubNub-Go%2F3.17.0
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SetGetUserState/0?uuid=UUID_SetGetUserState&tt=0&state=%7B%22Channel_SetGetUserState%22%3A%7B%22testkey%22%3A%22testval%22%7D%7D&pnsdk=PubNub-Go%2F3.16.1
   : {}
