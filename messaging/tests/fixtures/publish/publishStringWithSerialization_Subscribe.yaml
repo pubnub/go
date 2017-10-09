@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.16.0
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=0&pnsdk=PubNub-Go%2F3.16.0
+      - ua_string=(linux) PubNub-Go/3.16.1
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=0&pnsdk=PubNub-Go%2F3.16.1
     method: GET
   response:
     body: '{"t":{"t":"14588062885529707","r":4},"m":[]}'
@@ -37,8 +37,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.16.0
-    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=14588062885529707&tr=4&pnsdk=PubNub-Go%2F3.16.0
+      - ua_string=(linux) PubNub-Go/3.16.1
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=14588062885529707&tr=4&pnsdk=PubNub-Go%2F3.16.1
     method: GET
   response:
     body: '{"t":{"t":"14588062885529707","r":4},"m":[{"a":"1","f":0,"i":"UUID_PublishStringWithoutSerialization","s":1,"p":{"t":"14588070821139768","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_PublishStringWithSerialization","d":{"name": "Alex", "age": "123"}}]}'
@@ -60,5 +60,5 @@ interactions:
     status: 200 OK
     code: 200
 unclosed_requests:
-  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=14588070821139768&pnsdk=PubNub-Go%2F3.16.0
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_PublishStringWithSerialization/0?uuid=UUID_PublishStringWithSerialization&tt=14588070821139768&pnsdk=PubNub-Go%2F3.16.1
   : {}

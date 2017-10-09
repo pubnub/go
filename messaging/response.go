@@ -5,7 +5,6 @@ import (
 )
 
 type responseType int
-type errorType int
 
 const (
 	channelResponse responseType = 1 << iota

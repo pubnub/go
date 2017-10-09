@@ -3,8 +3,15 @@ changelog:
   - 
     changes: 
       - 
-        text: “Subscribe v2 Abort Fix”
+        text: “Code cleanup”
         type: improvement
+    date: Oct 9, 17
+    version: v3.16.1
+  - 
+    changes: 
+      - 
+        text: “Subscribe v2 Abort Fix”
+        type: bug
     date: Oct 3, 17
     version: v3.16.0
   - 
@@ -295,4 +302,4 @@ supported-platforms:
 name: go
 schema: 1
 scm: github.com/pubnub/go
-version: “3.14.0”
+version: “3.16.1”

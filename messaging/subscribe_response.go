@@ -28,9 +28,6 @@ type subscribeMessage struct {
 	OriginatingTimetoken     timetokenMetadata `json:"o"`
 	PublishTimetokenMetadata timetokenMetadata `json:"p"`
 	UserMetadata             interface{}       `json:"u"`
-	//WaypointList string `json:"w"`
-	//EatAfterReading bool `json:"ear"`
-	//ReplicationMap interface{} `json:"r"`
 }
 
 // PNMessageResult is a struct used to populate a message response for Subscribe v2

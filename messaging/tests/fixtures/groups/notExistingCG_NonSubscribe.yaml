@@ -8,8 +8,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.16.0
-    url: http://ps.pndsn.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_NotExistingCG/remove?pnsdk=PubNub-Go%2F3.16.0&uuid=UUID_NotExistingCG
+      - ua_string=(linux) PubNub-Go/3.16.1
+    url: http://ps.pndsn.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_NotExistingCG/remove?pnsdk=PubNub-Go%2F3.16.1&uuid=UUID_NotExistingCG
     method: GET
   response:
     body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
@@ -44,8 +44,8 @@ interactions:
       Accept-Encoding:
       - gzip
       User-Agent:
-      - ua_string=(linux) PubNub-Go/3.16.0
-    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/,/leave?uuid=UUID_NotExistingCG&channel-group=Group_NotExistingCG&pnsdk=PubNub-Go%2F3.16.0
+      - ua_string=(linux) PubNub-Go/3.16.1
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/,/leave?uuid=UUID_NotExistingCG&channel-group=Group_NotExistingCG&pnsdk=PubNub-Go%2F3.16.1
     method: GET
   response:
     body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
