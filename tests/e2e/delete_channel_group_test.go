@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	pubnub "github.com/pubnub/go"
+	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +34,7 @@ func TestRemoveChannelGroupMissingGroup(t *testing.T) {
 func TestRemoveChannelGroupSuperCall(t *testing.T) {
 	assert := assert.New(t)
 
-	config := configCopy()
+	config := pamConfigCopy()
 
 	// Not allowed characters:
 	// .,:*
@@ -57,7 +58,34 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	myChannel := "my-channel-remove"
 	myGroup := "my-unique-group-remove"
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/my-unique-group-remove",
+		Query:              "add=my-channel-remove",
+		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 200,
+	})
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/my-unique-group-remove",
+		Query:              "remove=my-channel-remove",
+		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 200,
+	})
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/my-unique-group-remove",
+		Query:              "",
+		ResponseBody:       `{"status": 200, "payload": {"channels": [], "group": "my-unique-group-remove"}, "service": "channel-registry", "error": false}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(configCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	_, _, err := pn.AddChannelChannelGroup().
 		Channels([]string{myChannel}).

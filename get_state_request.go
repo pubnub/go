@@ -111,7 +111,7 @@ func (o *getStateOpts) validate() error {
 func (o *getStateOpts) buildPath() (string, error) {
 	return fmt.Sprintf(GET_STATE_PATH,
 		o.pubnub.Config.SubscribeKey,
-		strings.Join(o.Channels, ","),
+		utils.PamEncode(strings.Join(o.Channels, ",")),
 		utils.UrlEncode(o.pubnub.Config.Uuid)), nil
 }
 

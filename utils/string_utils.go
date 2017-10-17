@@ -62,9 +62,9 @@ func PreparePamParams(params *url.Values) string {
 
 	for _, v := range sortedKeys {
 		if i == len(sortedKeys)-1 {
-			stringifiedQuery += fmt.Sprintf("%s=%s", v, pamEncode((*params)[v][0]))
+			stringifiedQuery += fmt.Sprintf("%s=%s", v, PamEncode((*params)[v][0]))
 		} else {
-			stringifiedQuery += fmt.Sprintf("%s=%s&", v, pamEncode((*params)[v][0]))
+			stringifiedQuery += fmt.Sprintf("%s=%s&", v, PamEncode((*params)[v][0]))
 		}
 
 		i++
@@ -73,7 +73,7 @@ func PreparePamParams(params *url.Values) string {
 	return stringifiedQuery
 }
 
-func pamEncode(value string) string {
+func PamEncode(value string) string {
 	// *!'()[]~
 	stringifiedParam := UrlEncode(value)
 

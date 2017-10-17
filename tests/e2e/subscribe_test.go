@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"fmt"
-	"log"
 	"sync"
 	"testing"
 	"time"
@@ -32,7 +31,18 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	errChan := make(chan string)
 	ch := randomized("sub-u-ch")
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/%s/0", ch),
+		Query:              "heartbeat=300",
+		ResponseBody:       `{"t":{"t":"15079041051785708","r":12},"m":[]}`,
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid", "tt"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(configCopy())
+	pn.SetSubscribeClient(interceptor.GetClient())
 
 	listener := pubnub.NewListener()
 
@@ -749,7 +759,6 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 			select {
 			case status := <-listener.Status:
 				// ignore status messages
-				log.Println(">>>>>>>>>>>>>>>status", status)
 				if status.Error {
 					errChan <- fmt.Sprintf("Status Error: %s", status.Category)
 				}

@@ -195,16 +195,25 @@ func TestPublishMissingChannel(t *testing.T) {
 	assert.Contains(err.Error(), "Publish: Missing Channel")
 }
 
-// Grant permissions added from another sdk
-func xTestPublishServerError(t *testing.T) {
+func TestPublishServerError(t *testing.T) {
 	assert := assert.New(t)
 
-	cfg := pamConfigCopy()
-	pn := pubnub.NewPubNub(cfg)
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/ch/0/%22hey%22",
+		Query:              "seqn=1",
+		ResponseBody:       "",
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 403,
+	})
+
+	pn := pubnub.NewPubNub(configCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
 
-	assert.Contains(err.Error(), fmt.Sprintf(serverErrorTemplate, 403))
+	assert.Contains(err.Error(), "403")
 }
 
 func TestPublishNetworkError(t *testing.T) {

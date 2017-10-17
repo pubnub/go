@@ -5,14 +5,14 @@ import (
 	"time"
 
 	pubnub "github.com/pubnub/go"
+	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestListAllChannelGroup(t *testing.T) {
+func TestListAllChannelGroupNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
-
 	_, _, err := pn.ListAllChannelsChannelGroup().
 		ChannelGroup("cg").
 		Execute()
@@ -34,7 +34,7 @@ func TestListAllChannelGroupMissingGroup(t *testing.T) {
 func TestListAllChannelGroupSuperCall(t *testing.T) {
 	assert := assert.New(t)
 
-	config := configCopy()
+	config := pamConfigCopy()
 
 	// Not allowed characters:
 	// .,:*
@@ -58,7 +58,34 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 	myChannel := "my-channel"
 	myGroup := randomized("my-group")
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/" + myGroup,
+		Query:              "add=my-channel",
+		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 200,
+	})
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/" + myGroup,
+		Query:              "",
+		ResponseBody:       `{"status": 200, "payload": {"channels": ["my-channel"], "group": "` + myGroup + `"}, "service": "channel-registry", "error": false}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 200,
+	})
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/" + myGroup,
+		Query:              "remove=my-channel",
+		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(configCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	_, _, err := pn.AddChannelChannelGroup().
 		Channels([]string{myChannel}).

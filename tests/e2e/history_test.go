@@ -23,7 +23,19 @@ func TestHistorySuccessNotStubbed(t *testing.T) {
 
 func TestHistoryCallWithAllParams(t *testing.T) {
 	assert := assert.New(t)
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch",
+		Query:              "count=2&end=2&include_token=true&reverse=true&start=1",
+		ResponseBody:       `[[],0,0]`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(configCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.History().
 		Channel("ch").
@@ -135,7 +147,6 @@ func TestHistoryPNOtherError(t *testing.T) {
 
 	res, _, err := pn.History().
 		Channel("ch").
-		Transport(interceptor.Transport).
 		Execute()
 
 	assert.Nil(res)
@@ -152,7 +163,7 @@ func TestHistorySuperCall(t *testing.T) {
 	config.Uuid = SPECIAL_CHARACTERS
 	config.AuthKey = SPECIAL_CHARACTERS
 
-	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.History().
 		Channel(SPECIAL_CHANNEL).

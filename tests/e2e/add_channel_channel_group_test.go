@@ -48,7 +48,7 @@ func TestAddChannelChannelGroupMissingChannel(t *testing.T) {
 func TestAddChannelChannelGroupSuperCall(t *testing.T) {
 	assert := assert.New(t)
 
-	config := configCopy()
+	config := pamConfigCopy()
 
 	// Not allowed characters:
 	// .,:*

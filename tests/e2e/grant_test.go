@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	pubnub "github.com/pubnub/go"
+	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +25,18 @@ func TestGrantSucccessNotStubbed(t *testing.T) {
 func TestGrantMultipleMixed(t *testing.T) {
 	assert := assert.New(t)
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f",
+		Query:              "auth=my-auth-key-1%2Cmy-auth-key-2&channel=ch1%2Cch2%2Cch3&channel-group=cg1%2Ccg2%2Ccg3&r=1&m=1&w=1",
+		ResponseBody:       `{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1440,"channels":{"ch1":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"ch2":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"ch3":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}}},"channel-groups":{"cg1":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"cg2":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"cg3":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}}}},"service":"Access Manager","status":200}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
@@ -40,7 +52,18 @@ func TestGrantMultipleMixed(t *testing.T) {
 func TestGrantSingleChannel(t *testing.T) {
 	assert := assert.New(t)
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f",
+		Query:              "channel=ch1&m=0&r=1&w=1",
+		ResponseBody:       `{"message":"Success","payload":{"level":"channel","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1440,"channels":{"ch1":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).
@@ -57,7 +80,18 @@ func TestGrantSingleChannel(t *testing.T) {
 func TestGrantSingleChannelWithAuth(t *testing.T) {
 	assert := assert.New(t)
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f",
+		Query:              "auth=my-pam-key&channel=ch1&m=0&r=1&w=1",
+		ResponseBody:       `{"message":"Success","payload":{"level":"user","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1440,"channel":"ch1","auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(false).
@@ -75,7 +109,18 @@ func TestGrantSingleChannelWithAuth(t *testing.T) {
 func TestGrantMultipleChannels(t *testing.T) {
 	assert := assert.New(t)
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f",
+		Query:              "channel=ch1%2Cch2&m=0&r=1&w=1",
+		ResponseBody:       `{"message":"Success","payload":{"level":"channel","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1440,"channels":{"ch1":{"r":1,"w":1,"m":0,"d":0},"ch2":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).
@@ -97,7 +142,18 @@ func TestGrantMultipleChannels(t *testing.T) {
 func TestGrantMultipleChannelsWithAuth(t *testing.T) {
 	assert := assert.New(t)
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f",
+		Query:              "auth=my-pam-key&channel=ch1%2Cch2&m=0&r=1&w=1",
+		ResponseBody:       `{"message":"Success","payload":{"level":"user","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1440,"channels":{"ch1":{"auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}},"ch2":{"auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}}}},"service":"Access Manager","status":200}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).
@@ -120,7 +176,18 @@ func TestGrantMultipleChannelsWithAuth(t *testing.T) {
 func TestGrantSingleGroup(t *testing.T) {
 	assert := assert.New(t)
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f",
+		Query:              "channel-group=cg1&m=0&r=1&w=1",
+		ResponseBody:       `{"message":"Success","payload":{"level":"channel-group","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1440,"channel-groups":{"cg1":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).
@@ -138,7 +205,18 @@ func TestGrantSingleGroup(t *testing.T) {
 func TestGrantSingleGroupWithAuth(t *testing.T) {
 	assert := assert.New(t)
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f",
+		Query:              "auth=my-pam-key&channel-group=cg1&m=0&r=1&w=1",
+		ResponseBody:       `{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1440,"channel-groups":"cg1","auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.Grant().
 		Groups([]string{"cg1"}).
@@ -158,7 +236,18 @@ func TestGrantSingleGroupWithAuth(t *testing.T) {
 func TestGrantMultipleGroups(t *testing.T) {
 	assert := assert.New(t)
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f",
+		Query:              "channel-group=cg1%2Ccg2&m=0&r=1&w=1",
+		ResponseBody:       `{"message":"Success","payload":{"level":"channel-group","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1440,"channel-groups":{"cg1":{"r":1,"w":1,"m":0,"d":0},"cg2":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).
@@ -180,7 +269,18 @@ func TestGrantMultipleGroups(t *testing.T) {
 func TestGrantMultipleGroupsWithAuth(t *testing.T) {
 	assert := assert.New(t)
 
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f",
+		Query:              "auth=my-pam-key&channel-group=cg1%2Ccg2&m=0&r=1&w=1",
+		ResponseBody:       `{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1440,"channel-groups":{"cg1":{"auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}},"cg2":{"auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}}}},"service":"Access Manager","status":200}`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
+		ResponseStatusCode: 200,
+	})
+
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).
@@ -198,24 +298,4 @@ func TestGrantMultipleGroupsWithAuth(t *testing.T) {
 	assert.True(res.ChannelGroups["cg2"].AuthKeys["my-pam-key"].WriteEnabled)
 	assert.True(res.ChannelGroups["cg2"].AuthKeys["my-pam-key"].ReadEnabled)
 	assert.False(res.ChannelGroups["cg2"].AuthKeys["my-pam-key"].ManageEnabled)
-}
-
-func TestGrantSuperCall(t *testing.T) {
-	assert := assert.New(t)
-
-	config := pamConfigCopy()
-
-	config.Uuid = SPECIAL_CHARACTERS
-	config.AuthKey = SPECIAL_CHARACTERS
-
-	pn := pubnub.NewPubNub(config)
-
-	_, _, err := pn.Grant().
-		Read(true).Write(true).Manage(true).
-		AuthKeys([]string{SPECIAL_CHARACTERS}).
-		Channels([]string{SPECIAL_CHANNEL}).
-		Groups([]string{SPECIAL_CHANNEL}).
-		Execute()
-
-	assert.Nil(err)
 }
