@@ -52,6 +52,7 @@ const (
 	PNTimeOperation
 	PNAccessManagerGrant
 	PNAccessManagerRevoke
+	PNDeleteMessagesOperation
 )
 
 var categories = [...]string{

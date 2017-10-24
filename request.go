@@ -75,6 +75,8 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 
 		body := bytes.NewReader(b)
 		req, err = newRequest("POST", url, body)
+	} else if opts.httpMethod() == "DELETE" {
+		req, err = newRequest("DELETE", url, nil)
 	} else {
 		req, err = newRequest("GET", url, nil)
 	}

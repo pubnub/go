@@ -214,6 +214,14 @@ func (pn *PubNub) TimeWithContext(ctx Context) *timeBuilder {
 	return newTimeBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) DeleteMessages() *historyDeleteBuilder {
+	return newHistoryDeleteBuilder(pn)
+}
+
+func (pn *PubNub) DeleteMessagesWithContext() *historyDeleteBuilder {
+	return newHistoryDeleteBuilder(pn)
+}
+
 func NewPubNub(pnconf *Config) *PubNub {
 	publishSequence := make(chan int)
 
