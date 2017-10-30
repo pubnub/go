@@ -277,7 +277,8 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				break
 			}
 
-			if strings.Contains(err.Error(), "Forbidden") {
+			if strings.Contains(err.Error(), "Forbidden") ||
+				strings.Contains(err.Error(), "403") {
 				m.listenerManager.announceStatus(&PNStatus{
 					Category: PNAccessDeniedCategory,
 				})
