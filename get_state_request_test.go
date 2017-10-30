@@ -57,7 +57,7 @@ func TestGetStateMultipleChannelsChannelGroups(t *testing.T) {
 		Path: path,
 	}
 	h.AssertPathsEqual(t,
-		"/v2/presence/sub-key/sub_key/channel/ch1%252Cch2%252Cch3/uuid/my-custom-uuid",
+		"/v2/presence/sub-key/sub_key/channel/ch1,ch2,ch3/uuid/my-custom-uuid",
 		u.EscapedPath(), []int{})
 
 	query, err := opts.buildQuery()

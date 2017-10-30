@@ -71,14 +71,14 @@ func TestPublishMixedGet(t *testing.T) {
 	AssertSuccessPublishGet(t, "12", 12)
 	AssertSuccessPublishGet(t, "%22hey%22", "hey")
 	AssertSuccessPublishGet(t, "true", true)
-	AssertSuccessPublishGet(t, "%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
+	AssertSuccessPublishGet(t, "%5B%22hey1%22,%22hey2%22,%22hey3%22%5D",
 		[]string{"hey1", "hey2", "hey3"})
-	AssertSuccessPublishGet(t, "%5B1%2C2%2C3%5D", []int{1, 2, 3})
+	AssertSuccessPublishGet(t, "%5B1,2,3%5D", []int{1, 2, 3})
 	AssertSuccessPublishGet(t,
-		"%7B%22one%22%3A%22hey1%22%2C%22two%22%3A%22hey2%22%2C%22three%22%3A%22hey3%22%7D",
+		"%7B%22one%22%3A%22hey1%22,%22two%22%3A%22hey2%22,%22three%22%3A%22hey3%22%7D",
 		msgStruct)
 	AssertSuccessPublishGet(t,
-		"%7B%22one%22%3A%22hey1%22%2C%22three%22%3A%22hey3%22%2C%22two%22%3A%22hey2%22%7D",
+		"%7B%22one%22%3A%22hey1%22,%22three%22%3A%22hey3%22,%22two%22%3A%22hey2%22%7D",
 		msgMap)
 }
 
