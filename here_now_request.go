@@ -122,6 +122,12 @@ func (o *hereNowOpts) buildPath() (string, error) {
 			o.pubnub.Config.SubscribeKey), nil
 	}
 
+	if len(o.Channels) == 0 {
+		return fmt.Sprintf(HERE_NOW_PATH,
+			o.pubnub.Config.SubscribeKey,
+			","), nil
+	}
+
 	return fmt.Sprintf(HERE_NOW_PATH,
 		o.pubnub.Config.SubscribeKey,
 		strings.Join(o.Channels, ",")), nil
