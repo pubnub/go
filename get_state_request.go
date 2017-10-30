@@ -109,16 +109,28 @@ func (o *getStateOpts) validate() error {
 }
 
 func (o *getStateOpts) buildPath() (string, error) {
+	var channels []string
+
+	for _, channel := range o.Channels {
+		channels = append(channels, utils.PamEncode(channel))
+	}
+
 	return fmt.Sprintf(GET_STATE_PATH,
 		o.pubnub.Config.SubscribeKey,
-		utils.PamEncode(strings.Join(o.Channels, ",")),
+		strings.Join(channels, ","),
 		utils.UrlEncode(o.pubnub.Config.Uuid)), nil
 }
 
 func (o *getStateOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
-	q.Set("channel-group", strings.Join(o.ChannelGroups, ","))
+	var groups []string
+
+	for _, group := range o.ChannelGroups {
+		groups = append(groups, utils.PamEncode(group))
+	}
+
+	q.Set("channel-group", strings.Join(groups, ","))
 
 	return q, nil
 }
