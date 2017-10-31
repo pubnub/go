@@ -55,6 +55,12 @@ func (b *getStateBuilder) ChannelGroups(cg []string) *getStateBuilder {
 	return b
 }
 
+func (b *getStateBuilder) Uuid(uuid string) *getStateBuilder {
+	b.opts.Uuid = uuid
+
+	return b
+}
+
 func (b *getStateBuilder) Transport(
 	tr http.RoundTripper) *getStateBuilder {
 	b.opts.Transport = tr
@@ -78,6 +84,8 @@ type getStateOpts struct {
 	Channels []string
 
 	ChannelGroups []string
+
+	Uuid string
 
 	Transport http.RoundTripper
 
