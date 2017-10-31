@@ -52,11 +52,10 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 
 	// Not allowed characters:
 	// .,:*
-
 	validCharacters := "-_~?#[]@!$&'()+;=`|"
 
-	config.Uuid = SPECIAL_CHARACTERS
-	config.AuthKey = SPECIAL_CHARACTERS
+	config.Uuid = validCharacters
+	config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 

@@ -24,21 +24,23 @@ func TestSetStateSucessNotStubbed(t *testing.T) {
 func TestSetStateSuperCall(t *testing.T) {
 	assert := assert.New(t)
 
-	setStateCharacters := "-.,_~:?#[]@!$&'()*+;=`|"
+	// Not allowed characters:
+	// .,:*
+	validCharacters := "-_~?#[]@!$&'()+;=`|"
 
 	config := pamConfigCopy()
 
 	// Not allowed characters: /
-	config.Uuid = setStateCharacters
+	config.Uuid = validCharacters
 
-	config.AuthKey = SPECIAL_CHANNEL
+	config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 	state := make(map[string]interface{})
-	state["qwerty"] = SPECIAL_CHARACTERS
+	state["qwerty"] = validCharacters
 
-	_, _, err := pn.SetState().State(state).Channels([]string{setStateCharacters}).
-		ChannelGroups([]string{setStateCharacters}).
+	_, _, err := pn.SetState().State(state).Channels([]string{validCharacters}).
+		ChannelGroups([]string{validCharacters}).
 		State(state).
 		Execute()
 

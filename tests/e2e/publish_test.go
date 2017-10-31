@@ -60,7 +60,7 @@ func TestPublishSuccessSlice(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/ch/0/%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
+		Path:               "/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/ch/0/%5B%22hey1%22,%22hey2%22,%22hey3%22%5D",
 		Query:              "seqn=1&store=0",
 		ResponseBody:       RESP_SUCCESS,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -238,9 +238,12 @@ func TestPublishNetworkError(t *testing.T) {
 func TestPublishSigned(t *testing.T) {
 	assert := assert.New(t)
 
+	// Not allowed characters: /?#,
+	validCharacters := "-._~:[]@!$&'()*+;=`|"
+
 	config := pamConfigCopy()
-	config.Uuid = SPECIAL_CHARACTERS
-	config.AuthKey = SPECIAL_CHANNEL
+	config.Uuid = validCharacters
+	config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 
@@ -253,15 +256,18 @@ func TestPublishSigned(t *testing.T) {
 func TestPublishSuperCall(t *testing.T) {
 	assert := assert.New(t)
 
+	// Not allowed characters: /?#,
+	validCharacters := "-._~:[]@!$&'()*+;=`|"
+
 	config := pamConfigCopy()
-	config.Uuid = SPECIAL_CHARACTERS
-	config.AuthKey = SPECIAL_CHANNEL
+	config.Uuid = validCharacters
+	config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 
-	_, _, err := pn.Publish().Channel(SPECIAL_CHANNEL).
-		Message([]string{SPECIAL_CHARACTERS, SPECIAL_CHARACTERS,
-			SPECIAL_CHARACTERS}).Meta(SPECIAL_CHARACTERS).Execute()
+	_, _, err := pn.Publish().Channel(validCharacters).
+		Message([]string{validCharacters, validCharacters,
+			validCharacters}).Meta(validCharacters).Execute()
 
 	assert.Nil(err)
 }

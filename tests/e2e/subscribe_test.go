@@ -980,8 +980,11 @@ func TestSubscribeSuperCall(t *testing.T) {
 	doneSubscribe := make(chan bool)
 	errChan := make(chan string)
 	config := pamConfigCopy()
-	config.Uuid = SPECIAL_CHARACTERS
-	config.AuthKey = SPECIAL_CHARACTERS
+	// Not allowed characters:
+	// .,:*
+	validCharacters := "-_~?#[]@!$&'()+;=`|"
+	config.Uuid = validCharacters
+	config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 	listener := pubnub.NewListener()
@@ -1007,8 +1010,8 @@ func TestSubscribeSuperCall(t *testing.T) {
 	pn.AddListener(listener)
 
 	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:      []string{SPECIAL_CHANNEL + "channel"},
-		ChannelGroups: []string{SPECIAL_CHANNEL + "cg"},
+		Channels:      []string{validCharacters + "channel"},
+		ChannelGroups: []string{validCharacters + "cg"},
 		Timetoken:     int64(1337),
 	})
 

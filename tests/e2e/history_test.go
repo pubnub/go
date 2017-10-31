@@ -1,7 +1,6 @@
 package e2e
 
 import (
-	"log"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -69,8 +68,6 @@ func TestHistorySuccess(t *testing.T) {
 		Channel("ch").
 		Transport(interceptor.Transport).
 		Execute()
-
-	log.Println(res)
 
 	assert.Nil(err)
 	assert.Equal(int64(1234), res.StartTimetoken)
@@ -160,13 +157,16 @@ func TestHistorySuperCall(t *testing.T) {
 
 	config := pamConfigCopy()
 
-	config.Uuid = SPECIAL_CHARACTERS
-	config.AuthKey = SPECIAL_CHARACTERS
+	// Not allowed characters: /?#,
+	validCharacters := "-._~:[]@!$&'()*+;=`|"
+
+	config.Uuid = validCharacters
+	config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.History().
-		Channel(SPECIAL_CHANNEL).
+		Channel(validCharacters).
 		Count(100).
 		Reverse(true).
 		IncludeTimetoken(true).
