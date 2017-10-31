@@ -13,7 +13,7 @@ func TestListAllChannelGroupNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
-	_, _, err := pn.ListAllChannelsChannelGroup().
+	_, _, err := pn.ListChannelsInChannelGroup().
 		ChannelGroup("cg").
 		Execute()
 
@@ -46,7 +46,7 @@ func TestListAllChannelGroupSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, _, err := pn.ListAllChannelsChannelGroup().
+	_, _, err := pn.ListChannelsInChannelGroup().
 		ChannelGroup(validCharacters).
 		Execute()
 
@@ -87,7 +87,7 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 	pn.SetClient(interceptor.GetClient())
 
-	_, _, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()
@@ -97,7 +97,7 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 	// await for adding channel
 	time.Sleep(2 * time.Second)
 
-	res, _, err := pn.ListAllChannelsChannelGroup().
+	res, _, err := pn.ListChannelsInChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
 
@@ -106,7 +106,7 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 	assert.Equal(myChannel, res.Channels[0])
 	assert.Equal(myGroup, res.Group)
 
-	_, _, err = pn.RemoveChannelChannelGroup().
+	_, _, err = pn.RemoveChannelFromChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()

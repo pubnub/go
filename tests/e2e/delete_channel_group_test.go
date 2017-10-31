@@ -87,21 +87,21 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 	pn.SetClient(interceptor.GetClient())
 
-	_, _, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()
 
 	assert.Nil(err)
 
-	_, _, err = pn.RemoveChannelChannelGroup().
+	_, _, err = pn.RemoveChannelFromChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()
 
 	assert.Nil(err)
 
-	res, _, err := pn.ListAllChannelsChannelGroup().
+	res, _, err := pn.ListChannelsInChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
 

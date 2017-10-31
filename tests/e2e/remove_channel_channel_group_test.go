@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRemoveChannelChannelGroupNotStubbed(t *testing.T) {
+func TestRemoveChannelFromChannelGroupNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, _, err := pn.RemoveChannelChannelGroup().
+	_, _, err := pn.RemoveChannelFromChannelGroup().
 		Channels([]string{"ch"}).
 		Group("cg").
 		Execute()
@@ -21,31 +21,31 @@ func TestRemoveChannelChannelGroupNotStubbed(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestRemoveChannelChannelGroupMissingChannel(t *testing.T) {
+func TestRemoveChannelFromChannelGroupMissingChannel(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, _, err := pn.RemoveChannelChannelGroup().
+	_, _, err := pn.RemoveChannelFromChannelGroup().
 		Group("cg").
 		Execute()
 
 	assert.Contains(err.Error(), "Missing Channel")
 }
 
-func TestRemoveChannelChannelGroupMissingGroup(t *testing.T) {
+func TestRemoveChannelFromChannelGroupMissingGroup(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, _, err := pn.RemoveChannelChannelGroup().
+	_, _, err := pn.RemoveChannelFromChannelGroup().
 		Channels([]string{"ch"}).
 		Execute()
 
 	assert.Contains(err.Error(), "Missing Channel Group")
 }
 
-func TestRemoveChannelChannelGroupSuperCall(t *testing.T) {
+func TestRemoveChannelFromChannelGroupSuperCall(t *testing.T) {
 	assert := assert.New(t)
 
 	config := pamConfigCopy()
@@ -60,7 +60,7 @@ func TestRemoveChannelChannelGroupSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, _, err := pn.RemoveChannelChannelGroup().
+	_, _, err := pn.RemoveChannelFromChannelGroup().
 		Channels([]string{validCharacters}).
 		Group(validCharacters).
 		Execute()
@@ -68,7 +68,7 @@ func TestRemoveChannelChannelGroupSuperCall(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestRemoveChannelChannelGroupSuccess(t *testing.T) {
+func TestRemoveChannelFromChannelGroupSuccess(t *testing.T) {
 	assert := assert.New(t)
 	myChannel := "my-channel"
 	myAnotherChannel := "my-another-channel"
@@ -76,7 +76,7 @@ func TestRemoveChannelChannelGroupSuccess(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, _, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{myChannel, myAnotherChannel}).
 		Group(myGroup).
 		Execute()
@@ -86,7 +86,7 @@ func TestRemoveChannelChannelGroupSuccess(t *testing.T) {
 	// await for adding channels
 	time.Sleep(2 * time.Second)
 
-	res, _, err := pn.ListAllChannelsChannelGroup().
+	res, _, err := pn.ListChannelsInChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
 
@@ -97,7 +97,7 @@ func TestRemoveChannelChannelGroupSuccess(t *testing.T) {
 	assert.Equal(myAnotherChannel, res.Channels[0])
 	assert.Equal(myGroup, res.Group)
 
-	_, _, err = pn.RemoveChannelChannelGroup().
+	_, _, err = pn.RemoveChannelFromChannelGroup().
 		Channels([]string{myChannel, myAnotherChannel}).
 		Group(myGroup).
 		Execute()
@@ -107,7 +107,7 @@ func TestRemoveChannelChannelGroupSuccess(t *testing.T) {
 	// await for remove channels
 	<-time.After(1 * time.Second)
 
-	res, _, err = pn.ListAllChannelsChannelGroup().
+	res, _, err = pn.ListChannelsInChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
 

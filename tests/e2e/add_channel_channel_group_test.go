@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAddChannelChannelGroupNotStubbed(t *testing.T) {
+func TestAddChannelToChannelGroupNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, _, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{"ch"}).
 		Group("cg").
 		Execute()
@@ -21,31 +21,31 @@ func TestAddChannelChannelGroupNotStubbed(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestAddChannelChannelGroupMissingGroup(t *testing.T) {
+func TestAddChannelToChannelGroupMissingGroup(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, _, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{"ch"}).
 		Execute()
 
 	assert.Contains(err.Error(), "Missing Channel Group")
 }
 
-func TestAddChannelChannelGroupMissingChannel(t *testing.T) {
+func TestAddChannelToChannelGroupMissingChannel(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	_, _, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelToChannelGroup().
 		Group("cg").
 		Execute()
 
 	assert.Contains(err.Error(), "Missing Channel")
 }
 
-func TestAddChannelChannelGroupSuperCall(t *testing.T) {
+func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 	assert := assert.New(t)
 
 	config := pamConfigCopy()
@@ -60,7 +60,7 @@ func TestAddChannelChannelGroupSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, _, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{validCharacters}).
 		Group(validCharacters).
 		Execute()
@@ -68,7 +68,7 @@ func TestAddChannelChannelGroupSuperCall(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestAddChannelChannelGroupSuccessAdded(t *testing.T) {
+func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	assert := assert.New(t)
 
 	interceptor := stubs.NewInterceptor()
@@ -95,14 +95,14 @@ func TestAddChannelChannelGroupSuccessAdded(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 	pn.SetClient(interceptor.GetClient())
 
-	_, _, err := pn.AddChannelChannelGroup().
+	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{myChannel}).
 		Group(myGroup).
 		Execute()
 
 	assert.Nil(err)
 
-	res, _, err := pn.ListAllChannelsChannelGroup().
+	res, _, err := pn.ListChannelsInChannelGroup().
 		ChannelGroup(myGroup).
 		Execute()
 

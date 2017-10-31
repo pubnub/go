@@ -11,15 +11,15 @@ import (
 
 const ADD_CHANNEL_CHANNEL_GROUP_PATH = "/v1/channel-registration/sub-key/%s/channel-group/%s"
 
-var emptyAddChannelChannelGroupResp *AddChannelChannelGroupResponse
+var emptyAddChannelToChannelGroupResp *AddChannelToChannelGroupResponse
 
-type addChannelChannelGroupBuilder struct {
+type AddChannelToChannelGroupBuilder struct {
 	opts *addChannelOpts
 }
 
-func newAddChannelChannelGroupBuilder(
-	pubnub *PubNub) *addChannelChannelGroupBuilder {
-	builder := addChannelChannelGroupBuilder{
+func newAddChannelToChannelGroupBuilder(
+	pubnub *PubNub) *AddChannelToChannelGroupBuilder {
+	builder := AddChannelToChannelGroupBuilder{
 		opts: &addChannelOpts{
 			pubnub: pubnub,
 		},
@@ -28,9 +28,9 @@ func newAddChannelChannelGroupBuilder(
 	return &builder
 }
 
-func newAddChannelChannelGroupBuilderWithContext(
-	pubnub *PubNub, context Context) *addChannelChannelGroupBuilder {
-	builder := addChannelChannelGroupBuilder{
+func newAddChannelToChannelGroupBuilderWithContext(
+	pubnub *PubNub, context Context) *AddChannelToChannelGroupBuilder {
+	builder := AddChannelToChannelGroupBuilder{
 		opts: &addChannelOpts{
 			pubnub: pubnub,
 			ctx:    context,
@@ -40,35 +40,35 @@ func newAddChannelChannelGroupBuilderWithContext(
 	return &builder
 }
 
-func (b *addChannelChannelGroupBuilder) Channels(
-	ch []string) *addChannelChannelGroupBuilder {
+func (b *AddChannelToChannelGroupBuilder) Channels(
+	ch []string) *AddChannelToChannelGroupBuilder {
 	b.opts.Channels = ch
 
 	return b
 }
 
-func (b *addChannelChannelGroupBuilder) Group(
-	cg string) *addChannelChannelGroupBuilder {
+func (b *AddChannelToChannelGroupBuilder) Group(
+	cg string) *AddChannelToChannelGroupBuilder {
 	b.opts.Group = cg
 
 	return b
 }
 
-func (b *addChannelChannelGroupBuilder) Transport(
-	tr http.RoundTripper) *addChannelChannelGroupBuilder {
+func (b *AddChannelToChannelGroupBuilder) Transport(
+	tr http.RoundTripper) *AddChannelToChannelGroupBuilder {
 	b.opts.Transport = tr
 
 	return b
 }
 
-func (b *addChannelChannelGroupBuilder) Execute() (
-	*AddChannelChannelGroupResponse, StatusResponse, error) {
+func (b *AddChannelToChannelGroupBuilder) Execute() (
+	*AddChannelToChannelGroupResponse, StatusResponse, error) {
 	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyAddChannelChannelGroupResp, status, err
+		return emptyAddChannelToChannelGroupResp, status, err
 	}
 
-	return newAddChannelChannelGroupsResponse(rawJson, status)
+	return newAddChannelToChannelGroupsResponse(rawJson, status)
 }
 
 type addChannelOpts struct {
@@ -149,11 +149,11 @@ func (o *addChannelOpts) operationType() OperationType {
 	return PNAddChannelsToChannelGroupOperation
 }
 
-type AddChannelChannelGroupResponse struct {
+type AddChannelToChannelGroupResponse struct {
 }
 
-func newAddChannelChannelGroupsResponse(jsonBytes []byte, status StatusResponse) (
-	*AddChannelChannelGroupResponse, StatusResponse, error) {
+func newAddChannelToChannelGroupsResponse(jsonBytes []byte, status StatusResponse) (
+	*AddChannelToChannelGroupResponse, StatusResponse, error) {
 
-	return emptyAddChannelChannelGroupResp, status, nil
+	return emptyAddChannelToChannelGroupResp, status, nil
 }

@@ -146,22 +146,22 @@ func (pn *PubNub) UnsubscribeAll() {
 	pn.subscriptionManager.unsubscribeAll()
 }
 
-func (pn *PubNub) AddChannelChannelGroup() *addChannelChannelGroupBuilder {
-	return newAddChannelChannelGroupBuilder(pn)
+func (pn *PubNub) AddChannelToChannelGroup() *AddChannelToChannelGroupBuilder {
+	return newAddChannelToChannelGroupBuilder(pn)
 }
 
-func (pn *PubNub) AddChannelChannelGroupWithContext(
-	ctx Context) *addChannelChannelGroupBuilder {
-	return newAddChannelChannelGroupBuilderWithContext(pn, ctx)
+func (pn *PubNub) AddChannelToChannelGroupWithContext(
+	ctx Context) *AddChannelToChannelGroupBuilder {
+	return newAddChannelToChannelGroupBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) RemoveChannelChannelGroup() *removeChannelChannelGroupBuilder {
-	return newRemoveChannelChannelGroupBuilder(pn)
+func (pn *PubNub) RemoveChannelFromChannelGroup() *RemoveChannelFromChannelGroupBuilder {
+	return newRemoveChannelFromChannelGroupBuilder(pn)
 }
 
-func (pn *PubNub) RemoveChannelChannelGroupWithContext(
-	ctx Context) *removeChannelChannelGroupBuilder {
-	return newRemoveChannelChannelGroupBuilderWithContext(pn, ctx)
+func (pn *PubNub) RemoveChannelFromChannelGroupWithContext(
+	ctx Context) *RemoveChannelFromChannelGroupBuilder {
+	return newRemoveChannelFromChannelGroupBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) DeleteChannelGroup() *deleteChannelGroupBuilder {
@@ -173,11 +173,11 @@ func (pn *PubNub) DeleteChannelGroupWithContext(
 	return newDeleteChannelGroupBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) ListAllChannelsChannelGroup() *allChannelGroupBuilder {
+func (pn *PubNub) ListChannelsInChannelGroup() *allChannelGroupBuilder {
 	return newAllChannelGroupBuilder(pn)
 }
 
-func (pn *PubNub) ListAllChannelsChannelGroupWithContext(
+func (pn *PubNub) ListChannelsInChannelGroupWithContext(
 	ctx Context) *allChannelGroupBuilder {
 	return newAllChannelGroupBuilderWithContext(pn, ctx)
 }

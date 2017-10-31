@@ -11,15 +11,15 @@ import (
 
 const REMOVE_CHANNEL_CHANNEL_GROUP = "/v1/channel-registration/sub-key/%s/channel-group/%s"
 
-var emptyRemoveChannelChannelGroupResponse *RemoveChannelChannelGroupResponse
+var emptyRemoveChannelFromChannelGroupResponse *RemoveChannelFromChannelGroupResponse
 
-type removeChannelChannelGroupBuilder struct {
+type RemoveChannelFromChannelGroupBuilder struct {
 	opts *removeChannelOpts
 }
 
-func newRemoveChannelChannelGroupBuilder(
-	pubnub *PubNub) *removeChannelChannelGroupBuilder {
-	builder := removeChannelChannelGroupBuilder{
+func newRemoveChannelFromChannelGroupBuilder(
+	pubnub *PubNub) *RemoveChannelFromChannelGroupBuilder {
+	builder := RemoveChannelFromChannelGroupBuilder{
 		opts: &removeChannelOpts{
 			pubnub: pubnub,
 		},
@@ -28,9 +28,9 @@ func newRemoveChannelChannelGroupBuilder(
 	return &builder
 }
 
-func newRemoveChannelChannelGroupBuilderWithContext(
-	pubnub *PubNub, context Context) *removeChannelChannelGroupBuilder {
-	builder := removeChannelChannelGroupBuilder{
+func newRemoveChannelFromChannelGroupBuilderWithContext(
+	pubnub *PubNub, context Context) *RemoveChannelFromChannelGroupBuilder {
+	builder := RemoveChannelFromChannelGroupBuilder{
 		opts: &removeChannelOpts{
 			pubnub: pubnub,
 			ctx:    context,
@@ -40,26 +40,26 @@ func newRemoveChannelChannelGroupBuilderWithContext(
 	return &builder
 }
 
-func (b *removeChannelChannelGroupBuilder) Channels(
-	ch []string) *removeChannelChannelGroupBuilder {
+func (b *RemoveChannelFromChannelGroupBuilder) Channels(
+	ch []string) *RemoveChannelFromChannelGroupBuilder {
 	b.opts.Channels = ch
 	return b
 }
 
-func (b *removeChannelChannelGroupBuilder) Group(
-	cg string) *removeChannelChannelGroupBuilder {
+func (b *RemoveChannelFromChannelGroupBuilder) Group(
+	cg string) *RemoveChannelFromChannelGroupBuilder {
 	b.opts.Group = cg
 	return b
 }
 
-func (b *removeChannelChannelGroupBuilder) Execute() (
-	*RemoveChannelChannelGroupResponse, StatusResponse, error) {
+func (b *RemoveChannelFromChannelGroupBuilder) Execute() (
+	*RemoveChannelFromChannelGroupResponse, StatusResponse, error) {
 	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyRemoveChannelChannelGroupResponse, status, err
+		return emptyRemoveChannelFromChannelGroupResponse, status, err
 	}
 
-	return newRemoveChannelChannelGroupResponse(rawJson, status)
+	return newRemoveChannelFromChannelGroupResponse(rawJson, status)
 }
 
 type removeChannelOpts struct {
@@ -140,11 +140,11 @@ func (o *removeChannelOpts) operationType() OperationType {
 	return PNRemoveChannelFromChannelGroupOperation
 }
 
-type RemoveChannelChannelGroupResponse struct {
+type RemoveChannelFromChannelGroupResponse struct {
 }
 
-func newRemoveChannelChannelGroupResponse(jsonBytes []byte,
-	status StatusResponse) (*RemoveChannelChannelGroupResponse,
+func newRemoveChannelFromChannelGroupResponse(jsonBytes []byte,
+	status StatusResponse) (*RemoveChannelFromChannelGroupResponse,
 	StatusResponse, error) {
-	return emptyRemoveChannelChannelGroupResponse, status, nil
+	return emptyRemoveChannelFromChannelGroupResponse, status, nil
 }
