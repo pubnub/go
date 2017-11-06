@@ -76,25 +76,34 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 		q, _ := o.buildQuery()
 		v := q.Get("meta")
 		if v != "" {
-			query.Set("meta", v)
+			query.Set("meta", utils.UrlEncode(v))
 		}
 	}
 
 	if o.operationType() == PNSetStateOperation {
 		q, _ := o.buildQuery()
 		v := q.Get("state")
-		query.Set("state", v)
+		query.Set("state", utils.UrlEncode(v))
 	}
 
 	if v := query.Get("uuid"); v != "" {
-		query.Set("uuid", v)
+		query.Set("uuid", utils.UrlEncode(v))
 	}
 
 	if v := query.Get("auth"); v != "" {
 		query.Set("auth", v)
 	}
 
-	stringifiedQuery = utils.PreparePamParams(query)
+	i := 0
+	for k, v := range *query {
+		if i == len(*query)-1 {
+			stringifiedQuery += fmt.Sprintf("%s=%s", k, v[0])
+		} else {
+			stringifiedQuery += fmt.Sprintf("%s=%s&", k, v[0])
+		}
+
+		i++
+	}
 
 	if signature != "" {
 		stringifiedQuery += fmt.Sprintf("&signature=%s", signature)

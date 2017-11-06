@@ -115,7 +115,6 @@ func UrlEncode(s string) string {
 
 	var replacer = strings.NewReplacer(
 		"+", "%20",
-		"%2C", ",",
 	)
 
 	return replacer.Replace(v)
