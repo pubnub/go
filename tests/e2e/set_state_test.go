@@ -38,10 +38,16 @@ func TestSetStateSuperCall(t *testing.T) {
 	pn := pubnub.NewPubNub(config)
 	state := make(map[string]interface{})
 	state["qwerty"] = validCharacters
+	state["a"] = "b"
 
-	_, _, err := pn.SetState().State(state).Channels([]string{validCharacters}).
-		ChannelGroups([]string{validCharacters}).
+	// Not allowed characters:
+	// ?#[]@!$&'()+;=`|
+	groupCharacters := "-_~"
+
+	_, _, err := pn.SetState().
 		State(state).
+		Channels([]string{validCharacters}).
+		ChannelGroups([]string{groupCharacters}).
 		Execute()
 
 	assert.Nil(err)

@@ -120,7 +120,13 @@ func (o *addChannelOpts) buildPath() (string, error) {
 func (o *addChannelOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid)
 
-	q.Set("add", strings.Join(o.Channels, ","))
+	var channels []string
+
+	for _, v := range o.Channels {
+		channels = append(channels, utils.UrlEncode(v))
+	}
+
+	q.Set("add", strings.Join(channels, ","))
 
 	return q, nil
 }

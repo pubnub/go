@@ -51,8 +51,10 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 	config := pamConfigCopy()
 
 	// Not allowed characters:
-	// .,:*
-	validCharacters := "-_~?#[]@!$&'()+;=`|"
+	// .,:*#`[]&
+	validCharacters := "`[]&|='?;-_~@!$()+"
+
+	channelCharacters := "-_~"
 
 	config.Uuid = validCharacters
 	config.AuthKey = validCharacters
@@ -60,7 +62,7 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.AddChannelToChannelGroup().
-		Channels([]string{validCharacters}).
+		Channels([]string{channelCharacters}).
 		Group(validCharacters).
 		Execute()
 

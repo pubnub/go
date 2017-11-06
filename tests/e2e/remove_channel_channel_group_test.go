@@ -52,16 +52,20 @@ func TestRemoveChannelFromChannelGroupSuperCall(t *testing.T) {
 
 	// Not allowed characters:
 	// .,:*
-	validCharacters := "-_~?#[]@!$&'()+;=`|"
+	validCharacters := "?#[]@!$&'()+;=`|"
 
 	config.Uuid = validCharacters
 	config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 
+	// Not allowed characters:
+	// ?#[]@!$&'()+;=`|
+	groupCharacters := "-_~"
+
 	_, _, err := pn.RemoveChannelFromChannelGroup().
-		Channels([]string{validCharacters}).
-		Group(validCharacters).
+		Channels([]string{groupCharacters}).
+		Group(groupCharacters).
 		Execute()
 
 	assert.Nil(err)

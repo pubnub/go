@@ -13,9 +13,11 @@ func TestGrantSucccessNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
+	pn.Config.Uuid = "asd,|//&aqwe"
+
 	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
-		AuthKeys([]string{"pam-key"}).Channels([]string{"ch1"}).
+		AuthKeys([]string{"pam-key"}).Channels([]string{"ch1", "ch2"}).
 		Execute()
 
 	assert.Nil(err)

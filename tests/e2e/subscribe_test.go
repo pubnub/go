@@ -1009,9 +1009,13 @@ func TestSubscribeSuperCall(t *testing.T) {
 
 	pn.AddListener(listener)
 
+	// Not allowed characters:
+	// ?#[]@!$&'()+;=`|
+	groupCharacters := "-_~"
+
 	pn.Subscribe(&pubnub.SubscribeOperation{
 		Channels:      []string{validCharacters + "channel"},
-		ChannelGroups: []string{validCharacters + "cg"},
+		ChannelGroups: []string{groupCharacters + "cg"},
 		Timetoken:     int64(1337),
 	})
 

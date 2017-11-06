@@ -123,7 +123,8 @@ func (o *setStateOpts) buildQuery() (*url.Values, error) {
 	var err error
 	var state, groups []byte
 
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(
+		utils.UrlEncode(o.pubnub.Config.Uuid))
 
 	state, err = json.Marshal(o.State)
 	if err != nil {

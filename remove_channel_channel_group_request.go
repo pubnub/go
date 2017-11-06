@@ -109,9 +109,16 @@ func (o *removeChannelOpts) buildPath() (string, error) {
 }
 
 func (o *removeChannelOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(
+		utils.UrlEncode(o.pubnub.Config.Uuid))
 
-	q.Set("remove", strings.Join(o.Channels, ","))
+	var channels []string
+
+	for _, ch := range o.Channels {
+		channels = append(channels, utils.UrlEncode(ch))
+	}
+
+	q.Set("remove", strings.Join(channels, ","))
 
 	return q, nil
 }
