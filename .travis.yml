@@ -3,21 +3,18 @@ language: go
 go:
   - 1.6.4
   - 1.7.6
-  - 1.8.3
-  - 1.9
+  - 1.8.5
+  - 1.9.2
 
 go_import_path: github.com/pubnub/go
 
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
-  # - ln -s $GOPATH/src/github.com/pubnub/go
   - ls -all
   - pwd
   - echo $GOPATH
   - echo $PATH
   - go list ./... | go get -t
-  # - go get -t -v ./pnerr/...
-  # - go get -t -v ./utils/...
   - go get github.com/wadey/gocovmerge
 
 script:
