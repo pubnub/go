@@ -7,7 +7,7 @@ import (
 
 // Default constants
 const (
-	Version     = "4.0.0-beta"
+	Version     = "4.0.0-beta.2"
 	MaxSequence = 65535
 )
 const (
