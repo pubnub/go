@@ -90,6 +90,7 @@ var operations = [...]string{
 	"Time",
 	"Grant",
 	"Revoke",
+	"Delete messages",
 }
 
 func (c StatusCategory) String() string {
