@@ -25,11 +25,12 @@ const (
 type PubNub struct {
 	sync.RWMutex
 
-	Config              *Config
-	publishSequence     chan int
-	subscriptionManager *SubscriptionManager
-	client              *http.Client
-	subscribeClient     *http.Client
+	Config               *Config
+	publishSequence      int
+	publishSequenceMutex sync.RWMutex
+	subscriptionManager  *SubscriptionManager
+	client               *http.Client
+	subscribeClient      *http.Client
 }
 
 func (pn *PubNub) Publish() *publishBuilder {
@@ -63,6 +64,7 @@ func (pn *PubNub) Grant() *grantBuilder {
 func (pn *PubNub) GrantWithContext(ctx Context) *grantBuilder {
 	return newGrantBuilderWithContext(pn, ctx)
 }
+
 func (pn *PubNub) Subscribe(operation *SubscribeOperation) {
 	pn.subscriptionManager.adaptSubscribe(operation)
 }
@@ -222,14 +224,23 @@ func (pn *PubNub) DeleteMessagesWithContext() *historyDeleteBuilder {
 	return newHistoryDeleteBuilder(pn)
 }
 
+func (pn *PubNub) GetPublishSequence() int {
+	pn.publishSequenceMutex.Lock()
+	defer pn.publishSequenceMutex.Unlock()
+
+	if pn.publishSequence == MaxSequence {
+		pn.publishSequence = 1
+	}
+
+	pn.publishSequence++
+
+	return pn.publishSequence
+}
+
 func NewPubNub(pnconf *Config) *PubNub {
-	publishSequence := make(chan int)
-
-	go runPublishSequenceManager(MaxSequence, publishSequence)
-
 	pn := &PubNub{
 		Config:          pnconf,
-		publishSequence: publishSequence,
+		publishSequence: 0,
 	}
 
 	pn.subscriptionManager = newSubscriptionManager(pn)
@@ -240,15 +251,5 @@ func NewPubNub(pnconf *Config) *PubNub {
 func NewPubNubDemo() *PubNub {
 	return &PubNub{
 		Config: NewDemoConfig(),
-	}
-}
-
-func runPublishSequenceManager(maxSequence int, ch chan int) {
-	for i := 1; ; i++ {
-		if i == maxSequence {
-			i = 1
-		}
-
-		ch <- i
 	}
 }
