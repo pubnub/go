@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"context"
 	"net/http"
 	"sync"
 )
@@ -30,6 +31,8 @@ type PubNub struct {
 	subscriptionManager *SubscriptionManager
 	client              *http.Client
 	subscribeClient     *http.Client
+	context             Context
+	cancel              func()
 }
 
 func (pn *PubNub) Publish() *publishBuilder {
@@ -77,6 +80,10 @@ func (pn *PubNub) AddListener(listener *Listener) {
 
 func (pn *PubNub) RemoveListener(listener *Listener) {
 	pn.subscriptionManager.RemoveListener(listener)
+}
+
+func (pn *PubNub) GetListeners() map[*Listener]bool {
+	return pn.subscriptionManager.GetListeners()
 }
 
 func (pn *PubNub) Leave() *leaveBuilder {
@@ -222,25 +229,32 @@ func (pn *PubNub) DeleteMessagesWithContext() *historyDeleteBuilder {
 	return newHistoryDeleteBuilder(pn)
 }
 
+func (pn *PubNub) Destroy() {
+	pn.cancel()
+	pn.subscriptionManager.RemoveAllListeners()
+}
+
 func NewPubNub(pnconf *Config) *PubNub {
 	publishSequence := make(chan int)
 
 	go runPublishSequenceManager(MaxSequence, publishSequence)
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	pn := &PubNub{
 		Config:          pnconf,
 		publishSequence: publishSequence,
+		context:         ctx,
+		cancel:          cancel,
 	}
 
-	pn.subscriptionManager = newSubscriptionManager(pn)
+	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
 
 	return pn
 }
 
 func NewPubNubDemo() *PubNub {
-	return &PubNub{
-		Config: NewDemoConfig(),
-	}
+	return NewPubNub(NewDemoConfig())
 }
 
 func runPublishSequenceManager(maxSequence int, ch chan int) {
