@@ -8,6 +8,6 @@ import (
 
 func setRequestContext(r *http.Request, ctx Context) *http.Request {
 	r.Cancel = ctx.Done()
-	// fmt.Println("old way")
+
 	return r
 }

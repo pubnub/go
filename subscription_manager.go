@@ -93,14 +93,12 @@ type StateOperation struct {
 	state         map[string]interface{}
 }
 
-// use Context for cancelation
-// different PubNub instances should not affect each others subscriptions
-func newSubscriptionManager(pubnub *PubNub) *SubscriptionManager {
+func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 	manager := &SubscriptionManager{}
 
 	manager.pubnub = pubnub
 
-	manager.listenerManager = newListenerManager()
+	manager.listenerManager = newListenerManager(ctx)
 	manager.stateManager = newStateManager()
 
 	manager.Lock()
@@ -112,7 +110,13 @@ func newSubscriptionManager(pubnub *PubNub) *SubscriptionManager {
 	manager.reconnectionManager = newReconnectionManager(pubnub)
 	manager.Unlock()
 
-	go subscribeMessageWorker(manager.listenerManager, manager.messages)
+	go func() {
+		<-ctx.Done()
+		manager.Disconnect()
+	}()
+
+	go subscribeMessageWorker(manager.listenerManager, manager.messages,
+		manager.ctx)
 
 	manager.reconnectionManager.HandleReconnection(func() {
 		go manager.reconnect()
@@ -140,7 +144,7 @@ func newSubscriptionManager(pubnub *PubNub) *SubscriptionManager {
 			Category:              PNReconnectionAttemptsExhausted,
 		})
 
-		manager.disconnect()
+		manager.Disconnect()
 	})
 
 	// actions:
@@ -232,6 +236,12 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 
 func (m *SubscriptionManager) startSubscribeLoop() {
 	for {
+		select {
+		case <-m.ctx.Done():
+			return
+		default:
+		}
+
 		combinedChannels := m.stateManager.prepareChannelList(true)
 		combinedGroups := m.stateManager.prepareGroupList(true)
 
@@ -415,9 +425,12 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 			m.hbDataMutex.RLock()
 			timerCh := m.hbTimer.C
 			doneCh := m.hbDone
+
 			m.hbDataMutex.RUnlock()
 
 			select {
+			case <-m.ctx.Done():
+				return
 			case <-timerCh:
 				m.performHeartbeatLoop()
 			case <-doneCh:
@@ -526,9 +539,15 @@ type originationMetadata struct {
 	Region    int   `json:"r"`
 }
 
-func subscribeMessageWorker(lm *ListenerManager, messages <-chan subscribeMessage) {
-	for message := range messages {
-		processSubscribePayload(lm, message)
+func subscribeMessageWorker(lm *ListenerManager, messages <-chan subscribeMessage,
+	ctx Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case message := <-messages:
+			processSubscribePayload(lm, message)
+		}
 	}
 }
 
@@ -629,6 +648,14 @@ func (m *SubscriptionManager) RemoveListener(listener *Listener) {
 	m.listenerManager.removeListener(listener)
 }
 
+func (m *SubscriptionManager) RemoveAllListeners() {
+	m.listenerManager.removeAllListeners()
+}
+
+func (m *SubscriptionManager) GetListeners() map[*Listener]bool {
+	return m.listenerManager.listeners
+}
+
 func (m *SubscriptionManager) reconnect() {
 	m.log("reconnect")
 
@@ -636,12 +663,13 @@ func (m *SubscriptionManager) reconnect() {
 	go m.startHeartbeatTimer()
 }
 
-func (m *SubscriptionManager) disconnect() {
+func (m *SubscriptionManager) Disconnect() {
 	m.log("disconnect")
 
 	m.stopHeartbeat()
 	m.stopSubscribeLoop()
 	m.reconnectionManager.stopHeartbeatTimer()
+	m.subscribeCancel()
 }
 
 func (m *SubscriptionManager) stopSubscribeLoop() {
