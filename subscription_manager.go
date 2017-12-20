@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -94,8 +93,6 @@ type StateOperation struct {
 	state         map[string]interface{}
 }
 
-// use Context for cancelation
-// different PubNub instances should not affect each others subscriptions
 func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 	manager := &SubscriptionManager{}
 
@@ -543,7 +540,7 @@ type originationMetadata struct {
 }
 
 func subscribeMessageWorker(lm *ListenerManager, messages <-chan subscribeMessage,
-	ctx context.Context) {
+	ctx Context) {
 	for {
 		select {
 		case <-ctx.Done():

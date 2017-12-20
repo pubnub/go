@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"context"
 	"net/http"
 	"sync"
 )
@@ -239,7 +238,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 
 	go runPublishSequenceManager(MaxSequence, publishSequence)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := contextWithCancel(backgroundContext)
 
 	pn := &PubNub{
 		Config:          pnconf,
