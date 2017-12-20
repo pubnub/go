@@ -56,6 +56,7 @@ func NewConfig() *Config {
 		ConnectTimeout:             10,
 		NonSubscribeRequestTimeout: 10,
 		SubscribeRequestTimeout:    310,
+		MaximumReconnectionRetries: -1,
 	}
 
 	c.SetPresenceTimeout(PRESENCE_TIMEOUT)
