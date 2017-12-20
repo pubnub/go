@@ -246,7 +246,7 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 		}
 	}
 
-	q.Set("seqn", strconv.Itoa(<-o.pubnub.publishSequence))
+	q.Set("seqn", strconv.Itoa(o.pubnub.getPublishSequence()))
 
 	if o.DoNotReplicate == true {
 		q.Set("norep", "true")

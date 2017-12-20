@@ -10,6 +10,7 @@ const (
 	Version     = "4.0.0-beta.2"
 	MaxSequence = 65535
 )
+
 const (
 	StrMissingPubKey       = "Missing Publish Key"
 	StrMissingSubKey       = "Missing Subscribe Key"
@@ -25,13 +26,14 @@ const (
 type PubNub struct {
 	sync.RWMutex
 
-	Config              *Config
-	publishSequence     chan int
-	subscriptionManager *SubscriptionManager
-	client              *http.Client
-	subscribeClient     *http.Client
-	context             Context
-	cancel              func()
+	Config               *Config
+	nextPublishSequence  int
+	publishSequenceMutex sync.RWMutex
+	subscriptionManager  *SubscriptionManager
+	client               *http.Client
+	subscribeClient      *http.Client
+	context              Context
+	cancel               func()
 }
 
 func (pn *PubNub) Publish() *publishBuilder {
@@ -65,6 +67,7 @@ func (pn *PubNub) Grant() *grantBuilder {
 func (pn *PubNub) GrantWithContext(ctx Context) *grantBuilder {
 	return newGrantBuilderWithContext(pn, ctx)
 }
+
 func (pn *PubNub) Subscribe(operation *SubscribeOperation) {
 	pn.subscriptionManager.adaptSubscribe(operation)
 }
@@ -233,18 +236,27 @@ func (pn *PubNub) Destroy() {
 	pn.subscriptionManager.RemoveAllListeners()
 }
 
+func (pn *PubNub) getPublishSequence() int {
+	pn.publishSequenceMutex.Lock()
+	defer pn.publishSequenceMutex.Unlock()
+
+	if pn.nextPublishSequence == MaxSequence {
+		pn.nextPublishSequence = 1
+	} else {
+		pn.nextPublishSequence++
+	}
+
+	return pn.nextPublishSequence
+}
+
 func NewPubNub(pnconf *Config) *PubNub {
-	publishSequence := make(chan int)
-
-	go runPublishSequenceManager(MaxSequence, publishSequence)
-
 	ctx, cancel := contextWithCancel(backgroundContext)
 
 	pn := &PubNub{
-		Config:          pnconf,
-		publishSequence: publishSequence,
-		context:         ctx,
-		cancel:          cancel,
+		Config:              pnconf,
+		nextPublishSequence: 0,
+		context:             ctx,
+		cancel:              cancel,
 	}
 
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
@@ -254,14 +266,4 @@ func NewPubNub(pnconf *Config) *PubNub {
 
 func NewPubNubDemo() *PubNub {
 	return NewPubNub(NewDemoConfig())
-}
-
-func runPublishSequenceManager(maxSequence int, ch chan int) {
-	for i := 1; ; i++ {
-		if i == maxSequence {
-			i = 1
-		}
-
-		ch <- i
-	}
 }

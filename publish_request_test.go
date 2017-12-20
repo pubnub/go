@@ -255,9 +255,9 @@ func TestPublishSequenceCounter(t *testing.T) {
 		Meta:    meta,
 	}
 	for i := 1; i <= MaxSequence; i++ {
-		counter := <-opts.pubnub.publishSequence
-		if counter+1 == MaxSequence {
-			assert.Equal(<-opts.pubnub.publishSequence, 1)
+		counter := opts.pubnub.getPublishSequence()
+		if counter == MaxSequence {
+			assert.Equal(1, opts.pubnub.getPublishSequence())
 			break
 		}
 	}
