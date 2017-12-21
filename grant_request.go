@@ -159,7 +159,7 @@ func (o *grantOpts) buildPath() (string, error) {
 }
 
 func (o *grantOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	if o.Read {
 		q.Set("r", "1")
@@ -225,6 +225,10 @@ func (o *grantOpts) connectTimeout() int {
 
 func (o *grantOpts) operationType() OperationType {
 	return PNAccessManagerGrant
+}
+
+func (o *grantOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 type GrantResponse struct {

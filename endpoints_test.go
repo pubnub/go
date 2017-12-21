@@ -53,6 +53,10 @@ func (o *fakeEndpointOpts) operationType() OperationType {
 	return PNSubscribeOperation
 }
 
+func (o *fakeEndpointOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
+}
+
 func TestBuildUrl(t *testing.T) {
 	assert := assert.New(t)
 

@@ -10,6 +10,7 @@ const (
 	Version     = "4.0.0-beta.2"
 	MaxSequence = 65535
 )
+
 const (
 	StrMissingPubKey       = "Missing Publish Key"
 	StrMissingSubKey       = "Missing Subscribe Key"
@@ -28,6 +29,7 @@ type PubNub struct {
 	Config              *Config
 	publishSequence     chan int
 	subscriptionManager *SubscriptionManager
+	telemetryManager    *TelemetryManager
 	client              *http.Client
 	subscribeClient     *http.Client
 }
@@ -63,6 +65,7 @@ func (pn *PubNub) Grant() *grantBuilder {
 func (pn *PubNub) GrantWithContext(ctx Context) *grantBuilder {
 	return newGrantBuilderWithContext(pn, ctx)
 }
+
 func (pn *PubNub) Subscribe(operation *SubscribeOperation) {
 	pn.subscriptionManager.adaptSubscribe(operation)
 }
@@ -233,6 +236,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	}
 
 	pn.subscriptionManager = newSubscriptionManager(pn)
+	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge)
 
 	return pn
 }

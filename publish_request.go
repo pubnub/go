@@ -221,7 +221,7 @@ func (o *publishOpts) buildPath() (string, error) {
 }
 
 func (o *publishOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	if o.Meta != nil {
 		meta, err := utils.ValueAsString(o.Meta)
@@ -311,4 +311,8 @@ func (o *publishOpts) connectTimeout() int {
 
 func (o *publishOpts) operationType() OperationType {
 	return PNPublishOperation
+}
+
+func (o *publishOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }

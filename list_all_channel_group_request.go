@@ -99,7 +99,7 @@ func (o *allChannelGroupOpts) buildPath() (string, error) {
 }
 
 func (o *allChannelGroupOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	return q, nil
 }
@@ -126,6 +126,10 @@ func (o *allChannelGroupOpts) connectTimeout() int {
 
 func (o *allChannelGroupOpts) operationType() OperationType {
 	return PNChannelsForGroupOperation
+}
+
+func (o *allChannelGroupOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 type AllChannelGroupResponse struct {

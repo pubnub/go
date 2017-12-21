@@ -109,8 +109,7 @@ func (o *removeChannelOpts) buildPath() (string, error) {
 }
 
 func (o *removeChannelOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(
-		utils.UrlEncode(o.pubnub.Config.Uuid))
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	var channels []string
 
@@ -145,6 +144,10 @@ func (o *removeChannelOpts) connectTimeout() int {
 
 func (o *removeChannelOpts) operationType() OperationType {
 	return PNRemoveChannelFromChannelGroupOperation
+}
+
+func (o *removeChannelOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 type RemoveChannelFromChannelGroupResponse struct {

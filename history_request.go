@@ -148,7 +148,7 @@ func (o *historyOpts) buildPath() (string, error) {
 }
 
 func (o *historyOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	if o.SetStart {
 		q.Set("start", strconv.FormatInt(o.Start, 10))
@@ -192,6 +192,10 @@ func (o *historyOpts) connectTimeout() int {
 
 func (o *historyOpts) operationType() OperationType {
 	return PNHistoryOperation
+}
+
+func (o *historyOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 type HistoryResponse struct {

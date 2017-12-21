@@ -117,7 +117,7 @@ func (o *heartbeatOpts) buildPath() (string, error) {
 }
 
 func (o *heartbeatOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	q.Set("heartbeat", strconv.Itoa(o.pubnub.Config.PresenceTimeout))
 
@@ -161,4 +161,8 @@ func (o *heartbeatOpts) connectTimeout() int {
 
 func (o *heartbeatOpts) operationType() OperationType {
 	return PNHeartBeatOperation
+}
+
+func (o *heartbeatOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }

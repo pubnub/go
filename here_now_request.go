@@ -134,7 +134,7 @@ func (o *hereNowOpts) buildPath() (string, error) {
 }
 
 func (o *hereNowOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	if len(o.ChannelGroups) > 0 {
 		q.Set("channel-group", strings.Join(o.ChannelGroups, ","))
@@ -177,6 +177,10 @@ func (o *hereNowOpts) connectTimeout() int {
 
 func (o *hereNowOpts) operationType() OperationType {
 	return PNHereNowOperation
+}
+
+func (o *hereNowOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 type HereNowResponse struct {

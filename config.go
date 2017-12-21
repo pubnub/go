@@ -33,6 +33,8 @@ type Config struct {
 
 	MaximumReconnectionRetries int
 
+	MaximumLatencyDataAge int
+
 	FilterExpression string
 
 	PNReconnectionPolicy ReconnectionPolicy
@@ -56,6 +58,7 @@ func NewConfig() *Config {
 		ConnectTimeout:             10,
 		NonSubscribeRequestTimeout: 10,
 		SubscribeRequestTimeout:    310,
+		MaximumLatencyDataAge:      60,
 	}
 
 	c.SetPresenceTimeout(PRESENCE_TIMEOUT)

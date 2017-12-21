@@ -24,13 +24,18 @@ type endpointOpts interface {
 
 	httpMethod() string
 	operationType() OperationType
+	telemetryManager() *TelemetryManager
 }
 
-func defaultQuery(uuid string) *url.Values {
+func defaultQuery(uuid string, telemetryManager *TelemetryManager) *url.Values {
 	v := &url.Values{}
 
 	v.Set("pnsdk", "PubNub-Go/"+Version)
 	v.Set("uuid", uuid)
+
+	for queryName, queryParam := range telemetryManager.OperationLatency() {
+		v.Set(queryName, queryParam)
+	}
 
 	return v
 }

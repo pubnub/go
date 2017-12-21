@@ -97,7 +97,7 @@ func (o *whereNowOpts) buildPath() (string, error) {
 }
 
 func (o *whereNowOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	return q, nil
 }
@@ -124,6 +124,10 @@ func (o *whereNowOpts) connectTimeout() int {
 
 func (o *whereNowOpts) operationType() OperationType {
 	return PNWhereNowOperation
+}
+
+func (o *whereNowOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 type WhereNowResponse struct {

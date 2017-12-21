@@ -130,7 +130,7 @@ func (o *getStateOpts) buildPath() (string, error) {
 }
 
 func (o *getStateOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	var groups []string
 
@@ -165,6 +165,10 @@ func (o *getStateOpts) connectTimeout() int {
 
 func (o *getStateOpts) operationType() OperationType {
 	return PNGetStateOperation
+}
+
+func (o *getStateOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 type GetStateResponse struct {

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/pubnub/go/pnerr"
 )
@@ -96,6 +97,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	}
 
 	client := opts.client()
+	startTimestamp := time.Now()
 	res, err := client.Do(req)
 	// Host lookup failed
 	if err != nil {
@@ -114,6 +116,11 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	if err != nil {
 		return nil, status, err
 	}
+
+	elapsedTime := time.Since(startTimestamp)
+
+	manager := opts.telemetryManager()
+	manager.StoreLatency(elapsedTime.Seconds(), opts.operationType())
 
 	responseInfo := ResponseInfo{
 		StatusCode:       res.StatusCode,

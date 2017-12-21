@@ -53,7 +53,7 @@ func TestGetStateSucess(t *testing.T) {
 		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch/uuid/" + config.Uuid + "/data",
 		Query:              "state=%7B%22age%22%3A%2220%22%2C%22name%22%3A%22John%20Doe%22%7D",
 		ResponseBody:       `{"status": 200, "message": "OK", "payload": {"age": "20", "name": "John Doe"}, "service": "Presence"}`,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_pres"},
 		ResponseStatusCode: 200,
 	})
 	interceptor.AddStub(&stubs.Stub{
@@ -61,7 +61,7 @@ func TestGetStateSucess(t *testing.T) {
 		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch/uuid/" + config.Uuid,
 		Query:              "",
 		ResponseBody:       `{"status": 200, "message": "OK", "payload": {"age": "20", "name": "John Doe"}, "uuid": "bb45300a-25fb-4b14-8de1-388393274a54", "channel": "ch", "service": "Presence"}`,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "channel-group"},
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "channel-group", "l_pres"},
 		ResponseStatusCode: 200,
 	})
 

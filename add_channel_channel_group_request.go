@@ -118,7 +118,7 @@ func (o *addChannelOpts) buildPath() (string, error) {
 }
 
 func (o *addChannelOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	var channels []string
 
@@ -153,6 +153,10 @@ func (o *addChannelOpts) connectTimeout() int {
 
 func (o *addChannelOpts) operationType() OperationType {
 	return PNAddChannelsToChannelGroupOperation
+}
+
+func (o *addChannelOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 type AddChannelToChannelGroupResponse struct {

@@ -73,7 +73,7 @@ func (o *SubscribeOpts) buildPath() (string, error) {
 }
 
 func (o *SubscribeOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	if len(o.Groups) > 0 {
 		channelGroup := utils.JoinChannels(o.Groups)
@@ -122,4 +122,8 @@ func (o *SubscribeOpts) connectTimeout() int {
 
 func (o *SubscribeOpts) operationType() OperationType {
 	return PNSubscribeOperation
+}
+
+func (o *SubscribeOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }

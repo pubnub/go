@@ -82,7 +82,7 @@ func (o *timeOpts) buildPath() (string, error) {
 }
 
 func (o *timeOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	return q, nil
 }
@@ -109,6 +109,10 @@ func (o *timeOpts) connectTimeout() int {
 
 func (o *timeOpts) operationType() OperationType {
 	return PNTimeOperation
+}
+
+func (o *timeOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 type TimeResponse struct {

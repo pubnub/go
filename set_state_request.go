@@ -123,8 +123,7 @@ func (o *setStateOpts) buildQuery() (*url.Values, error) {
 	var err error
 	var state, groups []byte
 
-	q := defaultQuery(
-		utils.UrlEncode(o.pubnub.Config.Uuid))
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	state, err = json.Marshal(o.State)
 	if err != nil {
@@ -166,6 +165,10 @@ func (o *setStateOpts) connectTimeout() int {
 
 func (o *setStateOpts) operationType() OperationType {
 	return PNSetStateOperation
+}
+
+func (o *setStateOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 func newSetStateResponse(jsonBytes []byte, status StatusResponse) (

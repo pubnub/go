@@ -117,7 +117,7 @@ func (o *historyDeleteOpts) buildPath() (string, error) {
 }
 
 func (o *historyDeleteOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid)
+	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	if o.SetStart {
 		q.Set("start", strconv.FormatInt(o.Start, 10))
@@ -152,6 +152,10 @@ func (o *historyDeleteOpts) connectTimeout() int {
 
 func (o *historyDeleteOpts) operationType() OperationType {
 	return PNDeleteMessagesOperation
+}
+
+func (o *historyDeleteOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
 }
 
 type HistoryDeleteResponse struct {

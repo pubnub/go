@@ -78,7 +78,7 @@ func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/my-unique-group",
 		Query:              "add=my-channel",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"channel-registry\", \"error\": \"false\"}",
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
 		ResponseStatusCode: 200,
 	})
 	interceptor.AddStub(&stubs.Stub{
@@ -86,7 +86,7 @@ func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/my-unique-group",
 		Query:              "",
 		ResponseBody:       "{\"status\": \"200\", \"payload\": {\"channels\": [\"my-channel\"], \"group\": \"my-unique-group\"}, \"service\": \"channel-registry\", \"error\": \"false\"}",
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
 		ResponseStatusCode: 200,
 	})
 
