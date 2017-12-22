@@ -7,7 +7,7 @@ import (
 
 // Default constants
 const (
-	Version     = "4.0.0-beta.2"
+	Version     = "4.0.0-beta.3"
 	MaxSequence = 65535
 )
 
@@ -26,12 +26,15 @@ const (
 type PubNub struct {
 	sync.RWMutex
 
-	Config              *Config
-	publishSequence     chan int
-	subscriptionManager *SubscriptionManager
-	telemetryManager    *TelemetryManager
-	client              *http.Client
-	subscribeClient     *http.Client
+	Config               *Config
+	nextPublishSequence  int
+	publishSequenceMutex sync.RWMutex
+	subscriptionManager  *SubscriptionManager
+	telemetryManager     *TelemetryManager
+	client               *http.Client
+	subscribeClient      *http.Client
+	ctx                  Context
+	cancel               func()
 }
 
 func (pn *PubNub) Publish() *publishBuilder {
@@ -80,6 +83,10 @@ func (pn *PubNub) AddListener(listener *Listener) {
 
 func (pn *PubNub) RemoveListener(listener *Listener) {
 	pn.subscriptionManager.RemoveListener(listener)
+}
+
+func (pn *PubNub) GetListeners() map[*Listener]bool {
+	return pn.subscriptionManager.GetListeners()
 }
 
 func (pn *PubNub) Leave() *leaveBuilder {
@@ -225,34 +232,41 @@ func (pn *PubNub) DeleteMessagesWithContext() *historyDeleteBuilder {
 	return newHistoryDeleteBuilder(pn)
 }
 
-func NewPubNub(pnconf *Config) *PubNub {
-	publishSequence := make(chan int)
+func (pn *PubNub) Destroy() {
+	pn.cancel()
+	pn.subscriptionManager.RemoveAllListeners()
+}
 
-	go runPublishSequenceManager(MaxSequence, publishSequence)
+func (pn *PubNub) getPublishSequence() int {
+	pn.publishSequenceMutex.Lock()
+	defer pn.publishSequenceMutex.Unlock()
 
-	pn := &PubNub{
-		Config:          pnconf,
-		publishSequence: publishSequence,
+	if pn.nextPublishSequence == MaxSequence {
+		pn.nextPublishSequence = 1
+	} else {
+		pn.nextPublishSequence++
 	}
 
-	pn.subscriptionManager = newSubscriptionManager(pn)
-	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge)
+	return pn.nextPublishSequence
+}
+
+func NewPubNub(pnconf *Config) *PubNub {
+	ctx, cancel := contextWithCancel(backgroundContext)
+
+	pn := &PubNub{
+		Config:              pnconf,
+		nextPublishSequence: 0,
+		ctx:                 ctx,
+		cancel:              cancel,
+	}
+
+	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
+	pn.telemetryManager = newTelemetryManager(
+		pnconf.MaximumLatencyDataAge, ctx)
 
 	return pn
 }
 
 func NewPubNubDemo() *PubNub {
-	return &PubNub{
-		Config: NewDemoConfig(),
-	}
-}
-
-func runPublishSequenceManager(maxSequence int, ch chan int) {
-	for i := 1; ; i++ {
-		if i == maxSequence {
-			i = 1
-		}
-
-		ch <- i
-	}
+	return NewPubNub(NewDemoConfig())
 }

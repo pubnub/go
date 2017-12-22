@@ -130,6 +130,8 @@ func (m *ReconnectionManager) registerHeartbeatTimer() {
 
 		for {
 			select {
+			case <-m.pubnub.ctx.Done():
+				return
 			case <-timer:
 				go m.callTime()
 			case <-doneT:

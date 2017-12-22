@@ -24,7 +24,8 @@ func TestAverageLatency(t *testing.T) {
 
 func TestCleanUp(t *testing.T) {
 	assert := assert.New(t)
-	manager := newTelemetryManager(1)
+	ctx, _ := contextWithCancel(backgroundContext)
+	manager := newTelemetryManager(1, ctx)
 
 	for i := 0; i < 10; i++ {
 		manager.StoreLatency(float64(i), PNPublishOperation)
@@ -40,7 +41,8 @@ func TestCleanUp(t *testing.T) {
 
 func TestValidQueries(t *testing.T) {
 	assert := assert.New(t)
-	manager := newTelemetryManager(60)
+	ctx, _ := contextWithCancel(backgroundContext)
+	manager := newTelemetryManager(60, ctx)
 
 	manager.StoreLatency(float64(1), PNPublishOperation)
 	manager.StoreLatency(float64(2), PNPublishOperation)

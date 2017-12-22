@@ -25,18 +25,19 @@ type TelemetryManager struct {
 
 	operations map[string][]LatencyEntry
 
-	cleanUpDone  chan bool
+	ctx Context
+
 	cleanUpTimer *time.Ticker
 
 	maxLatencyDataAge int
 }
 
-func newTelemetryManager(maxLatencyDataAge int) *TelemetryManager {
+func newTelemetryManager(maxLatencyDataAge int, ctx Context) *TelemetryManager {
 	manager := &TelemetryManager{
 		maxLatencyDataAge: maxLatencyDataAge,
+		operations:        make(map[string][]LatencyEntry),
+		ctx:               ctx,
 	}
-
-	manager.operations = make(map[string][]LatencyEntry)
 
 	go manager.startCleanUpTimer()
 
@@ -95,34 +96,22 @@ func (m *TelemetryManager) CleanUpTelemetryData() {
 }
 
 func (m *TelemetryManager) startCleanUpTimer() {
-	m.cleanUpDone = make(chan bool)
 	m.cleanUpTimer = time.NewTicker(
 		time.Duration(
 			CLEAN_UP_INTERVAL*CLEAN_UP_INTERVAL_MULTIPLIER) * time.Millisecond)
 
 	go func() {
-		defer func() {
-			m.cleanUpDone = nil
-		}()
-
 		for {
 			timerCh := m.cleanUpTimer.C
-			doneCh := m.cleanUpDone
 
 			select {
 			case <-timerCh:
 				m.CleanUpTelemetryData()
-			case <-doneCh:
+			case <-m.ctx.Done():
 				return
 			}
 		}
 	}()
-}
-
-func (m *TelemetryManager) stopCleanUpTimer() {
-	if m.cleanUpDone != nil {
-		m.cleanUpDone <- true
-	}
 }
 
 func telemetryEndpointNameForOperation(t OperationType) string {
