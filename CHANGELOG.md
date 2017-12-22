@@ -1,3 +1,8 @@
+## [v4.0.0-beta.4](https://github.com/pubnub/go/tree/v4.0.0-beta.4)
+ December-20-2017
+
+- Add Telemetry Manager
+
 ## [v4.0.0-beta.3](https://github.com/pubnub/go/tree/v4.0.0-beta.3)
  December-20-2017
 
