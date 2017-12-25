@@ -47,9 +47,9 @@ func (b *AddChannelToChannelGroupBuilder) Channels(
 	return b
 }
 
-func (b *AddChannelToChannelGroupBuilder) Group(
+func (b *AddChannelToChannelGroupBuilder) ChannelGroup(
 	cg string) *AddChannelToChannelGroupBuilder {
-	b.opts.Group = cg
+	b.opts.ChannelGroup = cg
 
 	return b
 }
@@ -76,7 +76,7 @@ type addChannelOpts struct {
 
 	Channels []string
 
-	Group string
+	ChannelGroup string
 
 	Transport http.RoundTripper
 
@@ -104,7 +104,7 @@ func (o *addChannelOpts) validate() error {
 		return newValidationError(o, StrMissingChannel)
 	}
 
-	if o.Group == "" {
+	if o.ChannelGroup == "" {
 		return newValidationError(o, StrMissingChannelGroup)
 	}
 
@@ -114,7 +114,7 @@ func (o *addChannelOpts) validate() error {
 func (o *addChannelOpts) buildPath() (string, error) {
 	return fmt.Sprintf(ADD_CHANNEL_CHANNEL_GROUP_PATH,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.Group)), nil
+		utils.UrlEncode(o.ChannelGroup)), nil
 }
 
 func (o *addChannelOpts) buildQuery() (*url.Values, error) {

@@ -15,7 +15,7 @@ func TestRemoveChannelFromChannelGroupNotStubbed(t *testing.T) {
 
 	_, _, err := pn.RemoveChannelFromChannelGroup().
 		Channels([]string{"ch"}).
-		Group("cg").
+		ChannelGroup("cg").
 		Execute()
 
 	assert.Nil(err)
@@ -27,7 +27,7 @@ func TestRemoveChannelFromChannelGroupMissingChannel(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 
 	_, _, err := pn.RemoveChannelFromChannelGroup().
-		Group("cg").
+		ChannelGroup("cg").
 		Execute()
 
 	assert.Contains(err.Error(), "Missing Channel")
@@ -65,7 +65,7 @@ func TestRemoveChannelFromChannelGroupSuperCall(t *testing.T) {
 
 	_, _, err := pn.RemoveChannelFromChannelGroup().
 		Channels([]string{groupCharacters}).
-		Group(groupCharacters).
+		ChannelGroup(groupCharacters).
 		Execute()
 
 	assert.Nil(err)
@@ -81,7 +81,7 @@ func TestRemoveChannelFromChannelGroupSuccess(t *testing.T) {
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{myChannel, myAnotherChannel}).
-		Group(myGroup).
+		ChannelGroup(myGroup).
 		Execute()
 
 	assert.Nil(err)
@@ -98,11 +98,11 @@ func TestRemoveChannelFromChannelGroupSuccess(t *testing.T) {
 	assert.Equal(2, len(res.Channels))
 	assert.Equal(myChannel, res.Channels[1])
 	assert.Equal(myAnotherChannel, res.Channels[0])
-	assert.Equal(myGroup, res.Group)
+	assert.Equal(myGroup, res.ChannelGroup)
 
 	_, _, err = pn.RemoveChannelFromChannelGroup().
 		Channels([]string{myChannel, myAnotherChannel}).
-		Group(myGroup).
+		ChannelGroup(myGroup).
 		Execute()
 
 	assert.Nil(err)
@@ -117,5 +117,5 @@ func TestRemoveChannelFromChannelGroupSuccess(t *testing.T) {
 	assert.Nil(err)
 
 	assert.Equal(0, len(res.Channels))
-	assert.Equal(myGroup, res.Group)
+	assert.Equal(myGroup, res.ChannelGroup)
 }

@@ -89,7 +89,7 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{myChannel}).
-		Group(myGroup).
+		ChannelGroup(myGroup).
 		Execute()
 
 	assert.Nil(err)
@@ -104,11 +104,11 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 	assert.Nil(err)
 
 	assert.Equal(myChannel, res.Channels[0])
-	assert.Equal(myGroup, res.Group)
+	assert.Equal(myGroup, res.ChannelGroup)
 
 	_, _, err = pn.RemoveChannelFromChannelGroup().
 		Channels([]string{myChannel}).
-		Group(myGroup).
+		ChannelGroup(myGroup).
 		Execute()
 
 	assert.Nil(err)

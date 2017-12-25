@@ -27,14 +27,14 @@ func main() {
 
 	resAdd, statusAdd, err := pn.AddChannelToChannelGroup().
 		Channels([]string{"wife"}).
-		Group(channelGroup).
+		ChannelGroup(channelGroup).
 		Execute()
 
 	fmt.Println(resAdd, statusAdd, err)
 
 	resAdd, statusAdd, err = pn.AddChannelToChannelGroup().
 		Channels([]string{"son", "daughter"}).
-		Group(channelGroup).
+		ChannelGroup(channelGroup).
 		Execute()
 
 	fmt.Println(resAdd, statusAdd, err)
@@ -80,7 +80,7 @@ func main() {
 
 	resRemove, statusRemove, err := pn.RemoveChannelFromChannelGroup().
 		Channels([]string{"son"}).
-		Group("family").
+		ChannelGroup("family").
 		Execute()
 
 	fmt.Println(resRemove, statusRemove, err)

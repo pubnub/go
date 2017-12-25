@@ -15,7 +15,7 @@ func TestAddChannelToChannelGroupNotStubbed(t *testing.T) {
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{"ch"}).
-		Group("cg").
+		ChannelGroup("cg").
 		Execute()
 
 	assert.Nil(err)
@@ -39,7 +39,7 @@ func TestAddChannelToChannelGroupMissingChannel(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 
 	_, _, err := pn.AddChannelToChannelGroup().
-		Group("cg").
+		ChannelGroup("cg").
 		Execute()
 
 	assert.Contains(err.Error(), "Missing Channel")
@@ -63,7 +63,7 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{channelCharacters}).
-		Group(validCharacters).
+		ChannelGroup(validCharacters).
 		Execute()
 
 	assert.Nil(err)
@@ -98,7 +98,7 @@ func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{myChannel}).
-		Group(myGroup).
+		ChannelGroup(myGroup).
 		Execute()
 
 	assert.Nil(err)
@@ -110,5 +110,5 @@ func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	assert.Nil(err)
 
 	assert.Equal(myChannel, res.Channels[0])
-	assert.Equal(myGroup, res.Group)
+	assert.Equal(myGroup, res.ChannelGroup)
 }

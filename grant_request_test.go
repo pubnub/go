@@ -13,15 +13,15 @@ func TestGrantRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
 	opts := &grantOpts{
-		AuthKeys: []string{"my-auth-key"},
-		Channels: []string{"ch"},
-		Groups:   []string{"cg"},
-		Read:     true,
-		Write:    true,
-		Manage:   true,
-		Ttl:      5000,
-		SetTtl:   true,
-		pubnub:   pubnub,
+		AuthKeys:      []string{"my-auth-key"},
+		Channels:      []string{"ch"},
+		ChannelGroups: []string{"cg"},
+		Read:          true,
+		Write:         true,
+		Manage:        true,
+		Ttl:           5000,
+		SetTtl:        true,
+		pubnub:        pubnub,
 	}
 
 	path, err := opts.buildPath()

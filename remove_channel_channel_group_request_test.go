@@ -23,9 +23,9 @@ func TestRemoveChannelRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
 	opts := &removeChannelOpts{
-		Channels: []string{"ch1", "ch2", "ch3"},
-		Group:    "cg",
-		pubnub:   pubnub,
+		Channels:     []string{"ch1", "ch2", "ch3"},
+		ChannelGroup: "cg",
+		pubnub:       pubnub,
 	}
 
 	path, err := opts.buildPath()

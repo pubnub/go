@@ -144,7 +144,7 @@ func grantChannelGroup() {
 	res, status, err := pn.Grant().
 		Read(true).
 		Write(false).
-		Groups([]string{"gr1", "gr2", "gr3"}).
+		ChannelGroups([]string{"gr1", "gr2", "gr3"}).
 		AuthKeys([]string{"key1", "key2", "key3"}).
 		Ttl(60).
 		Execute()
@@ -169,7 +169,7 @@ func revokeChannelGroup() {
 		Read(false).
 		Write(false).
 		Manage(false).
-		Groups([]string{"gr1", "gr2", "gr3"}).
+		ChannelGroups([]string{"gr1", "gr2", "gr3"}).
 		AuthKeys([]string{"key1", "key2", "key3"}).
 		Ttl(60).
 		Execute()
