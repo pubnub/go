@@ -69,9 +69,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Subscribe().Channels([]string{ch}).Execute()
 
 	select {
 	case <-doneSubscribe:
@@ -79,9 +77,9 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 		assert.Fail(err)
 	}
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Unsubscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	select {
 	case <-doneUnsubscribe:
@@ -126,9 +124,7 @@ func TestSubscribePublishUnsubscribe(t *testing.T) {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Subscribe().Channels([]string{ch}).Execute()
 
 	select {
 	case <-doneSubscribe:
@@ -146,9 +142,9 @@ func TestSubscribePublishUnsubscribe(t *testing.T) {
 		return
 	}
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Unsubscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	select {
 	case <-doneUnsubscribe:
@@ -196,9 +192,9 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 				}
 			case message := <-listener.Message:
 				if message.Message == <-heySub {
-					pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-						Channels: []string{ch2},
-					})
+					pn.Unsubscribe().
+						Channels([]string{ch2}).
+						Execute()
 				} else {
 					errChan <- fmt.Sprintf("Unexpected message: %s",
 						message.Message)
@@ -211,9 +207,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch1, ch2},
-	})
+	pn.Subscribe().Channels([]string{ch1, ch2}).Execute()
 
 	select {
 	case <-doneUnsubscribe:
@@ -309,10 +303,10 @@ func TestJoinLeaveChannel(t *testing.T) {
 	pn.AddListener(listenerEmitter)
 	pnPresenceListener.AddListener(listenerPresenceListener)
 
-	pnPresenceListener.Subscribe(&pubnub.SubscribeOperation{
-		Channels:        []string{ch},
-		PresenceEnabled: true,
-	})
+	pnPresenceListener.Subscribe().
+		Channels([]string{ch}).
+		WithPresence(true).
+		Execute()
 
 	select {
 	case <-donePresenceConnect:
@@ -321,9 +315,9 @@ func TestJoinLeaveChannel(t *testing.T) {
 		return
 	}
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Subscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	go func() {
 		wg.Wait()
@@ -337,9 +331,9 @@ func TestJoinLeaveChannel(t *testing.T) {
 		return
 	}
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Unsubscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	select {
 	case <-doneLeave:
@@ -398,9 +392,9 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	// await for adding channels
 	time.Sleep(3 * time.Second)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups: []string{cg},
-	})
+	pn.Subscribe().
+		ChannelGroups([]string{cg}).
+		Execute()
 
 	select {
 	case <-doneSubscribe:
@@ -408,9 +402,9 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 		assert.Fail(err)
 	}
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		ChannelGroups: []string{cg},
-	})
+	pn.Unsubscribe().
+		ChannelGroups([]string{cg}).
+		Execute()
 
 	select {
 	case <-doneUnsubscribe:
@@ -471,9 +465,9 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	// await for adding channel
 	time.Sleep(2 * time.Second)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups: []string{cg1, cg2},
-	})
+	pn.Subscribe().
+		ChannelGroups([]string{cg1, cg2}).
+		Execute()
 
 	select {
 	case <-doneSubscribe:
@@ -491,9 +485,9 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 		return
 	}
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		ChannelGroups: []string{cg2},
-	})
+	pn.Unsubscribe().
+		ChannelGroups([]string{cg2}).
+		Execute()
 
 	assert.Equal(len(pn.GetSubscribedGroups()), 1)
 
@@ -603,10 +597,10 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 		Group(cg).
 		Execute()
 
-	pnPresenceListener.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups:   []string{cg},
-		PresenceEnabled: true,
-	})
+	pnPresenceListener.Subscribe().
+		ChannelGroups([]string{cg}).
+		WithPresence(true).
+		Execute()
 
 	select {
 	case <-donePresenceConnect:
@@ -614,9 +608,9 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 		assert.Fail(err)
 	}
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups: []string{cg},
-	})
+	pn.Subscribe().
+		ChannelGroups([]string{cg}).
+		Execute()
 
 	go func() {
 		wg.Wait()
@@ -629,9 +623,9 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 		assert.Fail(err)
 	}
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		ChannelGroups: []string{cg},
-	})
+	pn.Unsubscribe().
+		ChannelGroups([]string{cg}).
+		Execute()
 
 	select {
 	case <-doneLeaveEvent:
@@ -657,11 +651,11 @@ func TestUnsubscribeAll(t *testing.T) {
 		randomized("sub-ua-cg2"),
 		randomized("sub-ua-cg3")}
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:        channels,
-		ChannelGroups:   groups,
-		PresenceEnabled: true,
-	})
+	pn.Subscribe().
+		Channels(channels).
+		ChannelGroups(groups).
+		WithPresence(true).
+		Execute()
 
 	assert.Equal(len(pn.GetSubscribedChannels()), 3)
 	assert.Equal(len(pn.GetSubscribedGroups()), 3)
@@ -718,10 +712,10 @@ func TestSubscribe403Error(t *testing.T) {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:  []string{"ch"},
-		Transport: interceptor.Transport,
-	})
+	pn.Subscribe().
+		Channels([]string{"ch"}).
+		Transport(interceptor.Transport).
+		Execute()
 
 	select {
 	case <-doneSubscribe:
@@ -779,9 +773,9 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
-	})
+	pn.Subscribe().
+		Channels([]string{"ch"}).
+		Execute()
 
 	select {
 	case <-doneMeta:
@@ -841,10 +835,10 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:  []string{ch},
-		Timetoken: int64(1337),
-	})
+	pn.Subscribe().
+		Channels([]string{ch}).
+		Timetoken(int64(1337)).
+		Execute()
 
 	select {
 	case <-doneConnected:
@@ -887,9 +881,9 @@ func TestSubscribeWithFilter(t *testing.T) {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Subscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	select {
 	case <-doneSubscribe:
@@ -952,9 +946,9 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Subscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	select {
 	case <-doneConnect:
@@ -1013,11 +1007,11 @@ func TestSubscribeSuperCall(t *testing.T) {
 	// ?#[]@!$&'()+;=`|
 	groupCharacters := "-_~"
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:      []string{validCharacters + "channel"},
-		ChannelGroups: []string{groupCharacters + "cg"},
-		Timetoken:     int64(1337),
-	})
+	pn.Subscribe().
+		Channels([]string{validCharacters + "channel"}).
+		ChannelGroups([]string{groupCharacters + "cg"}).
+		Timetoken(int64(1337)).
+		Execute()
 
 	select {
 	case <-doneSubscribe:
@@ -1067,9 +1061,9 @@ func TestReconnectionExhaustion(t *testing.T) {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
-	})
+	pn.Subscribe().
+		Channels([]string{"ch"}).
+		Execute()
 
 	select {
 	case <-doneSubscribe:

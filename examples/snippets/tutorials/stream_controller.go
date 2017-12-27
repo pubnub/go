@@ -60,23 +60,23 @@ func main() {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups:   []string{channelGroup},
-		Timetoken:       int64(1337),
-		PresenceEnabled: true,
-	})
+	pn.Subscribe().
+		ChannelGroups([]string{channelGroup}).
+		Timetoken(int64(1337)).
+		WithPresence(true).
+		Execute()
 
 	<-doneConnect
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		ChannelGroups: []string{channelGroup},
-	})
+	pn.Unsubscribe().
+		ChannelGroups([]string{channelGroup}).
+		Execute()
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		ChannelGroups:   []string{"cg1", "cg2"},
-		Timetoken:       int64(1337),
-		PresenceEnabled: true,
-	})
+	pn.Subscribe().
+		ChannelGroups([]string{"cg1", "cg2"}).
+		Timetoken(int64(1337)).
+		WithPresence(true).
+		Execute()
 
 	resRemove, statusRemove, err := pn.RemoveChannelFromChannelGroup().
 		Channels([]string{"son"}).

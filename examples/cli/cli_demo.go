@@ -147,8 +147,8 @@ func subscribeRequest(args []string) {
 	channels := strings.Split(args[0], ",")
 	groups := strings.Split(args[1], ",")
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:      channels,
-		ChannelGroups: groups,
-	})
+	pn.Subscribe().
+		Channels(channels).
+		ChannelGroups(groups).
+		Execute()
 }

@@ -15,9 +15,9 @@ func main() {
 		"name": "PubNub",
 	}
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch1"},
-	})
+	pn.Subscribe().
+		Channels([]string{"ch1"}).
+		Execute()
 
 	pn.Publish().
 		Meta(meta).

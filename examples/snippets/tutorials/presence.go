@@ -35,9 +35,9 @@ func subscribe() {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"my-channel"},
-	})
+	pn.Subscribe().
+		Channels([]string{"my-channel"}).
+		Execute()
 
 	<-doneConnect
 }

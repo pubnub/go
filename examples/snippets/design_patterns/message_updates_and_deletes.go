@@ -87,9 +87,9 @@ func main() {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{my_channel},
-	})
+	pn.Subscribe().
+		Channels([]string{my_channel}).
+		Execute()
 
 	data := map[string]interface{}{}
 

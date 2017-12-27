@@ -47,13 +47,13 @@ func main() {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"awesome-channel"},
-	})
+	pn.Subscribe().
+		Channels([]string{"awesome-channel"}).
+		Execute()
 
 	<-doneSubscribe
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{"awesome-channel"},
-	})
+	pn.Unsubscribe().
+		Channels([]string{"awesome-channel"}).
+		Execute()
 }

@@ -258,10 +258,10 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		ctx := m.ctx
 		m.Unlock()
 
-		opts := &SubscribeOpts{
+		opts := &subscribeOpts{
 			pubnub:           m.pubnub,
 			Channels:         combinedChannels,
-			Groups:           combinedGroups,
+			ChannelGroups:    combinedGroups,
 			Timetoken:        tt,
 			Transport:        m.transport,
 			Heartbeat:        m.pubnub.Config.PresenceTimeout,

@@ -49,9 +49,9 @@ func gettingStarted() {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"hello_world"},
-	})
+	pn.Subscribe().
+		Channels([]string{"hello_world"}).
+		Execute()
 
 	<-doneConnect
 
@@ -94,9 +94,9 @@ func listeners() {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
-	})
+	pn.Subscribe().
+		Channels([]string{"ch"}).
+		Execute()
 
 	<-doneSubscribe
 }
@@ -214,10 +214,10 @@ func presence() {
 	pn.AddListener(listenerEmitter)
 	pnPresenceListener.AddListener(listenerPresenceListener)
 
-	pnPresenceListener.Subscribe(&pubnub.SubscribeOperation{
-		Channels:        []string{ch},
-		PresenceEnabled: true,
-	})
+	pnPresenceListener.Subscribe().
+		Channels([]string{ch}).
+		WithPresence(true).
+		Execute()
 
 	select {
 	case <-donePresenceConnect:
@@ -226,9 +226,9 @@ func presence() {
 		return
 	}
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Subscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	go func() {
 		wg.Wait()
@@ -242,9 +242,9 @@ func presence() {
 		return
 	}
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Unsubscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	select {
 	case <-doneLeave:
@@ -273,15 +273,15 @@ func history() {
 }
 
 func unsubscribe() {
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
-	})
+	pn.Subscribe().
+		Channels([]string{"ch"}).
+		Execute()
 
 	// t.Sleep(3 * t.Second)
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{"ch"},
-	})
+	pn.Unsubscribe().
+		Channels([]string{"ch"}).
+		Execute()
 }
 
 func main() {
