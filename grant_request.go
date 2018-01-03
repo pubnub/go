@@ -87,8 +87,8 @@ func (b *grantBuilder) Channels(channels []string) *grantBuilder {
 	return b
 }
 
-func (b *grantBuilder) Groups(groups []string) *grantBuilder {
-	b.opts.Groups = groups
+func (b *grantBuilder) ChannelGroups(groups []string) *grantBuilder {
+	b.opts.ChannelGroups = groups
 
 	return b
 }
@@ -106,9 +106,9 @@ type grantOpts struct {
 	pubnub *PubNub
 	ctx    Context
 
-	AuthKeys []string
-	Channels []string
-	Groups   []string
+	AuthKeys      []string
+	Channels      []string
+	ChannelGroups []string
 
 	// Stringified permissions
 	// Setting 'true' or 'false' will apply permissions to level
@@ -187,8 +187,8 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 		q.Set("channel", strings.Join(o.Channels, ","))
 	}
 
-	if len(o.Groups) > 0 {
-		q.Set("channel-group", strings.Join(o.Groups, ","))
+	if len(o.ChannelGroups) > 0 {
+		q.Set("channel-group", strings.Join(o.ChannelGroups, ","))
 	}
 
 	if o.SetTtl {

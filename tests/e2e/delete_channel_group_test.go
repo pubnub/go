@@ -89,14 +89,14 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{myChannel}).
-		Group(myGroup).
+		ChannelGroup(myGroup).
 		Execute()
 
 	assert.Nil(err)
 
 	_, _, err = pn.RemoveChannelFromChannelGroup().
 		Channels([]string{myChannel}).
-		Group(myGroup).
+		ChannelGroup(myGroup).
 		Execute()
 
 	assert.Nil(err)
@@ -108,5 +108,5 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	assert.Nil(err)
 
 	assert.Equal(0, len(res.Channels))
-	assert.Equal(myGroup, res.Group)
+	assert.Equal(myGroup, res.ChannelGroup)
 }

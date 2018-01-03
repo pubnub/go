@@ -43,8 +43,8 @@ func TestSubscribeMultipleChannels(t *testing.T) {
 func TestSubscribeChannelGroups(t *testing.T) {
 	assert := assert.New(t)
 	opts := &SubscribeOpts{
-		Groups: []string{"cg-1", "cg-2", "cg-3"},
-		pubnub: pubnub,
+		ChannelGroups: []string{"cg-1", "cg-2", "cg-3"},
+		pubnub:        pubnub,
 	}
 
 	path, err := opts.buildPath()
@@ -70,7 +70,7 @@ func TestSubscribeMixedParams(t *testing.T) {
 
 	opts := &SubscribeOpts{
 		Channels:         []string{"ch"},
-		Groups:           []string{"cg"},
+		ChannelGroups:    []string{"cg"},
 		Region:           "us-east-1",
 		Timetoken:        123,
 		FilterExpression: "abc",

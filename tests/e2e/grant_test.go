@@ -44,7 +44,7 @@ func TestGrantMultipleMixed(t *testing.T) {
 		Read(true).Write(true).Manage(true).
 		AuthKeys([]string{"my-auth-key-1", "my-auth-key-2"}).
 		Channels([]string{"ch1", "ch2", "ch3"}).
-		Groups([]string{"cg1", "cg2", "cg3"}).
+		ChannelGroups([]string{"cg1", "cg2", "cg3"}).
 		Execute()
 
 	assert.Nil(err)
@@ -193,7 +193,7 @@ func TestGrantSingleGroup(t *testing.T) {
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).
-		Groups([]string{"cg1"}).
+		ChannelGroups([]string{"cg1"}).
 		Execute()
 
 	assert.Nil(err)
@@ -221,7 +221,7 @@ func TestGrantSingleGroupWithAuth(t *testing.T) {
 	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.Grant().
-		Groups([]string{"cg1"}).
+		ChannelGroups([]string{"cg1"}).
 		AuthKeys([]string{"my-pam-key"}).
 		Write(true).
 		Read(true).
@@ -253,7 +253,7 @@ func TestGrantMultipleGroups(t *testing.T) {
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).
-		Groups([]string{"cg1", "cg2"}).
+		ChannelGroups([]string{"cg1", "cg2"}).
 		Execute()
 
 	assert.Nil(err)
@@ -287,7 +287,7 @@ func TestGrantMultipleGroupsWithAuth(t *testing.T) {
 	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		AuthKeys([]string{"my-pam-key"}).
-		Groups([]string{"cg1", "cg2"}).
+		ChannelGroups([]string{"cg1", "cg2"}).
 		Execute()
 
 	assert.Nil(err)

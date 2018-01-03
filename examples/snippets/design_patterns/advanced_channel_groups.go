@@ -39,7 +39,7 @@ func main() {
 
 	_, _, err = pn.AddChannelToChannelGroup().
 		Channels([]string{"ch-user-a-present"}).
-		Group("cg-user-a-friends").
+		ChannelGroup("cg-user-a-friends").
 		Execute()
 
 	if err != nil {
@@ -50,7 +50,7 @@ func main() {
 
 	_, _, err = pn.AddChannelToChannelGroup().
 		Channels([]string{"ch-user-a-present"}).
-		Group("cg-user-a-status-feed").
+		ChannelGroup("cg-user-a-status-feed").
 		Execute()
 
 	if err != nil {
@@ -66,7 +66,7 @@ func main() {
 	// Add User B to User A's groups: Add ch-user-b-present to cg-user-a-friends
 	_, _, err = pn.AddChannelToChannelGroup().
 		Channels([]string{"ch-user-b-present"}).
-		Group("cg-user-a-friends").
+		ChannelGroup("cg-user-a-friends").
 		Execute()
 
 	if err != nil {
@@ -78,7 +78,7 @@ func main() {
 	// Add User B to User A's groups: ch-user-b-status to cg-user-a-status-feed
 	_, _, err = pn.AddChannelToChannelGroup().
 		Channels([]string{"ch-user-b-status"}).
-		Group("cg-user-a-status-feed").
+		ChannelGroup("cg-user-a-status-feed").
 		Execute()
 
 	if err != nil {
@@ -90,7 +90,7 @@ func main() {
 	// Add User A to User B's groups: Add ch-user-a-present to cg-user-b-friends
 	_, _, err = pn.AddChannelToChannelGroup().
 		Channels([]string{"ch-user-a-present"}).
-		Group("cg-user-b-friends").
+		ChannelGroup("cg-user-b-friends").
 		Execute()
 
 	if err != nil {
@@ -102,7 +102,7 @@ func main() {
 	// Add User B to User A's groups: ch-user-a-status to cg-user-b-status-feed
 	_, _, err = pn.AddChannelToChannelGroup().
 		Channels([]string{"ch-user-a-status"}).
-		Group("cg-user-b-status-feed").
+		ChannelGroup("cg-user-b-status-feed").
 		Execute()
 
 	if err != nil {

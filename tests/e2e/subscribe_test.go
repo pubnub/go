@@ -390,7 +390,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{ch}).
-		Group(cg).
+		ChannelGroup(cg).
 		Execute()
 
 	assert.Nil(err)
@@ -423,7 +423,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 
 	_, _, err = pn.RemoveChannelFromChannelGroup().
 		Channels([]string{ch}).
-		Group(cg).
+		ChannelGroup(cg).
 		Execute()
 }
 
@@ -463,7 +463,7 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{ch}).
-		Group(cg1).
+		ChannelGroup(cg1).
 		Execute()
 
 	assert.Nil(err)
@@ -510,7 +510,7 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 
 	_, _, err = pn.RemoveChannelFromChannelGroup().
 		Channels([]string{ch}).
-		Group(cg1).
+		ChannelGroup(cg1).
 		Execute()
 
 	assert.Nil(err)
@@ -600,7 +600,7 @@ func TestSubscribeJoinLeaveGroup(t *testing.T) {
 
 	pnPresenceListener.AddChannelToChannelGroup().
 		Channels([]string{ch}).
-		Group(cg).
+		ChannelGroup(cg).
 		Execute()
 
 	pnPresenceListener.Subscribe(&pubnub.SubscribeOperation{

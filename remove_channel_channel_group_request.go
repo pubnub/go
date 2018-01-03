@@ -46,9 +46,9 @@ func (b *RemoveChannelFromChannelGroupBuilder) Channels(
 	return b
 }
 
-func (b *RemoveChannelFromChannelGroupBuilder) Group(
+func (b *RemoveChannelFromChannelGroupBuilder) ChannelGroup(
 	cg string) *RemoveChannelFromChannelGroupBuilder {
-	b.opts.Group = cg
+	b.opts.ChannelGroup = cg
 	return b
 }
 
@@ -67,7 +67,7 @@ type removeChannelOpts struct {
 
 	Channels []string
 
-	Group string
+	ChannelGroup string
 
 	Transport http.RoundTripper
 
@@ -95,7 +95,7 @@ func (o *removeChannelOpts) validate() error {
 		return newValidationError(o, StrMissingChannel)
 	}
 
-	if o.Group == "" {
+	if o.ChannelGroup == "" {
 		return newValidationError(o, StrMissingChannelGroup)
 	}
 
@@ -105,7 +105,7 @@ func (o *removeChannelOpts) validate() error {
 func (o *removeChannelOpts) buildPath() (string, error) {
 	return fmt.Sprintf(REMOVE_CHANNEL_CHANNEL_GROUP,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.Group)), nil
+		utils.UrlEncode(o.ChannelGroup)), nil
 }
 
 func (o *removeChannelOpts) buildQuery() (*url.Values, error) {

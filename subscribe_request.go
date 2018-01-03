@@ -21,8 +21,8 @@ type SubscribeResponse struct {
 type SubscribeOpts struct {
 	pubnub *PubNub
 
-	Channels []string
-	Groups   []string
+	Channels      []string
+	ChannelGroups []string
 
 	Heartbeat        int
 	Region           string
@@ -56,7 +56,7 @@ func (o *SubscribeOpts) validate() error {
 		return newValidationError(o, StrMissingSubKey)
 	}
 
-	if len(o.Channels) == 0 && len(o.Groups) == 0 {
+	if len(o.Channels) == 0 && len(o.ChannelGroups) == 0 {
 		return newValidationError(o, StrMissingChannel)
 	}
 
@@ -75,8 +75,8 @@ func (o *SubscribeOpts) buildPath() (string, error) {
 func (o *SubscribeOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
-	if len(o.Groups) > 0 {
-		channelGroup := utils.JoinChannels(o.Groups)
+	if len(o.ChannelGroups) > 0 {
+		channelGroup := utils.JoinChannels(o.ChannelGroups)
 		q.Set("channel-group", string(channelGroup))
 	}
 

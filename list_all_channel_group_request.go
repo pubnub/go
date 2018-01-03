@@ -133,8 +133,8 @@ func (o *allChannelGroupOpts) telemetryManager() *TelemetryManager {
 }
 
 type AllChannelGroupResponse struct {
-	Channels []string
-	Group    string
+	Channels     []string
+	ChannelGroup string
 }
 
 func newAllChannelGroupResponse(jsonBytes []byte, status StatusResponse) (
@@ -154,7 +154,7 @@ func newAllChannelGroupResponse(jsonBytes []byte, status StatusResponse) (
 	if parsedValue, ok := value.(map[string]interface{}); ok {
 		if payload, ok := parsedValue["payload"].(map[string]interface{}); ok {
 			if group, ok := payload["group"].(string); ok {
-				resp.Group = group
+				resp.ChannelGroup = group
 			}
 
 			if channels, ok := payload["channels"].([]interface{}); ok {

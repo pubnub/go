@@ -16,7 +16,7 @@ func main() {
 
 	res, status, err := pn.Grant().
 		Channels([]string{"ch1"}).
-		Groups([]string{"cg1"}).
+		ChannelGroups([]string{"cg1"}).
 		AuthKeys([]string{"key-1"}).
 		Read(true).
 		Write(true).

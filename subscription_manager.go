@@ -261,7 +261,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		opts := &SubscribeOpts{
 			pubnub:           m.pubnub,
 			Channels:         combinedChannels,
-			Groups:           combinedGroups,
+			ChannelGroups:    combinedGroups,
 			Timetoken:        tt,
 			Transport:        m.transport,
 			Heartbeat:        m.pubnub.Config.PresenceTimeout,

@@ -15,7 +15,7 @@ func main() {
 
 	addRes, status, err := pn.AddChannelToChannelGroup().
 		Channels([]string{"ch1", "ch2"}).
-		Group("cg1").
+		ChannelGroup("cg1").
 		Execute()
 
 	if err != nil {
@@ -36,7 +36,7 @@ func main() {
 
 	removeRes, status, err := pn.RemoveChannelFromChannelGroup().
 		Channels([]string{"ch1", "ch2"}).
-		Group("cg1").
+		ChannelGroup("cg1").
 		Execute()
 
 	if err != nil {
