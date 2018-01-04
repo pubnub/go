@@ -97,10 +97,10 @@ func TestHeartbeatTimeoutEvent(t *testing.T) {
 	pn.AddListener(listenerEmitter)
 	pnPresenceListener.AddListener(listenerPresenceListener)
 
-	pnPresenceListener.Subscribe(&pubnub.SubscribeOperation{
-		Channels:        []string{ch},
-		PresenceEnabled: true,
-	})
+	pnPresenceListener.Subscribe().
+		Channels([]string{ch}).
+		WithPresence(true).
+		Execute()
 
 	select {
 	case <-donePresenceConnect:
@@ -109,9 +109,9 @@ func TestHeartbeatTimeoutEvent(t *testing.T) {
 		return
 	}
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Subscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	go func() {
 		wg.Wait()
@@ -203,9 +203,9 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 		}
 	}()
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Subscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	select {
 	case <-doneConnect:
@@ -221,9 +221,9 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 		assert.Fail("Heartbeat status was expected")
 	}
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Unsubscribe().
+		Channels([]string{ch}).
+		Execute()
 }
 
 // Test triggers BadRequestCategory in subscription.Status channel
@@ -282,9 +282,9 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 		}
 	}()
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Subscribe().
+		Channels([]string{ch}).
+		Execute()
 
 	select {
 	case <-doneConnect:
@@ -300,9 +300,9 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 		assert.Fail("Heartbeat status was expected")
 	}
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{ch},
-	})
+	pn.Unsubscribe().
+		Channels([]string{ch}).
+		Execute()
 }
 
 // NOTICE: snippet for manual hb testing
@@ -355,9 +355,9 @@ func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 
 	pn.AddListener(listenerEmitter)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{first},
-	})
+	pn.Subscribe().
+		Channels([]string{first}).
+		Execute()
 
 	go func() {
 		doneJoin <- true
@@ -379,25 +379,25 @@ func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 	log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{first},
-	})
+	pn.Subscribe().
+		Channels([]string{first}).
+		Execute()
 
 	log.Println("Subscribed again")
 	log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{second},
-	})
+	pn.Subscribe().
+		Channels([]string{second}).
+		Execute()
 
 	log.Println("Subsccribed to another channel again")
 	log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
-	pn.Unsubscribe(&pubnub.UnsubscribeOperation{
-		Channels: []string{first, second},
-	})
+	pn.Unsubscribe().
+		Channels([]string{first, second}).
+		Execute()
 
 	log.Println("Unsubscribed")
 	log.Println("Sleeping 8s")

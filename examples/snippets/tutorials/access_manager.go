@@ -126,9 +126,9 @@ func permissionDenied() {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"private_chat"},
-	})
+	pn.Subscribe().
+		Channels([]string{"private_chat"}).
+		Execute()
 
 	<-doneAccessDenied
 }

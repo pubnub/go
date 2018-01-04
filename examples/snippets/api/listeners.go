@@ -28,9 +28,9 @@ func main() {
 
 	pn.AddListener(listener)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
-	})
+	pn.Subscribe().
+		Channels([]string{"ch"}).
+		Execute()
 
 	<-done
 }

@@ -27,9 +27,9 @@ func main() {
 
 	pn.AddListener(ln1)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"blah"},
-	})
+	pn.Subscribe().
+		Channels([]string{"blah"}).
+		Execute()
 
 	pn.AddListener(ln2)
 	pn.AddListener(ln3)

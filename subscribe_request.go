@@ -11,14 +11,10 @@ import (
 
 const SUBSCRIBE_PATH = "/v2/subscribe/%s/%s/0"
 
-func newSubscribeRequest(ctx Context) *SubscribeResponse {
-	return &SubscribeResponse{}
-}
-
 type SubscribeResponse struct {
 }
 
-type SubscribeOpts struct {
+type subscribeOpts struct {
 	pubnub *PubNub
 
 	Channels      []string
@@ -30,24 +26,72 @@ type SubscribeOpts struct {
 	FilterExpression string
 	WithPresence     bool
 
-	Transport http.RoundTripper
-
 	ctx Context
 }
 
-func (o *SubscribeOpts) config() Config {
+type subscribeBuilder struct {
+	opts      *subscribeOpts
+	operation *SubscribeOperation
+}
+
+func newSubscribeBuilder(pubnub *PubNub) *subscribeBuilder {
+	builder := subscribeBuilder{
+		opts: &subscribeOpts{
+			pubnub: pubnub,
+		},
+		operation: &SubscribeOperation{},
+	}
+
+	return &builder
+}
+
+func (b *subscribeBuilder) Channels(channels []string) *subscribeBuilder {
+	b.operation.Channels = channels
+
+	return b
+}
+
+func (b *subscribeBuilder) ChannelGroups(groups []string) *subscribeBuilder {
+	b.operation.ChannelGroups = groups
+
+	return b
+}
+
+func (b *subscribeBuilder) Timetoken(tt int64) *subscribeBuilder {
+	b.operation.Timetoken = tt
+
+	return b
+}
+
+func (b *subscribeBuilder) FilterExpression(expr string) *subscribeBuilder {
+	b.operation.FilterExpression = expr
+
+	return b
+}
+
+func (b *subscribeBuilder) WithPresence(pres bool) *subscribeBuilder {
+	b.operation.PresenceEnabled = pres
+
+	return b
+}
+
+func (b *subscribeBuilder) Execute() {
+	b.opts.pubnub.subscriptionManager.adaptSubscribe(b.operation)
+}
+
+func (o *subscribeOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *SubscribeOpts) client() *http.Client {
+func (o *subscribeOpts) client() *http.Client {
 	return o.pubnub.GetSubscribeClient()
 }
 
-func (o *SubscribeOpts) context() Context {
+func (o *subscribeOpts) context() Context {
 	return o.ctx
 }
 
-func (o *SubscribeOpts) validate() error {
+func (o *subscribeOpts) validate() error {
 	if o.config().PublishKey == "" {
 		return newValidationError(o, StrMissingPubKey)
 	}
@@ -63,7 +107,7 @@ func (o *SubscribeOpts) validate() error {
 	return nil
 }
 
-func (o *SubscribeOpts) buildPath() (string, error) {
+func (o *subscribeOpts) buildPath() (string, error) {
 	channels := utils.JoinChannels(o.Channels)
 
 	return fmt.Sprintf(SUBSCRIBE_PATH,
@@ -72,7 +116,7 @@ func (o *SubscribeOpts) buildPath() (string, error) {
 	), nil
 }
 
-func (o *SubscribeOpts) buildQuery() (*url.Values, error) {
+func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
 	if len(o.ChannelGroups) > 0 {
@@ -100,30 +144,30 @@ func (o *SubscribeOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *SubscribeOpts) buildBody() ([]byte, error) {
+func (o *subscribeOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *SubscribeOpts) httpMethod() string {
+func (o *subscribeOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *SubscribeOpts) isAuthRequired() bool {
+func (o *subscribeOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *SubscribeOpts) requestTimeout() int {
+func (o *subscribeOpts) requestTimeout() int {
 	return o.pubnub.Config.SubscribeRequestTimeout
 }
 
-func (o *SubscribeOpts) connectTimeout() int {
+func (o *subscribeOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *SubscribeOpts) operationType() OperationType {
+func (o *subscribeOpts) operationType() OperationType {
 	return PNSubscribeOperation
 }
 
-func (o *SubscribeOpts) telemetryManager() *TelemetryManager {
+func (o *subscribeOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }

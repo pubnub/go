@@ -46,9 +46,9 @@ func main() {
 
 	fmt.Println(res, status)
 
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels: []string{"ch"},
-	})
+	pn.Subscribe().
+		Channels([]string{"ch"}).
+		Execute()
 
 	<-done
 }

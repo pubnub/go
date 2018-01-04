@@ -150,8 +150,8 @@ func main() {
 	}()
 
 	// Watch Friends come online / go offline
-	pn.Subscribe(&pubnub.SubscribeOperation{
-		Channels:        []string{"cg-user-a-friends"},
-		PresenceEnabled: true,
-	})
+	pn.Subscribe().
+		Channels([]string{"cg-user-a-friends"}).
+		WithPresence(true).
+		Execute()
 }

@@ -79,7 +79,6 @@ type SubscribeOperation struct {
 	PresenceEnabled  bool
 	Timetoken        int64
 	FilterExpression string
-	Transport        http.RoundTripper
 }
 
 type UnsubscribeOperation struct {
@@ -258,12 +257,11 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		ctx := m.ctx
 		m.Unlock()
 
-		opts := &SubscribeOpts{
+		opts := &subscribeOpts{
 			pubnub:           m.pubnub,
 			Channels:         combinedChannels,
 			ChannelGroups:    combinedGroups,
 			Timetoken:        tt,
-			Transport:        m.transport,
 			Heartbeat:        m.pubnub.Config.PresenceTimeout,
 			FilterExpression: m.pubnub.Config.FilterExpression,
 			ctx:              ctx,

@@ -45,6 +45,10 @@ func (pn *PubNub) PublishWithContext(ctx Context) *publishBuilder {
 	return newPublishBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) Subscribe() *subscribeBuilder {
+	return newSubscribeBuilder(pn)
+}
+
 func (pn *PubNub) History() *historyBuilder {
 	return newHistoryBuilder(pn)
 }
@@ -69,12 +73,8 @@ func (pn *PubNub) GrantWithContext(ctx Context) *grantBuilder {
 	return newGrantBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) Subscribe(operation *SubscribeOperation) {
-	pn.subscriptionManager.adaptSubscribe(operation)
-}
-
-func (pn *PubNub) Unsubscribe(operation *UnsubscribeOperation) {
-	pn.subscriptionManager.adaptUnsubscribe(operation)
+func (pn *PubNub) Unsubscribe() *unsubscribeBuilder {
+	return newUnsubscribeBuilder(pn)
 }
 
 func (pn *PubNub) AddListener(listener *Listener) {
