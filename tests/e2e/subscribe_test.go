@@ -671,23 +671,12 @@ func TestUnsubscribeAll(t *testing.T) {
 /////////////////////////////
 
 func TestSubscribe403Error(t *testing.T) {
-	interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               "/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/ch/0",
-		Query:              "heartbeat=300",
-		ResponseBody:       `{"message":"Forbidden","payload":{"channels":["ch1", "ch2"], "channel-groups":[":cg1", ":cg2"]},"error":true,"service":"Access Manager","status":403}`,
-		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
-		ResponseStatusCode: 403,
-	})
-
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)
 	doneAccessDenied := make(chan bool)
 	errChan := make(chan string)
 
-	pn := pubnub.NewPubNub(configCopy())
-	pn.SetSubscribeClient(interceptor.GetClient())
+	pn := pubnub.NewPubNub(pamConfigCopy())
 	listener := pubnub.NewListener()
 
 	go func() {
@@ -712,9 +701,18 @@ func TestSubscribe403Error(t *testing.T) {
 
 	pn.AddListener(listener)
 
+	pn.Grant().
+		Read(false).
+		Write(false).
+		Manage(false).
+		AuthKeys([]string{"pam-key"}).
+		Channels([]string{"ch"}).
+		Execute()
+
+	pn.Config.SecretKey = ""
+
 	pn.Subscribe().
 		Channels([]string{"ch"}).
-		Transport(interceptor.Transport).
 		Execute()
 
 	select {

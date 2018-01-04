@@ -26,8 +26,6 @@ type subscribeOpts struct {
 	FilterExpression string
 	WithPresence     bool
 
-	Transport http.RoundTripper
-
 	ctx Context
 }
 
@@ -73,12 +71,6 @@ func (b *subscribeBuilder) FilterExpression(expr string) *subscribeBuilder {
 
 func (b *subscribeBuilder) WithPresence(pres bool) *subscribeBuilder {
 	b.operation.PresenceEnabled = pres
-
-	return b
-}
-
-func (b *subscribeBuilder) Transport(tr http.RoundTripper) *subscribeBuilder {
-	b.operation.Transport = tr
 
 	return b
 }
