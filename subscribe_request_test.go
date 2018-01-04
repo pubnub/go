@@ -10,7 +10,7 @@ import (
 
 func TestSubscribeSingleChannel(t *testing.T) {
 	assert := assert.New(t)
-	opts := &SubscribeOpts{
+	opts := &subscribeOpts{
 		Channels: []string{"ch"},
 		pubnub:   pubnub,
 	}
@@ -26,7 +26,7 @@ func TestSubscribeSingleChannel(t *testing.T) {
 
 func TestSubscribeMultipleChannels(t *testing.T) {
 	assert := assert.New(t)
-	opts := &SubscribeOpts{
+	opts := &subscribeOpts{
 		Channels: []string{"ch-1", "ch-2", "ch-3"},
 		pubnub:   pubnub,
 	}
@@ -42,7 +42,7 @@ func TestSubscribeMultipleChannels(t *testing.T) {
 
 func TestSubscribeChannelGroups(t *testing.T) {
 	assert := assert.New(t)
-	opts := &SubscribeOpts{
+	opts := &subscribeOpts{
 		ChannelGroups: []string{"cg-1", "cg-2", "cg-3"},
 		pubnub:        pubnub,
 	}
@@ -68,7 +68,7 @@ func TestSubscribeChannelGroups(t *testing.T) {
 func TestSubscribeMixedParams(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &SubscribeOpts{
+	opts := &subscribeOpts{
 		Channels:         []string{"ch"},
 		ChannelGroups:    []string{"cg"},
 		Region:           "us-east-1",
