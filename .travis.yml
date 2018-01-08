@@ -14,7 +14,8 @@ install:
   - pwd
   - echo $GOPATH
   - echo $PATH
-  - go list ./... | go get -t
+  - go get -u github.com/golang/dep/cmd/dep
+  - deps ensure
   - go get github.com/wadey/gocovmerge
 
 script:
