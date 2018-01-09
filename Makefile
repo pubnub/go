@@ -6,9 +6,9 @@ run-tests: install-deps-tests
 
 install-deps-tests:
 	@echo "Install dependencies for tests"
+	go get golang.org/x/net/context
+	go get github.com/wadey/gocovmerge	
 	go get github.com/satori/go.uuid
-	cd ${GOPATH}/src/github.com/satory && git checkout tags/v1.1.0
-	cd ${GOPATH}/src/github.com/pubnub	
-	go get -u github.com/stretchr/testify
+	go get github.com/stretchr/testify
 
 

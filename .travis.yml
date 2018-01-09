@@ -11,17 +11,8 @@ go_import_path: github.com/pubnub/go
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
 
-  # - ls -all
-  # - pwd
-  # - echo $GOPATH
-  # - echo $PATH
-  # - go get -u github.com/golang/dep/cmd/dep
-  # - dep ensure
-  # - go get github.com/wadey/gocovmerge
-
 script:
   make -f Makefile
-  # - bash ./scripts/run-tests.sh
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)
