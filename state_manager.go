@@ -49,7 +49,7 @@ func (m *StateManager) prepareGroupList(includePresence bool) []string {
 	return prepareMembershipList(m.groups, m.presenceGroups, includePresence)
 }
 
-func (m *StateManager) adaptSubscribeBuilder(
+func (m *StateManager) adaptSubscribeOperation(
 	subscribeOperation *SubscribeOperation) {
 	m.Lock()
 	defer m.Unlock()
@@ -71,7 +71,7 @@ func (m *StateManager) adaptSubscribeBuilder(
 	}
 }
 
-func (m *StateManager) adaptStateBuilder(stateOperation StateOperation) {
+func (m *StateManager) adaptStateOperation(stateOperation StateOperation) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -96,7 +96,7 @@ func (m *StateManager) adaptStateBuilder(stateOperation StateOperation) {
 	}
 }
 
-func (m *StateManager) adaptUnsubscribeBuilder(unsubscribeOperation *UnsubscribeOperation) {
+func (m *StateManager) adaptUnsubscribeOperation(unsubscribeOperation *UnsubscribeOperation) {
 	m.Lock()
 	defer m.Unlock()
 

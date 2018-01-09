@@ -158,12 +158,12 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 }
 
 func (m *SubscriptionManager) adaptState(stateOperation StateOperation) {
-	m.stateManager.adaptStateBuilder(stateOperation)
+	m.stateManager.adaptStateOperation(stateOperation)
 }
 
 func (m *SubscriptionManager) adaptSubscribe(
 	subscribeOperation *SubscribeOperation) {
-	m.stateManager.adaptSubscribeBuilder(subscribeOperation)
+	m.stateManager.adaptSubscribeOperation(subscribeOperation)
 
 	log.Println("adapting a new subscription", subscribeOperation.Channels,
 		subscribeOperation.PresenceEnabled)
@@ -189,7 +189,7 @@ func (m *SubscriptionManager) adaptSubscribe(
 
 func (m *SubscriptionManager) adaptUnsubscribe(
 	unsubscribeOperation *UnsubscribeOperation) {
-	m.stateManager.adaptUnsubscribeBuilder(unsubscribeOperation)
+	m.stateManager.adaptUnsubscribeOperation(unsubscribeOperation)
 
 	m.Lock()
 	m.subscriptionStateAnnounced = false

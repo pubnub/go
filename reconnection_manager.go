@@ -105,8 +105,6 @@ func (m *ReconnectionManager) registerHeartbeatTimer() {
 		} else {
 			timerInterval = RECONNECTION_MINEXPONENTIALBACKOFF
 		}
-		// log.debug("timerInterval = " + String.valueOf(timerInterval) + " at: " +
-		// Calendar.getInstance().getTime().toString());
 	}
 
 	if m.pubnub.Config.PNReconnectionPolicy == PNLinearPolicy {
