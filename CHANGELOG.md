@@ -1,3 +1,8 @@
+## [v4.0.0-beta.5](https://github.com/pubnub/go/tree/v4.0.0-beta.5)
+  January-9-2018
+
+- Add subscribe builder
+
 ## [v4.0.0-beta.4](https://github.com/pubnub/go/tree/v4.0.0-beta.4)
  December-20-2017
 

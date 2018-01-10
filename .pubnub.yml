@@ -1,8 +1,12 @@
 name: go
-version: v4.0.0-beta.3
+version: v4.0.0-beta.5
 schema: 1
 scm: github.com/pubnub/go
 changelog:
+  - version: v4.0.0-beta.5
+    changes:
+      - type: improvement
+        text: add subscribe builder
   - version: v4.0.0-beta.4
     changes:
       - type: improvement
