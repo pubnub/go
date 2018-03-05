@@ -1,1 +1,1 @@
-force_go_install: false
+force_go_install: true
