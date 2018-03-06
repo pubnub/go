@@ -17,7 +17,9 @@ matrix:
   allow_failures:
     - go: tip
   fast_finish: true  
-
+  addons:
+    - go: tip
+        
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
   - ln -s $GOPATH/src/github.com/pubnub/go
