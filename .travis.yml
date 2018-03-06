@@ -11,6 +11,12 @@ go:
   - 1.7.4
   - 1.8
   - 1.9
+  - tip
+  
+matrix:
+  allow_failures:
+    - go: tip
+  fast_finish: true  
 
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
