@@ -20,8 +20,5 @@ _cgo_export.*
 _testmain.go
 
 *.exe
-.DS_Store
-.idea
 
-coverage.txt
-*.out
+.DS_Store
