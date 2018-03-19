@@ -48,6 +48,10 @@ func (b *whereNowBuilder) Uuid(uuid string) *whereNowBuilder {
 }
 
 func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
+	if len(b.opts.Uuid) <= 0 {
+		b.opts.Uuid = b.opts.pubnub.Config.Uuid
+	}
+
 	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyWhereNowResponse, status, err
@@ -81,10 +85,6 @@ func (o *whereNowOpts) context() Context {
 func (o *whereNowOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)
-	}
-
-	if o.Uuid == "" {
-		return newValidationError(o, StrMissingUuid)
 	}
 
 	return nil
