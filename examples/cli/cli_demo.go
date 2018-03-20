@@ -141,8 +141,6 @@ func readCommand(cmd string) {
 		unsubscribeRequest(command[1:])
 	case "delmessage":
 		unsubscribeRequest(command[1:])
-	case "wherenow":
-		unsubscribeRequest(command[1:])
 	case "usub":
 		unsubscribeRequest(command[1:])
 	case "setState":

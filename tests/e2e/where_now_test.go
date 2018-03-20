@@ -51,9 +51,12 @@ func TestWhereNowNoUuid(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(config)
+	pn.Subscribe().Channels([]string{"ch1"}).Execute()
 
-	_, _, err := pn.WhereNow().
+	res, _, err := pn.WhereNow().
 		Execute()
 
-	assert.Contains(err.Error(), "Missing Uuid")
+	assert.Nil(err)
+
+	assert.NotEqual(0, len(res.Channels))
 }
