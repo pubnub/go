@@ -7,13 +7,12 @@ go:
   - 1.9.2
   - 1.10
   - tip
-
-go_import_path: github.com/pubnub/go
-
+  
 matrix:
   allow_failures:
     - go: tip
-  fast_finish: true    
+  fast_finish: true
+go_import_path: github.com/pubnub/go  
 
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
