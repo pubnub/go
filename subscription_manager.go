@@ -195,19 +195,28 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 	m.subscriptionStateAnnounced = false
 
 	go func() {
-		_, err := m.pubnub.Leave().Channels(unsubscribeOperation.Channels).
-			ChannelGroups(unsubscribeOperation.ChannelGroups).Execute()
+		announceAck := false
+		if !m.pubnub.Config.SuppressLeaveEvents {
+			_, err := m.pubnub.Leave().Channels(unsubscribeOperation.Channels).
+				ChannelGroups(unsubscribeOperation.ChannelGroups).Execute()
 
-		if err != nil {
-			m.listenerManager.announceStatus(&PNStatus{
-				Category:              PNBadRequestCategory,
-				ErrorData:             err,
-				Error:                 true,
-				Operation:             PNUnsubscribeOperation,
-				AffectedChannels:      unsubscribeOperation.Channels,
-				AffectedChannelGroups: unsubscribeOperation.ChannelGroups,
-			})
+			if err != nil {
+				m.listenerManager.announceStatus(&PNStatus{
+					Category:              PNBadRequestCategory,
+					ErrorData:             err,
+					Error:                 true,
+					Operation:             PNUnsubscribeOperation,
+					AffectedChannels:      unsubscribeOperation.Channels,
+					AffectedChannelGroups: unsubscribeOperation.ChannelGroups,
+				})
+			} else {
+				announceAck = true
+			}
 		} else {
+			announceAck = true
+		}
+
+		if announceAck {
 			m.listenerManager.announceStatus(&PNStatus{
 				Category:              PNAcknowledgmentCategory,
 				StatusCode:            200,

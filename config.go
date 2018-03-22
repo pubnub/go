@@ -41,6 +41,8 @@ type Config struct {
 	PNReconnectionPolicy ReconnectionPolicy
 
 	Log *log.Logger
+
+	SuppressLeaveEvents bool
 }
 
 func NewDemoConfig() *Config {
