@@ -145,7 +145,8 @@ type PNPresence struct {
 	UserMetadata map[string]interface{}
 	State        interface{}
 
-	Join    []string
-	Leave   []string
-	Timeout []string
+	Join           []string
+	Leave          []string
+	Timeout        []string
+	HereNowRefresh bool
 }

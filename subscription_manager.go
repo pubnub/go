@@ -573,7 +573,7 @@ func processSubscribePayload(lm *ListenerManager, payload subscribeMessage) {
 		var occupancy int
 		var timestamp int64
 		var data interface{}
-		var ok bool
+		var ok, hereNowRefresh bool
 
 		if presencePayload, ok = payload.Payload.(map[string]interface{}); !ok {
 			lm.announceStatus(&PNStatus{
@@ -591,6 +591,9 @@ func processSubscribePayload(lm *ListenerManager, payload subscribeMessage) {
 		occupancy, _ = presencePayload["occupancy"].(int)
 		timestamp, _ = presencePayload["timestamp"].(int64)
 		data = presencePayload["data"]
+		if presencePayload["here_now_refresh"] != nil {
+			hereNowRefresh = presencePayload["here_now_refresh"].(bool)
+		}
 		timetoken, _ := strconv.ParseInt(publishMetadata.PublishTimetoken, 10, 64)
 
 		strippedPresenceChannel := ""
@@ -619,6 +622,7 @@ func processSubscribePayload(lm *ListenerManager, payload subscribeMessage) {
 			Occupancy:         occupancy,
 			Uuid:              uuid,
 			Timestamp:         timestamp,
+			HereNowRefresh:    hereNowRefresh,
 		}
 
 		lm.announcePresence(pnPresenceResult)
