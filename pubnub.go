@@ -1,6 +1,8 @@
 package pubnub
 
 import (
+	"io/ioutil"
+	"log"
 	"net/http"
 	"sync"
 )
@@ -252,6 +254,10 @@ func (pn *PubNub) getPublishSequence() int {
 
 func NewPubNub(pnconf *Config) *PubNub {
 	ctx, cancel := contextWithCancel(backgroundContext)
+
+	if pnconf.Log == nil {
+		pnconf.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 
 	pn := &PubNub{
 		Config:              pnconf,

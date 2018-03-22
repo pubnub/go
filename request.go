@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -47,8 +46,9 @@ type ResponseInfo struct {
 
 func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	err := opts.validate()
+
 	if err != nil {
-		log.Println(err)
+		opts.config().Log.Println(err)
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
 			err
@@ -61,8 +61,9 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
 			err
 	}
-	log.Println("pubnub: >>>", url)
-	log.Println(opts.httpMethod())
+
+	opts.config().Log.Println(url)
+	opts.config().Log.Println(opts.httpMethod())
 
 	var req *http.Request
 
@@ -101,17 +102,17 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	res, err := client.Do(req)
 	// Host lookup failed
 	if err != nil {
-		log.Println(err.Error())
+		opts.config().Log.Println(err.Error())
 		e := pnerr.NewConnectionError("Failed to execute request", err)
 
-		log.Println(e.Error())
+		opts.config().Log.Println(e.Error())
 
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, e),
 			e
 	}
 
-	val, status, err := parseResponse(res)
+	val, status, err := parseResponse(res, opts)
 	// Already wrapped error
 	if err != nil {
 		return nil, status, err
@@ -168,16 +169,16 @@ func newRequest(method string, u *url.URL, body io.Reader) (*http.Request,
 	return req, nil
 }
 
-func parseResponse(resp *http.Response) ([]byte, StatusResponse, error) {
+func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusResponse, error) {
 	status := StatusResponse{}
 
 	if resp.StatusCode != 200 {
 		// Errors like 400, 403, 500
-		log.Println(resp.Body)
+		opts.config().Log.Println(resp.Body)
 
 		e := pnerr.NewServerError(resp.StatusCode, resp.Body)
 
-		log.Println(e.Error())
+		opts.config().Log.Println(e.Error())
 
 		if resp.StatusCode == 408 {
 			status = createStatus(PNTimeoutCategory, "", ResponseInfo{}, e)
@@ -199,12 +200,12 @@ func parseResponse(resp *http.Response) ([]byte, StatusResponse, error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error reading response body", resp.Body, err)
-		log.Println(e)
+		opts.config().Log.Println(e)
 
 		return nil, status, e
 	}
 
-	log.Println("pubnub: <<<", resp.Status, string(body))
+	opts.config().Log.Println(resp.Status, string(body))
 
 	return body, status, nil
 }

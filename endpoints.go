@@ -72,7 +72,6 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 		}
 
 		signedInput += utils.PreparePamParams(query)
-		fmt.Println("signed input: ", signedInput)
 
 		signature = utils.GetHmacSha256(o.config().SecretKey, signedInput)
 	}

@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"github.com/pubnub/go/utils"
+	"log"
 )
 
 const (
@@ -38,6 +39,8 @@ type Config struct {
 	FilterExpression string
 
 	PNReconnectionPolicy ReconnectionPolicy
+
+	Log *log.Logger
 }
 
 func NewDemoConfig() *Config {
@@ -48,6 +51,7 @@ func NewDemoConfig() *Config {
 	demoConfig.SecretKey = "demo"
 
 	return demoConfig
+
 }
 
 func NewConfig() *Config {

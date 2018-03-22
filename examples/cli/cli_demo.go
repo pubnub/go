@@ -4,20 +4,47 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	pubnub "github.com/pubnub/go"
 )
 
-var config = pubnub.NewConfig()
-var pn = pubnub.NewPubNub(config)
+var config *pubnub.Config
+var pn *pubnub.PubNub
 var quitSubscribe = false
 
+const outputPrefix = "Example >>>> "
+const outputSuffix = "Example <<<< "
+
 func main() {
+	config = pubnub.NewConfig()
+	//config.EnableLogging = false
+
+	pn = pubnub.NewPubNub(config)
+	/*if !pnconf.EnableLogging {
+		log.SetFlags(0)
+		log.SetOutput(ioutil.Discard)
+	}*/
+	/*var infoLogger *log.Logger
+
+	logfileName := "pubnubMessaging.log"
+	f, err := os.OpenFile(logfileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+
+		fmt.Println("error opening file: ", err.Error())
+		fmt.Println("Logging disabled")
+	} else {
+		fmt.Println("Logging enabled writing to ", logfileName)
+		infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}*/
+	config.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+	config.Log.SetPrefix("pubnub:")
+
 	config.PublishKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"
 	config.SubscribeKey = "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f"
 
@@ -28,22 +55,28 @@ func main() {
 		for {
 			select {
 			case status := <-listener.Status:
+				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
 				fmt.Println(" --- STATUS: ")
-				fmt.Println(status.Error)
-				fmt.Println(status.ErrorData)
-				fmt.Println(status.ClientRequest)
-				fmt.Print(">>> ")
+				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, status.Error))
+				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, status.ErrorData))
+				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, status.ClientRequest))
+				fmt.Println("")
+				fmt.Println(fmt.Sprintf("%s", outputSuffix))
 			case msg := <-listener.Message:
+				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
 				fmt.Println(" --- MESSAGE: ")
-				fmt.Println(fmt.Sprintf("msg.Channel: %s", msg.Channel))
-				fmt.Println(fmt.Sprintf("msg.Message: %s", msg.Message))
-				fmt.Println(fmt.Sprintf("msg.SubscribedChannel: %s", msg.SubscribedChannel))
-				fmt.Println(fmt.Sprintf("msg.Timetoken: %d", msg.Timetoken))
-				fmt.Print(">>> ")
+				fmt.Println(fmt.Sprintf("%s msg.Channel: %s", outputPrefix, msg.Channel))
+				fmt.Println(fmt.Sprintf("%s msg.Message: %s", outputPrefix, msg.Message))
+				fmt.Println(fmt.Sprintf("%s msg.SubscribedChannel: %s", outputPrefix, msg.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("%s msg.Timetoken: %d", outputPrefix, msg.Timetoken))
+				fmt.Println("")
+				fmt.Println(fmt.Sprintf("%s", outputSuffix))
 			case presence := <-listener.Presence:
+				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
 				fmt.Println(" --- PRESENCE: ")
-				fmt.Println(presence)
-				fmt.Print(">>> ")
+				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, presence))
+				fmt.Println("")
+				fmt.Println(fmt.Sprintf("%s", outputSuffix))
 			}
 		}
 	}()
@@ -52,7 +85,7 @@ func main() {
 
 	for {
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Print(">>> ")
+		fmt.Print(fmt.Sprintf("%s ", outputPrefix))
 		text, _ := reader.ReadString('\n')
 
 		text = text[:len(text)-1]
@@ -62,10 +95,12 @@ func main() {
 		}
 		fmt.Println("")
 	}
+
+	log.Println("test log")
 }
 
 func showErr(err string) {
-	fmt.Println("\x1b[31;1m", errors.New(err), "\x1b[0m")
+	fmt.Println(fmt.Sprintf("%s \x1b[31;1m %s \x1b[0m", outputPrefix, errors.New(err)))
 }
 
 func showHelp() {
@@ -79,17 +114,18 @@ func showHelp() {
 	showHereNowHelp()
 	showHistoryHelp()
 	showWhereNowHelp()
+	showUnsubscribeHelp()
 	fmt.Println("\n ================")
 	fmt.Println(" ||  COMMANDS  ||")
 	fmt.Println(" ================\n")
-	fmt.Println(" UNSUBSCRIBE \n\tq ")
+	fmt.Println(" UNSUBSCRIBE ALL \n\tq ")
 	fmt.Println(" QUIT \n\tctrl+c ")
 }
 
 func showPublishHelp() {
 	fmt.Println(" PUBLISH EXAMPLE: ")
-	fmt.Println("	pub usePost \"my-message\" my-channel,my-another-channel")
-	fmt.Println("	pub false \"my-message\" my-channel,my-another-channel")
+	fmt.Println("	pub usePost \"my-message\" my-channel")
+	fmt.Println("	pub false \"my-message\" my-channel")
 }
 
 func showTimeHelp() {
@@ -121,6 +157,13 @@ func showWhereNowHelp() {
 	fmt.Println("	wherenow \"uuidToCheck\"")
 }
 
+func showUnsubscribeHelp() {
+	fmt.Println(" UNSUBSCRIBE EXAMPLE: ")
+	fmt.Println("	unsub channels channelGroups")
+	fmt.Println("	unsub my-channel,my-another-channel my-channelgroup,my-another-channel-group")
+
+}
+
 func readCommand(cmd string) {
 	command := strings.Split(cmd, " ")
 
@@ -137,11 +180,11 @@ func readCommand(cmd string) {
 		historyRequest(command[1:])
 	case "wherenow":
 		whereNowRequest(command[1:])
+	case "unsub":
+		unsubscribeRequest(command[1:])
 	/*case "fetch":
-		unsubscribeRequest(command[1:])
-	case "delmessage":
-		unsubscribeRequest(command[1:])
-	case "usub":
+	unsubscribeRequest(command[1:])*/
+	/*case "delmessage":
 		unsubscribeRequest(command[1:])
 	case "setState":
 		subscribeRequest(command[1:])
@@ -175,9 +218,11 @@ func whereNowRequest(args []string) {
 	if len(uuidToUse) == 0 {
 		res, status, err := pn.WhereNow().Execute()
 		fmt.Println(res, status, err)
+		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	} else {
 		res, status, err := pn.WhereNow().Uuid(uuidToUse).Execute()
 		fmt.Println(res, status, err)
+		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	}
 }
 
@@ -272,22 +317,26 @@ func historyRequest(args []string) {
 }
 
 func ParseHistory(res *pubnub.HistoryResponse, status pubnub.StatusResponse, err error) {
+	fmt.Println(fmt.Sprintf("%s ParseHistory:", outputPrefix))
 	for _, v := range res.Messages {
-		fmt.Println(fmt.Sprintf("Timetoken %d", v.Timetoken))
-		fmt.Println(fmt.Sprintf("Message %s", v.Message))
+		fmt.Println(fmt.Sprintf("%s Timetoken %d", outputPrefix, v.Timetoken))
+		fmt.Println(fmt.Sprintf("%s Message %s", outputPrefix, v.Message))
 	}
-	fmt.Println(fmt.Sprintf("EndTimetoken %d", res.EndTimetoken))
-	fmt.Println(fmt.Sprintf("StartTimetoken %d", res.StartTimetoken))
+	fmt.Println(fmt.Sprintf("%s EndTimetoken %d", outputPrefix, res.EndTimetoken))
+	fmt.Println(fmt.Sprintf("%s StartTimetoken %d", outputPrefix, res.StartTimetoken))
+	fmt.Println(fmt.Sprintf("%s", outputSuffix))
 }
 
 func timeRequest() {
-	fmt.Println(time.Now())
+
 	res, status, err := pn.Time().Execute()
-	fmt.Println(time.Now())
+	fmt.Println(fmt.Sprintf("%s timeResponse:", outputPrefix))
 	fmt.Println(res, status, err)
+	fmt.Println(fmt.Sprintf("%s", outputSuffix))
 }
 
 func hereNowResponse(res *pubnub.HereNowResponse, status pubnub.StatusResponse, err error) {
+	fmt.Println(fmt.Sprintf("%s hereNowResponse:", outputPrefix))
 	fmt.Println(res, status, err)
 	for _, v := range res.Channels {
 		fmt.Println(v.ChannelName)
@@ -300,7 +349,7 @@ func hereNowResponse(res *pubnub.HereNowResponse, status pubnub.StatusResponse, 
 	}
 	fmt.Println(res.TotalChannels)
 	fmt.Println(res.TotalOccupancy)
-
+	fmt.Println(fmt.Sprintf("%s", outputSuffix))
 }
 
 func hereNowRequest(args []string) {
@@ -373,7 +422,7 @@ func publishRequest(args []string) {
 	channels := strings.Split(args[2], ",")
 
 	for _, ch := range channels {
-		fmt.Println("Publishing to channel: ", ch)
+		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
 		res, status, err := pn.Publish().
 			Channel(ch).
 			Message(res).
@@ -384,7 +433,30 @@ func publishRequest(args []string) {
 			showErr("Error while publishing: " + err.Error())
 		}
 
-		fmt.Println(res, status)
+		fmt.Println(fmt.Sprintf("%s Publish Response:", outputPrefix))
+
+		fmt.Println(fmt.Sprintf("%%s %s", res, status))
+		fmt.Println(fmt.Sprintf("%s", outputSuffix))
+	}
+}
+
+func unsubscribeRequest(args []string) {
+	if len(args) == 0 {
+		showUnsubscribeHelp()
+		return
+	}
+
+	channels := strings.Split(args[0], ",")
+	if (len(args)) > 2 {
+		groups := strings.Split(args[1], ",")
+		pn.Unsubscribe().
+			Channels(channels).
+			ChannelGroups(groups).
+			Execute()
+	} else {
+		pn.Unsubscribe().
+			Channels(channels).
+			Execute()
 	}
 }
 

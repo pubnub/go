@@ -164,9 +164,9 @@ func (m *SubscriptionManager) adaptState(stateOperation StateOperation) {
 func (m *SubscriptionManager) adaptSubscribe(
 	subscribeOperation *SubscribeOperation) {
 	m.stateManager.adaptSubscribeOperation(subscribeOperation)
-
-	log.Println("adapting a new subscription", subscribeOperation.Channels,
+	m.pubnub.Config.Log.Println("adapting a new subscription", subscribeOperation.Channels,
 		subscribeOperation.PresenceEnabled)
+
 	m.Lock()
 
 	// TODO: rename subscriptionStatusAnnounced
@@ -479,7 +479,7 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 			Error:     true,
 			ErrorData: err,
 		}
-		log.Println(err)
+		m.pubnub.Config.Log.Println(err)
 
 		m.listenerManager.announceStatus(errStatus)
 
