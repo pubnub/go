@@ -103,6 +103,10 @@ func (o *historyDeleteOpts) validate() error {
 		return newValidationError(o, StrMissingSubKey)
 	}
 
+	if o.config().SecretKey == "" {
+		return newValidationError(o, StrMissingSecretKey)
+	}
+
 	if o.Channel == "" {
 		return newValidationError(o, StrMissingChannel)
 	}

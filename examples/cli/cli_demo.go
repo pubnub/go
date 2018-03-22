@@ -26,10 +26,6 @@ func main() {
 	//config.EnableLogging = false
 
 	pn = pubnub.NewPubNub(config)
-	/*if !pnconf.EnableLogging {
-		log.SetFlags(0)
-		log.SetOutput(ioutil.Discard)
-	}*/
 	/*var infoLogger *log.Logger
 
 	logfileName := "pubnubMessaging.log"
@@ -44,11 +40,12 @@ func main() {
 	}*/
 	//config.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-	config.Log.SetPrefix("pubnub:")
+	config.Log.SetPrefix("PubNub:")
 	config.SuppressLeaveEvents = true
 
-	config.PublishKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"
-	config.SubscribeKey = "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f"
+	config.PublishKey = "pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
+	config.SubscribeKey = "sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
+	config.SecretKey = "sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
 
 	// for subscribe event
 	listener := pubnub.NewListener()
@@ -115,8 +112,10 @@ func showHelp() {
 	showTimeHelp()
 	showHereNowHelp()
 	showHistoryHelp()
+	showDelMessagesHelp()
 	showWhereNowHelp()
 	showUnsubscribeHelp()
+
 	fmt.Println("\n ================")
 	fmt.Println(" ||  COMMANDS  ||")
 	fmt.Println(" ================\n")
@@ -153,6 +152,12 @@ func showHistoryHelp() {
 	fmt.Println("	hist test true true 10 15210190573608384 15211140747622125 ")
 }
 
+func showDelMessagesHelp() {
+	fmt.Println(" Delete Messages EXAMPLE: ")
+	fmt.Println("	delmessages Channel Start End ")
+	fmt.Println("	delmessages test 15210190573608384 15211140747622125 ")
+}
+
 func showWhereNowHelp() {
 	fmt.Println(" WHERENOW EXAMPLE: ")
 	fmt.Println("	wherenow uuid ")
@@ -186,9 +191,9 @@ func readCommand(cmd string) {
 		unsubscribeRequest(command[1:])
 	/*case "fetch":
 	unsubscribeRequest(command[1:])*/
-	/*case "delmessage":
-		unsubscribeRequest(command[1:])
-	case "setState":
+	case "delmessages":
+		delMessageRequest(command[1:])
+	/*case "setState":
 		subscribeRequest(command[1:])
 	case "getState":
 		subscribeRequest(command[1:])
@@ -211,21 +216,69 @@ func readCommand(cmd string) {
 	}
 }
 
+func delMessageRequest(args []string) {
+	if len(args) == 0 {
+		showDelMessagesHelp()
+		return
+	}
+
+	var channel string
+	if len(args) > 0 {
+		channel = args[0]
+	}
+
+	var start int64
+	if len(args) > 1 {
+		i, err := strconv.ParseInt(args[1], 10, 64)
+		if err != nil {
+			i = 0
+		} else {
+			start = i
+		}
+	}
+
+	var end int64
+	if len(args) > 2 {
+		i, err := strconv.ParseInt(args[2], 10, 64)
+		if err != nil {
+			i = 0
+		} else {
+			end = i
+		}
+	}
+
+	if (end != 0) && (start != 0) {
+		res, status, err := pn.DeleteMessages().Channel(channel).End(end).Start(start).Execute()
+		fmt.Println(res, status, err)
+	} else if start != 0 {
+		res, status, err := pn.DeleteMessages().Channel(channel).Start(start).Execute()
+		fmt.Println(res, status, err)
+	} else if end != 0 {
+		res, status, err := pn.DeleteMessages().Channel(channel).End(end).Execute()
+		fmt.Println(res, status, err)
+	} else {
+		res, status, err := pn.DeleteMessages().Channel(channel).Execute()
+		fmt.Println(res, status, err)
+	}
+	fmt.Println(fmt.Sprintf("%s", outputSuffix))
+
+}
+
 func whereNowRequest(args []string) {
 	uuidToUse := ""
 	if len(args) > 0 {
 		uuidToUse = args[0]
 	}
 
+	fmt.Println(fmt.Sprintf("%s whereNowRequest:", outputPrefix))
 	if len(uuidToUse) == 0 {
 		res, status, err := pn.WhereNow().Execute()
 		fmt.Println(res, status, err)
-		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	} else {
 		res, status, err := pn.WhereNow().Uuid(uuidToUse).Execute()
 		fmt.Println(res, status, err)
-		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	}
+	fmt.Println(fmt.Sprintf("%s", outputSuffix))
 }
 
 func historyRequest(args []string) {
