@@ -193,9 +193,9 @@ func readCommand(cmd string) {
 	unsubscribeRequest(command[1:])*/
 	case "delmessages":
 		delMessageRequest(command[1:])
-	/*case "setState":
+	case "setState":
 		subscribeRequest(command[1:])
-	case "getState":
+	/*case "getState":
 		subscribeRequest(command[1:])
 	case "addChCg:
 		subscribeRequest(command[1:])
@@ -204,9 +204,9 @@ func readCommand(cmd string) {
 	case "listChCg":
 		subscribeRequest(command[1:])
 	case "delCg":
-		subsc`ribeRequest(command[1:])
+		subscribeRequest(command[1:])
 	case "grant":
-		subsc`ribeRequest(command[1:])*/
+		subscribeRequest(command[1:])*/
 	case "help":
 		showHelp()
 	case "q":
