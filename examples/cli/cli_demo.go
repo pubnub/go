@@ -18,14 +18,14 @@ var config *pubnub.Config
 var pn *pubnub.PubNub
 var quitSubscribe = false
 
-const outputPrefix = "Example >>>> "
-const outputSuffix = "Example <<<< "
+const outputPrefix = "\x1b[32;1m Example >>>> \x1b[0m"
+const outputSuffix = "\x1b[32;2m Example <<<< \x1b[0m"
 
 func main() {
 	config = pubnub.NewConfig()
+	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
 	//config.EnableLogging = false
 
-	pn = pubnub.NewPubNub(config)
 	/*var infoLogger *log.Logger
 
 	logfileName := "pubnubMessaging.log"
@@ -43,9 +43,10 @@ func main() {
 	config.Log.SetPrefix("PubNub:")
 	config.SuppressLeaveEvents = true
 
-	config.PublishKey = "pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
-	config.SubscribeKey = "sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
-	config.SecretKey = "sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
+	config.PublishKey = "demo"   //"pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
+	config.SubscribeKey = "demo" //"sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
+	config.SecretKey = "demo"    //"sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
+	pn = pubnub.NewPubNub(config)
 
 	// for subscribe event
 	listener := pubnub.NewListener()
@@ -115,7 +116,7 @@ func showHelp() {
 	showDelMessagesHelp()
 	showWhereNowHelp()
 	showUnsubscribeHelp()
-
+	showFireHelp()
 	fmt.Println("\n ================")
 	fmt.Println(" ||  COMMANDS  ||")
 	fmt.Println(" ================\n")
@@ -123,10 +124,16 @@ func showHelp() {
 	fmt.Println(" QUIT \n\tctrl+c ")
 }
 
+func showFireHelp() {
+	fmt.Println(" FIRE EXAMPLE: ")
+	fmt.Println("	fire usePost \"my-message\" my-channel")
+	fmt.Println("	fire false \"my-message\" my-channel")
+}
+
 func showPublishHelp() {
 	fmt.Println(" PUBLISH EXAMPLE: ")
-	fmt.Println("	pub usePost \"my-message\" my-channel")
-	fmt.Println("	pub false \"my-message\" my-channel")
+	fmt.Println("	pub usePost store noreplicate \"my-message\" my-channel")
+	fmt.Println("	pub false true false \"my-message\" my-channel")
 }
 
 func showTimeHelp() {
@@ -177,6 +184,8 @@ func readCommand(cmd string) {
 	switch w := command[0]; w {
 	case "pub":
 		publishRequest(command[1:])
+	case "fire":
+		fireRequest(command[1:])
 	case "sub":
 		subscribeRequest(command[1:])
 	case "time":
@@ -453,8 +462,58 @@ func hereNowRequest(args []string) {
 }
 
 func publishRequest(args []string) {
-	if len(args) == 0 {
+	if len(args) < 5 {
+		showErr("channels or message not found")
 		showPublishHelp()
+		return
+	}
+
+	usePost, _ := strconv.ParseBool(args[0])
+	var store bool
+	if len(args) > 1 {
+		store, _ = strconv.ParseBool(args[1])
+	}
+	var repl bool
+	if len(args) > 2 {
+		repl, _ = strconv.ParseBool(args[2])
+	}
+
+	message := args[3]
+	reg := regexp.MustCompile(`"([^"]*)"`)
+	res := reg.ReplaceAllString(message, "${1}")
+
+	if res == "" {
+		showErr("Empty message!")
+		return
+	}
+
+	channels := strings.Split(args[4], ",")
+
+	for _, ch := range channels {
+		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
+		res, status, err := pn.Publish().
+			Channel(ch).
+			Message(res).
+			UsePost(usePost).
+			ShouldStore(store).
+			DoNotReplicate(repl).
+			Execute()
+
+		if err != nil {
+			showErr("Error while publishing: " + err.Error())
+		}
+
+		fmt.Println(fmt.Sprintf("%s Publish Response:", outputPrefix))
+
+		fmt.Println(fmt.Sprintf("%%s %s", res, status))
+		fmt.Println(fmt.Sprintf("%s", outputSuffix))
+	}
+}
+
+func fireRequest(args []string) {
+	if len(args) < 3 {
+		showErr("channels or message not found")
+		showFireHelp()
 		return
 	}
 
@@ -469,19 +528,15 @@ func publishRequest(args []string) {
 		return
 	}
 
-	if len(args) != 3 {
-		showErr("Not found channels or message")
-		return
-	}
-
 	channels := strings.Split(args[2], ",")
 
 	for _, ch := range channels {
 		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
-		res, status, err := pn.Publish().
+		res, status, err := pn.Fire().
 			Channel(ch).
 			Message(res).
 			UsePost(usePost).
+			Ttl(1).
 			Execute()
 
 		if err != nil {

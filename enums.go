@@ -34,6 +34,7 @@ const (
 	PNSubscribeOperation OperationType = 1 + iota
 	PNUnsubscribeOperation
 	PNPublishOperation
+	PNFireOperation
 	PNHistoryOperation
 	PNFetchMessagesOperation
 	PNWhereNowOperation

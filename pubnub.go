@@ -47,6 +47,14 @@ func (pn *PubNub) PublishWithContext(ctx Context) *publishBuilder {
 	return newPublishBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) Fire() *fireBuilder {
+	return newFireBuilder(pn)
+}
+
+func (pn *PubNub) FireWithContext(ctx Context) *fireBuilder {
+	return newFireBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) Subscribe() *subscribeBuilder {
 	return newSubscribeBuilder(pn)
 }
