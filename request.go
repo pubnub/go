@@ -102,7 +102,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	res, err := client.Do(req)
 	// Host lookup failed
 	if err != nil {
-		opts.config().Log.Println(err.Error())
+		opts.config().Log.Println("err.Error()", err.Error())
 		e := pnerr.NewConnectionError("Failed to execute request", err)
 
 		opts.config().Log.Println(e.Error())
@@ -115,6 +115,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	val, status, err := parseResponse(res, opts)
 	// Already wrapped error
 	if err != nil {
+		opts.config().Log.Println("res.StatusCode, status, err.Error()", res.StatusCode, status, err.Error())
 		return nil, status, err
 	}
 
@@ -171,11 +172,10 @@ func newRequest(method string, u *url.URL, body io.Reader) (*http.Request,
 
 func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusResponse, error) {
 	status := StatusResponse{}
+	opts.config().Log.Println("resp.StatusCode, resp.Body", resp.StatusCode, resp.Body)
 
 	if resp.StatusCode != 200 {
 		// Errors like 400, 403, 500
-		opts.config().Log.Println(resp.Body)
-
 		e := pnerr.NewServerError(resp.StatusCode, resp.Body)
 
 		opts.config().Log.Println(e.Error())
@@ -204,6 +204,8 @@ func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusRespon
 
 		return nil, status, e
 	}
+
+	opts.config().Log.Println(resp.Body)
 
 	opts.config().Log.Println(resp.Status, string(body))
 

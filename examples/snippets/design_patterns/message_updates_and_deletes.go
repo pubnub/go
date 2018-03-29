@@ -61,7 +61,6 @@ func main() {
 	config := pubnub.NewConfig()
 	config.PublishKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"
 	config.SubscribeKey = "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f"
-	// config.Origin = "pubsub.pubnub.com"
 
 	pn := pubnub.NewPubNub(config)
 	my_channel = "jasdeep-status"

@@ -26,7 +26,7 @@ func main() {
 	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
 	//config.EnableLogging = false
 
-	/*var infoLogger *log.Logger
+	var infoLogger *log.Logger
 
 	logfileName := "pubnubMessaging.log"
 	f, err := os.OpenFile(logfileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -37,15 +37,16 @@ func main() {
 	} else {
 		fmt.Println("Logging enabled writing to ", logfileName)
 		infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
-	}*/
+	}
 	//config.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
-	config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub:")
 	config.SuppressLeaveEvents = true
 
-	config.PublishKey = "demo"   //"pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
-	config.SubscribeKey = "demo" //"sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
-	config.SecretKey = "demo"    //"sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
+	config.PublishKey = "pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
+	config.SubscribeKey = "sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
+	config.SecretKey = "sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
 	pn = pubnub.NewPubNub(config)
 
 	// for subscribe event
@@ -57,7 +58,10 @@ func main() {
 			case status := <-listener.Status:
 				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
 				fmt.Println(" --- STATUS: ")
-				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, status.Error))
+				fmt.Println(fmt.Sprintf("%s status.Error %s", outputPrefix, status.Error))
+				fmt.Println(fmt.Sprintf("%s status.Category %s", outputPrefix, status.Category))
+				fmt.Println(fmt.Sprintf("%s status.Operation %s", outputPrefix, status.Operation))
+				fmt.Println(fmt.Sprintf("%s status.StatusCode %d", outputPrefix, status.StatusCode))
 				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, status.ErrorData))
 				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, status.ClientRequest))
 				fmt.Println("")
@@ -82,6 +86,22 @@ func main() {
 	}()
 
 	pn.AddListener(listener)
+	showHelp()
+
+	config2 := pubnub.NewConfig()
+	config2.PublishKey = "pub-c-c6a4792f-af77-4028-88b4-5995da3aa7b4"
+	config2.SubscribeKey = "sub-c-4cf48c6c-2025-11e8-b192-4eac351dc434"
+	config2.SubscribeRequestTimeout = 59
+	config2.Uuid = "GlobalSubscriber"
+	config2.PNReconnectionPolicy = pubnub.PNLinearPolicy
+	config2.Log = infoLogger
+	config2.Log.SetPrefix("PubNub2:")
+
+	pn2 := pubnub.NewPubNub(config2)
+	pn2.AddListener(listener)
+	channel := "ch1"
+
+	pn2.Subscribe().Channels([]string{channel}).Execute()
 
 	for {
 		reader := bufio.NewReader(os.Stdin)
@@ -96,7 +116,6 @@ func main() {
 		fmt.Println("")
 	}
 
-	log.Println("test log")
 }
 
 func showErr(err string) {
@@ -116,12 +135,19 @@ func showHelp() {
 	showDelMessagesHelp()
 	showWhereNowHelp()
 	showUnsubscribeHelp()
+	showFetchHelp()
 	showFireHelp()
 	fmt.Println("\n ================")
 	fmt.Println(" ||  COMMANDS  ||")
 	fmt.Println(" ================\n")
 	fmt.Println(" UNSUBSCRIBE ALL \n\tq ")
 	fmt.Println(" QUIT \n\tctrl+c ")
+}
+
+func showFetchHelp() {
+	fmt.Println(" FETCH EXAMPLE: ")
+	fmt.Println("	fetch Channel IncludeTimetoken Reverse Max Start End ")
+	fmt.Println("	fetch test,test1 true true 10 15210190573608384 15211140747622125 ")
 }
 
 func showFireHelp() {
@@ -198,8 +224,8 @@ func readCommand(cmd string) {
 		whereNowRequest(command[1:])
 	case "unsub":
 		unsubscribeRequest(command[1:])
-	/*case "fetch":
-	unsubscribeRequest(command[1:])*/
+	case "fetch":
+		fetchRequest(command[1:])
 	case "delmessages":
 		delMessageRequest(command[1:])
 	case "setState":
@@ -286,6 +312,109 @@ func whereNowRequest(args []string) {
 	} else {
 		res, status, err := pn.WhereNow().Uuid(uuidToUse).Execute()
 		fmt.Println(res, status, err)
+	}
+	fmt.Println(fmt.Sprintf("%s", outputSuffix))
+}
+
+func fetchRequest(args []string) {
+	if len(args) == 0 {
+		showFetchHelp()
+		return
+	}
+
+	var channels []string
+	if len(args) > 0 {
+		channels = strings.Split(args[0], ",")
+	}
+
+	var includeTimetoken bool
+	if len(args) > 1 {
+		includeTimetoken, _ = strconv.ParseBool(args[1])
+	}
+
+	var reverse bool
+	if len(args) > 2 {
+		reverse, _ = strconv.ParseBool(args[2])
+	}
+
+	var count int
+	if len(args) > 3 {
+		i, err := strconv.ParseInt(args[3], 10, 64)
+		if err != nil {
+			i = 100
+		} else {
+			count = int(i)
+		}
+	}
+
+	var start int64
+	if len(args) > 4 {
+		i, err := strconv.ParseInt(args[4], 10, 64)
+		if err != nil {
+			i = 0
+		} else {
+			start = i
+		}
+	}
+
+	var end int64
+	if len(args) > 5 {
+		i, err := strconv.ParseInt(args[5], 10, 64)
+		if err != nil {
+			i = 0
+		} else {
+			end = i
+		}
+	}
+
+	if (end != 0) && (start != 0) {
+		res, status, err := pn.Fetch().
+			Channels(channels).
+			Count(count).
+			Start(start).
+			End(end).
+			IncludeTimetoken(includeTimetoken).
+			Reverse(reverse).
+			Execute()
+		ParseFetch(res, status, err)
+	} else if start != 0 {
+		res, status, err := pn.Fetch().
+			Channels(channels).
+			Count(count).
+			Start(start).
+			IncludeTimetoken(includeTimetoken).
+			Reverse(reverse).
+			Execute()
+		ParseFetch(res, status, err)
+	} else if end != 0 {
+		res, status, err := pn.Fetch().
+			Channels(channels).
+			Count(count).
+			End(end).
+			IncludeTimetoken(includeTimetoken).
+			Reverse(reverse).
+			Execute()
+		ParseFetch(res, status, err)
+	} else {
+		res, status, err := pn.Fetch().
+			Channels(channels).
+			Count(count).
+			IncludeTimetoken(includeTimetoken).
+			Reverse(reverse).
+			Execute()
+		ParseFetch(res, status, err)
+	}
+}
+
+func ParseFetch(res *pubnub.FetchResponse, status pubnub.StatusResponse, err error) {
+	fmt.Println(fmt.Sprintf("%s ParseFetch:", outputPrefix))
+	for channel, messages := range res.Messages {
+		fmt.Println("channel", channel)
+		for _, messageInt := range messages {
+			message := pubnub.FetchResponseItem(messageInt)
+			fmt.Println(message.Message)
+			fmt.Println(message.Timetoken)
+		}
 	}
 	fmt.Println(fmt.Sprintf("%s", outputSuffix))
 }

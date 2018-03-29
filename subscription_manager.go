@@ -3,7 +3,6 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -124,24 +123,31 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 		combinedChannels := manager.stateManager.prepareChannelList(true)
 		combinedGroups := manager.stateManager.prepareGroupList(true)
 
-		manager.listenerManager.announceStatus(&PNStatus{
+		pnStatus := &PNStatus{
 			Error:                 false,
 			AffectedChannels:      combinedChannels,
 			AffectedChannelGroups: combinedGroups,
 			Category:              PNReconnectedCategory,
-		})
+		}
+
+		pubnub.Config.Log.Println("Status: ", pnStatus)
+
+		manager.listenerManager.announceStatus(pnStatus)
 	})
 
 	manager.reconnectionManager.HandleOnMaxReconnectionExhaustion(func() {
 		combinedChannels := manager.stateManager.prepareChannelList(true)
 		combinedGroups := manager.stateManager.prepareGroupList(true)
 
-		manager.listenerManager.announceStatus(&PNStatus{
+		pnStatus := &PNStatus{
 			Error:                 false,
 			AffectedChannels:      combinedChannels,
 			AffectedChannelGroups: combinedGroups,
 			Category:              PNReconnectionAttemptsExhausted,
-		})
+		}
+		pubnub.Config.Log.Println("Status: ", pnStatus)
+
+		manager.listenerManager.announceStatus(pnStatus)
 
 		manager.Disconnect()
 	})
@@ -278,55 +284,62 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		res, _, err := executeRequest(opts)
 		if err != nil {
-			if strings.Contains(err.Error(), "timeout") {
+			m.pubnub.Config.Log.Println(err.Error())
+
+			if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "request canceled") {
 				m.listenerManager.announceStatus(&PNStatus{
 					Category: PNTimeoutCategory,
 				})
 				continue
+			} else {
+
+				go m.reconnectionManager.startPolling()
+
+				if strings.Contains(err.Error(), "context canceled") {
+					pnStatus := &PNStatus{
+						Category: PNCancelledCategory,
+					}
+					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.listenerManager.announceStatus(pnStatus)
+					break
+				} else if strings.Contains(err.Error(), "Forbidden") ||
+					strings.Contains(err.Error(), "403") {
+					pnStatus := &PNStatus{
+						Category: PNAccessDeniedCategory,
+					}
+					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.listenerManager.announceStatus(pnStatus)
+					m.unsubscribeAll()
+					break
+				} else if strings.Contains(err.Error(), "400") ||
+					strings.Contains(err.Error(), "Bad Request") {
+					pnStatus := &PNStatus{
+						Category: PNBadRequestCategory,
+					}
+					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.listenerManager.announceStatus(pnStatus)
+					m.unsubscribeAll()
+					break
+					// For testing purpose
+				} else if strings.Contains(err.Error(), "530") || strings.Contains(err.Error(), "No Stub Matched") {
+					pnStatus := &PNStatus{
+						Category: PNNoStubMatchedCategory,
+					}
+					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.listenerManager.announceStatus(pnStatus)
+					m.unsubscribeAll()
+					break
+				} else {
+					pnStatus := &PNStatus{
+						Category: PNUnknownCategory,
+					}
+					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.listenerManager.announceStatus(pnStatus)
+
+					break
+				}
 			}
 
-			go m.reconnectionManager.startPolling()
-
-			if strings.Contains(err.Error(), "context canceled") {
-				m.listenerManager.announceStatus(&PNStatus{
-					Category: PNCancelledCategory,
-				})
-				break
-			}
-
-			if strings.Contains(err.Error(), "Forbidden") ||
-				strings.Contains(err.Error(), "403") {
-				m.listenerManager.announceStatus(&PNStatus{
-					Category: PNAccessDeniedCategory,
-				})
-				m.unsubscribeAll()
-				break
-			}
-
-			if strings.Contains(err.Error(), "400") ||
-				strings.Contains(err.Error(), "Bad Request") {
-				m.listenerManager.announceStatus(&PNStatus{
-					Category: PNBadRequestCategory,
-				})
-				m.unsubscribeAll()
-				break
-			}
-
-			// For testing purpose
-			if strings.Contains(err.Error(), "530") ||
-				strings.Contains(err.Error(), "No Stub Matched") {
-				m.listenerManager.announceStatus(&PNStatus{
-					Category: PNNoStubMatchedCategory,
-				})
-				m.unsubscribeAll()
-				break
-			}
-
-			m.listenerManager.announceStatus(&PNStatus{
-				Category: PNUnknownCategory,
-			})
-
-			break
 		}
 
 		m.Lock()
@@ -710,7 +723,7 @@ func (m *SubscriptionManager) unsubscribeAll() {
 }
 
 func (m *SubscriptionManager) log(message string) {
-	log.Printf("pubnub: subscribe: %s: %s: %s/%s\n",
+	m.pubnub.Config.Log.Printf("pubnub: subscribe: %s: %s: %s/%s\n",
 		message,
 		m.pubnub.Config.Uuid,
 		m.stateManager.prepareChannelList(true),

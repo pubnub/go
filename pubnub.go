@@ -67,6 +67,14 @@ func (pn *PubNub) HistoryWithContext(ctx Context) *historyBuilder {
 	return newHistoryBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) Fetch() *fetchBuilder {
+	return newFetchBuilder(pn)
+}
+
+func (pn *PubNub) FetchWithContext(ctx Context) *fetchBuilder {
+	return newFetchBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) SetState() *setStateBuilder {
 	return newSetStateBuilder(pn)
 }
