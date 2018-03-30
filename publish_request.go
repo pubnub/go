@@ -202,12 +202,14 @@ func (o *publishOpts) buildPath() (string, error) {
 	var err error
 
 	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-		msg := utils.EncryptString(cipherKey, string(message))
-
+		o.pubnub.Config.Log.Println("EncryptString: encrypting", o.Message.(string), fmt.Sprintf("%s", o.Message))
+		msg := utils.EncryptString(cipherKey, fmt.Sprintf("%s", o.Message))
+		o.pubnub.Config.Log.Println("EncryptString: encrypted", msg)
 		o.Message = []byte(msg)
 	}
 
 	message, err = utils.ValueAsString(o.Message)
+	o.pubnub.Config.Log.Println("EncryptString: message", string(message))
 	if err != nil {
 		return "", err
 	}

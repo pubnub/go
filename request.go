@@ -25,6 +25,7 @@ type StatusResponse struct {
 	AuthKey          string
 	Origin           string
 	OriginalResponse string
+	Request          string
 
 	AffectedChannels      []string
 	AffectedChannelGroups []string
@@ -48,7 +49,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	err := opts.validate()
 
 	if err != nil {
-		opts.config().Log.Println(err)
+		opts.config().Log.Println("PNUnknownCategory", err)
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
 			err
@@ -57,6 +58,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	url, err := buildUrl(opts)
 
 	if err != nil {
+		opts.config().Log.Println("PNUnknownCategory", err)
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
 			err
@@ -70,6 +72,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	if opts.httpMethod() == "POST" {
 		b, err := opts.buildBody()
 		if err != nil {
+			opts.config().Log.Println("PNUnknownCategory", err, url)
 			return nil,
 				createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
 				err
@@ -84,6 +87,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	}
 
 	if err != nil {
+		opts.config().Log.Println("PNUnknownCategory", err, url)
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
 			err
@@ -105,8 +109,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 		opts.config().Log.Println("err.Error()", err.Error())
 		e := pnerr.NewConnectionError("Failed to execute request", err)
 
-		opts.config().Log.Println(e.Error())
-
+		opts.config().Log.Println("PNUnknownCategory", e.Error(), url)
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, e),
 			e
@@ -172,7 +175,6 @@ func newRequest(method string, u *url.URL, body io.Reader) (*http.Request,
 
 func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusResponse, error) {
 	status := StatusResponse{}
-	opts.config().Log.Println("resp.StatusCode, resp.Body", resp.StatusCode, resp.Body)
 
 	if resp.StatusCode != 200 {
 		// Errors like 400, 403, 500
@@ -181,17 +183,19 @@ func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusRespon
 		opts.config().Log.Println(e.Error())
 
 		if resp.StatusCode == 408 {
+			opts.config().Log.Println("PNTimeoutCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
 			status = createStatus(PNTimeoutCategory, "", ResponseInfo{}, e)
 
 			return nil, status, e
 		}
 
 		if resp.StatusCode == 400 {
+			opts.config().Log.Println("PNBadRequestCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
 			status = createStatus(PNBadRequestCategory, "", ResponseInfo{}, e)
 
 			return nil, status, e
 		}
-
+		opts.config().Log.Println("PNUnknownCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
 		status = createStatus(PNUnknownCategory, "", ResponseInfo{}, e)
 
 		return nil, status, e
@@ -200,14 +204,12 @@ func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusRespon
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error reading response body", resp.Body, err)
-		opts.config().Log.Println(e)
+		opts.config().Log.Println("Read All error: resp.Body, resp.Request.URL, e", resp.StatusCode, resp.Body, resp.Request.URL, e)
 
 		return nil, status, e
 	}
 
-	opts.config().Log.Println(resp.Body)
-
-	opts.config().Log.Println(resp.Status, string(body))
+	opts.config().Log.Println("200 OK: resp.StatusCode, resp.Status, resp.Body, resp.Request.URL, string(body)", resp.StatusCode, resp.Status, resp.Body, resp.Request.URL, string(body))
 
 	return body, status, nil
 }

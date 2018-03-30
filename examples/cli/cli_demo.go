@@ -41,12 +41,13 @@ func main() {
 	//config.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
-	config.Log.SetPrefix("PubNub:")
-	config.SuppressLeaveEvents = true
+	config.Log.SetPrefix("PubNub :->  ")
+	//config.SuppressLeaveEvents = true
 
 	config.PublishKey = "pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
 	config.SubscribeKey = "sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
 	config.SecretKey = "sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
+	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
 
 	// for subscribe event
@@ -88,7 +89,7 @@ func main() {
 	pn.AddListener(listener)
 	showHelp()
 
-	config2 := pubnub.NewConfig()
+	/*config2 := pubnub.NewConfig()
 	config2.PublishKey = "pub-c-c6a4792f-af77-4028-88b4-5995da3aa7b4"
 	config2.SubscribeKey = "sub-c-4cf48c6c-2025-11e8-b192-4eac351dc434"
 	config2.SubscribeRequestTimeout = 59
@@ -101,7 +102,7 @@ func main() {
 	pn2.AddListener(listener)
 	channel := "ch1"
 
-	pn2.Subscribe().Channels([]string{channel}).Execute()
+	pn2.Subscribe().Channels([]string{channel}).Execute()*/
 
 	for {
 		reader := bufio.NewReader(os.Stdin)

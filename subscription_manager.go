@@ -113,8 +113,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 		manager.Disconnect()
 	}()
 
-	go subscribeMessageWorker(manager.listenerManager, manager.messages,
-		manager.ctx)
+	go subscribeMessageWorker(manager) //.listenerManager, manager.messages, manager.ctx)
 
 	manager.reconnectionManager.HandleReconnection(func() {
 		go manager.reconnect()
@@ -207,14 +206,16 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 				ChannelGroups(unsubscribeOperation.ChannelGroups).Execute()
 
 			if err != nil {
-				m.listenerManager.announceStatus(&PNStatus{
+				pnStatus := &PNStatus{
 					Category:              PNBadRequestCategory,
 					ErrorData:             err,
 					Error:                 true,
 					Operation:             PNUnsubscribeOperation,
 					AffectedChannels:      unsubscribeOperation.Channels,
 					AffectedChannelGroups: unsubscribeOperation.ChannelGroups,
-				})
+				}
+				m.pubnub.Config.Log.Println("Leave: err", err, pnStatus)
+				m.listenerManager.announceStatus(pnStatus)
 			} else {
 				announceAck = true
 			}
@@ -223,14 +224,16 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 		}
 
 		if announceAck {
-			m.listenerManager.announceStatus(&PNStatus{
+			pnStatus := &PNStatus{
 				Category:              PNAcknowledgmentCategory,
 				StatusCode:            200,
 				Operation:             PNUnsubscribeOperation,
 				Uuid:                  m.pubnub.Config.Uuid,
 				AffectedChannels:      unsubscribeOperation.Channels,
 				AffectedChannelGroups: unsubscribeOperation.ChannelGroups,
-			})
+			}
+			m.pubnub.Config.Log.Println("Leave: ack", pnStatus)
+			m.listenerManager.announceStatus(pnStatus)
 		}
 	}()
 
@@ -359,40 +362,21 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		var envelope subscribeEnvelope
 		err = json.Unmarshal(res, &envelope)
 		if err != nil {
-			m.listenerManager.announceStatus(&PNStatus{
+			pnStatus := &PNStatus{
 				Category:              PNBadRequestCategory,
 				ErrorData:             err,
 				Error:                 true,
 				Operation:             PNSubscribeOperation,
 				AffectedChannels:      combinedChannels,
 				AffectedChannelGroups: combinedGroups,
-			})
+			}
+			m.pubnub.Config.Log.Println("Unmarshal: err", err, pnStatus)
+			m.listenerManager.announceStatus(pnStatus)
 		}
 
 		if len(envelope.Messages) > 0 {
 			for _, message := range envelope.Messages {
-				if m.pubnub.Config.CipherKey != "" {
-					msg, _ := message.Payload.(string)
-					decryptedMsg, err := utils.DecryptString(m.pubnub.Config.CipherKey, msg)
-
-					if err != nil {
-						m.listenerManager.announceStatus(&PNStatus{
-							Category:              PNBadRequestCategory,
-							ErrorData:             err,
-							Error:                 true,
-							Operation:             PNSubscribeOperation,
-							AffectedChannels:      combinedChannels,
-							AffectedChannelGroups: combinedGroups,
-						})
-						break
-					}
-
-					message.Payload = decryptedMsg
-
-					m.messages <- message
-				} else {
-					m.messages <- message
-				}
+				m.messages <- message
 			}
 		}
 
@@ -403,14 +387,17 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		} else {
 			tt, err := strconv.ParseInt(envelope.Metadata.Timetoken, 10, 64)
 			if err != nil {
-				m.listenerManager.announceStatus(&PNStatus{
+
+				pnStatus := &PNStatus{
 					Category:              PNBadRequestCategory,
 					ErrorData:             err,
 					Error:                 true,
 					Operation:             PNSubscribeOperation,
 					AffectedChannels:      combinedChannels,
 					AffectedChannelGroups: combinedGroups,
-				})
+				}
+				m.pubnub.Config.Log.Println("ParseInt: err", err, pnStatus)
+				m.listenerManager.announceStatus(pnStatus)
 			}
 
 			m.Lock()
@@ -495,27 +482,29 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 		Execute()
 
 	if err != nil {
-		errStatus := &PNStatus{
+
+		pnStatus := &PNStatus{
 			Operation: PNHeartBeatOperation,
 			Category:  PNBadRequestCategory,
 			Error:     true,
 			ErrorData: err,
 		}
-		m.pubnub.Config.Log.Println(err)
+		m.pubnub.Config.Log.Println("performHeartbeatLoop: err", err, pnStatus)
 
-		m.listenerManager.announceStatus(errStatus)
+		m.listenerManager.announceStatus(pnStatus)
 
 		return err
 	}
 
-	hbStatus := &PNStatus{
+	pnStatus := &PNStatus{
 		Category:   PNUnknownCategory,
 		Error:      false,
 		Operation:  PNHeartBeatOperation,
 		StatusCode: status.StatusCode,
 	}
+	m.pubnub.Config.Log.Println("performHeartbeatLoop: err", err, pnStatus)
 
-	m.listenerManager.announceStatus(hbStatus)
+	m.listenerManager.announceStatus(pnStatus)
 
 	return nil
 }
@@ -559,19 +548,18 @@ type originationMetadata struct {
 	Region    int   `json:"r"`
 }
 
-func subscribeMessageWorker(lm *ListenerManager, messages <-chan subscribeMessage,
-	ctx Context) {
+func subscribeMessageWorker(m *SubscriptionManager) { //, lm *ListenerManager, messages <-chan subscribeMessage, ctx Context) {
 	for {
 		select {
-		case <-ctx.Done():
+		case <-m.ctx.Done():
 			return
-		case message := <-messages:
-			processSubscribePayload(lm, message)
+		case message := <-m.messages:
+			processSubscribePayload(m, message)
 		}
 	}
 }
 
-func processSubscribePayload(lm *ListenerManager, payload subscribeMessage) {
+func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) { // lm *ListenerManager
 	channel := payload.Channel
 	subscriptionMatch := payload.SubscriptionMatch
 	publishMetadata := payload.PublishMetaData
@@ -589,7 +577,7 @@ func processSubscribePayload(lm *ListenerManager, payload subscribeMessage) {
 		var ok, hereNowRefresh bool
 
 		if presencePayload, ok = payload.Payload.(map[string]interface{}); !ok {
-			lm.announceStatus(&PNStatus{
+			m.listenerManager.announceStatus(&PNStatus{
 				Category:         PNUnknownCategory,
 				ErrorData:        errors.New("Response presence parsing error"),
 				Error:            true,
@@ -638,7 +626,7 @@ func processSubscribePayload(lm *ListenerManager, payload subscribeMessage) {
 			HereNowRefresh:    hereNowRefresh,
 		}
 
-		lm.announcePresence(pnPresenceResult)
+		m.listenerManager.announcePresence(pnPresenceResult)
 	} else {
 		actualCh := ""
 		subscribedCh := channel
@@ -648,9 +636,30 @@ func processSubscribePayload(lm *ListenerManager, payload subscribeMessage) {
 			actualCh = channel
 			subscribedCh = subscriptionMatch
 		}
+		messagePayload := payload.Payload
+		m.pubnub.Config.Log.Println("Payload: ", messagePayload.(string))
+		if len(m.pubnub.Config.CipherKey) > 0 {
+
+			decryptedMsg, err := utils.DecryptString(m.pubnub.Config.CipherKey, messagePayload.(string))
+
+			if err != nil {
+				pnStatus := &PNStatus{
+					Category:         PNBadRequestCategory,
+					ErrorData:        err,
+					Error:            true,
+					Operation:        PNSubscribeOperation,
+					AffectedChannels: []string{channel},
+					//AffectedChannelGroups: combinedGroups,
+				}
+				m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
+				m.listenerManager.announceStatus(pnStatus)
+			} else {
+				messagePayload = decryptedMsg
+			}
+		}
 
 		pnMessageResult := &PNMessage{
-			Message:           payload.Payload,
+			Message:           messagePayload,
 			ActualChannel:     actualCh,
 			SubscribedChannel: subscribedCh,
 			Channel:           channel,
@@ -660,7 +669,7 @@ func processSubscribePayload(lm *ListenerManager, payload subscribeMessage) {
 			UserMetadata:      payload.UserMetadata,
 		}
 
-		lm.announceMessage(pnMessageResult)
+		m.listenerManager.announceMessage(pnMessageResult)
 	}
 }
 

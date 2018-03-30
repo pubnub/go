@@ -126,5 +126,5 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 }
 
 func newValidationError(o endpointOpts, msg string) error {
-	return pnerr.NewValidationError(o.operationType().String(), msg)
+	return pnerr.NewValidationError(string(o.operationType()), msg)
 }
