@@ -198,21 +198,41 @@ func (o *publishOpts) buildPath() (string, error) {
 			"0"), nil
 	}
 
-	var message []byte
-	var err error
+	//var message []byte
+	var msg interface{}
+	//var err error
 
 	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
 		o.pubnub.Config.Log.Println("EncryptString: encrypting", o.Message.(string), fmt.Sprintf("%s", o.Message))
-		msg := utils.EncryptString(cipherKey, fmt.Sprintf("%s", o.Message))
+		msg = utils.EncryptString(cipherKey, fmt.Sprintf("%s", o.Message))
 		o.pubnub.Config.Log.Println("EncryptString: encrypted", msg)
-		o.Message = []byte(msg)
-	}
+		//o.Message = msg
 
-	message, err = utils.ValueAsString(o.Message)
-	o.pubnub.Config.Log.Println("EncryptString: message", string(message))
+		/*message, err = utils.ValueAsString(msg)
+		if err != nil {
+			o.pubnub.Config.Log.Println("ERROR: Publish error: %s", err.Error())
+			return "", err
+		}*/
+	} else {
+		msg = o.Message
+	}
+	/*else {
+		message, err = utils.ValueAsString(o.Message)
+		if err != nil {
+			o.pubnub.Config.Log.Println("ERROR: Publish error: %s", err.Error())
+			return "", err
+		}
+	}*/
+
+	message, err := utils.ValueAsString(msg)
 	if err != nil {
+		o.pubnub.Config.Log.Println("ERROR: Publish error: %s", err.Error())
 		return "", err
 	}
+
+	//o.Message = message
+
+	//o.pubnub.Config.Log.Println("EncryptString: message", string(message))
 
 	return fmt.Sprintf(PUBLISH_GET_PATH,
 		o.pubnub.Config.PublishKey,
