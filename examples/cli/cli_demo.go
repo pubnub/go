@@ -47,7 +47,7 @@ func main() {
 	config.PublishKey = "pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
 	config.SubscribeKey = "sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
 	config.SecretKey = "sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
-	config.CipherKey = "enigma"
+	//config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
 
 	// for subscribe event
@@ -147,8 +147,8 @@ func showHelp() {
 
 func showFetchHelp() {
 	fmt.Println(" FETCH EXAMPLE: ")
-	fmt.Println("	fetch Channel IncludeTimetoken Reverse Max Start End ")
-	fmt.Println("	fetch test,test1 true true 10 15210190573608384 15211140747622125 ")
+	fmt.Println("	fetch Channel Reverse Max Start End ")
+	fmt.Println("	fetch test,test1 true 10 15210190573608384 15211140747622125 ")
 }
 
 func showFireHelp() {
@@ -328,19 +328,14 @@ func fetchRequest(args []string) {
 		channels = strings.Split(args[0], ",")
 	}
 
-	var includeTimetoken bool
-	if len(args) > 1 {
-		includeTimetoken, _ = strconv.ParseBool(args[1])
-	}
-
 	var reverse bool
-	if len(args) > 2 {
-		reverse, _ = strconv.ParseBool(args[2])
+	if len(args) > 1 {
+		reverse, _ = strconv.ParseBool(args[1])
 	}
 
 	var count int
-	if len(args) > 3 {
-		i, err := strconv.ParseInt(args[3], 10, 64)
+	if len(args) > 2 {
+		i, err := strconv.ParseInt(args[2], 10, 64)
 		if err != nil {
 			i = 100
 		} else {
@@ -349,8 +344,8 @@ func fetchRequest(args []string) {
 	}
 
 	var start int64
-	if len(args) > 4 {
-		i, err := strconv.ParseInt(args[4], 10, 64)
+	if len(args) > 3 {
+		i, err := strconv.ParseInt(args[3], 10, 64)
 		if err != nil {
 			i = 0
 		} else {
@@ -359,8 +354,8 @@ func fetchRequest(args []string) {
 	}
 
 	var end int64
-	if len(args) > 5 {
-		i, err := strconv.ParseInt(args[5], 10, 64)
+	if len(args) > 4 {
+		i, err := strconv.ParseInt(args[4], 10, 64)
 		if err != nil {
 			i = 0
 		} else {
@@ -374,7 +369,6 @@ func fetchRequest(args []string) {
 			Count(count).
 			Start(start).
 			End(end).
-			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
 			Execute()
 		ParseFetch(res, status, err)
@@ -383,7 +377,6 @@ func fetchRequest(args []string) {
 			Channels(channels).
 			Count(count).
 			Start(start).
-			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
 			Execute()
 		ParseFetch(res, status, err)
@@ -392,7 +385,6 @@ func fetchRequest(args []string) {
 			Channels(channels).
 			Count(count).
 			End(end).
-			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
 			Execute()
 		ParseFetch(res, status, err)
@@ -400,7 +392,6 @@ func fetchRequest(args []string) {
 		res, status, err := pn.Fetch().
 			Channels(channels).
 			Count(count).
-			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
 			Execute()
 		ParseFetch(res, status, err)
@@ -409,13 +400,18 @@ func fetchRequest(args []string) {
 
 func ParseFetch(res *pubnub.FetchResponse, status pubnub.StatusResponse, err error) {
 	fmt.Println(fmt.Sprintf("%s ParseFetch:", outputPrefix))
-	for channel, messages := range res.Messages {
-		fmt.Println("channel", channel)
-		for _, messageInt := range messages {
-			message := pubnub.FetchResponseItem(messageInt)
-			fmt.Println(message.Message)
-			fmt.Println(message.Timetoken)
+	if status.Error == nil {
+		for channel, messages := range res.Messages {
+			fmt.Println("channel", channel)
+			for _, messageInt := range messages {
+				message := pubnub.FetchResponseItem(messageInt)
+				fmt.Println(message.Message)
+				fmt.Println(message.Timetoken)
+			}
 		}
+	} else {
+		fmt.Println("ParseFetch", err)
+		fmt.Println("ParseFetch", status.StatusCode)
 	}
 	fmt.Println(fmt.Sprintf("%s", outputSuffix))
 }

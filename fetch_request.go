@@ -17,7 +17,7 @@ import (
 var emptyFetchResp *FetchResponse
 
 const FETCH_PATH = "/v3/history/sub-key/%s/channel/%s"
-const MAX_COUNT_FETCH = 100
+const MAX_COUNT_FETCH = 25
 
 type fetchBuilder struct {
 	opts *fetchOpts
@@ -72,10 +72,10 @@ func (b *fetchBuilder) Reverse(r bool) *fetchBuilder {
 	return b
 }
 
-func (b *fetchBuilder) IncludeTimetoken(i bool) *fetchBuilder {
+/*func (b *fetchBuilder) IncludeTimetoken(i bool) *fetchBuilder {
 	b.opts.IncludeTimetoken = i
 	return b
-}
+}*/
 
 func (b *fetchBuilder) Transport(tr http.RoundTripper) *fetchBuilder {
 	b.opts.Transport = tr
@@ -163,10 +163,11 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 	if o.Count > 0 && o.Count <= MAX_COUNT_FETCH {
 		q.Set("max", strconv.Itoa(o.Count))
 	} else {
+		q.Set("max", strconv.Itoa(MAX_COUNT_FETCH))
 	}
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
-	q.Set("include_token", strconv.FormatBool(o.IncludeTimetoken))
+	//q.Set("include_token", strconv.FormatBool(o.IncludeTimetoken))
 
 	return q, nil
 }
@@ -228,8 +229,6 @@ func newFetchResponse(jsonBytes []byte, cipherKey string,
 			messages := make(map[string][]FetchResponseItem, len(channels))
 
 			for channel, histResponseSliceMap := range channels {
-				//switch v := histResponseSliceMap.(type) {
-				//case []interface{}:
 				histResponseMap := histResponseSliceMap.([]interface{})
 				items := make([]FetchResponseItem, len(histResponseMap))
 
@@ -239,117 +238,12 @@ func newFetchResponse(jsonBytes []byte, cipherKey string,
 
 					}
 					histItem := FetchResponseItem{
-						Message:   histResponse["message"],
+						Message:   parseCipherInterface(histResponse["message"], cipherKey),
 						Timetoken: histResponse["timetoken"].(string),
 					}
 					items = append(items, histItem)
-
-					/*msgs := v[0].([]interface{})
-
-						var err error
-
-						switch v := val.(type) {
-						case string:
-							val, err = unmarshalWithDecrypt(v, cipherKey)
-							if err != nil {
-								e := pnerr.NewResponseParsingError("Error unmarshalling response",
-									ioutil.NopCloser(bytes.NewBufferString(v)), err)
-
-								return emptyFetchResp, status, e
-							}
-							break
-						case map[string]interface{}:
-							msg, ok := v["pn_other"].(string)
-							if !ok {
-								e := pnerr.NewResponseParsingError("Decription error: ",
-									ioutil.NopCloser(bytes.NewBufferString("message is empty")), nil)
-
-								return emptyFetchResp, status, e
-							}
-							val, err = unmarshalWithDecrypt(msg, cipherKey)
-							if err != nil {
-								e := pnerr.NewResponseParsingError("Error unmarshalling response",
-									ioutil.NopCloser(bytes.NewBufferString(err.Error())), err)
-
-								return emptyFetchResp, status, e
-							}
-							break
-						default:
-							e := pnerr.NewResponseParsingError("Decription error: ",
-								ioutil.NopCloser(bytes.NewBufferString("message is empty")), nil)
-
-							return emptyFetchResp, status, e
-						}
-
-						msgs[k] = val
-					}
-
-					switch v := val.(type) {
-					case string:
-						items[k].Message = val
-
-						items = append(items, items[k])
-						break
-					case float64:
-						items[k].Message = val
-
-						items = append(items, items[k])
-						break
-					case map[string]interface{}:
-						if v["timetoken"] != nil {
-							for key, value := range v {
-								if key == "timetoken" {
-									tt := value.(float64)
-									items[k].Timetoken = int64(tt)
-								} else {
-									items[k].Message = value
-								}
-							}
-						} else {
-							for k, value := range msgs {
-								items[k].Message = value
-							}
-						}
-						break
-					case []interface{}:
-						items[k].Message = v
-
-						items = append(items, items[k])
-						break
-					default:
-						continue
-					}*/
-					//}
-
-					/*startTimetoken, ok := v[1].(float64)
-					if !ok {
-						e := pnerr.NewResponseParsingError("Error parsing response",
-							ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
-
-						return emptyFetchResp, status, e
-					}
-
-					endTimetoken, ok := v[2].(float64)
-					if !ok {
-						e := pnerr.NewResponseParsingError("Error parsing response",
-							ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
-
-						return emptyFetchResp, status, e
-					}
-
-					//resp.Messages = items
-					resp.StartTimetoken = int64(startTimetoken)
-					resp.EndTimetoken = int64(endTimetoken)*/
 				}
 				messages[channel] = items
-				/*break
-				default:
-					e := pnerr.NewResponseParsingError("Error parsing response",
-						ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
-
-					return emptyFetchResp, status, e
-				}*/
-
 			}
 			resp.Messages = messages
 		}
