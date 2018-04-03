@@ -148,7 +148,7 @@ func showHelp() {
 func showFetchHelp() {
 	fmt.Println(" FETCH EXAMPLE: ")
 	fmt.Println("	fetch Channel Reverse Max Start End ")
-	fmt.Println("	fetch test,test1 true 10 15210190573608384 15211140747622125 ")
+	fmt.Println("	fetch my-channel,test true 10 15210190573608384 15211140747622125 ")
 }
 
 func showFireHelp() {
@@ -183,13 +183,13 @@ func showSubscribeHelp() {
 func showHistoryHelp() {
 	fmt.Println(" HISTORY EXAMPLE: ")
 	fmt.Println("	hist Channel IncludeTimetoken Reverse Count Start End ")
-	fmt.Println("	hist test true true 10 15210190573608384 15211140747622125 ")
+	fmt.Println("	hist my-channel true true 10 15210190573608384 15211140747622125 ")
 }
 
 func showDelMessagesHelp() {
 	fmt.Println(" Delete Messages EXAMPLE: ")
 	fmt.Println("	delmessages Channel Start End ")
-	fmt.Println("	delmessages test 15210190573608384 15211140747622125 ")
+	fmt.Println("	delmessages my-channel 15210190573608384 15211140747622125 ")
 }
 
 func showWhereNowHelp() {

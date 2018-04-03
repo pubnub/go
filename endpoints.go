@@ -77,16 +77,14 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 	}
 
 	if o.operationType() == PNPublishOperation {
-		q, _ := o.buildQuery()
-		v := q.Get("meta")
+		v := query.Get("meta")
 		if v != "" {
 			query.Set("meta", utils.UrlEncode(v))
 		}
 	}
 
 	if o.operationType() == PNSetStateOperation {
-		q, _ := o.buildQuery()
-		v := q.Get("state")
+		v := query.Get("state")
 		query.Set("state", utils.UrlEncode(v))
 	}
 
