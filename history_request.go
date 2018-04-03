@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"strconv"
-
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
+	"io/ioutil"
+	"reflect"
+	"strconv"
 
 	"net/http"
 	"net/url"
@@ -88,7 +88,7 @@ func (b *historyBuilder) Execute() (*HistoryResponse, StatusResponse, error) {
 		return emptyHistoryResp, status, err
 	}
 
-	return newHistoryResponse(rawJson, b.opts.config().CipherKey, status)
+	return newHistoryResponse(rawJson, b.opts, status)
 }
 
 type historyOpts struct {
@@ -204,8 +204,73 @@ type HistoryResponse struct {
 	EndTimetoken   int64
 }
 
-func newHistoryResponse(jsonBytes []byte, cipherKey string,
+// parseCipherInterface handles the decryption in case a cipher key is used
+// in case of error it returns data as is.
+//
+// parameters
+// data: the data to decrypt as interface.
+// cipherKey: cipher key to use to decrypt.
+//
+// returns the decrypted data as interface.
+func parseCipherInterface(data interface{}, cipherKey string) interface{} {
+	if cipherKey != "" {
+		var intf interface{}
+		decrypted, errDecryption := utils.DecryptString(cipherKey, data.(string))
+		if errDecryption != nil {
+			intf = data
+		} else {
+			intf = decrypted
+		}
+		return intf
+	} else {
+		return data
+	}
+}
+
+// parseInterface umarshals the response data, marshals the data again in a
+// different format and returns the json string. It also unescapes the data.
+//
+// parameters:
+// vv: interface array to parse and extract data from.
+// o : historyOpts
+//
+// returns []HistoryResponseItem.
+func parseInterface(vv []interface{}, o *historyOpts) []HistoryResponseItem {
+	cipherKey := o.pubnub.Config.CipherKey
+	items := make([]HistoryResponseItem, len(vv))
+	for i, _ := range vv {
+
+		val := vv[i]
+		o.pubnub.Config.Log.Println("reflect.TypeOf(val).Kind()", reflect.TypeOf(val).Kind())
+		switch v := val.(type) {
+		case map[string]interface{}:
+			if v["timetoken"] != nil {
+				for key, value := range v {
+					if key == "timetoken" {
+						tt := value.(float64)
+						items[i].Timetoken = int64(tt)
+					} else {
+						items[i].Message = parseCipherInterface(value, cipherKey)
+					}
+				}
+			} else {
+				for _, value := range vv {
+					items[i].Message = parseCipherInterface(value, cipherKey)
+				}
+			}
+			break
+		default:
+			items[i].Message = parseCipherInterface(v, cipherKey)
+			break
+		}
+	}
+
+	return items
+}
+
+func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 	status StatusResponse) (*HistoryResponse, StatusResponse, error) {
+
 	resp := &HistoryResponse{}
 
 	var value interface{}
@@ -220,86 +285,6 @@ func newHistoryResponse(jsonBytes []byte, cipherKey string,
 
 	switch v := value.(type) {
 	case []interface{}:
-		msgs := v[0].([]interface{})
-		items := make([]HistoryResponseItem, len(msgs))
-
-		for k, val := range msgs {
-			if cipherKey != "" {
-				var err error
-
-				switch v := val.(type) {
-				case string:
-					val, err = unmarshalWithDecrypt(v, cipherKey)
-					if err != nil {
-						e := pnerr.NewResponseParsingError("Error unmarshalling response",
-							ioutil.NopCloser(bytes.NewBufferString(v)), err)
-
-						return emptyHistoryResp, status, e
-					}
-					break
-				case map[string]interface{}:
-					msg, ok := v["pn_other"].(string)
-					if !ok {
-						e := pnerr.NewResponseParsingError("Decription error: ",
-							ioutil.NopCloser(bytes.NewBufferString("message is empty")), nil)
-
-						return emptyHistoryResp, status, e
-					}
-					val, err = unmarshalWithDecrypt(msg, cipherKey)
-					if err != nil {
-						e := pnerr.NewResponseParsingError("Error unmarshalling response",
-							ioutil.NopCloser(bytes.NewBufferString(err.Error())), err)
-
-						return emptyHistoryResp, status, e
-					}
-					break
-				default:
-					e := pnerr.NewResponseParsingError("Decription error: ",
-						ioutil.NopCloser(bytes.NewBufferString("message is empty")), nil)
-
-					return emptyHistoryResp, status, e
-				}
-
-				msgs[k] = val
-			}
-
-			switch v := val.(type) {
-			case string:
-				items[k].Message = val
-
-				items = append(items, items[k])
-				break
-			case float64:
-				items[k].Message = val
-
-				items = append(items, items[k])
-				break
-			case map[string]interface{}:
-				if v["timetoken"] != nil {
-					for key, value := range v {
-						if key == "timetoken" {
-							tt := value.(float64)
-							items[k].Timetoken = int64(tt)
-						} else {
-							items[k].Message = value
-						}
-					}
-				} else {
-					for k, value := range msgs {
-						items[k].Message = value
-					}
-				}
-				break
-			case []interface{}:
-				items[k].Message = v
-
-				items = append(items, items[k])
-				break
-			default:
-				continue
-			}
-		}
-
 		startTimetoken, ok := v[1].(float64)
 		if !ok {
 			e := pnerr.NewResponseParsingError("Error parsing response",
@@ -316,7 +301,16 @@ func newHistoryResponse(jsonBytes []byte, cipherKey string,
 			return emptyHistoryResp, status, e
 		}
 
-		resp.Messages = items
+		msgs := v[0].([]interface{})
+
+		items := parseInterface(msgs, o)
+		if items != nil {
+			resp.Messages = items
+			o.pubnub.Config.Log.Println("returning []interface, %s", items)
+		} else {
+			o.pubnub.Config.Log.Println("items nil")
+		}
+
 		resp.StartTimetoken = int64(startTimetoken)
 		resp.EndTimetoken = int64(endTimetoken)
 		break
