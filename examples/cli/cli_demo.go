@@ -47,7 +47,7 @@ func main() {
 	config.PublishKey = "pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
 	config.SubscribeKey = "sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
 	config.SecretKey = "sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
-	//config.CipherKey = "enigma"
+	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
 
 	// for subscribe event

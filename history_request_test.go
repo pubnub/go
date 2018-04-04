@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"testing"
 
@@ -169,7 +170,7 @@ func TestHistoryResponseParsingMap(t *testing.T) {
 	assert.Equal(int64(14991868111600528), resp.EndTimetoken)
 
 	messages := resp.Messages
-	assert.Equal(map[string]interface{}{"one": float64(1), "two": float64(2)},
+	assert.Equal(map[string]interface{}{"three": float64(3), "four": float64(4)},
 		messages[0].Message)
 }
 
@@ -209,10 +210,10 @@ func TestHistoryResponseParsingMapInSlice(t *testing.T) {
 
 func TestHistoryEncrypt(t *testing.T) {
 	assert := assert.New(t)
-	pnconfig.CipherKey = "testCipher"
+	pnconfig.CipherKey = "enigma"
 	pubnub = NewPubNub(pnconfig)
 
-	jsonString := []byte(`[["MnwzPGdVgz2osQCIQJviGg=="],14991775432719844,14991868111600528]`)
+	jsonString := []byte(`[["GUI1NhVPOxZap54NuLEaow=="],14991775432719844,14991868111600528]`)
 
 	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
@@ -231,7 +232,8 @@ func TestHistoryEncryptSlice(t *testing.T) {
 	assert.Nil(err)
 
 	messages := resp.Messages
-	assert.Equal([]interface{}{"hey-1", "hey-2", "hey-3"}, messages[0].Message)
+
+	assert.Equal("[\"hey-1\",\"hey-2\",\"hey-3\"]", messages[0].Message)
 }
 
 func TestHistoryEncryptMap(t *testing.T) {
@@ -244,8 +246,8 @@ func TestHistoryEncryptMap(t *testing.T) {
 	assert.Nil(err)
 
 	messages := resp.Messages
-	assert.Equal(map[string]interface{}{"one": float64(1),
-		"two": "[\"hey-1\",\"hey-2\"]"}, messages[0].Message)
+	log.Println(messages[0].Message)
+	assert.Equal(`{"one":1,"two":["hey-1","hey-2"]}`, messages[0].Message)
 
 	pnconfig.CipherKey = ""
 }
