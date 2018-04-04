@@ -236,7 +236,7 @@ func TestPublishEncrypt(t *testing.T) {
 	assert.Nil(err)
 
 	assert.Equal(
-		"/publish/pub_key/sub_key/0/ch/0/%22cmdMU0tZNnZFSjZCL0RpVk5Zc2lwQT09%22", path)
+		"/publish/pub_key/sub_key/0/ch/0/%22%2Bc52pEK3TCTpuEjEFzukRw%3D%3D%22", path)
 }
 
 func TestPublishSequenceCounter(t *testing.T) {
