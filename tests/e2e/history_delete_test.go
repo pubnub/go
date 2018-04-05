@@ -11,7 +11,7 @@ func TestHistoryDeleteNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	ch := randomized("h-ch")
-	pn := pubnub.NewPubNub(config)
+	pn := pubnub.NewPubNub(pamConfigCopy())
 
 	_, _, err := pn.DeleteMessages().
 		Channel(ch).
@@ -23,7 +23,13 @@ func TestHistoryDeleteNotStubbed(t *testing.T) {
 func TestHistoryDeleteMissingChannelError(t *testing.T) {
 	assert := assert.New(t)
 
-	pn := pubnub.NewPubNub(config)
+	/*config.PublishKey = "pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
+	config.SubscribeKey = "sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
+	config.SecretKey = "sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"*/
+
+	config2 := pamConfigCopy()
+
+	pn := pubnub.NewPubNub(config2)
 
 	res, _, err := pn.DeleteMessages().
 		Channel("").

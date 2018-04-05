@@ -164,7 +164,7 @@ func TestPublishMissingPublishKey(t *testing.T) {
 
 	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
 
-	assert.Contains(err.Error(), "Publish: Missing Publish Key")
+	assert.Contains(err.Error(), "Missing Publish Key")
 }
 
 func TestPublishMissingMessage(t *testing.T) {
@@ -178,7 +178,7 @@ func TestPublishMissingMessage(t *testing.T) {
 
 	_, _, err := pn.Publish().Channel("ch").Execute()
 
-	assert.Contains(err.Error(), "Publish: Missing Message")
+	assert.Contains(err.Error(), "Missing Message")
 }
 
 func TestPublishMissingChannel(t *testing.T) {
@@ -192,7 +192,7 @@ func TestPublishMissingChannel(t *testing.T) {
 
 	_, _, err := pn.Publish().Message("hey").Execute()
 
-	assert.Contains(err.Error(), "Publish: Missing Channel")
+	assert.Contains(err.Error(), "Missing Channel")
 }
 
 func TestPublishServerError(t *testing.T) {

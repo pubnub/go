@@ -637,7 +637,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			subscribedCh = subscriptionMatch
 		}
 		messagePayload := payload.Payload
-		m.pubnub.Config.Log.Println("Payload: ", messagePayload.(string))
+		//m.pubnub.Config.Log.Println("Payload: ", messagePayload.(string))
 		if len(m.pubnub.Config.CipherKey) > 0 {
 
 			decryptedMsg, err := utils.DecryptString(m.pubnub.Config.CipherKey, messagePayload.(string))
