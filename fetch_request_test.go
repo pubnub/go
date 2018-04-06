@@ -54,6 +54,62 @@ func TestFetchQuery(t *testing.T) {
 	AssertSuccessFetchQuery(t, "%22test%22?max=25&reverse=false", channels)
 }
 
+func initFetchOpts(cipher string) *fetchOpts {
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.CipherKey = cipher
+	return &fetchOpts{
+		Channels: []string{"test1,test2"},
+		Reverse:  false,
+		pubnub:   pn,
+	}
+}
+
+func TestFetchResponseWithoutCipher(t *testing.T) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"test":[{"message":"nyQDWnNPc1ryr5RgzVCKWw==","timetoken":"15229448184080121"}],"my-channel":[{"message":"nyQDWnNPc1ryr5RgzVCKWw==","timetoken":"15229448086016618"},{"message":"nyQDWnNPc1ryr5RgzVCKWw==","timetoken":"15229448126438499"},{"message":"my-message","timetoken":"15229450607090584"}]}}`)
+
+	resp, _, err := newFetchResponse(jsonString, initFetchOpts(""), fakeResponseState)
+	assert.Nil(err)
+
+	respTest := resp.Messages["test"]
+	respMyChannel := resp.Messages["my-channel"]
+
+	assert.Equal("nyQDWnNPc1ryr5RgzVCKWw==", respTest[0].Message)
+	assert.Equal("15229448184080121", respTest[0].Timetoken)
+
+	assert.Equal("nyQDWnNPc1ryr5RgzVCKWw==", respMyChannel[0].Message)
+	assert.Equal("15229448086016618", respMyChannel[0].Timetoken)
+	assert.Equal("nyQDWnNPc1ryr5RgzVCKWw==", respMyChannel[1].Message)
+	assert.Equal("15229448126438499", respMyChannel[1].Timetoken)
+	assert.Equal("my-message", respMyChannel[2].Message)
+	assert.Equal("15229450607090584", respMyChannel[2].Timetoken)
+
+}
+
+func TestFetchResponseWithCipher(t *testing.T) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"test":[{"message":"Wi24KS4pcTzvyuGOHubiXg==","timetoken":"15229448184080121"}],"my-channel":[{"message":"Wi24KS4pcTzvyuGOHubiXg==","timetoken":"15229448086016618"},{"message":"Wi24KS4pcTzvyuGOHubiXg==","timetoken":"15229448126438499"},{"message":"my-message","timetoken":"15229450607090584"}]}}`)
+
+	resp, _, err := newFetchResponse(jsonString, initFetchOpts("enigma"), fakeResponseState)
+	assert.Nil(err)
+
+	respTest := resp.Messages["test"]
+	respMyChannel := resp.Messages["my-channel"]
+
+	assert.Equal("\"yay!\"", respTest[0].Message)
+	assert.Equal("15229448184080121", respTest[0].Timetoken)
+
+	assert.Equal("\"yay!\"", respMyChannel[0].Message)
+	assert.Equal("15229448086016618", respMyChannel[0].Timetoken)
+	assert.Equal("\"yay!\"", respMyChannel[1].Message)
+	assert.Equal("15229448126438499", respMyChannel[1].Timetoken)
+	assert.Equal("my-message", respMyChannel[2].Message)
+	assert.Equal("15229450607090584", respMyChannel[2].Timetoken)
+
+}
+
 /*func Fetch(t *testing.T) {
 	assert := assert.New(t)
 

@@ -402,11 +402,11 @@ func ParseFetch(res *pubnub.FetchResponse, status pubnub.StatusResponse, err err
 	fmt.Println(fmt.Sprintf("%s ParseFetch:", outputPrefix))
 	if status.Error == nil {
 		for channel, messages := range res.Messages {
-			fmt.Println("channel", channel)
+			fmt.Println("channel:", channel)
 			for _, messageInt := range messages {
 				message := pubnub.FetchResponseItem(messageInt)
-				fmt.Println(message.Message)
-				fmt.Println(message.Timetoken)
+				fmt.Println("message.Message:", message.Message)
+				fmt.Println("message.Timetoken:", message.Timetoken)
 			}
 		}
 	} else {

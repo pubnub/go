@@ -2,7 +2,6 @@ package pubnub
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"testing"
 
@@ -246,7 +245,7 @@ func TestHistoryEncryptMap(t *testing.T) {
 	assert.Nil(err)
 
 	messages := resp.Messages
-	log.Println(messages[0].Message)
+	//log.Println(messages[0].Message)
 	assert.Equal(`{"one":1,"two":["hey-1","hey-2"]}`, messages[0].Message)
 
 	pnconfig.CipherKey = ""

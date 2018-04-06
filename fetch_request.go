@@ -88,7 +88,7 @@ func (b *fetchBuilder) Execute() (*FetchResponse, StatusResponse, error) {
 		return emptyFetchResp, status, err
 	}
 
-	return newFetchResponse(rawJson, b.opts.config().CipherKey, status)
+	return newFetchResponse(rawJson, b.opts, status)
 }
 
 type fetchOpts struct {
@@ -204,8 +204,9 @@ type FetchResponse struct {
 	Messages map[string][]FetchResponseItem
 }
 
-func newFetchResponse(jsonBytes []byte, cipherKey string,
+func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 	status StatusResponse) (*FetchResponse, StatusResponse, error) {
+
 	resp := &FetchResponse{}
 
 	var value interface{}
@@ -221,8 +222,7 @@ func newFetchResponse(jsonBytes []byte, cipherKey string,
 	result := value.(map[string]interface{})
 
 	if result != nil {
-
-		fmt.Println(result["channels"])
+		o.pubnub.Config.Log.Println(result["channels"])
 		channels := result["channels"].(map[string]interface{})
 
 		if channels != nil {
@@ -230,20 +230,23 @@ func newFetchResponse(jsonBytes []byte, cipherKey string,
 
 			for channel, histResponseSliceMap := range channels {
 				histResponseMap := histResponseSliceMap.([]interface{})
+				o.pubnub.Config.Log.Printf("Channel:%s, count:%d", channel, len(histResponseMap))
 				items := make([]FetchResponseItem, len(histResponseMap))
+				count := 0
 
 				for _, val := range histResponseMap {
 					histResponse := val.(map[string]interface{})
-					if cipherKey != "" {
 
-					}
 					histItem := FetchResponseItem{
-						Message:   parseCipherInterface(histResponse["message"], cipherKey),
+						Message:   parseCipherInterface(histResponse["message"], o.pubnub.Config.CipherKey),
 						Timetoken: histResponse["timetoken"].(string),
 					}
-					items = append(items, histItem)
+					items[count] = histItem
+					o.pubnub.Config.Log.Printf("Channel:%s, count:%d %d", channel, count, len(items))
+					count++
 				}
 				messages[channel] = items
+				o.pubnub.Config.Log.Printf("Channel:%s, count:%d", channel, len(messages[channel]))
 			}
 			resp.Messages = messages
 		}
