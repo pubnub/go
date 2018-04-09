@@ -237,6 +237,59 @@ func TestPublishEncrypt(t *testing.T) {
 
 	assert.Equal(
 		"/publish/pub_key/sub_key/0/ch/0/%22%2Bc52pEK3TCTpuEjEFzukRw%3D%3D%22", path)
+	pnconfig.CipherKey = ""
+}
+
+func TestPublishEncryptPNOther(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
+
+	pn.Config.CipherKey = "enigma"
+	s := map[string]interface{}{
+		"not_other": "1234",
+		"pn_other":  "\"yay!\"",
+	}
+
+	opts := &publishOpts{
+		Channel: "ch",
+		Message: s,
+		pubnub:  pn,
+	}
+
+	path, err := opts.buildPath()
+	assert.Nil(err)
+
+	assert.Equal(
+		"/publish/demo/demo/0/ch/0/%7B%22not_other%22%3A%221234%22%2C%22pn_other%22%3A%22Wi24KS4pcTzvyuGOHubiXg%3D%3D%22%7D", path)
+
+	pn.Config.CipherKey = ""
+}
+
+func TestPublishEncryptPNOtherDisable(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	pn.Config.CipherKey = "enigma"
+	pn.Config.DisablePNOtherProcessing = true
+
+	s := map[string]interface{}{
+		"not_other": "1234",
+		"pn_other":  "yay!",
+	}
+
+	opts := &publishOpts{
+		Channel: "ch",
+		Message: s,
+		pubnub:  pn,
+	}
+
+	path, err := opts.buildPath()
+	assert.Nil(err)
+
+	assert.Equal(
+		"/publish/demo/demo/0/ch/0/%22nG41KRyzJtBR9WWShepyXb3hNh7JJnOoTrQ0SNRcAwRyBYDG2dDhL99svymHR89n%22", path)
+	pn.Config.CipherKey = ""
 }
 
 func TestPublishSequenceCounter(t *testing.T) {

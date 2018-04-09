@@ -43,6 +43,8 @@ type Config struct {
 	Log *log.Logger
 
 	SuppressLeaveEvents bool
+
+	DisablePNOtherProcessing bool
 }
 
 func NewDemoConfig() *Config {
@@ -66,6 +68,8 @@ func NewConfig() *Config {
 		SubscribeRequestTimeout:    310,
 		MaximumLatencyDataAge:      60,
 		MaximumReconnectionRetries: -1,
+		SuppressLeaveEvents:        false,
+		DisablePNOtherProcessing:   false,
 	}
 
 	c.SetPresenceTimeout(PRESENCE_TIMEOUT)

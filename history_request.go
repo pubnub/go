@@ -238,16 +238,16 @@ func parseInterface(vv []interface{}, o *historyOpts) []HistoryResponseItem {
 				} else {
 					o.pubnub.Config.Log.Println("v[timetoken].(int64)", ok, items[i].Timetoken)
 				}
-				items[i].Message, _ = parseCipherInterface(v["message"], cipherKey, o.pubnub.Config.Log)
+				items[i].Message, _ = parseCipherInterface(v["message"], cipherKey, o.pubnub.Config)
 			} else {
 				o.pubnub.Config.Log.Println("value", v)
-				items[i].Message, _ = parseCipherInterface(v, cipherKey, o.pubnub.Config.Log)
+				items[i].Message, _ = parseCipherInterface(v, cipherKey, o.pubnub.Config)
 				o.pubnub.Config.Log.Println("items[i]", items[i])
 			}
 			break
 		default:
 			o.pubnub.Config.Log.Println(v)
-			items[i].Message, _ = parseCipherInterface(v, cipherKey, o.pubnub.Config.Log)
+			items[i].Message, _ = parseCipherInterface(v, cipherKey, o.pubnub.Config)
 			break
 		}
 	}

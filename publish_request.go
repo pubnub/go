@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 	"strconv"
 
 	"github.com/pubnub/go/pnerr"
@@ -201,8 +202,35 @@ func (o *publishOpts) buildPath() (string, error) {
 	var msg interface{}
 
 	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-		o.pubnub.Config.Log.Println("EncryptString: encrypting", o.Message.(string), fmt.Sprintf("%s", o.Message))
-		msg = utils.EncryptString(cipherKey, fmt.Sprintf("%s", o.Message))
+		o.pubnub.Config.Log.Println("EncryptString: encrypting", fmt.Sprintf("%s", o.Message))
+		if o.pubnub.Config.DisablePNOtherProcessing {
+			msg = utils.EncryptString(cipherKey, fmt.Sprintf("%s", o.Message))
+		} else {
+			//encrypt pn_other only
+			o.pubnub.Config.Log.Println("encrypt pn_other only", "reflect.TypeOf(data).Kind()", reflect.TypeOf(o.Message).Kind(), o.Message)
+			switch v := o.Message.(type) {
+			case map[string]interface{}:
+
+				msgPart, ok := v["pn_other"].(string)
+
+				if ok {
+					o.pubnub.Config.Log.Println(ok, msgPart)
+					encMsg := utils.EncryptString(cipherKey, msgPart)
+					v["pn_other"] = encMsg
+					msg = v
+
+				} else {
+					o.pubnub.Config.Log.Println(ok, o.Message)
+					msg = utils.EncryptString(cipherKey, fmt.Sprintf("%s", o.Message))
+				}
+				break
+			default:
+				o.pubnub.Config.Log.Println("default", o.Message)
+				msg = utils.EncryptString(cipherKey, fmt.Sprintf("%s", o.Message))
+				break
+			}
+		}
+
 		o.pubnub.Config.Log.Println("EncryptString: encrypted", msg)
 	} else {
 		msg = o.Message

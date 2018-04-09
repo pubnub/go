@@ -233,6 +233,7 @@ func TestHistoryPNOther(t *testing.T) {
 	assert.Equal(float64(1.1), messages[3].Message)
 	assert.Equal(false, messages[4].Message)
 	assert.Equal(float64(int64Val), messages[5].Message)
+	pnconfig.CipherKey = ""
 }
 
 func TestHistoryResponseParsingSliceInMapWithTimetoken(t *testing.T) {
@@ -281,6 +282,7 @@ func TestHistoryEncrypt(t *testing.T) {
 
 	messages := resp.Messages
 	assert.Equal("hey", messages[0].Message)
+	pnconfig.CipherKey = ""
 }
 
 func TestHistoryEncryptSlice(t *testing.T) {
@@ -295,6 +297,7 @@ func TestHistoryEncryptSlice(t *testing.T) {
 	messages := resp.Messages
 
 	assert.Equal("[\"hey-1\",\"hey-2\",\"hey-3\"]", messages[0].Message)
+	pnconfig.CipherKey = ""
 }
 
 func TestHistoryEncryptMap(t *testing.T) {
