@@ -3,7 +3,9 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -639,8 +641,9 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		messagePayload := payload.Payload
 		//m.pubnub.Config.Log.Println("Payload: ", messagePayload.(string))
 		if len(m.pubnub.Config.CipherKey) > 0 {
+			decryptedMsg, err := parseCipherInterface(messagePayload.(string), m.pubnub.Config.CipherKey, m.pubnub.Config.Log)
 
-			decryptedMsg, err := utils.DecryptString(m.pubnub.Config.CipherKey, messagePayload.(string))
+			//decryptedMsg, err := utils.DecryptString(m.pubnub.Config.CipherKey, messagePayload.(string))
 
 			if err != nil {
 				pnStatus := &PNStatus{
@@ -653,9 +656,8 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 				}
 				m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
 				m.listenerManager.announceStatus(pnStatus)
-			} else {
-				messagePayload = decryptedMsg
 			}
+			messagePayload = decryptedMsg
 		}
 
 		pnMessageResult := &PNMessage{
@@ -670,6 +672,54 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		}
 
 		m.listenerManager.announceMessage(pnMessageResult)
+	}
+}
+
+// parseCipherInterface handles the decryption in case a cipher key is used
+// in case of error it returns data as is.
+//
+// parameters
+// data: the data to decrypt as interface.
+// cipherKey: cipher key to use to decrypt.
+//
+// returns the decrypted data as interface and error.
+func parseCipherInterface(data interface{}, cipherKey string, logger *log.Logger) (interface{}, error) {
+	if cipherKey != "" {
+		logger.Println("reflect.TypeOf(data).Kind()", reflect.TypeOf(data).Kind(), data)
+		switch v := data.(type) {
+		case map[string]interface{}:
+			logger.Println("v[pn_other]", v["pn_other"], v)
+			msg, ok := v["pn_other"].(string)
+			if ok {
+				logger.Println(v, msg)
+				decrypted, errDecryption := utils.DecryptString(cipherKey, msg)
+				if errDecryption != nil {
+					logger.Println(errDecryption, msg)
+					return v, errDecryption
+				} else {
+					v["pn_other"] = decrypted
+					return v, nil
+				}
+			}
+			logger.Println("return as is", v)
+
+			return v, nil
+		case string:
+			var intf interface{}
+			decrypted, errDecryption := utils.DecryptString(cipherKey, data.(string))
+			if errDecryption != nil {
+				logger.Println(errDecryption, intf)
+				intf = data
+				return intf, errDecryption
+			}
+			intf = decrypted
+			return intf, nil
+		default:
+			logger.Println("[]interface")
+			return v, nil
+		}
+	} else {
+		return data, nil
 	}
 }
 

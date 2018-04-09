@@ -236,9 +236,10 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 
 				for _, val := range histResponseMap {
 					histResponse := val.(map[string]interface{})
+					msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config.CipherKey, o.pubnub.Config.Log)
 
 					histItem := FetchResponseItem{
-						Message:   parseCipherInterface(histResponse["message"], o.pubnub.Config.CipherKey, o.pubnub.Config.Log),
+						Message:   msg,
 						Timetoken: histResponse["timetoken"].(string),
 					}
 					items[count] = histItem

@@ -7,7 +7,6 @@ import (
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
 	"io/ioutil"
-	"log"
 	"reflect"
 	"strconv"
 
@@ -205,55 +204,6 @@ type HistoryResponse struct {
 	EndTimetoken   int64
 }
 
-// parseCipherInterface handles the decryption in case a cipher key is used
-// in case of error it returns data as is.
-//
-// parameters
-// data: the data to decrypt as interface.
-// cipherKey: cipher key to use to decrypt.
-//
-// returns the decrypted data as interface.
-func parseCipherInterface(data interface{}, cipherKey string, logger *log.Logger) interface{} {
-	if cipherKey != "" {
-		logger.Println("reflect.TypeOf(data).Kind()", reflect.TypeOf(data).Kind(), data)
-		switch v := data.(type) {
-		case map[string]interface{}:
-			logger.Println("v[pn_other]", v["pn_other"], v)
-			msg, ok := v["pn_other"].(string)
-			if ok {
-				logger.Println(v, msg)
-				decrypted, errDecryption := utils.DecryptString(cipherKey, msg)
-				if errDecryption != nil {
-					logger.Println(errDecryption, msg)
-					return v
-				} else {
-					v["pn_other"] = decrypted
-					return v
-				}
-			}
-			logger.Println("return as is", v)
-
-			return v
-		case string:
-			var intf interface{}
-			decrypted, errDecryption := utils.DecryptString(cipherKey, data.(string))
-			if errDecryption != nil {
-				logger.Println(errDecryption, intf)
-				intf = data
-			} else {
-				intf = decrypted
-			}
-			return intf
-		default:
-			logger.Println("[]interface")
-			return v
-
-		}
-	} else {
-		return data
-	}
-}
-
 // parseInterface umarshals the response data, marshals the data again in a
 // different format and returns the json string. It also unescapes the data.
 //
@@ -288,16 +238,16 @@ func parseInterface(vv []interface{}, o *historyOpts) []HistoryResponseItem {
 				} else {
 					o.pubnub.Config.Log.Println("v[timetoken].(int64)", ok, items[i].Timetoken)
 				}
-				items[i].Message = parseCipherInterface(v["message"], cipherKey, o.pubnub.Config.Log)
+				items[i].Message, _ = parseCipherInterface(v["message"], cipherKey, o.pubnub.Config.Log)
 			} else {
 				o.pubnub.Config.Log.Println("value", v)
-				items[i].Message = parseCipherInterface(v, cipherKey, o.pubnub.Config.Log)
+				items[i].Message, _ = parseCipherInterface(v, cipherKey, o.pubnub.Config.Log)
 				o.pubnub.Config.Log.Println("items[i]", items[i])
 			}
 			break
 		default:
 			o.pubnub.Config.Log.Println(v)
-			items[i].Message = parseCipherInterface(v, cipherKey, o.pubnub.Config.Log)
+			items[i].Message, _ = parseCipherInterface(v, cipherKey, o.pubnub.Config.Log)
 			break
 		}
 	}
