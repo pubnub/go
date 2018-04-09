@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	h "github.com/pubnub/go/tests/helpers"
@@ -104,6 +105,43 @@ func TestFetchResponseWithCipher(t *testing.T) {
 	assert.Equal("\"yay!\"", respMyChannel[0].Message)
 	assert.Equal("15229448086016618", respMyChannel[0].Timetoken)
 	assert.Equal("\"yay!\"", respMyChannel[1].Message)
+	assert.Equal("15229448126438499", respMyChannel[1].Timetoken)
+	assert.Equal("my-message", respMyChannel[2].Message)
+	assert.Equal("15229450607090584", respMyChannel[2].Timetoken)
+
+}
+
+func TestFetchResponseWithCipherInterface(t *testing.T) {
+	assert := assert.New(t)
+	//fmt.Println(utils.EncryptString("enigma", "{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}"))
+
+	jsonString := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"test":[{"message":"{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}","timetoken":"15229448184080121"}],"my-channel":[{"message":{"not_other":"1234", "pn_other":"Wi24KS4pcTzvyuGOHubiXg=="},"timetoken":"15229448086016618"},{"message":"bCC/kQbGdScQ0teYcawUsunrJLoUdp3Mwb/24ifa87QDBWv5aTkXkkjVMMXizEDb","timetoken":"15229448126438499"},{"message":"my-message","timetoken":"15229450607090584"}]}}`)
+
+	resp, _, err := newFetchResponse(jsonString, initFetchOpts("enigma"), fakeResponseState)
+	assert.Nil(err)
+
+	respTest := resp.Messages["test"]
+	respMyChannel := resp.Messages["my-channel"]
+
+	assert.Equal("{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}", respTest[0].Message)
+	assert.Equal("15229448184080121", respTest[0].Timetoken)
+
+	data := respMyChannel[0].Message
+	switch v := data.(type) {
+	case map[string]interface{}:
+		testMap := make(map[string]interface{})
+		testMap = v
+		assert.Equal(testMap["not_other"], "1234")
+		assert.Equal(testMap["pn_other"], "\"yay!\"")
+
+		break
+	default:
+		assert.Fail(string(reflect.TypeOf(data).Kind()), " expected interafce")
+		break
+	}
+
+	assert.Equal("15229448086016618", respMyChannel[0].Timetoken)
+	assert.Equal("{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}", respMyChannel[1].Message)
 	assert.Equal("15229448126438499", respMyChannel[1].Timetoken)
 	assert.Equal("my-message", respMyChannel[2].Message)
 	assert.Equal("15229450607090584", respMyChannel[2].Timetoken)

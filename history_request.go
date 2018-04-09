@@ -7,6 +7,7 @@ import (
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
 	"io/ioutil"
+	"log"
 	"reflect"
 	"strconv"
 
@@ -212,16 +213,42 @@ type HistoryResponse struct {
 // cipherKey: cipher key to use to decrypt.
 //
 // returns the decrypted data as interface.
-func parseCipherInterface(data interface{}, cipherKey string) interface{} {
+func parseCipherInterface(data interface{}, cipherKey string, logger *log.Logger) interface{} {
 	if cipherKey != "" {
-		var intf interface{}
-		decrypted, errDecryption := utils.DecryptString(cipherKey, data.(string))
-		if errDecryption != nil {
-			intf = data
-		} else {
-			intf = decrypted
+		logger.Println("reflect.TypeOf(data).Kind()", reflect.TypeOf(data).Kind(), data)
+		switch v := data.(type) {
+		case map[string]interface{}:
+			logger.Println("v[pn_other]", v["pn_other"], v)
+			msg, ok := v["pn_other"].(string)
+			if ok {
+				logger.Println(v, msg)
+				decrypted, errDecryption := utils.DecryptString(cipherKey, msg)
+				if errDecryption != nil {
+					logger.Println(errDecryption, msg)
+					return v
+				} else {
+					v["pn_other"] = decrypted
+					return v
+				}
+			}
+			logger.Println("return as is", v)
+
+			return v
+		case string:
+			var intf interface{}
+			decrypted, errDecryption := utils.DecryptString(cipherKey, data.(string))
+			if errDecryption != nil {
+				logger.Println(errDecryption, intf)
+				intf = data
+			} else {
+				intf = decrypted
+			}
+			return intf
+		default:
+			logger.Println("[]interface")
+			return v
+
 		}
-		return intf
 	} else {
 		return data
 	}
@@ -237,6 +264,7 @@ func parseCipherInterface(data interface{}, cipherKey string) interface{} {
 // returns []HistoryResponseItem.
 func parseInterface(vv []interface{}, o *historyOpts) []HistoryResponseItem {
 	cipherKey := o.pubnub.Config.CipherKey
+	o.pubnub.Config.Log.Println(vv)
 	items := make([]HistoryResponseItem, len(vv))
 	for i, _ := range vv {
 
@@ -244,27 +272,35 @@ func parseInterface(vv []interface{}, o *historyOpts) []HistoryResponseItem {
 		o.pubnub.Config.Log.Println("reflect.TypeOf(val).Kind()", reflect.TypeOf(val).Kind())
 		switch v := val.(type) {
 		case map[string]interface{}:
+			o.pubnub.Config.Log.Println("Map", v)
 			if v["timetoken"] != nil {
-				for key, value := range v {
-					if key == "timetoken" {
-						tt := value.(float64)
+				o.pubnub.Config.Log.Println("timetoken:", v["timetoken"])
+				if f, ok := v["timetoken"].(float64); ok {
+					s := fmt.Sprintf("%.0f", f)
+					o.pubnub.Config.Log.Println("s:", s)
+
+					if tt, err := strconv.Atoi(s); err == nil {
+						o.pubnub.Config.Log.Println("tt:", tt)
 						items[i].Timetoken = int64(tt)
 					} else {
-						items[i].Message = parseCipherInterface(value, cipherKey)
+						o.pubnub.Config.Log.Println(f, s, err)
 					}
+				} else {
+					o.pubnub.Config.Log.Println("v[timetoken].(int64)", ok, items[i].Timetoken)
 				}
+				items[i].Message = parseCipherInterface(v["message"], cipherKey, o.pubnub.Config.Log)
 			} else {
-				for _, value := range vv {
-					items[i].Message = parseCipherInterface(value, cipherKey)
-				}
+				o.pubnub.Config.Log.Println("value", v)
+				items[i].Message = parseCipherInterface(v, cipherKey, o.pubnub.Config.Log)
+				o.pubnub.Config.Log.Println("items[i]", items[i])
 			}
 			break
 		default:
-			items[i].Message = parseCipherInterface(v, cipherKey)
+			o.pubnub.Config.Log.Println(v)
+			items[i].Message = parseCipherInterface(v, cipherKey, o.pubnub.Config.Log)
 			break
 		}
 	}
-
 	return items
 }
 
@@ -302,6 +338,7 @@ func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 		}
 
 		msgs := v[0].([]interface{})
+		o.pubnub.Config.Log.Println(msgs)
 
 		items := parseInterface(msgs, o)
 		if items != nil {

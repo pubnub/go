@@ -81,7 +81,7 @@ func TestHistorySuccess(t *testing.T) {
 		res.Messages[1].Message)
 }
 
-func HistoryEncryptedPNOther(t *testing.T) {
+func TestHistoryEncryptedPNOther(t *testing.T) {
 	assert := assert.New(t)
 
 	config.CipherKey = "hello"
@@ -124,7 +124,7 @@ func TestHistoryMissingChannel(t *testing.T) {
 	assert.Contains(err.Error(), "Missing Channel")
 }
 
-func HistoryPNOtherError(t *testing.T) {
+func TestHistoryPNOtherError(t *testing.T) {
 	assert := assert.New(t)
 
 	config.CipherKey = "hello"
