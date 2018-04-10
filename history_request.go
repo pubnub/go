@@ -213,7 +213,6 @@ type HistoryResponse struct {
 //
 // returns []HistoryResponseItem.
 func parseInterface(vv []interface{}, o *historyOpts) []HistoryResponseItem {
-	cipherKey := o.pubnub.Config.CipherKey
 	o.pubnub.Config.Log.Println(vv)
 	items := make([]HistoryResponseItem, len(vv))
 	for i, _ := range vv {
@@ -238,16 +237,16 @@ func parseInterface(vv []interface{}, o *historyOpts) []HistoryResponseItem {
 				} else {
 					o.pubnub.Config.Log.Println("v[timetoken].(int64)", ok, items[i].Timetoken)
 				}
-				items[i].Message, _ = parseCipherInterface(v["message"], cipherKey, o.pubnub.Config)
+				items[i].Message, _ = parseCipherInterface(v["message"], o.pubnub.Config)
 			} else {
 				o.pubnub.Config.Log.Println("value", v)
-				items[i].Message, _ = parseCipherInterface(v, cipherKey, o.pubnub.Config)
+				items[i].Message, _ = parseCipherInterface(v, o.pubnub.Config)
 				o.pubnub.Config.Log.Println("items[i]", items[i])
 			}
 			break
 		default:
 			o.pubnub.Config.Log.Println(v)
-			items[i].Message, _ = parseCipherInterface(v, cipherKey, o.pubnub.Config)
+			items[i].Message, _ = parseCipherInterface(v, o.pubnub.Config)
 			break
 		}
 	}

@@ -7,9 +7,11 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	//"encoding/gob"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -36,6 +38,14 @@ func EncryptString(cipherKey string, message string) string {
 	return base64.StdEncoding.EncodeToString(cipherBytes)
 }
 
+type A struct {
+	I         string
+	Interface *B
+}
+type B struct {
+	Value string
+}
+
 // DecryptString decodes encrypted string using the cipherKey
 //
 // It accepts the following parameters:
@@ -59,6 +69,7 @@ func DecryptString(cipherKey string, message string) (
 	if decodeErr != nil {
 		return "***decrypt error***", fmt.Errorf("decrypt error on decode: %s", decodeErr)
 	}
+	//fmt.Println("value ", reflect.TypeOf(value).Kind(), value)
 	decrypter := cipher.NewCBCDecrypter(block, []byte(valIV))
 	//to handle decryption errors
 	defer func() {
@@ -69,10 +80,27 @@ func DecryptString(cipherKey string, message string) (
 	decrypted := make([]byte, len(value))
 	decrypter.CryptBlocks(decrypted, value)
 	val, err := unpadPKCS7(decrypted)
+	//fmt.Println("decrypted ", reflect.TypeOf(decrypted).Kind(), decrypted)
 	if err != nil {
 		return "***decrypt error***", fmt.Errorf("decrypt error: %s", err)
 	}
 
+	fmt.Println("reflect.TypeOf(val).Kind()", reflect.TypeOf(val).Kind(), val, string(val), fmt.Sprintf("%s", string(val)))
+	//v := reflect.ValueOf(val)
+	//fmt.Println("v ", v.Type(), v.Kind(), v.Interface())
+	//return v, nil
+	/*data := &A{}
+
+	buf := bytes.NewBuffer(val)
+	dec := gob.NewDecoder(buf)
+	errDec := dec.Decode(data)
+	if errDec != nil {
+		return fmt.Sprintf("%s", string(val)), fmt.Errorf("DecryptString: Decode error: %s", errDec)
+	}
+
+	fmt.Println("reflect.TypeOf(data).Kind()", reflect.TypeOf(data).Kind(), data)
+
+	return data, nil*/
 	return fmt.Sprintf("%s", string(val)), nil
 }
 

@@ -637,27 +637,27 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			actualCh = channel
 			subscribedCh = subscriptionMatch
 		}
-		messagePayload := payload.Payload
+		//messagePayload := payload.Payload
 		//m.pubnub.Config.Log.Println("Payload: ", messagePayload.(string))
-		if len(m.pubnub.Config.CipherKey) > 0 {
-			decryptedMsg, err := parseCipherInterface(messagePayload.(string), m.pubnub.Config.CipherKey, m.pubnub.Config)
+		//if len(m.pubnub.Config.CipherKey) > 0 {
 
-			//decryptedMsg, err := utils.DecryptString(m.pubnub.Config.CipherKey, messagePayload.(string))
+		messagePayload, err := parseCipherInterface(payload.Payload, m.pubnub.Config)
 
-			if err != nil {
-				pnStatus := &PNStatus{
-					Category:         PNBadRequestCategory,
-					ErrorData:        err,
-					Error:            true,
-					Operation:        PNSubscribeOperation,
-					AffectedChannels: []string{channel},
-					//AffectedChannelGroups: combinedGroups,
-				}
-				m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
-				m.listenerManager.announceStatus(pnStatus)
+		//decryptedMsg, err := utils.DecryptString(m.pubnub.Config.CipherKey, messagePayload.(string))
+
+		if err != nil {
+			pnStatus := &PNStatus{
+				Category:         PNBadRequestCategory,
+				ErrorData:        err,
+				Error:            true,
+				Operation:        PNSubscribeOperation,
+				AffectedChannels: []string{channel},
+				//AffectedChannelGroups: combinedGroups,
 			}
-			messagePayload = decryptedMsg
+			m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
+			m.listenerManager.announceStatus(pnStatus)
 		}
+		//}
 
 		pnMessageResult := &PNMessage{
 			Message:           messagePayload,
@@ -682,8 +682,8 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 // cipherKey: cipher key to use to decrypt.
 //
 // returns the decrypted data as interface and error.
-func parseCipherInterface(data interface{}, cipherKey string, pnConf *Config) (interface{}, error) {
-	if cipherKey != "" {
+func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error) {
+	if pnConf.CipherKey != "" {
 		pnConf.Log.Println("reflect.TypeOf(data).Kind()", reflect.TypeOf(data).Kind(), data)
 		switch v := data.(type) {
 		case map[string]interface{}:
@@ -694,35 +694,37 @@ func parseCipherInterface(data interface{}, cipherKey string, pnConf *Config) (i
 				if ok {
 					pnConf.Log.Println("v[pn_other]", v["pn_other"], v)
 					pnConf.Log.Println(v, msg)
-					decrypted, errDecryption := utils.DecryptString(cipherKey, msg)
+					decrypted, errDecryption := utils.DecryptString(pnConf.CipherKey, msg)
 					if errDecryption != nil {
 						pnConf.Log.Println(errDecryption, msg)
 						return v, errDecryption
 					} else {
 						v["pn_other"] = decrypted
+						pnConf.Log.Println("reflect.TypeOf(v).Kind()", reflect.TypeOf(v).Kind(), v)
 						return v, nil
 					}
 				}
 				return v, nil
 			}
-			pnConf.Log.Println("return as is", v)
-
+			pnConf.Log.Println("return as is reflect.TypeOf(v).Kind()", reflect.TypeOf(v).Kind(), v)
 			return v, nil
 		case string:
 			var intf interface{}
-			decrypted, errDecryption := utils.DecryptString(cipherKey, data.(string))
+			decrypted, errDecryption := utils.DecryptString(pnConf.CipherKey, data.(string))
 			if errDecryption != nil {
 				pnConf.Log.Println(errDecryption, intf)
 				intf = data
 				return intf, errDecryption
 			}
 			intf = decrypted
+			pnConf.Log.Println("return as is reflect.TypeOf(intf).Kind()", reflect.TypeOf(intf).Kind(), intf)
 			return intf, nil
 		default:
 			pnConf.Log.Println("[]interface")
 			return v, nil
 		}
 	} else {
+		pnConf.Log.Println("No Cipher, returning as is ", data)
 		return data, nil
 	}
 }
