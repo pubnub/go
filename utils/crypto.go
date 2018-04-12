@@ -7,8 +7,9 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	//"encoding/gob"
+	"encoding/gob"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -84,8 +85,20 @@ func DecryptString(cipherKey string, message string) (
 	if err != nil {
 		return "***decrypt error***", fmt.Errorf("decrypt error: %s", err)
 	}
+	fmt.Println(val)
+	s := reflect.ValueOf(val)
+	var value1 []interface{}
+	err1 := json.Unmarshal([]byte(fmt.Sprintf("%s", string(val))), &value1)
+	if err1 != nil {
+		fmt.Println("err1:", err1)
+	}
 
-	fmt.Println("reflect.TypeOf(val).Kind()", reflect.TypeOf(val).Kind(), val, string(val), fmt.Sprintf("%s", string(val)))
+	fmt.Println("crypto reflect.TypeOf(data).Kind()", reflect.TypeOf(val).Kind(), val)
+	fmt.Println("crypto s:::", s, s.Type())
+
+	getInterface(val)
+
+	//fmt.Println("reflect.TypeOf(val).Kind()", reflect.TypeOf(val).Kind(), val, string(val), fmt.Sprintf("%s", string(val)))
 	//v := reflect.ValueOf(val)
 	//fmt.Println("v ", v.Type(), v.Kind(), v.Interface())
 	//return v, nil
@@ -102,6 +115,40 @@ func DecryptString(cipherKey string, message string) (
 
 	return data, nil*/
 	return fmt.Sprintf("%s", string(val)), nil
+}
+
+type Data struct {
+	Name string
+	Data interface{}
+}
+type SubType struct {
+	Foo string
+}
+
+func getInterface(bts []byte) error {
+	encodeData := Data{
+		Name: "FooBar",
+		Data: SubType{Foo: "Test"},
+	}
+	mCache := new(bytes.Buffer)
+	encCache := gob.NewEncoder(mCache)
+	gob.Register(SubType{})
+	encCache.Encode(encodeData)
+
+	fmt.Printf("Encoded: ")
+	fmt.Println(mCache.Bytes())
+	//var data interface{}
+	var data Data
+	buf := bytes.NewBuffer(mCache.Bytes())
+	dec := gob.NewDecoder(buf)
+	err := dec.Decode(&data)
+
+	if err != nil {
+		fmt.Println("err", err)
+		return err
+	}
+	fmt.Println("data", data)
+	return nil
 }
 
 // aesCipher returns the cipher block

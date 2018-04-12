@@ -315,7 +315,7 @@ type HistoryResponseItem struct {
 	Timetoken int64
 }
 
-func unmarshalWithDecrypt(val string, cipherKey string) (interface{}, error) {
+/*func unmarshalWithDecrypt(val string, cipherKey string) (interface{}, error) {
 	v, err := utils.DecryptString(cipherKey, val)
 	if err != nil {
 		return nil, err
@@ -330,4 +330,4 @@ func unmarshalWithDecrypt(val string, cipherKey string) (interface{}, error) {
 	}
 
 	return result, nil
-}
+}*/

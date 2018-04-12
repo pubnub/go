@@ -25,6 +25,18 @@ func JoinChannels(channels []string) []byte {
 	return []byte(strings.Join(encodedChannels, ","))
 }
 
+// encodeJSONAsPathComponent properly encodes serialized JSON
+// for placement within a URI path
+func EncodeJSONAsPathComponent(jsonBytes string) string {
+	u := &url.URL{Path: jsonBytes}
+	encodedPath := u.String()
+
+	// Go 1.8 inserts a ./ per RFC 3986 §4.2. Previous versions
+	// will be unaffected by this under the assumption that jsonBytes
+	// represents valid JSON
+	return strings.TrimLeft(encodedPath, "./")
+}
+
 // PubNub - specific serializer
 func ValueAsString(value interface{}) ([]byte, error) {
 	switch t := value.(type) {

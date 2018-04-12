@@ -107,17 +107,18 @@ func TestSubscribePublishUnsubscribePNOther(t *testing.T) {
 	donePublish := make(chan bool)
 	errChan := make(chan string)
 
-	r := GenRandom()
+	//r := GenRandom()
 
-	ch := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
+	ch := "testChannel_sub_96112" //fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 
 	pn := pubnub.NewPubNub(configCopy())
 	pn.Config.CipherKey = "enigma"
 	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	s := map[string]interface{}{
-		"not_other": "1234",
-		"pn_other":  "\"yay!\"",
+		"id":        1,
+		"not_other": "12345",
+		"pn_other":  "yay!",
 	}
 	listener := pubnub.NewListener()
 
@@ -133,7 +134,7 @@ func TestSubscribePublishUnsubscribePNOther(t *testing.T) {
 				}
 			case message := <-listener.Message:
 				msg := message.Message.(map[string]interface{})
-				assert.Equal("1234", msg["not_other"])
+				assert.Equal("12345", msg["not_other"])
 				assert.Equal("\"yay!\"", msg["pn_other"])
 				donePublish <- true
 			case <-listener.Presence:
@@ -183,9 +184,9 @@ func TestSubscribePublishUnsubscribePNOtherDisable(t *testing.T) {
 	donePublish := make(chan bool)
 	errChan := make(chan string)
 
-	r := GenRandom()
+	//r := GenRandom()
 
-	ch := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
+	ch := "testChannel_sub_96112" //fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 
 	pn := pubnub.NewPubNub(configCopy())
 	pn.Config.CipherKey = "enigma"
@@ -193,6 +194,7 @@ func TestSubscribePublishUnsubscribePNOtherDisable(t *testing.T) {
 	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	s := map[string]interface{}{
+		"id":        2,
 		"not_other": "1234",
 		"pn_other":  "\"yay!\"",
 	}
@@ -213,6 +215,7 @@ func TestSubscribePublishUnsubscribePNOtherDisable(t *testing.T) {
 				fmt.Println("reflect.TypeOf(data).Kind()", reflect.TypeOf(message.Message).Kind(), message.Message)
 				if msg, ok := message.Message.(map[string]interface{}); !ok {
 					fmt.Println(msg)
+					assert.Fail("not map")
 				} else {
 					fmt.Println(msg)
 					//byt := []byte(message.Message)
@@ -270,13 +273,14 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutPNOther(t *testing.T) {
 	donePublish := make(chan bool)
 	errChan := make(chan string)
 
-	r := GenRandom()
+	//r := GenRandom()
 
-	ch := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
+	ch := "testChannel_sub_96112" //fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 
 	pn := pubnub.NewPubNub(configCopy())
 
 	s := map[string]interface{}{
+		"id":        3,
 		"not_other": "1234",
 		"ss_other":  "\"yay!\"",
 	}
@@ -299,6 +303,105 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutPNOther(t *testing.T) {
 				fmt.Println(msg)
 				assert.Equal("1234", msg["not_other"])
 				assert.Equal("\"yay!\"", msg["ss_other"])
+				donePublish <- true
+			case <-listener.Presence:
+				errChan <- "Got presence while awaiting for a status event"
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe().Channels([]string{ch}).Execute()
+
+	select {
+	case <-doneSubscribe:
+	case err := <-errChan:
+		assert.Fail(err)
+		return
+	}
+
+	pn.Publish().Channel(ch).Message(s).Execute()
+
+	select {
+	case <-donePublish:
+	case err := <-errChan:
+		assert.Fail(err)
+		return
+	}
+
+	pn.Unsubscribe().
+		Channels([]string{ch}).
+		Execute()
+
+	select {
+	case <-doneUnsubscribe:
+	case err := <-errChan:
+		assert.Fail(err)
+	}
+
+	assert.Zero(len(pn.GetSubscribedChannels()))
+	assert.Zero(len(pn.GetSubscribedGroups()))
+}
+
+type customStruct struct {
+	Foo string
+	Bar []int
+}
+
+func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherEnc(t *testing.T) {
+	assert := assert.New(t)
+	doneSubscribe := make(chan bool)
+	doneUnsubscribe := make(chan bool)
+	donePublish := make(chan bool)
+	errChan := make(chan string)
+
+	//r := GenRandom()
+
+	ch := "testChannel_sub_96112" //fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
+
+	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.CipherKey = "enigma"
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	/*s := map[string]interface{}{
+		"not_other": "1234",
+		"ss_other":  "\"yay!\"",
+	}*/
+	//s := 1.1
+	s := customStruct{
+		Foo: "hi!",
+		Bar: []int{1, 2, 3, 4, 5},
+	}
+
+	listener := pubnub.NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.PNConnectedCategory:
+					doneSubscribe <- true
+				case pubnub.PNDisconnectedCategory:
+					doneUnsubscribe <- true
+				}
+			case message := <-listener.Message:
+				fmt.Println("reflect.TypeOf(data).Kind()", reflect.TypeOf(message.Message).Kind(), message.Message)
+				s := reflect.ValueOf(message.Message)
+				fmt.Println("s:::", s, s.Type())
+				if msg, ok := message.Message.(map[string]interface{}); !ok {
+					fmt.Println(msg)
+					assert.Fail("not map")
+				} else {
+					fmt.Println(msg)
+					//byt := []byte(message.Message)
+					//fmt.Println(message.Message.(string))
+					//err := json.Unmarshal(byt, &msg)
+					//assert.Nil(err)
+					assert.Equal("hi!", msg["Foo"])
+					//assert.Equal("\"yay!\"", msg["pn_other"])
+				}
 				donePublish <- true
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"

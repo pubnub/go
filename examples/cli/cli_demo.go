@@ -44,10 +44,10 @@ func main() {
 	config.Log.SetPrefix("PubNub :->  ")
 	//config.SuppressLeaveEvents = true
 
-	config.PublishKey = "pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
-	config.SubscribeKey = "sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
-	config.SecretKey = "sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
-	config.CipherKey = "enigma"
+	config.PublishKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"   //"pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
+	config.SubscribeKey = "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f" //"sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
+	config.SecretKey = ""                                              //"sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
+	config.CipherKey = ""
 	pn = pubnub.NewPubNub(config)
 
 	// for subscribe event

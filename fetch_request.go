@@ -219,9 +219,9 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 		return emptyFetchResp, status, e
 	}
 
-	result := value.(map[string]interface{})
+	if result, ok := value.(map[string]interface{}); ok {
 
-	if result != nil {
+		//if result != nil {
 		o.pubnub.Config.Log.Println(result["channels"])
 		channels := result["channels"].(map[string]interface{})
 
@@ -229,28 +229,38 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 			messages := make(map[string][]FetchResponseItem, len(channels))
 
 			for channel, histResponseSliceMap := range channels {
-				histResponseMap := histResponseSliceMap.([]interface{})
-				o.pubnub.Config.Log.Printf("Channel:%s, count:%d", channel, len(histResponseMap))
-				items := make([]FetchResponseItem, len(histResponseMap))
-				count := 0
+				if histResponseMap := histResponseSliceMap.([]interface{}); ok {
+					o.pubnub.Config.Log.Printf("Channel:%s, count:%d", channel, len(histResponseMap))
+					items := make([]FetchResponseItem, len(histResponseMap))
+					count := 0
 
-				for _, val := range histResponseMap {
-					histResponse := val.(map[string]interface{})
-					msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config)
+					for _, val := range histResponseMap {
+						if histResponse := val.(map[string]interface{}); ok {
+							msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config)
 
-					histItem := FetchResponseItem{
-						Message:   msg,
-						Timetoken: histResponse["timetoken"].(string),
+							histItem := FetchResponseItem{
+								Message:   msg,
+								Timetoken: histResponse["timetoken"].(string),
+							}
+							items[count] = histItem
+							o.pubnub.Config.Log.Printf("Channel:%s, count:%d %d", channel, count, len(items))
+							count++
+						} else {
+							o.pubnub.Config.Log.Printf("histResponse not a map", histResponse)
+							continue
+						}
 					}
-					items[count] = histItem
-					o.pubnub.Config.Log.Printf("Channel:%s, count:%d %d", channel, count, len(items))
-					count++
+					messages[channel] = items
+					o.pubnub.Config.Log.Printf("Channel:%s, count:%d", channel, len(messages[channel]))
+				} else {
+					o.pubnub.Config.Log.Printf("histResponseSliceMap not an []interface", histResponseSliceMap)
+					continue
 				}
-				messages[channel] = items
-				o.pubnub.Config.Log.Printf("Channel:%s, count:%d", channel, len(messages[channel]))
 			}
 			resp.Messages = messages
 		}
+	} else {
+		o.pubnub.Config.Log.Printf("type assertion to map failed", value)
 	}
 
 	return resp, status, nil
