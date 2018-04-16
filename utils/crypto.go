@@ -7,12 +7,12 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/gob"
+	//"encoding/gob"
 	"encoding/hex"
-	"encoding/json"
+	//"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
+	// "reflect"
 	"strconv"
 	"strings"
 )
@@ -85,7 +85,7 @@ func DecryptString(cipherKey string, message string) (
 	if err != nil {
 		return "***decrypt error***", fmt.Errorf("decrypt error: %s", err)
 	}
-	fmt.Println(val)
+	/*fmt.Println(val)
 	s := reflect.ValueOf(val)
 	var value1 []interface{}
 	err1 := json.Unmarshal([]byte(fmt.Sprintf("%s", string(val))), &value1)
@@ -96,7 +96,7 @@ func DecryptString(cipherKey string, message string) (
 	fmt.Println("crypto reflect.TypeOf(data).Kind()", reflect.TypeOf(val).Kind(), val)
 	fmt.Println("crypto s:::", s, s.Type())
 
-	getInterface(val)
+	getInterface(val)*/
 
 	//fmt.Println("reflect.TypeOf(val).Kind()", reflect.TypeOf(val).Kind(), val, string(val), fmt.Sprintf("%s", string(val)))
 	//v := reflect.ValueOf(val)
@@ -117,7 +117,7 @@ func DecryptString(cipherKey string, message string) (
 	return fmt.Sprintf("%s", string(val)), nil
 }
 
-type Data struct {
+/*type Data struct {
 	Name string
 	Data interface{}
 }
@@ -149,7 +149,7 @@ func getInterface(bts []byte) error {
 	}
 	fmt.Println("data", data)
 	return nil
-}
+}*/
 
 // aesCipher returns the cipher block
 //

@@ -2,11 +2,13 @@ package utils
 
 import (
 	"encoding/json"
+	//"errors"
 	"fmt"
 	"net/url"
 	"sort"
 	"strings"
 
+	pnerr "github.com/pubnub/go/pnerr"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -35,6 +37,56 @@ func EncodeJSONAsPathComponent(jsonBytes string) string {
 	// will be unaffected by this under the assumption that jsonBytes
 	// represents valid JSON
 	return strings.TrimLeft(encodedPath, "./")
+}
+
+func Serialize(msg interface{}) ([]byte, error) {
+	jsonSerialized, errJsonMarshal := json.Marshal(msg)
+	if errJsonMarshal != nil {
+		return []byte{}, errJsonMarshal
+	}
+	return jsonSerialized, nil
+}
+
+func SerializeAndEncrypt(msg interface{}, cipherKey string, serialize bool) (string, error) {
+	var encrypted string
+	if serialize {
+		jsonSerialized, errJsonMarshal := json.Marshal(msg)
+		if errJsonMarshal != nil {
+			return "", errJsonMarshal
+		}
+		encrypted = EncryptString(cipherKey, string(jsonSerialized))
+	} else {
+		if serializedMsg, ok := msg.(string); ok {
+			encrypted = EncryptString(cipherKey, serializedMsg)
+		} else {
+			return "", pnerr.NewBuildRequestError("Message is not JSON serialized.")
+		}
+	}
+
+	return encrypted, nil
+}
+
+func SerializeEncryptAndSerialize(msg interface{}, cipherKey string, serialize bool) (string, error) {
+	var encrypted string
+
+	if serialize {
+		jsonSerialized, errJsonMarshal := json.Marshal(msg)
+		if errJsonMarshal != nil {
+			return "", errJsonMarshal
+		}
+		encrypted = EncryptString(cipherKey, string(jsonSerialized))
+	} else {
+		if serializedMsg, ok := msg.(string); ok {
+			encrypted = EncryptString(cipherKey, serializedMsg)
+		} else {
+			return "", pnerr.NewBuildRequestError("Message is not JSON serialized.")
+		}
+	}
+	jsonSerialized, errJsonMarshal := json.Marshal(encrypted)
+	if errJsonMarshal != nil {
+		return "", errJsonMarshal
+	}
+	return string(jsonSerialized), nil
 }
 
 // PubNub - specific serializer

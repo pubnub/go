@@ -400,6 +400,7 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherEnc(t *testing.T) {
 					//err := json.Unmarshal(byt, &msg)
 					//assert.Nil(err)
 					assert.Equal("hi!", msg["Foo"])
+					//assert.Equal("1", msg["Bar"].(map[string]interface{})[0])
 					//assert.Equal("\"yay!\"", msg["pn_other"])
 				}
 				donePublish <- true

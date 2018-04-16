@@ -272,13 +272,14 @@ func TestHistoryResponseParsingMapInSlice(t *testing.T) {
 
 func TestHistoryEncrypt(t *testing.T) {
 	assert := assert.New(t)
-	pnconfig.CipherKey = "enigma"
+	pnconfig.CipherKey = "testCipher"
 	pubnub = NewPubNub(pnconfig)
 
 	jsonString := []byte(`[["GUI1NhVPOxZap54NuLEaow=="],14991775432719844,14991868111600528]`)
 
 	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
+	fmt.Println(resp)
 
 	messages := resp.Messages
 	assert.Equal("hey", messages[0].Message)

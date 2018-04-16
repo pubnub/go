@@ -76,7 +76,8 @@ func newPublishResponse(jsonBytes []byte, status StatusResponse) (
 func newPublishBuilder(pubnub *PubNub) *publishBuilder {
 	builder := publishBuilder{
 		opts: &publishOpts{
-			pubnub: pubnub,
+			pubnub:    pubnub,
+			Serialize: true,
 		},
 	}
 
@@ -200,20 +201,16 @@ func (o *publishOpts) buildPath() (string, error) {
 			"0"), nil
 	}
 
-	var msg interface{}
+	var msg string
+	var errJsonMarshal error
 
 	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
 		o.pubnub.Config.Log.Println("EncryptString: encrypting", fmt.Sprintf("%s", o.Message))
 		if o.pubnub.Config.DisablePNOtherProcessing {
-			jsonSerialized, errJsonMarshal := json.Marshal(o.Message)
-			if errJsonMarshal != nil {
+			if msg, errJsonMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJsonMarshal != nil {
 				o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
 				return "", errJsonMarshal
 			}
-
-			//msg = utils.EncryptString(cipherKey, fmt.Sprintf("%s", jsonSerialized))
-			msg = utils.EncryptString(cipherKey, string(jsonSerialized))
-
 		} else {
 			//encrypt pn_other only
 			o.pubnub.Config.Log.Println("encrypt pn_other only", "reflect.TypeOf(data).Kind()", reflect.TypeOf(o.Message).Kind(), o.Message)
@@ -224,34 +221,58 @@ func (o *publishOpts) buildPath() (string, error) {
 
 				if ok {
 					o.pubnub.Config.Log.Println(ok, msgPart)
-					jsonSerialized, errJsonMarshal := json.Marshal(msgPart)
+					if encMsg, errJsonMarshal := utils.SerializeAndEncrypt(msgPart, cipherKey, o.Serialize); errJsonMarshal != nil {
+						o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
+						return "", errJsonMarshal
+					} else {
+						v["pn_other"] = encMsg
+					}
+
+					/*jsonSerialized, errJsonMarshal := json.Marshal(msgPart)
 					if errJsonMarshal != nil {
 						o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
 						return "", errJsonMarshal
 					}
 
-					encMsg := utils.EncryptString(cipherKey, string(jsonSerialized))
+					encMsg := utils.EncryptString(cipherKey, string(jsonSerialized))*/
+
 					/*jsonSerialized, errJsonMarshal = json.Marshal(encMsg)
 					if errJsonMarshal != nil {
 						o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
 						return "", errJsonMarshal
 					}*/
-					v["pn_other"] = encMsg //string(jsonSerialized)
-					msg = v
+					//string(jsonSerialized)
+					//msg = v
 
+					jsonEncBytes, errEnc := json.Marshal(v)
+					if errEnc != nil {
+						o.pubnub.Config.Log.Println("ERROR: Publish error: %s", errEnc.Error())
+						return "", errEnc
+					}
+					msg = string(jsonEncBytes)
 				} else {
-					jsonSerialized, errJsonMarshal := json.Marshal(o.Message)
+					if msg, errJsonMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJsonMarshal != nil {
+						o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
+						return "", errJsonMarshal
+					}
+
+					/*jsonSerialized, errJsonMarshal := json.Marshal(o.Message)
 					if errJsonMarshal != nil {
 						o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
 						return "", errJsonMarshal
 					}
 
 					o.pubnub.Config.Log.Println(ok, jsonSerialized)
-					msg = utils.EncryptString(cipherKey, string(jsonSerialized))
+					msg = utils.EncryptString(cipherKey, string(jsonSerialized))*/
 				}
 				break
 			default:
-				jsonSerialized, errJsonMarshal := json.Marshal(o.Message)
+				if msg, errJsonMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJsonMarshal != nil {
+					o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
+					return "", errJsonMarshal
+				}
+
+				/*jsonSerialized, errJsonMarshal := json.Marshal(o.Message)
 				if errJsonMarshal != nil {
 					o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
 					return "", errJsonMarshal
@@ -259,23 +280,30 @@ func (o *publishOpts) buildPath() (string, error) {
 
 				o.pubnub.Config.Log.Println("default", jsonSerialized)
 				//msg = utils.EncryptString(cipherKey, fmt.Sprintf("%s", o.Message))
-				msg = utils.EncryptString(cipherKey, string(jsonSerialized))
+				msg = utils.EncryptString(cipherKey, string(jsonSerialized))*/
 				break
 			}
 		}
 
 		o.pubnub.Config.Log.Println("EncryptString: encrypted", msg)
 	} else {
-		msg = o.Message
+		if o.Serialize {
+			jsonEncBytes, errEnc := json.Marshal(o.Message)
+			if errEnc != nil {
+				o.pubnub.Config.Log.Println("ERROR: Publish error: %s", errEnc.Error())
+				return "", errEnc
+			}
+			msg = string(jsonEncBytes)
+		} else {
+			if serializedMsg, ok := o.Message.(string); ok {
+				msg = serializedMsg
+			} else {
+				return "", pnerr.NewBuildRequestError("Message is not JSON serialized.")
+			}
+		}
 	}
 
-	jsonEncBytes, errEnc := json.Marshal(msg)
-	if errEnc != nil {
-		o.pubnub.Config.Log.Println("ERROR: Publish error: %s", errEnc.Error())
-		return "", errEnc
-	}
-
-	encodedPath := utils.EncodeJSONAsPathComponent(string(jsonEncBytes))
+	encodedPath := utils.EncodeJSONAsPathComponent(msg)
 	o.pubnub.Config.Log.Println("encodedPath: ", encodedPath)
 	/*message, err := utils.ValueAsString(msg)
 	if err != nil {
@@ -330,7 +358,7 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 
 func (o *publishOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
-		var msg []byte
+		/*var msg []byte
 
 		if o.Serialize {
 			m, err := utils.ValueAsString(o.Message)
@@ -345,17 +373,46 @@ func (o *publishOpts) buildBody() ([]byte, error) {
 				err := pnerr.NewBuildRequestError("Type error, only string is expected")
 				return []byte{}, err
 			}
-		}
+		}*/
 
 		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-			enc := utils.EncryptString(cipherKey, string(msg))
-			msg, err := utils.ValueAsString(enc)
+			if msg, errJsonMarshal := utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJsonMarshal != nil {
+				o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
+				return []byte{}, errJsonMarshal
+			} else {
+				return []byte(msg), nil
+			}
+
+			//enc := utils.EncryptString(cipherKey, string(msg))
+			/*msg, err := utils.ValueAsString(enc)
 			if err != nil {
 				return []byte{}, err
-			}
-			return []byte(msg), nil
+			}*/
+
 		} else {
-			return msg, nil
+			if o.Serialize {
+				jsonEncBytes, errEnc := json.Marshal(o.Message)
+				if errEnc != nil {
+					o.pubnub.Config.Log.Println("ERROR: Publish error: %s", errEnc.Error())
+					return []byte{}, errEnc
+				}
+				return jsonEncBytes, nil
+			} else {
+				if serializedMsg, ok := o.Message.(string); ok {
+					return []byte(serializedMsg), nil
+				} else {
+					return []byte{}, pnerr.NewBuildRequestError("Message is not JSON serialized.")
+				}
+
+			}
+
+			/*jsonEncBytes, errEnc := json.Marshal(o.Message)
+			if errEnc != nil {
+				o.pubnub.Config.Log.Println("ERROR: Publish error: %s", errEnc.Error())
+				return , errEnc
+			}
+
+			return jsonEncBytes, nil*/
 		}
 	} else {
 		return []byte{}, nil

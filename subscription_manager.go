@@ -716,26 +716,17 @@ func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error)
 				intf = data
 				return intf, errDecryption
 			}
-			//intf = decrypted
 			pnConf.Log.Println("reflect.TypeOf(intf).Kind()", reflect.TypeOf(decrypted).Kind(), decrypted)
 
 			err := json.Unmarshal([]byte(decrypted.(string)), &intf)
 			if err != nil {
-				/*pnStatus := &PNStatus{
-					Category:              PNBadRequestCategory,
-					ErrorData:             err,
-					Error:                 true,
-					Operation:             PNSubscribeOperation,
-					AffectedChannels:      combinedChannels,
-					AffectedChannelGroups: combinedGroups,
-				}*/
 				pnConf.Log.Println("Unmarshal: err", err)
-				//m.listenerManager.announceStatus(pnStatus)
+				return intf, err
 			}
 
 			return intf, nil
 		default:
-			pnConf.Log.Println("[]interface")
+			pnConf.Log.Println("returning as is", reflect.TypeOf(v).Kind())
 			return v, nil
 		}
 	} else {

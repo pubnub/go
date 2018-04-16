@@ -99,12 +99,12 @@ func TestFetchResponseWithCipher(t *testing.T) {
 	respTest := resp.Messages["test"]
 	respMyChannel := resp.Messages["my-channel"]
 
-	assert.Equal("\"yay!\"", respTest[0].Message)
+	assert.Equal("yay!", respTest[0].Message)
 	assert.Equal("15229448184080121", respTest[0].Timetoken)
 
-	assert.Equal("\"yay!\"", respMyChannel[0].Message)
+	assert.Equal("yay!", respMyChannel[0].Message)
 	assert.Equal("15229448086016618", respMyChannel[0].Timetoken)
-	assert.Equal("\"yay!\"", respMyChannel[1].Message)
+	assert.Equal("yay!", respMyChannel[1].Message)
 	assert.Equal("15229448126438499", respMyChannel[1].Timetoken)
 	assert.Equal("my-message", respMyChannel[2].Message)
 	assert.Equal("15229450607090584", respMyChannel[2].Timetoken)
