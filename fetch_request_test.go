@@ -132,7 +132,7 @@ func TestFetchResponseWithCipherInterface(t *testing.T) {
 		testMap := make(map[string]interface{})
 		testMap = v
 		assert.Equal(testMap["not_other"], "1234")
-		assert.Equal(testMap["pn_other"], "\"yay!\"")
+		assert.Equal(testMap["pn_other"], "yay!")
 
 		break
 	default:

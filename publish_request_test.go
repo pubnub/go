@@ -22,7 +22,7 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/publish/pub_key/sub_key/0/ch/0/%s", expectedString),
+		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
 		path, []int{})
 
 	body, err := o.opts.buildBody()
@@ -145,10 +145,11 @@ func TestPublishDoNotSerializeInvalidPost(t *testing.T) {
 	msgMap["three"] = "hey3"
 
 	opts := &publishOpts{
-		Channel: "ch",
-		Message: msgMap,
-		pubnub:  pubnub,
-		UsePost: true,
+		Channel:   "ch",
+		Message:   msgMap,
+		pubnub:    pubnub,
+		UsePost:   true,
+		Serialize: false,
 	}
 
 	path, err := opts.buildPath()
@@ -161,7 +162,7 @@ func TestPublishDoNotSerializeInvalidPost(t *testing.T) {
 		u.EscapedPath(), []int{})
 
 	body, err := opts.buildBody()
-	assert.Contains(err.Error(), "Type error, only string is expected")
+	assert.Contains(err.Error(), "Message is not JSON serialized.")
 	assert.Empty(body)
 }
 
@@ -237,6 +238,8 @@ func TestPublishEncrypt(t *testing.T) {
 
 	assert.Equal(
 		"/publish/pub_key/sub_key/0/ch/0/%22%2Bc52pEK3TCTpuEjEFzukRw%3D%3D%22", path)
+
+	//"MnwzPGdVgz2osQCIQJviGg=="
 	pnconfig.CipherKey = ""
 }
 
@@ -279,9 +282,10 @@ func TestPublishEncryptPNOtherDisable(t *testing.T) {
 	}
 
 	opts := &publishOpts{
-		Channel: "ch",
-		Message: s,
-		pubnub:  pn,
+		Channel:   "ch",
+		Message:   s,
+		pubnub:    pn,
+		Serialize: true,
 	}
 
 	path, err := opts.buildPath()

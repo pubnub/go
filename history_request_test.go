@@ -220,9 +220,12 @@ func TestHistoryPNOther(t *testing.T) {
 		testMap := make(map[string]interface{})
 		testMap = v
 		//pn_other := make(map[string]string)
-		pn_other := testMap["pn_other"].(string)
-		assert.Equal(pn_other, "{\"three\":3, \"four\":4}")
-		//assert.Equal(pn_other["three"], 3)
+		if msgOther2, ok := testMap["pn_other"].(map[string]interface{}); !ok {
+			assert.Fail("!map[string]interface{} 2")
+		} else {
+			assert.Equal(float64(3), msgOther2["three"])
+			assert.Equal(float64(4), msgOther2["four"])
+		}
 
 		break
 	default:
@@ -243,7 +246,7 @@ func TestHistoryPNOtherYay(t *testing.T) {
 	pnconfig.CipherKey = "enigma"
 	//fmt.Println(utils.EncryptString("testCipher", `{"three":3, "four":4}`))
 	int64Val := int64(14991775432719844)
-	jsonString := []byte(`[[{"pn_other":"q/xJqqN6qbiZMXYmiQC1Fw=="},1,"a",1.1,false,14991775432719844],14991775432719844,14991868111600528]`)
+	jsonString := []byte(`[[{"pn_other":"Wi24KS4pcTzvyuGOHubiXg=="},1,"a",1.1,false,14991775432719844],14991775432719844,14991868111600528]`)
 
 	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
@@ -260,12 +263,17 @@ func TestHistoryPNOtherYay(t *testing.T) {
 		//pn_other := make(map[string]string)
 		pn_other := testMap["pn_other"].(string)
 		assert.Equal("yay!", pn_other)
+
 		//assert.Equal(pn_other["three"], 3)
 
 		break
 	default:
-		//fmt.Println(reflect.TypeOf(v).Kind(), reflect.TypeOf(data).Kind(), v, data)
-		assert.Fail(fmt.Sprintf("%s", reflect.TypeOf(v).Kind()), " expected interafce")
+		fmt.Println(reflect.TypeOf(v).Kind(), reflect.TypeOf(data).Kind(), v, data)
+		assert.Fail("failed")
+		//assert.Fail(fmt.Sprintf("%s", reflect.TypeOf(v).Kind()), " expected interafce")
+		//pn_other := v["pn_other"].(string)
+		//assert.Equal("yay!", pn_other)
+
 		break
 	}
 	assert.Equal(float64(1), messages[1].Message)
