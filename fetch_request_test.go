@@ -141,7 +141,12 @@ func TestFetchResponseWithCipherInterface(t *testing.T) {
 	}
 
 	assert.Equal("15229448086016618", respMyChannel[0].Timetoken)
-	assert.Equal("{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}", respMyChannel[1].Message)
+	if testMap, ok := respMyChannel[1].Message.(map[string]interface{}); !ok {
+		assert.Fail("respMyChannel[1].Message ! map[string]interface{}")
+	} else {
+		assert.Equal("1234", testMap["not_other"])
+		assert.Equal("yay!", testMap["pn_other"])
+	}
 	assert.Equal("15229448126438499", respMyChannel[1].Timetoken)
 	assert.Equal("my-message", respMyChannel[2].Message)
 	assert.Equal("15229450607090584", respMyChannel[2].Timetoken)
@@ -187,7 +192,12 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 	}
 
 	assert.Equal("15229448086016618", respMyChannel[0].Timetoken)
-	assert.Equal("{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}", respMyChannel[1].Message)
+	if testMap, ok := respMyChannel[1].Message.(map[string]interface{}); !ok {
+		assert.Fail("respMyChannel[1].Message ! map[string]interface{}")
+	} else {
+		assert.Equal("1234", testMap["not_other"])
+		assert.Equal("yay!", testMap["pn_other"])
+	}
 	assert.Equal("15229448126438499", respMyChannel[1].Timetoken)
 	assert.Equal("my-message", respMyChannel[2].Message)
 	assert.Equal("15229450607090584", respMyChannel[2].Timetoken)

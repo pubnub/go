@@ -12,20 +12,20 @@ import (
 func AssertSuccessPublishGet(t *testing.T, expectedString string, message interface{}) {
 	assert := assert.New(t)
 
-	opts := &publishOpts{
-		Channel: "ch",
-		Message: message,
-		pubnub:  pubnub,
-	}
+	pn := NewPubNub(NewDemoConfig())
 
-	path, err := opts.buildPath()
+	o := newPublishBuilder(pn)
+	o.Channel("ch")
+	o.Message(message)
+
+	path, err := o.opts.buildPath()
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
 		fmt.Sprintf("/publish/pub_key/sub_key/0/ch/0/%s", expectedString),
 		path, []int{})
 
-	body, err := opts.buildBody()
+	body, err := o.opts.buildBody()
 	assert.Nil(err)
 	assert.Empty(body)
 }

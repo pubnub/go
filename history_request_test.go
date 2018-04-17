@@ -2,7 +2,9 @@ package pubnub
 
 import (
 	"fmt"
+	//"log"
 	"net/url"
+	//"os"
 	"reflect"
 	"testing"
 
@@ -275,7 +277,7 @@ func TestHistoryEncrypt(t *testing.T) {
 	pnconfig.CipherKey = "testCipher"
 	pubnub = NewPubNub(pnconfig)
 
-	jsonString := []byte(`[["GUI1NhVPOxZap54NuLEaow=="],14991775432719844,14991868111600528]`)
+	jsonString := []byte(`[["MnwzPGdVgz2osQCIQJviGg=="],14991775432719844,14991868111600528]`)
 
 	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
@@ -289,6 +291,7 @@ func TestHistoryEncrypt(t *testing.T) {
 func TestHistoryEncryptSlice(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig.CipherKey = "testCipher"
+	//pnconfig.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	jsonString := []byte(`[["gwkdY8qcv60GM/PslArWQsdXrQ6LwJD2HoaEfy0CjMc="],14991775432719844,14991868111600528]`)
 
@@ -296,14 +299,21 @@ func TestHistoryEncryptSlice(t *testing.T) {
 	assert.Nil(err)
 
 	messages := resp.Messages
+	if resp, ok := messages[0].Message.([]interface{}); !ok {
+		assert.Fail("!ok []interface{}")
+	} else {
+		assert.Equal("hey-1", resp[0].(string))
+		assert.Equal("hey-2", resp[1].(string))
+		assert.Equal("hey-3", resp[2].(string))
+	}
 
-	assert.Equal("[\"hey-1\",\"hey-2\",\"hey-3\"]", messages[0].Message)
 	pnconfig.CipherKey = ""
 }
 
 func TestHistoryEncryptMap(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig.CipherKey = "testCipher"
+	//pnconfig.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	jsonString := []byte(`[["wIC13nvJcI4vBtWNFVUu0YDiqREr9kavB88xeyWTweDS363Yl84RCWqOHWTol4aY"],14991775432719844,14991868111600528]`)
 
@@ -312,7 +322,18 @@ func TestHistoryEncryptMap(t *testing.T) {
 
 	messages := resp.Messages
 	//log.Println(messages[0].Message)
-	assert.Equal(`{"one":1,"two":["hey-1","hey-2"]}`, messages[0].Message)
+	if resp, ok := messages[0].Message.(map[string]interface{}); !ok {
+		assert.Fail("!ok map[string]interface {}")
+	} else {
+		assert.Equal(float64(1), resp["one"].(float64))
+		if resp2, ok2 := resp["two"].([]map[int]string); !ok2 {
+			fmt.Println(reflect.TypeOf(resp2).Kind(), resp2)
+			assert.Fail("!ok2 map[int]interface{}")
+		} else {
+			assert.Equal("hey-1", resp2[0])
+			assert.Equal("hey-2", resp2[1])
+		}
+	}
 
 	pnconfig.CipherKey = ""
 }

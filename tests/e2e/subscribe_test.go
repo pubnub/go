@@ -3,9 +3,9 @@ package e2e
 import (
 	//"encoding/json"
 	"fmt"
-	"log"
+	//"log"
 	"math/rand"
-	"os"
+	//"os"
 	"reflect"
 	"sync"
 	"testing"
@@ -100,7 +100,466 @@ func GenRandom() *rand.Rand {
 	return rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
+func TestSubscribePublishUnsubscribeString(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := "hey"
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
+	m := <-pubMessage
+	msg := m.(string)
+	assert.Equal(s, msg)
+}
+
+func TestSubscribePublishUnsubscribeStringEnc(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := "hey"
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
+	m := <-pubMessage
+	msg := m.(string)
+	assert.Equal(s, msg)
+}
+
+func TestSubscribePublishUnsubscribeInt(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := 1
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
+	m := <-pubMessage
+	msg := m.(float64)
+	assert.Equal(float64(1), msg)
+}
+
+func TestSubscribePublishUnsubscribeIntEnc(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := 1
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
+	m := <-pubMessage
+	msg := m.(float64)
+	assert.Equal(float64(1), msg)
+}
+
+func TestSubscribePublishUnsubscribePNOtherDisable(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := map[string]interface{}{
+		"id":        2,
+		"not_other": "123456",
+		"pn_other":  "yay!",
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, true, false)
+	m := <-pubMessage
+	msg := m.(map[string]interface{})
+	assert.Equal("123456", msg["not_other"])
+	assert.Equal("yay!", msg["pn_other"])
+}
+
 func TestSubscribePublishUnsubscribePNOther(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := map[string]interface{}{
+		"id":        1,
+		"not_other": "12345",
+		"pn_other":  "yay!",
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
+	m := <-pubMessage
+	msg := m.(map[string]interface{})
+	assert.Equal("12345", msg["not_other"])
+	assert.Equal("yay!", msg["pn_other"])
+
+}
+
+func TestSubscribePublishUnsubscribePNOtherComplex(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s1 := map[string]interface{}{
+		"id":        1,
+		"not_other": "1234567",
+	}
+	s := map[string]interface{}{
+		"id":        1,
+		"not_other": "12345",
+		"pn_other":  s1,
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
+	m := <-pubMessage
+	msg := m.(map[string]interface{})
+	assert.Equal("12345", msg["not_other"])
+	if msgOther, ok := msg["pn_other"].(map[string]interface{}); !ok {
+		assert.Fail("!map[string]interface{}")
+	} else {
+		assert.Equal("1234567", msgOther["not_other"])
+	}
+
+}
+
+func TestSubscribePublishUnsubscribeInterfaceWithoutPNOther(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := map[string]interface{}{
+		"id":        3,
+		"not_other": "1234",
+		"ss_other":  "yay!",
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
+	m := <-pubMessage
+	msg := m.(map[string]interface{})
+	assert.Equal("1234", msg["not_other"])
+	assert.Equal("yay!", msg["ss_other"])
+
+}
+
+func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherEnc(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := map[string]interface{}{
+		"id":        4,
+		"not_other": "123",
+		"ss_other":  "yay!",
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
+	m := <-pubMessage
+	msg := m.(map[string]interface{})
+	assert.Equal("123", msg["not_other"])
+	assert.Equal("yay!", msg["ss_other"])
+}
+
+type customStruct struct {
+	Foo string
+	Bar []int
+}
+
+func TestSubscribePublishUnsubscribeInterfaceCustom(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := customStruct{
+		Foo: "hi!",
+		Bar: []int{1, 2, 3, 4, 5},
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
+	m := <-pubMessage
+	s1 := reflect.ValueOf(m)
+	fmt.Println("s:::", s1, s1.Type())
+	if msg, ok := m.(map[string]interface{}); !ok {
+		fmt.Println(msg)
+		assert.Fail("not map")
+	} else {
+		fmt.Println(msg)
+		//byt := []byte(message.Message)
+		//fmt.Println(message.Message.(string))
+		//err := json.Unmarshal(byt, &msg)
+		//assert.Nil(err)
+		assert.Equal("hi!", msg["Foo"])
+		//assert.Equal("1", msg["Bar"].(map[string]interface{})[0])
+		//assert.Equal("\"yay!\"", msg["pn_other"])
+	}
+}
+
+func TestSubscribePublishUnsubscribeInterfaceWithoutCustomEnc(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := customStruct{
+		Foo: "hi!",
+		Bar: []int{1, 2, 3, 4, 5},
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
+	m := <-pubMessage
+	s1 := reflect.ValueOf(m)
+	fmt.Println("s:::", s1, s1.Type())
+	if msg, ok := m.(map[string]interface{}); !ok {
+		fmt.Println(msg)
+		assert.Fail("not map")
+	} else {
+		fmt.Println(msg)
+		//byt := []byte(message.Message)
+		//fmt.Println(message.Message.(string))
+		//err := json.Unmarshal(byt, &msg)
+		//assert.Nil(err)
+		assert.Equal("hi!", msg["Foo"])
+		//assert.Equal("1", msg["Bar"].(map[string]interface{})[0])
+		//assert.Equal("\"yay!\"", msg["pn_other"])
+	}
+}
+
+func TestSubscribePublishUnsubscribeStringPost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := "hey"
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, true)
+	m := <-pubMessage
+	msg := m.(string)
+	assert.Equal(s, msg)
+}
+
+func TestSubscribePublishUnsubscribeStringEncPost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := "hey"
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
+	m := <-pubMessage
+	msg := m.(string)
+	assert.Equal(s, msg)
+}
+
+func TestSubscribePublishUnsubscribeIntPost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := 1
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, true)
+	m := <-pubMessage
+	msg := m.(float64)
+	assert.Equal(float64(1), msg)
+}
+
+func TestSubscribePublishUnsubscribeIntEncPost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := 1
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
+	m := <-pubMessage
+	msg := m.(float64)
+	assert.Equal(float64(1), msg)
+}
+
+func TestSubscribePublishUnsubscribePNOtherDisablePost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := map[string]interface{}{
+		"id":        2,
+		"not_other": "123456",
+		"pn_other":  "yay!",
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, true, true)
+	m := <-pubMessage
+	msg := m.(map[string]interface{})
+	assert.Equal("123456", msg["not_other"])
+	assert.Equal("yay!", msg["pn_other"])
+}
+
+func TestSubscribePublishUnsubscribePNOtherPost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := map[string]interface{}{
+		"id":        1,
+		"not_other": "12345",
+		"pn_other":  "yay!",
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
+	m := <-pubMessage
+	msg := m.(map[string]interface{})
+	assert.Equal("12345", msg["not_other"])
+	assert.Equal("yay!", msg["pn_other"])
+
+}
+
+func TestSubscribePublishUnsubscribePNOtherComplexPost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s1 := map[string]interface{}{
+		"id":        1,
+		"not_other": "1234567",
+	}
+	s := map[string]interface{}{
+		"id":        1,
+		"not_other": "12345",
+		"pn_other":  s1,
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
+	m := <-pubMessage
+	msg := m.(map[string]interface{})
+	assert.Equal("12345", msg["not_other"])
+	if msgOther, ok := msg["pn_other"].(map[string]interface{}); !ok {
+		assert.Fail("!map[string]interface{}")
+	} else {
+		assert.Equal("1234567", msgOther["not_other"])
+	}
+
+}
+
+func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherPost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := map[string]interface{}{
+		"id":        3,
+		"not_other": "1234",
+		"ss_other":  "yay!",
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, true)
+	m := <-pubMessage
+	msg := m.(map[string]interface{})
+	assert.Equal("1234", msg["not_other"])
+	assert.Equal("yay!", msg["ss_other"])
+
+}
+
+func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherEncPost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := map[string]interface{}{
+		"id":        4,
+		"not_other": "123",
+		"ss_other":  "yay!",
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
+	m := <-pubMessage
+	msg := m.(map[string]interface{})
+	assert.Equal("123", msg["not_other"])
+	assert.Equal("yay!", msg["ss_other"])
+}
+
+func TestSubscribePublishUnsubscribeInterfaceCustomPost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := customStruct{
+		Foo: "hi!",
+		Bar: []int{1, 2, 3, 4, 5},
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, true)
+	m := <-pubMessage
+	s1 := reflect.ValueOf(m)
+	fmt.Println("s:::", s1, s1.Type())
+	if msg, ok := m.(map[string]interface{}); !ok {
+		fmt.Println(msg)
+		assert.Fail("not map")
+	} else {
+		fmt.Println(msg)
+		//byt := []byte(message.Message)
+		//fmt.Println(message.Message.(string))
+		//err := json.Unmarshal(byt, &msg)
+		//assert.Nil(err)
+		assert.Equal("hi!", msg["Foo"])
+		//assert.Equal("1", msg["Bar"].(map[string]interface{})[0])
+		//assert.Equal("\"yay!\"", msg["pn_other"])
+	}
+}
+
+func TestSubscribePublishUnsubscribeInterfaceWithoutCustomEncPost(t *testing.T) {
+	assert := assert.New(t)
+	pubMessage := make(chan interface{})
+	s := customStruct{
+		Foo: "hi!",
+		Bar: []int{1, 2, 3, 4, 5},
+	}
+
+	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
+	m := <-pubMessage
+	s1 := reflect.ValueOf(m)
+	fmt.Println("s:::", s1, s1.Type())
+	if msg, ok := m.(map[string]interface{}); !ok {
+		fmt.Println(msg)
+		assert.Fail("not map")
+	} else {
+		fmt.Println(msg)
+		//byt := []byte(message.Message)
+		//fmt.Println(message.Message.(string))
+		//err := json.Unmarshal(byt, &msg)
+		//assert.Nil(err)
+		assert.Equal("hi!", msg["Foo"])
+		//assert.Equal("1", msg["Bar"].(map[string]interface{})[0])
+		//assert.Equal("\"yay!\"", msg["pn_other"])
+	}
+}
+
+func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher string, pubMessage chan interface{}, disablePNOtherProcessing bool, usePost bool) {
+	assert := assert.New(t)
+	doneSubscribe := make(chan bool)
+	doneUnsubscribe := make(chan bool)
+	donePublish := make(chan bool)
+	errChan := make(chan string)
+
+	//r := GenRandom()
+
+	ch := "testChannel_sub_96112" //fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
+
+	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.CipherKey = cipher
+	pn.Config.DisablePNOtherProcessing = disablePNOtherProcessing
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	listener := pubnub.NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.PNConnectedCategory:
+					doneSubscribe <- true
+				case pubnub.PNDisconnectedCategory:
+					doneUnsubscribe <- true
+				}
+			case message := <-listener.Message:
+				donePublish <- true
+				if pubMessage != nil {
+					pubMessage <- message.Message
+				} else {
+					fmt.Println("pubMessage nil")
+				}
+
+			case <-listener.Presence:
+				errChan <- "Got presence while awaiting for a status event"
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe().Channels([]string{ch}).Execute()
+
+	select {
+	case <-doneSubscribe:
+	case err := <-errChan:
+		assert.Fail(err)
+		return
+	}
+
+	pn.Publish().Channel(ch).Message(s).UsePost(usePost).Execute()
+
+	select {
+	case <-donePublish:
+	case err := <-errChan:
+		assert.Fail(err)
+		return
+	}
+
+	pn.Unsubscribe().
+		Channels([]string{ch}).
+		Execute()
+
+	select {
+	case <-doneUnsubscribe:
+	case err := <-errChan:
+		assert.Fail(err)
+	}
+
+	assert.Zero(len(pn.GetSubscribedChannels()))
+	assert.Zero(len(pn.GetSubscribedGroups()))
+}
+
+/*func TestSubscribePublishUnsubscribePNOther(t *testing.T) {
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)
 	doneUnsubscribe := make(chan bool)
@@ -175,9 +634,9 @@ func TestSubscribePublishUnsubscribePNOther(t *testing.T) {
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
-}
+}*/
 
-func TestSubscribePublishUnsubscribePNOtherDisable(t *testing.T) {
+/*func TestSubscribePublishUnsubscribePNOtherDisable(t *testing.T) {
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)
 	doneUnsubscribe := make(chan bool)
@@ -264,9 +723,9 @@ func TestSubscribePublishUnsubscribePNOtherDisable(t *testing.T) {
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
-}
+}*/
 
-func TestSubscribePublishUnsubscribeInterfaceWithoutPNOther(t *testing.T) {
+/*func TestSubscribePublishUnsubscribeInterfaceWithoutPNOther(t *testing.T) {
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)
 	doneUnsubscribe := make(chan bool)
@@ -342,34 +801,29 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutPNOther(t *testing.T) {
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
-}
+}*/
 
-type customStruct struct {
-	Foo string
-	Bar []int
-}
+/*func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherEnc(t *testing.T) {
+assert := assert.New(t)
+doneSubscribe := make(chan bool)
+doneUnsubscribe := make(chan bool)
+donePublish := make(chan bool)
+errChan := make(chan string)
 
-func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherEnc(t *testing.T) {
-	assert := assert.New(t)
-	doneSubscribe := make(chan bool)
-	doneUnsubscribe := make(chan bool)
-	donePublish := make(chan bool)
-	errChan := make(chan string)
+//r := GenRandom()
 
-	//r := GenRandom()
+ch := "testChannel_sub_96112" //fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 
-	ch := "testChannel_sub_96112" //fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
+pn := pubnub.NewPubNub(configCopy())
+pn.Config.CipherKey = "enigma"
+pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.CipherKey = "enigma"
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-
-	/*s := map[string]interface{}{
-		"not_other": "1234",
-		"ss_other":  "\"yay!\"",
-	}*/
-	//s := 1.1
-	s := customStruct{
+/*s := map[string]interface{}{
+	"not_other": "1234",
+	"ss_other":  "\"yay!\"",
+}*/
+//s := 1.1
+/*s := customStruct{
 		Foo: "hi!",
 		Bar: []int{1, 2, 3, 4, 5},
 	}
@@ -442,9 +896,9 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherEnc(t *testing.T) {
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
-}
+}*/
 
-func TestSubscribePublishUnsubscribe(t *testing.T) {
+/*func TestSubscribePublishUnsubscribe(t *testing.T) {
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)
 	doneUnsubscribe := make(chan bool)
@@ -507,7 +961,7 @@ func TestSubscribePublishUnsubscribe(t *testing.T) {
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
-}
+}*/
 
 // Also tests:
 // - test operations like publish/unsubscribe invoked inside another goroutine
