@@ -114,7 +114,7 @@ func TestSubscribePublishUnsubscribeString(t *testing.T) {
 func TestSubscribePublishUnsubscribeStringEnc(t *testing.T) {
 	assert := assert.New(t)
 	pubMessage := make(chan interface{})
-	s := "hey"
+	s := "yay!"
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
 	m := <-pubMessage

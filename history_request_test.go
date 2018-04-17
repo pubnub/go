@@ -238,6 +238,44 @@ func TestHistoryPNOther(t *testing.T) {
 	pnconfig.CipherKey = ""
 }
 
+func TestHistoryPNOtherYay(t *testing.T) {
+	assert := assert.New(t)
+	pnconfig.CipherKey = "enigma"
+	//fmt.Println(utils.EncryptString("testCipher", `{"three":3, "four":4}`))
+	int64Val := int64(14991775432719844)
+	jsonString := []byte(`[[{"pn_other":"q/xJqqN6qbiZMXYmiQC1Fw=="},1,"a",1.1,false,14991775432719844],14991775432719844,14991868111600528]`)
+
+	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	assert.Nil(err)
+
+	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
+	assert.Equal(int64(14991868111600528), resp.EndTimetoken)
+
+	messages := resp.Messages
+	data := messages[0].Message
+	switch v := data.(type) {
+	case map[string]interface{}:
+		testMap := make(map[string]interface{})
+		testMap = v
+		//pn_other := make(map[string]string)
+		pn_other := testMap["pn_other"].(string)
+		assert.Equal("yay!", pn_other)
+		//assert.Equal(pn_other["three"], 3)
+
+		break
+	default:
+		//fmt.Println(reflect.TypeOf(v).Kind(), reflect.TypeOf(data).Kind(), v, data)
+		assert.Fail(fmt.Sprintf("%s", reflect.TypeOf(v).Kind()), " expected interafce")
+		break
+	}
+	assert.Equal(float64(1), messages[1].Message)
+	assert.Equal("a", messages[2].Message)
+	assert.Equal(float64(1.1), messages[3].Message)
+	assert.Equal(false, messages[4].Message)
+	assert.Equal(float64(int64Val), messages[5].Message)
+	pnconfig.CipherKey = ""
+}
+
 func TestHistoryResponseParsingSliceInMapWithTimetoken(t *testing.T) {
 	assert := assert.New(t)
 

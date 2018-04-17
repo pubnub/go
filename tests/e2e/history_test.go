@@ -1,11 +1,11 @@
 package e2e
 
 import (
-	"testing"
-
+	"fmt"
 	pubnub "github.com/pubnub/go"
 	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 const HISTORY_RESP_SUCCESS = `[[{"timetoken":1111,"message":{"a":11,"b":22}},{"timetoken":2222,"message":{"a":33,"b":44}}],1234,4321]`
@@ -106,7 +106,17 @@ func TestHistoryEncryptedPNOther(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(1, len(res.Messages))
-	assert.Equal(map[string]interface{}{"pn_other": "{\"text\":\"hey\"}"}, res.Messages[0].Message)
+
+	if msgOther, ok := res.Messages[0].Message.(map[string]interface{}); !ok {
+		assert.Fail("!map[string]interface{}")
+	} else {
+		fmt.Println(msgOther)
+		if msgOther2, ok := msgOther["pn_other"].(map[string]interface{}); !ok {
+			assert.Fail("!map[string]interface{} 2")
+		} else {
+			assert.Equal("hey", msgOther2["text"])
+		}
+	}
 
 	config.CipherKey = ""
 }

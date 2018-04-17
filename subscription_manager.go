@@ -699,7 +699,14 @@ func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error)
 						pnConf.Log.Println(errDecryption, msg)
 						return v, errDecryption
 					} else {
-						v["pn_other"] = decrypted
+						var intf interface{}
+						err := json.Unmarshal([]byte(decrypted.(string)), &intf)
+						if err != nil {
+							pnConf.Log.Println("Unmarshal: err", err)
+							return intf, err
+						}
+						v["pn_other"] = intf
+
 						pnConf.Log.Println("reflect.TypeOf(v).Kind()", reflect.TypeOf(v).Kind(), v)
 						return v, nil
 					}
