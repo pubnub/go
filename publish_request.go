@@ -38,8 +38,8 @@ type publishOpts struct {
 	ctx Context
 
 	// nil hacks
-	SetTtl         bool
-	SetShouldStore bool
+	setTtl         bool
+	setShouldStore bool
 }
 
 type PublishResponse struct {
@@ -97,6 +97,7 @@ func newPublishBuilderWithContext(pubnub *PubNub, context Context) *publishBuild
 
 func (b *publishBuilder) Ttl(ttl int) *publishBuilder {
 	b.opts.Ttl = ttl
+	b.opts.setTtl = true
 
 	return b
 }
@@ -127,7 +128,11 @@ func (b *publishBuilder) UsePost(post bool) *publishBuilder {
 
 func (b *publishBuilder) ShouldStore(store bool) *publishBuilder {
 	b.opts.ShouldStore = store
-	b.opts.SetShouldStore = true
+	if store {
+		b.opts.setShouldStore = true
+	} else {
+		b.opts.setShouldStore = false
+	}
 
 	return b
 }
@@ -342,7 +347,7 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 		q.Set("meta", string(meta))
 	}
 
-	if o.SetShouldStore {
+	if o.setShouldStore {
 		if o.ShouldStore {
 			q.Set("store", "1")
 		} else {
@@ -350,7 +355,7 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 		}
 	}
 
-	if o.SetTtl {
+	if o.setTtl {
 		if o.Ttl > 0 {
 			q.Set("ttl", strconv.Itoa(o.Ttl))
 		}

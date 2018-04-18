@@ -205,7 +205,7 @@ func TestPublishStore(t *testing.T) {
 		Message:        "hey",
 		pubnub:         pubnub,
 		ShouldStore:    true,
-		SetShouldStore: true,
+		setShouldStore: true,
 	}
 
 	query, err := opts.buildQuery()
@@ -291,9 +291,6 @@ func TestPublishEncryptPNOtherDisable(t *testing.T) {
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
-	//%22zbw8Ovr3QvNs%2B6eew%2Fvw9PlqTwAMnVXP84xKxQa3ndQ7tDjI8lWFKd4gCCOQtztZ%22
-	//%22bCC/kQbGdScQ0teYcawUsnASfRpUioutNKQfUAQNc46gWR/Jnz8Ks5n/vfKnDkE6%22
-	//%22zbw8Ovr3QvNs%2B6eew%2Fvw9BmaEzLyx%2BwbuASCGkudgS2HmVefkRYvwtUabTVRVswk%22
 
 	assert.Equal(
 		"/publish/demo/demo/0/ch/0/%22bCC%2FkQbGdScQ0teYcawUsnASfRpUioutNKQfUAQNc46gWR%2FJnz8Ks5n%2FvfKnDkE6%22", path)

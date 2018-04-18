@@ -52,13 +52,13 @@ func (b *fetchBuilder) Channels(channels []string) *fetchBuilder {
 
 func (b *fetchBuilder) Start(start int64) *fetchBuilder {
 	b.opts.Start = start
-	b.opts.SetStart = true
+	b.opts.setStart = true
 	return b
 }
 
 func (b *fetchBuilder) End(end int64) *fetchBuilder {
 	b.opts.End = end
-	b.opts.SetEnd = true
+	b.opts.setEnd = true
 	return b
 }
 
@@ -109,8 +109,8 @@ type fetchOpts struct {
 	IncludeTimetoken bool
 
 	// nil hacks
-	SetStart bool
-	SetEnd   bool
+	setStart bool
+	setEnd   bool
 
 	Transport http.RoundTripper
 
@@ -152,11 +152,11 @@ func (o *fetchOpts) buildPath() (string, error) {
 func (o *fetchOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
-	if o.SetStart {
+	if o.setStart {
 		q.Set("start", strconv.FormatInt(o.Start, 10))
 	}
 
-	if o.SetEnd {
+	if o.setEnd {
 		q.Set("end", strconv.FormatInt(o.End, 10))
 	}
 

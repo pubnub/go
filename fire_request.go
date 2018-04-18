@@ -32,8 +32,8 @@ type fireOpts struct {
 	ctx Context
 
 	// nil hacks
-	SetTtl         bool
-	SetShouldStore bool
+	setTtl         bool
+	setShouldStore bool
 }
 
 type fireBuilder struct {
@@ -215,7 +215,7 @@ func (o *fireOpts) buildQuery() (*url.Values, error) {
 	q.Set("store", "0")
 	q.Set("norep", "true")
 
-	if o.SetTtl {
+	if o.setTtl {
 		if o.Ttl > 0 {
 			q.Set("ttl", strconv.Itoa(o.Ttl))
 		}

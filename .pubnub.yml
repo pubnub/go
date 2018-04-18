@@ -1,8 +1,16 @@
 name: go
-version: v4.0.0-beta.5
+version: v4.0.0-beta.7
 schema: 1
 scm: github.com/pubnub/go
 changelog:
+  - version: v4.0.0-beta.7
+    changes:
+      - type: improvement
+        text: cipher improvements
+  - version: v4.0.0-beta.6
+    changes:
+      - type: improvement
+        text: Fire, Fetch, HereNowRequest
   - version: v4.0.0-beta.5
     changes:
       - type: improvement

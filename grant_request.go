@@ -70,7 +70,7 @@ func (b *grantBuilder) Manage(manage bool) *grantBuilder {
 // Setting value to 0 will apply the grant indefinitely (forever grant).
 func (b *grantBuilder) Ttl(ttl int) *grantBuilder {
 	b.opts.Ttl = ttl
-	b.opts.SetTtl = true
+	b.opts.setTtl = true
 
 	return b
 }
@@ -123,7 +123,7 @@ type grantOpts struct {
 	Ttl int
 
 	// nil hacks
-	SetTtl bool
+	setTtl bool
 }
 
 func (o *grantOpts) config() Config {
@@ -191,7 +191,7 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 		q.Set("channel-group", strings.Join(o.ChannelGroups, ","))
 	}
 
-	if o.SetTtl {
+	if o.setTtl {
 		if o.Ttl >= -1 {
 			q.Set("ttl", fmt.Sprintf("%d", o.Ttl))
 		}

@@ -34,7 +34,7 @@ func TestPublishSuccessNotStubbed(t *testing.T) {
 
 func TestPublishSuccess(t *testing.T) {
 	assert := assert.New(t)
-	interceptor := stubs.NewInterceptor()
+	/*interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/ch/0/%22hey%22",
@@ -42,10 +42,10 @@ func TestPublishSuccess(t *testing.T) {
 		ResponseBody:       RESP_SUCCESS,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
 		ResponseStatusCode: 200,
-	})
+	})*/
 
 	pn := pubnub.NewPubNub(config)
-	pn.SetClient(interceptor.GetClient())
+	//pn.SetClient(interceptor.GetClient())
 
 	_, _, err := pn.Publish().
 		Channel("ch").

@@ -52,13 +52,13 @@ func (b *historyBuilder) Channel(ch string) *historyBuilder {
 
 func (b *historyBuilder) Start(start int64) *historyBuilder {
 	b.opts.Start = start
-	b.opts.SetStart = true
+	b.opts.setStart = true
 	return b
 }
 
 func (b *historyBuilder) End(end int64) *historyBuilder {
 	b.opts.End = end
-	b.opts.SetEnd = true
+	b.opts.setEnd = true
 	return b
 }
 
@@ -109,8 +109,8 @@ type historyOpts struct {
 	IncludeTimetoken bool
 
 	// nil hacks
-	SetStart bool
-	SetEnd   bool
+	setStart bool
+	setEnd   bool
 
 	Transport http.RoundTripper
 
@@ -150,11 +150,11 @@ func (o *historyOpts) buildPath() (string, error) {
 func (o *historyOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
-	if o.SetStart {
+	if o.setStart {
 		q.Set("start", strconv.FormatInt(o.Start, 10))
 	}
 
-	if o.SetEnd {
+	if o.setEnd {
 		q.Set("end", strconv.FormatInt(o.End, 10))
 	}
 

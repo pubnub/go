@@ -20,7 +20,7 @@ func TestGrantRequestBasic(t *testing.T) {
 		Write:         true,
 		Manage:        true,
 		Ttl:           5000,
-		SetTtl:        true,
+		setTtl:        true,
 		pubnub:        pubnub,
 	}
 
