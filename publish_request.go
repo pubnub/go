@@ -289,7 +289,6 @@ func (o *publishOpts) buildPath() (string, error) {
 
 	var msg string
 	var errJsonMarshal error
-	fmt.Println("o.ser", o.Serialize)
 
 	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
 		if msg, errJsonMarshal = o.encryptProcessing(cipherKey); errJsonMarshal != nil {
@@ -314,8 +313,9 @@ func (o *publishOpts) buildPath() (string, error) {
 		}
 	}
 
-	encodedPath := utils.EncodeJSONAsPathComponent(msg)
-	o.pubnub.Config.Log.Println("encodedPath: ", encodedPath)
+	/*encodedPath := utils.EncodeJSONAsPathComponent(msg)
+	fmt.Println("encodedPath: ", encodedPath, utils.UrlEncode(msg))
+	o.pubnub.Config.Log.Println("encodedPath: ", encodedPath)*/
 	/*message, err := utils.ValueAsString(msg)
 	if err != nil {
 		o.pubnub.Config.Log.Println("ERROR: Publish error: %s", err.Error())
@@ -327,7 +327,7 @@ func (o *publishOpts) buildPath() (string, error) {
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.Channel),
 		"0",
-		encodedPath), nil
+		utils.UrlEncode(msg)), nil
 }
 
 func (o *publishOpts) buildQuery() (*url.Values, error) {

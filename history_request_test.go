@@ -327,7 +327,7 @@ func TestHistoryEncrypt(t *testing.T) {
 
 	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
-	fmt.Println(resp)
+	//fmt.Println(resp)
 
 	messages := resp.Messages
 	assert.Equal("hey", messages[0].Message)
@@ -372,8 +372,8 @@ func TestHistoryEncryptMap(t *testing.T) {
 		assert.Fail("!ok map[string]interface {}")
 	} else {
 		assert.Equal(float64(1), resp["one"].(float64))
-		if resp2, ok2 := resp["two"].([]map[int]string); !ok2 {
-			fmt.Println(reflect.TypeOf(resp2).Kind(), resp2)
+		if resp2, ok2 := resp["two"].([]interface{}); !ok2 {
+			//fmt.Println(reflect.TypeOf(resp2).Kind(), resp2)
 			assert.Fail("!ok2 map[int]interface{}")
 		} else {
 			assert.Equal("hey-1", resp2[0])

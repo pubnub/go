@@ -71,14 +71,14 @@ func TestPublishMixedGet(t *testing.T) {
 	AssertSuccessPublishGet(t, "12", 12)
 	AssertSuccessPublishGet(t, "%22hey%22", "hey")
 	AssertSuccessPublishGet(t, "true", true)
-	AssertSuccessPublishGet(t, "%5B%22hey1%22,%22hey2%22,%22hey3%22%5D",
+	AssertSuccessPublishGet(t, "%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
 		[]string{"hey1", "hey2", "hey3"})
-	AssertSuccessPublishGet(t, "%5B1,2,3%5D", []int{1, 2, 3})
+	AssertSuccessPublishGet(t, "%5B1%2C2%2C3%5D", []int{1, 2, 3})
 	AssertSuccessPublishGet(t,
-		"%7B%22one%22:%22hey1%22,%22two%22:%22hey2%22,%22three%22:%22hey3%22%7D",
+		"%7B%22one%22%3A%22hey1%22%2C%22two%22%3A%22hey2%22%2C%22three%22%3A%22hey3%22%7D",
 		msgStruct)
 	AssertSuccessPublishGet(t,
-		"%7B%22one%22:%22hey1%22,%22three%22:%22hey3%22,%22two%22:%22hey2%22%7D",
+		"%7B%22one%22%3A%22hey1%22%2C%22three%22%3A%22hey3%22%2C%22two%22%3A%22hey2%22%7D",
 		msgMap)
 }
 
@@ -251,13 +251,14 @@ func TestPublishEncryptPNOther(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	s := map[string]interface{}{
 		"not_other": "1234",
-		"pn_other":  "\"yay!\"",
+		"pn_other":  "yay!",
 	}
 
 	opts := &publishOpts{
-		Channel: "ch",
-		Message: s,
-		pubnub:  pn,
+		Channel:   "ch",
+		Message:   s,
+		pubnub:    pn,
+		Serialize: true,
 	}
 
 	path, err := opts.buildPath()
@@ -290,9 +291,12 @@ func TestPublishEncryptPNOtherDisable(t *testing.T) {
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
+	//%22zbw8Ovr3QvNs%2B6eew%2Fvw9PlqTwAMnVXP84xKxQa3ndQ7tDjI8lWFKd4gCCOQtztZ%22
+	//%22bCC/kQbGdScQ0teYcawUsnASfRpUioutNKQfUAQNc46gWR/Jnz8Ks5n/vfKnDkE6%22
+	//%22zbw8Ovr3QvNs%2B6eew%2Fvw9BmaEzLyx%2BwbuASCGkudgS2HmVefkRYvwtUabTVRVswk%22
 
 	assert.Equal(
-		"/publish/demo/demo/0/ch/0/%22nG41KRyzJtBR9WWShepyXb3hNh7JJnOoTrQ0SNRcAwRyBYDG2dDhL99svymHR89n%22", path)
+		"/publish/demo/demo/0/ch/0/%22bCC%2FkQbGdScQ0teYcawUsnASfRpUioutNKQfUAQNc46gWR%2FJnz8Ks5n%2FvfKnDkE6%22", path)
 	pn.Config.CipherKey = ""
 }
 
