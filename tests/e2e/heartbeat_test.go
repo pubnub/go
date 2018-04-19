@@ -3,7 +3,7 @@ package e2e
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	//"log"
 	"strings"
 	"sync"
 	"testing"
@@ -153,7 +153,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/" + ch + "/heartbeat",
+		Path:               "/v2/presence/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/" + ch + "/heartbeat",
 		Query:              "heartbeat=6",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -162,7 +162,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/" + ch + "/leave",
+		Path:               "/v2/presence/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/" + ch + "/leave",
 		Query:              "",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\", \"action\": \"leave\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -235,7 +235,7 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/" + ch + "/heartbeat",
+		Path:               "/v2/presence/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/" + ch + "/heartbeat",
 		Query:              "heartbeat=6",
 		ResponseBody:       "{\"status\": 404, \"message\": \"Not Found\", \"error\": \"1\", \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -244,7 +244,7 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/" + ch + "/leave",
+		Path:               "/v2/presence/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/" + ch + "/leave",
 		Query:              "",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\", \"action\": \"leave\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -371,37 +371,37 @@ func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 		return
 	}
 
-	log.Println("Sleeping 8s")
+	//log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
 	pn.UnsubscribeAll()
 
-	log.Println("Unsubscribed")
-	log.Println("Sleeping 8s")
+	//log.Println("Unsubscribed")
+	//log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
 	pn.Subscribe().
 		Channels([]string{first}).
 		Execute()
 
-	log.Println("Subscribed again")
-	log.Println("Sleeping 8s")
+	//log.Println("Subscribed again")
+	//log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
 	pn.Subscribe().
 		Channels([]string{second}).
 		Execute()
 
-	log.Println("Subsccribed to another channel again")
-	log.Println("Sleeping 8s")
+	//log.Println("Subsccribed to another channel again")
+	//log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
 	pn.Unsubscribe().
 		Channels([]string{first, second}).
 		Execute()
 
-	log.Println("Unsubscribed")
-	log.Println("Sleeping 8s")
+	//log.Println("Unsubscribed")
+	//log.Println("Sleeping 8s")
 	time.Sleep(8 * time.Second)
 
 	select {

@@ -2,9 +2,9 @@ package stubs
 
 import (
 	"bytes"
-	"fmt"
+	//"fmt"
 	"io/ioutil"
-	"log"
+	//"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -50,7 +50,7 @@ func (s *Stub) Match(req *http.Request) bool {
 	}
 
 	if s.Method != req.Method {
-		log.Printf("Methods are not equal: %s != %s\n", s.Method, req.Method)
+		//log.Printf("Methods are not equal: %s != %s\n", s.Method, req.Method)
 		return false
 	}
 
@@ -62,15 +62,16 @@ func (s *Stub) Match(req *http.Request) bool {
 	expectedQuery, _ := url.ParseQuery(s.Query)
 	actualQuery := req.URL.Query()
 
-	fmt.Println("ex", expectedQuery, "\nact", actualQuery, "\nignore",
-		s.IgnoreQueryKeys)
+	//fmt.Println("ex", expectedQuery, "\nact", actualQuery, "\nignore",
+	//	s.IgnoreQueryKeys)
 
 	if !helpers.QueriesEqual(&expectedQuery,
 		&actualQuery,
 		s.IgnoreQueryKeys,
 		s.MixedQueryKeys) {
-		fmt.Println("NOT EQUAL")
+		//fmt.Println("NOT EQUAL")
 		return false
+
 	}
 
 	return true
@@ -82,6 +83,8 @@ type interceptTransport struct {
 
 func (i *interceptTransport) RoundTrip(req *http.Request) (*http.Response,
 	error) {
+
+	//fmt.Println(req.URL)
 
 	for _, v := range i.Stubs {
 		if v.Match(req) {

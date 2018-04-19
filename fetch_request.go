@@ -204,6 +204,41 @@ type FetchResponse struct {
 	Messages map[string][]FetchResponseItem
 }
 
+func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]FetchResponseItem {
+	messages := make(map[string][]FetchResponseItem, len(channels))
+
+	for channel, histResponseSliceMap := range channels {
+		if histResponseMap, ok2 := histResponseSliceMap.([]interface{}); ok2 {
+			o.pubnub.Config.Log.Printf("Channel:%s, count:%d", channel, len(histResponseMap))
+			items := make([]FetchResponseItem, len(histResponseMap))
+			count := 0
+
+			for _, val := range histResponseMap {
+				if histResponse, ok3 := val.(map[string]interface{}); ok3 {
+					msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config)
+
+					histItem := FetchResponseItem{
+						Message:   msg,
+						Timetoken: histResponse["timetoken"].(string),
+					}
+					items[count] = histItem
+					o.pubnub.Config.Log.Printf("Channel:%s, count:%d %d", channel, count, len(items))
+					count++
+				} else {
+					o.pubnub.Config.Log.Printf("histResponse not a map", histResponse)
+					continue
+				}
+			}
+			messages[channel] = items
+			o.pubnub.Config.Log.Printf("Channel:%s, count:%d", channel, len(messages[channel]))
+		} else {
+			o.pubnub.Config.Log.Printf("histResponseSliceMap not an []interface", histResponseSliceMap)
+			continue
+		}
+	}
+	return messages
+}
+
 func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 	status StatusResponse) (*FetchResponse, StatusResponse, error) {
 
@@ -223,41 +258,13 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 
 		//if result != nil {
 		o.pubnub.Config.Log.Println(result["channels"])
-		channels := result["channels"].(map[string]interface{})
+		if channels, ok1 := result["channels"].(map[string]interface{}); ok1 {
 
-		if channels != nil {
-			messages := make(map[string][]FetchResponseItem, len(channels))
-
-			for channel, histResponseSliceMap := range channels {
-				if histResponseMap := histResponseSliceMap.([]interface{}); ok {
-					o.pubnub.Config.Log.Printf("Channel:%s, count:%d", channel, len(histResponseMap))
-					items := make([]FetchResponseItem, len(histResponseMap))
-					count := 0
-
-					for _, val := range histResponseMap {
-						if histResponse := val.(map[string]interface{}); ok {
-							msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config)
-
-							histItem := FetchResponseItem{
-								Message:   msg,
-								Timetoken: histResponse["timetoken"].(string),
-							}
-							items[count] = histItem
-							o.pubnub.Config.Log.Printf("Channel:%s, count:%d %d", channel, count, len(items))
-							count++
-						} else {
-							o.pubnub.Config.Log.Printf("histResponse not a map", histResponse)
-							continue
-						}
-					}
-					messages[channel] = items
-					o.pubnub.Config.Log.Printf("Channel:%s, count:%d", channel, len(messages[channel]))
-				} else {
-					o.pubnub.Config.Log.Printf("histResponseSliceMap not an []interface", histResponseSliceMap)
-					continue
-				}
+			if channels != nil {
+				resp.Messages = o.fetchMessages(channels)
+			} else {
+				o.pubnub.Config.Log.Printf("type assertion to map failed", result)
 			}
-			resp.Messages = messages
 		}
 	} else {
 		o.pubnub.Config.Log.Printf("type assertion to map failed", value)

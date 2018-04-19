@@ -61,7 +61,7 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/my-unique-group-remove",
+		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group-remove",
 		Query:              "add=my-channel-remove",
 		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
@@ -69,7 +69,7 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/my-unique-group-remove",
+		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group-remove",
 		Query:              "remove=my-channel-remove",
 		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
@@ -77,7 +77,7 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/my-unique-group-remove",
+		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group-remove",
 		Query:              "",
 		ResponseBody:       `{"status": 200, "payload": {"channels": [], "group": "my-unique-group-remove"}, "service": "channel-registry", "error": false}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},

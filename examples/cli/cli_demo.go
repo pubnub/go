@@ -44,9 +44,9 @@ func main() {
 	config.Log.SetPrefix("PubNub :->  ")
 	//config.SuppressLeaveEvents = true
 
-	config.PublishKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"   //"pub-c-4f1dbd79-ab94-487d-b779-5881927db87c"
-	config.SubscribeKey = "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f" //"sub-c-f2489488-2dbd-11e8-a27a-a2b5bab5b996"
-	config.SecretKey = ""                                              //"sec-c-NjlmYzVkMjEtOWIxZi00YmJlLThjZDktMjI4NGQwZDUxZDQ0"
+	config.PublishKey = "pub-c-afeb2ec5-45e9-449f-9a8d-c4940a9c7836"
+	config.SubscribeKey = "sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64"
+
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
 
@@ -90,8 +90,6 @@ func main() {
 	showHelp()
 
 	/*config2 := pubnub.NewConfig()
-	config2.PublishKey = "pub-c-c6a4792f-af77-4028-88b4-5995da3aa7b4"
-	config2.SubscribeKey = "sub-c-4cf48c6c-2025-11e8-b192-4eac351dc434"
 	config2.SubscribeRequestTimeout = 59
 	config2.Uuid = "GlobalSubscriber"
 	config2.PNReconnectionPolicy = pubnub.PNLinearPolicy

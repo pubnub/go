@@ -62,15 +62,18 @@ func newPublishResponse(jsonBytes []byte, status StatusResponse) (
 		return emptyPublishResponse, status, e
 	}
 
-	timeString := value[2].(string)
-	timestamp, err := strconv.Atoi(timeString)
-	if err != nil {
-		return emptyPublishResponse, status, err
-	}
+	if timeString, ok := value[2].(string); !ok {
+		return emptyPublishResponse, status, pnerr.NewResponseParsingError(fmt.Sprintf("Error unmarshalling response, %s %v", value[2], value), nil, nil)
+	} else {
+		timestamp, err := strconv.Atoi(timeString)
+		if err != nil {
+			return emptyPublishResponse, status, err
+		}
 
-	return &PublishResponse{
-		Timestamp: timestamp,
-	}, status, nil
+		return &PublishResponse{
+			Timestamp: timestamp,
+		}, status, nil
+	}
 }
 
 func newPublishBuilder(pubnub *PubNub) *publishBuilder {
@@ -318,9 +321,9 @@ func (o *publishOpts) buildPath() (string, error) {
 		}
 	}
 
-	/*encodedPath := utils.EncodeJSONAsPathComponent(msg)
-	fmt.Println("encodedPath: ", encodedPath, utils.UrlEncode(msg))
-	o.pubnub.Config.Log.Println("encodedPath: ", encodedPath)*/
+	//encodedPath := utils.EncodeJSONAsPathComponent(msg)
+	//fmt.Println("encodedPath: ", encodedPath, utils.UrlEncode(msg))
+	//o.pubnub.Config.Log.Println("encodedPath: ", encodedPath)
 	/*message, err := utils.ValueAsString(msg)
 	if err != nil {
 		o.pubnub.Config.Log.Println("ERROR: Publish error: %s", err.Error())
@@ -333,6 +336,7 @@ func (o *publishOpts) buildPath() (string, error) {
 		utils.UrlEncode(o.Channel),
 		"0",
 		utils.UrlEncode(msg)), nil
+	//encodedPath), nil
 }
 
 func (o *publishOpts) buildQuery() (*url.Values, error) {

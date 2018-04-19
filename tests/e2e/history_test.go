@@ -1,7 +1,7 @@
 package e2e
 
 import (
-	"fmt"
+	//"fmt"
 	pubnub "github.com/pubnub/go"
 	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +26,7 @@ func TestHistoryCallWithAllParams(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch",
+		Path:               "/v2/history/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch",
 		Query:              "count=2&end=2&include_token=true&reverse=true&start=1",
 		ResponseBody:       `[[],0,0]`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -54,7 +54,7 @@ func TestHistorySuccess(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch",
+		Path:               "/v2/history/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch",
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       HISTORY_RESP_SUCCESS,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
@@ -89,7 +89,7 @@ func TestHistoryEncryptedPNOther(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch",
+		Path:               "/v2/history/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch",
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       `[[{"pn_other":"6QoqmS9CnB3W9+I4mhmL7w=="}],14606134331557852,14606134485013970]`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},
@@ -110,7 +110,7 @@ func TestHistoryEncryptedPNOther(t *testing.T) {
 	if msgOther, ok := res.Messages[0].Message.(map[string]interface{}); !ok {
 		assert.Fail("!map[string]interface{}")
 	} else {
-		fmt.Println(msgOther)
+		//fmt.Println(msgOther)
 		if msgOther2, ok := msgOther["pn_other"].(map[string]interface{}); !ok {
 			assert.Fail("!map[string]interface{} 2")
 		} else {
@@ -142,7 +142,7 @@ func TestHistoryMissingChannel(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/ch",
+		Path:               "/v2/history/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/ch",
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       `[[{"pn_other":""}],14606134331557852,14606134485013970]`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},

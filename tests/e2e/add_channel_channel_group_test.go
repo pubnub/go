@@ -1,6 +1,9 @@
 package e2e
 
 import (
+	//"fmt"
+	//"log"
+	//"os"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -12,12 +15,13 @@ func TestAddChannelToChannelGroupNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{"ch"}).
 		ChannelGroup("cg").
 		Execute()
-
+	//fmt.Println(err.Error())
 	assert.Nil(err)
 }
 
@@ -49,6 +53,7 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 	assert := assert.New(t)
 
 	config := pamConfigCopy()
+	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// Not allowed characters:
 	// .,:*#`[]&
@@ -65,17 +70,18 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 		Channels([]string{channelCharacters}).
 		ChannelGroup(validCharacters).
 		Execute()
-
+	//fmt.Println(err.Error())
 	assert.Nil(err)
 }
 
 func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	assert := assert.New(t)
+	pn := pubnub.NewPubNub(configCopy())
 
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/my-unique-group",
+		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group",
 		Query:              "add=my-channel",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"channel-registry\", \"error\": \"false\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
@@ -83,7 +89,7 @@ func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/my-unique-group",
+		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group",
 		Query:              "",
 		ResponseBody:       "{\"status\": \"200\", \"payload\": {\"channels\": [\"my-channel\"], \"group\": \"my-unique-group\"}, \"service\": \"channel-registry\", \"error\": \"false\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
@@ -93,14 +99,14 @@ func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	myChannel := "my-channel"
 	myGroup := "my-unique-group"
 
-	pn := pubnub.NewPubNub(configCopy())
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	pn.SetClient(interceptor.GetClient())
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{myChannel}).
 		ChannelGroup(myGroup).
 		Execute()
-
+	//fmt.Println(err.Error())
 	assert.Nil(err)
 
 	res, _, err := pn.ListChannelsInChannelGroup().

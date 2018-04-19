@@ -52,15 +52,18 @@ func newFireResponse(jsonBytes []byte, status StatusResponse) (
 		return emptyPublishResponse, status, e
 	}
 
-	timeString := value[2].(string)
-	timestamp, err := strconv.Atoi(timeString)
-	if err != nil {
-		return emptyPublishResponse, status, err
-	}
+	if timeString, ok := value[2].(string); !ok {
+		return emptyPublishResponse, status, pnerr.NewResponseParsingError(fmt.Sprintf("Error unmarshalling response, %s %v", value[2], value), nil, nil)
+	} else {
+		timestamp, err := strconv.Atoi(timeString)
+		if err != nil {
+			return emptyPublishResponse, status, err
+		}
 
-	return &PublishResponse{
-		Timestamp: timestamp,
-	}, status, nil
+		return &PublishResponse{
+			Timestamp: timestamp,
+		}, status, nil
+	}
 }
 
 func newFireBuilder(pubnub *PubNub) *fireBuilder {

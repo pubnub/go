@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+	//"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -365,7 +365,7 @@ func parseChannelData(channelName string, rawData interface{}) HereNowChannelDat
 								}
 
 								if state, ok := u["state"].(map[string]interface{}); ok {
-									log.Println(u)
+									//log.Println(u)
 									occData.State = state
 								}
 

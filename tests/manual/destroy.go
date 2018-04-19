@@ -11,8 +11,8 @@ import (
 
 func main() {
 	config := pubnub.NewConfig()
-	config.PublishKey = "pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c"
-	config.SubscribeKey = "sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f"
+	config.PublishKey = "pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb"
+	config.SubscribeKey = "sub-c-b9ab9508-43cf-11e8-9967-869954283fb4"
 
 	pn := pubnub.NewPubNub(config)
 

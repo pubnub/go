@@ -2,7 +2,7 @@ package e2e
 
 import (
 	"fmt"
-	"log"
+	//"log"
 	//"os"
 	"strings"
 	"testing"
@@ -37,7 +37,7 @@ func TestPublishSuccess(t *testing.T) {
 	/*interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/ch/0/%22hey%22",
+		Path:               "/publish/pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/0/ch/0/%22hey%22",
 		Query:              "seqn=1&store=0",
 		ResponseBody:       RESP_SUCCESS,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -61,7 +61,7 @@ func TestPublishSuccessSlice(t *testing.T) {
 	/*interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/ch/0/%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
+		Path:               "/publish/pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/0/ch/0/%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
 		Query:              "seqn=1&store=0",
 		ResponseBody:       RESP_SUCCESS,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -148,8 +148,8 @@ func XTestPublishTimeout(t *testing.T) {
 		UsePost(false).
 		Execute()
 
-	log.Println(err)
-	// assert.Contains(err.Error(), "Failed to execute request")
+	//log.Println(err)
+	assert.Contains(t, err.Error(), "Failed to execute request")
 
 	// assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
 	// 	"exceeded while awaiting headers")
@@ -203,7 +203,7 @@ func TestPublishServerError(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/ch/0/%22hey%22",
+		Path:               "/publish/pub-c-afeb2ec5-45e9-449f-9a8d-c4940a9c7836/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/0/ch/0/%22hey%22",
 		Query:              "seqn=1",
 		ResponseBody:       "",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
