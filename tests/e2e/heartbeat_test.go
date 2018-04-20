@@ -126,7 +126,7 @@ func HeartbeatTimeoutEvent(t *testing.T) {
 		return
 	}
 
-	cl := pubnub.NewHttpClient(15, 15)
+	cl := pubnub.NewHttp1Client(15, 15)
 	cl.Transport = fakeTransport{
 		Status:     "200 OK",
 		StatusCode: 200,

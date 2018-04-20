@@ -2,13 +2,13 @@ package pubnub
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/pubnub/go/pnerr"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
-
-	"github.com/pubnub/go/pnerr"
 )
 
 type StatusResponse struct {
@@ -79,11 +79,11 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 		}
 
 		body := bytes.NewReader(b)
-		req, err = newRequest("POST", url, body)
+		req, err = newRequest("POST", url, body, opts.config().UseHttp2)
 	} else if opts.httpMethod() == "DELETE" {
-		req, err = newRequest("DELETE", url, nil)
+		req, err = newRequest("DELETE", url, nil, opts.config().UseHttp2)
 	} else {
-		req, err = newRequest("GET", url, nil)
+		req, err = newRequest("GET", url, nil, opts.config().UseHttp2)
 	}
 
 	if err != nil {
@@ -104,6 +104,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	client := opts.client()
 	startTimestamp := time.Now()
 	res, err := client.Do(req)
+	fmt.Println(fmt.Sprintf("%+v", req))
 	// Host lookup failed
 	if err != nil {
 		opts.config().Log.Println("err.Error()", err.Error())
@@ -151,7 +152,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	return val, status, nil
 }
 
-func newRequest(method string, u *url.URL, body io.Reader) (*http.Request,
+func newRequest(method string, u *url.URL, body io.Reader, useHttp2 bool) (*http.Request,
 	error) {
 
 	rc, ok := body.(io.ReadCloser)
@@ -159,22 +160,36 @@ func newRequest(method string, u *url.URL, body io.Reader) (*http.Request,
 		rc = ioutil.NopCloser(body)
 	}
 
-	req := &http.Request{
-		Method:     method,
-		URL:        u,
-		Proto:      "HTTP/1.1",
-		ProtoMajor: 1,
-		ProtoMinor: 1,
-		Header:     make(http.Header),
-		Body:       rc,
-		Host:       u.Host,
+	if useHttp2 {
+		req := &http.Request{
+			Method:     method,
+			URL:        u,
+			Proto:      "HTTP/2.0",
+			ProtoMajor: 2,
+			ProtoMinor: 0,
+			Header:     make(http.Header),
+			Body:       rc,
+			Host:       u.Host,
+		}
+		return req, nil
+	} else {
+		req := &http.Request{
+			Method:     method,
+			URL:        u,
+			Proto:      "HTTP/1.1",
+			ProtoMajor: 1,
+			ProtoMinor: 1,
+			Header:     make(http.Header),
+			Body:       rc,
+			Host:       u.Host,
+		}
+		return req, nil
 	}
-
-	return req, nil
 }
 
 func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusResponse, error) {
 	status := StatusResponse{}
+	fmt.Println(fmt.Sprintf("RESP:%+v", resp))
 
 	if resp.StatusCode != 200 {
 		// Errors like 400, 403, 500

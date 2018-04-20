@@ -23,6 +23,8 @@ const outputSuffix = "\x1b[32;2m Example <<<< \x1b[0m"
 
 func main() {
 	config = pubnub.NewConfig()
+	//config.Origin = "ssp.pubnub.com"
+	config.UseHttp2 = true
 	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
 	//config.EnableLogging = false
 

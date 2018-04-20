@@ -45,6 +45,8 @@ type Config struct {
 	SuppressLeaveEvents bool
 
 	DisablePNOtherProcessing bool
+
+	UseHttp2 bool
 }
 
 func NewDemoConfig() *Config {
