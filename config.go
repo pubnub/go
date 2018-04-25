@@ -62,7 +62,7 @@ func NewDemoConfig() *Config {
 
 func NewConfig() *Config {
 	c := Config{
-		Origin:                     "ps.pndsn.com",
+		Origin:                     "ps.pndsn.com", //"ssp.pubnub.com",
 		Secure:                     true,
 		Uuid:                       utils.Uuid(),
 		ConnectTimeout:             10,
@@ -72,6 +72,7 @@ func NewConfig() *Config {
 		MaximumReconnectionRetries: -1,
 		SuppressLeaveEvents:        false,
 		DisablePNOtherProcessing:   false,
+		//UseHttp2:                   true,
 	}
 
 	c.SetPresenceTimeout(PRESENCE_TIMEOUT)

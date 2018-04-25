@@ -116,24 +116,27 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 	go subscribeMessageWorker(manager) //.listenerManager, manager.messages, manager.ctx)
 
-	manager.reconnectionManager.HandleReconnection(func() {
-		go manager.reconnect()
+	if manager.pubnub.Config.PNReconnectionPolicy != PNNonePolicy {
 
-		manager.subscriptionStateAnnounced = true
-		combinedChannels := manager.stateManager.prepareChannelList(true)
-		combinedGroups := manager.stateManager.prepareGroupList(true)
+		manager.reconnectionManager.HandleReconnection(func() {
+			go manager.reconnect()
 
-		pnStatus := &PNStatus{
-			Error:                 false,
-			AffectedChannels:      combinedChannels,
-			AffectedChannelGroups: combinedGroups,
-			Category:              PNReconnectedCategory,
-		}
+			manager.subscriptionStateAnnounced = true
+			combinedChannels := manager.stateManager.prepareChannelList(true)
+			combinedGroups := manager.stateManager.prepareGroupList(true)
 
-		pubnub.Config.Log.Println("Status: ", pnStatus)
+			pnStatus := &PNStatus{
+				Error:                 false,
+				AffectedChannels:      combinedChannels,
+				AffectedChannelGroups: combinedGroups,
+				Category:              PNReconnectedCategory,
+			}
 
-		manager.listenerManager.announceStatus(pnStatus)
-	})
+			pubnub.Config.Log.Println("Status: ", pnStatus)
+
+			manager.listenerManager.announceStatus(pnStatus)
+		})
+	}
 
 	manager.reconnectionManager.HandleOnMaxReconnectionExhaustion(func() {
 		combinedChannels := manager.stateManager.prepareChannelList(true)

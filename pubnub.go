@@ -21,6 +21,8 @@ const (
 	StrMissingMessage      = "Missing Message"
 	StrMissingSecretKey    = "Missing Secret Key"
 	StrMissingUuid         = "Missing Uuid"
+	StrMissingDeviceID     = "Missing Device ID"
+	StrMissingPushType     = "Missing Push Type"
 )
 
 // No server connection will be established when you create a new PubNub object.

@@ -3,6 +3,7 @@ package pubnub
 type StatusCategory int
 type OperationType int
 type ReconnectionPolicy int
+type PNPushType int
 
 // TODO: add prefix
 const (
@@ -55,6 +56,31 @@ const (
 	PNAccessManagerRevoke
 	PNDeleteMessagesOperation
 )
+
+const (
+	PNPushTypeNone PNPushType = 1 + iota
+	PNPushTypeGCM
+	PNPushTypeAPNS
+	PNPushTypeMPNS
+)
+
+func (p PNPushType) String() string {
+	switch p {
+	case PNPushTypeAPNS:
+		return "APNS"
+		break
+	case PNPushTypeGCM:
+		return "GCM"
+		break
+	case PNPushTypeMPNS:
+		return "MPNS"
+		break
+	default:
+		return "NONE"
+		break
+	}
+	return "NONE"
+}
 
 var categories = [...]string{
 	"Unknown",
