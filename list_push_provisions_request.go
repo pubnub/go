@@ -1,24 +1,28 @@
 package pubnub
 
-/*import (
+import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
+	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
 )
 
-const DELETE_CHANNEL_GROUP = "/v1/channel-registration/sub-key/%s/channel-group/%s/remove"
+const listChannelsOfPush = "/v1/push/sub-key/%s/devices/%s"
 
-var emptyDeleteChannelGroupResponse *DeleteChannelGroupResponse
+var emptyListPushProvisionsRequestResponse *ListPushProvisionsRequestResponse
 
-type deleteChannelGroupBuilder struct {
-	opts *deleteChannelGroupOpts
+type ListPushProvisionsRequestBuilder struct {
+	opts *listPushProvisionsRequestOpts
 }
 
-func newDeleteChannelGroupBuilder(pubnub *PubNub) *deleteChannelGroupBuilder {
-	builder := deleteChannelGroupBuilder{
-		opts: &deleteChannelGroupOpts{
+func newListPushProvisionsRequestBuilder(pubnub *PubNub) *ListPushProvisionsRequestBuilder {
+	builder := ListPushProvisionsRequestBuilder{
+		opts: &listPushProvisionsRequestOpts{
 			pubnub: pubnub,
 		},
 	}
@@ -26,10 +30,10 @@ func newDeleteChannelGroupBuilder(pubnub *PubNub) *deleteChannelGroupBuilder {
 	return &builder
 }
 
-func newDeleteChannelGroupBuilderWithContext(
-	pubnub *PubNub, context Context) *deleteChannelGroupBuilder {
-	builder := deleteChannelGroupBuilder{
-		opts: &deleteChannelGroupOpts{
+func newListPushProvisionsRequestBuilderWithContext(
+	pubnub *PubNub, context Context) *ListPushProvisionsRequestBuilder {
+	builder := ListPushProvisionsRequestBuilder{
+		opts: &listPushProvisionsRequestOpts{
 			pubnub: pubnub,
 			ctx:    context,
 		},
@@ -38,95 +42,143 @@ func newDeleteChannelGroupBuilderWithContext(
 	return &builder
 }
 
-func (b *deleteChannelGroupBuilder) ChannelGroup(
-	cg string) *deleteChannelGroupBuilder {
-	b.opts.ChannelGroup = cg
+func (b *ListPushProvisionsRequestBuilder) PushType(
+	pushType PNPushType) *ListPushProvisionsRequestBuilder {
+	b.opts.PushType = pushType
 	return b
 }
 
-func (b *deleteChannelGroupBuilder) Execute() (
-	*DeleteChannelGroupResponse, StatusResponse, error) {
-	_, status, err := executeRequest(b.opts)
-	if err != nil {
-		return emptyDeleteChannelGroupResponse, status, err
-	}
-
-	return emptyDeleteChannelGroupResponse, status, nil
+func (b *ListPushProvisionsRequestBuilder) DeviceIDForPush(
+	deviceID string) *ListPushProvisionsRequestBuilder {
+	b.opts.DeviceIDForPush = deviceID
+	return b
 }
 
-type deleteChannelGroupOpts struct {
+func (b *ListPushProvisionsRequestBuilder) Execute() (
+	*ListPushProvisionsRequestResponse, StatusResponse, error) {
+	rawJson, status, err := executeRequest(b.opts)
+	if err != nil {
+		return emptyListPushProvisionsRequestResponse, status, err
+	}
+
+	return newListPushProvisionsRequestResponse(rawJson, status)
+}
+
+func newListPushProvisionsRequestResponse(jsonBytes []byte, status StatusResponse) (
+	*ListPushProvisionsRequestResponse, StatusResponse, error) {
+	resp := &ListPushProvisionsRequestResponse{}
+
+	var value interface{}
+
+	err := json.Unmarshal(jsonBytes, &value)
+	if err != nil {
+		e := pnerr.NewResponseParsingError("Error unmarshalling response",
+			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+
+		return emptyListPushProvisionsRequestResponse, status, e
+	}
+
+	if parsedValue, ok := value.(map[string]interface{}); ok {
+		if payload, ok := parsedValue["payload"].(map[string]interface{}); ok {
+
+			if channels, ok := payload["channels"].([]interface{}); ok {
+				parsedChannels := []string{}
+
+				for _, channel := range channels {
+					if ch, ok := channel.(string); ok {
+						parsedChannels = append(parsedChannels, ch)
+					}
+				}
+
+				resp.Channels = parsedChannels
+			}
+		}
+	}
+
+	return resp, status, nil
+}
+
+type listPushProvisionsRequestOpts struct {
 	pubnub *PubNub
 
-	ChannelGroup string
+	PushType PNPushType
+
+	DeviceIDForPush string
 
 	Transport http.RoundTripper
 
 	ctx Context
 }
 
-func (o *deleteChannelGroupOpts) config() Config {
+func (o *listPushProvisionsRequestOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *deleteChannelGroupOpts) client() *http.Client {
+func (o *listPushProvisionsRequestOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *deleteChannelGroupOpts) context() Context {
+func (o *listPushProvisionsRequestOpts) context() Context {
 	return o.ctx
 }
 
-func (o *deleteChannelGroupOpts) validate() error {
+func (o *listPushProvisionsRequestOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)
 	}
 
-	if o.ChannelGroup == "" {
-		return newValidationError(o, StrMissingChannelGroup)
+	if o.DeviceIDForPush == "" {
+		return newValidationError(o, StrMissingDeviceID)
+	}
+
+	if o.PushType == PNPushTypeNone {
+		return newValidationError(o, StrMissingPushType)
 	}
 
 	return nil
 }
 
-type DeleteChannelGroupResponse struct{}
-
-func (o *deleteChannelGroupOpts) buildPath() (string, error) {
-	return fmt.Sprintf(DELETE_CHANNEL_GROUP,
-		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.ChannelGroup)), nil
+type ListPushProvisionsRequestResponse struct {
+	Channels []string
 }
 
-func (o *deleteChannelGroupOpts) buildQuery() (*url.Values, error) {
+func (o *listPushProvisionsRequestOpts) buildPath() (string, error) {
+	return fmt.Sprintf(listChannelsOfPush,
+		o.pubnub.Config.SubscribeKey,
+		utils.UrlEncode(o.DeviceIDForPush)), nil
+}
+
+func (o *listPushProvisionsRequestOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q.Set("type", o.PushType.String())
 
 	return q, nil
 }
 
-func (o *deleteChannelGroupOpts) buildBody() ([]byte, error) {
+func (o *listPushProvisionsRequestOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *deleteChannelGroupOpts) httpMethod() string {
+func (o *listPushProvisionsRequestOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *deleteChannelGroupOpts) isAuthRequired() bool {
+func (o *listPushProvisionsRequestOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *deleteChannelGroupOpts) requestTimeout() int {
+func (o *listPushProvisionsRequestOpts) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *deleteChannelGroupOpts) connectTimeout() int {
+func (o *listPushProvisionsRequestOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *deleteChannelGroupOpts) operationType() OperationType {
+func (o *listPushProvisionsRequestOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
 }
 
-func (o *deleteChannelGroupOpts) telemetryManager() *TelemetryManager {
+func (o *listPushProvisionsRequestOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
-*/

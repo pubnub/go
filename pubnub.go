@@ -187,6 +187,15 @@ func (pn *PubNub) UnsubscribeAll() {
 	pn.subscriptionManager.unsubscribeAll()
 }
 
+func (pn *PubNub) ListPushProvisions() *ListPushProvisionsRequestBuilder {
+	return newListPushProvisionsRequestBuilder(pn)
+}
+
+func (pn *PubNub) ListPushProvisionsWithContext(
+	ctx Context) *ListPushProvisionsRequestBuilder {
+	return newListPushProvisionsRequestBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) AddPushNotificationsOnChannels() *AddPushNotificationsOnChannelsBuilder {
 	return newAddPushNotificationsOnChannelsBuilder(pn)
 }

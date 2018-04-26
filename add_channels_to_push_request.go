@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const ADD_CHANNELS_TO_PUSH = "/v1/push/sub-key/%s/devices/%s"
+const addChannelsToPush = "/v1/push/sub-key/%s/devices/%s"
 
 var emptyAddPushNotificationsOnChannelsResponse *AddPushNotificationsOnChannelsResponse
 
@@ -115,7 +115,7 @@ func (o *addChannelsToPushOpts) validate() error {
 type AddPushNotificationsOnChannelsResponse struct{}
 
 func (o *addChannelsToPushOpts) buildPath() (string, error) {
-	return fmt.Sprintf(ADD_CHANNELS_TO_PUSH,
+	return fmt.Sprintf(addChannelsToPush,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.DeviceIDForPush)), nil
 }

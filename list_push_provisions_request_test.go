@@ -6,11 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAddChannelsToPushOptsValidate(t *testing.T) {
+func TestListPushProvisionsRequestValidate(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &addChannelsToPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
+	opts := &listPushProvisionsRequestOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,
@@ -19,8 +18,7 @@ func TestAddChannelsToPushOptsValidate(t *testing.T) {
 	err := opts.validate()
 	assert.Nil(err)
 
-	opts1 := &addChannelsToPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
+	opts1 := &listPushProvisionsRequestOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeNone,
 		pubnub:          pubnub,
@@ -29,17 +27,7 @@ func TestAddChannelsToPushOptsValidate(t *testing.T) {
 	err1 := opts1.validate()
 	assert.Contains(err1.Error(), "Missing Push Type")
 
-	opts2 := &addChannelsToPushOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
-
-	err2 := opts2.validate()
-	assert.Contains(err2.Error(), "Missing Channel")
-
-	opts3 := &addChannelsToPushOpts{
-		Channels: []string{"ch1", "ch2", "ch3"},
+	opts3 := &listPushProvisionsRequestOpts{
 		PushType: PNPushTypeAPNS,
 		pubnub:   pubnub,
 	}
@@ -49,11 +37,10 @@ func TestAddChannelsToPushOptsValidate(t *testing.T) {
 
 }
 
-func TestAddChannelsToPushOptsBuildQuery(t *testing.T) {
+func TestListPushProvisionsRequestBuildQuery(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &addChannelsToPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
+	opts := &listPushProvisionsRequestOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,
@@ -65,27 +52,24 @@ func TestAddChannelsToPushOptsBuildQuery(t *testing.T) {
 
 }
 
-func TestAddChannelsToPushOptsBuildPath(t *testing.T) {
+func TestListPushProvisionsRequestBuildPath(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &addChannelsToPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
+	opts := &listPushProvisionsRequestOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,
 	}
 
 	u, err := opts.buildQuery()
-	assert.Equal("ch1,ch2,ch3", u.Get("add"))
 	assert.Equal("apns", u.Get("type"))
 	assert.Nil(err)
 }
 
-func TestAddChannelsToPushOptsBuildBody(t *testing.T) {
+func TestListPushProvisionsRequestBuildBody(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &addChannelsToPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
+	opts := &listPushProvisionsRequestOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,

@@ -16,8 +16,8 @@ import (
 
 var emptyFetchResp *FetchResponse
 
-const FETCH_PATH = "/v3/history/sub-key/%s/channel/%s"
-const MAX_COUNT_FETCH = 25
+const fetchPath = "/v3/history/sub-key/%s/channel/%s"
+const maxCountFetch = 25
 
 type fetchBuilder struct {
 	opts *fetchOpts
@@ -144,7 +144,7 @@ func (o *fetchOpts) validate() error {
 func (o *fetchOpts) buildPath() (string, error) {
 	channels := utils.JoinChannels(o.Channels)
 
-	return fmt.Sprintf(FETCH_PATH,
+	return fmt.Sprintf(fetchPath,
 		o.pubnub.Config.SubscribeKey,
 		channels), nil
 }
@@ -160,10 +160,10 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 		q.Set("end", strconv.FormatInt(o.End, 10))
 	}
 
-	if o.Count > 0 && o.Count <= MAX_COUNT_FETCH {
+	if o.Count > 0 && o.Count <= maxCountFetch {
 		q.Set("max", strconv.Itoa(o.Count))
 	} else {
-		q.Set("max", strconv.Itoa(MAX_COUNT_FETCH))
+		q.Set("max", strconv.Itoa(maxCountFetch))
 	}
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
