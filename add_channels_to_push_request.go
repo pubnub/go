@@ -10,14 +10,14 @@ import (
 
 const ADD_CHANNELS_TO_PUSH = "/v1/push/sub-key/%s/devices/%s"
 
-var emptyAddChannelsToPushResponse *AddChannelsToPushResponse
+var emptyAddPushNotificationsOnChannelsResponse *AddPushNotificationsOnChannelsResponse
 
-type addChannelsToPushBuilder struct {
+type AddPushNotificationsOnChannelsBuilder struct {
 	opts *addChannelsToPushOpts
 }
 
-func newAddChannelsToPushBuilder(pubnub *PubNub) *addChannelsToPushBuilder {
-	builder := addChannelsToPushBuilder{
+func newAddPushNotificationsOnChannelsBuilder(pubnub *PubNub) *AddPushNotificationsOnChannelsBuilder {
+	builder := AddPushNotificationsOnChannelsBuilder{
 		opts: &addChannelsToPushOpts{
 			pubnub: pubnub,
 		},
@@ -26,9 +26,9 @@ func newAddChannelsToPushBuilder(pubnub *PubNub) *addChannelsToPushBuilder {
 	return &builder
 }
 
-func newAddChannelsToPushBuilderWithContext(
-	pubnub *PubNub, context Context) *addChannelsToPushBuilder {
-	builder := addChannelsToPushBuilder{
+func newAddPushNotificationsOnChannelsBuilderWithContext(
+	pubnub *PubNub, context Context) *AddPushNotificationsOnChannelsBuilder {
+	builder := AddPushNotificationsOnChannelsBuilder{
 		opts: &addChannelsToPushOpts{
 			pubnub: pubnub,
 			ctx:    context,
@@ -38,32 +38,32 @@ func newAddChannelsToPushBuilderWithContext(
 	return &builder
 }
 
-func (b *addChannelsToPushBuilder) Channels(
-	channels []string) *addChannelsToPushBuilder {
+func (b *AddPushNotificationsOnChannelsBuilder) Channels(
+	channels []string) *AddPushNotificationsOnChannelsBuilder {
 	b.opts.Channels = channels
 	return b
 }
 
-func (b *addChannelsToPushBuilder) PushType(
-	pushType PNPushType) *addChannelsToPushBuilder {
+func (b *AddPushNotificationsOnChannelsBuilder) PushType(
+	pushType PNPushType) *AddPushNotificationsOnChannelsBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
-func (b *addChannelsToPushBuilder) DeviceIDForPush(
-	deviceID string) *addChannelsToPushBuilder {
+func (b *AddPushNotificationsOnChannelsBuilder) DeviceIDForPush(
+	deviceID string) *AddPushNotificationsOnChannelsBuilder {
 	b.opts.DeviceIDForPush = deviceID
 	return b
 }
 
-func (b *addChannelsToPushBuilder) Execute() (
-	*AddChannelsToPushResponse, StatusResponse, error) {
+func (b *AddPushNotificationsOnChannelsBuilder) Execute() (
+	*AddPushNotificationsOnChannelsResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyAddChannelsToPushResponse, status, err
+		return emptyAddPushNotificationsOnChannelsResponse, status, err
 	}
 
-	return emptyAddChannelsToPushResponse, status, nil
+	return emptyAddPushNotificationsOnChannelsResponse, status, nil
 }
 
 type addChannelsToPushOpts struct {
@@ -112,7 +112,7 @@ func (o *addChannelsToPushOpts) validate() error {
 	return nil
 }
 
-type AddChannelsToPushResponse struct{}
+type AddPushNotificationsOnChannelsResponse struct{}
 
 func (o *addChannelsToPushOpts) buildPath() (string, error) {
 	return fmt.Sprintf(ADD_CHANNELS_TO_PUSH,

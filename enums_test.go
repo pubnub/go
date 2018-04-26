@@ -13,8 +13,8 @@ func TestPushString(t *testing.T) {
 	pushGCM := PNPushTypeGCM
 	pushNONE := PNPushTypeNone
 
-	assert.Equal("APNS", pushAPNS.String())
-	assert.Equal("MPNS", pushMPNS.String())
-	assert.Equal("GCM", pushGCM.String())
-	assert.Equal("NONE", pushNONE.String())
+	assert.Equal("apns", pushAPNS.String())
+	assert.Equal("mpns", pushMPNS.String())
+	assert.Equal("gcm", pushGCM.String())
+	assert.Equal("none", pushNONE.String())
 }

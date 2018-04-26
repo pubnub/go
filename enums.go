@@ -67,19 +67,19 @@ const (
 func (p PNPushType) String() string {
 	switch p {
 	case PNPushTypeAPNS:
-		return "APNS"
+		return "apns"
 		break
 	case PNPushTypeGCM:
-		return "GCM"
+		return "gcm"
 		break
 	case PNPushTypeMPNS:
-		return "MPNS"
+		return "mpns"
 		break
 	default:
-		return "NONE"
+		return "none"
 		break
 	}
-	return "NONE"
+	return "none"
 }
 
 var categories = [...]string{
