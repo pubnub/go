@@ -1,7 +1,6 @@
 package e2e
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -20,7 +19,6 @@ func TestListPushProvisionsNotStubbed(t *testing.T) {
 		DeviceIDForPush("cg").
 		PushType(pubnub.PNPushTypeGCM).
 		Execute()
-
-	fmt.Println(resp)
+	assert.Equal("ch", resp.Channels[0])
 	assert.Nil(err)
 }

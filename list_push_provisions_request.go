@@ -78,21 +78,12 @@ func newListPushProvisionsRequestResponse(jsonBytes []byte, status StatusRespons
 		return emptyListPushProvisionsRequestResponse, status, e
 	}
 
-	if parsedValue, ok := value.(map[string]interface{}); ok {
-		if payload, ok := parsedValue["payload"].(map[string]interface{}); ok {
-
-			if channels, ok := payload["channels"].([]interface{}); ok {
-				parsedChannels := []string{}
-
-				for _, channel := range channels {
-					if ch, ok := channel.(string); ok {
-						parsedChannels = append(parsedChannels, ch)
-					}
-				}
-
-				resp.Channels = parsedChannels
-			}
+	if parsedValue, ok := value.([]interface{}); ok {
+		a := make([]string, len(parsedValue))
+		for i, v := range parsedValue {
+			a[i] = v.(string)
 		}
+		resp.Channels = a
 	}
 
 	return resp, status, nil
