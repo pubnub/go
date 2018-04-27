@@ -1,6 +1,6 @@
 package pubnub
 
-/*import (
+import (
 	"fmt"
 	"net/http"
 	"net/url"
@@ -8,17 +8,17 @@ package pubnub
 	"github.com/pubnub/go/utils"
 )
 
-const DELETE_CHANNEL_GROUP = "/v1/channel-registration/sub-key/%s/channel-group/%s/remove"
+const removeAllPushChannelsForDevicePath = "/v1/push/sub-key/%s/devices/%s/remove"
 
-var emptyDeleteChannelGroupResponse *DeleteChannelGroupResponse
+var emptyRemoveAllPushChannelsForDeviceResponse *RemoveAllPushChannelsForDeviceResponse
 
-type deleteChannelGroupBuilder struct {
-	opts *deleteChannelGroupOpts
+type RemoveAllPushChannelsForDeviceBuilder struct {
+	opts *removeAllPushChannelsForDeviceOpts
 }
 
-func newDeleteChannelGroupBuilder(pubnub *PubNub) *deleteChannelGroupBuilder {
-	builder := deleteChannelGroupBuilder{
-		opts: &deleteChannelGroupOpts{
+func newRemoveAllPushChannelsForDeviceBuilder(pubnub *PubNub) *RemoveAllPushChannelsForDeviceBuilder {
+	builder := RemoveAllPushChannelsForDeviceBuilder{
+		opts: &removeAllPushChannelsForDeviceOpts{
 			pubnub: pubnub,
 		},
 	}
@@ -26,10 +26,10 @@ func newDeleteChannelGroupBuilder(pubnub *PubNub) *deleteChannelGroupBuilder {
 	return &builder
 }
 
-func newDeleteChannelGroupBuilderWithContext(
-	pubnub *PubNub, context Context) *deleteChannelGroupBuilder {
-	builder := deleteChannelGroupBuilder{
-		opts: &deleteChannelGroupOpts{
+func newRemoveAllPushChannelsForDeviceBuilderWithContext(
+	pubnub *PubNub, context Context) *RemoveAllPushChannelsForDeviceBuilder {
+	builder := RemoveAllPushChannelsForDeviceBuilder{
+		opts: &removeAllPushChannelsForDeviceOpts{
 			pubnub: pubnub,
 			ctx:    context,
 		},
@@ -38,95 +38,107 @@ func newDeleteChannelGroupBuilderWithContext(
 	return &builder
 }
 
-func (b *deleteChannelGroupBuilder) ChannelGroup(
-	cg string) *deleteChannelGroupBuilder {
-	b.opts.ChannelGroup = cg
+func (b *RemoveAllPushChannelsForDeviceBuilder) PushType(
+	pushType PNPushType) *RemoveAllPushChannelsForDeviceBuilder {
+	b.opts.PushType = pushType
 	return b
 }
 
-func (b *deleteChannelGroupBuilder) Execute() (
-	*DeleteChannelGroupResponse, StatusResponse, error) {
-	_, status, err := executeRequest(b.opts)
-	if err != nil {
-		return emptyDeleteChannelGroupResponse, status, err
-	}
-
-	return emptyDeleteChannelGroupResponse, status, nil
+func (b *RemoveAllPushChannelsForDeviceBuilder) DeviceIDForPush(
+	deviceID string) *RemoveAllPushChannelsForDeviceBuilder {
+	b.opts.DeviceIDForPush = deviceID
+	return b
 }
 
-type deleteChannelGroupOpts struct {
+func (b *RemoveAllPushChannelsForDeviceBuilder) Execute() (
+	*RemoveAllPushChannelsForDeviceResponse, StatusResponse, error) {
+	_, status, err := executeRequest(b.opts)
+	if err != nil {
+		return emptyRemoveAllPushChannelsForDeviceResponse, status, err
+	}
+
+	return emptyRemoveAllPushChannelsForDeviceResponse, status, err
+}
+
+type removeAllPushChannelsForDeviceOpts struct {
 	pubnub *PubNub
 
-	ChannelGroup string
+	PushType PNPushType
+
+	DeviceIDForPush string
 
 	Transport http.RoundTripper
 
 	ctx Context
 }
 
-func (o *deleteChannelGroupOpts) config() Config {
+func (o *removeAllPushChannelsForDeviceOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *deleteChannelGroupOpts) client() *http.Client {
+func (o *removeAllPushChannelsForDeviceOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *deleteChannelGroupOpts) context() Context {
+func (o *removeAllPushChannelsForDeviceOpts) context() Context {
 	return o.ctx
 }
 
-func (o *deleteChannelGroupOpts) validate() error {
+func (o *removeAllPushChannelsForDeviceOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)
 	}
 
-	if o.ChannelGroup == "" {
-		return newValidationError(o, StrMissingChannelGroup)
+	if o.DeviceIDForPush == "" {
+		return newValidationError(o, StrMissingDeviceID)
+	}
+
+	if o.PushType == PNPushTypeNone {
+		return newValidationError(o, StrMissingPushType)
 	}
 
 	return nil
 }
 
-type DeleteChannelGroupResponse struct{}
+type RemoveAllPushChannelsForDeviceResponse struct{}
 
-func (o *deleteChannelGroupOpts) buildPath() (string, error) {
-	return fmt.Sprintf(DELETE_CHANNEL_GROUP,
+func (o *removeAllPushChannelsForDeviceOpts) buildPath() (string, error) {
+	return fmt.Sprintf(removeAllPushChannelsForDevicePath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.ChannelGroup)), nil
+		utils.UrlEncode(o.DeviceIDForPush)), nil
 }
 
-func (o *deleteChannelGroupOpts) buildQuery() (*url.Values, error) {
+func (o *removeAllPushChannelsForDeviceOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q.Set("type", o.PushType.String())
 
 	return q, nil
 }
 
-func (o *deleteChannelGroupOpts) buildBody() ([]byte, error) {
+func (o *removeAllPushChannelsForDeviceOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *deleteChannelGroupOpts) httpMethod() string {
+func (o *removeAllPushChannelsForDeviceOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *deleteChannelGroupOpts) isAuthRequired() bool {
+func (o *removeAllPushChannelsForDeviceOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *deleteChannelGroupOpts) requestTimeout() int {
+func (o *removeAllPushChannelsForDeviceOpts) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *deleteChannelGroupOpts) connectTimeout() int {
+func (o *removeAllPushChannelsForDeviceOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *deleteChannelGroupOpts) operationType() OperationType {
+func (o *removeAllPushChannelsForDeviceOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
 }
 
-func (o *deleteChannelGroupOpts) telemetryManager() *TelemetryManager {
+func (o *removeAllPushChannelsForDeviceOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
-*/

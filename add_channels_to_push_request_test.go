@@ -49,7 +49,7 @@ func TestAddChannelsToPushOptsValidate(t *testing.T) {
 
 }
 
-func TestAddChannelsToPushOptsBuildQuery(t *testing.T) {
+func TestAddChannelsToPushOptsBuildPath(t *testing.T) {
 	assert := assert.New(t)
 
 	opts := &addChannelsToPushOpts{
@@ -65,7 +65,7 @@ func TestAddChannelsToPushOptsBuildQuery(t *testing.T) {
 
 }
 
-func TestAddChannelsToPushOptsBuildPath(t *testing.T) {
+func TestAddChannelsToPushOptsBuildQuery(t *testing.T) {
 	assert := assert.New(t)
 
 	opts := &addChannelsToPushOpts{

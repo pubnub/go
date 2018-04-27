@@ -6,10 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestListPushProvisionsRequestValidate(t *testing.T) {
+func TestRemoveChannelsFromPushRequestValidate(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
+	opts := &removeChannelsFromPushOpts{
+		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,
@@ -18,7 +19,8 @@ func TestListPushProvisionsRequestValidate(t *testing.T) {
 	err := opts.validate()
 	assert.Nil(err)
 
-	opts1 := &listPushProvisionsRequestOpts{
+	opts1 := &removeChannelsFromPushOpts{
+		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeNone,
 		pubnub:          pubnub,
@@ -27,7 +29,17 @@ func TestListPushProvisionsRequestValidate(t *testing.T) {
 	err1 := opts1.validate()
 	assert.Contains(err1.Error(), "Missing Push Type")
 
-	opts3 := &listPushProvisionsRequestOpts{
+	opts2 := &removeChannelsFromPushOpts{
+		DeviceIDForPush: "deviceId",
+		PushType:        PNPushTypeAPNS,
+		pubnub:          pubnub,
+	}
+
+	err2 := opts2.validate()
+	assert.Contains(err2.Error(), "Missing Channel")
+
+	opts3 := &removeChannelsFromPushOpts{
+		Channels: []string{"ch1", "ch2", "ch3"},
 		PushType: PNPushTypeAPNS,
 		pubnub:   pubnub,
 	}
@@ -37,11 +49,12 @@ func TestListPushProvisionsRequestValidate(t *testing.T) {
 
 }
 
-func TestListPushProvisionsRequestBuildPath(t *testing.T) {
+func TestRemoveChannelsFromPushRequestBuildPath(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
+	opts := &removeChannelsFromPushOpts{
 		DeviceIDForPush: "deviceId",
+		Channels:        []string{"ch1", "ch2", "ch3"},
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,
 	}
@@ -52,24 +65,27 @@ func TestListPushProvisionsRequestBuildPath(t *testing.T) {
 
 }
 
-func TestListPushProvisionsRequestBuildQuery(t *testing.T) {
+func TestRemoveChannelsFromPushRequestBuildQuery(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
+	opts := &removeChannelsFromPushOpts{
+		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,
 	}
 
 	u, err := opts.buildQuery()
+	assert.Equal("ch1,ch2,ch3", u.Get("remove"))
 	assert.Equal("apns", u.Get("type"))
 	assert.Nil(err)
 }
 
-func TestListPushProvisionsRequestBuildBody(t *testing.T) {
+func TestRemoveChannelsFromPushRequestBuildBody(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
+	opts := &removeChannelsFromPushOpts{
+		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,

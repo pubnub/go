@@ -12,7 +12,7 @@ import (
 	"github.com/pubnub/go/utils"
 )
 
-const listChannelsOfPush = "/v1/push/sub-key/%s/devices/%s"
+const listChannelsOfPushPath = "/v1/push/sub-key/%s/devices/%s"
 
 var emptyListPushProvisionsRequestResponse *ListPushProvisionsRequestResponse
 
@@ -134,7 +134,7 @@ type ListPushProvisionsRequestResponse struct {
 }
 
 func (o *listPushProvisionsRequestOpts) buildPath() (string, error) {
-	return fmt.Sprintf(listChannelsOfPush,
+	return fmt.Sprintf(listChannelsOfPushPath,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.DeviceIDForPush)), nil
 }

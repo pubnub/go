@@ -205,6 +205,24 @@ func (pn *PubNub) AddPushNotificationsOnChannelsWithContext(
 	return newAddPushNotificationsOnChannelsBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) RemovePushNotificationsFromChannels() *RemoveChannelsFromPushBuilder {
+	return newRemoveChannelsFromPushBuilder(pn)
+}
+
+func (pn *PubNub) RemovePushNotificationsFromChannelsWithContext(
+	ctx Context) *RemoveChannelsFromPushBuilder {
+	return newRemoveChannelsFromPushBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) RemoveAllPushNotifications() *RemoveAllPushChannelsForDeviceBuilder {
+	return newRemoveAllPushChannelsForDeviceBuilder(pn)
+}
+
+func (pn *PubNub) RemoveAllPushNotificationsWithContext(
+	ctx Context) *RemoveAllPushChannelsForDeviceBuilder {
+	return newRemoveAllPushChannelsForDeviceBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) AddChannelToChannelGroup() *AddChannelToChannelGroupBuilder {
 	return newAddChannelToChannelGroupBuilder(pn)
 }

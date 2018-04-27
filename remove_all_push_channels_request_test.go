@@ -6,10 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestListPushProvisionsRequestValidate(t *testing.T) {
+func TestRemoveAllPushNotificationsValidate(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
+	opts := &removeAllPushChannelsForDeviceOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,
@@ -18,7 +18,7 @@ func TestListPushProvisionsRequestValidate(t *testing.T) {
 	err := opts.validate()
 	assert.Nil(err)
 
-	opts1 := &listPushProvisionsRequestOpts{
+	opts1 := &removeAllPushChannelsForDeviceOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeNone,
 		pubnub:          pubnub,
@@ -27,7 +27,7 @@ func TestListPushProvisionsRequestValidate(t *testing.T) {
 	err1 := opts1.validate()
 	assert.Contains(err1.Error(), "Missing Push Type")
 
-	opts3 := &listPushProvisionsRequestOpts{
+	opts3 := &removeAllPushChannelsForDeviceOpts{
 		PushType: PNPushTypeAPNS,
 		pubnub:   pubnub,
 	}
@@ -37,25 +37,25 @@ func TestListPushProvisionsRequestValidate(t *testing.T) {
 
 }
 
-func TestListPushProvisionsRequestBuildPath(t *testing.T) {
+func TestRemoveAllPushNotificationsBuildPath(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
+	opts := &removeAllPushChannelsForDeviceOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,
 	}
 
 	str, err := opts.buildPath()
-	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId", str)
+	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId/remove", str)
 	assert.Nil(err)
 
 }
 
-func TestListPushProvisionsRequestBuildQuery(t *testing.T) {
+func TestRemoveAllPushNotificationsBuildQuery(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
+	opts := &removeAllPushChannelsForDeviceOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,
@@ -66,10 +66,10 @@ func TestListPushProvisionsRequestBuildQuery(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestListPushProvisionsRequestBuildBody(t *testing.T) {
+func TestRemoveAllPushNotificationsBuildBody(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
+	opts := &removeAllPushChannelsForDeviceOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pubnub,
