@@ -1,176 +1,109 @@
 package e2e
 
-/*import (
+import (
+	"fmt"
+	"log"
+	"os"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
-	"github.com/pubnub/go/tests/stubs"
-	"github.com/stretchr/testify/assert"
+	a "github.com/stretchr/testify/assert"
 )
 
-const HISTORY_RESP_SUCCESS = `[[{"timetoken":1111,"message":{"a":11,"b":22}},{"timetoken":2222,"message":{"a":33,"b":44}}],1234,4321]`
-
-func TestHistorySuccessNotStubbed(t *testing.T) {
-	assert := assert.New(t)
-
-	pn := pubnub.NewPubNub(config)
-
-	_, _, err := pn.History().Channel("ch").Execute()
-
-	assert.Nil(err)
+func GetTimetoken(pn *pubnub.PubNub) int64 {
+	res, _, _ := pn.Time().Execute()
+	return res.Timetoken
 }
 
-func TestHistoryCallWithAllParams(t *testing.T) {
-	assert := assert.New(t)
+func MatchFetchMessages(ret *pubnub.FetchResponse, start int, ch1, ch2 string, assert *a.Assertions) {
+	chMessages := ret.Messages[ch1]
+	for i := start; i < len(chMessages); i++ {
+		assert.Equal(fmt.Sprintf("testch1", i), chMessages[i].Message)
+	}
+	ch2Messages := ret.Messages[ch2]
+	for i := start; i < len(ch2Messages); i++ {
+		assert.Equal(fmt.Sprintf("testch2", i), ch2Messages[i].Message)
+	}
 
-	interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/ch",
-		Query:              "count=2&end=2&include_token=true&reverse=true&start=1",
-		ResponseBody:       `[[],0,0]`,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
-		ResponseStatusCode: 200,
-	})
+}
+
+func TestFetch(t *testing.T) {
+	assert := a.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.SetClient(interceptor.GetClient())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	reverse := true
 
-	res, _, err := pn.History().
-		Channel("ch").
-		Count(2).
-		IncludeTimetoken(true).
-		Reverse(true).
-		Start(int64(1)).
-		End(int64(2)).
+	r := GenRandom()
+	ch1 := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
+	ch2 := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
+
+	timestamp1 := GetTimetoken(pn)
+	timestamp2 := int64(0)
+
+	for i := 0; i < 10; i++ {
+		if i == 5 {
+			timestamp2 = GetTimetoken(pn)
+		}
+		pn.Publish().Channel(ch1).Message(fmt.Sprintf("testch1", i)).Execute()
+		pn.Publish().Channel(ch2).Message(fmt.Sprintf("testch2", i)).Execute()
+	}
+
+	timestamp3 := GetTimetoken(pn)
+
+	ret, _, err := pn.Fetch().
+		Channels([]string{ch1, ch2}).
+		Count(25).
+		Reverse(reverse).
 		Execute()
 
 	assert.Nil(err)
-	assert.NotNil(res)
-}
+	MatchFetchMessages(ret, 0, ch1, ch2, assert)
 
-func TestHistorySuccess(t *testing.T) {
-	assert := assert.New(t)
-	interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/ch",
-		Query:              "count=100&include_token=false&reverse=false",
-		ResponseBody:       HISTORY_RESP_SUCCESS,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
-		ResponseStatusCode: 200,
-	})
-
-	pn := pubnub.NewPubNub(config)
-	pn.SetClient(interceptor.GetClient())
-
-	res, _, err := pn.History().
-		Channel("ch").
-		Transport(interceptor.Transport).
+	ret1, _, err1 := pn.Fetch().
+		Channels([]string{ch1, ch2}).
+		Count(25).
+		Reverse(reverse).
+		Start(timestamp1).
+		End(timestamp2).
 		Execute()
 
-	assert.Nil(err)
-	assert.Equal(int64(1234), res.StartTimetoken)
-	assert.Equal(int64(4321), res.EndTimetoken)
-	assert.Equal(2, len(res.Messages))
-	assert.Equal(int64(1111), res.Messages[0].Timetoken)
-	assert.Equal(map[string]interface{}{"a": float64(11), "b": float64(22)},
-		res.Messages[0].Message)
-	assert.Equal(int64(2222), res.Messages[1].Timetoken)
-	assert.Equal(map[string]interface{}{"a": float64(33), "b": float64(44)},
-		res.Messages[1].Message)
-}
+	assert.Nil(err1)
 
-func HistoryEncryptedPNOther(t *testing.T) {
-	assert := assert.New(t)
+	MatchFetchMessages(ret1, 0, ch1, ch2, assert)
 
-	config.CipherKey = "hello"
-
-	interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/ch",
-		Query:              "count=100&include_token=false&reverse=false",
-		ResponseBody:       `[[{"pn_other":"6QoqmS9CnB3W9+I4mhmL7w=="}],14606134331557852,14606134485013970]`,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},
-		ResponseStatusCode: 200,
-	})
-
-	pn := pubnub.NewPubNub(config)
-	pn.SetClient(interceptor.GetClient())
-
-	res, _, err := pn.History().
-		Channel("ch").
-		Transport(interceptor.Transport).
+	ret2, _, err2 := pn.Fetch().
+		Channels([]string{ch1, ch2}).
+		Count(25).
+		Reverse(reverse).
+		Start(timestamp2).
+		End(timestamp3).
 		Execute()
 
-	assert.Nil(err)
-	assert.Equal(1, len(res.Messages))
-	assert.Equal(map[string]interface{}{"text": "hey"}, res.Messages[0].Message)
+	assert.Nil(err2)
 
-	config.CipherKey = ""
-}
+	MatchFetchMessages(ret2, 5, ch1, ch2, assert)
 
-func TestHistoryMissingChannel(t *testing.T) {
-	assert := assert.New(t)
-
-	pn := pubnub.NewPubNub(config)
-
-	res, _, err := pn.History().
-		Channel("").
+	ret3, _, err3 := pn.Fetch().
+		Channels([]string{ch1, ch2}).
+		Count(25).
+		Reverse(reverse).
+		Start(timestamp1).
 		Execute()
 
-	assert.Nil(res)
-	assert.Contains(err.Error(), "Missing Channel")
-}
+	assert.Nil(err3)
 
-func HistoryPNOtherError(t *testing.T) {
-	assert := assert.New(t)
+	MatchFetchMessages(ret3, 0, ch1, ch2, assert)
 
-	config.CipherKey = "hello"
-
-	interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/ch",
-		Query:              "count=100&include_token=false&reverse=false",
-		ResponseBody:       `[[{"pn_other":""}],14606134331557852,14606134485013970]`,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},
-		ResponseStatusCode: 200,
-	})
-
-	pn := pubnub.NewPubNub(config)
-	pn.SetClient(interceptor.GetClient())
-
-	res, _, err := pn.History().
-		Channel("ch").
+	ret4, _, err4 := pn.Fetch().
+		Channels([]string{ch1, ch2}).
+		Count(25).
+		Reverse(reverse).
+		Start(timestamp2).
 		Execute()
 
-	assert.Nil(res)
-	assert.Contains(err.Error(), "message is empty")
+	assert.Nil(err4)
 
-	config.CipherKey = ""
+	MatchFetchMessages(ret4, 5, ch1, ch2, assert)
+
 }
-
-func TestHistorySuperCall(t *testing.T) {
-	assert := assert.New(t)
-
-	config := pamConfigCopy()
-
-	// Not allowed characters: /?#,
-	validCharacters := "-._~:[]@!$&'()*+;=`|"
-
-	config.Uuid = validCharacters
-	config.AuthKey = validCharacters
-
-	pn := pubnub.NewPubNub(config)
-
-	_, _, err := pn.History().
-		Channel(validCharacters).
-		Count(100).
-		Reverse(true).
-		IncludeTimetoken(true).
-		Execute()
-
-	assert.Nil(err)
-}*/
