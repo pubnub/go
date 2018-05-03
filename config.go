@@ -63,7 +63,7 @@ func NewDemoConfig() *Config {
 
 func NewConfig() *Config {
 	c := Config{
-		Origin:                     "ps.pndsn.com", //"ssp.pubnub.com",
+		Origin:                     "ps.pndsn.com",
 		Secure:                     true,
 		Uuid:                       fmt.Sprintf("pn-%s", utils.Uuid()),
 		ConnectTimeout:             10,
@@ -73,7 +73,6 @@ func NewConfig() *Config {
 		MaximumReconnectionRetries: -1,
 		SuppressLeaveEvents:        false,
 		DisablePNOtherProcessing:   false,
-		//UseHttp2:                   true,
 	}
 
 	c.SetPresenceTimeout(PRESENCE_TIMEOUT)

@@ -8,6 +8,59 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewGetStateResponse(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub.Config.Uuid = "my-custom-uuid"
+
+	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": {"k": "v"}, "uuid": "my-custom-uuid", "channel": "my-channel", "service": "Presence"}`)
+
+	res, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Nil(err)
+	if s, ok := res.State["my-channel"].(map[string]interface{}); ok {
+		assert.Equal("v", s["k"])
+	} else {
+		assert.Fail("!map[string]interface{}")
+	}
+}
+
+func TestNewGetStateResponse2(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub.Config.Uuid = "my-custom-uuid"
+
+	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": {"channels": {"my-channel3": {"k": "v4"}, "my-channel2": {"k": "v3"}, "my-channel": {"k": "v3"}}}, "uuid": "my-custom-uuid", "service": "Presence"}`)
+
+	res, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Nil(err)
+	if s, ok := res.State["my-channel"].(map[string]interface{}); ok {
+		assert.Equal("v3", s["k"])
+	} else {
+		assert.Fail("!map[string]interface{}")
+	}
+	if s, ok := res.State["my-channel3"].(map[string]interface{}); ok {
+		assert.Equal("v4", s["k"])
+	} else {
+		assert.Fail("!map[string]interface{}")
+	}
+	if s, ok := res.State["my-channel2"].(map[string]interface{}); ok {
+		assert.Equal("v3", s["k"])
+	} else {
+		assert.Fail("!map[string]interface{}")
+	}
+}
+
+func TestNewGetStateResponseErr(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub.Config.Uuid = "my-custom-uuid"
+
+	jsonBytes := []byte(`{"status": 400, "error": 1, "message": "Invalid JSON specified.", "service": "Presence"}`)
+
+	_, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Equal("Invalid JSON specified.", err.Error())
+}
+
 func TestGetStateBasicRequest(t *testing.T) {
 	assert := assert.New(t)
 
