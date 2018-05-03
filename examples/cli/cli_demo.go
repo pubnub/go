@@ -143,6 +143,10 @@ func showHelp() {
 	showFireHelp()
 	showSetStateHelp()
 	showGetStateHelp()
+	showAddToCgHelp()
+	showRemFromCgHelp()
+	showListAllChOfCgHelp()
+	showDelCgHelp()
 	fmt.Println("\n ================")
 	fmt.Println(" ||  COMMANDS  ||")
 	fmt.Println(" ================\n")
@@ -222,6 +226,30 @@ func showUnsubscribeHelp() {
 
 }
 
+func showAddToCgHelp() {
+	fmt.Println(" Add Channels to Channel Group EXAMPLE: ")
+	fmt.Println("	addcg Channel ChannelGroup")
+	fmt.Println("	addcg my-channel1,my-channel2 cg")
+}
+
+func showRemFromCgHelp() {
+	fmt.Println(" Remove Channels from Channel Group EXAMPLE: ")
+	fmt.Println("	remcg Channel ChannelGroup ")
+	fmt.Println("	remcg my-channel1 cg")
+}
+
+func showListAllChOfCgHelp() {
+	fmt.Println(" List Channels of Channel Group EXAMPLE: ")
+	fmt.Println("	listcg ChannelGroup")
+	fmt.Println("	listcg cg ")
+}
+
+func showDelCgHelp() {
+	fmt.Println(" Delete Channel Group EXAMPLE: ")
+	fmt.Println("	delcg ChannelGroup ")
+	fmt.Println("	delcg cg ")
+}
+
 func readCommand(cmd string) {
 	command := strings.Split(cmd, " ")
 
@@ -250,16 +278,16 @@ func readCommand(cmd string) {
 		setStateRequest(command[1:])
 	case "getstate":
 		getStateRequest(command[1:])
-	/*case "addChCg:
-		subscribeRequest(command[1:])
-	case "remChCg":
-		subscribeRequest(command[1:])
-	case "listChCg":
-		subscribeRequest(command[1:])
-	case "delCg":
-		subscribeRequest(command[1:])
+	case "addcg":
+		addToChannelGroup(command[1:])
+	case "remcg":
+		removeFromChannelGroup(command[1:])
+	case "listcg":
+		listChannelsOfChannelGroup(command[1:])
+	case "delcg":
+		delChannelGroup(command[1:])
 	case "grant":
-		subscribeRequest(command[1:])*/
+		grant(command[1:])
 	case "help":
 		showHelp()
 	case "q":
@@ -267,6 +295,99 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func grant(args []string) {
+}
+
+func addToChannelGroup(args []string) {
+	if len(args) < 2 {
+		fmt.Println(len(args))
+		showAddToCgHelp()
+		return
+	}
+	var channels []string
+	if len(args) > 0 {
+		channels = strings.Split(args[0], ",")
+	}
+
+	var cg string
+	if len(args) > 1 {
+		cg = args[1]
+	}
+
+	_, _, err := pn.AddChannelToChannelGroup().
+		Channels(channels).
+		ChannelGroup(cg).
+		Execute()
+
+	fmt.Println(err)
+}
+
+func removeFromChannelGroup(args []string) {
+	if len(args) < 2 {
+		fmt.Println(len(args))
+		showRemFromCgHelp()
+		return
+	}
+	var channels []string
+	if len(args) > 0 {
+		channels = strings.Split(args[0], ",")
+	}
+
+	var cg string
+	if len(args) > 1 {
+		cg = args[1]
+	}
+
+	_, _, err := pn.RemoveChannelFromChannelGroup().
+		Channels(channels).
+		ChannelGroup(cg).
+		Execute()
+
+	fmt.Println(err)
+}
+
+func listChannelsOfChannelGroup(args []string) {
+	if len(args) < 1 {
+		fmt.Println(len(args))
+		showListAllChOfCgHelp()
+		return
+	}
+
+	var cg string
+	if len(args) > 0 {
+		cg = args[0]
+	}
+
+	res, _, err := pn.ListChannelsInChannelGroup().
+		ChannelGroup(cg).
+		Execute()
+	fmt.Println("ChannelGroup", res.ChannelGroup)
+	for _, ch := range res.Channels {
+		fmt.Println(ch)
+	}
+	fmt.Println(err)
+}
+
+func delChannelGroup(args []string) {
+	if len(args) < 1 {
+		fmt.Println(len(args))
+		showDelCgHelp()
+		return
+	}
+
+	var cg string
+	if len(args) > 0 {
+		cg = args[0]
+	}
+
+	_, _, err := pn.DeleteChannelGroup().
+		ChannelGroup(cg).
+		Execute()
+
+	fmt.Println(err)
+
 }
 
 func setStateRequest(args []string) {
