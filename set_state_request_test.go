@@ -9,6 +9,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewGetStateResponse(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub.Config.Uuid = "my-custom-uuid"
+
+	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": {"k": "v"}, "uuid": "my-custom-uuid", "channel": "my-channel", "service": "Presence"}`)
+
+	res, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Nil(err)
+	if s, ok := res.State["my-channel"].(map[string]interface{}); ok {
+		assert.Equal("v", s["k"])
+	} else {
+		assert.Fail("!map[string]interface{}")
+	}
+}
+
 func TestSetStateRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 	state := make(map[string]interface{})
