@@ -3,13 +3,13 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/pubnub/go/pnerr"
+	"github.com/pubnub/go/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 )
 
 const SET_STATE_PATH = "/v2/presence/sub-key/%s/channel/%s/uuid/%s/data"
@@ -185,14 +185,32 @@ func newSetStateResponse(jsonBytes []byte, status StatusResponse) (
 		return emptySetStateResponse, status, e
 	}
 
-	v, _ := value.(map[string]interface{})
-	val, _ := v["payload"].([]interface{})
+	if v, ok := value.(map[string]interface{}); !ok {
+		return emptySetStateResponse, status, errors.New("Response parsing error")
+	} else {
+		message := ""
+		if v["message"] != nil {
+			if msg, ok := v["message"].(string); ok {
+				message = msg
+			}
+		}
 
-	resp.State = val
+		if v["error"] != nil {
+			return emptySetStateResponse, status, errors.New(message)
+		}
 
-	return resp, status, nil
+		if v["payload"] != nil {
+			if val, ok := v["payload"].(interface{}); ok {
+				resp.State = val
+			}
+		}
+		resp.Message = message
+
+		return resp, status, nil
+	}
 }
 
 type SetStateResponse struct {
-	State []interface{}
+	State   interface{}
+	Message string
 }

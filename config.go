@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"fmt"
 	"github.com/pubnub/go/utils"
 	"log"
 )
@@ -64,7 +65,7 @@ func NewConfig() *Config {
 	c := Config{
 		Origin:                     "ps.pndsn.com", //"ssp.pubnub.com",
 		Secure:                     true,
-		Uuid:                       utils.Uuid(),
+		Uuid:                       fmt.Sprintf("pn-%s", utils.Uuid()),
 		ConnectTimeout:             10,
 		NonSubscribeRequestTimeout: 10,
 		SubscribeRequestTimeout:    310,

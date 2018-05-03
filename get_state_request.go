@@ -3,6 +3,7 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -190,10 +191,61 @@ func newGetStateResponse(jsonBytes []byte, status StatusResponse) (
 		return emptyGetStateResp, status, e
 	}
 
-	if parsedValue, ok := value.(map[string]interface{}); ok {
-		if payload, ok := parsedValue["payload"].(map[string]interface{}); ok {
-			resp.State = payload
+	if v, ok := value.(map[string]interface{}); !ok {
+		return emptyGetStateResp, status, errors.New("Response parsing error")
+	} else {
+		if v["error"] != nil {
+			message := ""
+			if v["message"] != nil {
+				if msg, ok := v["message"].(string); ok {
+					message = msg
+				}
+			}
+			return emptyGetStateResp, status, errors.New(message)
 		}
+
+		//https://ssp.pubnub.com/v2/presence/sub-key/s/channel/my-channel/uuid/pn-696b6ccf-b473-4b4e-b86e-02ce7eca68cb?pnsdk=PubNub-Go/4.0.0-beta.7&uuid=pn-696b6ccf-b473-4b4e-b86e-02ce7eca68cb
+		//{"status": 200, "message": "OK", "payload": {"k": "v"}, "uuid": "pn-696b6ccf-b473-4b4e-b86e-02ce7eca68cb", "channel": "my-channel", "service": "Presence"}
+		//https://ps.pubnub.com/v2/presence/sub-key/s/channel/my-channel3,my-channel2,my-channel/uuid/5fef96e6-a64b-4808-8712-3623af768c3b?pnsdk=PubNub-Go/4.0.0-beta.7&uuid=5fef96e6-a64b-4808-8712-3623af768c3b
+		//{"status": 200, "message": "OK", "payload": {"channels": {"my-channel3": {"k": "v4"}, "my-channel2": {"k": "v3"}, "my-channel": {"k": "v3"}}}, "uuid": "5fef96e6-a64b-4808-8712-3623af768c3b", "service": "Presence"}
+		m := make(map[string]interface{})
+		if v["channel"] != nil {
+			if channel, ok2 := v["channel"].(string); ok2 {
+				if v["payload"] != nil {
+					if val, ok := v["payload"].(interface{}); !ok {
+						return emptyGetStateResp, status, errors.New("Response parsing payload")
+					} else {
+						m[channel] = val
+					}
+				} else {
+					return emptyGetStateResp, status, errors.New("Response parsing channel")
+				}
+			} else {
+				return emptyGetStateResp, status, errors.New("Response parsing channel 2")
+			}
+		} else {
+			if v["payload"] != nil {
+				if val, ok := v["payload"].(map[string]interface{}); !ok {
+					return emptyGetStateResp, status, errors.New("Response parsing payload 2")
+				} else {
+					if channels, ok2 := val["channels"].(map[string]interface{}); !ok2 {
+						return emptyGetStateResp, status, errors.New("Response parsing channels")
+					} else {
+						for ch, state := range channels {
+							m[ch] = state
+						}
+					}
+				}
+			}
+
+		}
+
+		//fmt.Println("v ===>", v["payload"])
+
+		//fmt.Println("vc ===>", v["channel"])
+
+		resp.State = m
+
 	}
 
 	return resp, status, nil

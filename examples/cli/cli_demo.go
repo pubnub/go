@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	//"io/ioutil"
+	"encoding/json"
 	"log"
 	"os"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -24,7 +26,7 @@ const outputSuffix = "\x1b[32;2m Example <<<< \x1b[0m"
 func main() {
 	config = pubnub.NewConfig()
 	config.Origin = "ssp.pubnub.com"
-	config.UseHttp2 = true
+	config.UseHttp2 = false
 
 	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
 	//config.EnableLogging = false
@@ -139,11 +141,25 @@ func showHelp() {
 	showUnsubscribeHelp()
 	showFetchHelp()
 	showFireHelp()
+	showSetStateHelp()
+	showGetStateHelp()
 	fmt.Println("\n ================")
 	fmt.Println(" ||  COMMANDS  ||")
 	fmt.Println(" ================\n")
 	fmt.Println(" UNSUBSCRIBE ALL \n\tq ")
 	fmt.Println(" QUIT \n\tctrl+c ")
+}
+
+func showGetStateHelp() {
+	fmt.Println(" GET STATE EXAMPLE: ")
+	fmt.Println("	getstate Channel ")
+	fmt.Println("	getstate my-channel ")
+}
+
+func showSetStateHelp() {
+	fmt.Println(" SET STATE EXAMPLE: ")
+	fmt.Println("	setstate Channel state ")
+	fmt.Println("	setstate my-channel {\"k\":\"v\"} ")
 }
 
 func showFetchHelp() {
@@ -230,11 +246,11 @@ func readCommand(cmd string) {
 		fetchRequest(command[1:])
 	case "delmessages":
 		delMessageRequest(command[1:])
-	case "setState":
-		subscribeRequest(command[1:])
-	/*case "getState":
-		subscribeRequest(command[1:])
-	case "addChCg:
+	case "setstate":
+		setStateRequest(command[1:])
+	case "getstate":
+		getStateRequest(command[1:])
+	/*case "addChCg:
 		subscribeRequest(command[1:])
 	case "remChCg":
 		subscribeRequest(command[1:])
@@ -250,6 +266,73 @@ func readCommand(cmd string) {
 		pn.UnsubscribeAll()
 	default:
 		showHelp()
+	}
+}
+
+func setStateRequest(args []string) {
+	if len(args) < 2 {
+		fmt.Println(len(args))
+		showSetStateHelp()
+		return
+	}
+
+	var channel string
+	if len(args) > 0 {
+		channel = args[0]
+	}
+
+	var state map[string]interface{}
+	if len(args) > 1 {
+		var v interface{}
+		err := json.Unmarshal([]byte(args[1]), &v)
+		if err == nil {
+			if st, ok := v.(map[string]interface{}); ok {
+				state = st
+			} else {
+
+				fmt.Println("!ok", reflect.TypeOf(v))
+				showSetStateHelp()
+				return
+			}
+		} else {
+			fmt.Println("err", err)
+			showSetStateHelp()
+			return
+		}
+	}
+
+	res, status, err := pn.SetState().Channels([]string{channel}).State(state).Execute()
+
+	fmt.Println("status===>", status)
+	if err != nil {
+		fmt.Println("err=>>>", err)
+	} else {
+		fmt.Println(res.State)
+		fmt.Println(res.Message)
+	}
+}
+
+func getStateRequest(args []string) {
+	if len(args) < 1 {
+		fmt.Println(len(args))
+		showGetStateHelp()
+		return
+	}
+
+	var channel string
+	if len(args) > 0 {
+		channel = args[0]
+	}
+
+	res, status, err := pn.GetState().Channels([]string{channel}).Execute()
+
+	fmt.Println("status===>", status)
+	if err != nil {
+		fmt.Println("err=>>>", err)
+	} else {
+		for j, k := range res.State {
+			fmt.Println("channel:", j, ", state:", k)
+		}
 	}
 }
 
