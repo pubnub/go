@@ -49,8 +49,11 @@ func main() {
 	config.Log.SetPrefix("PubNub :->  ")
 	//config.SuppressLeaveEvents = true
 
-	config.PublishKey = "pub-c-afeb2ec5-45e9-449f-9a8d-c4940a9c7836"
-	config.SubscribeKey = "sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64"
+	//config.PublishKey = "pub-c-afeb2ec5-45e9-449f-9a8d-c4940a9c7836"
+	//config.SubscribeKey = "sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64"
+	config.PublishKey = "pub-c-7e5c6521-91d0-4e60-9656-4bed419a769b"
+	config.SubscribeKey = "sub-c-b9ab9508-43cf-11e8-9967-869954283fb4"
+	config.SecretKey = "sec-c-MjRhODgwMTgtY2RmMS00ZWNmLTgzNTUtYjI3MzZhOThlNTY0"
 
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
@@ -147,6 +150,7 @@ func showHelp() {
 	showRemFromCgHelp()
 	showListAllChOfCgHelp()
 	showDelCgHelp()
+	showGrantHelp()
 	fmt.Println("\n ================")
 	fmt.Println(" ||  COMMANDS  ||")
 	fmt.Println(" ================\n")
@@ -250,6 +254,12 @@ func showDelCgHelp() {
 	fmt.Println("	delcg cg ")
 }
 
+func showGrantHelp() {
+	fmt.Println(" GRANT EXAMPLE: ")
+	fmt.Println("	grant Channels ChannelGroups manage read write ttl ")
+	fmt.Println("	grant my-channel cg false false false 10")
+}
+
 func readCommand(cmd string) {
 	command := strings.Split(cmd, " ")
 
@@ -298,6 +308,53 @@ func readCommand(cmd string) {
 }
 
 func grant(args []string) {
+	if len(args) < 6 {
+		fmt.Println(len(args))
+		showAddToCgHelp()
+		return
+	}
+
+	var channels []string
+	if len(args) > 0 {
+		channels = strings.Split(args[0], ",")
+	}
+	var groups []string
+	if len(args) > 1 {
+		groups = strings.Split(args[1], ",")
+	}
+	var manage bool
+	if len(args) > 2 {
+		manage, _ = strconv.ParseBool(args[2])
+	}
+	var read bool
+	if len(args) > 3 {
+		read, _ = strconv.ParseBool(args[3])
+	}
+	var write bool
+	if len(args) > 4 {
+		write, _ = strconv.ParseBool(args[4])
+	}
+	var ttl int
+	if len(args) > 5 {
+		i, err := strconv.ParseInt(args[5], 10, 64)
+		if err != nil {
+			ttl = 1440
+		} else {
+			ttl = int(i)
+		}
+	}
+
+	res, _, err := pn.Grant().
+		ChannelGroups(groups).
+		Channels(channels).
+		Manage(manage).
+		Read(read).
+		Ttl(ttl).
+		Write(write).
+		Execute()
+
+	fmt.Println(res)
+	fmt.Println(err)
 }
 
 func addToChannelGroup(args []string) {
@@ -472,7 +529,7 @@ func delMessageRequest(args []string) {
 	if len(args) > 1 {
 		i, err := strconv.ParseInt(args[1], 10, 64)
 		if err != nil {
-			i = 0
+			start = 0
 		} else {
 			start = i
 		}
@@ -482,7 +539,7 @@ func delMessageRequest(args []string) {
 	if len(args) > 2 {
 		i, err := strconv.ParseInt(args[2], 10, 64)
 		if err != nil {
-			i = 0
+			end = 0
 		} else {
 			end = i
 		}
@@ -542,7 +599,7 @@ func fetchRequest(args []string) {
 	if len(args) > 2 {
 		i, err := strconv.ParseInt(args[2], 10, 64)
 		if err != nil {
-			i = 100
+			count = 100
 		} else {
 			count = int(i)
 		}
@@ -552,7 +609,7 @@ func fetchRequest(args []string) {
 	if len(args) > 3 {
 		i, err := strconv.ParseInt(args[3], 10, 64)
 		if err != nil {
-			i = 0
+			start = 0
 		} else {
 			start = i
 		}
@@ -562,7 +619,7 @@ func fetchRequest(args []string) {
 	if len(args) > 4 {
 		i, err := strconv.ParseInt(args[4], 10, 64)
 		if err != nil {
-			i = 0
+			end = 0
 		} else {
 			end = i
 		}
@@ -646,7 +703,7 @@ func historyRequest(args []string) {
 	if len(args) > 3 {
 		i, err := strconv.ParseInt(args[3], 10, 64)
 		if err != nil {
-			i = 100
+			count = 100
 		} else {
 			count = int(i)
 		}
@@ -656,7 +713,7 @@ func historyRequest(args []string) {
 	if len(args) > 4 {
 		i, err := strconv.ParseInt(args[4], 10, 64)
 		if err != nil {
-			i = 0
+			start = 0
 		} else {
 			start = i
 		}
@@ -666,7 +723,7 @@ func historyRequest(args []string) {
 	if len(args) > 5 {
 		i, err := strconv.ParseInt(args[5], 10, 64)
 		if err != nil {
-			i = 0
+			end = 0
 		} else {
 			end = i
 		}

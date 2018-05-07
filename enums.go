@@ -68,31 +68,18 @@ func (p PNPushType) String() string {
 	switch p {
 	case PNPushTypeAPNS:
 		return "apns"
-		break
+
 	case PNPushTypeGCM:
 		return "gcm"
-		break
+
 	case PNPushTypeMPNS:
 		return "mpns"
-		break
+
 	default:
 		return "none"
-		break
+
 	}
 	return "none"
-}
-
-var categories = [...]string{
-	"Unknown",
-	"Timeout",
-	"Connected",
-	"Disconnected",
-	"Cancelled",
-	"Loop Stop",
-	"Acknowledgment",
-	"Bad Request",
-	"Access Denied",
-	"No Stub Matched",
 }
 
 var operations = [...]string{
@@ -121,9 +108,125 @@ var operations = [...]string{
 }
 
 func (c StatusCategory) String() string {
-	return categories[c-1]
+	switch c {
+	case PNUnknownCategory:
+		return "Unknown"
+
+	case PNTimeoutCategory:
+		return "Timeout"
+
+	case PNConnectedCategory:
+		return "Connected"
+
+	case PNDisconnectedCategory:
+		return "Disconnected"
+
+	case PNCancelledCategory:
+		return "Cancelled"
+
+	case PNLoopStopCategory:
+		return "Loop Stop"
+
+	case PNAcknowledgmentCategory:
+		return "Acknowledgment"
+
+	case PNBadRequestCategory:
+		return "Bad Request"
+
+	case PNAccessDeniedCategory:
+		return "Access Denied"
+
+	case PNReconnectedCategory:
+		return "Reconnected"
+
+	case PNReconnectionAttemptsExhausted:
+		return "Reconnection Attempts Exhausted"
+
+	case PNNoStubMatchedCategory:
+		return "No Stub Matched"
+
+	default:
+		return "No Stub Matched"
+
+	}
+	return "No Stub Matched"
 }
 
 func (t OperationType) String() string {
-	return operations[t-1]
+	switch t {
+	case PNSubscribeOperation:
+		return "Subscribe"
+
+	case PNUnsubscribeOperation:
+		return "Unsubscribe"
+
+	case PNPublishOperation:
+		return "Publish"
+
+	case PNFireOperation:
+		return "Fire"
+
+	case PNHistoryOperation:
+		return "History"
+
+	case PNFetchMessagesOperation:
+		return "Fetch Messages"
+
+	case PNWhereNowOperation:
+		return "Where Now"
+
+	case PNHereNowOperation:
+		return "Here Now"
+
+	case PNHeartBeatOperation:
+		return "Heartbeat"
+
+	case PNSetStateOperation:
+		return "Set State"
+
+	case PNGetStateOperation:
+		return "Get State"
+
+	case PNAddChannelsToChannelGroupOperation:
+		return "Add Channel To Channel Group"
+
+	case PNRemoveChannelFromChannelGroupOperation:
+		return "Remove Channel From Channel Group"
+
+	case PNRemoveGroupOperation:
+		return "Remove Channel Group"
+
+	case PNChannelsForGroupOperation:
+		return "List Channels In Channel Group"
+
+	case PNPushNotificationsEnabledChannelsOperation:
+		return "List Push Enabled Channels"
+
+	case PNAddPushNotificationsOnChannelsOperation:
+		return "Add Push From Channel"
+
+	case PNRemovePushNotificationsFromChannelsOperation:
+		return "Remove Push From Channel"
+
+	case PNRemoveAllPushNotificationsOperation:
+		return "Remove All Push Notifications"
+
+	case PNTimeOperation:
+		return "Time"
+
+	case PNAccessManagerGrant:
+		return "Grant"
+
+	case PNAccessManagerRevoke:
+		return "Revoke"
+
+	case PNDeleteMessagesOperation:
+		return "Delete messages"
+
+	default:
+		return "No Category Matched"
+
+	}
+	return "No Category Matched"
+
 }
