@@ -8,7 +8,7 @@ import (
 	"github.com/pubnub/go/utils"
 )
 
-const LEAVE_PATH = "/v2/presence/sub-key/%s/channel/%s/leave"
+const leavePath = "/v2/presence/sub-key/%s/channel/%s/leave"
 
 type leaveBuilder struct {
 	opts *leaveOpts
@@ -77,7 +77,7 @@ func (o *leaveOpts) buildPath() (string, error) {
 		channels = []byte(",")
 	}
 
-	return fmt.Sprintf(LEAVE_PATH,
+	return fmt.Sprintf(leavePath,
 		o.pubnub.Config.SubscribeKey,
 		channels), nil
 }

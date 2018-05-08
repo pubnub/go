@@ -174,7 +174,7 @@ func (o *fireOpts) validate() error {
 
 func (o *fireOpts) buildPath() (string, error) {
 	if o.UsePost == true {
-		return fmt.Sprintf(PUBLISH_POST_PATH,
+		return fmt.Sprintf(publishPostPath,
 			o.pubnub.Config.PublishKey,
 			o.pubnub.Config.SubscribeKey,
 			utils.UrlEncode(o.Channel),
@@ -195,7 +195,7 @@ func (o *fireOpts) buildPath() (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf(PUBLISH_GET_PATH,
+	return fmt.Sprintf(publishGetPath,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.Channel),

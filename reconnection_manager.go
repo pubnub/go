@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	RECONNECTION_INTERVAL              = 3
-	RECONNECTION_MINEXPONENTIALBACKOFF = 1
-	RECONNECTION_MAXEXPONENTIALBACKOFF = 32
+	reconnectionInterval              = 3
+	reconnectionMinExponentialBackoff = 1
+	reconnectionMaxExponentialBackoff = 32
 )
 
 type ReconnectionManager struct {
@@ -89,26 +89,26 @@ func (m *ReconnectionManager) registerHeartbeatTimer() {
 		return
 	}
 
-	timerInterval := RECONNECTION_INTERVAL
+	timerInterval := reconnectionInterval
 
 	if m.pubnub.Config.PNReconnectionPolicy == PNExponentialPolicy {
 		timerInterval = int(math.Pow(2, float64(m.ExponentialMultiplier)) - 1)
-		if timerInterval > RECONNECTION_MAXEXPONENTIALBACKOFF {
-			timerInterval = RECONNECTION_MINEXPONENTIALBACKOFF
+		if timerInterval > reconnectionMaxExponentialBackoff {
+			timerInterval = reconnectionMinExponentialBackoff
 
 			m.Lock()
 			m.ExponentialMultiplier = 1
 			m.Unlock()
 
 			// TODO: add timestamp
-			log.Printf("timerInterval > MAXEXPONENTIALBACKOFF at: \n")
+			log.Printf("timerInterval > MaxExponentialBackoff at: \n")
 		} else {
-			timerInterval = RECONNECTION_MINEXPONENTIALBACKOFF
+			timerInterval = reconnectionMinExponentialBackoff
 		}
 	}
 
 	if m.pubnub.Config.PNReconnectionPolicy == PNLinearPolicy {
-		timerInterval = RECONNECTION_INTERVAL
+		timerInterval = reconnectionInterval
 	}
 
 	m.Lock()

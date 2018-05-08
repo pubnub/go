@@ -14,7 +14,7 @@ import (
 	"github.com/pubnub/go/pnerr"
 )
 
-const GRANT_PATH = "/v1/auth/grant/sub-key/%s"
+const grantPath = "/v1/auth/grant/sub-key/%s"
 
 var emptyGrantResponse *GrantResponse
 
@@ -155,7 +155,7 @@ func (o *grantOpts) validate() error {
 }
 
 func (o *grantOpts) buildPath() (string, error) {
-	return fmt.Sprintf(GRANT_PATH, o.pubnub.Config.SubscribeKey), nil
+	return fmt.Sprintf(grantPath, o.pubnub.Config.SubscribeKey), nil
 }
 
 func (o *grantOpts) buildQuery() (*url.Values, error) {

@@ -11,7 +11,7 @@ import (
 	"github.com/pubnub/go/utils"
 )
 
-const HEARTBEAT_PATH = "/v2/presence/sub-key/%s/channel/%s/heartbeat"
+const heartbeatPath = "/v2/presence/sub-key/%s/channel/%s/heartbeat"
 
 type heartbeatBuilder struct {
 	opts *heartbeatOpts
@@ -111,7 +111,7 @@ func (o *heartbeatOpts) validate() error {
 func (o *heartbeatOpts) buildPath() (string, error) {
 	channels := string(utils.JoinChannels(o.Channels))
 
-	return fmt.Sprintf(HEARTBEAT_PATH,
+	return fmt.Sprintf(heartbeatPath,
 		o.pubnub.Config.SubscribeKey,
 		channels), nil
 }

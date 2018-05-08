@@ -9,7 +9,7 @@ import (
 	"github.com/pubnub/go/utils"
 )
 
-const SUBSCRIBE_PATH = "/v2/subscribe/%s/%s/0"
+const subscribePath = "/v2/subscribe/%s/%s/0"
 
 type SubscribeResponse struct {
 }
@@ -110,7 +110,7 @@ func (o *subscribeOpts) validate() error {
 func (o *subscribeOpts) buildPath() (string, error) {
 	channels := utils.JoinChannels(o.Channels)
 
-	return fmt.Sprintf(SUBSCRIBE_PATH,
+	return fmt.Sprintf(subscribePath,
 		o.pubnub.Config.SubscribeKey,
 		channels,
 	), nil

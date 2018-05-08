@@ -13,8 +13,8 @@ import (
 	"github.com/pubnub/go/pnerr"
 )
 
-var HERE_NOW_PATH = "/v2/presence/sub_key/%s/channel/%s"
-var GLOBAL_HERE_NOW_PATH = "/v2/presence/sub_key/%s"
+var hereNowPath = "/v2/presence/sub_key/%s/channel/%s"
+var globalHereNowPath = "/v2/presence/sub_key/%s"
 
 var emptyHereNowResponse *HereNowResponse
 
@@ -118,17 +118,17 @@ func (o *hereNowOpts) validate() error {
 
 func (o *hereNowOpts) buildPath() (string, error) {
 	if len(o.Channels) == 0 && len(o.ChannelGroups) == 0 {
-		return fmt.Sprintf(GLOBAL_HERE_NOW_PATH,
+		return fmt.Sprintf(globalHereNowPath,
 			o.pubnub.Config.SubscribeKey), nil
 	}
 
 	if len(o.Channels) == 0 {
-		return fmt.Sprintf(HERE_NOW_PATH,
+		return fmt.Sprintf(hereNowPath,
 			o.pubnub.Config.SubscribeKey,
 			","), nil
 	}
 
-	return fmt.Sprintf(HERE_NOW_PATH,
+	return fmt.Sprintf(hereNowPath,
 		o.pubnub.Config.SubscribeKey,
 		strings.Join(o.Channels, ",")), nil
 }

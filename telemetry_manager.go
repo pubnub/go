@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-const TIMESTAMP_DIVIDER = 1000
+const timestampDivider = 1000
 
-const CLEAN_UP_INTERVAL = 1
-const CLEAN_UP_INTERVAL_MULTIPLIER = 1000
+const cleanUpInterval = 1
+const cleanUpIntervalMultiplier = 1000
 
 type LatencyEntry struct {
 	D int64
@@ -98,7 +98,7 @@ func (m *TelemetryManager) CleanUpTelemetryData() {
 func (m *TelemetryManager) startCleanUpTimer() {
 	m.cleanUpTimer = time.NewTicker(
 		time.Duration(
-			CLEAN_UP_INTERVAL*CLEAN_UP_INTERVAL_MULTIPLIER) * time.Millisecond)
+			cleanUpInterval*cleanUpIntervalMultiplier) * time.Millisecond)
 
 	go func() {
 		for {

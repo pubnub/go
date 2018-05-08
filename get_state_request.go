@@ -14,7 +14,7 @@ import (
 	"github.com/pubnub/go/utils"
 )
 
-const GET_STATE_PATH = "/v2/presence/sub-key/%s/channel/%s/uuid/%s"
+const getStatePath = "/v2/presence/sub-key/%s/channel/%s/uuid/%s"
 
 var emptyGetStateResp *GetStateResponse
 
@@ -124,7 +124,7 @@ func (o *getStateOpts) buildPath() (string, error) {
 		channels = append(channels, utils.PamEncode(channel))
 	}
 
-	return fmt.Sprintf(GET_STATE_PATH,
+	return fmt.Sprintf(getStatePath,
 		o.pubnub.Config.SubscribeKey,
 		strings.Join(channels, ","),
 		utils.UrlEncode(o.pubnub.Config.Uuid)), nil

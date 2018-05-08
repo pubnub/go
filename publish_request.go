@@ -15,8 +15,8 @@ import (
 	"net/url"
 )
 
-const PUBLISH_GET_PATH = "/publish/%s/%s/0/%s/%s/%s"
-const PUBLISH_POST_PATH = "/publish/%s/%s/0/%s/%s"
+const publishGetPath = "/publish/%s/%s/0/%s/%s/%s"
+const publishPostPath = "/publish/%s/%s/0/%s/%s"
 
 var emptyPublishResponse *PublishResponse
 
@@ -288,7 +288,7 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 //TODO Refactor
 func (o *publishOpts) buildPath() (string, error) {
 	if o.UsePost == true {
-		return fmt.Sprintf(PUBLISH_POST_PATH,
+		return fmt.Sprintf(publishPostPath,
 			o.pubnub.Config.PublishKey,
 			o.pubnub.Config.SubscribeKey,
 			utils.UrlEncode(o.Channel),
@@ -330,7 +330,7 @@ func (o *publishOpts) buildPath() (string, error) {
 		return "", err
 	}*/
 
-	return fmt.Sprintf(PUBLISH_GET_PATH,
+	return fmt.Sprintf(publishGetPath,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.Channel),

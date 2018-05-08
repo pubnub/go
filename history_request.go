@@ -14,8 +14,8 @@ import (
 	"net/url"
 )
 
-const HISTORY_PATH = "/v2/history/sub-key/%s/channel/%s"
-const MAX_COUNT = 100
+const historyPath = "/v2/history/sub-key/%s/channel/%s"
+const maxCount = 100
 
 var emptyHistoryResp *HistoryResponse
 
@@ -142,7 +142,7 @@ func (o *historyOpts) validate() error {
 }
 
 func (o *historyOpts) buildPath() (string, error) {
-	return fmt.Sprintf(HISTORY_PATH,
+	return fmt.Sprintf(historyPath,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.Channel)), nil
 }
@@ -158,7 +158,7 @@ func (o *historyOpts) buildQuery() (*url.Values, error) {
 		q.Set("end", strconv.FormatInt(o.End, 10))
 	}
 
-	if o.Count > 0 && o.Count <= MAX_COUNT {
+	if o.Count > 0 && o.Count <= maxCount {
 		q.Set("count", strconv.Itoa(o.Count))
 	} else {
 		q.Set("count", "100")

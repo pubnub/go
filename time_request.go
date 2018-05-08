@@ -10,7 +10,7 @@ import (
 	"github.com/pubnub/go/pnerr"
 )
 
-const TIME_PATH = "/time/0"
+const timePath = "/time/0"
 
 var emptyTimeResp *TimeResponse
 
@@ -78,7 +78,7 @@ func (o *timeOpts) validate() error {
 }
 
 func (o *timeOpts) buildPath() (string, error) {
-	return TIME_PATH, nil
+	return timePath, nil
 }
 
 func (o *timeOpts) buildQuery() (*url.Values, error) {

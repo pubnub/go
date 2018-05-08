@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	PRESENCE_TIMEOUT = 300
+	presenceTimeout = 300
 )
 
 type Config struct {
@@ -75,7 +75,7 @@ func NewConfig() *Config {
 		DisablePNOtherProcessing:   false,
 	}
 
-	c.SetPresenceTimeout(PRESENCE_TIMEOUT)
+	c.SetPresenceTimeout(presenceTimeout)
 
 	return &c
 }

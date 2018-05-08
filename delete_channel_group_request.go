@@ -8,7 +8,7 @@ import (
 	"github.com/pubnub/go/utils"
 )
 
-const DELETE_CHANNEL_GROUP = "/v1/channel-registration/sub-key/%s/channel-group/%s/remove"
+const deleteChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s/remove"
 
 var emptyDeleteChannelGroupResponse *DeleteChannelGroupResponse
 
@@ -91,7 +91,7 @@ func (o *deleteChannelGroupOpts) validate() error {
 type DeleteChannelGroupResponse struct{}
 
 func (o *deleteChannelGroupOpts) buildPath() (string, error) {
-	return fmt.Sprintf(DELETE_CHANNEL_GROUP,
+	return fmt.Sprintf(deleteChannelGroupPath,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.ChannelGroup)), nil
 }

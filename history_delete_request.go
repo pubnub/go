@@ -9,7 +9,7 @@ import (
 	"github.com/pubnub/go/utils"
 )
 
-const HISTORY_DELETE_PATH = "/v3/history/sub-key/%s/channel/%s"
+const historyDeletePath = "/v3/history/sub-key/%s/channel/%s"
 
 var emptyHistoryDeleteResp *HistoryDeleteResponse
 
@@ -115,7 +115,7 @@ func (o *historyDeleteOpts) validate() error {
 }
 
 func (o *historyDeleteOpts) buildPath() (string, error) {
-	return fmt.Sprintf(HISTORY_DELETE_PATH,
+	return fmt.Sprintf(historyDeletePath,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.Channel)), nil
 }

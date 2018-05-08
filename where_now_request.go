@@ -11,7 +11,7 @@ import (
 	"github.com/pubnub/go/pnerr"
 )
 
-var WHERE_NOW_PATH = "/v2/presence/sub-key/%s/uuid/%s"
+var whereNowPath = "/v2/presence/sub-key/%s/uuid/%s"
 
 var emptyWhereNowResponse *WhereNowResponse
 
@@ -91,7 +91,7 @@ func (o *whereNowOpts) validate() error {
 }
 
 func (o *whereNowOpts) buildPath() (string, error) {
-	return fmt.Sprintf(WHERE_NOW_PATH,
+	return fmt.Sprintf(whereNowPath,
 		o.pubnub.Config.SubscribeKey,
 		o.Uuid), nil
 }

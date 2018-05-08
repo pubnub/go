@@ -9,7 +9,7 @@ import (
 	"github.com/pubnub/go/utils"
 )
 
-const ADD_CHANNEL_CHANNEL_GROUP_PATH = "/v1/channel-registration/sub-key/%s/channel-group/%s"
+const addChannelToChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s"
 
 var emptyAddChannelToChannelGroupResp *AddChannelToChannelGroupResponse
 
@@ -112,7 +112,7 @@ func (o *addChannelOpts) validate() error {
 }
 
 func (o *addChannelOpts) buildPath() (string, error) {
-	return fmt.Sprintf(ADD_CHANNEL_CHANNEL_GROUP_PATH,
+	return fmt.Sprintf(addChannelToChannelGroupPath,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.ChannelGroup)), nil
 }

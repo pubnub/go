@@ -24,7 +24,8 @@ const outputPrefix = "\x1b[32;1m Example >>>> \x1b[0m"
 const outputSuffix = "\x1b[32;2m Example <<<< \x1b[0m"
 
 func main() {
-	config = pubnub.NewConfig()
+	pubnub.
+		config = pubnub.NewConfig()
 	config.Origin = "ssp.pubnub.com"
 	config.UseHttp2 = false
 

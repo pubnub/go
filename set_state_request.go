@@ -12,7 +12,7 @@ import (
 	"net/url"
 )
 
-const SET_STATE_PATH = "/v2/presence/sub-key/%s/channel/%s/uuid/%s/data"
+const setStatePath = "/v2/presence/sub-key/%s/channel/%s/uuid/%s/data"
 
 var emptySetStateResponse *SetStateResponse
 
@@ -112,7 +112,7 @@ func (o *setStateOpts) validate() error {
 func (o *setStateOpts) buildPath() (string, error) {
 	channels := string(utils.JoinChannels(o.Channels))
 
-	return fmt.Sprintf(SET_STATE_PATH,
+	return fmt.Sprintf(setStatePath,
 		o.pubnub.Config.SubscribeKey,
 		channels,
 		utils.UrlEncode(o.pubnub.Config.Uuid),

@@ -12,7 +12,7 @@ import (
 	"github.com/pubnub/go/utils"
 )
 
-const ALL_CHANNEL_GROUP = "/v1/channel-registration/sub-key/%s/channel-group/%s"
+const allChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s"
 
 var emptyAllChannelGroupResponse *AllChannelGroupResponse
 
@@ -93,7 +93,7 @@ func (o *allChannelGroupOpts) validate() error {
 }
 
 func (o *allChannelGroupOpts) buildPath() (string, error) {
-	return fmt.Sprintf(ALL_CHANNEL_GROUP,
+	return fmt.Sprintf(allChannelGroupPath,
 		o.pubnub.Config.SubscribeKey,
 		utils.UrlEncode(o.ChannelGroup)), nil
 }
