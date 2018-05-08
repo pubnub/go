@@ -1,7 +1,7 @@
 package pubnub
 
 import (
-	"fmt"
+	//"fmt"
 	"golang.org/x/net/http2"
 	"net"
 	"net/http"
@@ -27,7 +27,7 @@ func NewHttp1Client(connectTimeout int, responseReadTimeout int) *http.Client {
 }
 
 func NewHttp2Client(connectTimeout int, responseReadTimeout int) *http.Client {
-	fmt.Println("http2")
+	//fmt.Println("http2")
 	transport := &http2.Transport{}
 	/*// MaxIdleConns: 30,
 		Dial: (&net.Dialer{

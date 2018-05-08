@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -84,9 +85,12 @@ func TestGetStateSucess(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
-	age, _ := res.State["age"].(string)
-	name, _ := res.State["name"].(string)
+	fmt.Println(res.State)
+	if s, ok := res.State["ch"].(map[string]interface{}); ok {
+		assert.Equal("20", s["age"])
+		assert.Equal("John Doe", s["name"])
 
-	assert.Equal("20", age)
-	assert.Equal("John Doe", name)
+	} else {
+		assert.Fail(fmt.Sprintf("!map[string]interface{} "))
+	}
 }

@@ -2,7 +2,7 @@ package pubnub
 
 import (
 	"bytes"
-	"fmt"
+	//"fmt"
 	"github.com/pubnub/go/pnerr"
 	"io"
 	"io/ioutil"
@@ -104,7 +104,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	client := opts.client()
 	startTimestamp := time.Now()
 	res, err := client.Do(req)
-	fmt.Println(fmt.Sprintf("%+v", req))
+	//fmt.Println(fmt.Sprintf("%+v", req))
 	// Host lookup failed
 	if err != nil {
 		opts.config().Log.Println("err.Error()", err.Error())
@@ -189,7 +189,7 @@ func newRequest(method string, u *url.URL, body io.Reader, useHttp2 bool) (*http
 
 func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusResponse, error) {
 	status := StatusResponse{}
-	fmt.Println(fmt.Sprintf("RESP:%+v", resp))
+	//fmt.Println(fmt.Sprintf("RESP:%+v", resp))
 
 	if resp.StatusCode != 200 {
 		// Errors like 400, 403, 500
