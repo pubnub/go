@@ -28,7 +28,9 @@ func TestPublishSuccessNotStubbed(t *testing.T) {
 		Channel("ch").Message("hey").UsePost(true).Serialize(true).Execute()
 
 	assert.Nil(err)
-	assert.True(14981595400555832 < res.Timestamp)
+	if res != nil {
+		assert.True(14981595400555832 < res.Timestamp)
+	}
 	pn.Config.CipherKey = ""
 }
 

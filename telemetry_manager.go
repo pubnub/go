@@ -47,11 +47,16 @@ func newTelemetryManager(maxLatencyDataAge int, ctx Context) *TelemetryManager {
 func (m *TelemetryManager) OperationLatency() map[string]string {
 	operationLatencies := make(map[string]string)
 
-	for endpointName, _ := range m.operations {
+	var ops map[string][]LatencyEntry
+	m.RLock()
+	ops = m.operations
+	m.RUnlock()
+
+	for endpointName, _ := range ops {
 		queryKey := fmt.Sprintf("l_%s", endpointName)
 
 		endpointAverageLatency := averageLatencyFromData(
-			m.operations[endpointName])
+			ops[endpointName])
 
 		if endpointAverageLatency > 0 {
 			operationLatencies[queryKey] = fmt.Sprint(endpointAverageLatency)
@@ -67,16 +72,19 @@ func (m *TelemetryManager) StoreLatency(latency float64, t OperationType) {
 
 		storeTimestamp := time.Now().Unix()
 
+		m.Lock()
 		m.operations[endpointName] = append(m.operations[endpointName], LatencyEntry{
 			D: storeTimestamp,
 			L: latency,
 		})
+		m.Unlock()
 	}
 }
 
 func (m *TelemetryManager) CleanUpTelemetryData() {
 	currentTimestamp := time.Now().Unix()
 
+	m.Lock()
 	for endpoint, latencies := range m.operations {
 		index := 0
 
@@ -93,6 +101,7 @@ func (m *TelemetryManager) CleanUpTelemetryData() {
 			delete(m.operations, endpoint)
 		}
 	}
+	m.Unlock()
 }
 
 func (m *TelemetryManager) startCleanUpTimer() {

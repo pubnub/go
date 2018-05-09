@@ -116,6 +116,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 	go subscribeMessageWorker(manager) //.listenerManager, manager.messages, manager.ctx)
 
+	manager.Lock()
 	if manager.pubnub.Config.PNReconnectionPolicy != PNNonePolicy {
 
 		manager.reconnectionManager.HandleReconnection(func() {
@@ -137,6 +138,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 			manager.listenerManager.announceStatus(pnStatus)
 		})
 	}
+	manager.Unlock()
 
 	manager.reconnectionManager.HandleOnMaxReconnectionExhaustion(func() {
 		combinedChannels := manager.stateManager.prepareChannelList(true)
@@ -351,17 +353,15 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		m.Lock()
 		announced := m.subscriptionStateAnnounced
-		m.Unlock()
 
 		if announced == false {
 			m.listenerManager.announceStatus(&PNStatus{
 				Category: PNConnectedCategory,
 			})
 
-			m.Lock()
 			m.subscriptionStateAnnounced = true
-			m.Unlock()
 		}
+		m.Unlock()
 
 		var envelope subscribeEnvelope
 		err = json.Unmarshal(res, &envelope)
@@ -746,19 +746,28 @@ func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error)
 }
 
 func (m *SubscriptionManager) AddListener(listener *Listener) {
+	m.Lock()
 	m.listenerManager.addListener(listener)
+	m.Unlock()
 }
 
 func (m *SubscriptionManager) RemoveListener(listener *Listener) {
+	m.Lock()
 	m.listenerManager.removeListener(listener)
+	m.Unlock()
 }
 
 func (m *SubscriptionManager) RemoveAllListeners() {
+	m.Lock()
 	m.listenerManager.removeAllListeners()
+	m.Unlock()
 }
 
 func (m *SubscriptionManager) GetListeners() map[*Listener]bool {
-	return m.listenerManager.listeners
+	m.RLock()
+	listn := m.listenerManager.listeners
+	m.RUnlock()
+	return listn
 }
 
 func (m *SubscriptionManager) reconnect() {

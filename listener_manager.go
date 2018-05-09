@@ -33,34 +33,34 @@ func newListenerManager(ctx Context) *ListenerManager {
 
 func (m *ListenerManager) addListener(listener *Listener) {
 	m.Lock()
-	defer m.Unlock()
 
 	m.listeners[listener] = true
+	m.Unlock()
 }
 
 func (m *ListenerManager) removeListener(listener *Listener) {
 	m.Lock()
-	defer m.Unlock()
 
 	delete(m.listeners, listener)
+	m.Unlock()
 }
 
 func (m *ListenerManager) removeAllListeners() {
 	m.Lock()
-	defer m.Unlock()
-
 	for l, _ := range m.listeners {
 		delete(m.listeners, l)
 	}
+	m.Unlock()
 }
 
 func (m *ListenerManager) announceStatus(status *PNStatus) {
+	var listn map[*Listener]bool
 	m.RLock()
-	listeners := m.listeners
+	listn = m.listeners
 	m.RUnlock()
 
 	go func() {
-		for l, _ := range listeners {
+		for l, _ := range listn {
 			select {
 			case <-m.ctx.Done():
 				return
@@ -71,12 +71,13 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 }
 
 func (m *ListenerManager) announceMessage(message *PNMessage) {
+	var listn map[*Listener]bool
 	m.RLock()
-	listeners := m.listeners
+	listn = m.listeners
 	m.RUnlock()
 
 	go func() {
-		for l, _ := range listeners {
+		for l, _ := range listn {
 			select {
 			case <-m.ctx.Done():
 				return
@@ -87,11 +88,12 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 }
 
 func (m *ListenerManager) announcePresence(presence *PNPresence) {
+	var listn map[*Listener]bool
 	m.RLock()
-	listeners := m.listeners
+	listn = m.listeners
 	m.RUnlock()
 
-	for l, _ := range listeners {
+	for l, _ := range listn {
 		select {
 		case <-m.ctx.Done():
 			return
