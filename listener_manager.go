@@ -39,10 +39,7 @@ func (m *ListenerManager) addListener(listener *Listener) {
 }
 
 func (m *ListenerManager) removeListener(listener *Listener) {
-	m.Lock()
-
 	delete(m.listeners, listener)
-	m.Unlock()
 }
 
 func (m *ListenerManager) removeAllListeners() {
@@ -54,52 +51,48 @@ func (m *ListenerManager) removeAllListeners() {
 }
 
 func (m *ListenerManager) announceStatus(status *PNStatus) {
-	var listn map[*Listener]bool
-	m.RLock()
-	listn = m.listeners
-	m.RUnlock()
-
+	//m.RLock()
 	go func() {
-		for l, _ := range listn {
+		m.RLock()
+		for l, _ := range m.listeners {
 			select {
 			case <-m.ctx.Done():
 				return
 			case l.Status <- status:
 			}
 		}
+		m.RUnlock()
 	}()
+	//m.RUnlock()
 }
 
 func (m *ListenerManager) announceMessage(message *PNMessage) {
-	var listn map[*Listener]bool
-	m.RLock()
-	listn = m.listeners
-	m.RUnlock()
-
+	//m.RLock()
 	go func() {
-		for l, _ := range listn {
+		m.RLock()
+		for l, _ := range m.listeners {
 			select {
 			case <-m.ctx.Done():
 				return
 			case l.Message <- message:
 			}
 		}
+		m.RUnlock()
 	}()
+	//m.RUnlock()
 }
 
 func (m *ListenerManager) announcePresence(presence *PNPresence) {
-	var listn map[*Listener]bool
 	m.RLock()
-	listn = m.listeners
-	m.RUnlock()
 
-	for l, _ := range listn {
+	for l, _ := range m.listeners {
 		select {
 		case <-m.ctx.Done():
 			return
 		case l.Presence <- presence:
 		}
 	}
+	m.RUnlock()
 }
 
 type PNStatus struct {

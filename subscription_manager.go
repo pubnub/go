@@ -116,13 +116,14 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 	go subscribeMessageWorker(manager) //.listenerManager, manager.messages, manager.ctx)
 
-	manager.Lock()
 	if manager.pubnub.Config.PNReconnectionPolicy != PNNonePolicy {
 
 		manager.reconnectionManager.HandleReconnection(func() {
 			go manager.reconnect()
 
+			manager.Lock()
 			manager.subscriptionStateAnnounced = true
+			manager.Unlock()
 			combinedChannels := manager.stateManager.prepareChannelList(true)
 			combinedGroups := manager.stateManager.prepareGroupList(true)
 
@@ -135,10 +136,12 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 			pubnub.Config.Log.Println("Status: ", pnStatus)
 
+			manager.RLock()
+
 			manager.listenerManager.announceStatus(pnStatus)
+			manager.RUnlock()
 		})
 	}
-	manager.Unlock()
 
 	manager.reconnectionManager.HandleOnMaxReconnectionExhaustion(func() {
 		combinedChannels := manager.stateManager.prepareChannelList(true)
@@ -152,7 +155,9 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 		}
 		pubnub.Config.Log.Println("Status: ", pnStatus)
 
+		manager.RLock()
 		manager.listenerManager.announceStatus(pnStatus)
+		manager.RUnlock()
 
 		manager.Disconnect()
 	})
@@ -204,6 +209,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 
 	m.Lock()
 	m.subscriptionStateAnnounced = false
+	m.Unlock()
 
 	go func() {
 		announceAck := false
@@ -221,7 +227,9 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 					AffectedChannelGroups: unsubscribeOperation.ChannelGroups,
 				}
 				m.pubnub.Config.Log.Println("Leave: err", err, pnStatus)
+				m.RLock()
 				m.listenerManager.announceStatus(pnStatus)
+				m.RUnlock()
 			} else {
 				announceAck = true
 			}
@@ -239,10 +247,13 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 				AffectedChannelGroups: unsubscribeOperation.ChannelGroups,
 			}
 			m.pubnub.Config.Log.Println("Leave: ack", pnStatus)
+			m.RLock()
 			m.listenerManager.announceStatus(pnStatus)
+			m.RUnlock()
 		}
 	}()
 
+	m.Lock()
 	if m.stateManager.isEmpty() {
 		m.region = 0
 		m.storedTimetoken = -1
@@ -251,7 +262,6 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 		m.storedTimetoken = m.timetoken
 		m.timetoken = 0
 	}
-
 	m.Unlock()
 
 	m.reconnect()
@@ -296,9 +306,11 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			m.pubnub.Config.Log.Println(err.Error())
 
 			if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "request canceled") {
+				m.Lock()
 				m.listenerManager.announceStatus(&PNStatus{
 					Category: PNTimeoutCategory,
 				})
+				m.RUnlock()
 				continue
 			} else {
 
@@ -309,7 +321,9 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 						Category: PNCancelledCategory,
 					}
 					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.RLock()
 					m.listenerManager.announceStatus(pnStatus)
+					m.RUnlock()
 					break
 				} else if strings.Contains(err.Error(), "Forbidden") ||
 					strings.Contains(err.Error(), "403") {
@@ -317,7 +331,9 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 						Category: PNAccessDeniedCategory,
 					}
 					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.RLock()
 					m.listenerManager.announceStatus(pnStatus)
+					m.RUnlock()
 					m.unsubscribeAll()
 					break
 				} else if strings.Contains(err.Error(), "400") ||
@@ -326,7 +342,9 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 						Category: PNBadRequestCategory,
 					}
 					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.RLock()
 					m.listenerManager.announceStatus(pnStatus)
+					m.RUnlock()
 					m.unsubscribeAll()
 					break
 					// For testing purpose
@@ -335,7 +353,9 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 						Category: PNNoStubMatchedCategory,
 					}
 					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.RLock()
 					m.listenerManager.announceStatus(pnStatus)
+					m.RUnlock()
 					m.unsubscribeAll()
 					break
 				} else {
@@ -343,7 +363,9 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 						Category: PNUnknownCategory,
 					}
 					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.RLock()
 					m.listenerManager.announceStatus(pnStatus)
+					m.RUnlock()
 
 					break
 				}
@@ -355,10 +377,10 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		announced := m.subscriptionStateAnnounced
 
 		if announced == false {
+
 			m.listenerManager.announceStatus(&PNStatus{
 				Category: PNConnectedCategory,
 			})
-
 			m.subscriptionStateAnnounced = true
 		}
 		m.Unlock()
@@ -375,6 +397,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				AffectedChannelGroups: combinedGroups,
 			}
 			m.pubnub.Config.Log.Println("Unmarshal: err", err, pnStatus)
+
 			m.listenerManager.announceStatus(pnStatus)
 		}
 
@@ -384,8 +407,9 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			}
 		}
 
+		m.Lock()
 		if m.storedTimetoken != -1 {
-			m.Lock()
+
 			m.timetoken = m.storedTimetoken
 			m.storedTimetoken = -1
 		} else {
@@ -404,7 +428,6 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				m.listenerManager.announceStatus(pnStatus)
 			}
 
-			m.Lock()
 			m.timetoken = tt
 		}
 
@@ -495,7 +518,9 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 		}
 		m.pubnub.Config.Log.Println("performHeartbeatLoop: err", err, pnStatus)
 
+		m.RLock()
 		m.listenerManager.announceStatus(pnStatus)
+		m.RUnlock()
 
 		return err
 	}
@@ -508,7 +533,9 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 	}
 	m.pubnub.Config.Log.Println("performHeartbeatLoop: err", err, pnStatus)
 
+	m.RLock()
 	m.listenerManager.announceStatus(pnStatus)
+	m.RUnlock()
 
 	return nil
 }
@@ -581,6 +608,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		var ok, hereNowRefresh bool
 
 		if presencePayload, ok = payload.Payload.(map[string]interface{}); !ok {
+			m.RLock()
 			m.listenerManager.announceStatus(&PNStatus{
 				Category:         PNUnknownCategory,
 				ErrorData:        errors.New("Response presence parsing error"),
@@ -588,6 +616,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 				Operation:        PNSubscribeOperation,
 				AffectedChannels: []string{channel},
 			})
+			m.RUnlock()
 			// return
 		}
 
@@ -629,8 +658,9 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			Timestamp:         timestamp,
 			HereNowRefresh:    hereNowRefresh,
 		}
-
+		m.RLock()
 		m.listenerManager.announcePresence(pnPresenceResult)
+		m.RUnlock()
 	} else {
 		actualCh := ""
 		subscribedCh := channel
@@ -658,7 +688,9 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 				//AffectedChannelGroups: combinedGroups,
 			}
 			m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
+			m.RLock()
 			m.listenerManager.announceStatus(pnStatus)
+			m.RUnlock()
 		}
 		//}
 
@@ -672,8 +704,9 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			Publisher:         payload.IssuingClientId,
 			UserMetadata:      payload.UserMetadata,
 		}
-
+		m.RLock()
 		m.listenerManager.announceMessage(pnMessageResult)
+		m.RUnlock()
 	}
 }
 
@@ -753,7 +786,9 @@ func (m *SubscriptionManager) AddListener(listener *Listener) {
 
 func (m *SubscriptionManager) RemoveListener(listener *Listener) {
 	m.Lock()
+	m.listenerManager.Lock()
 	m.listenerManager.removeListener(listener)
+	m.listenerManager.Unlock()
 	m.Unlock()
 }
 
