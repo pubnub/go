@@ -29,7 +29,8 @@ type ReconnectionManager struct {
 
 	Timer *time.Ticker
 
-	pubnub *PubNub
+	pubnub                  *PubNub
+	exitReconnectionManager chan bool
 }
 
 func newReconnectionManager(pubnub *PubNub) *ReconnectionManager {
@@ -40,6 +41,7 @@ func newReconnectionManager(pubnub *PubNub) *ReconnectionManager {
 	manager.ExponentialMultiplier = 1
 	manager.FailedCalls = 0
 	manager.Milliseconds = 1000
+	manager.exitReconnectionManager = make(chan bool)
 
 	return manager
 }
@@ -133,6 +135,8 @@ func (m *ReconnectionManager) registerHeartbeatTimer() {
 			case <-timer:
 				go m.callTime()
 			case <-doneT:
+				return
+			case <-m.exitReconnectionManager:
 				return
 			}
 		}

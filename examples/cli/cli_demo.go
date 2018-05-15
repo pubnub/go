@@ -16,6 +16,9 @@ import (
 	pubnub "github.com/pubnub/go"
 )
 
+import _ "net/http/pprof"
+import "net/http"
+
 var config *pubnub.Config
 var pn *pubnub.PubNub
 var quitSubscribe = false
@@ -24,6 +27,9 @@ const outputPrefix = "\x1b[32;1m Example >>>> \x1b[0m"
 const outputSuffix = "\x1b[32;2m Example <<<< \x1b[0m"
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	config = pubnub.NewConfig()
 	config.Origin = "ssp.pubnub.com"
 	config.UseHttp2 = false
@@ -301,6 +307,7 @@ func readCommand(cmd string) {
 	case "help":
 		showHelp()
 	case "q":
+		pn.Destroy()
 		pn.UnsubscribeAll()
 	default:
 		showHelp()

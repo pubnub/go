@@ -71,6 +71,7 @@ type SubscriptionManager struct {
 
 	subscriptionStateAnnounced bool
 	heartbeatStopCalled        bool
+	exitSubscriptionManager    chan bool
 }
 
 type SubscribeOperation struct {
@@ -101,12 +102,14 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 	manager.stateManager = newStateManager()
 
 	manager.Lock()
+	//manager.exitSubscriptionManager = make(chan bool)
 	manager.timetoken = 0
 	manager.storedTimetoken = -1
 	manager.subscriptionStateAnnounced = false
 	manager.ctx, manager.subscribeCancel = contextWithCancel(backgroundContext)
 	manager.messages = make(chan subscribeMessage, 1000)
 	manager.reconnectionManager = newReconnectionManager(pubnub)
+
 	manager.Unlock()
 
 	go func() {
@@ -171,6 +174,18 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 	// cancel
 	// addListeners := func()
 	return manager
+}
+
+func (m *SubscriptionManager) Destroy() {
+	if m.exitSubscriptionManager != nil {
+		m.exitSubscriptionManager <- true
+	}
+	if m.listenerManager.exitListener != nil {
+		m.listenerManager.exitListener <- true
+	}
+	if m.reconnectionManager.exitReconnectionManager != nil {
+		m.reconnectionManager.exitReconnectionManager <- true
+	}
 }
 
 func (m *SubscriptionManager) adaptState(stateOperation StateOperation) {
@@ -310,7 +325,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				m.listenerManager.announceStatus(&PNStatus{
 					Category: PNTimeoutCategory,
 				})
-				m.RUnlock()
+				m.Unlock()
 				continue
 			} else {
 

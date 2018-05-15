@@ -302,6 +302,10 @@ func (pn *PubNub) DeleteMessagesWithContext() *historyDeleteBuilder {
 func (pn *PubNub) Destroy() {
 	pn.cancel()
 	pn.subscriptionManager.RemoveAllListeners()
+	if pn.telemetryManager.exitTelemetryManager != nil {
+		pn.telemetryManager.exitTelemetryManager <- true
+	}
+	pn.subscriptionManager.Destroy()
 }
 
 func (pn *PubNub) getPublishSequence() int {

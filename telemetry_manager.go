@@ -29,14 +29,16 @@ type TelemetryManager struct {
 
 	cleanUpTimer *time.Ticker
 
-	maxLatencyDataAge int
+	maxLatencyDataAge    int
+	exitTelemetryManager chan bool
 }
 
 func newTelemetryManager(maxLatencyDataAge int, ctx Context) *TelemetryManager {
 	manager := &TelemetryManager{
-		maxLatencyDataAge: maxLatencyDataAge,
-		operations:        make(map[string][]LatencyEntry),
-		ctx:               ctx,
+		maxLatencyDataAge:    maxLatencyDataAge,
+		operations:           make(map[string][]LatencyEntry),
+		ctx:                  ctx,
+		exitTelemetryManager: make(chan bool),
 	}
 
 	go manager.startCleanUpTimer()
@@ -47,21 +49,20 @@ func newTelemetryManager(maxLatencyDataAge int, ctx Context) *TelemetryManager {
 func (m *TelemetryManager) OperationLatency() map[string]string {
 	operationLatencies := make(map[string]string)
 
-	var ops map[string][]LatencyEntry
+	//var ops map[string][]LatencyEntry
 	m.RLock()
-	ops = m.operations
-	m.RUnlock()
 
-	for endpointName, _ := range ops {
+	for endpointName, _ := range m.operations {
 		queryKey := fmt.Sprintf("l_%s", endpointName)
 
 		endpointAverageLatency := averageLatencyFromData(
-			ops[endpointName])
+			m.operations[endpointName])
 
 		if endpointAverageLatency > 0 {
 			operationLatencies[queryKey] = fmt.Sprint(endpointAverageLatency)
 		}
 	}
+	m.RUnlock()
 
 	return operationLatencies
 }
@@ -117,6 +118,8 @@ func (m *TelemetryManager) startCleanUpTimer() {
 			case <-timerCh:
 				m.CleanUpTelemetryData()
 			case <-m.ctx.Done():
+				return
+			case <-m.exitTelemetryManager:
 				return
 			}
 		}

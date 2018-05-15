@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -20,14 +21,16 @@ func NewListener() *Listener {
 
 type ListenerManager struct {
 	sync.RWMutex
-	ctx       Context
-	listeners map[*Listener]bool
+	ctx          Context
+	listeners    map[*Listener]bool
+	exitListener chan bool
 }
 
 func newListenerManager(ctx Context) *ListenerManager {
 	return &ListenerManager{
-		listeners: make(map[*Listener]bool, 2),
-		ctx:       ctx,
+		listeners:    make(map[*Listener]bool, 2),
+		ctx:          ctx,
+		exitListener: make(chan bool),
 	}
 }
 
@@ -58,6 +61,9 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 			select {
 			case <-m.ctx.Done():
 				return
+			case <-m.exitListener:
+				fmt.Println("closing announceStatus")
+				return
 			case l.Status <- status:
 			}
 		}
@@ -73,6 +79,9 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 		for l, _ := range m.listeners {
 			select {
 			case <-m.ctx.Done():
+				return
+			case <-m.exitListener:
+				fmt.Println("closing announceMessage")
 				return
 			case l.Message <- message:
 			}
