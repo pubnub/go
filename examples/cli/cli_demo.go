@@ -27,6 +27,10 @@ const outputPrefix = "\x1b[32;1m Example >>>> \x1b[0m"
 const outputSuffix = "\x1b[32;2m Example <<<< \x1b[0m"
 
 func main() {
+	connect()
+}
+
+func connect() {
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
@@ -128,7 +132,6 @@ func main() {
 		}
 		fmt.Println("")
 	}
-
 }
 
 func showErr(err string) {
@@ -307,8 +310,8 @@ func readCommand(cmd string) {
 	case "help":
 		showHelp()
 	case "q":
-		pn.Destroy()
 		pn.UnsubscribeAll()
+		pn.Destroy()
 	default:
 		showHelp()
 	}
