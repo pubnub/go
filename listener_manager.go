@@ -62,7 +62,6 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 			case <-m.ctx.Done():
 				return
 			case <-m.exitListener:
-				fmt.Println("closing announceStatus")
 				return
 			case l.Status <- status:
 			}

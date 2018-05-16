@@ -178,13 +178,13 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 func (m *SubscriptionManager) Destroy() {
 	if m.exitSubscriptionManager != nil {
-		m.exitSubscriptionManager <- true
+		close(m.exitSubscriptionManager)
 	}
 	if m.listenerManager.exitListener != nil {
-		m.listenerManager.exitListener <- true
+		close(m.listenerManager.exitListener)
 	}
 	if m.reconnectionManager.exitReconnectionManager != nil {
-		m.reconnectionManager.exitReconnectionManager <- true
+		close(m.reconnectionManager.exitReconnectionManager)
 	}
 }
 

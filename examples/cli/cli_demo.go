@@ -311,6 +311,7 @@ func readCommand(cmd string) {
 		showHelp()
 	case "q":
 		pn.UnsubscribeAll()
+	case "d":
 		pn.Destroy()
 	default:
 		showHelp()

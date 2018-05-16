@@ -30,7 +30,7 @@ type TelemetryManager struct {
 	cleanUpTimer *time.Ticker
 
 	maxLatencyDataAge    int
-	exitTelemetryManager chan bool
+	ExitTelemetryManager chan bool
 }
 
 func newTelemetryManager(maxLatencyDataAge int, ctx Context) *TelemetryManager {
@@ -38,7 +38,7 @@ func newTelemetryManager(maxLatencyDataAge int, ctx Context) *TelemetryManager {
 		maxLatencyDataAge:    maxLatencyDataAge,
 		operations:           make(map[string][]LatencyEntry),
 		ctx:                  ctx,
-		exitTelemetryManager: make(chan bool),
+		ExitTelemetryManager: make(chan bool),
 	}
 
 	go manager.startCleanUpTimer()
@@ -119,7 +119,7 @@ func (m *TelemetryManager) startCleanUpTimer() {
 				m.CleanUpTelemetryData()
 			case <-m.ctx.Done():
 				return
-			case <-m.exitTelemetryManager:
+			case <-m.ExitTelemetryManager:
 				return
 			}
 		}
