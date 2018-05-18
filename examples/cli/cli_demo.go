@@ -160,6 +160,7 @@ func showHelp() {
 	showListAllChOfCgHelp()
 	showDelCgHelp()
 	showGrantHelp()
+	showSubscribeWithStateHelp()
 	fmt.Println("\n ================")
 	fmt.Println(" ||  COMMANDS  ||")
 	fmt.Println(" ================\n")
@@ -212,6 +213,12 @@ func showSubscribeHelp() {
 	fmt.Println(" SUBSCRIBE EXAMPLE: ")
 	fmt.Println("	sub withPresence channels channelGroups")
 	fmt.Println("	sub true my-channel,my-another-channel my-channelgroup,my-another-channel-group")
+}
+
+func showSubscribeWithStateHelp() {
+	fmt.Println(" SUBSCRIBE With State EXAMPLE: ")
+	fmt.Println("	sub withPresence channels channelGroups state")
+	fmt.Println("	sub true my-channel,my-another-channel my-channelgroup,my-another-channel-group {\"k2\":\"v2\"}")
 }
 
 func showHistoryHelp() {
@@ -293,6 +300,8 @@ func readCommand(cmd string) {
 		fetchRequest(command[1:])
 	case "delmessages":
 		delMessageRequest(command[1:])
+	case "subs":
+		subscribeRequest(command[1:])
 	case "setstate":
 		setStateRequest(command[1:])
 	case "getstate":
@@ -979,6 +988,32 @@ func subscribeRequest(args []string) {
 
 	channels := strings.Split(args[1], ",")
 	if (len(args)) > 2 {
+		var state map[string]interface{}
+		var v interface{}
+		err := json.Unmarshal([]byte(args[3]), &v)
+		if err == nil {
+			if st, ok := v.(map[string]interface{}); ok {
+				state = st
+			} else {
+
+				fmt.Println("!ok", reflect.TypeOf(v))
+				showSubscribeWithStateHelp()
+				return
+			}
+		} else {
+			fmt.Println("err", err)
+			showSubscribeWithStateHelp()
+			return
+		}
+		groups := strings.Split(args[2], ",")
+		pn.Subscribe().
+			Channels(channels).
+			ChannelGroups(groups).
+			WithPresence(withPresence).
+			State(state).
+			Execute()
+
+	} else if (len(args)) > 2 {
 		groups := strings.Split(args[2], ",")
 		pn.Subscribe().
 			Channels(channels).

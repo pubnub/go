@@ -78,6 +78,12 @@ func (b *subscribeBuilder) WithPresence(pres bool) *subscribeBuilder {
 	return b
 }
 
+func (b *subscribeBuilder) State(state map[string]interface{}) *subscribeBuilder {
+	b.opts.State = state
+
+	return b
+}
+
 func (b *subscribeBuilder) Execute() {
 	b.opts.pubnub.subscriptionManager.adaptSubscribe(b.operation)
 }
