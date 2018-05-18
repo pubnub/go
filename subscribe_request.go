@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -25,6 +26,8 @@ type subscribeOpts struct {
 	Timetoken        int64
 	FilterExpression string
 	WithPresence     bool
+	State            map[string]interface{}
+	stringState      string
 
 	ctx Context
 }
@@ -104,6 +107,13 @@ func (o *subscribeOpts) validate() error {
 		return newValidationError(o, StrMissingChannel)
 	}
 
+	if o.State != nil {
+		state, err := json.Marshal(o.State)
+		if err != nil {
+			return newValidationError(o, err.Error())
+		}
+		o.stringState = string(state)
+	}
 	return nil
 }
 
@@ -139,6 +149,15 @@ func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 	// hb timeout should be at least 4 seconds
 	if o.Heartbeat >= 4 {
 		q.Set("heartbeat", fmt.Sprintf("%d", o.Heartbeat))
+	}
+
+	/*state, err = json.Marshal(o.State)
+	if err != nil {
+		return nil, err
+	}*/
+
+	if o.State != nil {
+		q.Set("state", o.stringState)
 	}
 
 	return q, nil

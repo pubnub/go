@@ -38,6 +38,9 @@ func TestSetStateRequestBasic(t *testing.T) {
 		pubnub:        pubnub,
 	}
 
+	err := opts.validate()
+	assert.Nil(err)
+
 	path, err := opts.buildPath()
 	assert.Nil(err)
 	u := &url.URL{

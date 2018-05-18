@@ -77,8 +77,9 @@ type setStateOpts struct {
 	Channels      []string
 	ChannelGroups []string
 
-	pubnub *PubNub
-	ctx    Context
+	pubnub      *PubNub
+	stringState string
+	ctx         Context
 }
 
 func (o *setStateOpts) config() Config {
@@ -104,6 +105,12 @@ func (o *setStateOpts) validate() error {
 
 	if o.State == nil {
 		return newValidationError(o, "Missing State")
+	} else {
+		state, err := json.Marshal(o.State)
+		if err != nil {
+			return newValidationError(o, err.Error())
+		}
+		o.stringState = string(state)
 	}
 
 	return nil
@@ -120,20 +127,20 @@ func (o *setStateOpts) buildPath() (string, error) {
 }
 
 func (o *setStateOpts) buildQuery() (*url.Values, error) {
-	var err error
-	var state, groups []byte
+	//var err error
+	var groups []byte
 
 	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
 
-	state, err = json.Marshal(o.State)
+	/*state, err = json.Marshal(o.State)
 	if err != nil {
 		return nil, err
-	}
+	}*/
 
 	groups = utils.JoinChannels(o.ChannelGroups)
 
-	if o.State != nil {
-		q.Set("state", string(state))
+	if o.stringState != "" {
+		q.Set("state", o.stringState)
 	}
 
 	if len(o.ChannelGroups) > 0 {
