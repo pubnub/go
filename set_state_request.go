@@ -107,10 +107,13 @@ func (o *setStateOpts) validate() error {
 		return newValidationError(o, "Missing State")
 	} else {
 		state, err := json.Marshal(o.State)
+		fmt.Println("state", o.State)
 		if err != nil {
 			return newValidationError(o, err.Error())
 		}
+
 		o.stringState = string(state)
+		fmt.Println("state", string(state))
 	}
 
 	return nil
@@ -138,8 +141,9 @@ func (o *setStateOpts) buildQuery() (*url.Values, error) {
 
 	groups = utils.JoinChannels(o.ChannelGroups)
 
-	if o.stringState == "" {
+	if o.stringState != "" {
 		q.Set("state", o.stringState)
+		fmt.Println("o.stringState", o.stringState)
 	}
 
 	if len(o.ChannelGroups) > 0 {
