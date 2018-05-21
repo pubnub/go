@@ -3,6 +3,7 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -80,6 +81,7 @@ type SubscribeOperation struct {
 	PresenceEnabled  bool
 	Timetoken        int64
 	FilterExpression string
+	State            map[string]interface{}
 }
 
 type UnsubscribeOperation struct {
@@ -314,6 +316,11 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			Heartbeat:        m.pubnub.Config.PresenceTimeout,
 			FilterExpression: m.pubnub.Config.FilterExpression,
 			ctx:              ctx,
+		}
+
+		if s := m.stateManager.createStatePayload(); len(s) > 0 {
+			opts.State = s
+			fmt.Println("m.stateManager.createStatePayload()", opts.State)
 		}
 
 		res, _, err := executeRequest(opts)

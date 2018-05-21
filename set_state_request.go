@@ -127,7 +127,6 @@ func (o *setStateOpts) buildPath() (string, error) {
 }
 
 func (o *setStateOpts) buildQuery() (*url.Values, error) {
-	//var err error
 	var groups []byte
 
 	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
@@ -139,7 +138,7 @@ func (o *setStateOpts) buildQuery() (*url.Values, error) {
 
 	groups = utils.JoinChannels(o.ChannelGroups)
 
-	if o.stringState != "" {
+	if o.stringState == "" {
 		q.Set("state", o.stringState)
 	}
 

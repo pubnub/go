@@ -217,8 +217,8 @@ func showSubscribeHelp() {
 
 func showSubscribeWithStateHelp() {
 	fmt.Println(" SUBSCRIBE With State EXAMPLE: ")
-	fmt.Println("	sub withPresence channels channelGroups state")
-	fmt.Println("	sub true my-channel,my-another-channel my-channelgroup,my-another-channel-group {\"k2\":\"v2\"}")
+	fmt.Println("	subs withPresence channels channelGroups state")
+	fmt.Println("	subs true my-channel,my-another-channel my-channelgroup,my-another-channel-group {\"k2\":\"v2\"}")
 }
 
 func showHistoryHelp() {
@@ -988,12 +988,14 @@ func subscribeRequest(args []string) {
 
 	channels := strings.Split(args[1], ",")
 	if (len(args)) > 2 {
+		fmt.Println("sub with state")
 		var state map[string]interface{}
 		var v interface{}
 		err := json.Unmarshal([]byte(args[3]), &v)
 		if err == nil {
 			if st, ok := v.(map[string]interface{}); ok {
 				state = st
+				fmt.Println("state ok")
 			} else {
 
 				fmt.Println("!ok", reflect.TypeOf(v))

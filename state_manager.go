@@ -35,6 +35,13 @@ func newSubscriptionItem(name string) *SubscriptionItem {
 	}
 }
 
+func newSubscriptionItemWithState(name string, state map[string]interface{}) *SubscriptionItem {
+	return &SubscriptionItem{
+		name:  name,
+		state: state,
+	}
+}
+
 func (m *StateManager) prepareChannelList(includePresence bool) []string {
 	m.RLock()
 	defer m.RUnlock()
@@ -55,7 +62,11 @@ func (m *StateManager) adaptSubscribeOperation(
 	defer m.Unlock()
 
 	for _, ch := range subscribeOperation.Channels {
-		m.channels[ch] = newSubscriptionItem(ch)
+		if len(subscribeOperation.State) > 0 {
+			m.channels[ch] = newSubscriptionItemWithState(ch, subscribeOperation.State)
+		} else {
+			m.channels[ch] = newSubscriptionItem(ch)
+		}
 
 		if subscribeOperation.PresenceEnabled {
 			m.presenceChannels[ch] = newSubscriptionItem(ch)
@@ -63,7 +74,11 @@ func (m *StateManager) adaptSubscribeOperation(
 	}
 
 	for _, cg := range subscribeOperation.ChannelGroups {
-		m.groups[cg] = newSubscriptionItem(cg)
+		if len(subscribeOperation.State) > 0 {
+			m.groups[cg] = newSubscriptionItemWithState(cg, subscribeOperation.State)
+		} else {
+			m.groups[cg] = newSubscriptionItem(cg)
+		}
 
 		if subscribeOperation.PresenceEnabled {
 			m.presenceGroups[cg] = newSubscriptionItem(cg)
