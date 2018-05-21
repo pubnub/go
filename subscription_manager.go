@@ -3,7 +3,6 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -320,7 +319,6 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		if s := m.stateManager.createStatePayload(); len(s) > 0 {
 			opts.State = s
-			fmt.Println("m.stateManager.createStatePayload()", opts.State)
 		}
 
 		res, _, err := executeRequest(opts)

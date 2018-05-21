@@ -80,23 +80,11 @@ func (b *subscribeBuilder) WithPresence(pres bool) *subscribeBuilder {
 
 func (b *subscribeBuilder) State(state map[string]interface{}) *subscribeBuilder {
 	b.operation.State = state
-	fmt.Println("=>>>>setting state", b.operation.State)
 	return b
 }
 
 func (b *subscribeBuilder) Execute() {
-	fmt.Println("=>>>>setting state2", b.opts.State)
-	/*if b.opts.State != nil {
-		stateOperation := StateOperation{}
-		stateOperation.channels = b.operation.Channels
-		stateOperation.channelGroups = b.operation.ChannelGroups
-		stateOperation.state = b.opts.State
-		b.opts.pubnub.subscriptionManager.adaptState(stateOperation)
-	}*/
-
 	b.opts.pubnub.subscriptionManager.adaptSubscribe(b.operation)
-	fmt.Println("=>>>>setting state3", b.opts.State)
-	/**/
 }
 
 func (o *subscribeOpts) config() Config {
@@ -125,16 +113,12 @@ func (o *subscribeOpts) validate() error {
 	}
 
 	if o.State != nil {
-		fmt.Println("=>>>>setting state not nil", o.State)
 		state, err := json.Marshal(o.State)
 		if err != nil {
 			return newValidationError(o, err.Error())
 		}
 
 		o.stringState = string(state)
-		fmt.Println("=>>>>setting state after val", o.stringState)
-	} else {
-		fmt.Println("=>>>> state  nil")
 	}
 	return nil
 }
@@ -179,7 +163,6 @@ func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 	}*/
 
 	if o.stringState != "" {
-		fmt.Println("=>>>>setting state qs")
 		q.Set("state", o.stringState)
 	}
 
