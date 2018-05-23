@@ -92,7 +92,8 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 		query.Set("uuid", utils.UrlEncode(v))
 	}
 
-	if v := query.Get("auth"); v != "" {
+	//if v := query.Get("auth"); v != "" {
+	if v := o.config().AuthKey; v != "" {
 		query.Set("auth", v)
 	}
 

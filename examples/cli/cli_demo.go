@@ -35,10 +35,11 @@ func connect() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 	config = pubnub.NewConfig()
-	config.Origin = "ssp.pubnub.com"
+	//config.Origin = "ssp.pubnub.com"
 	config.UseHttp2 = false
 
 	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
+	config.AuthKey = "a"
 	//config.EnableLogging = false
 
 	var infoLogger *log.Logger
@@ -63,7 +64,7 @@ func connect() {
 	//config.SubscribeKey = "sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64"
 	config.PublishKey = "pub-c-7e5c6521-91d0-4e60-9656-4bed419a769b"
 	config.SubscribeKey = "sub-c-b9ab9508-43cf-11e8-9967-869954283fb4"
-	config.SecretKey = "sec-c-MjRhODgwMTgtY2RmMS00ZWNmLTgzNTUtYjI3MzZhOThlNTY0"
+	//config.SecretKey = "sec-c-MjRhODgwMTgtY2RmMS00ZWNmLTgzNTUtYjI3MzZhOThlNTY0"
 
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
@@ -318,6 +319,8 @@ func readCommand(cmd string) {
 		grant(command[1:])
 	case "help":
 		showHelp()
+	case "pt":
+		publishTest()
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -869,6 +872,28 @@ func hereNowRequest(args []string) {
 	}
 }
 
+func publishTest() {
+	ch := "my-channel"
+	for i := 0; i < 1000; i++ {
+		go publish(i, ch)
+	}
+}
+
+func publish(i int, ch string) {
+	msg := fmt.Sprintf("Message: %d", i)
+	fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
+	res, status, err := pn.Publish().
+		Channel(ch).
+		Message(msg).
+		Execute()
+
+	if err != nil {
+		showErr("Error while publishing: " + err.Error())
+	}
+
+	fmt.Println(fmt.Sprintf("%s\nPublish Response: msg %s\n%s %s\n%s", outputPrefix, msg, res, status, outputSuffix))
+}
+
 func publishRequest(args []string) {
 	if len(args) < 5 {
 		showErr("channels or message not found")
@@ -987,7 +1012,7 @@ func subscribeRequest(args []string) {
 	withPresence, _ := strconv.ParseBool(args[0])
 
 	channels := strings.Split(args[1], ",")
-	if (len(args)) > 2 {
+	if (len(args)) > 3 {
 		fmt.Println("sub with state")
 		var state map[string]interface{}
 		var v interface{}

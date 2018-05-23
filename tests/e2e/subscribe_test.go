@@ -3,9 +3,9 @@ package e2e
 import (
 	//"encoding/json"
 	"fmt"
-	//"log"
+	"log"
 	"math/rand"
-	//"os"
+	"os"
 	//"reflect"
 	"sync"
 	"testing"
@@ -60,6 +60,9 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 					doneSubscribe <- true
 				case pubnub.PNDisconnectedCategory:
 					doneUnsubscribe <- true
+					return
+				default:
+					errChan <- fmt.Sprintf("%s", status)
 					return
 				}
 			case <-listener.Message:
@@ -1784,6 +1787,7 @@ func TestSubscribeSuperCall(t *testing.T) {
 	validCharacters := "-_~?#[]@!$&'()+;=`|"
 	config.Uuid = validCharacters
 	config.AuthKey = validCharacters
+	config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	pn := pubnub.NewPubNub(config)
 	listener := pubnub.NewListener()
@@ -1795,6 +1799,8 @@ func TestSubscribeSuperCall(t *testing.T) {
 				switch status.Category {
 				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
+				default:
+					errChan <- fmt.Sprintf("Not connected: ", status)
 				}
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a status event"
