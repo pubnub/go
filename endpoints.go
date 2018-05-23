@@ -58,6 +58,11 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 		query.Set("filter-expr", o.config().FilterExpression)
 	}
 
+	//if v := query.Get("auth"); v != "" {
+	if v := o.config().AuthKey; v != "" {
+		query.Set("auth", v)
+	}
+
 	if o.config().SecretKey != "" {
 		timestamp := time.Now().Unix()
 		query.Set("timestamp", strconv.Itoa(int(timestamp)))
@@ -90,11 +95,6 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 
 	if v := query.Get("uuid"); v != "" {
 		query.Set("uuid", utils.UrlEncode(v))
-	}
-
-	//if v := query.Get("auth"); v != "" {
-	if v := o.config().AuthKey; v != "" {
-		query.Set("auth", v)
 	}
 
 	i := 0
