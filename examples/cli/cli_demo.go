@@ -64,7 +64,7 @@ func connect() {
 	//config.SubscribeKey = "sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64"
 	config.PublishKey = "pub-c-7e5c6521-91d0-4e60-9656-4bed419a769b"
 	config.SubscribeKey = "sub-c-b9ab9508-43cf-11e8-9967-869954283fb4"
-	//config.SecretKey = "sec-c-MjRhODgwMTgtY2RmMS00ZWNmLTgzNTUtYjI3MzZhOThlNTY0"
+	config.SecretKey = "sec-c-MjRhODgwMTgtY2RmMS00ZWNmLTgzNTUtYjI3MzZhOThlNTY0"
 
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)

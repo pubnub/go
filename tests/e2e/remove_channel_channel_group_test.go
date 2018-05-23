@@ -55,7 +55,7 @@ func TestRemoveChannelFromChannelGroupSuperCall(t *testing.T) {
 	validCharacters := "?#[]@!$&'()+;=`|"
 
 	config.Uuid = validCharacters
-	config.AuthKey = validCharacters
+	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 

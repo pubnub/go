@@ -247,7 +247,7 @@ func TestPublishSigned(t *testing.T) {
 
 	config := pamConfigCopy()
 	config.Uuid = validCharacters
-	config.AuthKey = validCharacters
+	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 
@@ -265,7 +265,7 @@ func TestPublishSuperCall(t *testing.T) {
 
 	config := pamConfigCopy()
 	config.Uuid = validCharacters
-	config.AuthKey = validCharacters
+	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 

@@ -1786,7 +1786,7 @@ func TestSubscribeSuperCall(t *testing.T) {
 	// .,:*
 	validCharacters := "-_~?#[]@!$&'()+;=`|"
 	config.Uuid = validCharacters
-	config.AuthKey = validCharacters
+	//config.AuthKey = validCharacters
 	config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	pn := pubnub.NewPubNub(config)

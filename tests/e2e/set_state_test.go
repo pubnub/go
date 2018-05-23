@@ -54,7 +54,7 @@ func TestSetStateSuperCall(t *testing.T) {
 	// Not allowed characters: /
 	config.Uuid = validCharacters
 
-	config.AuthKey = validCharacters
+	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 	state := make(map[string]interface{})

@@ -62,7 +62,7 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 	channelCharacters := "-_~"
 
 	config.Uuid = validCharacters
-	config.AuthKey = validCharacters
+	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 

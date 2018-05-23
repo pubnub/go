@@ -44,7 +44,7 @@ func TestHistoryDeleteSuperCall(t *testing.T) {
 	validCharacters := "-._~:[]@!$&'()*+;=`|"
 
 	config.Uuid = validCharacters
-	config.AuthKey = validCharacters
+	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 
