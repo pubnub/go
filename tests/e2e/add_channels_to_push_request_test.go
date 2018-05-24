@@ -2,8 +2,8 @@ package e2e
 
 import (
 	//"fmt"
-	"log"
-	"os"
+	//"log"
+	//"os"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -14,7 +14,7 @@ func TestAddChannelToPushNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	_, _, err := pn.AddPushNotificationsOnChannels().
 		Channels([]string{"ch"}).

@@ -2,8 +2,8 @@ package e2e
 
 import (
 	"fmt"
-	"log"
-	"os"
+	//"log"
+	//"os"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -31,7 +31,7 @@ func TestFetch(t *testing.T) {
 	assert := a.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	reverse := true
 
 	r := GenRandom()

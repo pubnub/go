@@ -3,9 +3,9 @@ package e2e
 import (
 	//"encoding/json"
 	"fmt"
-	"log"
+	//"log"
 	"math/rand"
-	"os"
+	//"os"
 	//"reflect"
 	"sync"
 	"testing"
@@ -1787,7 +1787,7 @@ func TestSubscribeSuperCall(t *testing.T) {
 	validCharacters := "-_~?#[]@!$&'()+;=`|"
 	config.Uuid = validCharacters
 	//config.AuthKey = validCharacters
-	config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	pn := pubnub.NewPubNub(config)
 	listener := pubnub.NewListener()
