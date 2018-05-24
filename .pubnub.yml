@@ -1,8 +1,26 @@
 name: go
-version: v4.0.0-beta.7
+version: v4.0.0-rc.2
 schema: 1
 scm: github.com/pubnub/go
 changelog:
+  - version: v4.0.0-rc.2
+    changes:
+      - type: bug
+        text: auth fix
+      - type: bug
+        text: Signature does not match fix when both secret key and auth is set
+      - type: improvement
+        text: cleanup
+      - type: improvement
+        text: integration tests fixes for the changes done on auth
+  - version: v4.0.0-rc.1
+    changes:
+      - type: bug
+        text: set state refactor fix
+  - version: v4.0.0-beta.8
+    changes:
+      - type: improvement
+        text: Subscribe with state
   - version: v4.0.0-beta.7
     changes:
       - type: improvement
