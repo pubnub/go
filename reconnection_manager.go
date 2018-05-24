@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"log"
 	"math"
 	"sync"
 	"time"
@@ -60,7 +59,7 @@ func (m *ReconnectionManager) HandleOnMaxReconnectionExhaustion(handler func()) 
 
 func (m *ReconnectionManager) startPolling() {
 	if m.pubnub.Config.PNReconnectionPolicy == PNNonePolicy {
-		log.Println("reconnection policy is disabled, please handle reconnection manually")
+		m.pubnub.Config.Log.Println("reconnection policy is disabled, please handle reconnection manually")
 		return
 	}
 
@@ -76,7 +75,7 @@ func (m *ReconnectionManager) registerHeartbeatTimer() {
 	m.stopHeartbeatTimer()
 
 	if m.pubnub.Config.PNReconnectionPolicy == PNNonePolicy {
-		log.Println("Reconnection policy is disabled, please handle reconnection manually.")
+		m.pubnub.Config.Log.Println("Reconnection policy is disabled, please handle reconnection manually.")
 		return
 	}
 
@@ -102,8 +101,7 @@ func (m *ReconnectionManager) registerHeartbeatTimer() {
 			m.ExponentialMultiplier = 1
 			m.Unlock()
 
-			// TODO: add timestamp
-			log.Printf("timerInterval > MaxExponentialBackoff at: \n")
+			m.pubnub.Config.Log.Printf("timerInterval > MaxExponentialBackoff at: \n")
 		} else {
 			timerInterval = reconnectionMinExponentialBackoff
 		}

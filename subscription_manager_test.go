@@ -101,8 +101,7 @@ func TestParseCipherInterfacePlainWithCipherStruct(t *testing.T) {
 
 	assert.Nil(err)
 	if msg, ok := intf.(customStruct); !ok {
-		fmt.Println(reflect.TypeOf(intf).Kind())
-		assert.Fail("not map")
+		assert.Fail(fmt.Sprintf("not map %s", reflect.TypeOf(intf).Kind()))
 	} else {
 		assert.Equal("hi!", msg.Foo)
 		assert.Equal(2, msg.Bar[1])
@@ -124,8 +123,7 @@ func TestParseCipherInterfacePlainWithoutCipherStruct(t *testing.T) {
 
 	assert.Nil(err)
 	if msg, ok := intf.(customStruct); !ok {
-		fmt.Println(reflect.TypeOf(intf).Kind())
-		assert.Fail("not map")
+		assert.Fail(fmt.Sprintf("not map %s", reflect.TypeOf(intf).Kind()))
 	} else {
 		assert.Equal("hi!", msg.Foo)
 		assert.Equal(2, msg.Bar[1])

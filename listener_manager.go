@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -54,7 +53,6 @@ func (m *ListenerManager) removeAllListeners() {
 }
 
 func (m *ListenerManager) announceStatus(status *PNStatus) {
-	//m.RLock()
 	go func() {
 		m.RLock()
 		for l, _ := range m.listeners {
@@ -68,11 +66,9 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 		}
 		m.RUnlock()
 	}()
-	//m.RUnlock()
 }
 
 func (m *ListenerManager) announceMessage(message *PNMessage) {
-	//m.RLock()
 	go func() {
 		m.RLock()
 		for l, _ := range m.listeners {
@@ -80,14 +76,13 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 			case <-m.ctx.Done():
 				return
 			case <-m.exitListener:
-				fmt.Println("closing announceMessage")
+				//closing announceMessage
 				return
 			case l.Message <- message:
 			}
 		}
 		m.RUnlock()
 	}()
-	//m.RUnlock()
 }
 
 func (m *ListenerManager) announcePresence(presence *PNPresence) {

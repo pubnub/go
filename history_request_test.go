@@ -2,9 +2,7 @@ package pubnub
 
 import (
 	"fmt"
-	//"log"
 	"net/url"
-	//"os"
 	"reflect"
 	"testing"
 
@@ -172,11 +170,6 @@ func TestHistoryResponseParsingSlice(t *testing.T) {
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
-	// assert.Equal(int64(14991868111600528), resp.EndTimetoken)
-	//
-	// messages := resp.Messages
-	// assert.Equal([]interface{}{float64(1), float64(2), float64(3)},
-	// messages[0].Message)
 }
 
 func TestHistoryResponseParsingMap(t *testing.T) {
@@ -191,11 +184,6 @@ func TestHistoryResponseParsingMap(t *testing.T) {
 	assert.Equal(int64(14991868111600528), resp.EndTimetoken)
 
 	messages := resp.Messages
-	/*for v, k := range messages {
-		fmt.Println(v, k)
-	}*/
-	//fmt.Println(messages[0].Message)
-	//fmt.Println(messages[1].Message)
 	assert.Equal(map[string]interface{}{"two": float64(2), "one": float64(1)},
 		messages[0].Message)
 }
@@ -203,7 +191,6 @@ func TestHistoryResponseParsingMap(t *testing.T) {
 func TestHistoryPNOther(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig.CipherKey = "testCipher"
-	//fmt.Println(utils.EncryptString("testCipher", `{"three":3, "four":4}`))
 	int64Val := int64(14991775432719844)
 	jsonString := []byte(`[[{"pn_other":"ven1bo79fk88nq5EIcnw/N9RmGzLeeWMnsabr1UL3iw="},1,"a",1.1,false,14991775432719844],14991775432719844,14991868111600528]`)
 
@@ -219,7 +206,6 @@ func TestHistoryPNOther(t *testing.T) {
 	case map[string]interface{}:
 		testMap := make(map[string]interface{})
 		testMap = v
-		//pn_other := make(map[string]string)
 		if msgOther2, ok := testMap["pn_other"].(map[string]interface{}); !ok {
 			assert.Fail("!map[string]interface{} 2")
 		} else {
@@ -229,7 +215,6 @@ func TestHistoryPNOther(t *testing.T) {
 
 		break
 	default:
-		//fmt.Println(reflect.TypeOf(v).Kind(), reflect.TypeOf(data).Kind(), v, data)
 		assert.Fail(fmt.Sprintf("%s", reflect.TypeOf(v).Kind()), " expected interafce")
 		break
 	}
@@ -244,7 +229,6 @@ func TestHistoryPNOther(t *testing.T) {
 func TestHistoryPNOtherYay(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig.CipherKey = "enigma"
-	//fmt.Println(utils.EncryptString("testCipher", `{"three":3, "four":4}`))
 	int64Val := int64(14991775432719844)
 	jsonString := []byte(`[[{"pn_other":"Wi24KS4pcTzvyuGOHubiXg=="},1,"a",1.1,false,14991775432719844],14991775432719844,14991868111600528]`)
 
@@ -260,19 +244,13 @@ func TestHistoryPNOtherYay(t *testing.T) {
 	case map[string]interface{}:
 		testMap := make(map[string]interface{})
 		testMap = v
-		//pn_other := make(map[string]string)
 		pn_other := testMap["pn_other"].(string)
 		assert.Equal("yay!", pn_other)
-
-		//assert.Equal(pn_other["three"], 3)
 
 		break
 	default:
 		fmt.Println(reflect.TypeOf(v).Kind(), reflect.TypeOf(data).Kind(), v, data)
 		assert.Fail("failed")
-		//assert.Fail(fmt.Sprintf("%s", reflect.TypeOf(v).Kind()), " expected interafce")
-		//pn_other := v["pn_other"].(string)
-		//assert.Equal("yay!", pn_other)
 
 		break
 	}
@@ -327,7 +305,6 @@ func TestHistoryEncrypt(t *testing.T) {
 
 	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
-	//fmt.Println(resp)
 
 	messages := resp.Messages
 	assert.Equal("hey", messages[0].Message)
@@ -337,7 +314,6 @@ func TestHistoryEncrypt(t *testing.T) {
 func TestHistoryEncryptSlice(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig.CipherKey = "testCipher"
-	//pnconfig.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	jsonString := []byte(`[["gwkdY8qcv60GM/PslArWQsdXrQ6LwJD2HoaEfy0CjMc="],14991775432719844,14991868111600528]`)
 
@@ -359,7 +335,6 @@ func TestHistoryEncryptSlice(t *testing.T) {
 func TestHistoryEncryptMap(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig.CipherKey = "testCipher"
-	//pnconfig.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	jsonString := []byte(`[["wIC13nvJcI4vBtWNFVUu0YDiqREr9kavB88xeyWTweDS363Yl84RCWqOHWTol4aY"],14991775432719844,14991868111600528]`)
 
@@ -367,13 +342,11 @@ func TestHistoryEncryptMap(t *testing.T) {
 	assert.Nil(err)
 
 	messages := resp.Messages
-	//log.Println(messages[0].Message)
 	if resp, ok := messages[0].Message.(map[string]interface{}); !ok {
 		assert.Fail("!ok map[string]interface {}")
 	} else {
 		assert.Equal(float64(1), resp["one"].(float64))
 		if resp2, ok2 := resp["two"].([]interface{}); !ok2 {
-			//fmt.Println(reflect.TypeOf(resp2).Kind(), resp2)
 			assert.Fail("!ok2 map[int]interface{}")
 		} else {
 			assert.Equal("hey-1", resp2[0])

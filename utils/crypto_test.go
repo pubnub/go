@@ -462,7 +462,7 @@ func initComplexMessage() customComplexMessage {
 
 	err := enc.Encode(xmlDoc)
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
+		//fmt.Printf("error: %v\n", err)
 		return customComplexMessage{}
 	}
 

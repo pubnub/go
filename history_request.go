@@ -314,20 +314,3 @@ type HistoryResponseItem struct {
 	Message   interface{}
 	Timetoken int64
 }
-
-/*func unmarshalWithDecrypt(val string, cipherKey string) (interface{}, error) {
-	v, err := utils.DecryptString(cipherKey, val)
-	if err != nil {
-		return nil, err
-	}
-
-	value := v.(string)
-
-	var result interface{}
-	err = json.Unmarshal([]byte(value), &result)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}*/

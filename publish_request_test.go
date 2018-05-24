@@ -239,7 +239,6 @@ func TestPublishEncrypt(t *testing.T) {
 	assert.Equal(
 		"/publish/pub_key/sub_key/0/ch/0/%22%2Bc52pEK3TCTpuEjEFzukRw%3D%3D%22", path)
 
-	//"MnwzPGdVgz2osQCIQJviGg=="
 	pnconfig.CipherKey = ""
 }
 

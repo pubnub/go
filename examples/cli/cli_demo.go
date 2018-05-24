@@ -39,7 +39,7 @@ func connect() {
 	config.UseHttp2 = false
 
 	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
-	config.AuthKey = "a"
+	//config.AuthKey = "a"
 	//config.EnableLogging = false
 
 	var infoLogger *log.Logger

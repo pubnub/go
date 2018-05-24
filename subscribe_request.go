@@ -157,11 +157,6 @@ func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 		q.Set("heartbeat", fmt.Sprintf("%d", o.Heartbeat))
 	}
 
-	/*state, err = json.Marshal(o.State)
-	if err != nil {
-		return nil, err
-	}*/
-
 	if o.stringState != "" {
 		q.Set("state", o.stringState)
 	}

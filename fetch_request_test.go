@@ -113,7 +113,6 @@ func TestFetchResponseWithCipher(t *testing.T) {
 
 func TestFetchResponseWithCipherInterface(t *testing.T) {
 	assert := assert.New(t)
-	//fmt.Println(utils.EncryptString("enigma", "{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}"))
 
 	jsonString := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"test":[{"message":"{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}","timetoken":"15229448184080121"}],"my-channel":[{"message":{"not_other":"1234", "pn_other":"Wi24KS4pcTzvyuGOHubiXg=="},"timetoken":"15229448086016618"},{"message":"bCC/kQbGdScQ0teYcawUsunrJLoUdp3Mwb/24ifa87QDBWv5aTkXkkjVMMXizEDb","timetoken":"15229448126438499"},{"message":"my-message","timetoken":"15229450607090584"}]}}`)
 
@@ -164,7 +163,6 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 		Reverse:  false,
 		pubnub:   pn,
 	}
-	//fmt.Println(utils.EncryptString("enigma", "{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}"))
 
 	jsonString := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"test":[{"message":"{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}","timetoken":"15229448184080121"}],"my-channel":[{"message":{"not_other":"1234", "pn_other":"Wi24KS4pcTzvyuGOHubiXg=="},"timetoken":"15229448086016618"},{"message":"bCC/kQbGdScQ0teYcawUsunrJLoUdp3Mwb/24ifa87QDBWv5aTkXkkjVMMXizEDb","timetoken":"15229448126438499"},{"message":"my-message","timetoken":"15229450607090584"}]}}`)
 
@@ -204,33 +202,3 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 	pn.Config.CipherKey = ""
 
 }
-
-/*func Fetch(t *testing.T) {
-	assert := assert.New(t)
-
-	pn := pubnub.NewPubNub(config)
-
-	channels := []string{"test1", "test2"}
-
-	res, status, err := pn.Fetch().
-		Channels(channels).
-		Count(count).
-		Reverse(reverse).
-		Execute()
-
-	assert.Nil(err)
-
-	if status.Error == nil {
-		for channel, messages := range res.Messages {
-			fmt.Println("channel", channel)
-			for _, messageInt := range messages {
-				message := pubnub.FetchResponseItem(messageInt)
-				fmt.Println(message.Message)
-				fmt.Println(message.Timetoken)
-			}
-		}
-	} else {
-		fmt.Println("ParseFetch", err)
-		fmt.Println("ParseFetch", status.StatusCode)
-	}
-}*/

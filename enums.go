@@ -5,7 +5,6 @@ type OperationType int
 type ReconnectionPolicy int
 type PNPushType int
 
-// TODO: add prefix
 const (
 	PNNonePolicy ReconnectionPolicy = 1 + iota
 	PNLinearPolicy

@@ -72,11 +72,6 @@ func (b *fetchBuilder) Reverse(r bool) *fetchBuilder {
 	return b
 }
 
-/*func (b *fetchBuilder) IncludeTimetoken(i bool) *fetchBuilder {
-	b.opts.IncludeTimetoken = i
-	return b
-}*/
-
 func (b *fetchBuilder) Transport(tr http.RoundTripper) *fetchBuilder {
 	b.opts.Transport = tr
 	return b
@@ -167,7 +162,6 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
-	//q.Set("include_token", strconv.FormatBool(o.IncludeTimetoken))
 
 	return q, nil
 }
@@ -256,7 +250,6 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 
 	if result, ok := value.(map[string]interface{}); ok {
 
-		//if result != nil {
 		o.pubnub.Config.Log.Println(result["channels"])
 		if channels, ok1 := result["channels"].(map[string]interface{}); ok1 {
 

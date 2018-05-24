@@ -19,7 +19,6 @@ type endpointOpts interface {
 
 	buildPath() (string, error)
 	buildQuery() (*url.Values, error)
-	// or bytes[]?
 	buildBody() ([]byte, error)
 
 	httpMethod() string
@@ -58,7 +57,6 @@ func buildUrl(o endpointOpts) (*url.URL, error) {
 		query.Set("filter-expr", o.config().FilterExpression)
 	}
 
-	//if v := query.Get("auth"); v != "" {
 	if v := o.config().AuthKey; v != "" {
 		query.Set("auth", v)
 	}
