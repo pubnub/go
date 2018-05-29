@@ -296,6 +296,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				Category: PNDisconnectedCategory,
 			})
 			m.log("no channels left to subscribe")
+			m.reconnectionManager.stopHeartbeatTimer()
 			break
 		}
 
@@ -791,6 +792,7 @@ func (m *SubscriptionManager) Disconnect() {
 
 	m.stopHeartbeat()
 	m.stopSubscribeLoop()
+	m.reconnectionManager.stopHeartbeatTimer()
 	//m.reconnectionManager.stopHeartbeatTimer()
 	m.subscribeCancel()
 }

@@ -196,8 +196,11 @@ func (m *ReconnectionManager) GetExponentialInterval() int {
 	return timerInterval
 }
 
-/*func (m *ReconnectionManager) stopHeartbeatTimer() {
-	m.timerMutex.Lock()
+func (m *ReconnectionManager) stopHeartbeatTimer() {
+	m.exitReconnectionManager <- true
+}
+
+/*m.timerMutex.Lock()
 
 	if m.Timer != nil {
 		m.Timer.Stop()
