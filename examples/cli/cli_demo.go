@@ -38,7 +38,7 @@ func connect() {
 	//config.Origin = "ssp.pubnub.com"
 	config.UseHttp2 = false
 
-	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
+	config.PNReconnectionPolicy = pubnub.PNExponentialPolicy
 	//config.AuthKey = "a"
 	//config.EnableLogging = false
 

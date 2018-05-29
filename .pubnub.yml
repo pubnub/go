@@ -1,8 +1,12 @@
 name: go
-version: v4.0.0-rc.2
+version: v4.0.0-rc.3
 schema: 1
 scm: github.com/pubnub/go
 changelog:
+  - version: v4.0.0-rc.3
+    changes:
+      - type: bug
+        text: Reconnection fixes
   - version: v4.0.0-rc.2
     changes:
       - type: bug

@@ -279,6 +279,8 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 }
 
 func (m *SubscriptionManager) startSubscribeLoop() {
+	go m.reconnectionManager.startPolling()
+
 	for {
 		select {
 		case <-m.ctx.Done():
@@ -326,8 +328,6 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				})
 				continue
 			} else {
-
-				go m.reconnectionManager.startPolling()
 
 				if strings.Contains(err.Error(), "context canceled") {
 					pnStatus := &PNStatus{
@@ -791,7 +791,7 @@ func (m *SubscriptionManager) Disconnect() {
 
 	m.stopHeartbeat()
 	m.stopSubscribeLoop()
-	m.reconnectionManager.stopHeartbeatTimer()
+	//m.reconnectionManager.stopHeartbeatTimer()
 	m.subscribeCancel()
 }
 

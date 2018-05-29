@@ -3,9 +3,9 @@ package e2e
 import (
 	//"encoding/json"
 	"fmt"
-	//"log"
+	"log"
 	"math/rand"
-	//"os"
+	"os"
 	//"reflect"
 	"sync"
 	"testing"
@@ -47,6 +47,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	})
 
 	pn := pubnub.NewPubNub(configCopy())
+
 	pn.SetSubscribeClient(interceptor.GetClient())
 
 	listener := pubnub.NewListener()
@@ -1848,18 +1849,27 @@ func TestReconnectionExhaustion(t *testing.T) {
 
 	config.MaximumReconnectionRetries = 1
 	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
+
 	pn := pubnub.NewPubNub(config)
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
+	count := 0
 
 	go func() {
 		for {
 			select {
 			case status := <-listener.Status:
+
 				switch status.Category {
-				case pubnub.PNReconnectedCategory:
+				case pubnub.PNDisconnectedCategory:
 					doneSubscribe <- true
+				default:
+					if count > 0 {
+						errChan <- fmt.Sprintf("Non PNReconnectedCategory event, %s", status)
+					}
 				}
+				count++
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a status event"
 				return

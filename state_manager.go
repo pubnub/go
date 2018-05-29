@@ -44,16 +44,20 @@ func newSubscriptionItemWithState(name string, state map[string]interface{}) *Su
 
 func (m *StateManager) prepareChannelList(includePresence bool) []string {
 	m.RLock()
-	defer m.RUnlock()
+	channels := m.channels
+	presenceChannels := m.presenceChannels
+	m.RUnlock()
 
-	return prepareMembershipList(m.channels, m.presenceChannels, includePresence)
+	return m.prepareMembershipList(channels, presenceChannels, includePresence)
 }
 
 func (m *StateManager) prepareGroupList(includePresence bool) []string {
 	m.RLock()
-	defer m.RUnlock()
+	groups := m.groups
+	presenceGroups := m.presenceGroups
+	m.RUnlock()
 
-	return prepareMembershipList(m.groups, m.presenceGroups, includePresence)
+	return m.prepareMembershipList(groups, presenceGroups, includePresence)
 }
 
 func (m *StateManager) adaptSubscribeOperation(
@@ -113,7 +117,6 @@ func (m *StateManager) adaptStateOperation(stateOperation StateOperation) {
 
 func (m *StateManager) adaptUnsubscribeOperation(unsubscribeOperation *UnsubscribeOperation) {
 	m.Lock()
-	defer m.Unlock()
 
 	for _, ch := range unsubscribeOperation.Channels {
 		delete(m.channels, ch)
@@ -124,6 +127,7 @@ func (m *StateManager) adaptUnsubscribeOperation(unsubscribeOperation *Unsubscri
 		delete(m.groups, cg)
 		delete(m.presenceGroups, cg)
 	}
+	m.Unlock()
 }
 
 func (m *StateManager) createStatePayload() map[string]interface{} {
@@ -155,11 +159,11 @@ func (m *StateManager) isEmpty() bool {
 		len(m.groups) != 0 && len(m.presenceGroups) != 0
 }
 
-func prepareMembershipList(dataStorage map[string]*SubscriptionItem,
+func (m *StateManager) prepareMembershipList(dataStorage map[string]*SubscriptionItem,
 	presenceStorage map[string]*SubscriptionItem, includePresence bool) []string {
 
 	response := []string{}
-
+	m.Lock()
 	for _, v := range dataStorage {
 		response = append(response, v.name)
 	}
@@ -169,6 +173,7 @@ func prepareMembershipList(dataStorage map[string]*SubscriptionItem,
 			response = append(response, fmt.Sprintf("%s-pnpres", v.name))
 		}
 	}
+	m.Unlock()
 
 	return response
 }
