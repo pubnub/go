@@ -117,8 +117,6 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 		manager.Disconnect()
 	}()
 
-	go subscribeMessageWorker(manager)
-
 	if manager.pubnub.Config.PNReconnectionPolicy != PNNonePolicy {
 
 		manager.reconnectionManager.HandleReconnection(func() {
@@ -281,6 +279,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 }
 
 func (m *SubscriptionManager) startSubscribeLoop() {
+	go subscribeMessageWorker(m)
 
 	go m.reconnectionManager.startPolling()
 
@@ -412,6 +411,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		m.pubnub.Config.Log.Println("=======> envelope:", envelope)
 		if len(envelope.Messages) > 0 {
 			for _, message := range envelope.Messages {
+				m.pubnub.Config.Log.Println("=======> envelopeMessages:", message)
 				m.messages <- message
 			}
 		}
@@ -596,6 +596,7 @@ func subscribeMessageWorker(m *SubscriptionManager) {
 			m.pubnub.Config.Log.Println("=======> subscribeMessageWorker context done")
 			return
 		case message := <-m.messages:
+			m.pubnub.Config.Log.Println("=======> subscribeMessageWorker messages")
 			processSubscribePayload(m, message)
 		}
 	}
@@ -701,6 +702,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			Publisher:         payload.IssuingClientId,
 			UserMetadata:      payload.UserMetadata,
 		}
+		m.pubnub.Config.Log.Println("=======> announceMessage,", pnMessageResult)
 		m.listenerManager.announceMessage(pnMessageResult)
 	}
 }
@@ -794,6 +796,7 @@ func (m *SubscriptionManager) GetListeners() map[*Listener]bool {
 
 func (m *SubscriptionManager) reconnect() {
 	m.pubnub.Config.Log.Println("reconnect")
+
 	m.stopSubscribeLoop()
 
 	m.Lock()
