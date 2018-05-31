@@ -109,7 +109,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 	manager.ctx, manager.subscribeCancel = contextWithCancel(backgroundContext)
 	manager.messages = make(chan subscribeMessage, 1000)
 	manager.reconnectionManager = newReconnectionManager(pubnub)
-
+	manager.exitSubscriptionManager = make(chan bool)
 	manager.Unlock()
 
 	go func() {
@@ -178,7 +178,9 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 func (m *SubscriptionManager) Destroy() {
 	if m.exitSubscriptionManager != nil {
-		close(m.exitSubscriptionManager)
+		//close(m.exitSubscriptionManager)
+		m.subscribeCancel()
+		m.exitSubscriptionManager <- true
 	}
 	if m.listenerManager.exitListener != nil {
 		close(m.listenerManager.exitListener)
@@ -279,14 +281,16 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 }
 
 func (m *SubscriptionManager) startSubscribeLoop() {
+
 	go m.reconnectionManager.startPolling()
 
 	for {
-		select {
+		/*select {
 		case <-m.ctx.Done():
+			m.pubnub.Config.Log.Println("context done")
 			return
 		default:
-		}
+		}*/
 
 		combinedChannels := m.stateManager.prepareChannelList(true)
 		combinedGroups := m.stateManager.prepareGroupList(true)
@@ -295,8 +299,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			m.listenerManager.announceStatus(&PNStatus{
 				Category: PNDisconnectedCategory,
 			})
-			m.log("no channels left to subscribe")
-			m.reconnectionManager.stopHeartbeatTimer()
+			m.pubnub.Config.Log.Println("no channels left to subscribe")
 			break
 		}
 
@@ -318,8 +321,9 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		if s := m.stateManager.createStatePayload(); len(s) > 0 {
 			opts.State = s
 		}
-
+		m.pubnub.Config.Log.Println("before executeRequest")
 		res, _, err := executeRequest(opts)
+		m.pubnub.Config.Log.Println("after executeRequest")
 		if err != nil {
 			m.pubnub.Config.Log.Println(err.Error())
 
@@ -327,6 +331,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				m.listenerManager.announceStatus(&PNStatus{
 					Category: PNTimeoutCategory,
 				})
+
 				continue
 			} else {
 
@@ -336,7 +341,8 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					}
 					m.pubnub.Config.Log.Println("Status:", pnStatus)
 					m.listenerManager.announceStatus(pnStatus)
-					break
+					m.pubnub.Config.Log.Println("context canceled")
+					return
 				} else if strings.Contains(err.Error(), "Forbidden") ||
 					strings.Contains(err.Error(), "403") {
 					pnStatus := &PNStatus{
@@ -403,7 +409,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 			m.listenerManager.announceStatus(pnStatus)
 		}
-
+		m.pubnub.Config.Log.Println("=======> envelope:", envelope)
 		if len(envelope.Messages) > 0 {
 			for _, message := range envelope.Messages {
 				m.messages <- message
@@ -441,7 +447,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 func (m *SubscriptionManager) startHeartbeatTimer() {
 	m.stopHeartbeat()
-	m.log("heartbeat: new timer")
+	m.pubnub.Config.Log.Println("heartbeat: new timer")
 
 	m.hbLoopMutex.Lock()
 	m.hbDataMutex.Lock()
@@ -467,6 +473,7 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 
 			select {
 			case <-m.ctx.Done():
+				m.pubnub.Config.Log.Println("=======> startHeartbeatTimer context done")
 				return
 			case <-timerCh:
 				m.performHeartbeatLoop()
@@ -484,12 +491,12 @@ func (m *SubscriptionManager) stopHeartbeat() {
 	m.hbDataMutex.Lock()
 	if m.hbTimer != nil {
 		m.hbTimer.Stop()
-		m.log("heartbeat: loop: timer stopped")
+		m.pubnub.Config.Log.Println("heartbeat: loop: timer stopped")
 	}
 
 	if m.hbDone != nil {
 		m.hbDone <- true
-		m.log("heartbeat: loop: done channel stopped")
+		m.pubnub.Config.Log.Println("heartbeat: loop: done channel stopped")
 	}
 	m.hbDataMutex.Unlock()
 }
@@ -500,7 +507,7 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 	stateStorage := m.stateManager.createStatePayload()
 
 	if len(presenceChannels) == 0 && len(presenceGroups) == 0 {
-		m.log("heartbeat: no channels left")
+		m.pubnub.Config.Log.Println("heartbeat: no channels left")
 		go m.stopHeartbeat()
 		return nil
 	}
@@ -581,7 +588,9 @@ type originationMetadata struct {
 func subscribeMessageWorker(m *SubscriptionManager) {
 	for {
 		select {
-		case <-m.ctx.Done():
+		//case <-m.ctx.Done():
+		case <-m.exitSubscriptionManager:
+			m.pubnub.Config.Log.Println("=======> subscribeMessageWorker context done")
 			return
 		case message := <-m.messages:
 			processSubscribePayload(m, message)
@@ -781,20 +790,27 @@ func (m *SubscriptionManager) GetListeners() map[*Listener]bool {
 }
 
 func (m *SubscriptionManager) reconnect() {
-	m.log("reconnect")
+	m.pubnub.Config.Log.Println("reconnect")
+	m.stopSubscribeLoop()
+
+	if m.ctx != nil && m.subscribeCancel != nil {
+		m.Lock()
+		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
+		m.Unlock()
+	}
 
 	go m.startSubscribeLoop()
 	go m.startHeartbeatTimer()
 }
 
 func (m *SubscriptionManager) Disconnect() {
-	m.log("disconnect")
+	m.pubnub.Config.Log.Println("disconnect")
+	m.subscribeCancel()
+	m.exitSubscriptionManager <- true
 
 	m.stopHeartbeat()
 	m.stopSubscribeLoop()
 	m.reconnectionManager.stopHeartbeatTimer()
-	//m.reconnectionManager.stopHeartbeatTimer()
-	m.subscribeCancel()
 }
 
 func (m *SubscriptionManager) stopSubscribeLoop() {
@@ -802,9 +818,9 @@ func (m *SubscriptionManager) stopSubscribeLoop() {
 
 	if m.ctx != nil && m.subscribeCancel != nil {
 		m.subscribeCancel()
-		m.Lock()
+		/*m.Lock()
 		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
-		m.Unlock()
+		m.Unlock()*/
 	}
 }
 

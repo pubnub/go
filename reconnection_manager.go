@@ -24,10 +24,9 @@ type ReconnectionManager struct {
 	OnReconnection              func()
 	OnMaxReconnectionExhaustion func()
 	DoneTimer                   chan bool
-	//Timer                       *time.Ticker
-	hbRunning               bool
-	pubnub                  *PubNub
-	exitReconnectionManager chan bool
+	hbRunning                   bool
+	pubnub                      *PubNub
+	exitReconnectionManager     chan bool
 }
 
 func newReconnectionManager(pubnub *PubNub) *ReconnectionManager {
@@ -66,12 +65,14 @@ func (m *ReconnectionManager) startPolling() {
 	m.Lock()
 	m.ExponentialMultiplier = 1
 	m.FailedCalls = 0
-	hbRunning := m.hbRunning
+	// hbRunning := m.hbRunning
 	m.Unlock()
 
-	if !hbRunning {
+	if !m.hbRunning {
 		m.pubnub.Config.Log.Println(fmt.Sprintf("Reconnection policy: %d, retries: %d", m.pubnub.Config.PNReconnectionPolicy, m.pubnub.Config.MaximumReconnectionRetries))
 		m.startHeartbeatTimer()
+	} else {
+		m.pubnub.Config.Log.Println("==========> hb already running")
 	}
 
 }
@@ -197,6 +198,7 @@ func (m *ReconnectionManager) GetExponentialInterval() int {
 }
 
 func (m *ReconnectionManager) stopHeartbeatTimer() {
+	m.pubnub.Config.Log.Printf("==========> stopHeartbeatTimer true")
 	m.exitReconnectionManager <- true
 }
 

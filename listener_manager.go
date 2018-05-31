@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -58,6 +59,7 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 		for l, _ := range m.listeners {
 			select {
 			case <-m.ctx.Done():
+				fmt.Println("announceStatus m.ctx.Done")
 				return
 			case <-m.exitListener:
 				return
@@ -74,6 +76,7 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 		for l, _ := range m.listeners {
 			select {
 			case <-m.ctx.Done():
+				fmt.Println("announceMessage m.ctx.Done")
 				return
 			case <-m.exitListener:
 				//closing announceMessage
@@ -91,6 +94,7 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	for l, _ := range m.listeners {
 		select {
 		case <-m.ctx.Done():
+			fmt.Println("announcePresence m.ctx.Done")
 			return
 		case l.Presence <- presence:
 		}
