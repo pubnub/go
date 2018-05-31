@@ -1,7 +1,7 @@
 package pubnub
 
 import (
-	"fmt"
+	"log"
 	"sync"
 )
 
@@ -59,11 +59,13 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 		for l, _ := range m.listeners {
 			select {
 			case <-m.ctx.Done():
-				fmt.Println("announceStatus m.ctx.Done")
+				log.Println("announceStatus m.ctx.Done")
 				return
 			case <-m.exitListener:
+				log.Println("announceStatus exitListener")
 				return
 			case l.Status <- status:
+				log.Println("l.Status", l.Status)
 			}
 		}
 		m.RUnlock()
@@ -76,12 +78,13 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 		for l, _ := range m.listeners {
 			select {
 			case <-m.ctx.Done():
-				fmt.Println("announceMessage m.ctx.Done")
+				log.Println("announceMessage m.ctx.Done")
 				return
 			case <-m.exitListener:
-				//closing announceMessage
+				log.Println("announceMessage exitListener")
 				return
 			case l.Message <- message:
+				log.Println("l.Message", l.Status)
 			}
 		}
 		m.RUnlock()
@@ -94,9 +97,10 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	for l, _ := range m.listeners {
 		select {
 		case <-m.ctx.Done():
-			fmt.Println("announcePresence m.ctx.Done")
+			log.Println("announcePresence m.ctx.Done")
 			return
 		case l.Presence <- presence:
+			log.Println("l.Presence", l.Presence)
 		}
 	}
 	m.RUnlock()

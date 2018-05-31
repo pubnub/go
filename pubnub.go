@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -334,6 +335,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	if pnconf.Log == nil {
 		pnconf.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
+	pnconf.Log.Println(fmt.Sprintf("PubNub Go v4 SDK: %s\npnconf: %v", Version, pnconf))
 
 	pn := &PubNub{
 		Config:              pnconf,

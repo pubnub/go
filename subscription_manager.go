@@ -139,10 +139,10 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 			pubnub.Config.Log.Println("Status: ", pnStatus)
 
-			manager.RLock()
+			//manager.RLock()
 
 			manager.listenerManager.announceStatus(pnStatus)
-			manager.RUnlock()
+			//manager.RUnlock()
 		})
 	}
 
@@ -158,9 +158,9 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 		}
 		pubnub.Config.Log.Println("Status: ", pnStatus)
 
-		manager.RLock()
+		//manager.RLock()
 		manager.listenerManager.announceStatus(pnStatus)
-		manager.RUnlock()
+		//manager.RUnlock()
 
 		manager.Disconnect()
 	})
@@ -470,9 +470,12 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 			doneCh := m.hbDone
 
 			m.hbDataMutex.RUnlock()
+			m.RLock()
+			ctx := m.ctx
+			m.RUnlock()
 
 			select {
-			case <-m.ctx.Done():
+			case <-ctx.Done():
 				m.pubnub.Config.Log.Println("=======> startHeartbeatTimer context done")
 				return
 			case <-timerCh:
@@ -793,11 +796,11 @@ func (m *SubscriptionManager) reconnect() {
 	m.pubnub.Config.Log.Println("reconnect")
 	m.stopSubscribeLoop()
 
+	m.Lock()
 	if m.ctx != nil && m.subscribeCancel != nil {
-		m.Lock()
 		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
-		m.Unlock()
 	}
+	m.Unlock()
 
 	go m.startSubscribeLoop()
 	go m.startHeartbeatTimer()
@@ -805,8 +808,10 @@ func (m *SubscriptionManager) reconnect() {
 
 func (m *SubscriptionManager) Disconnect() {
 	m.pubnub.Config.Log.Println("disconnect")
-	m.subscribeCancel()
-	m.exitSubscriptionManager <- true
+	//m.subscribeCancel()
+	if m.exitSubscriptionManager != nil {
+		m.exitSubscriptionManager <- true
+	}
 
 	m.stopHeartbeat()
 	m.stopSubscribeLoop()
