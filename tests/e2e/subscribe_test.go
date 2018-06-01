@@ -1900,6 +1900,7 @@ func ReconnectionExhaustion(t *testing.T) {
 
 	select {
 	case <-doneSubscribe:
+		fmt.Println("doneSubscribe")
 	case err := <-errChan:
 		assert.Fail(err)
 	}
