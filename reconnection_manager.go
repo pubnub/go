@@ -65,11 +65,24 @@ func (m *ReconnectionManager) startPolling() {
 	m.Lock()
 	m.ExponentialMultiplier = 1
 	m.FailedCalls = 0
-	// hbRunning := m.hbRunning
+	hbRunning := m.hbRunning
 	m.Unlock()
 
-	if !m.hbRunning {
+	if !hbRunning {
 		m.pubnub.Config.Log.Println(fmt.Sprintf("Reconnection policy: %d, retries: %d", m.pubnub.Config.PNReconnectionPolicy, m.pubnub.Config.MaximumReconnectionRetries))
+
+		// go func() {
+		// 	select {
+		// 	case <-m.exitReconnectionManager:
+		// 		m.pubnub.Config.Log.Printf(fmt.Sprintf("==========> exitReconnectionManager set hbRunning false"))
+		// 		m.Lock()
+		// 		m.hbRunning = false
+		// 		m.Unlock()
+		// 		m.pubnub.Config.Log.Printf(fmt.Sprintf("==========> exitReconnectionManager hbRunning false"))
+		// 		return
+		// 	}
+
+		// }()
 		m.startHeartbeatTimer()
 	} else {
 		m.pubnub.Config.Log.Println("==========> hb already running")
@@ -125,10 +138,10 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 			m.Unlock()
 			if retries != -1 && failedCalls >= retries {
 				m.pubnub.Config.Log.Printf(fmt.Sprintf("Network connection retry limit (%d) exceeded", retries))
-				go m.OnMaxReconnectionExhaustion()
 				m.Lock()
 				m.hbRunning = false
 				m.Unlock()
+				m.OnMaxReconnectionExhaustion()
 				return
 			}
 		}
@@ -143,9 +156,9 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 			return
 		case <-m.exitReconnectionManager:
 			m.pubnub.Config.Log.Printf(fmt.Sprintf("==========> exitReconnectionManager\n"))
-			m.Lock()
-			m.hbRunning = false
-			m.Unlock()
+			// m.Lock()
+			// m.hbRunning = false
+			// m.Unlock()
 			return
 		}
 		//m.registerHeartbeatTimer()
@@ -198,8 +211,17 @@ func (m *ReconnectionManager) GetExponentialInterval() int {
 }
 
 func (m *ReconnectionManager) stopHeartbeatTimer() {
+	m.pubnub.Config.Log.Printf("==========> stopHeartbeatTimer")
+	m.Lock()
+	if m.hbRunning {
+		m.hbRunning = false
+		m.exitReconnectionManager <- true
+	}
+	m.Unlock()
+	// if m.exitReconnectionManager != nil {
+
+	// }
 	m.pubnub.Config.Log.Printf("==========> stopHeartbeatTimer true")
-	m.exitReconnectionManager <- true
 }
 
 /*m.timerMutex.Lock()

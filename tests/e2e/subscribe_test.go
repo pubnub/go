@@ -47,6 +47,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	})
 
 	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	pn.SetSubscribeClient(interceptor.GetClient())
 
@@ -1180,6 +1181,9 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 				case pubnub.PNDisconnectedCategory:
 					doneUnsubscribe <- true
 					return
+				default:
+					errChan <- fmt.Sprintf("%s", status)
+					return
 				}
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a status event"
@@ -1832,7 +1836,7 @@ func TestSubscribeSuperCall(t *testing.T) {
 	}
 }
 
-func TestReconnectionExhaustion(t *testing.T) {
+func ReconnectionExhaustion(t *testing.T) {
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)
 	errChan := make(chan string)
@@ -1846,7 +1850,14 @@ func TestReconnectionExhaustion(t *testing.T) {
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 400,
 	})
-
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v2/presence/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch/leave",
+		ResponseBody:       `{"status": 200, "message": "OK", "action": "leave", "service": "Presence"}`,
+		Query:              "",
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 200,
+	})
 	config.MaximumReconnectionRetries = 1
 	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
 
@@ -1862,12 +1873,13 @@ func TestReconnectionExhaustion(t *testing.T) {
 			case status := <-listener.Status:
 
 				switch status.Category {
-				case pubnub.PNDisconnectedCategory:
+				case pubnub.PNReconnectionAttemptsExhausted:
 					doneSubscribe <- true
 				default:
-					if count > 0 {
-						errChan <- fmt.Sprintf("Non PNReconnectedCategory event, %s", status)
-					}
+					//if count > 1 {
+					//errChan <- fmt.Sprintf("Non PNReconnectedCategory event, %s", status)
+					fmt.Println(status)
+					//}
 				}
 				count++
 			case <-listener.Message:

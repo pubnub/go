@@ -99,7 +99,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 	manager.pubnub = pubnub
 
-	manager.listenerManager = newListenerManager(ctx)
+	manager.listenerManager = newListenerManager(ctx, pubnub)
 	manager.stateManager = newStateManager()
 
 	manager.Lock()
@@ -299,6 +299,8 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				Category: PNDisconnectedCategory,
 			})
 			m.pubnub.Config.Log.Println("no channels left to subscribe")
+			m.reconnectionManager.stopHeartbeatTimer()
+
 			break
 		}
 
@@ -330,7 +332,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				m.listenerManager.announceStatus(&PNStatus{
 					Category: PNTimeoutCategory,
 				})
-
+				m.pubnub.Config.Log.Println("continue")
 				continue
 			} else {
 
@@ -796,7 +798,8 @@ func (m *SubscriptionManager) GetListeners() map[*Listener]bool {
 
 func (m *SubscriptionManager) reconnect() {
 	m.pubnub.Config.Log.Println("reconnect")
-
+	m.reconnectionManager.stopHeartbeatTimer()
+	m.pubnub.Config.Log.Println("after stopHeartbeatTimer")
 	m.stopSubscribeLoop()
 
 	m.Lock()
@@ -805,8 +808,15 @@ func (m *SubscriptionManager) reconnect() {
 	}
 	m.Unlock()
 
-	go m.startSubscribeLoop()
-	go m.startHeartbeatTimer()
+	combinedChannels := m.stateManager.prepareChannelList(true)
+	combinedGroups := m.stateManager.prepareGroupList(true)
+
+	if len(combinedChannels) == 0 && len(combinedGroups) == 0 {
+		m.pubnub.Config.Log.Println("All channels or channel groups unsubscribed.")
+	} else {
+		go m.startSubscribeLoop()
+		go m.startHeartbeatTimer()
+	}
 }
 
 func (m *SubscriptionManager) Disconnect() {
@@ -815,10 +825,10 @@ func (m *SubscriptionManager) Disconnect() {
 	if m.exitSubscriptionManager != nil {
 		m.exitSubscriptionManager <- true
 	}
+	m.reconnectionManager.stopHeartbeatTimer()
 
 	m.stopHeartbeat()
 	m.stopSubscribeLoop()
-	m.reconnectionManager.stopHeartbeatTimer()
 }
 
 func (m *SubscriptionManager) stopSubscribeLoop() {
@@ -830,6 +840,7 @@ func (m *SubscriptionManager) stopSubscribeLoop() {
 		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
 		m.Unlock()*/
 	}
+
 }
 
 func (m *SubscriptionManager) getSubscribedChannels() []string {

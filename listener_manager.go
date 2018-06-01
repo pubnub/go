@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"log"
 	"sync"
 )
 
@@ -24,13 +23,15 @@ type ListenerManager struct {
 	ctx          Context
 	listeners    map[*Listener]bool
 	exitListener chan bool
+	pubnub       *PubNub
 }
 
-func newListenerManager(ctx Context) *ListenerManager {
+func newListenerManager(ctx Context, pn *PubNub) *ListenerManager {
 	return &ListenerManager{
 		listeners:    make(map[*Listener]bool, 2),
 		ctx:          ctx,
 		exitListener: make(chan bool),
+		pubnub:       pn,
 	}
 }
 
@@ -59,13 +60,12 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 		for l, _ := range m.listeners {
 			select {
 			case <-m.ctx.Done():
-				log.Println("announceStatus m.ctx.Done")
+				m.pubnub.Config.Log.Println("announceStatus m.ctx.Done")
 				return
 			case <-m.exitListener:
-				log.Println("announceStatus exitListener")
+				m.pubnub.Config.Log.Println("announceStatus exitListener")
 				return
 			case l.Status <- status:
-				log.Println("l.Status", l.Status)
 			}
 		}
 		m.RUnlock()
@@ -78,13 +78,12 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 		for l, _ := range m.listeners {
 			select {
 			case <-m.ctx.Done():
-				log.Println("announceMessage m.ctx.Done")
+				m.pubnub.Config.Log.Println("announceMessage m.ctx.Done")
 				return
 			case <-m.exitListener:
-				log.Println("announceMessage exitListener")
+				m.pubnub.Config.Log.Println("announceMessage exitListener")
 				return
 			case l.Message <- message:
-				log.Println("l.Message", l.Status)
 			}
 		}
 		m.RUnlock()
@@ -97,10 +96,9 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	for l, _ := range m.listeners {
 		select {
 		case <-m.ctx.Done():
-			log.Println("announcePresence m.ctx.Done")
+			m.pubnub.Config.Log.Println("announcePresence m.ctx.Done")
 			return
 		case l.Presence <- presence:
-			log.Println("l.Presence", l.Presence)
 		}
 	}
 	m.RUnlock()

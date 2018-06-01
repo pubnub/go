@@ -70,7 +70,7 @@ func NewConfig() *Config {
 		NonSubscribeRequestTimeout: 10,
 		SubscribeRequestTimeout:    310,
 		MaximumLatencyDataAge:      60,
-		MaximumReconnectionRetries: 2,
+		MaximumReconnectionRetries: 5,
 		SuppressLeaveEvents:        false,
 		DisablePNOtherProcessing:   false,
 		PNReconnectionPolicy:       PNNonePolicy,
