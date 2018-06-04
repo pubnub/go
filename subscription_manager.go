@@ -282,12 +282,6 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 	go m.reconnectionManager.startPolling()
 
 	for {
-		/*select {
-		case <-m.ctx.Done():
-			m.pubnub.Config.Log.Println("context done")
-			return
-		default:
-		}*/
 
 		combinedChannels := m.stateManager.prepareChannelList(true)
 		combinedGroups := m.stateManager.prepareGroupList(true)
@@ -834,9 +828,6 @@ func (m *SubscriptionManager) stopSubscribeLoop() {
 
 	if m.ctx != nil && m.subscribeCancel != nil {
 		m.subscribeCancel()
-		/*m.Lock()
-		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
-		m.Unlock()*/
 	}
 
 }

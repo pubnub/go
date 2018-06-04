@@ -19,6 +19,8 @@ changelog:
         text: presence heartbeat fixes
       - type: bug
         text: subscribe to presence only channel
+      - type: bug
+        text: unsubscribe from presence only channel
   - version: v4.0.0-rc.3
     changes:
       - type: bug
