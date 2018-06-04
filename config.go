@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	presenceTimeout = 300
+	presenceTimeout = 120
 )
 
 type Config struct {
@@ -70,13 +70,11 @@ func NewConfig() *Config {
 		NonSubscribeRequestTimeout: 10,
 		SubscribeRequestTimeout:    310,
 		MaximumLatencyDataAge:      60,
-		MaximumReconnectionRetries: 5,
+		MaximumReconnectionRetries: 50,
 		SuppressLeaveEvents:        false,
 		DisablePNOtherProcessing:   false,
 		PNReconnectionPolicy:       PNNonePolicy,
 	}
-
-	c.SetPresenceTimeout(presenceTimeout)
 
 	return &c
 }

@@ -162,6 +162,7 @@ func showHelp() {
 	showDelCgHelp()
 	showGrantHelp()
 	showSubscribeWithStateHelp()
+	showPresenceTimeoutHelp()
 	fmt.Println("\n ================")
 	fmt.Println(" ||  COMMANDS  ||")
 	fmt.Println(" ================\n")
@@ -277,6 +278,12 @@ func showGrantHelp() {
 	fmt.Println("	grant my-channel cg false false false 10")
 }
 
+func showPresenceTimeoutHelp() {
+	fmt.Println(" Presence Timeout: ")
+	fmt.Println("	setpto presenceTimeout presenceHeartbeatInterval ")
+	fmt.Println("	setpto 120 59")
+}
+
 func readCommand(cmd string) {
 	command := strings.Split(cmd, " ")
 
@@ -321,12 +328,42 @@ func readCommand(cmd string) {
 		showHelp()
 	case "pt":
 		publishTest()
+	case "setpto":
+		setPresenceTimeout(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
 		pn.Destroy()
 	default:
 		showHelp()
+	}
+}
+
+func setPresenceTimeout(args []string) {
+	if len(args) < 0 {
+		showPresenceTimeoutHelp()
+	}
+
+	var timeout int
+	if len(args) > 0 {
+		i, err := strconv.ParseInt(args[0], 10, 64)
+		if err == nil {
+			timeout = int(i)
+		}
+	}
+
+	var interval int
+	if len(args) > 1 {
+		i, err := strconv.ParseInt(args[1], 10, 64)
+		if err == nil {
+			interval = int(i)
+		}
+	}
+
+	if interval <= 0 {
+		pn.Config.SetPresenceTimeout(timeout)
+	} else {
+		pn.Config.SetPresenceTimeoutWithCustomInterval(timeout, interval)
 	}
 }
 

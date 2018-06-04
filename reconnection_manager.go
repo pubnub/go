@@ -85,7 +85,7 @@ func (m *ReconnectionManager) startPolling() {
 		// }()
 		m.startHeartbeatTimer()
 	} else {
-		m.pubnub.Config.Log.Println("==========> hb already running")
+		m.pubnub.Config.Log.Println("hb already running")
 	}
 
 }
@@ -149,13 +149,13 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 		select {
 		case <-time.After(time.Duration(timerInterval) * time.Second):
 		case <-m.pubnub.ctx.Done():
-			m.pubnub.Config.Log.Printf(fmt.Sprintf("==========> pubnub.ctx.Done\n"))
+			m.pubnub.Config.Log.Printf(fmt.Sprintf("pubnub.ctx.Done\n"))
 			m.Lock()
 			m.hbRunning = false
 			m.Unlock()
 			return
 		case <-m.exitReconnectionManager:
-			m.pubnub.Config.Log.Printf(fmt.Sprintf("==========> exitReconnectionManager\n"))
+			m.pubnub.Config.Log.Printf(fmt.Sprintf("exitReconnectionManager\n"))
 			// m.Lock()
 			// m.hbRunning = false
 			// m.Unlock()
@@ -197,21 +197,21 @@ func (m *ReconnectionManager) GetExponentialInterval() int {
 
 		m.Lock()
 		m.ExponentialMultiplier = 1
-		m.pubnub.Config.Log.Printf(fmt.Sprintf("==========> timerInterval > MaxExponentialBackoff at: %d\n", m.ExponentialMultiplier))
+		m.pubnub.Config.Log.Printf(fmt.Sprintf("timerInterval > MaxExponentialBackoff at: %d\n", m.ExponentialMultiplier))
 		m.Unlock()
 
 	} else if timerInterval < 1 {
 		timerInterval = reconnectionMinExponentialBackoff
 		m.Lock()
 		m.ExponentialMultiplier = 1
-		m.pubnub.Config.Log.Printf(fmt.Sprintf("==========> timerInterval < 1 at: %d\n", m.ExponentialMultiplier))
+		m.pubnub.Config.Log.Printf(fmt.Sprintf("timerInterval < 1 at: %d\n", m.ExponentialMultiplier))
 		m.Unlock()
 	}
 	return timerInterval
 }
 
 func (m *ReconnectionManager) stopHeartbeatTimer() {
-	m.pubnub.Config.Log.Printf("==========> stopHeartbeatTimer")
+	m.pubnub.Config.Log.Printf("stopHeartbeatTimer")
 	m.Lock()
 	if m.hbRunning {
 		m.hbRunning = false
@@ -221,7 +221,7 @@ func (m *ReconnectionManager) stopHeartbeatTimer() {
 	// if m.exitReconnectionManager != nil {
 
 	// }
-	m.pubnub.Config.Log.Printf("==========> stopHeartbeatTimer true")
+	m.pubnub.Config.Log.Printf("stopHeartbeatTimer true")
 }
 
 /*m.timerMutex.Lock()

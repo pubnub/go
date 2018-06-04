@@ -181,10 +181,12 @@ func (m *SubscriptionManager) Destroy() {
 		m.exitSubscriptionManager <- true
 	}
 	if m.listenerManager.exitListener != nil {
-		close(m.listenerManager.exitListener)
+		//close(m.listenerManager.exitListener)
+		m.listenerManager.exitListener <- true
 	}
 	if m.reconnectionManager.exitReconnectionManager != nil {
-		close(m.reconnectionManager.exitReconnectionManager)
+		m.reconnectionManager.exitReconnectionManager <- true
+		//close(m.reconnectionManager.exitReconnectionManager)
 	}
 }
 
@@ -322,9 +324,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		if s := m.stateManager.createStatePayload(); len(s) > 0 {
 			opts.State = s
 		}
-		m.pubnub.Config.Log.Println("before executeRequest")
 		res, _, err := executeRequest(opts)
-		m.pubnub.Config.Log.Println("after executeRequest")
 		if err != nil {
 			m.pubnub.Config.Log.Println(err.Error())
 
@@ -410,10 +410,8 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 			m.listenerManager.announceStatus(pnStatus)
 		}
-		m.pubnub.Config.Log.Println("=======> envelope:", envelope)
 		if len(envelope.Messages) > 0 {
 			for _, message := range envelope.Messages {
-				m.pubnub.Config.Log.Println("=======> envelopeMessages:", message)
 				m.messages <- message
 			}
 		}
@@ -449,7 +447,10 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 func (m *SubscriptionManager) startHeartbeatTimer() {
 	m.stopHeartbeat()
-	m.pubnub.Config.Log.Println("heartbeat: new timer")
+	m.pubnub.Config.Log.Println("heartbeat: new timer", m.pubnub.Config.HeartbeatInterval)
+	if m.pubnub.Config.PresenceTimeout <= 0 && m.pubnub.Config.HeartbeatInterval <= 0 {
+		return
+	}
 
 	m.hbLoopMutex.Lock()
 	m.hbDataMutex.Lock()
@@ -478,7 +479,7 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 
 			select {
 			case <-ctx.Done():
-				m.pubnub.Config.Log.Println("=======> startHeartbeatTimer context done")
+				m.pubnub.Config.Log.Println("startHeartbeatTimer context done")
 				return
 			case <-timerCh:
 				m.performHeartbeatLoop()
@@ -595,10 +596,10 @@ func subscribeMessageWorker(m *SubscriptionManager) {
 		select {
 		//case <-m.ctx.Done():
 		case <-m.exitSubscriptionManager:
-			m.pubnub.Config.Log.Println("=======> subscribeMessageWorker context done")
+			m.pubnub.Config.Log.Println("subscribeMessageWorker context done")
 			return
 		case message := <-m.messages:
-			m.pubnub.Config.Log.Println("=======> subscribeMessageWorker messages")
+			m.pubnub.Config.Log.Println("subscribeMessageWorker messages")
 			processSubscribePayload(m, message)
 		}
 	}
@@ -704,7 +705,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			Publisher:         payload.IssuingClientId,
 			UserMetadata:      payload.UserMetadata,
 		}
-		m.pubnub.Config.Log.Println("=======> announceMessage,", pnMessageResult)
+		m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
 		m.listenerManager.announceMessage(pnMessageResult)
 	}
 }
@@ -727,8 +728,7 @@ func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error)
 				//decrypt pn_other only
 				msg, ok := v["pn_other"].(string)
 				if ok {
-					pnConf.Log.Println("v[pn_other]", v["pn_other"], v)
-					pnConf.Log.Println(v, msg)
+					pnConf.Log.Println("v[pn_other]", v["pn_other"], v, msg)
 					decrypted, errDecryption := utils.DecryptString(pnConf.CipherKey, msg)
 					if errDecryption != nil {
 						pnConf.Log.Println(errDecryption, msg)
