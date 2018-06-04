@@ -136,9 +136,16 @@ func (m *StateManager) adaptStateOperation(stateOperation StateOperation) {
 func (m *StateManager) adaptUnsubscribeOperation(unsubscribeOperation *UnsubscribeOperation) {
 	m.Lock()
 
+	// for _, ch := range m.presenceChannels {
+	// 	fmt.Println(ch.name)
+	// }
+	// for _, ch := range m.channels {
+	// 	fmt.Println(ch.name)
+	// }
 	for _, ch := range unsubscribeOperation.Channels {
+		fmt.Println(ch)
 		if strings.Contains(ch, "-pnpres") {
-			delete(m.presenceChannels, ch)
+			delete(m.presenceChannels, strings.Replace(ch, "-pnpres", "", -1))
 		} else {
 			delete(m.channels, ch)
 		}
@@ -146,7 +153,7 @@ func (m *StateManager) adaptUnsubscribeOperation(unsubscribeOperation *Unsubscri
 
 	for _, cg := range unsubscribeOperation.ChannelGroups {
 		if strings.Contains(cg, "-pnpres") {
-			delete(m.presenceGroups, cg)
+			delete(m.presenceGroups, strings.Replace(cg, "-pnpres", "", -1))
 		} else {
 			delete(m.groups, cg)
 		}

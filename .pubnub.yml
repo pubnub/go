@@ -1,8 +1,24 @@
 name: go
-version: v4.0.0-rc.3
+version: v4.0.0-rc.4
 schema: 1
 scm: github.com/pubnub/go
 changelog:
+  - version: v4.0.0-rc.4
+    changes:
+      - type: bug
+        text: stop heartbeat requests after unsubscribe all
+      - type: bug
+        text: multiple subscribe fixes
+      - type: bug
+        text: data race fixes in context
+      - type: bug
+        text: fix for subscribe listener on disconnect
+      - type: bug
+        text: heartbeat fixes
+      - type: bug
+        text: presence heartbeat fixes
+      - type: bug
+        text: subscribe to presence only channel
   - version: v4.0.0-rc.3
     changes:
       - type: bug
