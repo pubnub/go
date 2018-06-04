@@ -263,6 +263,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 			}
 			m.pubnub.Config.Log.Println("Leave: ack", pnStatus)
 			m.listenerManager.announceStatus(pnStatus)
+			m.pubnub.Config.Log.Println("After Leave: ack", pnStatus)
 		}
 	}()
 
@@ -455,8 +456,7 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 	m.hbLoopMutex.Lock()
 	m.hbDataMutex.Lock()
 	m.hbDone = make(chan bool)
-	m.hbTimer = time.NewTicker(time.Duration(
-		m.pubnub.Config.HeartbeatInterval) * time.Second)
+	m.hbTimer = time.NewTicker(time.Duration(m.pubnub.Config.HeartbeatInterval) * time.Second)
 	m.hbDataMutex.Unlock()
 
 	go func() {

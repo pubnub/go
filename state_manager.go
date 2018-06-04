@@ -63,7 +63,6 @@ func (m *StateManager) prepareGroupList(includePresence bool) []string {
 func (m *StateManager) adaptSubscribeOperation(
 	subscribeOperation *SubscribeOperation) {
 	m.Lock()
-	defer m.Unlock()
 
 	for _, ch := range subscribeOperation.Channels {
 		if len(subscribeOperation.State) > 0 {
@@ -88,11 +87,11 @@ func (m *StateManager) adaptSubscribeOperation(
 			m.presenceGroups[cg] = newSubscriptionItem(cg)
 		}
 	}
+	m.Unlock()
 }
 
 func (m *StateManager) adaptStateOperation(stateOperation StateOperation) {
 	m.Lock()
-	defer m.Unlock()
 
 	for _, ch := range stateOperation.channels {
 		if _, ok := m.channels[ch]; ok {
@@ -113,6 +112,7 @@ func (m *StateManager) adaptStateOperation(stateOperation StateOperation) {
 			}
 		}
 	}
+	m.Unlock()
 }
 
 func (m *StateManager) adaptUnsubscribeOperation(unsubscribeOperation *UnsubscribeOperation) {

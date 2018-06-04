@@ -3,9 +3,9 @@ package e2e
 import (
 	//"encoding/json"
 	"fmt"
-	"log"
+	//"log"
 	"math/rand"
-	"os"
+	//"os"
 	//"reflect"
 	"sync"
 	"testing"
@@ -47,34 +47,45 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	})
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-	pn.SetSubscribeClient(interceptor.GetClient())
+	//pn.SetSubscribeClient(interceptor.GetClient())
 
 	listener := pubnub.NewListener()
 
 	go func() {
 		for {
+			//fmt.Println("listening...")
 			select {
 			case status := <-listener.Status:
 				switch status.Category {
 				case pubnub.PNConnectedCategory:
+					//fmt.Println("PNConnectedCategory...")
 					doneSubscribe <- true
+					break
 				case pubnub.PNDisconnectedCategory:
+					//fmt.Println("PNDisconnectedCategory...")
 					doneUnsubscribe <- true
-					return
+					break
+				case pubnub.PNAcknowledgmentCategory:
+					doneUnsubscribe <- true
+					break
+				case pubnub.PNCancelledCategory:
+					continue
 				default:
-					errChan <- fmt.Sprintf("%s", status)
-					return
+					//fmt.Println("default...", status)
+					errChan <- fmt.Sprintf("error ===> %s", status)
+					break
 				}
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a status event"
-				return
+				break
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
-				return
+				break
 			}
 		}
+		//fmt.Println("exit listening...")
 	}()
 
 	pn.AddListener(listener)
@@ -87,16 +98,20 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 		assert.Fail(err)
 	}
 
+	//fmt.Println("calling Unsubscribe...")
+
 	pn.Unsubscribe().
 		Channels([]string{ch}).
 		Execute()
 
 	select {
 	case <-doneUnsubscribe:
+		//fmt.Println("doneUnsubscribe...")
 	case err := <-errChan:
 		assert.Fail(err)
 	}
 
+	//fmt.Println("after select")
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
 }
@@ -1178,19 +1193,25 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 				switch status.Category {
 				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
+					break
 				case pubnub.PNDisconnectedCategory:
 					doneUnsubscribe <- true
-					return
+					break
+				case pubnub.PNAcknowledgmentCategory:
+					doneUnsubscribe <- true
+					break
+				case pubnub.PNCancelledCategory:
+					continue
 				default:
 					errChan <- fmt.Sprintf("%s", status)
-					return
+					break
 				}
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a status event"
-				return
+				break
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
-				return
+				break
 			}
 		}
 	}()
@@ -1501,15 +1522,17 @@ func TestSubscribe403Error(t *testing.T) {
 				switch status.Category {
 				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
+					break
 				case pubnub.PNAccessDeniedCategory:
 					doneAccessDenied <- true
+					break
 				}
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a status event"
-				return
+				break
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
-				return
+				break
 			}
 		}
 	}()
@@ -1558,6 +1581,7 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 	errChan := make(chan string)
 
 	pn := pubnub.NewPubNub(configCopy())
+
 	pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
 
@@ -1568,6 +1592,11 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 				// ignore status messages
 				if status.Error {
 					errChan <- fmt.Sprintf("Status Error: %s", status.Category)
+					break
+				} else {
+					//fmt.Println(status)
+					doneMeta <- true
+					break
 				}
 			case message := <-listener.Message:
 				meta, ok := message.UserMetadata.(string)
@@ -1577,9 +1606,10 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 
 				assert.Equal(meta, "my-data")
 				doneMeta <- true
+				break
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
-				return
+				break
 			}
 		}
 	}()
@@ -1623,7 +1653,8 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 	errChan := make(chan string)
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.SetSubscribeClient(interceptor.GetClient())
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
 
 	go func() {
@@ -1632,16 +1663,17 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 			case status := <-listener.Status:
 				if status.Category == pubnub.PNConnectedCategory {
 					doneConnected <- true
+					break
 				} else {
 					errChan <- fmt.Sprintf("Got status while awaiting for a message: %s",
 						status.Category)
-					return
+					break
 				}
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a message"
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a message"
-				return
+				break
 			}
 		}
 	}()
@@ -1862,7 +1894,7 @@ func ReconnectionExhaustion(t *testing.T) {
 	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
 
 	pn := pubnub.NewPubNub(config)
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
 	count := 0
@@ -1878,7 +1910,7 @@ func ReconnectionExhaustion(t *testing.T) {
 				default:
 					//if count > 1 {
 					//errChan <- fmt.Sprintf("Non PNReconnectedCategory event, %s", status)
-					fmt.Println(status)
+					//fmt.Println(status)
 					//}
 				}
 				count++
