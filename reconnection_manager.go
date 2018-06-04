@@ -71,18 +71,6 @@ func (m *ReconnectionManager) startPolling() {
 	if !hbRunning {
 		m.pubnub.Config.Log.Println(fmt.Sprintf("Reconnection policy: %d, retries: %d", m.pubnub.Config.PNReconnectionPolicy, m.pubnub.Config.MaximumReconnectionRetries))
 
-		// go func() {
-		// 	select {
-		// 	case <-m.exitReconnectionManager:
-		// 		m.pubnub.Config.Log.Printf(fmt.Sprintf("==========> exitReconnectionManager set hbRunning false"))
-		// 		m.Lock()
-		// 		m.hbRunning = false
-		// 		m.Unlock()
-		// 		m.pubnub.Config.Log.Printf(fmt.Sprintf("==========> exitReconnectionManager hbRunning false"))
-		// 		return
-		// 	}
-
-		// }()
 		m.startHeartbeatTimer()
 	} else {
 		m.pubnub.Config.Log.Println("hb already running")
@@ -91,19 +79,8 @@ func (m *ReconnectionManager) startPolling() {
 }
 
 func (m *ReconnectionManager) startHeartbeatTimer() {
-	//m.stopHeartbeatTimer()
-
-	/*if m.pubnub.Config.PNReconnectionPolicy == PNNonePolicy {
-		return
-	}*/
 
 	timerInterval := reconnectionInterval
-
-	//m.Lock()
-	//m.Timer = time.NewTicker(time.Duration(timerInterval) * time.Second)
-	//timeout := time.After(time.Duration(timeoutVal) * time.Second)
-
-	//m.Unlock()
 
 	for {
 
@@ -123,7 +100,6 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 				m.pubnub.Config.Log.Println(fmt.Sprintf("Network reconnected"))
 				m.OnReconnection()
 			}
-			//break
 		} else {
 			if m.pubnub.Config.PNReconnectionPolicy == PNExponentialPolicy {
 				timerInterval = m.GetExponentialInterval()
@@ -156,38 +132,9 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 			return
 		case <-m.exitReconnectionManager:
 			m.pubnub.Config.Log.Printf(fmt.Sprintf("exitReconnectionManager\n"))
-			// m.Lock()
-			// m.hbRunning = false
-			// m.Unlock()
 			return
 		}
-		//m.registerHeartbeatTimer()
-		//}
 	}
-
-	/*go func() {
-		if m.Timer == nil {
-			return
-		}
-
-		m.Lock()
-		timer := m.Timer.C
-		doneT := m.DoneTimer
-		m.Unlock()
-
-		for {
-			select {
-			case <-m.pubnub.ctx.Done():
-				return
-			case <-timer:
-				go m.callTime()
-			case <-doneT:
-				return
-			case <-m.exitReconnectionManager:
-				return
-			}
-		}
-	}()*/
 }
 
 func (m *ReconnectionManager) GetExponentialInterval() int {
@@ -218,28 +165,5 @@ func (m *ReconnectionManager) stopHeartbeatTimer() {
 		m.exitReconnectionManager <- true
 	}
 	m.Unlock()
-	// if m.exitReconnectionManager != nil {
-
-	// }
 	m.pubnub.Config.Log.Printf("stopHeartbeatTimer true")
 }
-
-/*m.timerMutex.Lock()
-
-	if m.Timer != nil {
-		m.Timer.Stop()
-	}
-
-	if m.DoneTimer != nil {
-		m.DoneTimer <- true
-	}
-
-	m.timerMutex.Unlock()
-}
-
-func (m *ReconnectionManager) callTime() {
-	//_, status, err := m.pubnub.Time().Execute()
-
-	//m.stopHeartbeatTimer()
-
-}*/

@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 )
 
@@ -65,26 +66,43 @@ func (m *StateManager) adaptSubscribeOperation(
 	m.Lock()
 
 	for _, ch := range subscribeOperation.Channels {
-		if len(subscribeOperation.State) > 0 {
-			m.channels[ch] = newSubscriptionItemWithState(ch, subscribeOperation.State)
+		if strings.Contains(ch, "-pnpres") {
+			if len(subscribeOperation.State) > 0 {
+				m.presenceChannels[ch] = newSubscriptionItemWithState(ch, subscribeOperation.State)
+			} else {
+				m.presenceChannels[ch] = newSubscriptionItem(ch)
+			}
 		} else {
-			m.channels[ch] = newSubscriptionItem(ch)
+			if len(subscribeOperation.State) > 0 {
+				m.channels[ch] = newSubscriptionItemWithState(ch, subscribeOperation.State)
+			} else {
+				m.channels[ch] = newSubscriptionItem(ch)
+			}
+
+			if subscribeOperation.PresenceEnabled {
+				m.presenceChannels[ch] = newSubscriptionItem(ch)
+			}
 		}
 
-		if subscribeOperation.PresenceEnabled {
-			m.presenceChannels[ch] = newSubscriptionItem(ch)
-		}
 	}
 
 	for _, cg := range subscribeOperation.ChannelGroups {
-		if len(subscribeOperation.State) > 0 {
-			m.groups[cg] = newSubscriptionItemWithState(cg, subscribeOperation.State)
+		if strings.Contains(cg, "-pnpres") {
+			if len(subscribeOperation.State) > 0 {
+				m.presenceGroups[cg] = newSubscriptionItemWithState(cg, subscribeOperation.State)
+			} else {
+				m.presenceGroups[cg] = newSubscriptionItem(cg)
+			}
 		} else {
-			m.groups[cg] = newSubscriptionItem(cg)
-		}
+			if len(subscribeOperation.State) > 0 {
+				m.groups[cg] = newSubscriptionItemWithState(cg, subscribeOperation.State)
+			} else {
+				m.groups[cg] = newSubscriptionItem(cg)
+			}
 
-		if subscribeOperation.PresenceEnabled {
-			m.presenceGroups[cg] = newSubscriptionItem(cg)
+			if subscribeOperation.PresenceEnabled {
+				m.presenceGroups[cg] = newSubscriptionItem(cg)
+			}
 		}
 	}
 	m.Unlock()
@@ -119,13 +137,20 @@ func (m *StateManager) adaptUnsubscribeOperation(unsubscribeOperation *Unsubscri
 	m.Lock()
 
 	for _, ch := range unsubscribeOperation.Channels {
-		delete(m.channels, ch)
-		delete(m.presenceChannels, ch)
+		if strings.Contains(ch, "-pnpres") {
+			delete(m.presenceChannels, ch)
+		} else {
+			delete(m.channels, ch)
+		}
 	}
 
 	for _, cg := range unsubscribeOperation.ChannelGroups {
-		delete(m.groups, cg)
-		delete(m.presenceGroups, cg)
+		if strings.Contains(cg, "-pnpres") {
+			delete(m.presenceGroups, cg)
+		} else {
+			delete(m.groups, cg)
+		}
+
 	}
 	m.Unlock()
 }
@@ -159,6 +184,13 @@ func (m *StateManager) isEmpty() bool {
 		len(m.groups) != 0 && len(m.presenceGroups) != 0
 }
 
+func (m *StateManager) hasNonPresenceChannels() bool {
+	m.RLock()
+	defer m.RUnlock()
+
+	return len(m.channels) > 0 || len(m.groups) > 0
+}
+
 func (m *StateManager) prepareMembershipList(dataStorage map[string]*SubscriptionItem,
 	presenceStorage map[string]*SubscriptionItem, includePresence bool) []string {
 
@@ -170,7 +202,11 @@ func (m *StateManager) prepareMembershipList(dataStorage map[string]*Subscriptio
 
 	if includePresence {
 		for _, v := range presenceStorage {
-			response = append(response, fmt.Sprintf("%s-pnpres", v.name))
+			if !strings.Contains(v.name, "-pnpres") {
+				response = append(response, fmt.Sprintf("%s-pnpres", v.name))
+			} else {
+				response = append(response, v.name)
+			}
 		}
 	}
 	m.Unlock()

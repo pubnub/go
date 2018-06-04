@@ -137,10 +137,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 			pubnub.Config.Log.Println("Status: ", pnStatus)
 
-			//manager.RLock()
-
 			manager.listenerManager.announceStatus(pnStatus)
-			//manager.RUnlock()
 		})
 	}
 
@@ -156,9 +153,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 		}
 		pubnub.Config.Log.Println("Status: ", pnStatus)
 
-		//manager.RLock()
 		manager.listenerManager.announceStatus(pnStatus)
-		//manager.RUnlock()
 
 		manager.Disconnect()
 	})
@@ -512,10 +507,13 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 	presenceGroups := m.stateManager.prepareGroupList(false)
 	stateStorage := m.stateManager.createStatePayload()
 
-	if len(presenceChannels) == 0 && len(presenceGroups) == 0 {
+	//if len(presenceChannels) == 0 && len(presenceGroups) == 0 {
+	if len(m.stateManager.channels) <= 0 && len(m.stateManager.groups) <= 0 {
 		m.pubnub.Config.Log.Println("heartbeat: no channels left")
 		go m.stopHeartbeat()
 		return nil
+	} else {
+		m.pubnub.Config.Log.Println(len(m.stateManager.channels), len(m.stateManager.groups), len(m.stateManager.presenceChannels), len(m.stateManager.presenceGroups))
 	}
 
 	_, status, err := newHeartbeatBuilder(m.pubnub).
