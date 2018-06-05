@@ -176,12 +176,12 @@ func (m *SubscriptionManager) Destroy() {
 		m.exitSubscriptionManager <- true
 	}
 	if m.listenerManager.exitListener != nil {
-		//close(m.listenerManager.exitListener)
-		m.listenerManager.exitListener <- true
+		close(m.listenerManager.exitListener)
+		//m.listenerManager.exitListener <- true
 	}
 	if m.reconnectionManager.exitReconnectionManager != nil {
-		m.reconnectionManager.exitReconnectionManager <- true
-		//close(m.reconnectionManager.exitReconnectionManager)
+		//m.reconnectionManager.exitReconnectionManager <- true
+		close(m.reconnectionManager.exitReconnectionManager)
 	}
 }
 
