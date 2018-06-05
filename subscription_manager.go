@@ -502,7 +502,8 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 	stateStorage := m.stateManager.createStatePayload()
 
 	//if len(presenceChannels) == 0 && len(presenceGroups) == 0 {
-	if len(m.stateManager.channels) <= 0 && len(m.stateManager.groups) <= 0 {
+	if m.stateManager.hasNonPresenceChannels() {
+		//if len(m.stateManager.channels) <= 0 && len(m.stateManager.groups) <= 0 {
 		m.pubnub.Config.Log.Println("heartbeat: no channels left")
 		go m.stopHeartbeat()
 		return nil
@@ -789,12 +790,17 @@ func (m *SubscriptionManager) GetListeners() map[*Listener]bool {
 }
 
 func (m *SubscriptionManager) reconnect() {
+	m.pubnub.Config.Log.Println("before exitSubscriptionManager")
+	if m.exitSubscriptionManager != nil {
+		close(m.exitSubscriptionManager)
+	}
 	m.pubnub.Config.Log.Println("reconnect")
 	m.reconnectionManager.stopHeartbeatTimer()
 	m.pubnub.Config.Log.Println("after stopHeartbeatTimer")
 	m.stopSubscribeLoop()
 
 	m.Lock()
+	m.exitSubscriptionManager = make(chan bool)
 	if m.ctx != nil && m.subscribeCancel != nil {
 		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
 	}

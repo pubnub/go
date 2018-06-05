@@ -86,12 +86,10 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 
 		m.Lock()
 		m.hbRunning = true
+		failedCalls := m.FailedCalls
 		m.Unlock()
 		_, status, err := m.pubnub.Time().Execute()
 		if status.Error == nil {
-			m.RLock()
-			failedCalls := m.FailedCalls
-			m.RUnlock()
 			if failedCalls > 0 {
 				timerInterval = reconnectionInterval
 				m.Lock()

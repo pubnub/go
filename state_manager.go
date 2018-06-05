@@ -188,7 +188,7 @@ func (m *StateManager) hasNonPresenceChannels() bool {
 	m.RLock()
 	defer m.RUnlock()
 
-	return len(m.channels) > 0 || len(m.groups) > 0
+	return len(m.channels) <= 0 && len(m.groups) <= 0
 }
 
 func (m *StateManager) prepareMembershipList(dataStorage map[string]*SubscriptionItem,

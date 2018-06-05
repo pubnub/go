@@ -120,6 +120,7 @@ func (m *TelemetryManager) startCleanUpTimer() {
 			case <-m.ctx.Done():
 				return
 			case <-m.ExitTelemetryManager:
+				m.cleanUpTimer.Stop()
 				return
 			}
 		}
