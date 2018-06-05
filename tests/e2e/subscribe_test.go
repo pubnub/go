@@ -508,6 +508,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	doneSubscribe := make(chan bool)
 	doneUnsubscribe := make(chan bool)
 	donePublish := make(chan bool)
+	exit := make(chan bool)
 	errChan := make(chan string)
 
 	//r := GenRandom()
@@ -541,6 +542,8 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
+			case <-exit:
+				return
 			}
 		}
 	}()
@@ -574,6 +577,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+	exit <- true
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))

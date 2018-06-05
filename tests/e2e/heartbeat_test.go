@@ -3,7 +3,6 @@ package e2e
 import (
 	"fmt"
 	"io/ioutil"
-	//"log"
 	"strings"
 	"sync"
 	"testing"

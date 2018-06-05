@@ -171,16 +171,13 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 func (m *SubscriptionManager) Destroy() {
 	if m.exitSubscriptionManager != nil {
-		//close(m.exitSubscriptionManager)
 		m.subscribeCancel()
-		m.exitSubscriptionManager <- true
+		close(m.exitSubscriptionManager)
 	}
 	if m.listenerManager.exitListener != nil {
 		close(m.listenerManager.exitListener)
-		//m.listenerManager.exitListener <- true
 	}
 	if m.reconnectionManager.exitReconnectionManager != nil {
-		//m.reconnectionManager.exitReconnectionManager <- true
 		close(m.reconnectionManager.exitReconnectionManager)
 	}
 }
@@ -585,6 +582,9 @@ type originationMetadata struct {
 }
 
 func subscribeMessageWorker(m *SubscriptionManager) {
+	m.RLock()
+	m.exitSubscriptionManager = make(chan bool)
+	m.RUnlock()
 	for {
 		select {
 		//case <-m.ctx.Done():
@@ -791,16 +791,18 @@ func (m *SubscriptionManager) GetListeners() map[*Listener]bool {
 
 func (m *SubscriptionManager) reconnect() {
 	m.pubnub.Config.Log.Println("before exitSubscriptionManager")
+	m.RLock()
 	if m.exitSubscriptionManager != nil {
 		close(m.exitSubscriptionManager)
 	}
+	m.RUnlock()
 	m.pubnub.Config.Log.Println("reconnect")
 	m.reconnectionManager.stopHeartbeatTimer()
 	m.pubnub.Config.Log.Println("after stopHeartbeatTimer")
 	m.stopSubscribeLoop()
 
 	m.Lock()
-	m.exitSubscriptionManager = make(chan bool)
+
 	if m.ctx != nil && m.subscribeCancel != nil {
 		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
 	}
