@@ -3,9 +3,9 @@ package e2e
 import (
 	//"encoding/json"
 	"fmt"
-	//"log"
+	"log"
 	"math/rand"
-	//"os"
+	"os"
 	//"reflect"
 	"sync"
 	"testing"
@@ -15,6 +15,11 @@ import (
 	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
+
+import _ "net/http/pprof"
+import "net/http"
+
+var timeout int = 1000
 
 /////////////////////////////
 /////////////////////////////
@@ -35,6 +40,9 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	doneUnsubscribe := make(chan bool)
 	errChan := make(chan string)
 	ch := randomized("sub-u-ch")
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6063", nil))
+	}()
 
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
@@ -47,7 +55,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	})
 
 	pn := pubnub.NewPubNub(configCopy())
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	//pn.SetSubscribeClient(interceptor.GetClient())
 
@@ -104,11 +112,15 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 		Channels([]string{ch}).
 		Execute()
 
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneUnsubscribe:
 		//fmt.Println("doneUnsubscribe...")
 	case err := <-errChan:
 		assert.Fail(err)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
 	}
 
 	//fmt.Println("after select")
@@ -510,17 +522,23 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	donePublish := make(chan bool)
 	exit := make(chan bool)
 	errChan := make(chan string)
+	// go func() {
+	// 	log.Println(http.ListenAndServe("localhost:6062", nil))
+	// }()
 
 	//r := GenRandom()
 
 	ch := "testChannel_sub_96112" //fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 
 	pn := pubnub.NewPubNub(configCopy())
+
 	pn.Config.CipherKey = cipher
 	pn.Config.DisablePNOtherProcessing = disablePNOtherProcessing
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	listener := pubnub.NewListener()
+
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 
 	go func() {
 		for {
@@ -530,6 +548,11 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
 				case pubnub.PNDisconnectedCategory:
+					doneUnsubscribe <- true
+				case pubnub.PNAcknowledgmentCategory:
+					doneUnsubscribe <- true
+				default:
+					fmt.Println("SubscribePublishUnsubscribeMultiCommon status", status)
 					doneUnsubscribe <- true
 				}
 			case message := <-listener.Message:
@@ -542,10 +565,18 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
+			case <-tic.C:
+				fmt.Println("SubscribePublishUnsubscribeMultiCommon timeout")
+				assert.Fail("timeout")
+				errChan <- "timeout"
+
+				return
 			case <-exit:
+				tic.Stop()
 				return
 			}
 		}
+		fmt.Println("SubscribePublishUnsubscribeMultiCommon exiting loop")
 	}()
 
 	pn.AddListener(listener)
@@ -556,7 +587,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	case <-doneSubscribe:
 	case err := <-errChan:
 		assert.Fail(err)
-		return
+		//return
 	}
 
 	pn.Publish().Channel(ch).Message(s).UsePost(usePost).Execute()
@@ -565,22 +596,26 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	case <-donePublish:
 	case err := <-errChan:
 		assert.Fail(err)
-		return
+		//return
 	}
 
 	pn.Unsubscribe().
 		Channels([]string{ch}).
 		Execute()
 
+	fmt.Println("SubscribePublishUnsubscribeMultiCommon before doneUnsubscribe")
 	select {
 	case <-doneUnsubscribe:
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+	fmt.Println("SubscribePublishUnsubscribeMultiCommon after doneUnsubscribe")
 	exit <- true
+	fmt.Println("SubscribePublishUnsubscribeMultiCommon after exit")
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
+	fmt.Println("SubscribePublishUnsubscribeMultiCommon after zero")
 }
 
 /*func TestSubscribePublishUnsubscribePNOther(t *testing.T) {
@@ -1040,10 +1075,14 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 
 	pn.Subscribe().Channels([]string{ch1, ch2}).Execute()
 
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneUnsubscribe:
 	case err := <-errChan:
 		assert.Fail(err)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
 	}
 
 	pn.RemoveListener(listener)
@@ -1166,11 +1205,16 @@ func JoinLeaveChannel(t *testing.T) {
 		Channels([]string{ch}).
 		Execute()
 
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneLeave:
 	case err := <-errChan:
 		assert.Fail(err)
 		return
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+
 	}
 }
 
@@ -1246,10 +1290,15 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 		ChannelGroups([]string{cg}).
 		Execute()
 
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneUnsubscribe:
 	case err := <-errChan:
 		assert.Fail(err)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+
 	}
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
@@ -1262,8 +1311,13 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 }
 
 func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6061", nil))
+	}()
+
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	listener := pubnub.NewListener()
 	doneSubscribe := make(chan bool)
 	donePublish := make(chan bool)
@@ -1332,12 +1386,16 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	assert.Equal(len(pn.GetSubscribedGroups()), 1)
 
 	pn.UnsubscribeAll()
-
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneUnsubscribe:
 	case err := <-errChan:
 		assert.Fail(err)
 		return
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+
 	}
 
 	assert.Equal(len(pn.GetSubscribedGroups()), 0)
@@ -1457,10 +1515,15 @@ func SubscribeJoinLeaveGroup(t *testing.T) {
 		doneJoinEvent <- true
 	}()
 
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneJoinEvent:
 	case err := <-errChan:
 		assert.Fail(err)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+
 	}
 
 	pn.Unsubscribe().
@@ -1557,12 +1620,17 @@ func TestSubscribe403Error(t *testing.T) {
 		Channels([]string{"ch"}).
 		Execute()
 
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneSubscribe:
 		assert.Fail("Access denied expected")
 	case <-doneAccessDenied:
 	case err := <-errChan:
 		assert.Fail(err)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+
 	}
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
@@ -1689,10 +1757,15 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 		Timetoken(int64(1337)).
 		Execute()
 
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneConnected:
 	case err := <-errChan:
 		assert.Fail(err)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+
 	}
 
 	pn.UnsubscribeAll()
@@ -1811,10 +1884,15 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 		Message("hey").
 		Execute()
 
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
 	case <-donePublish:
 	case err := <-errChan:
 		assert.Fail(err)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+
 	}
 }
 
@@ -1933,11 +2011,15 @@ func ReconnectionExhaustion(t *testing.T) {
 	pn.Subscribe().
 		Channels([]string{"ch"}).
 		Execute()
-
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneSubscribe:
 		fmt.Println("doneSubscribe")
 	case err := <-errChan:
 		assert.Fail(err)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+
 	}
 }

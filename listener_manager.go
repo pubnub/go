@@ -59,9 +59,9 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 		m.RLock()
 		for l, _ := range m.listeners {
 			select {
-			case <-m.ctx.Done():
-				m.pubnub.Config.Log.Println("announceStatus m.ctx.Done")
-				return
+			// case <-m.ctx.Done():
+			// 	m.pubnub.Config.Log.Println("announceStatus m.ctx.Done")
+			// 	return
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceStatus exitListener")
 				return
@@ -70,6 +70,7 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 		}
 		m.RUnlock()
 	}()
+	m.pubnub.Config.Log.Println("After announceStatus")
 }
 
 func (m *ListenerManager) announceMessage(message *PNMessage) {
@@ -77,9 +78,9 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 		m.RLock()
 		for l, _ := range m.listeners {
 			select {
-			case <-m.ctx.Done():
-				m.pubnub.Config.Log.Println("announceMessage m.ctx.Done")
-				return
+			// case <-m.ctx.Done():
+			// 	m.pubnub.Config.Log.Println("announceMessage m.ctx.Done")
+			// 	return
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceMessage exitListener")
 				return
@@ -95,9 +96,9 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 
 	for l, _ := range m.listeners {
 		select {
-		case <-m.ctx.Done():
-			m.pubnub.Config.Log.Println("announcePresence m.ctx.Done")
-			return
+		// case <-m.ctx.Done():
+		// 	m.pubnub.Config.Log.Println("announcePresence m.ctx.Done")
+		// 	return
 		case l.Presence <- presence:
 		}
 	}

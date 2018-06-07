@@ -69,9 +69,10 @@ type SubscriptionManager struct {
 
 	region int8
 
-	subscriptionStateAnnounced bool
-	heartbeatStopCalled        bool
-	exitSubscriptionManager    chan bool
+	subscriptionStateAnnounced   bool
+	heartbeatStopCalled          bool
+	exitSubscriptionManagerMutex sync.Mutex
+	exitSubscriptionManager      chan bool
 }
 
 type SubscribeOperation struct {
@@ -109,13 +110,13 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 	manager.ctx, manager.subscribeCancel = contextWithCancel(backgroundContext)
 	manager.messages = make(chan subscribeMessage, 1000)
 	manager.reconnectionManager = newReconnectionManager(pubnub)
-	manager.exitSubscriptionManager = make(chan bool)
+	//manager.exitSubscriptionManager = make(chan bool)
 	manager.Unlock()
 
-	go func() {
-		<-ctx.Done()
-		manager.Disconnect()
-	}()
+	// go func() {
+	// 	<-ctx.Done()
+	// 	manager.Disconnect()
+	// }()
 
 	if manager.pubnub.Config.PNReconnectionPolicy != PNNonePolicy {
 
@@ -170,8 +171,8 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 }
 
 func (m *SubscriptionManager) Destroy() {
+	m.subscribeCancel()
 	if m.exitSubscriptionManager != nil {
-		m.subscribeCancel()
 		close(m.exitSubscriptionManager)
 	}
 	if m.listenerManager.exitListener != nil {
@@ -258,7 +259,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 			m.pubnub.Config.Log.Println("After Leave: ack", pnStatus)
 		}
 	}()
-
+	m.pubnub.Config.Log.Println("before storedTimetoken reset")
 	m.Lock()
 	if m.stateManager.isEmpty() {
 		m.region = 0
@@ -269,17 +270,20 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 		m.timetoken = 0
 	}
 	m.Unlock()
+	m.pubnub.Config.Log.Println("after storedTimetoken reset")
 
 	m.reconnect()
+	m.pubnub.Config.Log.Println("after reconnect")
 }
 
 func (m *SubscriptionManager) startSubscribeLoop() {
+	m.pubnub.Config.Log.Println("startSubscribeLoop")
 	go subscribeMessageWorker(m)
 
 	go m.reconnectionManager.startPolling()
 
 	for {
-
+		m.pubnub.Config.Log.Println("startSubscribeLoop looping...")
 		combinedChannels := m.stateManager.prepareChannelList(true)
 		combinedGroups := m.stateManager.prepareGroupList(true)
 
@@ -459,14 +463,14 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 			doneCh := m.hbDone
 
 			m.hbDataMutex.RUnlock()
-			m.RLock()
-			ctx := m.ctx
-			m.RUnlock()
+			// m.RLock()
+			// ctx := m.ctx
+			// m.RUnlock()
 
 			select {
-			case <-ctx.Done():
-				m.pubnub.Config.Log.Println("startHeartbeatTimer context done")
-				return
+			// case <-ctx.Done():
+			// 	m.pubnub.Config.Log.Println("startHeartbeatTimer context done")
+			// 	return
 			case <-timerCh:
 				m.performHeartbeatLoop()
 			case <-doneCh:
@@ -505,7 +509,9 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 		go m.stopHeartbeat()
 		return nil
 	} else {
+		m.stateManager.RLock()
 		m.pubnub.Config.Log.Println(len(m.stateManager.channels), len(m.stateManager.groups), len(m.stateManager.presenceChannels), len(m.stateManager.presenceGroups))
+		m.stateManager.RUnlock()
 	}
 
 	_, status, err := newHeartbeatBuilder(m.pubnub).
@@ -582,20 +588,42 @@ type originationMetadata struct {
 }
 
 func subscribeMessageWorker(m *SubscriptionManager) {
-	m.RLock()
+	m.Lock()
+	if m.ctx == nil && m.subscribeCancel == nil {
+		m.pubnub.Config.Log.Println("subscribeMessageWorker setting context")
+		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
+		m.pubnub.Config.Log.Println("subscribeMessageWorker after setting context")
+	}
+
+	m.pubnub.Config.Log.Println("subscribeMessageWorker")
+
+	//m.exitSubscriptionManager = make(chan bool)
+	m.Unlock()
+	if m.exitSubscriptionManager != nil {
+		m.exitSubscriptionManager <- true
+		m.pubnub.Config.Log.Println("close exitSubscriptionManager")
+		//close(m.exitSubscriptionManager)
+	}
+	m.pubnub.Config.Log.Println("acquiring lock exitSubscriptionManagerMutex")
+	m.exitSubscriptionManagerMutex.Lock()
+	defer m.exitSubscriptionManagerMutex.Unlock()
+	m.pubnub.Config.Log.Println("make channel exitSubscriptionManager")
 	m.exitSubscriptionManager = make(chan bool)
-	m.RUnlock()
 	for {
+		m.pubnub.Config.Log.Println("subscribeMessageWorker looping...")
 		select {
 		//case <-m.ctx.Done():
 		case <-m.exitSubscriptionManager:
 			m.pubnub.Config.Log.Println("subscribeMessageWorker context done")
-			return
+			m.exitSubscriptionManager = nil
+			//manager.Disconnect()
+			break
 		case message := <-m.messages:
 			m.pubnub.Config.Log.Println("subscribeMessageWorker messages")
 			processSubscribePayload(m, message)
 		}
 	}
+	m.pubnub.Config.Log.Println("subscribeMessageWorker after for")
 }
 
 func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
@@ -700,6 +728,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		}
 		m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
 		m.listenerManager.announceMessage(pnMessageResult)
+		m.pubnub.Config.Log.Println("after announceMessage")
 	}
 }
 
@@ -791,22 +820,17 @@ func (m *SubscriptionManager) GetListeners() map[*Listener]bool {
 
 func (m *SubscriptionManager) reconnect() {
 	m.pubnub.Config.Log.Println("before exitSubscriptionManager")
-	m.RLock()
-	if m.exitSubscriptionManager != nil {
-		close(m.exitSubscriptionManager)
-	}
-	m.RUnlock()
 	m.pubnub.Config.Log.Println("reconnect")
 	m.reconnectionManager.stopHeartbeatTimer()
 	m.pubnub.Config.Log.Println("after stopHeartbeatTimer")
 	m.stopSubscribeLoop()
 
-	m.Lock()
+	// m.Lock()
 
-	if m.ctx != nil && m.subscribeCancel != nil {
-		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
-	}
-	m.Unlock()
+	// if m.ctx != nil && m.subscribeCancel != nil {
+	// 	m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
+	// }
+	// m.Unlock()
 
 	combinedChannels := m.stateManager.prepareChannelList(true)
 	combinedGroups := m.stateManager.prepareGroupList(true)
@@ -836,6 +860,8 @@ func (m *SubscriptionManager) stopSubscribeLoop() {
 
 	if m.ctx != nil && m.subscribeCancel != nil {
 		m.subscribeCancel()
+		m.ctx = nil
+		m.subscribeCancel = nil
 	}
 
 }

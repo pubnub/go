@@ -94,12 +94,16 @@ func TestRemoveChannelFromChannelGroupSuccess(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
-
-	assert.Equal(2, len(res.Channels))
-	assert.Equal(myChannel, res.Channels[1])
-	assert.Equal(myAnotherChannel, res.Channels[0])
-	assert.Equal(myGroup, res.ChannelGroup)
-
+	if res != nil {
+		assert.Equal(2, len(res.Channels))
+		if len(res.Channels) > 1 {
+			assert.Equal(myChannel, res.Channels[1])
+			assert.Equal(myAnotherChannel, res.Channels[0])
+		} else {
+			assert.Fail("len(res.Channels) <= 1")
+		}
+		assert.Equal(myGroup, res.ChannelGroup)
+	}
 	_, _, err = pn.RemoveChannelFromChannelGroup().
 		Channels([]string{myChannel, myAnotherChannel}).
 		ChannelGroup(myGroup).
@@ -115,7 +119,8 @@ func TestRemoveChannelFromChannelGroupSuccess(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
-
-	assert.Equal(0, len(res.Channels))
-	assert.Equal(myGroup, res.ChannelGroup)
+	if res != nil {
+		assert.Equal(0, len(res.Channels))
+		assert.Equal(myGroup, res.ChannelGroup)
+	}
 }
