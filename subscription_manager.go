@@ -216,7 +216,10 @@ func (m *SubscriptionManager) adaptSubscribe(
 
 func (m *SubscriptionManager) adaptUnsubscribe(
 	unsubscribeOperation *UnsubscribeOperation) {
+	//unsubscribeOperation *UnsubscribeOperation, reconnect, noleave bool) {
+	m.pubnub.Config.Log.Println("before adaptUnsubscribeOperation")
 	m.stateManager.adaptUnsubscribeOperation(unsubscribeOperation)
+	m.pubnub.Config.Log.Println("after adaptUnsubscribeOperation")
 
 	m.Lock()
 	m.subscriptionStateAnnounced = false
@@ -224,6 +227,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 
 	go func() {
 		announceAck := false
+		//if !m.pubnub.Config.SuppressLeaveEvents || !noleave {
 		if !m.pubnub.Config.SuppressLeaveEvents {
 			_, err := m.pubnub.Leave().Channels(unsubscribeOperation.Channels).
 				ChannelGroups(unsubscribeOperation.ChannelGroups).Execute()
@@ -273,8 +277,10 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 	m.Unlock()
 	m.pubnub.Config.Log.Println("after storedTimetoken reset")
 
+	//if !reconnect {
 	m.reconnect()
 	m.pubnub.Config.Log.Println("after reconnect")
+	//}
 }
 
 func (m *SubscriptionManager) startSubscribeLoop() {
@@ -847,15 +853,16 @@ func (m *SubscriptionManager) reconnect() {
 
 func (m *SubscriptionManager) Disconnect() {
 	m.pubnub.Config.Log.Println("disconnect")
-	//m.subscribeCancel()
-	m.unsubscribeAll()
+
 	if m.exitSubscriptionManager != nil {
 		m.exitSubscriptionManager <- true
 	}
 	m.reconnectionManager.stopHeartbeatTimer()
 
 	m.stopHeartbeat()
+	m.unsubscribeAll()
 	m.stopSubscribeLoop()
+
 }
 
 func (m *SubscriptionManager) stopSubscribeLoop() {
@@ -879,8 +886,8 @@ func (m *SubscriptionManager) getSubscribedGroups() []string {
 
 func (m *SubscriptionManager) unsubscribeAll() {
 	m.adaptUnsubscribe(&UnsubscribeOperation{
-		Channels:      m.stateManager.prepareChannelList(false),
-		ChannelGroups: m.stateManager.prepareGroupList(false),
+		Channels:      m.stateManager.prepareChannelList(true),
+		ChannelGroups: m.stateManager.prepareGroupList(true),
 	})
 }
 
