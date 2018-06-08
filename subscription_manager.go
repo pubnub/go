@@ -73,7 +73,6 @@ type SubscriptionManager struct {
 	heartbeatStopCalled          bool
 	exitSubscriptionManagerMutex sync.Mutex
 	exitSubscriptionManager      chan bool
-	once                         sync.Once
 }
 
 type SubscribeOperation struct {
@@ -280,9 +279,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 
 func (m *SubscriptionManager) startSubscribeLoop() {
 	m.pubnub.Config.Log.Println("startSubscribeLoop")
-	// m.once.Do(func() {
 	go subscribeMessageWorker(m)
-	// })
 
 	go m.reconnectionManager.startPolling()
 
@@ -851,6 +848,7 @@ func (m *SubscriptionManager) reconnect() {
 func (m *SubscriptionManager) Disconnect() {
 	m.pubnub.Config.Log.Println("disconnect")
 	//m.subscribeCancel()
+	m.unsubscribeAll()
 	if m.exitSubscriptionManager != nil {
 		m.exitSubscriptionManager <- true
 	}

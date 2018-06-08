@@ -1,8 +1,18 @@
 name: go
-version: v4.0.0-rc.4
+version: v4.0.0-rc.5
 schema: 1
 scm: github.com/pubnub/go
 changelog:
+  - version: v4.0.0-rc.5
+    changes:
+      - type: bug
+        text: optimizations and deadlock fixes in subscribe loop
+      - type: improvement
+        text: close old subworker goroutine before starting new one
+      - type: bug
+        text: data race fixes
+      - type: bug
+        text: stop tickers, state manager locks
   - version: v4.0.0-rc.4
     changes:
       - type: bug
