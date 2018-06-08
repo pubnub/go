@@ -73,6 +73,7 @@ type SubscriptionManager struct {
 	heartbeatStopCalled          bool
 	exitSubscriptionManagerMutex sync.Mutex
 	exitSubscriptionManager      chan bool
+	once                         sync.Once
 }
 
 type SubscribeOperation struct {
@@ -110,6 +111,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 	manager.ctx, manager.subscribeCancel = contextWithCancel(backgroundContext)
 	manager.messages = make(chan subscribeMessage, 1000)
 	manager.reconnectionManager = newReconnectionManager(pubnub)
+
 	//manager.exitSubscriptionManager = make(chan bool)
 	manager.Unlock()
 
@@ -278,7 +280,9 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 
 func (m *SubscriptionManager) startSubscribeLoop() {
 	m.pubnub.Config.Log.Println("startSubscribeLoop")
+	// m.once.Do(func() {
 	go subscribeMessageWorker(m)
+	// })
 
 	go m.reconnectionManager.startPolling()
 
@@ -606,10 +610,10 @@ func subscribeMessageWorker(m *SubscriptionManager) {
 	}
 	m.pubnub.Config.Log.Println("acquiring lock exitSubscriptionManagerMutex")
 	m.exitSubscriptionManagerMutex.Lock()
-	defer m.exitSubscriptionManagerMutex.Unlock()
+	//defer m.exitSubscriptionManagerMutex.Unlock()
 	m.pubnub.Config.Log.Println("make channel exitSubscriptionManager")
 	m.exitSubscriptionManager = make(chan bool)
-	for {
+	for m.exitSubscriptionManager != nil {
 		m.pubnub.Config.Log.Println("subscribeMessageWorker looping...")
 		select {
 		//case <-m.ctx.Done():
@@ -624,6 +628,7 @@ func subscribeMessageWorker(m *SubscriptionManager) {
 		}
 	}
 	m.pubnub.Config.Log.Println("subscribeMessageWorker after for")
+	m.exitSubscriptionManagerMutex.Unlock()
 }
 
 func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
