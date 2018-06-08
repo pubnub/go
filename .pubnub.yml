@@ -7,6 +7,8 @@ changelog:
     changes:
       - type: bug
         text: optimizations and deadlock fixes in subscribe loop
+      - type: bug
+        text: old channels got subscribed in new sub after reconnection
       - type: improvement
         text: close old subworker goroutine before starting new one
       - type: bug
