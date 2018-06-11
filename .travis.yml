@@ -22,6 +22,9 @@ install:
   - go get github.com/wadey/gocovmerge
   - go get github.com/stretchr/testify
   - go get github.com/satori/go.uuid
+  - go get golang.org/x/text/secure/bidirule
+  - go get golang.org/x/text/unicode/bidi
+  - go get golang.org/x/text/unicode/norm
 
 script:
   - bash ./scripts/run-tests.sh
