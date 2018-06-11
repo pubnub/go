@@ -82,7 +82,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 					continue
 				default:
 					//fmt.Println("default...", status)
-					errChan <- fmt.Sprintf("error ===> %s", status)
+					errChan <- fmt.Sprintf("error ===> %v", status)
 					break
 				}
 			case <-listener.Message:
@@ -1251,7 +1251,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 				case pubnub.PNCancelledCategory:
 					continue
 				default:
-					errChan <- fmt.Sprintf("%s", status)
+					errChan <- fmt.Sprintf("%v", status)
 					break
 				}
 			case <-listener.Message:
@@ -1919,7 +1919,7 @@ func TestSubscribeSuperCall(t *testing.T) {
 				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
 				default:
-					errChan <- fmt.Sprintf("Not connected: ", status)
+					errChan <- fmt.Sprintf("Not connected: %v", status)
 				}
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a status event"

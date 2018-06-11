@@ -18,11 +18,11 @@ func GetTimetoken(pn *pubnub.PubNub) int64 {
 func MatchFetchMessages(ret *pubnub.FetchResponse, start int, ch1, ch2 string, assert *a.Assertions) {
 	chMessages := ret.Messages[ch1]
 	for i := start; i < len(chMessages); i++ {
-		assert.Equal(fmt.Sprintf("testch1", i), chMessages[i].Message)
+		assert.Equal(fmt.Sprintf("testch1 %d", i), chMessages[i].Message)
 	}
 	ch2Messages := ret.Messages[ch2]
 	for i := start; i < len(ch2Messages); i++ {
-		assert.Equal(fmt.Sprintf("testch2", i), ch2Messages[i].Message)
+		assert.Equal(fmt.Sprintf("testch2 %d", i), ch2Messages[i].Message)
 	}
 
 }
@@ -45,8 +45,8 @@ func TestFetch(t *testing.T) {
 		if i == 5 {
 			timestamp2 = GetTimetoken(pn)
 		}
-		pn.Publish().Channel(ch1).Message(fmt.Sprintf("testch1", i)).Execute()
-		pn.Publish().Channel(ch2).Message(fmt.Sprintf("testch2", i)).Execute()
+		pn.Publish().Channel(ch1).Message(fmt.Sprintf("testch1 %d", i)).Execute()
+		pn.Publish().Channel(ch2).Message(fmt.Sprintf("testch2 %d", i)).Execute()
 	}
 
 	timestamp3 := GetTimetoken(pn)
