@@ -15,10 +15,18 @@ func TestListPushProvisionsNotStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-	resp, _, err := pn.ListPushProvisions().
-		DeviceIDForPush("cg").
+	_, _, err := pn.AddPushNotificationsOnChannels().
+		Channels([]string{"ch1"}).
+		DeviceIDForPush("cg1").
 		PushType(pubnub.PNPushTypeGCM).
 		Execute()
-	assert.Equal("ch", resp.Channels[0])
+
+	assert.Nil(err)
+
+	resp, _, err := pn.ListPushProvisions().
+		DeviceIDForPush("cg1").
+		PushType(pubnub.PNPushTypeGCM).
+		Execute()
+	assert.Equal("ch1", resp.Channels[0])
 	assert.Nil(err)
 }
