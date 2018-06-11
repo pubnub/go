@@ -292,7 +292,7 @@ func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 		items := parseInterface(msgs, o)
 		if items != nil {
 			resp.Messages = items
-			o.pubnub.Config.Log.Println("returning []interface, %s", items)
+			o.pubnub.Config.Log.Printf("returning []interface, %s\n", items)
 		} else {
 			o.pubnub.Config.Log.Println("items nil")
 		}

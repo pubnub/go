@@ -104,7 +104,7 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 			}
 			m.Lock()
 			m.FailedCalls++
-			m.pubnub.Config.Log.Println(fmt.Sprintf("Network disconnected, reconnection try %d of %d\n %s %v", m.FailedCalls, m.pubnub.Config.MaximumReconnectionRetries, status, err))
+			m.pubnub.Config.Log.Println(fmt.Sprintf("Network disconnected, reconnection try %d of %d\n %v %v", m.FailedCalls, m.pubnub.Config.MaximumReconnectionRetries, status, err))
 			m.ExponentialMultiplier++
 
 			failedCalls := m.FailedCalls

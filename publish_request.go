@@ -206,7 +206,7 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 	o.pubnub.Config.Log.Println("EncryptString: encrypting", fmt.Sprintf("%s", o.Message))
 	if o.pubnub.Config.DisablePNOtherProcessing {
 		if msg, errJsonMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJsonMarshal != nil {
-			o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
+			o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJsonMarshal)
 			return "", errJsonMarshal
 		}
 	} else {
@@ -220,27 +220,27 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 			if ok {
 				o.pubnub.Config.Log.Println(ok, msgPart)
 				if encMsg, errJsonMarshal := utils.SerializeAndEncrypt(msgPart, cipherKey, o.Serialize); errJsonMarshal != nil {
-					o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
+					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJsonMarshal)
 					return "", errJsonMarshal
 				} else {
 					v["pn_other"] = encMsg
 				}
 				jsonEncBytes, errEnc := json.Marshal(v)
 				if errEnc != nil {
-					o.pubnub.Config.Log.Println("ERROR: Publish error: %s", errEnc.Error())
+					o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
 					return "", errEnc
 				}
 				msg = string(jsonEncBytes)
 			} else {
 				if msg, errJsonMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJsonMarshal != nil {
-					o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
+					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJsonMarshal)
 					return "", errJsonMarshal
 				}
 			}
 			break
 		default:
 			if msg, errJsonMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJsonMarshal != nil {
-				o.pubnub.Config.Log.Println("error in serializing: %s", errJsonMarshal)
+				o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJsonMarshal)
 				return "", errJsonMarshal
 			}
 
@@ -272,7 +272,7 @@ func (o *publishOpts) buildPath() (string, error) {
 		if o.Serialize {
 			jsonEncBytes, errEnc := json.Marshal(o.Message)
 			if errEnc != nil {
-				o.pubnub.Config.Log.Println("ERROR: Publish error: %s", errEnc.Error())
+				o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
 				return "", errEnc
 			}
 			msg = string(jsonEncBytes)
@@ -343,7 +343,7 @@ func (o *publishOpts) buildBody() ([]byte, error) {
 			if o.Serialize {
 				jsonEncBytes, errEnc := json.Marshal(o.Message)
 				if errEnc != nil {
-					o.pubnub.Config.Log.Println("ERROR: Publish error: %s", errEnc.Error())
+					o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
 					return []byte{}, errEnc
 				}
 				return jsonEncBytes, nil
