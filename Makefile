@@ -10,5 +10,3 @@ install-deps-tests:
 	go get github.com/wadey/gocovmerge	
 	go get github.com/satori/go.uuid
 	go get github.com/stretchr/testify
-
-

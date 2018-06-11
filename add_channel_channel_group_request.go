@@ -13,6 +13,7 @@ const addChannelToChannelGroupPath = "/v1/channel-registration/sub-key/%s/channe
 
 var emptyAddChannelToChannelGroupResp *AddChannelToChannelGroupResponse
 
+// AddChannelToChannelGroupBuilder provides a builder to add channel to a channel group
 type AddChannelToChannelGroupBuilder struct {
 	opts *addChannelOpts
 }
@@ -40,6 +41,7 @@ func newAddChannelToChannelGroupBuilderWithContext(
 	return &builder
 }
 
+// Channels to add to the channel group
 func (b *AddChannelToChannelGroupBuilder) Channels(
 	ch []string) *AddChannelToChannelGroupBuilder {
 	b.opts.Channels = ch
@@ -47,6 +49,7 @@ func (b *AddChannelToChannelGroupBuilder) Channels(
 	return b
 }
 
+// ChannelGroups to add the channels
 func (b *AddChannelToChannelGroupBuilder) ChannelGroup(
 	cg string) *AddChannelToChannelGroupBuilder {
 	b.opts.ChannelGroup = cg
@@ -54,6 +57,7 @@ func (b *AddChannelToChannelGroupBuilder) ChannelGroup(
 	return b
 }
 
+// Transport
 func (b *AddChannelToChannelGroupBuilder) Transport(
 	tr http.RoundTripper) *AddChannelToChannelGroupBuilder {
 	b.opts.Transport = tr
