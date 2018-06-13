@@ -40,6 +40,7 @@ func newRemoveChannelFromChannelGroupBuilderWithContext(
 	return &builder
 }
 
+//
 func (b *RemoveChannelFromChannelGroupBuilder) Channels(
 	ch []string) *RemoveChannelFromChannelGroupBuilder {
 	b.opts.Channels = ch

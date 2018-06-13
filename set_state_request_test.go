@@ -63,6 +63,7 @@ func TestSetStateRequestBasic(t *testing.T) {
 	body, err := opts.buildBody()
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
+
 }
 
 func TestSetStateMultipleChannels(t *testing.T) {

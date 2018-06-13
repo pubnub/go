@@ -249,10 +249,8 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 	}
 
 	if result, ok := value.(map[string]interface{}); ok {
-
 		o.pubnub.Config.Log.Println(result["channels"])
 		if channels, ok1 := result["channels"].(map[string]interface{}); ok1 {
-
 			if channels != nil {
 				resp.Messages = o.fetchMessages(channels)
 			} else {

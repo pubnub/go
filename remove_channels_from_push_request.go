@@ -39,6 +39,7 @@ func newRemoveChannelsFromPushBuilderWithContext(
 	return &builder
 }
 
+//
 func (b *RemoveChannelsFromPushBuilder) Channels(
 	channels []string) *RemoveChannelsFromPushBuilder {
 	b.opts.Channels = channels

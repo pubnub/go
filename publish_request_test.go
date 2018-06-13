@@ -26,6 +26,7 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 		path, []int{})
 
 	body, err := o.opts.buildBody()
+
 	assert.Nil(err)
 	assert.Empty(body)
 }

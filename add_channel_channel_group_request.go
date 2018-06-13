@@ -44,6 +44,7 @@ func newAddChannelToChannelGroupBuilderWithContext(
 // Channels to add to the channel group
 func (b *AddChannelToChannelGroupBuilder) Channels(
 	ch []string) *AddChannelToChannelGroupBuilder {
+
 	b.opts.Channels = ch
 
 	return b

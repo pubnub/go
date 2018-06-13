@@ -20,6 +20,7 @@ func (o *fakeEndpointOpts) buildQuery() (*url.Values, error) {
 	q := &url.Values{}
 
 	q.Set("a", "2")
+
 	q.Set("b", "hey")
 
 	return q, nil

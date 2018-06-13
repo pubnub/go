@@ -17,20 +17,16 @@ import (
 type fireOpts struct {
 	pubnub *PubNub
 
-	Ttl     int
-	Channel string
-	Message interface{}
-	Meta    interface{}
-
+	Ttl            int
+	Channel        string
+	Message        interface{}
+	Meta           interface{}
 	UsePost        bool
 	Serialize      bool
 	ShouldStore    bool
 	DoNotReplicate bool
-
-	Transport http.RoundTripper
-
-	ctx Context
-
+	Transport      http.RoundTripper
+	ctx            Context
 	// nil hacks
 	setTtl         bool
 	setShouldStore bool

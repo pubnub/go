@@ -39,6 +39,7 @@ func newHistoryDeleteBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+//
 func (b *historyDeleteBuilder) Channel(ch string) *historyDeleteBuilder {
 	b.opts.Channel = ch
 	return b

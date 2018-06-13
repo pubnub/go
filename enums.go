@@ -21,6 +21,7 @@ const (
 	PNDisconnectedCategory
 	// Context cancelled
 	PNCancelledCategory
+	//
 	PNLoopStopCategory
 	PNAcknowledgmentCategory
 	PNBadRequestCategory

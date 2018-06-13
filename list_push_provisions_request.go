@@ -42,6 +42,7 @@ func newListPushProvisionsRequestBuilderWithContext(
 	return &builder
 }
 
+//
 func (b *ListPushProvisionsRequestBuilder) PushType(
 	pushType PNPushType) *ListPushProvisionsRequestBuilder {
 	b.opts.PushType = pushType

@@ -42,6 +42,7 @@ func newAllChannelGroupBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+//
 func (b *allChannelGroupBuilder) ChannelGroup(
 	cg string) *allChannelGroupBuilder {
 	b.opts.ChannelGroup = cg

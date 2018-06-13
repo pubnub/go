@@ -27,6 +27,7 @@ func AssertSuccessFireGet(t *testing.T, expectedString string, message interface
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
+
 	assert.Empty(body)
 }
 

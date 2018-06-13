@@ -29,6 +29,7 @@ type Config struct {
 	// http.Client.Timeout for subscribe requests only
 	SubscribeRequestTimeout int
 
+	//
 	HeartbeatInterval int
 
 	PresenceTimeout int

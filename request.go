@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+//
 type StatusResponse struct {
 	Error error
 

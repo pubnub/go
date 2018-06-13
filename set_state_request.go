@@ -46,6 +46,7 @@ func (b *setStateBuilder) State(state map[string]interface{}) *setStateBuilder {
 	return b
 }
 
+//
 func (b *setStateBuilder) Channels(channels []string) *setStateBuilder {
 	b.opts.Channels = channels
 	return b

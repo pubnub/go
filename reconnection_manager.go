@@ -43,6 +43,7 @@ func newReconnectionManager(pubnub *PubNub) *ReconnectionManager {
 	return manager
 }
 
+//
 func (m *ReconnectionManager) HandleReconnection(handler func()) {
 	m.Lock()
 	m.OnReconnection = handler

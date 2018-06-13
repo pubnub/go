@@ -30,6 +30,7 @@ func defaultQuery(uuid string, telemetryManager *TelemetryManager) *url.Values {
 	v := &url.Values{}
 
 	v.Set("pnsdk", "PubNub-Go/"+Version)
+
 	v.Set("uuid", uuid)
 
 	for queryName, queryParam := range telemetryManager.OperationLatency() {

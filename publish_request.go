@@ -105,6 +105,7 @@ func (b *publishBuilder) Ttl(ttl int) *publishBuilder {
 	return b
 }
 
+//
 func (b *publishBuilder) Channel(ch string) *publishBuilder {
 	b.opts.Channel = ch
 

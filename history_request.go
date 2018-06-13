@@ -45,6 +45,7 @@ func newHistoryBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+//
 func (b *historyBuilder) Channel(ch string) *historyBuilder {
 	b.opts.Channel = ch
 	return b

@@ -48,6 +48,7 @@ func newSubscribeBuilder(pubnub *PubNub) *subscribeBuilder {
 	return &builder
 }
 
+//
 func (b *subscribeBuilder) Channels(channels []string) *subscribeBuilder {
 	b.operation.Channels = channels
 

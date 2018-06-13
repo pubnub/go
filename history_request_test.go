@@ -55,6 +55,7 @@ func TestHistoryRequestBasic(t *testing.T) {
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
 
 	body, err := opts.buildBody()
+
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
 }

@@ -28,6 +28,7 @@ func AssertSuccessFetchGet(t *testing.T, expectedString string, channels []strin
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
+
 	assert.Empty(body)
 }
 

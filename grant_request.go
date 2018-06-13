@@ -81,6 +81,7 @@ func (b *grantBuilder) AuthKeys(authKeys []string) *grantBuilder {
 	return b
 }
 
+//
 func (b *grantBuilder) Channels(channels []string) *grantBuilder {
 	b.opts.Channels = channels
 

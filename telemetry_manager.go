@@ -20,6 +20,7 @@ type Operations struct {
 	latencies []LatencyEntry
 }
 
+//
 type TelemetryManager struct {
 	sync.RWMutex
 

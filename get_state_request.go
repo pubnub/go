@@ -64,6 +64,7 @@ func (b *getStateBuilder) Uuid(uuid string) *getStateBuilder {
 
 func (b *getStateBuilder) Transport(
 	tr http.RoundTripper) *getStateBuilder {
+
 	b.opts.Transport = tr
 
 	return b

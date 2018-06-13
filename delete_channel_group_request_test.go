@@ -34,5 +34,6 @@ func TestDeleteChannelGroupRequestBasic(t *testing.T) {
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
+
 	assert.Equal([]byte{}, body)
 }

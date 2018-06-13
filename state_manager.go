@@ -195,6 +195,7 @@ func (m *StateManager) prepareMembershipList(dataStorage map[string]*Subscriptio
 	presenceStorage map[string]*SubscriptionItem, includePresence bool) []string {
 
 	response := []string{}
+
 	m.Lock()
 	for _, v := range dataStorage {
 		response = append(response, v.name)

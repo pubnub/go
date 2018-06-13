@@ -19,7 +19,7 @@ import (
 import _ "net/http/pprof"
 import "net/http"
 
-var timeout int = 1000
+var timeout = 1000
 
 /////////////////////////////
 /////////////////////////////
@@ -576,7 +576,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 				return
 			}
 		}
-		fmt.Println("SubscribePublishUnsubscribeMultiCommon exiting loop")
+		//fmt.Println("SubscribePublishUnsubscribeMultiCommon exiting loop")
 	}()
 
 	pn.AddListener(listener)
@@ -1161,11 +1161,10 @@ func JoinLeaveChannel(t *testing.T) {
 					assert.Equal(configEmitter.Uuid, presence.Uuid)
 					doneLeave <- true
 					return
-				} else {
-					assert.Equal("join", presence.Event)
-					assert.Equal(configEmitter.Uuid, presence.Uuid)
-					wg.Done()
 				}
+				assert.Equal("join", presence.Event)
+				assert.Equal(configEmitter.Uuid, presence.Uuid)
+				wg.Done()
 			}
 		}
 	}()

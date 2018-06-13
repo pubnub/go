@@ -22,6 +22,7 @@ func TestLeaveRequestSingleChannel(t *testing.T) {
 	u := &url.URL{
 		Path: path,
 	}
+
 	h.AssertPathsEqual(t,
 		fmt.Sprintf("/v2/presence/sub-key/sub_key/channel/%s/leave", opts.Channels[0]),
 		u.EscapedPath(), []int{})

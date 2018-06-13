@@ -92,6 +92,7 @@ func TestAddChannelsToPushOptsBuildBody(t *testing.T) {
 	}
 
 	_, err := opts.buildBody()
+
 	assert.Nil(err)
 
 }

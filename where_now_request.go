@@ -41,6 +41,7 @@ func newWhereNowBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+//
 func (b *whereNowBuilder) Uuid(uuid string) *whereNowBuilder {
 	b.opts.Uuid = uuid
 

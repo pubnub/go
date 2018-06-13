@@ -42,6 +42,7 @@ type PubNub struct {
 	cancel               func()
 }
 
+//
 func (pn *PubNub) Publish() *publishBuilder {
 	return newPublishBuilder(pn)
 }

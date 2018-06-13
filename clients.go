@@ -27,6 +27,7 @@ func NewHttp1Client(connectTimeout int, responseReadTimeout int) *http.Client {
 
 func NewHttp2Client(connectTimeout int, responseReadTimeout int) *http.Client {
 	transport := &http2.Transport{}
+
 	client := &http.Client{
 		Transport: transport,
 		// Covers the entire exchange from Dial to reading the body

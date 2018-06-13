@@ -41,6 +41,7 @@ func newAddPushNotificationsOnChannelsBuilderWithContext(
 func (b *AddPushNotificationsOnChannelsBuilder) Channels(
 	channels []string) *AddPushNotificationsOnChannelsBuilder {
 	b.opts.Channels = channels
+
 	return b
 }
 

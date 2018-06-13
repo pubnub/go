@@ -43,6 +43,7 @@ func newHereNowBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+//
 func (b *hereNowBuilder) Channels(ch []string) *hereNowBuilder {
 	b.opts.Channels = ch
 

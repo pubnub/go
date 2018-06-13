@@ -47,6 +47,7 @@ func (b *deleteChannelGroupBuilder) ChannelGroup(
 func (b *deleteChannelGroupBuilder) Execute() (
 	*DeleteChannelGroupResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
+
 	if err != nil {
 		return emptyDeleteChannelGroupResponse, status, err
 	}

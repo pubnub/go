@@ -20,7 +20,17 @@ func main() {
 				case pubnub.PNConnectedCategory:
 					done <- true
 				}
-			case <-listener.Message:
+			case message := <-listener.Message:
+				//Channel
+				fmt.Println(message.Channel)
+				//Subscription
+				fmt.Println(message.Subscription)
+				//Payload
+				fmt.Println(message.Message)
+				//Publisher ID
+				fmt.Println(message.Publisher)
+				//Timetoken
+				fmt.Println(message.Timetoken)
 			case <-listener.Presence:
 			}
 		}

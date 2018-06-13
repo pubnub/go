@@ -96,6 +96,7 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	m.RUnlock()
 }
 
+//
 type PNStatus struct {
 	Category  StatusCategory
 	Operation OperationType

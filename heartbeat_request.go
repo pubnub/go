@@ -39,6 +39,7 @@ func newHeartbeatBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+//
 func (b *heartbeatBuilder) State(state interface{}) *heartbeatBuilder {
 	b.opts.State = state
 

@@ -75,6 +75,7 @@ type SubscriptionManager struct {
 	exitSubscriptionManager      chan bool
 }
 
+//
 type SubscribeOperation struct {
 	Channels         []string
 	ChannelGroups    []string

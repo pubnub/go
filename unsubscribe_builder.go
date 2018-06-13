@@ -14,6 +14,7 @@ func newUnsubscribeBuilder(pubnub *PubNub) *unsubscribeBuilder {
 	return &builder
 }
 
+//
 func (b *unsubscribeBuilder) Channels(channels []string) *unsubscribeBuilder {
 	b.operation.Channels = channels
 

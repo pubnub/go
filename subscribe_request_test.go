@@ -36,6 +36,7 @@ func TestSubscribeMultipleChannels(t *testing.T) {
 	u := &url.URL{
 		Path: path,
 	}
+
 	h.AssertPathsEqual(t,
 		"/v2/subscribe/sub_key/ch-1,ch-2,ch-3/0", u.EscapedPath(), []int{})
 }

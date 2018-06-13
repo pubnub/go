@@ -33,6 +33,7 @@ func TestListPushProvisionsRequestValidate(t *testing.T) {
 	}
 
 	err3 := opts3.validate()
+
 	assert.Contains(err3.Error(), "Missing Device ID")
 
 }

@@ -19,6 +19,7 @@ func TestNewGetStateResponse(t *testing.T) {
 
 	res, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
 	assert.Nil(err)
+
 	if s, ok := res.State["my-channel"].(map[string]interface{}); ok {
 		assert.Equal("v", s["k"])
 	} else {

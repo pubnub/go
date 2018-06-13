@@ -30,6 +30,7 @@ func TestListAllChannelGroupRequestBasic(t *testing.T) {
 	assert.Nil(err)
 
 	expected := &url.Values{}
+
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
 
 	body, err := opts.buildBody()

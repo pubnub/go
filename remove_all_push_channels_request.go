@@ -38,6 +38,7 @@ func newRemoveAllPushChannelsForDeviceBuilderWithContext(
 	return &builder
 }
 
+//
 func (b *RemoveAllPushChannelsForDeviceBuilder) PushType(
 	pushType PNPushType) *RemoveAllPushChannelsForDeviceBuilder {
 	b.opts.PushType = pushType

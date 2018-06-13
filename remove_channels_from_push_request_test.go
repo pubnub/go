@@ -46,7 +46,6 @@ func TestRemoveChannelsFromPushRequestValidate(t *testing.T) {
 
 	err3 := opts3.validate()
 	assert.Contains(err3.Error(), "Missing Device ID")
-
 }
 
 func TestRemoveChannelsFromPushRequestBuildPath(t *testing.T) {

@@ -8,6 +8,7 @@ import (
 
 func TestPushString(t *testing.T) {
 	assert := assert.New(t)
+
 	pushAPNS := PNPushTypeAPNS
 	pushMPNS := PNPushTypeMPNS
 	pushGCM := PNPushTypeGCM

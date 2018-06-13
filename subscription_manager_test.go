@@ -23,7 +23,6 @@ func TestParseCipherInterfaceCipherWithCipher(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal("yay!", intf.(string))
-
 }
 
 func TestParseCipherInterfacePlainWithCipher(t *testing.T) {

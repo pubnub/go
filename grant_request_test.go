@@ -49,6 +49,7 @@ func TestGrantRequestBasic(t *testing.T) {
 		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
 
 	body, err := opts.buildBody()
+
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
 }

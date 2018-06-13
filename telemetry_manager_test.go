@@ -18,7 +18,6 @@ func TestAverageLatency(t *testing.T) {
 		LatencyEntry{D: int64(100), L: float64(50)}}
 
 	averageLatency := averageLatencyFromData(endpointLatencies)
-
 	assert.Equal(float64(30), averageLatency)
 }
 

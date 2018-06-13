@@ -29,6 +29,7 @@ func TestHeartbeatRequestBasic(t *testing.T) {
 	u := &url.URL{
 		Path: path,
 	}
+
 	h.AssertPathsEqual(t,
 		fmt.Sprintf("/v2/presence/sub-key/sub_key/channel/%s/heartbeat",
 			strings.Join(opts.Channels, ",")),
