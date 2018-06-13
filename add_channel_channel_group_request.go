@@ -50,7 +50,7 @@ func (b *AddChannelToChannelGroupBuilder) Channels(
 	return b
 }
 
-// ChannelGroups to add the channels
+// ChannelGroup to add the channels
 func (b *AddChannelToChannelGroupBuilder) ChannelGroup(
 	cg string) *AddChannelToChannelGroupBuilder {
 	b.opts.ChannelGroup = cg
@@ -58,7 +58,7 @@ func (b *AddChannelToChannelGroupBuilder) ChannelGroup(
 	return b
 }
 
-// Transport
+// Transport sets the transport for the request
 func (b *AddChannelToChannelGroupBuilder) Transport(
 	tr http.RoundTripper) *AddChannelToChannelGroupBuilder {
 	b.opts.Transport = tr
@@ -66,14 +66,15 @@ func (b *AddChannelToChannelGroupBuilder) Transport(
 	return b
 }
 
+// Execute AddChannel To ChannelGroup request
 func (b *AddChannelToChannelGroupBuilder) Execute() (
 	*AddChannelToChannelGroupResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyAddChannelToChannelGroupResp, status, err
 	}
 
-	return newAddChannelToChannelGroupsResponse(rawJson, status)
+	return newAddChannelToChannelGroupsResponse(rawJSON, status)
 }
 
 type addChannelOpts struct {
@@ -164,6 +165,7 @@ func (o *addChannelOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// AddChannelToChannelGroupResponse response structure
 type AddChannelToChannelGroupResponse struct {
 }
 
