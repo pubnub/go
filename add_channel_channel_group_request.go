@@ -41,7 +41,7 @@ func newAddChannelToChannelGroupBuilderWithContext(
 	return &builder
 }
 
-// Channels to add to the channel group
+// Channels sets the chnanels to add to the channel group
 func (b *AddChannelToChannelGroupBuilder) Channels(
 	ch []string) *AddChannelToChannelGroupBuilder {
 
@@ -50,7 +50,7 @@ func (b *AddChannelToChannelGroupBuilder) Channels(
 	return b
 }
 
-// ChannelGroup to add the channels
+// ChannelGroup sets the channel group to add the channels
 func (b *AddChannelToChannelGroupBuilder) ChannelGroup(
 	cg string) *AddChannelToChannelGroupBuilder {
 	b.opts.ChannelGroup = cg
@@ -66,7 +66,7 @@ func (b *AddChannelToChannelGroupBuilder) Transport(
 	return b
 }
 
-// Execute AddChannel To ChannelGroup request
+// Execute runs AddChannel To ChannelGroup request
 func (b *AddChannelToChannelGroupBuilder) Execute() (
 	*AddChannelToChannelGroupResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -165,7 +165,7 @@ func (o *addChannelOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-// AddChannelToChannelGroupResponse response structure
+// AddChannelToChannelGroupResponse is response structure for AddChannelToChannelGroupBuilder
 type AddChannelToChannelGroupResponse struct {
 }
 

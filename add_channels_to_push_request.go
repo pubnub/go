@@ -12,6 +12,7 @@ const addChannelsToPushPath = "/v1/push/sub-key/%s/devices/%s"
 
 var emptyAddPushNotificationsOnChannelsResponse *AddPushNotificationsOnChannelsResponse
 
+// AddPushNotificationsOnChannelsBuilder provides a builder to add Push Notifications on channels
 type AddPushNotificationsOnChannelsBuilder struct {
 	opts *addChannelsToPushOpts
 }
@@ -38,6 +39,7 @@ func newAddPushNotificationsOnChannelsBuilderWithContext(
 	return &builder
 }
 
+// Channels sets the channels to enable Push Notifications
 func (b *AddPushNotificationsOnChannelsBuilder) Channels(
 	channels []string) *AddPushNotificationsOnChannelsBuilder {
 	b.opts.Channels = channels
@@ -45,18 +47,21 @@ func (b *AddPushNotificationsOnChannelsBuilder) Channels(
 	return b
 }
 
+// PushType set the type of Push: GCM, APNS, MPNS
 func (b *AddPushNotificationsOnChannelsBuilder) PushType(
 	pushType PNPushType) *AddPushNotificationsOnChannelsBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
+// DeviceIDForPush sets the device of for Push Notifcataions
 func (b *AddPushNotificationsOnChannelsBuilder) DeviceIDForPush(
 	deviceID string) *AddPushNotificationsOnChannelsBuilder {
 	b.opts.DeviceIDForPush = deviceID
 	return b
 }
 
+// Execute runs add Push Notifications on channels request
 func (b *AddPushNotificationsOnChannelsBuilder) Execute() (
 	*AddPushNotificationsOnChannelsResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
@@ -113,6 +118,7 @@ func (o *addChannelsToPushOpts) validate() error {
 	return nil
 }
 
+// AddPushNotificationsOnChannelsResponse is response structure for AddPushNotificationsOnChannelsBuilder
 type AddPushNotificationsOnChannelsResponse struct{}
 
 func (o *addChannelsToPushOpts) buildPath() (string, error) {
