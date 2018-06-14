@@ -58,7 +58,7 @@ func (o *fakeEndpointOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-func xTestBuildUrl(t *testing.T) {
+func xTestBuildURL(t *testing.T) {
 	assert := assert.New(t)
 
 	pnc := NewConfig()
