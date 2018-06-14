@@ -19,7 +19,7 @@ func operationLevel() {
 		Read(false).
 		Write(false).
 		Manage(false).
-		Ttl(60).
+		TTL(60).
 		Execute()
 
 	if err != nil {
@@ -64,7 +64,7 @@ func operationLevel3() {
 		Read(true).
 		Write(false).
 		Channels([]string{"public_chat"}).
-		Ttl(60).
+		TTL(60).
 		Execute()
 
 	if err != nil {
@@ -88,7 +88,7 @@ func operationLevel4() {
 		Write(true).
 		Channels([]string{"public_chat"}).
 		AuthKeys([]string{"auth_keys"}).
-		Ttl(60).
+		TTL(60).
 		Execute()
 
 	if err != nil {
@@ -146,7 +146,7 @@ func grantChannelGroup() {
 		Write(false).
 		ChannelGroups([]string{"gr1", "gr2", "gr3"}).
 		AuthKeys([]string{"key1", "key2", "key3"}).
-		Ttl(60).
+		TTL(60).
 		Execute()
 
 	if err != nil {
@@ -171,7 +171,7 @@ func revokeChannelGroup() {
 		Manage(false).
 		ChannelGroups([]string{"gr1", "gr2", "gr3"}).
 		AuthKeys([]string{"key1", "key2", "key3"}).
-		Ttl(60).
+		TTL(60).
 		Execute()
 
 	if err != nil {

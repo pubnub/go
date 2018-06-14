@@ -17,7 +17,7 @@ import (
 type fireOpts struct {
 	pubnub *PubNub
 
-	Ttl            int
+	TTL            int
 	Channel        string
 	Message        interface{}
 	Meta           interface{}
@@ -28,7 +28,7 @@ type fireOpts struct {
 	Transport      http.RoundTripper
 	ctx            Context
 	// nil hacks
-	setTtl         bool
+	setTTL         bool
 	setShouldStore bool
 }
 
@@ -83,8 +83,8 @@ func newFireBuilderWithContext(pubnub *PubNub, context Context) *fireBuilder {
 	return &builder
 }
 
-func (b *fireBuilder) Ttl(ttl int) *fireBuilder {
-	b.opts.Ttl = ttl
+func (b *fireBuilder) TTL(ttl int) *fireBuilder {
+	b.opts.TTL = ttl
 
 	return b
 }
@@ -214,9 +214,9 @@ func (o *fireOpts) buildQuery() (*url.Values, error) {
 	q.Set("store", "0")
 	q.Set("norep", "true")
 
-	if o.setTtl {
-		if o.Ttl > 0 {
-			q.Set("ttl", strconv.Itoa(o.Ttl))
+	if o.setTTL {
+		if o.TTL > 0 {
+			q.Set("ttl", strconv.Itoa(o.TTL))
 		}
 	}
 

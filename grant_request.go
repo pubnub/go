@@ -68,9 +68,9 @@ func (b *grantBuilder) Manage(manage bool) *grantBuilder {
 // Default: 1440
 //
 // Setting value to 0 will apply the grant indefinitely (forever grant).
-func (b *grantBuilder) Ttl(ttl int) *grantBuilder {
-	b.opts.Ttl = ttl
-	b.opts.setTtl = true
+func (b *grantBuilder) TTL(ttl int) *grantBuilder {
+	b.opts.TTL = ttl
+	b.opts.setTTL = true
 
 	return b
 }
@@ -121,10 +121,10 @@ type grantOpts struct {
 	// Min: 1
 	// Default: 1440
 	// Setting 0 will apply the grant indefinitely
-	Ttl int
+	TTL int
 
 	// nil hacks
-	setTtl bool
+	setTTL bool
 }
 
 func (o *grantOpts) config() Config {
@@ -192,9 +192,9 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 		q.Set("channel-group", strings.Join(o.ChannelGroups, ","))
 	}
 
-	if o.setTtl {
-		if o.Ttl >= -1 {
-			q.Set("ttl", fmt.Sprintf("%d", o.Ttl))
+	if o.setTTL {
+		if o.TTL >= -1 {
+			q.Set("ttl", fmt.Sprintf("%d", o.TTL))
 		}
 	}
 
@@ -236,7 +236,7 @@ type GrantResponse struct {
 	Level        string
 	SubscribeKey string
 
-	Ttl int
+	TTL int
 
 	Channels      map[string]*PNPAMEntityData
 	ChannelGroups map[string]*PNPAMEntityData
@@ -252,14 +252,14 @@ type PNPAMEntityData struct {
 	ReadEnabled   bool
 	WriteEnabled  bool
 	ManageEnabled bool
-	Ttl           int
+	TTL           int
 }
 
 type PNAccessManagerKeyData struct {
 	ReadEnabled   bool
 	WriteEnabled  bool
 	ManageEnabled bool
-	Ttl           int
+	TTL           int
 }
 
 func newGrantResponse(jsonBytes []byte, status StatusResponse) (
@@ -327,7 +327,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 		}
 
 		entityData.AuthKeys = auths
-		entityData.Ttl = int(ttl)
+		entityData.TTL = int(ttl)
 		constructedChannels[channelName] = entityData
 	}
 
@@ -373,7 +373,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 
 				if val, ok := auth["ttl"]; ok {
 					parsedVal, _ := val.(int)
-					entityData.Ttl = parsedVal
+					entityData.TTL = parsedVal
 				}
 
 				constructedAuthKey[authKeyName] = managerKeyData
@@ -460,7 +460,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 
 				if val, ok := parsedPayload["ttl"]; ok {
 					parsedVal, _ := val.(float64)
-					entityData.Ttl = int(parsedVal)
+					entityData.TTL = int(parsedVal)
 				}
 
 				entityData.AuthKeys = constructedAuthKey
@@ -515,7 +515,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 
 	if r, ok := parsedPayload["ttl"]; ok {
 		parsedValue, _ := r.(float64)
-		resp.Ttl = int(parsedValue)
+		resp.TTL = int(parsedValue)
 	}
 
 	return resp, status, nil
@@ -598,7 +598,7 @@ func fetchChannel(channelName string,
 
 	if val, ok := parsedPayload["ttl"]; ok {
 		parsedVal, _ := val.(float64)
-		entityData.Ttl = int(parsedVal)
+		entityData.TTL = int(parsedVal)
 	}
 
 	entityData.AuthKeys = auths

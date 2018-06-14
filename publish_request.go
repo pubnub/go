@@ -23,7 +23,7 @@ var emptyPublishResponse *PublishResponse
 type publishOpts struct {
 	pubnub *PubNub
 
-	Ttl     int
+	TTL     int
 	Channel string
 	Message interface{}
 	Meta    interface{}
@@ -38,7 +38,7 @@ type publishOpts struct {
 	ctx Context
 
 	// nil hacks
-	setTtl         bool
+	setTTL         bool
 	setShouldStore bool
 }
 
@@ -98,9 +98,9 @@ func newPublishBuilderWithContext(pubnub *PubNub, context Context) *publishBuild
 	return &builder
 }
 
-func (b *publishBuilder) Ttl(ttl int) *publishBuilder {
-	b.opts.Ttl = ttl
-	b.opts.setTtl = true
+func (b *publishBuilder) TTL(ttl int) *publishBuilder {
+	b.opts.TTL = ttl
+	b.opts.setTTL = true
 
 	return b
 }
@@ -314,9 +314,9 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 		}
 	}
 
-	if o.setTtl {
-		if o.Ttl > 0 {
-			q.Set("ttl", strconv.Itoa(o.Ttl))
+	if o.setTTL {
+		if o.TTL > 0 {
+			q.Set("ttl", strconv.Itoa(o.TTL))
 		}
 	}
 

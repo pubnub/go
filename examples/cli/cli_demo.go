@@ -408,7 +408,7 @@ func grant(args []string) {
 		Channels(channels).
 		Manage(manage).
 		Read(read).
-		Ttl(ttl).
+		TTL(ttl).
 		Write(write).
 		Execute()
 
@@ -1005,7 +1005,7 @@ func fireRequest(args []string) {
 			Channel(ch).
 			Message(res).
 			UsePost(usePost).
-			Ttl(1).
+			TTL(1).
 			Execute()
 
 		if err != nil {
