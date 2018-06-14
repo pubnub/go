@@ -55,12 +55,12 @@ func (b *removeChannelFromChannelGroupBuilder) ChannelGroup(
 
 func (b *removeChannelFromChannelGroupBuilder) Execute() (
 	*RemoveChannelFromChannelGroupResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyRemoveChannelFromChannelGroupResponse, status, err
 	}
 
-	return newRemoveChannelFromChannelGroupResponse(rawJson, status)
+	return newRemoveChannelFromChannelGroupResponse(rawJSON, status)
 }
 
 type removeChannelOpts struct {

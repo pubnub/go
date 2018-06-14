@@ -65,12 +65,12 @@ func (b *setStateBuilder) Execute() (*SetStateResponse, StatusResponse, error) {
 
 	b.opts.pubnub.subscriptionManager.adaptState(stateOperation)
 
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptySetStateResponse, status, err
 	}
 
-	return newSetStateResponse(rawJson, status)
+	return newSetStateResponse(rawJSON, status)
 }
 
 type setStateOpts struct {

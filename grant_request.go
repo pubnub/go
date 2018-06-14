@@ -95,12 +95,12 @@ func (b *grantBuilder) ChannelGroups(groups []string) *grantBuilder {
 }
 
 func (b *grantBuilder) Execute() (*GrantResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGrantResponse, status, err
 	}
 
-	return newGrantResponse(rawJson, status)
+	return newGrantResponse(rawJSON, status)
 }
 
 type grantOpts struct {

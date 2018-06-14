@@ -51,12 +51,12 @@ func (b *allChannelGroupBuilder) ChannelGroup(
 
 func (b *allChannelGroupBuilder) Execute() (
 	*AllChannelGroupResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyAllChannelGroupResponse, status, err
 	}
 
-	return newAllChannelGroupResponse(rawJson, status)
+	return newAllChannelGroupResponse(rawJSON, status)
 }
 
 type allChannelGroupOpts struct {

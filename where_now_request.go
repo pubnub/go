@@ -53,12 +53,12 @@ func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
 		b.opts.UUID = b.opts.pubnub.Config.UUID
 	}
 
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyWhereNowResponse, status, err
 	}
 
-	return newWhereNowResponse(rawJson, status)
+	return newWhereNowResponse(rawJSON, status)
 }
 
 type whereNowOpts struct {

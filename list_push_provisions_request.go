@@ -57,12 +57,12 @@ func (b *listPushProvisionsRequestBuilder) DeviceIDForPush(
 
 func (b *listPushProvisionsRequestBuilder) Execute() (
 	*ListPushProvisionsRequestResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyListPushProvisionsRequestResponse, status, err
 	}
 
-	return newListPushProvisionsRequestResponse(rawJson, status)
+	return newListPushProvisionsRequestResponse(rawJSON, status)
 }
 
 func newListPushProvisionsRequestResponse(jsonBytes []byte, status StatusResponse) (

@@ -59,14 +59,14 @@ func (b *heartbeatBuilder) ChannelGroups(cg []string) *heartbeatBuilder {
 }
 
 func (b *heartbeatBuilder) Execute() (interface{}, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return "", status, err
 	}
 
 	var value interface{}
 
-	err = json.Unmarshal(rawJson, &value)
+	err = json.Unmarshal(rawJSON, &value)
 	if err != nil {
 		return nil, status, err
 	}

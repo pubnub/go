@@ -72,12 +72,12 @@ func (b *getStateBuilder) Transport(
 
 func (b *getStateBuilder) Execute() (
 	*GetStateResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGetStateResp, status, err
 	}
 
-	return newGetStateResponse(rawJson, status)
+	return newGetStateResponse(rawJSON, status)
 }
 
 type getStateOpts struct {
@@ -194,52 +194,50 @@ func newGetStateResponse(jsonBytes []byte, status StatusResponse) (
 
 	if v, ok := value.(map[string]interface{}); !ok {
 		return emptyGetStateResp, status, errors.New("Response parsing error")
-	} else {
-		if v["error"] != nil {
-			message := ""
-			if v["message"] != nil {
-				if msg, ok := v["message"].(string); ok {
-					message = msg
-				}
+	}
+	if v["error"] != nil {
+		message := ""
+		if v["message"] != nil {
+			if msg, ok := v["message"].(string); ok {
+				message = msg
 			}
-			return emptyGetStateResp, status, errors.New(message)
 		}
+		return emptyGetStateResp, status, errors.New(message)
+	}
 
-		m := make(map[string]interface{})
-		if v["channel"] != nil {
-			if channel, ok2 := v["channel"].(string); ok2 {
-				if v["payload"] != nil {
-					if val, ok := v["payload"].(interface{}); !ok {
-						return emptyGetStateResp, status, errors.New("Response parsing payload")
-					} else {
-						m[channel] = val
-					}
+	m := make(map[string]interface{})
+	if v["channel"] != nil {
+		if channel, ok2 := v["channel"].(string); ok2 {
+			if v["payload"] != nil {
+				if val, ok := v["payload"].(interface{}); !ok {
+					return emptyGetStateResp, status, errors.New("Response parsing payload")
 				} else {
-					return emptyGetStateResp, status, errors.New("Response parsing channel")
+					m[channel] = val
 				}
 			} else {
-				return emptyGetStateResp, status, errors.New("Response parsing channel 2")
+				return emptyGetStateResp, status, errors.New("Response parsing channel")
 			}
 		} else {
-			if v["payload"] != nil {
-				if val, ok := v["payload"].(map[string]interface{}); !ok {
-					return emptyGetStateResp, status, errors.New("Response parsing payload 2")
+			return emptyGetStateResp, status, errors.New("Response parsing channel 2")
+		}
+	} else {
+		if v["payload"] != nil {
+			if val, ok := v["payload"].(map[string]interface{}); !ok {
+				return emptyGetStateResp, status, errors.New("Response parsing payload 2")
+			} else {
+				if channels, ok2 := val["channels"].(map[string]interface{}); !ok2 {
+					return emptyGetStateResp, status, errors.New("Response parsing channels")
 				} else {
-					if channels, ok2 := val["channels"].(map[string]interface{}); !ok2 {
-						return emptyGetStateResp, status, errors.New("Response parsing channels")
-					} else {
-						for ch, state := range channels {
-							m[ch] = state
-						}
+					for ch, state := range channels {
+						m[ch] = state
 					}
 				}
 			}
-
 		}
 
-		resp.State = m
-
 	}
+
+	resp.State = m
 
 	return resp, status, nil
 }

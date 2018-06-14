@@ -84,12 +84,12 @@ func (b *historyBuilder) Transport(tr http.RoundTripper) *historyBuilder {
 }
 
 func (b *historyBuilder) Execute() (*HistoryResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyHistoryResp, status, err
 	}
 
-	return newHistoryResponse(rawJson, b.opts, status)
+	return newHistoryResponse(rawJSON, b.opts, status)
 }
 
 type historyOpts struct {

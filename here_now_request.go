@@ -71,12 +71,12 @@ func (b *hereNowBuilder) IncludeUUIDs(uuid bool) *hereNowBuilder {
 }
 
 func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyHereNowResponse, status, err
 	}
 
-	return newHereNowResponse(rawJson, b.opts.Channels, status)
+	return newHereNowResponse(rawJSON, b.opts.Channels, status)
 }
 
 type hereNowOpts struct {

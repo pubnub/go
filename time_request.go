@@ -46,12 +46,12 @@ func (b *timeBuilder) Transport(tr http.RoundTripper) *timeBuilder {
 }
 
 func (b *timeBuilder) Execute() (*TimeResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyTimeResp, status, err
 	}
 
-	return newTimeResponse(rawJson, status)
+	return newTimeResponse(rawJSON, status)
 }
 
 type timeOpts struct {
