@@ -189,57 +189,57 @@ func (pn *PubNub) UnsubscribeAll() {
 	pn.subscriptionManager.unsubscribeAll()
 }
 
-func (pn *PubNub) ListPushProvisions() *ListPushProvisionsRequestBuilder {
+func (pn *PubNub) ListPushProvisions() *listPushProvisionsRequestBuilder {
 	return newListPushProvisionsRequestBuilder(pn)
 }
 
 func (pn *PubNub) ListPushProvisionsWithContext(
-	ctx Context) *ListPushProvisionsRequestBuilder {
+	ctx Context) *listPushProvisionsRequestBuilder {
 	return newListPushProvisionsRequestBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) AddPushNotificationsOnChannels() *AddPushNotificationsOnChannelsBuilder {
+func (pn *PubNub) AddPushNotificationsOnChannels() *addPushNotificationsOnChannelsBuilder {
 	return newAddPushNotificationsOnChannelsBuilder(pn)
 }
 
 func (pn *PubNub) AddPushNotificationsOnChannelsWithContext(
-	ctx Context) *AddPushNotificationsOnChannelsBuilder {
+	ctx Context) *addPushNotificationsOnChannelsBuilder {
 	return newAddPushNotificationsOnChannelsBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) RemovePushNotificationsFromChannels() *RemoveChannelsFromPushBuilder {
+func (pn *PubNub) RemovePushNotificationsFromChannels() *removeChannelsFromPushBuilder {
 	return newRemoveChannelsFromPushBuilder(pn)
 }
 
 func (pn *PubNub) RemovePushNotificationsFromChannelsWithContext(
-	ctx Context) *RemoveChannelsFromPushBuilder {
+	ctx Context) *removeChannelsFromPushBuilder {
 	return newRemoveChannelsFromPushBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) RemoveAllPushNotifications() *RemoveAllPushChannelsForDeviceBuilder {
+func (pn *PubNub) RemoveAllPushNotifications() *removeAllPushChannelsForDeviceBuilder {
 	return newRemoveAllPushChannelsForDeviceBuilder(pn)
 }
 
 func (pn *PubNub) RemoveAllPushNotificationsWithContext(
-	ctx Context) *RemoveAllPushChannelsForDeviceBuilder {
+	ctx Context) *removeAllPushChannelsForDeviceBuilder {
 	return newRemoveAllPushChannelsForDeviceBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) AddChannelToChannelGroup() *AddChannelToChannelGroupBuilder {
+func (pn *PubNub) AddChannelToChannelGroup() *addChannelToChannelGroupBuilder {
 	return newAddChannelToChannelGroupBuilder(pn)
 }
 
 func (pn *PubNub) AddChannelToChannelGroupWithContext(
-	ctx Context) *AddChannelToChannelGroupBuilder {
+	ctx Context) *addChannelToChannelGroupBuilder {
 	return newAddChannelToChannelGroupBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) RemoveChannelFromChannelGroup() *RemoveChannelFromChannelGroupBuilder {
+func (pn *PubNub) RemoveChannelFromChannelGroup() *removeChannelFromChannelGroupBuilder {
 	return newRemoveChannelFromChannelGroupBuilder(pn)
 }
 
 func (pn *PubNub) RemoveChannelFromChannelGroupWithContext(
-	ctx Context) *RemoveChannelFromChannelGroupBuilder {
+	ctx Context) *removeChannelFromChannelGroupBuilder {
 	return newRemoveChannelFromChannelGroupBuilderWithContext(pn, ctx)
 }
 

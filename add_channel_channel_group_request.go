@@ -13,14 +13,14 @@ const addChannelToChannelGroupPath = "/v1/channel-registration/sub-key/%s/channe
 
 var emptyAddChannelToChannelGroupResp *AddChannelToChannelGroupResponse
 
-// AddChannelToChannelGroupBuilder provides a builder to add channel to a channel group
-type AddChannelToChannelGroupBuilder struct {
+// addChannelToChannelGroupBuilder provides a builder to add channel to a channel group
+type addChannelToChannelGroupBuilder struct {
 	opts *addChannelOpts
 }
 
 func newAddChannelToChannelGroupBuilder(
-	pubnub *PubNub) *AddChannelToChannelGroupBuilder {
-	builder := AddChannelToChannelGroupBuilder{
+	pubnub *PubNub) *addChannelToChannelGroupBuilder {
+	builder := addChannelToChannelGroupBuilder{
 		opts: &addChannelOpts{
 			pubnub: pubnub,
 		},
@@ -30,8 +30,8 @@ func newAddChannelToChannelGroupBuilder(
 }
 
 func newAddChannelToChannelGroupBuilderWithContext(
-	pubnub *PubNub, context Context) *AddChannelToChannelGroupBuilder {
-	builder := AddChannelToChannelGroupBuilder{
+	pubnub *PubNub, context Context) *addChannelToChannelGroupBuilder {
+	builder := addChannelToChannelGroupBuilder{
 		opts: &addChannelOpts{
 			pubnub: pubnub,
 			ctx:    context,
@@ -42,8 +42,8 @@ func newAddChannelToChannelGroupBuilderWithContext(
 }
 
 // Channels sets the chnanels to add to the channel group
-func (b *AddChannelToChannelGroupBuilder) Channels(
-	ch []string) *AddChannelToChannelGroupBuilder {
+func (b *addChannelToChannelGroupBuilder) Channels(
+	ch []string) *addChannelToChannelGroupBuilder {
 
 	b.opts.Channels = ch
 
@@ -51,23 +51,23 @@ func (b *AddChannelToChannelGroupBuilder) Channels(
 }
 
 // ChannelGroup sets the channel group to add the channels
-func (b *AddChannelToChannelGroupBuilder) ChannelGroup(
-	cg string) *AddChannelToChannelGroupBuilder {
+func (b *addChannelToChannelGroupBuilder) ChannelGroup(
+	cg string) *addChannelToChannelGroupBuilder {
 	b.opts.ChannelGroup = cg
 
 	return b
 }
 
 // Transport sets the transport for the request
-func (b *AddChannelToChannelGroupBuilder) Transport(
-	tr http.RoundTripper) *AddChannelToChannelGroupBuilder {
+func (b *addChannelToChannelGroupBuilder) Transport(
+	tr http.RoundTripper) *addChannelToChannelGroupBuilder {
 	b.opts.Transport = tr
 
 	return b
 }
 
 // Execute runs AddChannel To ChannelGroup request
-func (b *AddChannelToChannelGroupBuilder) Execute() (
+func (b *addChannelToChannelGroupBuilder) Execute() (
 	*AddChannelToChannelGroupResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {

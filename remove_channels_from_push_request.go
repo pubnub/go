@@ -13,12 +13,12 @@ const removeChannelsFromPushPath = "/v1/push/sub-key/%s/devices/%s"
 
 var emptyRemoveChannelsFromPushResponse *RemoveChannelsFromPushResponse
 
-type RemoveChannelsFromPushBuilder struct {
+type removeChannelsFromPushBuilder struct {
 	opts *removeChannelsFromPushOpts
 }
 
-func newRemoveChannelsFromPushBuilder(pubnub *PubNub) *RemoveChannelsFromPushBuilder {
-	builder := RemoveChannelsFromPushBuilder{
+func newRemoveChannelsFromPushBuilder(pubnub *PubNub) *removeChannelsFromPushBuilder {
+	builder := removeChannelsFromPushBuilder{
 		opts: &removeChannelsFromPushOpts{
 			pubnub: pubnub,
 		},
@@ -28,8 +28,8 @@ func newRemoveChannelsFromPushBuilder(pubnub *PubNub) *RemoveChannelsFromPushBui
 }
 
 func newRemoveChannelsFromPushBuilderWithContext(
-	pubnub *PubNub, context Context) *RemoveChannelsFromPushBuilder {
-	builder := RemoveChannelsFromPushBuilder{
+	pubnub *PubNub, context Context) *removeChannelsFromPushBuilder {
+	builder := removeChannelsFromPushBuilder{
 		opts: &removeChannelsFromPushOpts{
 			pubnub: pubnub,
 			ctx:    context,
@@ -40,25 +40,25 @@ func newRemoveChannelsFromPushBuilderWithContext(
 }
 
 //
-func (b *RemoveChannelsFromPushBuilder) Channels(
-	channels []string) *RemoveChannelsFromPushBuilder {
+func (b *removeChannelsFromPushBuilder) Channels(
+	channels []string) *removeChannelsFromPushBuilder {
 	b.opts.Channels = channels
 	return b
 }
 
-func (b *RemoveChannelsFromPushBuilder) PushType(
-	pushType PNPushType) *RemoveChannelsFromPushBuilder {
+func (b *removeChannelsFromPushBuilder) PushType(
+	pushType PNPushType) *removeChannelsFromPushBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
-func (b *RemoveChannelsFromPushBuilder) DeviceIDForPush(
-	deviceID string) *RemoveChannelsFromPushBuilder {
+func (b *removeChannelsFromPushBuilder) DeviceIDForPush(
+	deviceID string) *removeChannelsFromPushBuilder {
 	b.opts.DeviceIDForPush = deviceID
 	return b
 }
 
-func (b *RemoveChannelsFromPushBuilder) Execute() (
+func (b *removeChannelsFromPushBuilder) Execute() (
 	*RemoveChannelsFromPushResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
 	if err != nil {

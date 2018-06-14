@@ -13,13 +13,13 @@ const removeChannelFromChannelGroupPath = "/v1/channel-registration/sub-key/%s/c
 
 var emptyRemoveChannelFromChannelGroupResponse *RemoveChannelFromChannelGroupResponse
 
-type RemoveChannelFromChannelGroupBuilder struct {
+type removeChannelFromChannelGroupBuilder struct {
 	opts *removeChannelOpts
 }
 
 func newRemoveChannelFromChannelGroupBuilder(
-	pubnub *PubNub) *RemoveChannelFromChannelGroupBuilder {
-	builder := RemoveChannelFromChannelGroupBuilder{
+	pubnub *PubNub) *removeChannelFromChannelGroupBuilder {
+	builder := removeChannelFromChannelGroupBuilder{
 		opts: &removeChannelOpts{
 			pubnub: pubnub,
 		},
@@ -29,8 +29,8 @@ func newRemoveChannelFromChannelGroupBuilder(
 }
 
 func newRemoveChannelFromChannelGroupBuilderWithContext(
-	pubnub *PubNub, context Context) *RemoveChannelFromChannelGroupBuilder {
-	builder := RemoveChannelFromChannelGroupBuilder{
+	pubnub *PubNub, context Context) *removeChannelFromChannelGroupBuilder {
+	builder := removeChannelFromChannelGroupBuilder{
 		opts: &removeChannelOpts{
 			pubnub: pubnub,
 			ctx:    context,
@@ -41,19 +41,19 @@ func newRemoveChannelFromChannelGroupBuilderWithContext(
 }
 
 //
-func (b *RemoveChannelFromChannelGroupBuilder) Channels(
-	ch []string) *RemoveChannelFromChannelGroupBuilder {
+func (b *removeChannelFromChannelGroupBuilder) Channels(
+	ch []string) *removeChannelFromChannelGroupBuilder {
 	b.opts.Channels = ch
 	return b
 }
 
-func (b *RemoveChannelFromChannelGroupBuilder) ChannelGroup(
-	cg string) *RemoveChannelFromChannelGroupBuilder {
+func (b *removeChannelFromChannelGroupBuilder) ChannelGroup(
+	cg string) *removeChannelFromChannelGroupBuilder {
 	b.opts.ChannelGroup = cg
 	return b
 }
 
-func (b *RemoveChannelFromChannelGroupBuilder) Execute() (
+func (b *removeChannelFromChannelGroupBuilder) Execute() (
 	*RemoveChannelFromChannelGroupResponse, StatusResponse, error) {
 	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {

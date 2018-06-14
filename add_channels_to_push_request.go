@@ -12,13 +12,13 @@ const addChannelsToPushPath = "/v1/push/sub-key/%s/devices/%s"
 
 var emptyAddPushNotificationsOnChannelsResponse *AddPushNotificationsOnChannelsResponse
 
-// AddPushNotificationsOnChannelsBuilder provides a builder to add Push Notifications on channels
-type AddPushNotificationsOnChannelsBuilder struct {
+// addPushNotificationsOnChannelsBuilder provides a builder to add Push Notifications on channels
+type addPushNotificationsOnChannelsBuilder struct {
 	opts *addChannelsToPushOpts
 }
 
-func newAddPushNotificationsOnChannelsBuilder(pubnub *PubNub) *AddPushNotificationsOnChannelsBuilder {
-	builder := AddPushNotificationsOnChannelsBuilder{
+func newAddPushNotificationsOnChannelsBuilder(pubnub *PubNub) *addPushNotificationsOnChannelsBuilder {
+	builder := addPushNotificationsOnChannelsBuilder{
 		opts: &addChannelsToPushOpts{
 			pubnub: pubnub,
 		},
@@ -28,8 +28,8 @@ func newAddPushNotificationsOnChannelsBuilder(pubnub *PubNub) *AddPushNotificati
 }
 
 func newAddPushNotificationsOnChannelsBuilderWithContext(
-	pubnub *PubNub, context Context) *AddPushNotificationsOnChannelsBuilder {
-	builder := AddPushNotificationsOnChannelsBuilder{
+	pubnub *PubNub, context Context) *addPushNotificationsOnChannelsBuilder {
+	builder := addPushNotificationsOnChannelsBuilder{
 		opts: &addChannelsToPushOpts{
 			pubnub: pubnub,
 			ctx:    context,
@@ -40,29 +40,29 @@ func newAddPushNotificationsOnChannelsBuilderWithContext(
 }
 
 // Channels sets the channels to enable Push Notifications
-func (b *AddPushNotificationsOnChannelsBuilder) Channels(
-	channels []string) *AddPushNotificationsOnChannelsBuilder {
+func (b *addPushNotificationsOnChannelsBuilder) Channels(
+	channels []string) *addPushNotificationsOnChannelsBuilder {
 	b.opts.Channels = channels
 
 	return b
 }
 
 // PushType set the type of Push: GCM, APNS, MPNS
-func (b *AddPushNotificationsOnChannelsBuilder) PushType(
-	pushType PNPushType) *AddPushNotificationsOnChannelsBuilder {
+func (b *addPushNotificationsOnChannelsBuilder) PushType(
+	pushType PNPushType) *addPushNotificationsOnChannelsBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
 // DeviceIDForPush sets the device of for Push Notifcataions
-func (b *AddPushNotificationsOnChannelsBuilder) DeviceIDForPush(
-	deviceID string) *AddPushNotificationsOnChannelsBuilder {
+func (b *addPushNotificationsOnChannelsBuilder) DeviceIDForPush(
+	deviceID string) *addPushNotificationsOnChannelsBuilder {
 	b.opts.DeviceIDForPush = deviceID
 	return b
 }
 
 // Execute runs add Push Notifications on channels request
-func (b *AddPushNotificationsOnChannelsBuilder) Execute() (
+func (b *addPushNotificationsOnChannelsBuilder) Execute() (
 	*AddPushNotificationsOnChannelsResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
 	if err != nil {

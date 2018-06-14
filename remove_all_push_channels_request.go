@@ -12,12 +12,12 @@ const removeAllPushChannelsForDevicePath = "/v1/push/sub-key/%s/devices/%s/remov
 
 var emptyRemoveAllPushChannelsForDeviceResponse *RemoveAllPushChannelsForDeviceResponse
 
-type RemoveAllPushChannelsForDeviceBuilder struct {
+type removeAllPushChannelsForDeviceBuilder struct {
 	opts *removeAllPushChannelsForDeviceOpts
 }
 
-func newRemoveAllPushChannelsForDeviceBuilder(pubnub *PubNub) *RemoveAllPushChannelsForDeviceBuilder {
-	builder := RemoveAllPushChannelsForDeviceBuilder{
+func newRemoveAllPushChannelsForDeviceBuilder(pubnub *PubNub) *removeAllPushChannelsForDeviceBuilder {
+	builder := removeAllPushChannelsForDeviceBuilder{
 		opts: &removeAllPushChannelsForDeviceOpts{
 			pubnub: pubnub,
 		},
@@ -27,8 +27,8 @@ func newRemoveAllPushChannelsForDeviceBuilder(pubnub *PubNub) *RemoveAllPushChan
 }
 
 func newRemoveAllPushChannelsForDeviceBuilderWithContext(
-	pubnub *PubNub, context Context) *RemoveAllPushChannelsForDeviceBuilder {
-	builder := RemoveAllPushChannelsForDeviceBuilder{
+	pubnub *PubNub, context Context) *removeAllPushChannelsForDeviceBuilder {
+	builder := removeAllPushChannelsForDeviceBuilder{
 		opts: &removeAllPushChannelsForDeviceOpts{
 			pubnub: pubnub,
 			ctx:    context,
@@ -39,19 +39,19 @@ func newRemoveAllPushChannelsForDeviceBuilderWithContext(
 }
 
 //
-func (b *RemoveAllPushChannelsForDeviceBuilder) PushType(
-	pushType PNPushType) *RemoveAllPushChannelsForDeviceBuilder {
+func (b *removeAllPushChannelsForDeviceBuilder) PushType(
+	pushType PNPushType) *removeAllPushChannelsForDeviceBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
-func (b *RemoveAllPushChannelsForDeviceBuilder) DeviceIDForPush(
-	deviceID string) *RemoveAllPushChannelsForDeviceBuilder {
+func (b *removeAllPushChannelsForDeviceBuilder) DeviceIDForPush(
+	deviceID string) *removeAllPushChannelsForDeviceBuilder {
 	b.opts.DeviceIDForPush = deviceID
 	return b
 }
 
-func (b *RemoveAllPushChannelsForDeviceBuilder) Execute() (
+func (b *removeAllPushChannelsForDeviceBuilder) Execute() (
 	*RemoveAllPushChannelsForDeviceResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
 	if err != nil {

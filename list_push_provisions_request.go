@@ -16,12 +16,12 @@ const listChannelsOfPushPath = "/v1/push/sub-key/%s/devices/%s"
 
 var emptyListPushProvisionsRequestResponse *ListPushProvisionsRequestResponse
 
-type ListPushProvisionsRequestBuilder struct {
+type listPushProvisionsRequestBuilder struct {
 	opts *listPushProvisionsRequestOpts
 }
 
-func newListPushProvisionsRequestBuilder(pubnub *PubNub) *ListPushProvisionsRequestBuilder {
-	builder := ListPushProvisionsRequestBuilder{
+func newListPushProvisionsRequestBuilder(pubnub *PubNub) *listPushProvisionsRequestBuilder {
+	builder := listPushProvisionsRequestBuilder{
 		opts: &listPushProvisionsRequestOpts{
 			pubnub: pubnub,
 		},
@@ -31,8 +31,8 @@ func newListPushProvisionsRequestBuilder(pubnub *PubNub) *ListPushProvisionsRequ
 }
 
 func newListPushProvisionsRequestBuilderWithContext(
-	pubnub *PubNub, context Context) *ListPushProvisionsRequestBuilder {
-	builder := ListPushProvisionsRequestBuilder{
+	pubnub *PubNub, context Context) *listPushProvisionsRequestBuilder {
+	builder := listPushProvisionsRequestBuilder{
 		opts: &listPushProvisionsRequestOpts{
 			pubnub: pubnub,
 			ctx:    context,
@@ -43,19 +43,19 @@ func newListPushProvisionsRequestBuilderWithContext(
 }
 
 //
-func (b *ListPushProvisionsRequestBuilder) PushType(
-	pushType PNPushType) *ListPushProvisionsRequestBuilder {
+func (b *listPushProvisionsRequestBuilder) PushType(
+	pushType PNPushType) *listPushProvisionsRequestBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
-func (b *ListPushProvisionsRequestBuilder) DeviceIDForPush(
-	deviceID string) *ListPushProvisionsRequestBuilder {
+func (b *listPushProvisionsRequestBuilder) DeviceIDForPush(
+	deviceID string) *listPushProvisionsRequestBuilder {
 	b.opts.DeviceIDForPush = deviceID
 	return b
 }
 
-func (b *ListPushProvisionsRequestBuilder) Execute() (
+func (b *listPushProvisionsRequestBuilder) Execute() (
 	*ListPushProvisionsRequestResponse, StatusResponse, error) {
 	rawJson, status, err := executeRequest(b.opts)
 	if err != nil {
