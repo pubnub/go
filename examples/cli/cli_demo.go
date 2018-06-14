@@ -36,7 +36,7 @@ func connect() {
 	}()
 	config = pubnub.NewConfig()
 	//config.Origin = "ssp.pubnub.com"
-	config.UseHttp2 = false
+	config.UseHTTP2 = false
 
 	config.PNReconnectionPolicy = pubnub.PNExponentialPolicy
 	//config.AuthKey = "a"
@@ -68,7 +68,6 @@ func connect() {
 
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
-
 	// for subscribe event
 	listener := pubnub.NewListener()
 
@@ -110,7 +109,7 @@ func connect() {
 
 	/*config2 := pubnub.NewConfig()
 	config2.SubscribeRequestTimeout = 59
-	config2.Uuid = "GlobalSubscriber"
+	config2.UUID = "GlobalSubscriber"
 	config2.PNReconnectionPolicy = pubnub.PNLinearPolicy
 	config2.Log = infoLogger
 	config2.Log.SetPrefix("PubNub2:")
@@ -633,7 +632,7 @@ func whereNowRequest(args []string) {
 		res, status, err := pn.WhereNow().Execute()
 		fmt.Println(res, status, err)
 	} else {
-		res, status, err := pn.WhereNow().Uuid(uuidToUse).Execute()
+		res, status, err := pn.WhereNow().UUID(uuidToUse).Execute()
 		fmt.Println(res, status, err)
 	}
 	fmt.Println(fmt.Sprintf("%s", outputSuffix))
@@ -856,7 +855,7 @@ func hereNowResponse(res *pubnub.HereNowResponse, status pubnub.StatusResponse, 
 		fmt.Println(v.Occupants)
 
 		for _, v := range v.Occupants {
-			fmt.Println(v.Uuid)
+			fmt.Println(v.UUID)
 		}
 	}
 	fmt.Println(res.TotalChannels)
@@ -895,16 +894,16 @@ func hereNowRequest(args []string) {
 	}
 
 	if (len(channels) != 0) && (len(channelGroups) != 0) {
-		res, status, err := pn.HereNow().Channels(channels).ChannelGroups(channelGroups).IncludeState(includeState).IncludeUuids(includeUUIDs).Execute()
+		res, status, err := pn.HereNow().Channels(channels).ChannelGroups(channelGroups).IncludeState(includeState).IncludeUUIDs(includeUUIDs).Execute()
 		hereNowResponse(res, status, err)
 	} else if len(channels) != 0 {
-		res, status, err := pn.HereNow().Channels(channels).IncludeState(includeState).IncludeUuids(includeUUIDs).Execute()
+		res, status, err := pn.HereNow().Channels(channels).IncludeState(includeState).IncludeUUIDs(includeUUIDs).Execute()
 		hereNowResponse(res, status, err)
 	} else if len(channelGroups) != 0 {
-		res, status, err := pn.HereNow().ChannelGroups(channelGroups).IncludeState(includeState).IncludeUuids(includeUUIDs).Execute()
+		res, status, err := pn.HereNow().ChannelGroups(channelGroups).IncludeState(includeState).IncludeUUIDs(includeUUIDs).Execute()
 		hereNowResponse(res, status, err)
 	} else {
-		res, status, err := pn.HereNow().IncludeState(includeState).IncludeUuids(includeUUIDs).Execute()
+		res, status, err := pn.HereNow().IncludeState(includeState).IncludeUUIDs(includeUUIDs).Execute()
 		hereNowResponse(res, status, err)
 	}
 }

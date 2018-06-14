@@ -15,7 +15,7 @@ func main() {
 
 	res, status, err := pn.HereNow().
 		Channels([]string{"my_channel", "demo"}).
-		IncludeUuids(true).
+		IncludeUUIDs(true).
 		Execute()
 
 	if err != nil {
@@ -30,7 +30,7 @@ func main() {
 		fmt.Println("occupancy: ", v.Occupancy)
 
 		for _, occupant := range v.Occupants {
-			fmt.Printf("Uuid: %s, state: %s\n", occupant.Uuid, occupant.State)
+			fmt.Printf("UUID: %s, state: %s\n", occupant.UUID, occupant.State)
 		}
 	}
 }

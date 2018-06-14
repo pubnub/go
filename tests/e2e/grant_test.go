@@ -13,7 +13,7 @@ func TestGrantSucccessNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	pn.Config.Uuid = "asd,|//&aqwe"
+	pn.Config.UUID = "asd,|//&aqwe"
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).

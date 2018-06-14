@@ -246,7 +246,7 @@ func TestPublishSigned(t *testing.T) {
 	validCharacters := "-._~:[]@!$&'()*+;=`|"
 
 	config := pamConfigCopy()
-	config.Uuid = validCharacters
+	config.UUID = validCharacters
 	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
@@ -264,7 +264,7 @@ func TestPublishSuperCall(t *testing.T) {
 	validCharacters := "-._~:[]@!$&'()*+;=`|"
 
 	config := pamConfigCopy()
-	config.Uuid = validCharacters
+	config.UUID = validCharacters
 	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)

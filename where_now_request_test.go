@@ -22,7 +22,7 @@ func TestWhereNowBasicRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	opts := &whereNowOpts{
-		Uuid:   "my-custom-uuid",
+		UUID:   "my-custom-uuid",
 		pubnub: pubnub,
 	}
 	path, err := opts.buildPath()

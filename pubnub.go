@@ -21,7 +21,7 @@ const (
 	StrMissingChannelGroup = "Missing Channel Group"
 	StrMissingMessage      = "Missing Message"
 	StrMissingSecretKey    = "Missing Secret Key"
-	StrMissingUuid         = "Missing Uuid"
+	StrMissingUUID         = "Missing UUID"
 	StrMissingDeviceID     = "Missing Device ID"
 	StrMissingPushType     = "Missing Push Type"
 )
@@ -140,7 +140,7 @@ func (pn *PubNub) GetClient() *http.Client {
 	defer pn.Unlock()
 
 	if pn.client == nil {
-		if pn.Config.UseHttp2 {
+		if pn.Config.UseHTTP2 {
 			pn.client = NewHTTP2Client(pn.Config.ConnectTimeout,
 				pn.Config.NonSubscribeRequestTimeout)
 		} else {
@@ -164,7 +164,7 @@ func (pn *PubNub) GetSubscribeClient() *http.Client {
 	defer pn.Unlock()
 	if pn.subscribeClient == nil {
 
-		if pn.Config.UseHttp2 {
+		if pn.Config.UseHTTP2 {
 			pn.subscribeClient = NewHTTP2Client(pn.Config.ConnectTimeout,
 				pn.Config.SubscribeRequestTimeout)
 		} else {

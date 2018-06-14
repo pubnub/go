@@ -83,7 +83,7 @@ func (o *timeOpts) buildPath() (string, error) {
 }
 
 func (o *timeOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	return q, nil
 }

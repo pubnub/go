@@ -12,7 +12,7 @@ import (
 func TestNewSetStateResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.Uuid = "my-custom-uuid"
+	pubnub.Config.UUID = "my-custom-uuid"
 
 	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": {"k": "v"}, "uuid": "my-custom-uuid", "service": "Presence"}`)
 
@@ -49,7 +49,7 @@ func TestSetStateRequestBasic(t *testing.T) {
 
 	h.AssertPathsEqual(t,
 		fmt.Sprintf("/v2/presence/sub-key/sub_key/channel/%s/uuid/%s/data",
-			opts.Channels[0], opts.pubnub.Config.Uuid),
+			opts.Channels[0], opts.pubnub.Config.UUID),
 		u.EscapedPath(), []int{})
 
 	query, err := opts.buildQuery()
@@ -83,7 +83,7 @@ func TestSetStateMultipleChannels(t *testing.T) {
 
 	h.AssertPathsEqual(t,
 		fmt.Sprintf("/v2/presence/sub-key/sub_key/channel/ch1,ch2,ch3/uuid/%s/data",
-			opts.pubnub.Config.Uuid),
+			opts.pubnub.Config.UUID),
 		u.EscapedPath(), []int{})
 }
 

@@ -56,8 +56,8 @@ func (b *getStateBuilder) ChannelGroups(cg []string) *getStateBuilder {
 	return b
 }
 
-func (b *getStateBuilder) Uuid(uuid string) *getStateBuilder {
-	b.opts.Uuid = uuid
+func (b *getStateBuilder) UUID(uuid string) *getStateBuilder {
+	b.opts.UUID = uuid
 
 	return b
 }
@@ -87,7 +87,7 @@ type getStateOpts struct {
 
 	ChannelGroups []string
 
-	Uuid string
+	UUID string
 
 	Transport http.RoundTripper
 
@@ -128,11 +128,11 @@ func (o *getStateOpts) buildPath() (string, error) {
 	return fmt.Sprintf(getStatePath,
 		o.pubnub.Config.SubscribeKey,
 		strings.Join(channels, ","),
-		utils.UrlEncode(o.pubnub.Config.Uuid)), nil
+		utils.UrlEncode(o.pubnub.Config.UUID)), nil
 }
 
 func (o *getStateOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	var groups []string
 

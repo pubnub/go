@@ -14,7 +14,7 @@ func TestWhereNowNotStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 
 	res, _, err := pn.WhereNow().
-		Uuid("person-uuid").
+		UUID("person-uuid").
 		Execute()
 
 	assert.Nil(err)
@@ -37,7 +37,7 @@ func TestWhereNowMultipleChannels(t *testing.T) {
 	pn.SetClient(interceptor.GetClient())
 
 	res, _, err := pn.WhereNow().
-		Uuid("person-uuid").
+		UUID("person-uuid").
 		Execute()
 
 	assert.Nil(err)
@@ -47,7 +47,7 @@ func TestWhereNowMultipleChannels(t *testing.T) {
 	assert.Equal("b", res.Channels[1])
 }
 
-func TestWhereNowNoUuid(t *testing.T) {
+func TestWhereNowNoUUID(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(config)

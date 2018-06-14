@@ -17,7 +17,7 @@ import (
 func HeartbeatTimeoutEvent(t *testing.T) {
 	assert := assert.New(t)
 	ch := randomized("hb-te")
-	emitterUuid := randomized("emitter")
+	emitterUUID := randomized("emitter")
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -32,8 +32,8 @@ func HeartbeatTimeoutEvent(t *testing.T) {
 
 	configPresenceListener := configCopy()
 
-	configEmitter.Uuid = emitterUuid
-	configPresenceListener.Uuid = randomized("listener")
+	configEmitter.UUID = emitterUUID
+	configPresenceListener.UUID = randomized("listener")
 
 	pn := pubnub.NewPubNub(configEmitter)
 	pnPresenceListener := pubnub.NewPubNub(configPresenceListener)
@@ -75,19 +75,19 @@ func HeartbeatTimeoutEvent(t *testing.T) {
 					message.Message)
 			case presence := <-listenerPresenceListener.Presence:
 				// ignore join event of presence listener
-				if presence.Uuid == configPresenceListener.Uuid {
+				if presence.UUID == configPresenceListener.UUID {
 					continue
 				}
 
 				assert.Equal(ch, presence.Channel)
 
 				if presence.Event == "timeout" {
-					assert.Equal(configEmitter.Uuid, presence.Uuid)
+					assert.Equal(configEmitter.UUID, presence.UUID)
 					doneTimeout <- true
 					return
 				} else if presence.Event == "join" {
 					assert.Equal("join", presence.Event)
-					assert.Equal(configEmitter.Uuid, presence.Uuid)
+					assert.Equal(configEmitter.UUID, presence.UUID)
 					wg.Done()
 				}
 			}
@@ -315,7 +315,7 @@ func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 	assert := assert.New(t)
 	first := "first"
 	second := "second"
-	emitterUuid := randomized("emitter")
+	emitterUUID := randomized("emitter")
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -327,7 +327,7 @@ func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 	configEmitter := configCopy()
 	configEmitter.SetPresenceTimeout(6)
 
-	configEmitter.Uuid = emitterUuid
+	configEmitter.UUID = emitterUUID
 
 	pn := pubnub.NewPubNub(configEmitter)
 

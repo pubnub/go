@@ -42,15 +42,15 @@ func newWhereNowBuilderWithContext(pubnub *PubNub,
 }
 
 //
-func (b *whereNowBuilder) Uuid(uuid string) *whereNowBuilder {
-	b.opts.Uuid = uuid
+func (b *whereNowBuilder) UUID(uuid string) *whereNowBuilder {
+	b.opts.UUID = uuid
 
 	return b
 }
 
 func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
-	if len(b.opts.Uuid) <= 0 {
-		b.opts.Uuid = b.opts.pubnub.Config.Uuid
+	if len(b.opts.UUID) <= 0 {
+		b.opts.UUID = b.opts.pubnub.Config.UUID
 	}
 
 	rawJson, status, err := executeRequest(b.opts)
@@ -64,7 +64,7 @@ func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
 type whereNowOpts struct {
 	pubnub *PubNub
 
-	Uuid string
+	UUID string
 
 	Transport http.RoundTripper
 
@@ -94,11 +94,11 @@ func (o *whereNowOpts) validate() error {
 func (o *whereNowOpts) buildPath() (string, error) {
 	return fmt.Sprintf(whereNowPath,
 		o.pubnub.Config.SubscribeKey,
-		o.Uuid), nil
+		o.UUID), nil
 }
 
 func (o *whereNowOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	return q, nil
 }

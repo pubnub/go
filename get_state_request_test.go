@@ -11,7 +11,7 @@ import (
 func TestNewGetStateResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.Uuid = "my-custom-uuid"
+	pubnub.Config.UUID = "my-custom-uuid"
 
 	//https://ssp.pubnub.com/v2/presence/sub-key/s/channel/my-channel/uuid/pn-696b6ccf-b473-4b4e-b86e-02ce7eca68cb?pnsdk=PubNub-Go/4.0.0-beta.7&uuid=pn-696b6ccf-b473-4b4e-b86e-02ce7eca68cb
 
@@ -30,7 +30,7 @@ func TestNewGetStateResponse(t *testing.T) {
 func TestNewGetStateResponse2(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.Uuid = "my-custom-uuid"
+	pubnub.Config.UUID = "my-custom-uuid"
 	//https://ps.pubnub.com/v2/presence/sub-key/s/channel/my-channel3,my-channel2,my-channel/uuid/5fef96e6-a64b-4808-8712-3623af768c3b?pnsdk=PubNub-Go/4.0.0-beta.7&uuid=5fef96e6-a64b-4808-8712-3623af768c3b
 
 	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": {"channels": {"my-channel3": {"k": "v4"}, "my-channel2": {"k": "v3"}, "my-channel": {"k": "v3"}}}, "uuid": "my-custom-uuid", "service": "Presence"}`)
@@ -57,7 +57,7 @@ func TestNewGetStateResponse2(t *testing.T) {
 func TestNewGetStateResponseErr(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.Uuid = "my-custom-uuid"
+	pubnub.Config.UUID = "my-custom-uuid"
 
 	jsonBytes := []byte(`{"status": 400, "error": 1, "message": "Invalid JSON specified.", "service": "Presence"}`)
 
@@ -68,7 +68,7 @@ func TestNewGetStateResponseErr(t *testing.T) {
 func TestGetStateBasicRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.Uuid = "my-custom-uuid"
+	pubnub.Config.UUID = "my-custom-uuid"
 
 	opts := &getStateOpts{
 		Channels:      []string{"ch"},
@@ -100,7 +100,7 @@ func TestGetStateBasicRequest(t *testing.T) {
 func TestGetStateMultipleChannelsChannelGroups(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.Uuid = "my-custom-uuid"
+	pubnub.Config.UUID = "my-custom-uuid"
 
 	opts := &getStateOpts{
 		Channels:      []string{"ch1", "ch2", "ch3"},

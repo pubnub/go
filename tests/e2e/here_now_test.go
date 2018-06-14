@@ -47,26 +47,26 @@ func TestHereNowMultipleChannelsWithState(t *testing.T) {
 	if res.Channels[0].ChannelName == "ch1" {
 		assert.Equal("ch1", res.Channels[0].ChannelName)
 		assert.Equal(1, res.Channels[0].Occupancy)
-		assert.Equal("user1", res.Channels[0].Occupants[0].Uuid)
+		assert.Equal("user1", res.Channels[0].Occupants[0].UUID)
 		assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[0].Occupants[0].State)
 
 		assert.Equal("ch2", res.Channels[1].ChannelName)
 		assert.Equal(2, res.Channels[1].Occupancy)
-		assert.Equal("user1", res.Channels[1].Occupants[0].Uuid)
+		assert.Equal("user1", res.Channels[1].Occupants[0].UUID)
 		assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[1].Occupants[0].State)
-		assert.Equal("user3", res.Channels[1].Occupants[1].Uuid)
+		assert.Equal("user3", res.Channels[1].Occupants[1].UUID)
 		assert.Equal(map[string]interface{}{"age": float64(30)}, res.Channels[1].Occupants[1].State)
 	} else if res.Channels[1].ChannelName == "ch2" {
 		assert.Equal("ch1", res.Channels[1].ChannelName)
 		assert.Equal(1, res.Channels[1].Occupancy)
-		assert.Equal("user1", res.Channels[1].Occupants[0].Uuid)
+		assert.Equal("user1", res.Channels[1].Occupants[0].UUID)
 		assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[1].Occupants[0].State)
 
 		assert.Equal("ch2", res.Channels[0].ChannelName)
 		assert.Equal(2, res.Channels[0].Occupancy)
-		assert.Equal("user1", res.Channels[0].Occupants[0].Uuid)
+		assert.Equal("user1", res.Channels[0].Occupants[0].UUID)
 		assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[0].Occupants[0].State)
-		assert.Equal("user3", res.Channels[0].Occupants[1].Uuid)
+		assert.Equal("user3", res.Channels[0].Occupants[1].UUID)
 		assert.Equal(map[string]interface{}{"age": float64(30)}, res.Channels[0].Occupants[1].State)
 	}
 
@@ -99,13 +99,13 @@ func TestMultipleChannelWithoutStateSync(t *testing.T) {
 	assert.Equal("game1", res.Channels[0].ChannelName)
 	assert.Equal(1, res.Channels[0].Occupancy)
 	//log.Println(res.Channels[0])
-	assert.Equal("a3ffd012-a3b9-478c-8705-64089f24d71e", res.Channels[0].Occupants[0].Uuid)
+	assert.Equal("a3ffd012-a3b9-478c-8705-64089f24d71e", res.Channels[0].Occupants[0].UUID)
 	assert.Equal(map[string]interface{}{}, res.Channels[0].Occupants[0].State)
 
 	assert.Nil(err)
 }
 
-func TestHereNowMultipleChannelsWithoutUuids(t *testing.T) {
+func TestHereNowMultipleChannelsWithoutUUIDs(t *testing.T) {
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
@@ -123,7 +123,7 @@ func TestHereNowMultipleChannelsWithoutUuids(t *testing.T) {
 	res, _, err := pn.HereNow().
 		Channels([]string{"game1", "game2"}).
 		IncludeState(false).
-		IncludeUuids(false).
+		IncludeUUIDs(false).
 		Execute()
 
 	assert.Equal(1, res.TotalChannels)
@@ -164,7 +164,7 @@ func TestHereNowSingleChannelWithState(t *testing.T) {
 	assert.Equal("game1", res.Channels[0].ChannelName)
 	assert.Equal(1, res.Channels[0].Occupancy)
 	assert.Equal("a3ffd012-a3b9-478c-8705-64089f24d71e",
-		res.Channels[0].Occupants[0].Uuid)
+		res.Channels[0].Occupants[0].UUID)
 	assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[0].Occupants[0].State)
 
 	assert.Nil(err)
@@ -198,7 +198,7 @@ func TestHereNowSingleChannelWithoutState(t *testing.T) {
 	assert.Equal("game1", res.Channels[0].ChannelName)
 	assert.Equal(1, res.Channels[0].Occupancy)
 	assert.Equal("a3ffd012-a3b9-478c-8705-64089f24d71e",
-		res.Channels[0].Occupants[0].Uuid)
+		res.Channels[0].Occupants[0].UUID)
 	assert.Equal(map[string]interface{}{}, res.Channels[0].Occupants[0].State)
 
 	assert.Nil(err)

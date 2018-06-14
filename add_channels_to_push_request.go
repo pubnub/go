@@ -128,7 +128,7 @@ func (o *addChannelsToPushOpts) buildPath() (string, error) {
 }
 
 func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	var channels []string
 

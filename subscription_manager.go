@@ -256,7 +256,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 				Category:              PNAcknowledgmentCategory,
 				StatusCode:            200,
 				Operation:             PNUnsubscribeOperation,
-				Uuid:                  m.pubnub.Config.Uuid,
+				UUID:                  m.pubnub.Config.UUID,
 				AffectedChannels:      unsubscribeOperation.Channels,
 				AffectedChannelGroups: unsubscribeOperation.ChannelGroups,
 			}
@@ -579,7 +579,7 @@ type subscribeMessage struct {
 
 type presenceEnvelope struct {
 	Action    string
-	Uuid      string
+	UUID      string
 	Occupancy int
 	Timestamp int64
 	Data      interface{}
@@ -696,7 +696,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			State:             data,
 			Timetoken:         timetoken,
 			Occupancy:         occupancy,
-			Uuid:              uuid,
+			UUID:              uuid,
 			Timestamp:         timestamp,
 			HereNowRefresh:    hereNowRefresh,
 		}
@@ -895,7 +895,7 @@ func (m *SubscriptionManager) unsubscribeAll() {
 func (m *SubscriptionManager) log(message string) {
 	m.pubnub.Config.Log.Printf("pubnub: subscribe: %s: %s: %s/%s\n",
 		message,
-		m.pubnub.Config.Uuid,
+		m.pubnub.Config.UUID,
 		m.stateManager.prepareChannelList(true),
 		m.stateManager.prepareGroupList(true))
 }

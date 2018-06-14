@@ -17,7 +17,7 @@ func TestGetStateNotStubbed(t *testing.T) {
 	_, _, err := pn.GetState().
 		Channels([]string{"ch"}).
 		ChannelGroups([]string{"cg"}).
-		Uuid("my-custom-uuid").
+		UUID("my-custom-uuid").
 		Execute()
 
 	assert.Nil(err)
@@ -33,13 +33,13 @@ func TestGetStateSuperCall(t *testing.T) {
 	// Not allowed characters: /?#,
 	validCharacters := "-._~:[]@!$&'()*+;=`|"
 
-	config.Uuid = validCharacters
+	config.UUID = validCharacters
 	config.AuthKey = SPECIAL_CHARACTERS
 
 	_, _, err := pn.GetState().
 		Channels([]string{validCharacters, validCharacters, validCharacters}).
 		ChannelGroups([]string{validCharacters, validCharacters, validCharacters}).
-		Uuid(validCharacters).
+		UUID(validCharacters).
 		Execute()
 
 	assert.Nil(err)
@@ -51,7 +51,7 @@ func TestGetStateSucess(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch/uuid/" + config.Uuid + "/data",
+		Path:               "/v2/presence/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch/uuid/" + config.UUID + "/data",
 		Query:              "state=%7B%22age%22%3A%2220%22%2C%22name%22%3A%22John%20Doe%22%7D",
 		ResponseBody:       `{"status": 200, "message": "OK", "payload": {"age": "20", "name": "John Doe"}, "service": "Presence"}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_pres"},
@@ -59,7 +59,7 @@ func TestGetStateSucess(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch/uuid/" + config.Uuid,
+		Path:               "/v2/presence/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch/uuid/" + config.UUID,
 		Query:              "",
 		ResponseBody:       `{"status": 200, "message": "OK", "payload": {"age": "20", "name": "John Doe"}, "uuid": "bb45300a-25fb-4b14-8de1-388393274a54", "channel": "ch", "service": "Presence"}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "channel-group", "l_pres"},

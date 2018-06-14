@@ -145,7 +145,7 @@ func (o *fetchOpts) buildPath() (string, error) {
 }
 
 func (o *fetchOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.setStart {
 		q.Set("start", strconv.FormatInt(o.Start, 10))

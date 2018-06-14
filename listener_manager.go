@@ -105,7 +105,7 @@ type PNStatus struct {
 	Error      bool
 	TlsEnabled bool
 	StatusCode int
-	Uuid       string
+	UUID       string
 	AuthKey    string
 	Origin     string
 	// Should be same for non-google environment
@@ -129,7 +129,7 @@ type PNMessage struct {
 
 type PNPresence struct {
 	Event             string
-	Uuid              string
+	UUID              string
 	SubscribedChannel string
 	ActualChannel     string
 	Channel           string

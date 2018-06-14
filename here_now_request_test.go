@@ -45,10 +45,10 @@ func TestHereNowMultipleWithOpts(t *testing.T) {
 	opts := &hereNowOpts{
 		Channels:        []string{"ch1", "ch2", "ch3"},
 		ChannelGroups:   []string{"cg1", "cg2", "cg3"},
-		IncludeUuids:    false,
+		IncludeUUIDs:    false,
 		IncludeState:    true,
 		SetIncludeState: true,
-		SetIncludeUuids: true,
+		SetIncludeUUIDs: true,
 		pubnub:          pubnub,
 	}
 

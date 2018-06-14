@@ -160,7 +160,7 @@ func (o *grantOpts) buildPath() (string, error) {
 }
 
 func (o *grantOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Read {
 		q.Set("r", "1")

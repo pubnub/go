@@ -124,14 +124,14 @@ func (o *setStateOpts) buildPath() (string, error) {
 	return fmt.Sprintf(setStatePath,
 		o.pubnub.Config.SubscribeKey,
 		channels,
-		utils.UrlEncode(o.pubnub.Config.Uuid),
+		utils.UrlEncode(o.pubnub.Config.UUID),
 	), nil
 }
 
 func (o *setStateOpts) buildQuery() (*url.Values, error) {
 	var groups []byte
 
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	groups = utils.JoinChannels(o.ChannelGroups)
 

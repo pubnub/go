@@ -170,7 +170,7 @@ func TestHistorySuperCall(t *testing.T) {
 	// Not allowed characters: /?#,
 	validCharacters := "-._~:[]@!$&'()*+;=`|"
 
-	config.Uuid = validCharacters
+	config.UUID = validCharacters
 	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)

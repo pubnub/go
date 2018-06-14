@@ -9,8 +9,8 @@ import (
 )
 
 func TestUrlsEqual(t *testing.T) {
-	expected := "https://ps.pndns.com/publish/pub_key/sub_key/0/ch/0/\"hey\"?pnsdk=123&uuid=firstUuid"
-	actual := "https://ps.pndns.com/publish/pub_key/sub_key/0/ch/0/\"hey\"?pnsdk=123&uuid=anotherUuid"
+	expected := "https://ps.pndns.com/publish/pub_key/sub_key/0/ch/0/\"hey\"?pnsdk=123&uuid=firstUUID"
+	actual := "https://ps.pndns.com/publish/pub_key/sub_key/0/ch/0/\"hey\"?pnsdk=123&uuid=anotherUUID"
 
 	match, err := UrlsEqual(expected, actual, []string{"uuid"}, []string{})
 
@@ -22,8 +22,8 @@ func TestUrlsEqual(t *testing.T) {
 }
 
 func TestUrlsNotEqual(t *testing.T) {
-	expected := "https://ps.pndns.com/publish/pub_key/sub_key/0/ch/0/\"hey\"?pnsdk=123&uuid=firstUuid"
-	actual := "https://ps.pndns.com/publish/pub_key/sub_key/0/ch/0/\"hey\"?pnsdk=123&uuid=anotherUuid"
+	expected := "https://ps.pndns.com/publish/pub_key/sub_key/0/ch/0/\"hey\"?pnsdk=123&uuid=firstUUID"
+	actual := "https://ps.pndns.com/publish/pub_key/sub_key/0/ch/0/\"hey\"?pnsdk=123&uuid=anotherUUID"
 
 	match, err := UrlsEqual(expected, actual, []string{}, []string{})
 
@@ -58,11 +58,11 @@ func TestMixedPathsEqual(t *testing.T) {
 func TestQueriesSameSizeEqual(t *testing.T) {
 	expected := &url.Values{}
 	expected.Set("channel", "my_ch")
-	expected.Set("uuid", utils.Uuid())
+	expected.Set("uuid", utils.UUID())
 
 	actual := &url.Values{}
 	actual.Set("channel", "my_ch")
-	actual.Set("uuid", utils.Uuid())
+	actual.Set("uuid", utils.UUID())
 
 	assert.True(t, QueriesEqual(expected, actual, []string{"uuid"}, []string{}))
 }
@@ -70,12 +70,12 @@ func TestQueriesSameSizeEqual(t *testing.T) {
 func TestQueriesDifferentSizeEqual(t *testing.T) {
 	expected := &url.Values{}
 	expected.Set("channel", "my_ch")
-	expected.Set("uuid", utils.Uuid())
+	expected.Set("uuid", utils.UUID())
 
 	actual := &url.Values{}
 	actual.Set("channel", "my_ch")
 	actual.Set("group", "my_gr")
-	actual.Set("uuid", utils.Uuid())
+	actual.Set("uuid", utils.UUID())
 
 	assert.True(t, QueriesEqual(expected, actual, []string{"uuid", "group"}, []string{}))
 }
@@ -84,11 +84,11 @@ func TestQueriesDifferentSizeNotEqual(t *testing.T) {
 	expected := &url.Values{}
 	expected.Set("channel", "my_ch")
 	expected.Set("group", "my_gr")
-	expected.Set("uuid", utils.Uuid())
+	expected.Set("uuid", utils.UUID())
 
 	actual := &url.Values{}
 	actual.Set("channel", "my_ch")
-	actual.Set("uuid", utils.Uuid())
+	actual.Set("uuid", utils.UUID())
 
 	assert.False(t, QueriesEqual(expected, actual, []string{}, []string{}))
 }
@@ -96,11 +96,11 @@ func TestQueriesDifferentSizeNotEqual(t *testing.T) {
 func TestQueriesSameSizeNotEqual(t *testing.T) {
 	expected := &url.Values{}
 	expected.Set("channel", "my_ch")
-	expected.Set("uuid", utils.Uuid())
+	expected.Set("uuid", utils.UUID())
 
 	actual := &url.Values{}
 	actual.Set("channel", "my_ch")
-	actual.Set("uuid", utils.Uuid())
+	actual.Set("uuid", utils.UUID())
 
 	assert.False(t, QueriesEqual(expected, actual, []string{}, []string{}))
 }
@@ -108,11 +108,11 @@ func TestQueriesSameSizeNotEqual(t *testing.T) {
 func TestMixedQueriesEqual(t *testing.T) {
 	expected := &url.Values{}
 	expected.Set("channel", "ch1,ch2,ch3")
-	expected.Set("uuid", utils.Uuid())
+	expected.Set("uuid", utils.UUID())
 
 	actual := &url.Values{}
 	actual.Set("channel", "ch2,ch1,ch3")
-	actual.Set("uuid", utils.Uuid())
+	actual.Set("uuid", utils.UUID())
 
 	assert.True(t, QueriesEqual(expected, actual, []string{"uuid"},
 		[]string{"channel"}))
@@ -125,8 +125,8 @@ func TestMixedQueriesNotEqual(t *testing.T) {
 
 	actual := &url.Values{}
 	actual.Set("heartbeat", "300")
-	actual.Set("pnsdk", utils.Uuid())
-	actual.Set("uuid", utils.Uuid())
+	actual.Set("pnsdk", utils.UUID())
+	actual.Set("uuid", utils.UUID())
 	assert.False(t, QueriesEqual(expected, actual, []string{"pnsdk", "uuid", "tt"},
 		[]string{}))
 }

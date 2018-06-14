@@ -134,7 +134,7 @@ func (o *subscribeOpts) buildPath() (string, error) {
 }
 
 func (o *subscribeOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if len(o.ChannelGroups) > 0 {
 		channelGroup := utils.JoinChannels(o.ChannelGroups)

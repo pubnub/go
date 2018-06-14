@@ -1037,7 +1037,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	heySub := heyIterator(3)
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Uuid = randomized("sub-partialu-uuid")
+	pn.Config.UUID = randomized("sub-partialu-uuid")
 
 	listener := pubnub.NewListener()
 
@@ -1108,8 +1108,8 @@ func JoinLeaveChannel(t *testing.T) {
 	configEmitter := configCopy()
 	configPresenceListener := configCopy()
 
-	configEmitter.Uuid = randomized("sub-lj-emitter")
-	configPresenceListener.Uuid = randomized("sub-lj-listener")
+	configEmitter.UUID = randomized("sub-lj-emitter")
+	configPresenceListener.UUID = randomized("sub-lj-listener")
 
 	pn := pubnub.NewPubNub(configEmitter)
 	pnPresenceListener := pubnub.NewPubNub(configPresenceListener)
@@ -1151,19 +1151,19 @@ func JoinLeaveChannel(t *testing.T) {
 					message.Message)
 			case presence := <-listenerPresenceListener.Presence:
 				// ignore join event of presence listener
-				if presence.Uuid == configPresenceListener.Uuid {
+				if presence.UUID == configPresenceListener.UUID {
 					continue
 				}
 
 				assert.Equal(ch, presence.Channel)
 
 				if presence.Event == "leave" {
-					assert.Equal(configEmitter.Uuid, presence.Uuid)
+					assert.Equal(configEmitter.UUID, presence.UUID)
 					doneLeave <- true
 					return
 				}
 				assert.Equal("join", presence.Event)
-				assert.Equal(configEmitter.Uuid, presence.Uuid)
+				assert.Equal(configEmitter.UUID, presence.UUID)
 				wg.Done()
 			}
 		}
@@ -1424,8 +1424,8 @@ func SubscribeJoinLeaveGroup(t *testing.T) {
 	configEmitter := configCopy()
 	configPresenceListener := configCopy()
 
-	configEmitter.Uuid = randomized("emitter")
-	configPresenceListener.Uuid = randomized("listener")
+	configEmitter.UUID = randomized("emitter")
+	configPresenceListener.UUID = randomized("listener")
 
 	pn := pubnub.NewPubNub(configEmitter)
 	pnPresenceListener := pubnub.NewPubNub(configPresenceListener)
@@ -1467,19 +1467,19 @@ func SubscribeJoinLeaveGroup(t *testing.T) {
 				return
 			case presence := <-listenerPresenceListener.Presence:
 				// ignore join event of presence listener
-				if presence.Uuid == configPresenceListener.Uuid {
+				if presence.UUID == configPresenceListener.UUID {
 					continue
 				}
 
 				assert.Equal(presence.Channel, ch)
 
 				if presence.Event == "leave" {
-					assert.Equal(configEmitter.Uuid, presence.Uuid)
+					assert.Equal(configEmitter.UUID, presence.UUID)
 					doneLeaveEvent <- true
 					return
 				} else {
 					assert.Equal("join", presence.Event)
-					assert.Equal(configEmitter.Uuid, presence.Uuid)
+					assert.Equal(configEmitter.UUID, presence.UUID)
 					wg.Done()
 				}
 			}
@@ -1903,7 +1903,7 @@ func TestSubscribeSuperCall(t *testing.T) {
 	// Not allowed characters:
 	// .,:*
 	validCharacters := "-_~?#[]@!$&'()+;=`|"
-	config.Uuid = validCharacters
+	config.UUID = validCharacters
 	//config.AuthKey = validCharacters
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 

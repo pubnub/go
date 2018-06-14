@@ -123,7 +123,7 @@ func (o *removeChannelsFromPushOpts) buildPath() (string, error) {
 }
 
 func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 	q.Set("type", o.PushType.String())
 	var channels []string
 

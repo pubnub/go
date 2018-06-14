@@ -21,7 +21,7 @@ type StatusResponse struct {
 
 	TlsEnabled bool
 
-	Uuid             string
+	UUID             string
 	AuthKey          string
 	Origin           string
 	OriginalResponse string
@@ -39,7 +39,7 @@ type ResponseInfo struct {
 	TlsEnabled bool
 
 	Origin  string
-	Uuid    string
+	UUID    string
 	AuthKey string
 
 	OriginalResponse *http.Response
@@ -79,11 +79,11 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 		}
 
 		body := bytes.NewReader(b)
-		req, err = newRequest("POST", url, body, opts.config().UseHttp2)
+		req, err = newRequest("POST", url, body, opts.config().UseHTTP2)
 	} else if opts.httpMethod() == "DELETE" {
-		req, err = newRequest("DELETE", url, nil, opts.config().UseHttp2)
+		req, err = newRequest("DELETE", url, nil, opts.config().UseHTTP2)
 	} else {
-		req, err = newRequest("GET", url, nil, opts.config().UseHttp2)
+		req, err = newRequest("GET", url, nil, opts.config().UseHTTP2)
 	}
 
 	if err != nil {
@@ -139,7 +139,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	}
 
 	if uuid, ok := url.Query()["uuid"]; ok {
-		responseInfo.Uuid = uuid[0]
+		responseInfo.UUID = uuid[0]
 	}
 
 	if auth, ok := url.Query()["auth"]; ok {
@@ -242,7 +242,7 @@ func createStatus(category StatusCategory, response string,
 	resp.StatusCode = responseInfo.StatusCode
 	resp.TlsEnabled = responseInfo.TlsEnabled
 	resp.Origin = responseInfo.Origin
-	resp.Uuid = responseInfo.Uuid
+	resp.UUID = responseInfo.UUID
 	resp.AuthKey = responseInfo.AuthKey
 	resp.Operation = responseInfo.Operation
 	resp.Category = category

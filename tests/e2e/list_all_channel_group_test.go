@@ -41,7 +41,7 @@ func TestListAllChannelGroupSuperCall(t *testing.T) {
 
 	validCharacters := "-_~?#[]@!$&'()+;=`|"
 
-	config.Uuid = validCharacters
+	config.UUID = validCharacters
 	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)

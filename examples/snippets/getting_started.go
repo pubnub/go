@@ -159,7 +159,7 @@ func publish() {
 func hereNow() {
 	res, status, err := pn.HereNow().
 		Channels([]string{"ch"}).
-		IncludeUuids(true).
+		IncludeUUIDs(true).
 		Execute()
 
 	if err != nil {
@@ -187,8 +187,8 @@ func presence() {
 
 	pnPresenceListener := pubnub.NewPubNub(configPresenceListener)
 
-	pn.Config.Uuid = "my-emitter"
-	pnPresenceListener.Config.Uuid = "my-listener"
+	pn.Config.UUID = "my-emitter"
+	pnPresenceListener.Config.UUID = "my-listener"
 
 	listenerEmitter := pubnub.NewListener()
 	listenerPresenceListener := pubnub.NewListener()
@@ -228,7 +228,7 @@ func presence() {
 			case presence := <-listenerPresenceListener.Presence:
 				fmt.Println(presence, "\n", configPresenceListener)
 				// ignore join event of presence listener
-				if presence.Uuid == configPresenceListener.Uuid {
+				if presence.UUID == configPresenceListener.UUID {
 					continue
 				}
 

@@ -10,7 +10,7 @@ func subscribe() {
 	config := pubnub.NewConfig()
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.Uuid = "Stephen"
+	config.UUID = "Stephen"
 
 	pn := pubnub.NewPubNub(config)
 
@@ -46,13 +46,13 @@ func hereNow() {
 	config := pubnub.NewConfig()
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.Uuid = "Stephen"
+	config.UUID = "Stephen"
 
 	pn := pubnub.NewPubNub(config)
 
 	res, _, _ := pn.HereNow().
 		Channels([]string{"ch1", "ch2"}).
-		IncludeUuids(true).
+		IncludeUUIDs(true).
 		Execute()
 
 	for _, v := range res.Channels {
@@ -61,7 +61,7 @@ func hereNow() {
 		fmt.Println("Occupants")
 
 		for _, v := range v.Occupants {
-			fmt.Println("Uuid: ", v.Uuid, ", state: ", v.State)
+			fmt.Println("UUID: ", v.UUID, ", state: ", v.State)
 		}
 	}
 }
@@ -70,13 +70,13 @@ func globalHereNow() {
 	config := pubnub.NewConfig()
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.Uuid = "Stephen"
+	config.UUID = "Stephen"
 
 	pn := pubnub.NewPubNub(config)
 
 	res, status, err := pn.HereNow().
 		IncludeState(true).
-		IncludeUuids(true).
+		IncludeUUIDs(true).
 		Execute()
 
 	fmt.Println(res, status, err)
@@ -86,12 +86,12 @@ func whereNow() {
 	config := pubnub.NewConfig()
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.Uuid = "Stephen"
+	config.UUID = "Stephen"
 
 	pn := pubnub.NewPubNub(config)
 
 	res, status, err := pn.WhereNow().
-		Uuid("person-uuid").
+		UUID("person-uuid").
 		Execute()
 
 	fmt.Println(res, status, err)
@@ -101,7 +101,7 @@ func getState() {
 	config := pubnub.NewConfig()
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.Uuid = "Stephen"
+	config.UUID = "Stephen"
 
 	pn := pubnub.NewPubNub(config)
 

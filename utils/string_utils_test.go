@@ -15,10 +15,10 @@ func TestStringAsString(t *testing.T) {
 	assert.Equal([]byte("\"blah\""), str)
 }
 
-func TestUuid(t *testing.T) {
+func TestUUID(t *testing.T) {
 	assert := assert.New(t)
 
-	assert.Len(Uuid(), 36)
+	assert.Len(UUID(), 36)
 }
 
 func TestUrlEncode(t *testing.T) {

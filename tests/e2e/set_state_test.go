@@ -52,7 +52,7 @@ func TestSetStateSuperCall(t *testing.T) {
 	config := pamConfigCopy()
 
 	// Not allowed characters: /
-	config.Uuid = validCharacters
+	config.UUID = validCharacters
 
 	//config.AuthKey = validCharacters
 

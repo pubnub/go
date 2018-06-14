@@ -101,7 +101,7 @@ func ValueAsString(value interface{}) ([]byte, error) {
 }
 
 // Generate a random uuid string
-func Uuid() string {
+func UUID() string {
 	return uuid.NewV4().String()
 }
 

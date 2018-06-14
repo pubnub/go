@@ -6,7 +6,7 @@ func main() {
 	config := pubnub.NewConfig()
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.Uuid = "my_uuid"
+	config.UUID = "my_uuid"
 
 	pn := pubnub.NewPubNub(config)
 

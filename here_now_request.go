@@ -63,9 +63,9 @@ func (b *hereNowBuilder) IncludeState(state bool) *hereNowBuilder {
 	return b
 }
 
-func (b *hereNowBuilder) IncludeUuids(uuid bool) *hereNowBuilder {
-	b.opts.IncludeUuids = uuid
-	b.opts.SetIncludeUuids = true
+func (b *hereNowBuilder) IncludeUUIDs(uuid bool) *hereNowBuilder {
+	b.opts.IncludeUUIDs = uuid
+	b.opts.SetIncludeUUIDs = true
 
 	return b
 }
@@ -85,11 +85,11 @@ type hereNowOpts struct {
 	Channels      []string
 	ChannelGroups []string
 
-	IncludeUuids bool
+	IncludeUUIDs bool
 	IncludeState bool
 
 	SetIncludeState bool
-	SetIncludeUuids bool
+	SetIncludeUUIDs bool
 
 	Transport http.RoundTripper
 
@@ -134,7 +134,7 @@ func (o *hereNowOpts) buildPath() (string, error) {
 }
 
 func (o *hereNowOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if len(o.ChannelGroups) > 0 {
 		q.Set("channel-group", strings.Join(o.ChannelGroups, ","))
@@ -146,9 +146,9 @@ func (o *hereNowOpts) buildQuery() (*url.Values, error) {
 		q.Set("state", "0")
 	}
 
-	if o.SetIncludeUuids && !o.IncludeUuids {
+	if o.SetIncludeUUIDs && !o.IncludeUUIDs {
 		q.Set("disable-uuids", "1")
-	} else if o.SetIncludeUuids && o.IncludeUuids {
+	} else if o.SetIncludeUUIDs && o.IncludeUUIDs {
 		q.Set("disable-uuids", "0")
 	}
 
@@ -199,7 +199,7 @@ type HereNowChannelData struct {
 }
 
 type HereNowOccupantsData struct {
-	Uuid string
+	UUID string
 
 	State map[string]interface{}
 }
@@ -353,15 +353,15 @@ func parseChannelData(channelName string, rawData interface{}) HereNowChannelDat
 
 	if parsedRawData, ok := rawData.(map[string]interface{}); ok {
 		if uuids, ok := parsedRawData["uuids"]; ok {
-			if parsedUuids, ok := uuids.([]interface{}); ok {
-				for _, user := range parsedUuids {
+			if parsedUUIDs, ok := uuids.([]interface{}); ok {
+				for _, user := range parsedUUIDs {
 					if u, ok := user.(map[string]interface{}); ok {
 						if len(u) > 0 {
 							if _, ok := u["state"]; ok {
 								occData := HereNowOccupantsData{}
 
 								if uuid, ok := u["uuid"].(string); ok {
-									occData.Uuid = uuid
+									occData.UUID = uuid
 								}
 
 								if state, ok := u["state"].(map[string]interface{}); ok {
@@ -373,7 +373,7 @@ func parseChannelData(channelName string, rawData interface{}) HereNowChannelDat
 								occData := HereNowOccupantsData{}
 
 								if uuid, ok := u["uuid"].(string); ok {
-									occData.Uuid = uuid
+									occData.UUID = uuid
 								}
 
 								occupants = append(occupants, occData)

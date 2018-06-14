@@ -98,7 +98,7 @@ func (o *deleteChannelGroupOpts) buildPath() (string, error) {
 }
 
 func (o *deleteChannelGroupOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	return q, nil
 }

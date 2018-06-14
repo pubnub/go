@@ -149,7 +149,7 @@ func (o *historyOpts) buildPath() (string, error) {
 }
 
 func (o *historyOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.setStart {
 		q.Set("start", strconv.FormatInt(o.Start, 10))

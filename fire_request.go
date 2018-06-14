@@ -200,7 +200,7 @@ func (o *fireOpts) buildPath() (string, error) {
 }
 
 func (o *fireOpts) buildQuery() (*url.Values, error) {
-	q := defaultQuery(o.pubnub.Config.Uuid, o.pubnub.telemetryManager)
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Meta != nil {
 		meta, err := utils.ValueAsString(o.Meta)
