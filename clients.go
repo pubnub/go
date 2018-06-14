@@ -7,7 +7,8 @@ import (
 	"time"
 )
 
-func NewHttp1Client(connectTimeout int, responseReadTimeout int) *http.Client {
+// NewHTTP1Client creates a new HTTP 1 client with a new transport initialized with connect and read timeout
+func NewHTTP1Client(connectTimeout int, responseReadTimeout int) *http.Client {
 	transport := &http.Transport{
 		// MaxIdleConns: 30,
 		Dial: (&net.Dialer{
@@ -25,7 +26,8 @@ func NewHttp1Client(connectTimeout int, responseReadTimeout int) *http.Client {
 	return client
 }
 
-func NewHttp2Client(connectTimeout int, responseReadTimeout int) *http.Client {
+// NewHTTP2Client creates a new HTTP 2 client with a new transport initialized with connect and read timeout
+func NewHTTP2Client(connectTimeout int, responseReadTimeout int) *http.Client {
 	transport := &http2.Transport{}
 
 	client := &http.Client{
