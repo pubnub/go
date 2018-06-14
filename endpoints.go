@@ -113,14 +113,14 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 
 	path = fmt.Sprintf("//%s%s", o.config().Origin, path)
 
-	retUrl := &url.URL{
+	retURL := &url.URL{
 		Opaque:   path,
 		Scheme:   "https",
 		Host:     o.config().Origin,
 		RawQuery: stringifiedQuery,
 	}
 
-	return retUrl, nil
+	return retURL, nil
 }
 
 func newValidationError(o endpointOpts, msg string) error {
