@@ -50,16 +50,15 @@ func newFireResponse(jsonBytes []byte, status StatusResponse) (
 
 	if timeString, ok := value[2].(string); !ok {
 		return emptyPublishResponse, status, pnerr.NewResponseParsingError(fmt.Sprintf("Error unmarshalling response, %s %v", value[2], value), nil, nil)
-	} else {
-		timestamp, err := strconv.Atoi(timeString)
-		if err != nil {
-			return emptyPublishResponse, status, err
-		}
-
-		return &PublishResponse{
-			Timestamp: timestamp,
-		}, status, nil
 	}
+	timestamp, err := strconv.Atoi(timeString)
+	if err != nil {
+		return emptyPublishResponse, status, err
+	}
+
+	return &PublishResponse{
+		Timestamp: timestamp,
+	}, status, nil
 }
 
 func newFireBuilder(pubnub *PubNub) *fireBuilder {
@@ -128,12 +127,12 @@ func (b *fireBuilder) Transport(tr http.RoundTripper) *fireBuilder {
 func (b *fireBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	b.opts.ShouldStore = false
 	b.opts.DoNotReplicate = true
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPublishResponse, status, err
 	}
 
-	return newPublishResponse(rawJson, status)
+	return newPublishResponse(rawJSON, status)
 }
 
 func (o *fireOpts) config() Config {

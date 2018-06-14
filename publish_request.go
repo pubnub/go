@@ -160,12 +160,12 @@ func (b *publishBuilder) Transport(tr http.RoundTripper) *publishBuilder {
 }
 
 func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPublishResponse, status, err
 	}
 
-	return newPublishResponse(rawJson, status)
+	return newPublishResponse(rawJSON, status)
 }
 
 func (o *publishOpts) config() Config {
