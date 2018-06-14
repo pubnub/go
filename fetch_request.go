@@ -78,12 +78,12 @@ func (b *fetchBuilder) Transport(tr http.RoundTripper) *fetchBuilder {
 }
 
 func (b *fetchBuilder) Execute() (*FetchResponse, StatusResponse, error) {
-	rawJson, status, err := executeRequest(b.opts)
+	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyFetchResp, status, err
 	}
 
-	return newFetchResponse(rawJson, b.opts, status)
+	return newFetchResponse(rawJSON, b.opts, status)
 }
 
 type fetchOpts struct {
@@ -194,6 +194,7 @@ func (o *fetchOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// FetchResponse is the response to Fetch request. It contains a map of type FetchResponseItem
 type FetchResponse struct {
 	Messages map[string][]FetchResponseItem
 }
@@ -264,6 +265,7 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 	return resp, status, nil
 }
 
+// FetchResponseItem contains the message and the associated timetoken.
 type FetchResponseItem struct {
 	Message   interface{}
 	Timetoken string
