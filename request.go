@@ -55,7 +55,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 			err
 	}
 
-	url, err := buildUrl(opts)
+	url, err := buildURL(opts)
 
 	if err != nil {
 		opts.config().Log.Println("PNUnknownCategory", err)

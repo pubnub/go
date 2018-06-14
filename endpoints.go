@@ -40,7 +40,7 @@ func defaultQuery(uuid string, telemetryManager *TelemetryManager) *url.Values {
 	return v
 }
 
-func buildUrl(o endpointOpts) (*url.URL, error) {
+func buildURL(o endpointOpts) (*url.URL, error) {
 	var stringifiedQuery string
 	var signature string
 

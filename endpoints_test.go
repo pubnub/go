@@ -68,7 +68,7 @@ func xTestBuildUrl(t *testing.T) {
 		pubnub: pn,
 	}
 
-	url, err := buildUrl(e)
+	url, err := buildURL(e)
 
 	assert.Nil(err)
 	assert.Equal("https://ps.pndsn.com/my/path?a=2&b=hey", url.RequestURI())

@@ -89,6 +89,7 @@ func (o *deleteChannelGroupOpts) validate() error {
 	return nil
 }
 
+// DeleteChannelGroupResponse is response structure for Delete Channel Group function
 type DeleteChannelGroupResponse struct{}
 
 func (o *deleteChannelGroupOpts) buildPath() (string, error) {
