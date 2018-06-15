@@ -232,12 +232,12 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 
 			if ok {
 				o.pubnub.Config.Log.Println(ok, msgPart)
-				if encMsg, errJSONMarshal := utils.SerializeAndEncrypt(msgPart, cipherKey, o.Serialize); errJSONMarshal != nil {
+				encMsg, errJSONMarshal := utils.SerializeAndEncrypt(msgPart, cipherKey, o.Serialize)
+				if errJSONMarshal != nil {
 					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 					return "", errJSONMarshal
-				} else {
-					v["pn_other"] = encMsg
 				}
+				v["pn_other"] = encMsg
 				jsonEncBytes, errEnc := json.Marshal(v)
 				if errEnc != nil {
 					o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())

@@ -261,20 +261,17 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 				return []byte{}, err
 			}
 			return []byte(msg), nil
-		} else {
-			return msg, nil
 		}
-	} else {
-		return []byte{}, nil
+		return msg, nil
 	}
+	return []byte{}, nil
 }
 
 func (o *fireOpts) httpMethod() string {
 	if o.UsePost {
 		return "POST"
-	} else {
-		return "GET"
 	}
+	return "GET"
 }
 
 func (o *fireOpts) isAuthRequired() bool {

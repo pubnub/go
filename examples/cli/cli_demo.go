@@ -140,9 +140,10 @@ func showErr(err string) {
 
 func showHelp() {
 	fmt.Println("")
-	fmt.Println("\n ============")
+	fmt.Println("============")
 	fmt.Println(" ||  HELP  ||")
-	fmt.Println(" ============\n")
+	fmt.Println("============")
+	fmt.Println("")
 	showPublishHelp()
 	showSubscribeHelp()
 	showTimeHelp()
@@ -162,9 +163,11 @@ func showHelp() {
 	showGrantHelp()
 	showSubscribeWithStateHelp()
 	showPresenceTimeoutHelp()
-	fmt.Println("\n ================")
+	fmt.Println("")
+	fmt.Println("================")
 	fmt.Println(" ||  COMMANDS  ||")
-	fmt.Println(" ================\n")
+	fmt.Println("================")
+	fmt.Println("")
 	fmt.Println(" UNSUBSCRIBE ALL \n\tq ")
 	fmt.Println(" QUIT \n\tctrl+c ")
 }
@@ -692,7 +695,7 @@ func fetchRequest(args []string) {
 			End(end).
 			Reverse(reverse).
 			Execute()
-		ParseFetch(res, status, err)
+		parseFetch(res, status, err)
 	} else if start != 0 {
 		res, status, err := pn.Fetch().
 			Channels(channels).
@@ -700,7 +703,7 @@ func fetchRequest(args []string) {
 			Start(start).
 			Reverse(reverse).
 			Execute()
-		ParseFetch(res, status, err)
+		parseFetch(res, status, err)
 	} else if end != 0 {
 		res, status, err := pn.Fetch().
 			Channels(channels).
@@ -708,18 +711,18 @@ func fetchRequest(args []string) {
 			End(end).
 			Reverse(reverse).
 			Execute()
-		ParseFetch(res, status, err)
+		parseFetch(res, status, err)
 	} else {
 		res, status, err := pn.Fetch().
 			Channels(channels).
 			Count(count).
 			Reverse(reverse).
 			Execute()
-		ParseFetch(res, status, err)
+		parseFetch(res, status, err)
 	}
 }
 
-func ParseFetch(res *pubnub.FetchResponse, status pubnub.StatusResponse, err error) {
+func parseFetch(res *pubnub.FetchResponse, status pubnub.StatusResponse, err error) {
 	fmt.Println(fmt.Sprintf("%s ParseFetch:", outputPrefix))
 	if status.Error == nil {
 		for channel, messages := range res.Messages {
@@ -797,7 +800,7 @@ func historyRequest(args []string) {
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
 			Execute()
-		ParseHistory(res, status, err)
+		parseHistory(res, status, err)
 	} else if start != 0 {
 		res, status, err := pn.History().
 			Channel(channel).
@@ -806,7 +809,7 @@ func historyRequest(args []string) {
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
 			Execute()
-		ParseHistory(res, status, err)
+		parseHistory(res, status, err)
 	} else if end != 0 {
 		res, status, err := pn.History().
 			Channel(channel).
@@ -815,7 +818,7 @@ func historyRequest(args []string) {
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
 			Execute()
-		ParseHistory(res, status, err)
+		parseHistory(res, status, err)
 	} else {
 		res, status, err := pn.History().
 			Channel(channel).
@@ -823,11 +826,11 @@ func historyRequest(args []string) {
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
 			Execute()
-		ParseHistory(res, status, err)
+		parseHistory(res, status, err)
 	}
 }
 
-func ParseHistory(res *pubnub.HistoryResponse, status pubnub.StatusResponse, err error) {
+func parseHistory(res *pubnub.HistoryResponse, status pubnub.StatusResponse, err error) {
 	fmt.Println(fmt.Sprintf("%s ParseHistory:", outputPrefix))
 	for _, v := range res.Messages {
 		fmt.Println(fmt.Sprintf("%s Timetoken %d", outputPrefix, v.Timetoken))
@@ -974,7 +977,7 @@ func publishRequest(args []string) {
 
 		fmt.Println(fmt.Sprintf("%s Publish Response:", outputPrefix))
 
-		fmt.Println(fmt.Sprintf("%%s %s", res, status))
+		fmt.Println(fmt.Sprintf("%s %s", res, status))
 		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	}
 }

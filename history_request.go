@@ -206,6 +206,7 @@ func (o *historyOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// HistoryResponse is used to store the response from the History request.
 type HistoryResponse struct {
 	Messages       []HistoryResponseItem
 	StartTimetoken int64
@@ -223,7 +224,7 @@ type HistoryResponse struct {
 func parseInterface(vv []interface{}, o *historyOpts) []HistoryResponseItem {
 	o.pubnub.Config.Log.Println(vv)
 	items := make([]HistoryResponseItem, len(vv))
-	for i, _ := range vv {
+	for i := range vv {
 
 		val := vv[i]
 		o.pubnub.Config.Log.Println("reflect.TypeOf(val).Kind()", reflect.TypeOf(val).Kind())
@@ -318,6 +319,7 @@ func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 	return resp, status, nil
 }
 
+// HistoryResponseItem is used to store the Message and the associated timetoken from the History request.
 type HistoryResponseItem struct {
 	Message   interface{}
 	Timetoken int64

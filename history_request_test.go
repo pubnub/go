@@ -245,8 +245,8 @@ func TestHistoryPNOtherYay(t *testing.T) {
 	case map[string]interface{}:
 		testMap := make(map[string]interface{})
 		testMap = v
-		pn_other := testMap["pn_other"].(string)
-		assert.Equal("yay!", pn_other)
+		pnOther := testMap["pn_other"].(string)
+		assert.Equal("yay!", pnOther)
 
 		break
 	default:

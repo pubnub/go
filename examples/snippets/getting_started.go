@@ -235,9 +235,8 @@ func presence() {
 				if presence.Event == "leave" {
 					doneLeave <- true
 					return
-				} else {
-					wg.Done()
 				}
+				wg.Done()
 			}
 		}
 	}()
@@ -254,7 +253,6 @@ func presence() {
 	case <-donePresenceConnect:
 	case err := <-errChan:
 		panic(err)
-		return
 	}
 
 	pn.Subscribe().

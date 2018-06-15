@@ -216,11 +216,11 @@ func newGetStateResponse(jsonBytes []byte, status StatusResponse) (
 	if v["channel"] != nil {
 		if channel, ok2 := v["channel"].(string); ok2 {
 			if v["payload"] != nil {
-				if val, ok := v["payload"].(interface{}); !ok {
+				val, ok := v["payload"].(interface{})
+				if !ok {
 					return emptyGetStateResp, status, errors.New("Response parsing payload")
-				} else {
-					m[channel] = val
 				}
+				m[channel] = val
 			} else {
 				return emptyGetStateResp, status, errors.New("Response parsing channel")
 			}

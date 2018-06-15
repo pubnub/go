@@ -58,7 +58,7 @@ func (m *ListenerManager) removeAllListeners() {
 func (m *ListenerManager) announceStatus(status *PNStatus) {
 	go func() {
 		m.RLock()
-		for l, _ := range m.listeners {
+		for l := range m.listeners {
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceStatus exitListener")
@@ -73,7 +73,7 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 func (m *ListenerManager) announceMessage(message *PNMessage) {
 	go func() {
 		m.RLock()
-		for l, _ := range m.listeners {
+		for l := range m.listeners {
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceMessage exitListener")
@@ -88,7 +88,7 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	m.RLock()
 
-	for l, _ := range m.listeners {
+	for l := range m.listeners {
 		select {
 		case l.Presence <- presence:
 		}
