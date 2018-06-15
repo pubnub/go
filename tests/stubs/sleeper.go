@@ -2,7 +2,6 @@ package stubs
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"

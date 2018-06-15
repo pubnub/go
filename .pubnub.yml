@@ -1,8 +1,30 @@
 name: go
-version: v4.0.0-rc.5
+version: v4.1.0
 schema: 1
 scm: github.com/pubnub/go
 changelog:
+  - version: v4.1.0
+    changes:
+      - type: improvemnet
+        text: Some breaking changes from the previous v4's
+      - type: improvemnet
+        text: config field UseHttp2 is now UseHTTP2
+      - type: improvement
+        text: config field Uuid is now UUID
+      - type: improvemnet
+        text: Get State/ WhereNow Uuid is now UUID
+      - type: improvemnet
+        text: In Fire/Publish Ttl() is now TTL()
+      - type: improvemnet
+        text: In Grant Ttl() is now TTL()
+      - type: improvemnet
+        text: PNPAMEntityData Ttl is now TTL
+      - type: improvemnet
+        text: PNAccessManagerKeyData Ttl is now TTL
+      - type: improvemnet
+        text: TlsEnabled is now TLSEnabled in StatusResponse and ResponseInfo
+      - type: improvemnet
+        text: Uuid is now UUID in StatusResponse and ResponseInfo
   - version: v4.0.0-rc.5
     changes:
       - type: bug

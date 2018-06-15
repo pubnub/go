@@ -351,21 +351,20 @@ func (o *publishOpts) buildBody() ([]byte, error) {
 				return []byte{}, errJSONMarshal
 			}
 			return []byte(msg), nil
-		} else {
-			if o.Serialize {
-				jsonEncBytes, errEnc := json.Marshal(o.Message)
-				if errEnc != nil {
-					o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
-					return []byte{}, errEnc
-				}
-				return jsonEncBytes, nil
-			}
-			serializedMsg, ok := o.Message.(string)
-			if ok {
-				return []byte(serializedMsg), nil
-			}
-			return []byte{}, pnerr.NewBuildRequestError("buildBody: Message is not JSON serialized.")
 		}
+		if o.Serialize {
+			jsonEncBytes, errEnc := json.Marshal(o.Message)
+			if errEnc != nil {
+				o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
+				return []byte{}, errEnc
+			}
+			return jsonEncBytes, nil
+		}
+		serializedMsg, ok := o.Message.(string)
+		if ok {
+			return []byte(serializedMsg), nil
+		}
+		return []byte{}, pnerr.NewBuildRequestError("buildBody: Message is not JSON serialized.")
 	}
 	return []byte{}, nil
 }
