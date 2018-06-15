@@ -10,23 +10,34 @@ import (
 
 // Default constants
 const (
-	Version     = "4.0.0-rc.5"
+	// Version :the version of the SDK
+	Version = "4.0.0-rc.5"
+	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
 
 const (
-	StrMissingPubKey       = "Missing Publish Key"
-	StrMissingSubKey       = "Missing Subscribe Key"
-	StrMissingChannel      = "Missing Channel"
+	// StrMissingPubKey show Missing Publish Key message
+	StrMissingPubKey = "Missing Publish Key"
+	// StrMissingSubKey show Missing Subscribe Key message
+	StrMissingSubKey = "Missing Subscribe Key"
+	// StrMissingChannel show Channel message
+	StrMissingChannel = "Missing Channel"
+	// StrMissingChannelGroup show Channel Group message
 	StrMissingChannelGroup = "Missing Channel Group"
-	StrMissingMessage      = "Missing Message"
-	StrMissingSecretKey    = "Missing Secret Key"
-	StrMissingUUID         = "Missing UUID"
-	StrMissingDeviceID     = "Missing Device ID"
-	StrMissingPushType     = "Missing Push Type"
+	// StrMissingMessage show Missing Message message
+	StrMissingMessage = "Missing Message"
+	// StrMissingSecretKey show Missing Secret Key message
+	StrMissingSecretKey = "Missing Secret Key"
+	// StrMissingUUID show Missing UUID message
+	StrMissingUUID = "Missing UUID"
+	// StrMissingDeviceID show Missing Device ID message
+	StrMissingDeviceID = "Missing Device ID"
+	// StrMissingPushType show Missing Push Type message
+	StrMissingPushType = "Missing Push Type"
 )
 
-// No server connection will be established when you create a new PubNub object.
+// PubNub No server connection will be established when you create a new PubNub object.
 // To establish a new connection use Subscribe() function of PubNub type.
 type PubNub struct {
 	sync.RWMutex
@@ -127,14 +138,14 @@ func (pn *PubNub) heartbeatWithContext(ctx Context) *heartbeatBuilder {
 	return newHeartbeatBuilderWithContext(pn, ctx)
 }
 
-// Set a client for transactional requests
+// SetClient Set a client for transactional requests
 func (pn *PubNub) SetClient(c *http.Client) {
 	pn.Lock()
 	pn.client = c
 	pn.Unlock()
 }
 
-// Set a client for transactional requests
+// GetClient Get a client for transactional requests
 func (pn *PubNub) GetClient() *http.Client {
 	pn.Lock()
 	defer pn.Unlock()
@@ -158,7 +169,7 @@ func (pn *PubNub) SetSubscribeClient(client *http.Client) {
 	pn.Unlock()
 }
 
-// Set a client for transactional requests
+// GetSubscribeClient Get a client for transactional requests
 func (pn *PubNub) GetSubscribeClient() *http.Client {
 	pn.Lock()
 	defer pn.Unlock()

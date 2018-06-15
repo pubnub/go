@@ -12,9 +12,6 @@ import (
 
 const subscribePath = "/v2/subscribe/%s/%s/0"
 
-type SubscribeResponse struct {
-}
-
 type subscribeOpts struct {
 	pubnub *PubNub
 
@@ -48,42 +45,48 @@ func newSubscribeBuilder(pubnub *PubNub) *subscribeBuilder {
 	return &builder
 }
 
-//
+// Channels sets the channels to subscribe.
 func (b *subscribeBuilder) Channels(channels []string) *subscribeBuilder {
 	b.operation.Channels = channels
 
 	return b
 }
 
+// ChannelGroups sets the channel groups to subscribe.
 func (b *subscribeBuilder) ChannelGroups(groups []string) *subscribeBuilder {
 	b.operation.ChannelGroups = groups
 
 	return b
 }
 
+// Timetoken sets the timetoken to subscribe. Susbcribe will start to fetch the messages from this timetoken onwards.
 func (b *subscribeBuilder) Timetoken(tt int64) *subscribeBuilder {
 	b.operation.Timetoken = tt
 
 	return b
 }
 
+// FilterExpression sets the custom filter expression.
 func (b *subscribeBuilder) FilterExpression(expr string) *subscribeBuilder {
 	b.operation.FilterExpression = expr
 
 	return b
 }
 
+// WithPresence as true subscribes to the presence channels as well.
 func (b *subscribeBuilder) WithPresence(pres bool) *subscribeBuilder {
 	b.operation.PresenceEnabled = pres
 
 	return b
 }
 
+// State sets the state of the channels while subscribing.
 func (b *subscribeBuilder) State(state map[string]interface{}) *subscribeBuilder {
 	b.operation.State = state
 	return b
 }
 
+// Execute runs the Subscribe operation.
 func (b *subscribeBuilder) Execute() {
 	b.opts.pubnub.subscriptionManager.adaptSubscribe(b.operation)
 }
