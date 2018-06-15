@@ -41,22 +41,25 @@ func newSetStateBuilderWithContext(pubnub *PubNub, context Context) *setStateBui
 	return &builder
 }
 
+// State sets the State for the Set State request.
 func (b *setStateBuilder) State(state map[string]interface{}) *setStateBuilder {
 	b.opts.State = state
 	return b
 }
 
-//
+// Channels sets the Channels for the Set State request.
 func (b *setStateBuilder) Channels(channels []string) *setStateBuilder {
 	b.opts.Channels = channels
 	return b
 }
 
+// ChannelGroups sets the ChannelGroups for the Set State request.
 func (b *setStateBuilder) ChannelGroups(groups []string) *setStateBuilder {
 	b.opts.ChannelGroups = groups
 	return b
 }
 
+// Execute runs the the Set State request and returns the SetStateResponse
 func (b *setStateBuilder) Execute() (*SetStateResponse, StatusResponse, error) {
 	stateOperation := StateOperation{}
 	stateOperation.channels = b.opts.Channels
@@ -106,14 +109,13 @@ func (o *setStateOpts) validate() error {
 
 	if o.State == nil {
 		return newValidationError(o, "Missing State")
-	} else {
-		state, err := json.Marshal(o.State)
-		if err != nil {
-			return newValidationError(o, err.Error())
-		}
-
-		o.stringState = string(state)
 	}
+	state, err := json.Marshal(o.State)
+	if err != nil {
+		return newValidationError(o, err.Error())
+	}
+
+	o.stringState = string(state)
 
 	return nil
 }
@@ -213,6 +215,7 @@ func newSetStateResponse(jsonBytes []byte, status StatusResponse) (
 	}
 }
 
+// SetStateResponse is the response returned when the Execute function of SetState is called.
 type SetStateResponse struct {
 	State   interface{}
 	Message string

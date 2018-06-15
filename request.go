@@ -12,36 +12,27 @@ import (
 
 //
 type StatusResponse struct {
-	Error error
-
-	Category  StatusCategory
-	Operation OperationType
-
-	StatusCode int
-
-	TLSEnabled bool
-
-	UUID             string
-	AuthKey          string
-	Origin           string
-	OriginalResponse string
-	Request          string
-
+	Error                 error
+	Category              StatusCategory
+	Operation             OperationType
+	StatusCode            int
+	TLSEnabled            bool
+	UUID                  string
+	AuthKey               string
+	Origin                string
+	OriginalResponse      string
+	Request               string
 	AffectedChannels      []string
 	AffectedChannelGroups []string
 }
 
 type ResponseInfo struct {
-	Operation OperationType
-
-	StatusCode int
-
-	TLSEnabled bool
-
-	Origin  string
-	UUID    string
-	AuthKey string
-
+	Operation        OperationType
+	StatusCode       int
+	TLSEnabled       bool
+	Origin           string
+	UUID             string
+	AuthKey          string
 	OriginalResponse *http.Response
 }
 
@@ -151,7 +142,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	return val, status, nil
 }
 
-func newRequest(method string, u *url.URL, body io.Reader, useHttp2 bool) (*http.Request,
+func newRequest(method string, u *url.URL, body io.Reader, useHTTP2 bool) (*http.Request,
 	error) {
 
 	rc, ok := body.(io.ReadCloser)
@@ -159,7 +150,7 @@ func newRequest(method string, u *url.URL, body io.Reader, useHttp2 bool) (*http
 		rc = ioutil.NopCloser(body)
 	}
 
-	if useHttp2 {
+	if useHTTP2 {
 		req := &http.Request{
 			Method:     method,
 			URL:        u,
@@ -171,19 +162,19 @@ func newRequest(method string, u *url.URL, body io.Reader, useHttp2 bool) (*http
 			Host:       u.Host,
 		}
 		return req, nil
-	} else {
-		req := &http.Request{
-			Method:     method,
-			URL:        u,
-			Proto:      "HTTP/1.1",
-			ProtoMajor: 1,
-			ProtoMinor: 1,
-			Header:     make(http.Header),
-			Body:       rc,
-			Host:       u.Host,
-		}
-		return req, nil
 	}
+	req := &http.Request{
+		Method:     method,
+		URL:        u,
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header:     make(http.Header),
+		Body:       rc,
+		Host:       u.Host,
+	}
+	return req, nil
+
 }
 
 func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusResponse, error) {
