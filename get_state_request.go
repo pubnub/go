@@ -229,15 +229,15 @@ func newGetStateResponse(jsonBytes []byte, status StatusResponse) (
 		}
 	} else {
 		if v["payload"] != nil {
-			if val, ok := v["payload"].(map[string]interface{}); !ok {
+			val, ok := v["payload"].(map[string]interface{})
+			if !ok {
 				return emptyGetStateResp, status, errors.New("Response parsing payload 2")
+			}
+			if channels, ok2 := val["channels"].(map[string]interface{}); !ok2 {
+				return emptyGetStateResp, status, errors.New("Response parsing channels")
 			} else {
-				if channels, ok2 := val["channels"].(map[string]interface{}); !ok2 {
-					return emptyGetStateResp, status, errors.New("Response parsing channels")
-				} else {
-					for ch, state := range channels {
-						m[ch] = state
-					}
+				for ch, state := range channels {
+					m[ch] = state
 				}
 			}
 		}

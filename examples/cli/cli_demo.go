@@ -1017,7 +1017,7 @@ func fireRequest(args []string) {
 
 		fmt.Println(fmt.Sprintf("%s Publish Response:", outputPrefix))
 
-		fmt.Println(fmt.Sprintf("%%s %s", res, status))
+		fmt.Println(fmt.Sprintf("%s %s", res, status))
 		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	}
 }

@@ -346,12 +346,11 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 func (o *publishOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-			if msg, errJSONMarshal := o.encryptProcessing(cipherKey); errJSONMarshal != nil {
+			msg, errJSONMarshal := o.encryptProcessing(cipherKey)
+			if errJSONMarshal != nil {
 				return []byte{}, errJSONMarshal
-			} else {
-				return []byte(msg), nil
 			}
-
+			return []byte(msg), nil
 		} else {
 			if o.Serialize {
 				jsonEncBytes, errEnc := json.Marshal(o.Message)
@@ -360,19 +359,15 @@ func (o *publishOpts) buildBody() ([]byte, error) {
 					return []byte{}, errEnc
 				}
 				return jsonEncBytes, nil
-			} else {
-				if serializedMsg, ok := o.Message.(string); ok {
-					return []byte(serializedMsg), nil
-				} else {
-					return []byte{}, pnerr.NewBuildRequestError("buildBody: Message is not JSON serialized.")
-				}
-
 			}
-
+			serializedMsg, ok := o.Message.(string)
+			if ok {
+				return []byte(serializedMsg), nil
+			}
+			return []byte{}, pnerr.NewBuildRequestError("buildBody: Message is not JSON serialized.")
 		}
-	} else {
-		return []byte{}, nil
 	}
+	return []byte{}, nil
 }
 
 func (o *publishOpts) httpMethod() string {

@@ -268,7 +268,6 @@ func presence() {
 	case <-doneJoin:
 	case err := <-errChan:
 		panic(err)
-		return
 	}
 
 	pn.Unsubscribe().
@@ -279,7 +278,6 @@ func presence() {
 	case <-doneLeave:
 	case err := <-errChan:
 		panic(err)
-		return
 	}
 }
 

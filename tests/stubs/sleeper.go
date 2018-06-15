@@ -9,11 +9,12 @@ import (
 	"time"
 )
 
+// Sleeper struct
 type Sleeper struct {
 	Timeout int
 }
 
-// timeout - timeout in milliseconds to sleep
+// NewSleeperClient timeout - timeout in milliseconds to sleep
 func NewSleeperClient(timeout int) *http.Client {
 	return &http.Client{
 		Transport: &Sleeper{
@@ -22,6 +23,7 @@ func NewSleeperClient(timeout int) *http.Client {
 	}
 }
 
+// RoundTrip function helper for 1.6
 func (s *Sleeper) RoundTrip(req *http.Request) (*http.Response,
 	error) {
 	// function helper for 1.6
