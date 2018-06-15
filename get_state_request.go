@@ -133,7 +133,7 @@ func (o *getStateOpts) buildPath() (string, error) {
 	return fmt.Sprintf(getStatePath,
 		o.pubnub.Config.SubscribeKey,
 		strings.Join(channels, ","),
-		utils.UrlEncode(o.pubnub.Config.UUID)), nil
+		utils.URLEncode(o.pubnub.Config.UUID)), nil
 }
 
 func (o *getStateOpts) buildQuery() (*url.Values, error) {

@@ -268,7 +268,7 @@ func (o *publishOpts) buildPath() (string, error) {
 		return fmt.Sprintf(publishPostPath,
 			o.pubnub.Config.PublishKey,
 			o.pubnub.Config.SubscribeKey,
-			utils.UrlEncode(o.Channel),
+			utils.URLEncode(o.Channel),
 			"0"), nil
 	}
 
@@ -301,9 +301,9 @@ func (o *publishOpts) buildPath() (string, error) {
 	return fmt.Sprintf(publishGetPath,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.Channel),
+		utils.URLEncode(o.Channel),
 		"0",
-		utils.UrlEncode(msg)), nil
+		utils.URLEncode(msg)), nil
 }
 
 func (o *publishOpts) buildQuery() (*url.Values, error) {

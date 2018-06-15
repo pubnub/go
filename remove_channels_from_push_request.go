@@ -123,7 +123,7 @@ type RemoveChannelsFromPushResponse struct{}
 func (o *removeChannelsFromPushOpts) buildPath() (string, error) {
 	return fmt.Sprintf(removeChannelsFromPushPath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.DeviceIDForPush)), nil
+		utils.URLEncode(o.DeviceIDForPush)), nil
 }
 
 func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
@@ -132,7 +132,7 @@ func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
 	var channels []string
 
 	for _, v := range o.Channels {
-		channels = append(channels, utils.UrlEncode(v))
+		channels = append(channels, utils.URLEncode(v))
 	}
 
 	q.Set("remove", strings.Join(channels, ","))

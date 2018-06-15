@@ -109,7 +109,7 @@ type RemoveAllPushChannelsForDeviceResponse struct{}
 func (o *removeAllPushChannelsForDeviceOpts) buildPath() (string, error) {
 	return fmt.Sprintf(removeAllPushChannelsForDevicePath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.DeviceIDForPush)), nil
+		utils.URLEncode(o.DeviceIDForPush)), nil
 }
 
 func (o *removeAllPushChannelsForDeviceOpts) buildQuery() (*url.Values, error) {

@@ -46,6 +46,4 @@ func (s *Sleeper) RoundTrip(req *http.Request) (*http.Response,
 	case err := <-cancel:
 		return nil, err
 	}
-
-	return nil, errors.New("sleeper unexpected case")
 }

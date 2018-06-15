@@ -126,7 +126,7 @@ func (o *setStateOpts) buildPath() (string, error) {
 	return fmt.Sprintf(setStatePath,
 		o.pubnub.Config.SubscribeKey,
 		channels,
-		utils.UrlEncode(o.pubnub.Config.UUID),
+		utils.URLEncode(o.pubnub.Config.UUID),
 	), nil
 }
 
@@ -190,29 +190,29 @@ func newSetStateResponse(jsonBytes []byte, status StatusResponse) (
 		return emptySetStateResponse, status, e
 	}
 
-	if v, ok := value.(map[string]interface{}); !ok {
+	v, ok := value.(map[string]interface{})
+	if !ok {
 		return emptySetStateResponse, status, errors.New("Response parsing error")
-	} else {
-		message := ""
-		if v["message"] != nil {
-			if msg, ok := v["message"].(string); ok {
-				message = msg
-			}
-		}
-
-		if v["error"] != nil {
-			return emptySetStateResponse, status, errors.New(message)
-		}
-
-		if v["payload"] != nil {
-			if val, ok := v["payload"].(interface{}); ok {
-				resp.State = val
-			}
-		}
-		resp.Message = message
-
-		return resp, status, nil
 	}
+	message := ""
+	if v["message"] != nil {
+		if msg, ok := v["message"].(string); ok {
+			message = msg
+		}
+	}
+
+	if v["error"] != nil {
+		return emptySetStateResponse, status, errors.New(message)
+	}
+
+	if v["payload"] != nil {
+		if val, ok := v["payload"].(interface{}); ok {
+			resp.State = val
+		}
+	}
+	resp.Message = message
+
+	return resp, status, nil
 }
 
 // SetStateResponse is the response returned when the Execute function of SetState is called.

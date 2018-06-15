@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const RESP_SUCCESS = `[1,"Sent","14981595400555832"]`
+const respSuccess = `[1,"Sent","14981595400555832"]`
 
 // NOTICE: not stubbed publish
 func TestPublishSuccessNotStubbed(t *testing.T) {
@@ -41,7 +41,7 @@ func TestPublishSuccess(t *testing.T) {
 		Method:             "GET",
 		Path:               "/publish/pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/0/ch/0/%22hey%22",
 		Query:              "seqn=1&store=0",
-		ResponseBody:       RESP_SUCCESS,
+		ResponseBody:       respSuccess,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
 		ResponseStatusCode: 200,
 	})*/
@@ -65,7 +65,7 @@ func TestPublishSuccessSlice(t *testing.T) {
 		Method:             "GET",
 		Path:               "/publish/pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/0/ch/0/%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
 		Query:              "seqn=1&store=0",
-		ResponseBody:       RESP_SUCCESS,
+		ResponseBody:       respSuccess,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
 		ResponseStatusCode: 200,
 	})*/

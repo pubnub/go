@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const HISTORY_RESP_SUCCESS = `[[{"timetoken":1111,"message":{"a":11,"b":22}},{"timetoken":2222,"message":{"a":33,"b":44}}],1234,4321]`
+const historyResponseSuccess = `[[{"timetoken":1111,"message":{"a":11,"b":22}},{"timetoken":2222,"message":{"a":33,"b":44}}],1234,4321]`
 
 func TestHistorySuccessNotStubbed(t *testing.T) {
 	assert := assert.New(t)
@@ -56,7 +56,7 @@ func TestHistorySuccess(t *testing.T) {
 		Method:             "GET",
 		Path:               "/v2/history/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch",
 		Query:              "count=100&include_token=false&reverse=false",
-		ResponseBody:       HISTORY_RESP_SUCCESS,
+		ResponseBody:       historyResponseSuccess,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,
 	})

@@ -152,7 +152,7 @@ func (o *historyOpts) validate() error {
 func (o *historyOpts) buildPath() (string, error) {
 	return fmt.Sprintf(historyPath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.Channel)), nil
+		utils.URLEncode(o.Channel)), nil
 }
 
 func (o *historyOpts) buildQuery() (*url.Values, error) {

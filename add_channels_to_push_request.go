@@ -124,7 +124,7 @@ type AddPushNotificationsOnChannelsResponse struct{}
 func (o *addChannelsToPushOpts) buildPath() (string, error) {
 	return fmt.Sprintf(addChannelsToPushPath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.DeviceIDForPush)), nil
+		utils.URLEncode(o.DeviceIDForPush)), nil
 }
 
 func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
@@ -133,7 +133,7 @@ func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
 	var channels []string
 
 	for _, v := range o.Channels {
-		channels = append(channels, utils.UrlEncode(v))
+		channels = append(channels, utils.URLEncode(v))
 	}
 
 	q.Set("add", strings.Join(channels, ","))

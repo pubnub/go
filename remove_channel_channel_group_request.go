@@ -108,7 +108,7 @@ func (o *removeChannelOpts) validate() error {
 func (o *removeChannelOpts) buildPath() (string, error) {
 	return fmt.Sprintf(removeChannelFromChannelGroupPath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.ChannelGroup)), nil
+		utils.URLEncode(o.ChannelGroup)), nil
 }
 
 func (o *removeChannelOpts) buildQuery() (*url.Values, error) {
@@ -117,7 +117,7 @@ func (o *removeChannelOpts) buildQuery() (*url.Values, error) {
 	var channels []string
 
 	for _, ch := range o.Channels {
-		channels = append(channels, utils.UrlEncode(ch))
+		channels = append(channels, utils.URLEncode(ch))
 	}
 
 	q.Set("remove", strings.Join(channels, ","))

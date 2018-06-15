@@ -140,7 +140,7 @@ type ListPushProvisionsRequestResponse struct {
 func (o *listPushProvisionsRequestOpts) buildPath() (string, error) {
 	return fmt.Sprintf(listChannelsOfPushPath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.DeviceIDForPush)), nil
+		utils.URLEncode(o.DeviceIDForPush)), nil
 }
 
 func (o *listPushProvisionsRequestOpts) buildQuery() (*url.Values, error) {

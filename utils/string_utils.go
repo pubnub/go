@@ -12,7 +12,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-// TODO: return string
+// JoinChannels
 func JoinChannels(channels []string) []byte {
 	if len(channels) == 0 {
 		return []byte(",")
@@ -21,7 +21,7 @@ func JoinChannels(channels []string) []byte {
 	var encodedChannels []string
 
 	for _, value := range channels {
-		encodedChannels = append(encodedChannels, UrlEncode(value))
+		encodedChannels = append(encodedChannels, URLEncode(value))
 	}
 
 	return []byte(strings.Join(encodedChannels, ","))
@@ -139,7 +139,7 @@ func PreparePamParams(params *url.Values) string {
 
 func PamEncode(value string) string {
 	// *!'()[]~
-	stringifiedParam := UrlEncode(value)
+	stringifiedParam := URLEncode(value)
 
 	var replacer = strings.NewReplacer(
 		"*", "%2A",
@@ -174,7 +174,7 @@ func QueryToString(query *url.Values) string {
 }
 
 // TODO: verify the helper is used where supposed to
-func UrlEncode(s string) string {
+func URLEncode(s string) string {
 	v := url.QueryEscape(s)
 
 	var replacer = strings.NewReplacer(

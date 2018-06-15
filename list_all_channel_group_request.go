@@ -97,7 +97,7 @@ func (o *allChannelGroupOpts) validate() error {
 func (o *allChannelGroupOpts) buildPath() (string, error) {
 	return fmt.Sprintf(allChannelGroupPath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.ChannelGroup)), nil
+		utils.URLEncode(o.ChannelGroup)), nil
 }
 
 func (o *allChannelGroupOpts) buildQuery() (*url.Values, error) {

@@ -153,7 +153,7 @@ func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 	}
 
 	if o.FilterExpression != "" {
-		q.Set("filter-expr", utils.UrlEncode(o.FilterExpression))
+		q.Set("filter-expr", utils.URLEncode(o.FilterExpression))
 	}
 
 	// hb timeout should be at least 4 seconds

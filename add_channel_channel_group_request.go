@@ -120,7 +120,7 @@ func (o *addChannelOpts) validate() error {
 func (o *addChannelOpts) buildPath() (string, error) {
 	return fmt.Sprintf(addChannelToChannelGroupPath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.ChannelGroup)), nil
+		utils.URLEncode(o.ChannelGroup)), nil
 }
 
 func (o *addChannelOpts) buildQuery() (*url.Values, error) {
@@ -129,7 +129,7 @@ func (o *addChannelOpts) buildQuery() (*url.Values, error) {
 	var channels []string
 
 	for _, v := range o.Channels {
-		channels = append(channels, utils.UrlEncode(v))
+		channels = append(channels, utils.URLEncode(v))
 	}
 
 	q.Set("add", strings.Join(channels, ","))

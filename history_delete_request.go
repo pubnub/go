@@ -122,7 +122,7 @@ func (o *historyDeleteOpts) validate() error {
 func (o *historyDeleteOpts) buildPath() (string, error) {
 	return fmt.Sprintf(historyDeletePath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.Channel)), nil
+		utils.URLEncode(o.Channel)), nil
 }
 
 func (o *historyDeleteOpts) buildQuery() (*url.Values, error) {

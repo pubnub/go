@@ -97,7 +97,7 @@ type DeleteChannelGroupResponse struct{}
 func (o *deleteChannelGroupOpts) buildPath() (string, error) {
 	return fmt.Sprintf(deleteChannelGroupPath,
 		o.pubnub.Config.SubscribeKey,
-		utils.UrlEncode(o.ChannelGroup)), nil
+		utils.URLEncode(o.ChannelGroup)), nil
 }
 
 func (o *deleteChannelGroupOpts) buildQuery() (*url.Values, error) {
