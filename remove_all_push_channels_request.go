@@ -38,19 +38,21 @@ func newRemoveAllPushChannelsForDeviceBuilderWithContext(
 	return &builder
 }
 
-//
+// PushType sets the PushType for the RemoveAllPushNotifications request.
 func (b *removeAllPushChannelsForDeviceBuilder) PushType(
 	pushType PNPushType) *removeAllPushChannelsForDeviceBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
+// DeviceIDForPush sets the device id for RemoveAllPushNotifications request.
 func (b *removeAllPushChannelsForDeviceBuilder) DeviceIDForPush(
 	deviceID string) *removeAllPushChannelsForDeviceBuilder {
 	b.opts.DeviceIDForPush = deviceID
 	return b
 }
 
+// Execute runs the RemoveAllPushNotifications request.
 func (b *removeAllPushChannelsForDeviceBuilder) Execute() (
 	*RemoveAllPushChannelsForDeviceResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
@@ -101,6 +103,7 @@ func (o *removeAllPushChannelsForDeviceOpts) validate() error {
 	return nil
 }
 
+// RemoveAllPushChannelsForDeviceResponse is the struct returned when the Execute function of RemoveAllPushNotifications is called.
 type RemoveAllPushChannelsForDeviceResponse struct{}
 
 func (o *removeAllPushChannelsForDeviceOpts) buildPath() (string, error) {

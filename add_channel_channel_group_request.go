@@ -66,7 +66,7 @@ func (b *addChannelToChannelGroupBuilder) Transport(
 	return b
 }
 
-// Execute runs AddChannel To ChannelGroup request
+// Execute runs AddChannelToChannelGroup request
 func (b *addChannelToChannelGroupBuilder) Execute() (
 	*AddChannelToChannelGroupResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)

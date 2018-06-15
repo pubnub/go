@@ -39,25 +39,28 @@ func newRemoveChannelsFromPushBuilderWithContext(
 	return &builder
 }
 
-//
+// Channels sets the channels to remove from Push Notifications
 func (b *removeChannelsFromPushBuilder) Channels(
 	channels []string) *removeChannelsFromPushBuilder {
 	b.opts.Channels = channels
 	return b
 }
 
+// PushType sets the PushType for the RemovePushNotificationsFromChannels request.
 func (b *removeChannelsFromPushBuilder) PushType(
 	pushType PNPushType) *removeChannelsFromPushBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
+// DeviceIDForPush sets the DeviceIDForPush for the RemovePushNotificationsFromChannels request.
 func (b *removeChannelsFromPushBuilder) DeviceIDForPush(
 	deviceID string) *removeChannelsFromPushBuilder {
 	b.opts.DeviceIDForPush = deviceID
 	return b
 }
 
+// Execute runs the RemovePushNotificationsFromChannels request.
 func (b *removeChannelsFromPushBuilder) Execute() (
 	*RemoveChannelsFromPushResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
@@ -114,6 +117,7 @@ func (o *removeChannelsFromPushOpts) validate() error {
 	return nil
 }
 
+// RemoveChannelsFromPushResponse is the struct returned when the Execute function of RemovePushNotificationsFromChannels is called.
 type RemoveChannelsFromPushResponse struct{}
 
 func (o *removeChannelsFromPushOpts) buildPath() (string, error) {

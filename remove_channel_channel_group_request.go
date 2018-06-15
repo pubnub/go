@@ -40,19 +40,21 @@ func newRemoveChannelFromChannelGroupBuilderWithContext(
 	return &builder
 }
 
-//
+// Channels sets the chnanels to remove from the channel group
 func (b *removeChannelFromChannelGroupBuilder) Channels(
 	ch []string) *removeChannelFromChannelGroupBuilder {
 	b.opts.Channels = ch
 	return b
 }
 
+// ChannelGroup sets the ChannelGroup to remove the channels
 func (b *removeChannelFromChannelGroupBuilder) ChannelGroup(
 	cg string) *removeChannelFromChannelGroupBuilder {
 	b.opts.ChannelGroup = cg
 	return b
 }
 
+// Execute runs RemoveChannelFromChannelGroup request
 func (b *removeChannelFromChannelGroupBuilder) Execute() (
 	*RemoveChannelFromChannelGroupResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
