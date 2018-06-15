@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// StateManager is used to store the subscriptions types
 type StateManager struct {
 	sync.RWMutex
 
@@ -15,6 +16,7 @@ type StateManager struct {
 	presenceGroups   map[string]*SubscriptionItem
 }
 
+// SubscriptionItem is used to store the subscription item's properties.
 type SubscriptionItem struct {
 	name  string
 	state map[string]interface{}

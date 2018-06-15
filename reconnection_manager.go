@@ -13,6 +13,7 @@ const (
 	reconnectionMaxExponentialBackoff = 32
 )
 
+// ReconnectionManager is used to store the properties required in running the Reconnection Manager.
 type ReconnectionManager struct {
 	sync.RWMutex
 
@@ -43,13 +44,14 @@ func newReconnectionManager(pubnub *PubNub) *ReconnectionManager {
 	return manager
 }
 
-//
+// HandleReconnection sets the handler that will be called when the network reconnects after a disconnect.
 func (m *ReconnectionManager) HandleReconnection(handler func()) {
 	m.Lock()
 	m.OnReconnection = handler
 	m.Unlock()
 }
 
+// HandleOnMaxReconnectionExhaustion sets the handler that will be called when the max reconnection attempts are exhausted.
 func (m *ReconnectionManager) HandleOnMaxReconnectionExhaustion(handler func()) {
 	m.Lock()
 	m.OnMaxReconnectionExhaustion = handler
@@ -101,7 +103,7 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 			}
 		} else {
 			if m.pubnub.Config.PNReconnectionPolicy == PNExponentialPolicy {
-				timerInterval = m.GetExponentialInterval()
+				timerInterval = m.getExponentialInterval()
 			}
 			m.Lock()
 			m.FailedCalls++
@@ -136,7 +138,7 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 	}
 }
 
-func (m *ReconnectionManager) GetExponentialInterval() int {
+func (m *ReconnectionManager) getExponentialInterval() int {
 	timerInterval := int(math.Pow(2, float64(m.ExponentialMultiplier)) - 1)
 	if timerInterval > reconnectionMaxExponentialBackoff {
 		timerInterval = reconnectionMinExponentialBackoff

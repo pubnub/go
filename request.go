@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-//
+// StatusResponse is used to store the usable properties in the response of an request.
 type StatusResponse struct {
 	Error                 error
 	Category              StatusCategory
@@ -26,6 +26,7 @@ type StatusResponse struct {
 	AffectedChannelGroups []string
 }
 
+// ResponseInfo is used to store the properties in the response of an request.
 type ResponseInfo struct {
 	Operation        OperationType
 	StatusCode       int
