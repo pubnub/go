@@ -1477,11 +1477,10 @@ func SubscribeJoinLeaveGroup(t *testing.T) {
 					assert.Equal(configEmitter.UUID, presence.UUID)
 					doneLeaveEvent <- true
 					return
-				} else {
-					assert.Equal("join", presence.Event)
-					assert.Equal(configEmitter.UUID, presence.UUID)
-					wg.Done()
 				}
+				assert.Equal("join", presence.Event)
+				assert.Equal(configEmitter.UUID, presence.UUID)
+				wg.Done()
 			}
 		}
 	}()

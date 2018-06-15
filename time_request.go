@@ -39,12 +39,13 @@ func newTimeBuilderWithContext(pubnub *PubNub, context Context) *timeBuilder {
 	return &builder
 }
 
-//
+// Transport sets the Transport for the request.
 func (b *timeBuilder) Transport(tr http.RoundTripper) *timeBuilder {
 	b.opts.Transport = tr
 	return b
 }
 
+// Excecute runs the Time request and fetches the time from the server.
 func (b *timeBuilder) Execute() (*TimeResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
@@ -116,6 +117,7 @@ func (o *timeOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// TimeResponse is the response when Time call is executed.
 type TimeResponse struct {
 	Timetoken int64
 }

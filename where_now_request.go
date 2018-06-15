@@ -41,13 +41,14 @@ func newWhereNowBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-//
+// UUID sets the UUID to fetch the where now info.
 func (b *whereNowBuilder) UUID(uuid string) *whereNowBuilder {
 	b.opts.UUID = uuid
 
 	return b
 }
 
+// Execute runs the WhereNow request.
 func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
 	if len(b.opts.UUID) <= 0 {
 		b.opts.UUID = b.opts.pubnub.Config.UUID
@@ -131,6 +132,7 @@ func (o *whereNowOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// WhereNowResponse is the response of the WhereNow request. Contains channels info.
 type WhereNowResponse struct {
 	Channels []string
 }
