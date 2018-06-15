@@ -13,7 +13,7 @@ import (
 	"github.com/pubnub/go/utils"
 )
 
-// Events:
+// SubscriptionManager Events:
 // - ConnectedCategory - after connection established
 // - DisconnectedCategory - after subscription loop stops for any reason (no
 // channels left or error happend)
@@ -38,7 +38,6 @@ import (
 // - Default presence timeout is 300 seconds.
 // - The first Heartbeat request will be scheduled to be executed after
 // getHeartbeatInterval() seconds (default - 149).
-
 type SubscriptionManager struct {
 	sync.RWMutex
 
@@ -75,7 +74,7 @@ type SubscriptionManager struct {
 	exitSubscriptionManager      chan bool
 }
 
-//
+// SubscribeOperation
 type SubscribeOperation struct {
 	Channels         []string
 	ChannelGroups    []string
@@ -497,11 +496,10 @@ func (m *SubscriptionManager) performHeartbeatLoop() error {
 		m.pubnub.Config.Log.Println("heartbeat: no channels left")
 		go m.stopHeartbeat()
 		return nil
-	} else {
-		m.stateManager.RLock()
-		m.pubnub.Config.Log.Println(len(m.stateManager.channels), len(m.stateManager.groups), len(m.stateManager.presenceChannels), len(m.stateManager.presenceGroups))
-		m.stateManager.RUnlock()
 	}
+	m.stateManager.RLock()
+	m.pubnub.Config.Log.Println(len(m.stateManager.channels), len(m.stateManager.groups), len(m.stateManager.presenceChannels), len(m.stateManager.presenceGroups))
+	m.stateManager.RUnlock()
 
 	_, status, err := newHeartbeatBuilder(m.pubnub).
 		Channels(presenceChannels).
@@ -549,7 +547,7 @@ type subscribeMessage struct {
 	Shard             string      `json:"a"`
 	SubscriptionMatch string      `json:"b"`
 	Channel           string      `json:"c"`
-	IssuingClientId   string      `json:"i"`
+	IssuingClientID   string      `json:"i"`
 	SubscribeKey      string      `json:"k"`
 	Flags             int         `json:"f"`
 	Payload           interface{} `json:"d"`
@@ -707,7 +705,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			Channel:           channel,
 			Subscription:      subscriptionMatch,
 			Timetoken:         timetoken,
-			Publisher:         payload.IssuingClientId,
+			Publisher:         payload.IssuingClientID,
 			UserMetadata:      payload.UserMetadata,
 		}
 		m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
