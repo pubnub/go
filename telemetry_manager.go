@@ -11,16 +11,18 @@ const timestampDivider = 1000
 const cleanUpInterval = 1
 const cleanUpIntervalMultiplier = 1000
 
+// LatencyEntry is the struct to store the timestamp and latency values.
 type LatencyEntry struct {
 	D int64
 	L float64
 }
 
+// Operations is the struct to store the latency values of different operations.
 type Operations struct {
 	latencies []LatencyEntry
 }
 
-//
+// TelemetryManager is the struct to store the Telemetry details.
 type TelemetryManager struct {
 	sync.RWMutex
 
@@ -47,13 +49,14 @@ func newTelemetryManager(maxLatencyDataAge int, ctx Context) *TelemetryManager {
 	return manager
 }
 
+// OperationLatency returns a map of the stored latencies by operation.
 func (m *TelemetryManager) OperationLatency() map[string]string {
 	operationLatencies := make(map[string]string)
 
 	//var ops map[string][]LatencyEntry
 	m.RLock()
 
-	for endpointName, _ := range m.operations {
+	for endpointName := range m.operations {
 		queryKey := fmt.Sprintf("l_%s", endpointName)
 
 		endpointAverageLatency := averageLatencyFromData(
@@ -68,6 +71,7 @@ func (m *TelemetryManager) OperationLatency() map[string]string {
 	return operationLatencies
 }
 
+// StoreLatency stores the latency values of the different operations.
 func (m *TelemetryManager) StoreLatency(latency float64, t OperationType) {
 	if latency > float64(0) && t != PNSubscribeOperation {
 		endpointName := telemetryEndpointNameForOperation(t)
@@ -83,6 +87,7 @@ func (m *TelemetryManager) StoreLatency(latency float64, t OperationType) {
 	}
 }
 
+// CleanUpTelemetryData cleans up telemetry data of all operations.
 func (m *TelemetryManager) CleanUpTelemetryData() {
 	currentTimestamp := time.Now().Unix()
 
