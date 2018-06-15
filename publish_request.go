@@ -372,9 +372,8 @@ func (o *publishOpts) buildBody() ([]byte, error) {
 func (o *publishOpts) httpMethod() string {
 	if o.UsePost {
 		return "POST"
-	} else {
-		return "GET"
 	}
+	return "GET"
 }
 
 func (o *publishOpts) isAuthRequired() bool {
