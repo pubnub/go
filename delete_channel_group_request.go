@@ -38,12 +38,14 @@ func newDeleteChannelGroupBuilderWithContext(
 	return &builder
 }
 
+// ChannelGroup sets the channel group to delete.
 func (b *deleteChannelGroupBuilder) ChannelGroup(
 	cg string) *deleteChannelGroupBuilder {
 	b.opts.ChannelGroup = cg
 	return b
 }
 
+// Execute runs the DeleteChannelGroup request.
 func (b *deleteChannelGroupBuilder) Execute() (
 	*DeleteChannelGroupResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)

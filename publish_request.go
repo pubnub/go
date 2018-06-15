@@ -42,6 +42,7 @@ type publishOpts struct {
 	setShouldStore bool
 }
 
+// PublishResponse is the response after the execution on Publish and Fire operations.
 type PublishResponse struct {
 	Timestamp int
 }
@@ -62,18 +63,19 @@ func newPublishResponse(jsonBytes []byte, status StatusResponse) (
 		return emptyPublishResponse, status, e
 	}
 
-	if timeString, ok := value[2].(string); !ok {
+	timeString, ok := value[2].(string)
+	if !ok {
 		return emptyPublishResponse, status, pnerr.NewResponseParsingError(fmt.Sprintf("Error unmarshalling response, %s %v", value[2], value), nil, nil)
-	} else {
-		timestamp, err := strconv.Atoi(timeString)
-		if err != nil {
-			return emptyPublishResponse, status, err
-		}
-
-		return &PublishResponse{
-			Timestamp: timestamp,
-		}, status, nil
 	}
+	timestamp, err := strconv.Atoi(timeString)
+	if err != nil {
+		return emptyPublishResponse, status, err
+	}
+
+	return &PublishResponse{
+		Timestamp: timestamp,
+	}, status, nil
+
 }
 
 func newPublishBuilder(pubnub *PubNub) *publishBuilder {
@@ -98,6 +100,7 @@ func newPublishBuilderWithContext(pubnub *PubNub, context Context) *publishBuild
 	return &builder
 }
 
+// TTL sets the TTL (hours) for the Publish request.
 func (b *publishBuilder) TTL(ttl int) *publishBuilder {
 	b.opts.TTL = ttl
 	b.opts.setTTL = true
@@ -105,31 +108,35 @@ func (b *publishBuilder) TTL(ttl int) *publishBuilder {
 	return b
 }
 
-//
+// Channel sets the Channel for the Publish request.
 func (b *publishBuilder) Channel(ch string) *publishBuilder {
 	b.opts.Channel = ch
 
 	return b
 }
 
+// Message sets the Payload for the Publish request.
 func (b *publishBuilder) Message(msg interface{}) *publishBuilder {
 	b.opts.Message = msg
 
 	return b
 }
 
+// Meta sets the Meta Payload for the Publish request.
 func (b *publishBuilder) Meta(meta interface{}) *publishBuilder {
 	b.opts.Meta = meta
 
 	return b
 }
 
+// UsePost sends the Publish request using HTTP POST.
 func (b *publishBuilder) UsePost(post bool) *publishBuilder {
 	b.opts.UsePost = post
 
 	return b
 }
 
+// ShouldStore if true the messages are stored in History
 func (b *publishBuilder) ShouldStore(store bool) *publishBuilder {
 	b.opts.ShouldStore = store
 	if store {
@@ -141,24 +148,29 @@ func (b *publishBuilder) ShouldStore(store bool) *publishBuilder {
 	return b
 }
 
+// Serialize when true (default) serializes the payload before publish.
+// Set to false if pre serialized payload is being used.
 func (b *publishBuilder) Serialize(serialize bool) *publishBuilder {
 	b.opts.Serialize = serialize
 
 	return b
 }
 
+// DoNotReplicate stores the message in one DC.
 func (b *publishBuilder) DoNotReplicate(repl bool) *publishBuilder {
 	b.opts.DoNotReplicate = repl
 
 	return b
 }
 
+// Transport sets the Transport for the Publish request.
 func (b *publishBuilder) Transport(tr http.RoundTripper) *publishBuilder {
 	b.opts.Transport = tr
 
 	return b
 }
 
+// Execute runs the Publish request.
 func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
@@ -202,13 +214,13 @@ func (o *publishOpts) validate() error {
 
 func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 	var msg string
-	var errJsonMarshal error
+	var errJSONMarshal error
 
 	o.pubnub.Config.Log.Println("EncryptString: encrypting", fmt.Sprintf("%s", o.Message))
 	if o.pubnub.Config.DisablePNOtherProcessing {
-		if msg, errJsonMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJsonMarshal != nil {
-			o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJsonMarshal)
-			return "", errJsonMarshal
+		if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJSONMarshal != nil {
+			o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
+			return "", errJSONMarshal
 		}
 	} else {
 		//encrypt pn_other only
@@ -220,9 +232,9 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 
 			if ok {
 				o.pubnub.Config.Log.Println(ok, msgPart)
-				if encMsg, errJsonMarshal := utils.SerializeAndEncrypt(msgPart, cipherKey, o.Serialize); errJsonMarshal != nil {
-					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJsonMarshal)
-					return "", errJsonMarshal
+				if encMsg, errJSONMarshal := utils.SerializeAndEncrypt(msgPart, cipherKey, o.Serialize); errJSONMarshal != nil {
+					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
+					return "", errJSONMarshal
 				} else {
 					v["pn_other"] = encMsg
 				}
@@ -233,16 +245,16 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 				}
 				msg = string(jsonEncBytes)
 			} else {
-				if msg, errJsonMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJsonMarshal != nil {
-					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJsonMarshal)
-					return "", errJsonMarshal
+				if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJSONMarshal != nil {
+					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
+					return "", errJSONMarshal
 				}
 			}
 			break
 		default:
-			if msg, errJsonMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJsonMarshal != nil {
-				o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJsonMarshal)
-				return "", errJsonMarshal
+			if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJSONMarshal != nil {
+				o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
+				return "", errJSONMarshal
 			}
 
 			break
@@ -261,11 +273,11 @@ func (o *publishOpts) buildPath() (string, error) {
 	}
 
 	var msg string
-	var errJsonMarshal error
+	var errJSONMarshal error
 
 	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-		if msg, errJsonMarshal = o.encryptProcessing(cipherKey); errJsonMarshal != nil {
-			return "", errJsonMarshal
+		if msg, errJSONMarshal = o.encryptProcessing(cipherKey); errJSONMarshal != nil {
+			return "", errJSONMarshal
 		}
 
 		o.pubnub.Config.Log.Println("EncryptString: encrypted", msg)
@@ -334,8 +346,8 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 func (o *publishOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-			if msg, errJsonMarshal := o.encryptProcessing(cipherKey); errJsonMarshal != nil {
-				return []byte{}, errJsonMarshal
+			if msg, errJSONMarshal := o.encryptProcessing(cipherKey); errJSONMarshal != nil {
+				return []byte{}, errJSONMarshal
 			} else {
 				return []byte(msg), nil
 			}

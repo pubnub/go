@@ -39,29 +39,33 @@ func newHistoryDeleteBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-//
+// Channel sets the Channel for the DeleteMessages request.
 func (b *historyDeleteBuilder) Channel(ch string) *historyDeleteBuilder {
 	b.opts.Channel = ch
 	return b
 }
 
+// Start sets the Start Timetoken for the DeleteMessages request.
 func (b *historyDeleteBuilder) Start(start int64) *historyDeleteBuilder {
 	b.opts.Start = start
 	b.opts.SetStart = true
 	return b
 }
 
+// End sets the End Timetoken for the DeleteMessages request.
 func (b *historyDeleteBuilder) End(end int64) *historyDeleteBuilder {
 	b.opts.End = end
 	b.opts.SetEnd = true
 	return b
 }
 
+// Transport sets the Transport for the DeleteMessages request.
 func (b *historyDeleteBuilder) Transport(tr http.RoundTripper) *historyDeleteBuilder {
 	b.opts.Transport = tr
 	return b
 }
 
+// Execute runs the DeleteMessages request.
 func (b *historyDeleteBuilder) Execute() (*HistoryDeleteResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
@@ -163,5 +167,6 @@ func (o *historyDeleteOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// HistoryDeleteResponse is the struct returned when Delete Messages is called.
 type HistoryDeleteResponse struct {
 }

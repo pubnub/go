@@ -40,9 +40,9 @@ func EncodeJSONAsPathComponent(jsonBytes string) string {
 }
 
 func Serialize(msg interface{}) ([]byte, error) {
-	jsonSerialized, errJsonMarshal := json.Marshal(msg)
-	if errJsonMarshal != nil {
-		return []byte{}, errJsonMarshal
+	jsonSerialized, errJSONMarshal := json.Marshal(msg)
+	if errJSONMarshal != nil {
+		return []byte{}, errJSONMarshal
 	}
 	return jsonSerialized, nil
 }
@@ -50,9 +50,9 @@ func Serialize(msg interface{}) ([]byte, error) {
 func SerializeAndEncrypt(msg interface{}, cipherKey string, serialize bool) (string, error) {
 	var encrypted string
 	if serialize {
-		jsonSerialized, errJsonMarshal := json.Marshal(msg)
-		if errJsonMarshal != nil {
-			return "", errJsonMarshal
+		jsonSerialized, errJSONMarshal := json.Marshal(msg)
+		if errJSONMarshal != nil {
+			return "", errJSONMarshal
 		}
 		encrypted = EncryptString(cipherKey, string(jsonSerialized))
 	} else {
@@ -70,9 +70,9 @@ func SerializeEncryptAndSerialize(msg interface{}, cipherKey string, serialize b
 	var encrypted string
 
 	if serialize {
-		jsonSerialized, errJsonMarshal := json.Marshal(msg)
-		if errJsonMarshal != nil {
-			return "", errJsonMarshal
+		jsonSerialized, errJSONMarshal := json.Marshal(msg)
+		if errJSONMarshal != nil {
+			return "", errJSONMarshal
 		}
 		encrypted = EncryptString(cipherKey, string(jsonSerialized))
 	} else {
@@ -82,9 +82,9 @@ func SerializeEncryptAndSerialize(msg interface{}, cipherKey string, serialize b
 			return "", pnerr.NewBuildRequestError("Message is not JSON serialized.")
 		}
 	}
-	jsonSerialized, errJsonMarshal := json.Marshal(encrypted)
-	if errJsonMarshal != nil {
-		return "", errJsonMarshal
+	jsonSerialized, errJSONMarshal := json.Marshal(encrypted)
+	if errJSONMarshal != nil {
+		return "", errJSONMarshal
 	}
 	return string(jsonSerialized), nil
 }

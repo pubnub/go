@@ -44,24 +44,28 @@ func newGetStateBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+// Channels sets the Channels for the Get State request.
 func (b *getStateBuilder) Channels(ch []string) *getStateBuilder {
 	b.opts.Channels = ch
 
 	return b
 }
 
+// ChannelGroups sets the ChannelGroups for the Get State request.
 func (b *getStateBuilder) ChannelGroups(cg []string) *getStateBuilder {
 	b.opts.ChannelGroups = cg
 
 	return b
 }
 
+// UUID sets the UUID for the Get State request.
 func (b *getStateBuilder) UUID(uuid string) *getStateBuilder {
 	b.opts.UUID = uuid
 
 	return b
 }
 
+// Transport sets the Transport for the Get State request.
 func (b *getStateBuilder) Transport(
 	tr http.RoundTripper) *getStateBuilder {
 
@@ -70,6 +74,7 @@ func (b *getStateBuilder) Transport(
 	return b
 }
 
+// Execute runs the the Get State request.
 func (b *getStateBuilder) Execute() (
 	*GetStateResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -173,6 +178,7 @@ func (o *getStateOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// GetStateResponse is the struct returned when the Execute function of GetState is called.
 type GetStateResponse struct {
 	State map[string]interface{}
 }
@@ -192,7 +198,8 @@ func newGetStateResponse(jsonBytes []byte, status StatusResponse) (
 		return emptyGetStateResp, status, e
 	}
 
-	if v, ok := value.(map[string]interface{}); !ok {
+	v, ok := value.(map[string]interface{})
+	if !ok {
 		return emptyGetStateResp, status, errors.New("Response parsing error")
 	}
 	if v["error"] != nil {

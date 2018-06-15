@@ -45,44 +45,51 @@ func newHistoryBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-//
+// Channel sets the Channel for the History request.
 func (b *historyBuilder) Channel(ch string) *historyBuilder {
 	b.opts.Channel = ch
 	return b
 }
 
+// Start sets the Start Timetoken for the History request.
 func (b *historyBuilder) Start(start int64) *historyBuilder {
 	b.opts.Start = start
 	b.opts.setStart = true
 	return b
 }
 
+// End sets the End Timetoken for the History request.
 func (b *historyBuilder) End(end int64) *historyBuilder {
 	b.opts.End = end
 	b.opts.setEnd = true
 	return b
 }
 
+// Count sets the number of items to return in the History request.
 func (b *historyBuilder) Count(count int) *historyBuilder {
 	b.opts.Count = count
 	return b
 }
 
+// Reverse sets the order of messages in the History request.
 func (b *historyBuilder) Reverse(r bool) *historyBuilder {
 	b.opts.Reverse = r
 	return b
 }
 
+// IncludeTimetoken tells the server to send the timetoken associated with each history item.
 func (b *historyBuilder) IncludeTimetoken(i bool) *historyBuilder {
 	b.opts.IncludeTimetoken = i
 	return b
 }
 
+// Transport sets the Transport for the History request.
 func (b *historyBuilder) Transport(tr http.RoundTripper) *historyBuilder {
 	b.opts.Transport = tr
 	return b
 }
 
+// Execute runs the History request.
 func (b *historyBuilder) Execute() (*HistoryResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {

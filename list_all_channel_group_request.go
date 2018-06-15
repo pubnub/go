@@ -42,13 +42,14 @@ func newAllChannelGroupBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-//
+// ChannelGroup sets the channel group to list channels.
 func (b *allChannelGroupBuilder) ChannelGroup(
 	cg string) *allChannelGroupBuilder {
 	b.opts.ChannelGroup = cg
 	return b
 }
 
+// Execute runs the ListChannelsInChannelGroup request.
 func (b *allChannelGroupBuilder) Execute() (
 	*AllChannelGroupResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -133,6 +134,7 @@ func (o *allChannelGroupOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// AllChannelGroupResponse is the struct returned when the Execute function of List All Channel Groups is called.
 type AllChannelGroupResponse struct {
 	Channels     []string
 	ChannelGroup string

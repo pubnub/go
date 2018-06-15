@@ -309,7 +309,6 @@ func (pn *PubNub) Destroy() {
 	pn.Config.Log.Println("after RemoveAllListeners")
 	if pn.telemetryManager.ExitTelemetryManager != nil {
 		pn.Config.Log.Println("calling exitTelemetryManager")
-		//close(pn.telemetryManager.ExitTelemetryManager)
 		pn.telemetryManager.ExitTelemetryManager <- true
 		pn.Config.Log.Println("after exitTelemetryManager")
 	}

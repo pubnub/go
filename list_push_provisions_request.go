@@ -42,19 +42,21 @@ func newListPushProvisionsRequestBuilderWithContext(
 	return &builder
 }
 
-//
+// PushType sets the PushType for the List Push Provisions request.
 func (b *listPushProvisionsRequestBuilder) PushType(
 	pushType PNPushType) *listPushProvisionsRequestBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
+// DeviceIDForPush sets the device id for List Push Provisions request.
 func (b *listPushProvisionsRequestBuilder) DeviceIDForPush(
 	deviceID string) *listPushProvisionsRequestBuilder {
 	b.opts.DeviceIDForPush = deviceID
 	return b
 }
 
+// Execute runs the List Push Provisions request.
 func (b *listPushProvisionsRequestBuilder) Execute() (
 	*ListPushProvisionsRequestResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -130,6 +132,7 @@ func (o *listPushProvisionsRequestOpts) validate() error {
 	return nil
 }
 
+// ListPushProvisionsRequestResponse is the struct returned when the Execute function of ListPushProvisions is called.
 type ListPushProvisionsRequestResponse struct {
 	Channels []string
 }

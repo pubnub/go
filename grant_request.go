@@ -61,7 +61,7 @@ func (b *grantBuilder) Manage(manage bool) *grantBuilder {
 	return b
 }
 
-// Set time in minutes for which granted permissions are valid.
+// TTL in minutes for which granted permissions are valid.
 //
 // Min: 1
 // Max: 525600
@@ -75,25 +75,28 @@ func (b *grantBuilder) TTL(ttl int) *grantBuilder {
 	return b
 }
 
+// AuthKeys sets the AuthKeys for the Grant request.
 func (b *grantBuilder) AuthKeys(authKeys []string) *grantBuilder {
 	b.opts.AuthKeys = authKeys
 
 	return b
 }
 
-//
+// Channels sets the Channels for the Grant request.
 func (b *grantBuilder) Channels(channels []string) *grantBuilder {
 	b.opts.Channels = channels
 
 	return b
 }
 
+// ChannelGroups sets the ChannelGroups for the Grant request.
 func (b *grantBuilder) ChannelGroups(groups []string) *grantBuilder {
 	b.opts.ChannelGroups = groups
 
 	return b
 }
 
+// Execute runs the Grant request.
 func (b *grantBuilder) Execute() (*GrantResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
@@ -232,6 +235,7 @@ func (o *grantOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// GrantResponse is the struct returned when the Execute function of Grant is called.
 type GrantResponse struct {
 	Level        string
 	SubscribeKey string
@@ -246,6 +250,7 @@ type GrantResponse struct {
 	ManageEnabled bool
 }
 
+// PNPAMEntityData is the struct containing the access details of the channels.
 type PNPAMEntityData struct {
 	Name          string
 	AuthKeys      map[string]*PNAccessManagerKeyData
@@ -255,6 +260,7 @@ type PNPAMEntityData struct {
 	TTL           int
 }
 
+// PNAccessManagerKeyData is the struct containing the access details of the channel groups.
 type PNAccessManagerKeyData struct {
 	ReadEnabled   bool
 	WriteEnabled  bool

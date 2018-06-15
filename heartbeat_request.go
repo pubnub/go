@@ -39,25 +39,28 @@ func newHeartbeatBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-//
+// State sets the state for the Heartbeat request.
 func (b *heartbeatBuilder) State(state interface{}) *heartbeatBuilder {
 	b.opts.State = state
 
 	return b
 }
 
+// Channels sets the Channels for the Heartbeat request.
 func (b *heartbeatBuilder) Channels(ch []string) *heartbeatBuilder {
 	b.opts.Channels = ch
 
 	return b
 }
 
+// ChannelGroups sets the ChannelGroups for the Heartbeat request.
 func (b *heartbeatBuilder) ChannelGroups(cg []string) *heartbeatBuilder {
 	b.opts.ChannelGroups = cg
 
 	return b
 }
 
+// Execute runs the Heartbeat request
 func (b *heartbeatBuilder) Execute() (interface{}, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {

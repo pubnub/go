@@ -19,7 +19,7 @@ type StatusResponse struct {
 
 	StatusCode int
 
-	TlsEnabled bool
+	TLSEnabled bool
 
 	UUID             string
 	AuthKey          string
@@ -36,7 +36,7 @@ type ResponseInfo struct {
 
 	StatusCode int
 
-	TlsEnabled bool
+	TLSEnabled bool
 
 	Origin  string
 	UUID    string
@@ -135,7 +135,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	}
 
 	if url.Scheme == "https" {
-		responseInfo.TlsEnabled = true
+		responseInfo.TLSEnabled = true
 	}
 
 	if uuid, ok := url.Query()["uuid"]; ok {
@@ -240,7 +240,7 @@ func createStatus(category StatusCategory, response string,
 	}
 
 	resp.StatusCode = responseInfo.StatusCode
-	resp.TlsEnabled = responseInfo.TlsEnabled
+	resp.TLSEnabled = responseInfo.TLSEnabled
 	resp.Origin = responseInfo.Origin
 	resp.UUID = responseInfo.UUID
 	resp.AuthKey = responseInfo.AuthKey

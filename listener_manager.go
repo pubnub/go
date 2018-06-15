@@ -4,6 +4,7 @@ import (
 	"sync"
 )
 
+//
 type Listener struct {
 	Status   chan *PNStatus
 	Message  chan *PNMessage
@@ -48,7 +49,7 @@ func (m *ListenerManager) removeListener(listener *Listener) {
 
 func (m *ListenerManager) removeAllListeners() {
 	m.Lock()
-	for l, _ := range m.listeners {
+	for l := range m.listeners {
 		delete(m.listeners, l)
 	}
 	m.Unlock()
@@ -67,7 +68,6 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 		}
 		m.RUnlock()
 	}()
-	m.pubnub.Config.Log.Println("After announceStatus")
 }
 
 func (m *ListenerManager) announceMessage(message *PNMessage) {
@@ -98,27 +98,23 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 
 //
 type PNStatus struct {
-	Category  StatusCategory
-	Operation OperationType
-
-	ErrorData  error
-	Error      bool
-	TlsEnabled bool
-	StatusCode int
-	UUID       string
-	AuthKey    string
-	Origin     string
-	// Should be same for non-google environment
-	ClientRequest interface{}
-
+	Category              StatusCategory
+	Operation             OperationType
+	ErrorData             error
+	Error                 bool
+	TLSEnabled            bool
+	StatusCode            int
+	UUID                  string
+	AuthKey               string
+	Origin                string
+	ClientRequest         interface{} // Should be same for non-google environment
 	AffectedChannels      []string
 	AffectedChannelGroups []string
 }
 
 type PNMessage struct {
-	Message      interface{}
-	UserMetadata interface{}
-
+	Message           interface{}
+	UserMetadata      interface{}
 	SubscribedChannel string
 	ActualChannel     string
 	Channel           string
@@ -134,16 +130,13 @@ type PNPresence struct {
 	ActualChannel     string
 	Channel           string
 	Subscription      string
-
-	Occupancy int
-	Timetoken int64
-	Timestamp int64
-
-	UserMetadata map[string]interface{}
-	State        interface{}
-
-	Join           []string
-	Leave          []string
-	Timeout        []string
-	HereNowRefresh bool
+	Occupancy         int
+	Timetoken         int64
+	Timestamp         int64
+	UserMetadata      map[string]interface{}
+	State             interface{}
+	Join              []string
+	Leave             []string
+	Timeout           []string
+	HereNowRefresh    bool
 }

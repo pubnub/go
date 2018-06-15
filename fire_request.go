@@ -48,7 +48,8 @@ func newFireResponse(jsonBytes []byte, status StatusResponse) (
 		return emptyPublishResponse, status, e
 	}
 
-	if timeString, ok := value[2].(string); !ok {
+	timeString, ok := value[2].(string)
+	if !ok {
 		return emptyPublishResponse, status, pnerr.NewResponseParsingError(fmt.Sprintf("Error unmarshalling response, %s %v", value[2], value), nil, nil)
 	}
 	timestamp, err := strconv.Atoi(timeString)
@@ -64,7 +65,8 @@ func newFireResponse(jsonBytes []byte, status StatusResponse) (
 func newFireBuilder(pubnub *PubNub) *fireBuilder {
 	builder := fireBuilder{
 		opts: &fireOpts{
-			pubnub: pubnub,
+			pubnub:    pubnub,
+			Serialize: true,
 		},
 	}
 
@@ -82,48 +84,57 @@ func newFireBuilderWithContext(pubnub *PubNub, context Context) *fireBuilder {
 	return &builder
 }
 
+// TTL sets the TTL (hours) for the Fire request.
 func (b *fireBuilder) TTL(ttl int) *fireBuilder {
 	b.opts.TTL = ttl
 
 	return b
 }
 
+// Channel sets the Channel for the Fire request.
 func (b *fireBuilder) Channel(ch string) *fireBuilder {
 	b.opts.Channel = ch
 
 	return b
 }
 
+// Message sets the Payload for the Fire request.
 func (b *fireBuilder) Message(msg interface{}) *fireBuilder {
 	b.opts.Message = msg
 
 	return b
 }
 
+// Meta sets the Meta Payload for the Fire request.
 func (b *fireBuilder) Meta(meta interface{}) *fireBuilder {
 	b.opts.Meta = meta
 
 	return b
 }
 
+// UsePost sends the Fire request using HTTP POST.
 func (b *fireBuilder) UsePost(post bool) *fireBuilder {
 	b.opts.UsePost = post
 
 	return b
 }
 
+// Serialize when true (default) serializes the payload before publish.
+// Set to false if pre serialized payload is being used.
 func (b *fireBuilder) Serialize(serialize bool) *fireBuilder {
 	b.opts.Serialize = serialize
 
 	return b
 }
 
+// Transport sets the Transport for the Fire request.
 func (b *fireBuilder) Transport(tr http.RoundTripper) *fireBuilder {
 	b.opts.Transport = tr
 
 	return b
 }
 
+// Execute runs the Fire request.
 func (b *fireBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	b.opts.ShouldStore = false
 	b.opts.DoNotReplicate = true

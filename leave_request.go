@@ -35,17 +35,19 @@ func newLeaveBuilderWithContext(pubnub *PubNub, context Context) *leaveBuilder {
 	return &builder
 }
 
-//
+// Channels sets the channel names in the Unsubscribe request.
 func (b *leaveBuilder) Channels(channels []string) *leaveBuilder {
 	b.opts.Channels = channels
 	return b
 }
 
+// ChannelGroups sets the channel group names in the Unsubscribe request.
 func (b *leaveBuilder) ChannelGroups(groups []string) *leaveBuilder {
 	b.opts.ChannelGroups = groups
 	return b
 }
 
+// Execute runs the Leave request.
 func (b *leaveBuilder) Execute() (StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
 	if err != nil {

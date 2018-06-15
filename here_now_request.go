@@ -43,19 +43,21 @@ func newHereNowBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-//
+// Channels sets the channel names in the here now request.
 func (b *hereNowBuilder) Channels(ch []string) *hereNowBuilder {
 	b.opts.Channels = ch
 
 	return b
 }
 
+// ChannelGroups sets the channel group names in the here now request.
 func (b *hereNowBuilder) ChannelGroups(cg []string) *hereNowBuilder {
 	b.opts.ChannelGroups = cg
 
 	return b
 }
 
+// IncludeState tells the server to include the state in the here now response.
 func (b *hereNowBuilder) IncludeState(state bool) *hereNowBuilder {
 	b.opts.IncludeState = state
 	b.opts.SetIncludeState = true
@@ -63,6 +65,7 @@ func (b *hereNowBuilder) IncludeState(state bool) *hereNowBuilder {
 	return b
 }
 
+// IncludeUUIDs tells the server to include the UUIDs in the here now response.
 func (b *hereNowBuilder) IncludeUUIDs(uuid bool) *hereNowBuilder {
 	b.opts.IncludeUUIDs = uuid
 	b.opts.SetIncludeUUIDs = true
@@ -70,6 +73,7 @@ func (b *hereNowBuilder) IncludeUUIDs(uuid bool) *hereNowBuilder {
 	return b
 }
 
+// Execute runs the HereNow request.
 func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
@@ -183,6 +187,7 @@ func (o *hereNowOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// HereNowResponse is the struct returned when the Execute function of HereNow is called.
 type HereNowResponse struct {
 	TotalChannels  int
 	TotalOccupancy int
@@ -190,6 +195,7 @@ type HereNowResponse struct {
 	Channels []HereNowChannelData
 }
 
+// HereNowChannelData is the struct containing the occupancy details of the channels.
 type HereNowChannelData struct {
 	ChannelName string
 
@@ -198,6 +204,7 @@ type HereNowChannelData struct {
 	Occupants []HereNowOccupantsData
 }
 
+// HereNowOccupantsData is the struct containing the state and UUID of the occupants in the channel.
 type HereNowOccupantsData struct {
 	UUID string
 
@@ -325,23 +332,23 @@ func newHereNowResponse(jsonBytes []byte, channelNames []string,
 			}
 
 			return resp, status, nil
-		} else {
-			resp.TotalChannels = 1
-
-			var occup int
-			if occupancy, ok := parsedValue["occupancy"].(int); ok {
-				occup = occupancy
-				resp.TotalOccupancy = occupancy
-			}
-
-			resp.Channels = append(resp.Channels, HereNowChannelData{
-				channelNames[0],
-				occup,
-				[]HereNowOccupantsData{},
-			})
-
-			return resp, status, nil
 		}
+		resp.TotalChannels = 1
+
+		var occup int
+		if occupancy, ok := parsedValue["occupancy"].(int); ok {
+			occup = occupancy
+			resp.TotalOccupancy = occupancy
+		}
+
+		resp.Channels = append(resp.Channels, HereNowChannelData{
+			channelNames[0],
+			occup,
+			[]HereNowOccupantsData{},
+		})
+
+		return resp, status, nil
+
 	}
 
 	return resp, status, nil

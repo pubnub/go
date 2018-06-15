@@ -45,38 +45,45 @@ func newFetchBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+// Channels sets the Channels for the Fetch request.
 func (b *fetchBuilder) Channels(channels []string) *fetchBuilder {
 	b.opts.Channels = channels
 	return b
 }
 
+// Start sets the Start Timetoken for the Fetch request.
 func (b *fetchBuilder) Start(start int64) *fetchBuilder {
 	b.opts.Start = start
 	b.opts.setStart = true
 	return b
 }
 
+// End sets the End Timetoken for the Fetch request.
 func (b *fetchBuilder) End(end int64) *fetchBuilder {
 	b.opts.End = end
 	b.opts.setEnd = true
 	return b
 }
 
+// Count sets the number of items to return in the Fetch request.
 func (b *fetchBuilder) Count(count int) *fetchBuilder {
 	b.opts.Count = count
 	return b
 }
 
+// Reverse sets the order of messages in the Fetch request.
 func (b *fetchBuilder) Reverse(r bool) *fetchBuilder {
 	b.opts.Reverse = r
 	return b
 }
 
+// Transport sets the Transport for the Fetch request.
 func (b *fetchBuilder) Transport(tr http.RoundTripper) *fetchBuilder {
 	b.opts.Transport = tr
 	return b
 }
 
+// Execute runs the Fetch request.
 func (b *fetchBuilder) Execute() (*FetchResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
