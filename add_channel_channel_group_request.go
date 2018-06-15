@@ -165,7 +165,7 @@ func (o *addChannelOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-// AddChannelToChannelGroupResponse is response structure for AddChannelToChannelGroupBuilder
+// AddChannelToChannelGroupResponse is the struct returned when the Execute function of AddChannelToChannelGroup is called.
 type AddChannelToChannelGroupResponse struct {
 }
 

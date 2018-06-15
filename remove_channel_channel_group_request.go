@@ -153,6 +153,7 @@ func (o *removeChannelOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// RemoveChannelFromChannelGroupResponse is the struct returned when the Execute function of RemoveChannelFromChannelGroup is called.
 type RemoveChannelFromChannelGroupResponse struct {
 }
 
