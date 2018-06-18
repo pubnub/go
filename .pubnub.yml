@@ -217,6 +217,9 @@ features:
   unsubscribe: 
     - UNSUBSCRIBE-ALL
     - UNSUBSCRIBE-SUPPRESS-LEAVE-EVENTS
+  others:
+    - PN-OTHER-PROCESSING
+    - TELEMETRY
 name: go
 schema: 1
 scm: github.com/pubnub/go
