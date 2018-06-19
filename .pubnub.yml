@@ -1,152 +1,207 @@
-name: go
-version: v4.1.0
-schema: 1
-scm: github.com/pubnub/go
-changelog:
-  - version: v4.1.0
-    changes:
-      - type: improvemnet
-        text: Some breaking changes from the previous v4's
-      - type: improvemnet
-        text: config field UseHttp2 is now UseHTTP2
-      - type: improvement
-        text: config field Uuid is now UUID
-      - type: improvemnet
-        text: Get State/ WhereNow Uuid is now UUID
-      - type: improvemnet
-        text: In Fire/Publish Ttl() is now TTL()
-      - type: improvemnet
-        text: In Grant Ttl() is now TTL()
-      - type: improvemnet
-        text: PNPAMEntityData Ttl is now TTL
-      - type: improvemnet
-        text: PNAccessManagerKeyData Ttl is now TTL
-      - type: improvemnet
-        text: TlsEnabled is now TLSEnabled in StatusResponse and ResponseInfo
-      - type: improvemnet
-        text: Uuid is now UUID in StatusResponse and ResponseInfo
-  - version: v4.0.0-rc.5
-    changes:
-      - type: bug
-        text: optimizations and deadlock fixes in subscribe loop
-      - type: bug
-        text: old channels got subscribed in new sub after reconnection
-      - type: improvement
-        text: close old subworker goroutine before starting new one
-      - type: bug
-        text: data race fixes
-      - type: bug
-        text: stop tickers, state manager locks
-  - version: v4.0.0-rc.4
-    changes:
-      - type: bug
-        text: stop heartbeat requests after unsubscribe all
-      - type: bug
-        text: multiple subscribe fixes
-      - type: bug
-        text: data race fixes in context
-      - type: bug
-        text: fix for subscribe listener on disconnect
-      - type: bug
-        text: heartbeat fixes
-      - type: bug
-        text: presence heartbeat fixes
-      - type: bug
-        text: subscribe to presence only channel
-      - type: bug
-        text: unsubscribe from presence only channel
-  - version: v4.0.0-rc.3
-    changes:
-      - type: bug
-        text: Reconnection fixes
-  - version: v4.0.0-rc.2
-    changes:
-      - type: bug
-        text: auth fix
-      - type: bug
-        text: Signature does not match fix when both secret key and auth is set
-      - type: improvement
+--- 
+changelog: 
+  - 
+    changes: 
+      - 
+        text: "Some breaking changes from the previous v4's"
+        type: improvement
+      - 
+        text: "config field UseHttp2 is now UseHTTP2"
+        type: improvement
+      - 
+        text: "config field Uuid is now UUID"
+        type: improvement
+      - 
+        text: "Get State/ WhereNow Uuid is now UUID"
+        type: improvement
+      - 
+        text: "In Fire/Publish Ttl() is now TTL()"
+        type: improvement
+      - 
+        text: "In Grant Ttl() is now TTL()"
+        type: improvement
+      - 
+        text: "PNPAMEntityData Ttl is now TTL"
+        type: improvement
+      - 
+        text: "PNAccessManagerKeyData Ttl is now TTL"
+        type: improvement
+      - 
+        text: "TlsEnabled is now TLSEnabled in StatusResponse and ResponseInfo"
+        type: improvement
+      - 
+        text: "Uuid is now UUID in StatusResponse and ResponseInfo"
+        type: improvement
+    version: v4.1.0
+  - 
+    changes: 
+      - 
+        text: "optimizations and deadlock fixes in subscribe loop"
+        type: bug
+      - 
+        text: "old channels got subscribed in new sub after reconnection"
+        type: bug
+      - 
+        text: "close old subworker goroutine before starting new one"
+        type: improvement
+      - 
+        text: "data race fixes"
+        type: bug
+      - 
+        text: "stop tickers, state manager locks"
+        type: bug
+    version: v4.0.0-rc.5
+  - 
+    changes: 
+      - 
+        text: "stop heartbeat requests after unsubscribe all"
+        type: bug
+      - 
+        text: "multiple subscribe fixes"
+        type: bug
+      - 
+        text: "data race fixes in context"
+        type: bug
+      - 
+        text: "fix for subscribe listener on disconnect"
+        type: bug
+      - 
+        text: "heartbeat fixes"
+        type: bug
+      - 
+        text: "presence heartbeat fixes"
+        type: bug
+      - 
+        text: "subscribe to presence only channel"
+        type: bug
+      - 
+        text: "unsubscribe from presence only channel"
+        type: bug
+    version: v4.0.0-rc.4
+  - 
+    changes: 
+      - 
+        text: "Reconnection fixes"
+        type: bug
+    version: v4.0.0-rc.3
+  - 
+    changes: 
+      - 
+        text: "auth fix"
+        type: bug
+      - 
+        text: "Signature does not match fix when both secret key and auth is set"
+        type: bug
+      - 
         text: cleanup
-      - type: improvement
-        text: integration tests fixes for the changes done on auth
-  - version: v4.0.0-rc.1
-    changes:
-      - type: bug
-        text: set state refactor fix
-  - version: v4.0.0-beta.8
-    changes:
-      - type: improvement
-        text: Subscribe with state
-  - version: v4.0.0-beta.7
-    changes:
-      - type: improvement
-        text: cipher improvements
-  - version: v4.0.0-beta.6
-    changes:
-      - type: improvement
-        text: Fire, Fetch, HereNowRequest
-  - version: v4.0.0-beta.5
-    changes:
-      - type: improvement
-        text: add subscribe builder
-  - version: v4.0.0-beta.4
-    changes:
-      - type: improvement
-        text: add Telemetry Manager
-  - version: v4.0.0-beta.3
-    changes:
-      - type: improvement
-        text: add Destroy() method
-  - version: v4.0.0-beta.2
-    changes:
-      - type: impovement
-        text: add reconnection manager
-      - type: impovement
-        text: rename list, remove, add, delete channel of channel groups
-      - type: bug
-        text: fix comma encoding
-      - type: bug
-        text: fix signature
-  - version: v4.0.0-beta
-    changes:
-      - type: impovement
-        text: initial beta
-features:
-  access:
+        type: improvement
+      - 
+        text: "integration tests fixes for the changes done on auth"
+        type: improvement
+    version: v4.0.0-rc.2
+  - 
+    changes: 
+      - 
+        text: "set state refactor fix"
+        type: bug
+    version: v4.0.0-rc.1
+  - 
+    changes: 
+      - 
+        text: "Subscribe with state"
+        type: improvement
+    version: v4.0.0-beta.8
+  - 
+    changes: 
+      - 
+        text: "cipher improvements"
+        type: improvement
+    version: v4.0.0-beta.7
+  - 
+    changes: 
+      - 
+        text: "Fire, Fetch, HereNowRequest"
+        type: improvement
+    version: v4.0.0-beta.6
+  - 
+    changes: 
+      - 
+        text: "add subscribe builder"
+        type: improvement
+    version: v4.0.0-beta.5
+  - 
+    changes: 
+      - 
+        text: "add Telemetry Manager"
+        type: improvement
+    version: v4.0.0-beta.4
+  - 
+    changes: 
+      - 
+        text: "add Destroy() method"
+        type: improvement
+    version: v4.0.0-beta.3
+  - 
+    changes: 
+      - 
+        text: "add reconnection manager"
+        type: impovement
+      - 
+        text: "rename list, remove, add, delete channel of channel groups"
+        type: impovement
+      - 
+        text: "fix comma encoding"
+        type: bug
+      - 
+        text: "fix signature"
+        type: bug
+    version: v4.0.0-beta.2
+  - 
+    changes: 
+      - 
+        text: "initial beta"
+        type: impovement
+    version: v4.0.0-beta
+features: 
+  access: 
     - ACCESS-GRANT
     - ACCESS-SECRET-KEY-ALL-ACCESS
-  channel-groups:
+  channel-groups: 
     - CHANNEL-GROUPS-ADD-CHANNELS
     - CHANNEL-GROUPS-REMOVE-CHANNELS
     - CHANNEL-GROUPS-REMOVE-GROUPS
     - CHANNEL-GROUPS-LIST-CHANNELS-IN-GROUP
-  notify:
-    - REQUEST-MESSAGE-COUNT-EXCEEDED
-  push:
-    - PUSH-ADD-DEVICE-TO-CHANNELS
-    - PUSH-REMOVE-DEVICE-FROM-CHANNELS
-    - PUSH-LIST-CHANNELS-FROM-DEVICE
-    - PUSH-REMOVE-DEVICE
-  presence:
+  others: 
+    - TELEMETRY
+  presence: 
     - PRESENCE-HERE-NOW
     - PRESENCE-WHERE-NOW
     - PRESENCE-GET-STATE
     - PRESENCE-SET-STATE
     - PRESENCE-HEARTBEAT
-  publish:
+    - PRESENCE-HERE-NOW-REFRESH
+  publish: 
     - PUBLISH-STORE-FLAG
     - PUBLISH-RAW-JSON
     - PUBLISH-WITH-METADATA
     - PUBLISH-GET
     - PUBLISH-POST
-  storage:
+    - PUBLISH-FIRE
+    - PUBLISH-REPLICATION-FLAG
+    - PUBLISH-MESSAGE-TTL
+  push: 
+    - PUSH-ADD-DEVICE-TO-CHANNELS
+    - PUSH-REMOVE-DEVICE-FROM-CHANNELS
+    - PUSH-LIST-CHANNELS-FROM-DEVICE
+    - PUSH-REMOVE-DEVICE
+  storage: 
     - STORAGE-REVERSE
     - STORAGE-INCLUDE-TIMETOKEN
     - STORAGE-START-END
     - STORAGE-COUNT
-  time:
-    - TIME-TIME
-  subscribe:
+    - STORAGE-DELETE-MESSAGES
+    - STORAGE-FETCH-MESSAGES
+  subscribe: 
     - SUBSCRIBE-CHANNELS
     - SUBSCRIBE-CHANNEL-GROUPS
     - SUBSCRIBE-PRESENCE-CHANNELS
@@ -155,11 +210,33 @@ features:
     - SUBSCRIBE-WILDCARD
     - SUBSCRIBE-FILTER-EXPRESSION
     - SUBSCRIBE-PUBLISHER-UUID
-supported-platforms:
-  -
-    version: PubNub Go SDK
-    platforms:
-      - FreeBSD 8-STABLE or later, amd64, 386
-      - Linux 2.6 or later, amd64, 386.
-      - Mac OS X 10.8 or later, amd64
-      - Windows 7 or later, amd64, 386
+    - SUBSCRIBE-WITH-USERSTATE
+    - SUBSCRIBE-PUBSUB-V2
+  time: 
+    - TIME-TIME
+  unsubscribe: 
+    - UNSUBSCRIBE-ALL
+    - UNSUBSCRIBE-SUPPRESS-LEAVE-EVENTS
+  others:
+    - PN-OTHER-PROCESSING
+    - TELEMETRY
+name: go
+schema: 1
+scm: github.com/pubnub/go
+supported-platforms: 
+  - 
+    editors: 
+      - "1.7.1"
+      - "1.7.3"
+      - "1.7.4"
+      - 1.8
+      - 1.9
+      - "1.9.7"
+      - "1.10.3"
+    platforms: 
+      - "FreeBSD 8-STABLE or later, amd64, 386"
+      - "Linux 2.6 or later, amd64, 386."
+      - "Mac OS X 10.8 or later, amd64"
+      - "Windows 7 or later, amd64, 386"
+    version: "PubNub Go SDK"
+version: v4.1.0
