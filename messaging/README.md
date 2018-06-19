@@ -90,9 +90,10 @@ We've put together a quick HOWTO video here http://vimeo.com/93523019
 
 ### Get Package
 
-* Use the command `go get github.com/pubnub/go/tree/master_3x/go/messaging` to download and install the package
+* Use the command `go get github.com/pubnub/go` to download and install the package
 
 ### Run the example
+* Browse to the directory ` $GOPATH/src/github.com/pubnub/go/messaging/ ` and switch to `master_3x` branch, `git checkout master_3x`
 * Built using Eclipse IDE (juno) 
 * Install golang plugin for Eclipse
 * Using Eclipse Project Explorer browse to the directory `$GOPATH/src/github.com/pubnub/go/messaging/example`, where `$GOPATH` is the workspaces directory of go.
@@ -110,8 +111,9 @@ We've put together a quick HOWTO video here http://vimeo.com/93523019
 ### Use pubnub in your project
 
 * Install golang plugin for Eclipse.
-* Use the command go get github.com/pubnub/go/tree/master_3x/go/messaging to download and install the package.
+* Use the command go get github.com/pubnub/go to download and install the package.
 * Open terminal/command prompt. Browse to the directory ` $GOPATH/src/github.com/pubnub/go/messaging/ `
+* Switch to the branch `master_3x`: `git checkout master_3x`
 * Run the command `go install`.
 * Go to eclipse and create a new "go project". Enter the project name.
 * Create a new "go file" in the "src" directory of the new project. For this example choose the "Command Source File" under the "Source File Type" with "Empty Main Function".
