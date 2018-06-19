@@ -90,7 +90,7 @@ We've put together a quick HOWTO video here http://vimeo.com/93523019
 
 ### Get Package
 
-* Use the command `go get github.com/pubnub/go/messaging` to download and install the package
+* Use the command `go get github.com/pubnub/go/tree/master_3x/go/messaging` to download and install the package
 
 ### Run the example
 * Built using Eclipse IDE (juno) 
@@ -110,7 +110,7 @@ We've put together a quick HOWTO video here http://vimeo.com/93523019
 ### Use pubnub in your project
 
 * Install golang plugin for Eclipse.
-* Use the command go get github.com/pubnub/go/messaging to download and install the package.
+* Use the command go get github.com/pubnub/go/tree/master_3x/go/messaging to download and install the package.
 * Open terminal/command prompt. Browse to the directory ` $GOPATH/src/github.com/pubnub/go/messaging/ `
 * Run the command `go install`.
 * Go to eclipse and create a new "go project". Enter the project name.
