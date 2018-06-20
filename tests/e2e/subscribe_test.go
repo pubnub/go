@@ -21,6 +21,62 @@ import (
 
 var timeout = 1000
 
+func TestRequestMesssageOverflow(t *testing.T) {
+	assert := assert.New(t)
+	doneSubscribe := make(chan bool)
+	errChan := make(chan string)
+	ch := randomized("sub-message-overflow")
+
+	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.MessageQueueOverflowCount = 2
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	timestamp1 := GetTimetoken(pn)
+	for i := 0; i < 3; i++ {
+		message := fmt.Sprintf("message %d", i)
+		pn.Publish().Channel(ch).Message(message).Execute()
+	}
+
+	listener := pubnub.NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.PNConnectedCategory:
+					continue
+				case pubnub.PNRequestMessageCountExceededCategory:
+					doneSubscribe <- true
+					break
+				default:
+					errChan <- fmt.Sprintf("error ===> %v", status)
+					break
+				}
+			case <-listener.Message:
+				errChan <- "Got message while awaiting for a status event"
+				break
+			case <-listener.Presence:
+				errChan <- "Got presence while awaiting for a status event"
+				break
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe().Channels([]string{ch}).Timetoken(timestamp1).Execute()
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
+	select {
+	case <-doneSubscribe:
+	case err := <-errChan:
+		assert.Fail(err)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+	}
+}
+
 /////////////////////////////
 /////////////////////////////
 // Structure

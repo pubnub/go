@@ -220,6 +220,8 @@ features:
   others:
     - PN-OTHER-PROCESSING
     - TELEMETRY
+  notify:
+    - REQUEST-MESSAGE-COUNT-EXCEEDED  
 name: go
 schema: 1
 scm: github.com/pubnub/go

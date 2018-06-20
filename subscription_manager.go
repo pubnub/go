@@ -397,7 +397,19 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 			m.listenerManager.announceStatus(pnStatus)
 		}
-		if len(envelope.Messages) > 0 {
+		messageCount := len(envelope.Messages)
+		if messageCount > 0 {
+			if messageCount > m.pubnub.Config.MessageQueueOverflowCount {
+				pnStatus := &PNStatus{
+					Error:                 false,
+					AffectedChannels:      combinedChannels,
+					AffectedChannelGroups: combinedGroups,
+					Category:              PNRequestMessageCountExceededCategory,
+				}
+				m.pubnub.Config.Log.Println("Status: ", pnStatus)
+
+				m.listenerManager.announceStatus(pnStatus)
+			}
 			for _, message := range envelope.Messages {
 				m.messages <- message
 			}
