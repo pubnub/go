@@ -35,12 +35,9 @@ func connect() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 	config = pubnub.NewConfig()
-	//config.Origin = "ssp.pubnub.com"
 	config.UseHTTP2 = false
 
 	config.PNReconnectionPolicy = pubnub.PNExponentialPolicy
-	//config.AuthKey = "a"
-	//config.EnableLogging = false
 
 	var infoLogger *log.Logger
 
@@ -59,12 +56,9 @@ func connect() {
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
 	//config.SuppressLeaveEvents = true
-
-	//config.PublishKey = "pub-c-afeb2ec5-45e9-449f-9a8d-c4940a9c7836"
-	//config.SubscribeKey = "sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64"
-	config.PublishKey = "pub-c-7e5c6521-91d0-4e60-9656-4bed419a769b"
-	config.SubscribeKey = "sub-c-b9ab9508-43cf-11e8-9967-869954283fb4"
-	config.SecretKey = "sec-c-MjRhODgwMTgtY2RmMS00ZWNmLTgzNTUtYjI3MzZhOThlNTY0"
+	config.PublishKey = "demo"
+	config.SubscribeKey = "demo"
+	config.SecretKey = "demo"
 
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)

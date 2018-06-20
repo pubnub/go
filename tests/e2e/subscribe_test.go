@@ -19,7 +19,7 @@ import (
 //import _ "net/http/pprof"
 //import "net/http"
 
-var timeout = 2000
+var timeout = 1000
 
 /////////////////////////////
 /////////////////////////////
@@ -112,7 +112,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 		Channels([]string{ch}).
 		Execute()
 
-	tic := time.NewTicker(time.Duration(timeout) * time.Second)
+	tic := time.NewTicker(time.Duration(timeout) * time.Second * 2)
 	select {
 	case <-doneUnsubscribe:
 		//fmt.Println("doneUnsubscribe...")
@@ -1289,7 +1289,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 		ChannelGroups([]string{cg}).
 		Execute()
 
-	tic := time.NewTicker(time.Duration(timeout) * time.Second)
+	tic := time.NewTicker(time.Duration(timeout) * time.Second * 2)
 	select {
 	case <-doneUnsubscribe:
 	case err := <-errChan:
