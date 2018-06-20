@@ -3,6 +3,18 @@ changelog:
   - 
     changes: 
       - 
+        text: "MessageQueueOverflowCount and PNRequestMessageCountExceededCategory"
+        type: improvement
+      - 
+        text: "subscribeMessageWorker optimization"
+        type: improvement
+      - 
+        text: "integration tests optimizations"
+        type: improvement
+    version: v4.1.1
+  - 
+    changes: 
+      - 
         text: "Some breaking changes from the previous v4's"
         type: improvement
       - 
@@ -239,4 +251,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.1.0
+version: v4.1.1
