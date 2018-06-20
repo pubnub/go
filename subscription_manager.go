@@ -607,6 +607,13 @@ func subscribeMessageWorker(m *SubscriptionManager) {
 	m.exitSubscriptionManager = make(chan bool)
 	for m.exitSubscriptionManager != nil {
 		m.pubnub.Config.Log.Println("subscribeMessageWorker looping...")
+		combinedChannels := m.stateManager.prepareChannelList(true)
+		combinedGroups := m.stateManager.prepareGroupList(true)
+
+		if len(combinedChannels) == 0 && len(combinedGroups) == 0 {
+			m.pubnub.Config.Log.Println("subscribeMessageWorker all channels unsubscribed")
+			break
+		}
 		select {
 		case <-m.exitSubscriptionManager:
 			m.pubnub.Config.Log.Println("subscribeMessageWorker context done")
