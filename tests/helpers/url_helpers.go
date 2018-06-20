@@ -43,7 +43,7 @@ func UrlsEqual(expectedString, actualString string,
 	return true, nil
 }
 
-// mixedPositions - a postion of items which can contain unsorted items like
+// mixedPositions - a position of items which can contain unsorted items like
 // multiple unsorted channels. If no such positions expected use an empty slice.
 // Like in arrays, the first position is 0.
 func PathsEqual(expectedString, actualString string,

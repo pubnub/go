@@ -45,7 +45,7 @@ func (b *timeBuilder) Transport(tr http.RoundTripper) *timeBuilder {
 	return b
 }
 
-// Excecute runs the Time request and fetches the time from the server.
+// Execute runs the Time request and fetches the time from the server.
 func (b *timeBuilder) Execute() (*TimeResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {

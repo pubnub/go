@@ -16,10 +16,10 @@ import (
 // SubscriptionManager Events:
 // - ConnectedCategory - after connection established
 // - DisconnectedCategory - after subscription loop stops for any reason (no
-// channels left or error happend)
+// channels left or error happened)
 
 // Unsubscribe.
-// When you unsubscirbe from channel or channel group the following events
+// When you unsubscribe from channel or channel group the following events
 // happens:
 // - LoopStopCategory - immediately when no more channels or channel groups left
 // to subscribe

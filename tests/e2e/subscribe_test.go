@@ -16,10 +16,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-import _ "net/http/pprof"
-import "net/http"
+//import _ "net/http/pprof"
+//import "net/http"
 
-var timeout = 1000
+var timeout = 2000
 
 /////////////////////////////
 /////////////////////////////
@@ -40,9 +40,9 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	doneUnsubscribe := make(chan bool)
 	errChan := make(chan string)
 	ch := randomized("sub-u-ch")
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6063", nil))
-	}()
+	// go func() {
+	// 	log.Println(http.ListenAndServe("localhost:6063", nil))
+	// }()
 
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
@@ -1310,9 +1310,9 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 }
 
 func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6061", nil))
-	}()
+	// go func() {
+	// 	log.Println(http.ListenAndServe("localhost:6061", nil))
+	// }()
 
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
