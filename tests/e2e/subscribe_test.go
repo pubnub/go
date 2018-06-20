@@ -1286,6 +1286,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	cg := randomized("sub-sug-cg")
 
 	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	listener := pubnub.NewListener()
 
