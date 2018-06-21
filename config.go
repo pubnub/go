@@ -35,6 +35,7 @@ type Config struct {
 	SuppressLeaveEvents        bool               // When true the SDK doesn't send out the leave requests.
 	DisablePNOtherProcessing   bool               // PNOther processing looks for pn_other in the JSON on the recevied message
 	UseHTTP2                   bool               // HTTP2 Flag
+	MessageQueueOverflowCount  int                // When the limit is exceeded by the number of messages received in a single subscribe request, a status event PNRequestMessageCountExceededCategory is fired.
 }
 
 // NewDemoConfig initiates the config with demo keys, for tests only.
@@ -63,6 +64,7 @@ func NewConfig() *Config {
 		SuppressLeaveEvents:        false,
 		DisablePNOtherProcessing:   false,
 		PNReconnectionPolicy:       PNNonePolicy,
+		MessageQueueOverflowCount:  100,
 	}
 
 	return &c

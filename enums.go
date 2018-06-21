@@ -55,6 +55,8 @@ const (
 	// Applicable on for PNLinearPolicy and PNExponentialPolicy.
 	// Reconnection attempts are set in the config: MaximumReconnectionRetries.
 	PNReconnectionAttemptsExhausted
+	// PNRequestMessageCountExceededCategory is fired when the MessageQueueOverflowCount limit is exceeded by the number of messages received in a single subscribe request
+	PNRequestMessageCountExceededCategory
 )
 
 const (

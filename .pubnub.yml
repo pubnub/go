@@ -3,6 +3,18 @@ changelog:
   - 
     changes: 
       - 
+        text: "MessageQueueOverflowCount and PNRequestMessageCountExceededCategory"
+        type: improvement
+      - 
+        text: "subscribeMessageWorker optimization"
+        type: improvement
+      - 
+        text: "integration tests optimizations"
+        type: improvement
+    version: v4.1.1
+  - 
+    changes: 
+      - 
         text: "Some breaking changes from the previous v4's"
         type: improvement
       - 
@@ -220,6 +232,8 @@ features:
   others:
     - PN-OTHER-PROCESSING
     - TELEMETRY
+  notify:
+    - REQUEST-MESSAGE-COUNT-EXCEEDED  
 name: go
 schema: 1
 scm: github.com/pubnub/go
@@ -227,10 +241,8 @@ supported-platforms:
   - 
     editors: 
       - "1.7.1"
-      - "1.7.3"
-      - "1.7.4"
-      - 1.8
-      - 1.9
+      - "1.7.6"
+      - "1.8.7"
       - "1.9.7"
       - "1.10.3"
     platforms: 
@@ -239,4 +251,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.1.0
+version: v4.1.1

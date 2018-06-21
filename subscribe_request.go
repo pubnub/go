@@ -59,7 +59,7 @@ func (b *subscribeBuilder) ChannelGroups(groups []string) *subscribeBuilder {
 	return b
 }
 
-// Timetoken sets the timetoken to subscribe. Susbcribe will start to fetch the messages from this timetoken onwards.
+// Timetoken sets the timetoken to subscribe. Subscribe will start to fetch the messages from this timetoken onwards.
 func (b *subscribeBuilder) Timetoken(tt int64) *subscribeBuilder {
 	b.operation.Timetoken = tt
 

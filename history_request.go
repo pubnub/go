@@ -107,7 +107,7 @@ type historyOpts struct {
 	Start int64
 	End   int64
 
-	// defualt: 100
+	// default: 100
 	Count int
 
 	// default: false

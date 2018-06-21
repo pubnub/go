@@ -16,10 +16,10 @@ import (
 // SubscriptionManager Events:
 // - ConnectedCategory - after connection established
 // - DisconnectedCategory - after subscription loop stops for any reason (no
-// channels left or error happend)
+// channels left or error happened)
 
 // Unsubscribe.
-// When you unsubscirbe from channel or channel group the following events
+// When you unsubscribe from channel or channel group the following events
 // happens:
 // - LoopStopCategory - immediately when no more channels or channel groups left
 // to subscribe
@@ -397,7 +397,19 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 			m.listenerManager.announceStatus(pnStatus)
 		}
-		if len(envelope.Messages) > 0 {
+		messageCount := len(envelope.Messages)
+		if messageCount > 0 {
+			if messageCount > m.pubnub.Config.MessageQueueOverflowCount {
+				pnStatus := &PNStatus{
+					Error:                 false,
+					AffectedChannels:      combinedChannels,
+					AffectedChannelGroups: combinedGroups,
+					Category:              PNRequestMessageCountExceededCategory,
+				}
+				m.pubnub.Config.Log.Println("Status: ", pnStatus)
+
+				m.listenerManager.announceStatus(pnStatus)
+			}
 			for _, message := range envelope.Messages {
 				m.messages <- message
 			}
@@ -595,6 +607,13 @@ func subscribeMessageWorker(m *SubscriptionManager) {
 	m.exitSubscriptionManager = make(chan bool)
 	for m.exitSubscriptionManager != nil {
 		m.pubnub.Config.Log.Println("subscribeMessageWorker looping...")
+		combinedChannels := m.stateManager.prepareChannelList(true)
+		combinedGroups := m.stateManager.prepareGroupList(true)
+
+		if len(combinedChannels) == 0 && len(combinedGroups) == 0 {
+			m.pubnub.Config.Log.Println("subscribeMessageWorker all channels unsubscribed")
+			break
+		}
 		select {
 		case <-m.exitSubscriptionManager:
 			m.pubnub.Config.Log.Println("subscribeMessageWorker context done")

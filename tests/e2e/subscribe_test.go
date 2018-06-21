@@ -16,10 +16,66 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-import _ "net/http/pprof"
-import "net/http"
+//import _ "net/http/pprof"
+//import "net/http"
 
 var timeout = 1000
+
+func TestRequestMesssageOverflow(t *testing.T) {
+	assert := assert.New(t)
+	doneSubscribe := make(chan bool)
+	errChan := make(chan string)
+	ch := randomized("sub-message-overflow")
+
+	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.MessageQueueOverflowCount = 2
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	timestamp1 := GetTimetoken(pn)
+	for i := 0; i < 3; i++ {
+		message := fmt.Sprintf("message %d", i)
+		pn.Publish().Channel(ch).Message(message).Execute()
+	}
+
+	listener := pubnub.NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.PNConnectedCategory:
+					continue
+				case pubnub.PNRequestMessageCountExceededCategory:
+					doneSubscribe <- true
+					break
+				default:
+					errChan <- fmt.Sprintf("error ===> %v", status)
+					break
+				}
+			case <-listener.Message:
+				errChan <- "Got message while awaiting for a status event"
+				break
+			case <-listener.Presence:
+				errChan <- "Got presence while awaiting for a status event"
+				break
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe().Channels([]string{ch}).Timetoken(timestamp1).Execute()
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
+	select {
+	case <-doneSubscribe:
+	case err := <-errChan:
+		assert.Fail(err)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+	}
+}
 
 /////////////////////////////
 /////////////////////////////
@@ -40,9 +96,9 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	doneUnsubscribe := make(chan bool)
 	errChan := make(chan string)
 	ch := randomized("sub-u-ch")
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6063", nil))
-	}()
+	// go func() {
+	// 	log.Println(http.ListenAndServe("localhost:6063", nil))
+	// }()
 
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
@@ -112,7 +168,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 		Channels([]string{ch}).
 		Execute()
 
-	tic := time.NewTicker(time.Duration(timeout) * time.Second)
+	tic := time.NewTicker(time.Duration(timeout) * time.Second * 2)
 	select {
 	case <-doneUnsubscribe:
 		//fmt.Println("doneUnsubscribe...")
@@ -1230,6 +1286,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	cg := randomized("sub-sug-cg")
 
 	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	listener := pubnub.NewListener()
 
@@ -1289,7 +1346,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 		ChannelGroups([]string{cg}).
 		Execute()
 
-	tic := time.NewTicker(time.Duration(timeout) * time.Second)
+	tic := time.NewTicker(time.Duration(timeout) * time.Second * 2)
 	select {
 	case <-doneUnsubscribe:
 	case err := <-errChan:
@@ -1310,9 +1367,9 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 }
 
 func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6061", nil))
-	}()
+	// go func() {
+	// 	log.Println(http.ListenAndServe("localhost:6061", nil))
+	// }()
 
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
