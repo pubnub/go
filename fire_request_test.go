@@ -54,6 +54,9 @@ func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, mess
 	assert.Nil(err)
 
 	assert.Empty(body)
+	assert.Equal(o.opts.Meta, "a")
+	assert.Equal(o.opts.TTL, 20)
+	assert.Equal(o.opts.Serialize, false)
 }
 
 func AssertSuccessFirePost(t *testing.T, expectedBody string, message interface{}) {
