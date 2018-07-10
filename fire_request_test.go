@@ -47,23 +47,25 @@ func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, mess
 	assert.Nil(err)
 
 	query, _ := o.opts.buildQuery()
-	i := 0
-	stringifiedQuery := ""
+	//i := 0
+	//stringifiedQuery := ""
 	for k, v := range *query {
 		if k == "pnsdk" || k == "uuid" || k == "seqn" {
 			continue
 		}
-		if i > 0 {
-			stringifiedQuery += "&"
+		switch k {
+		case "meta":
+			assert.Equal("\"a\"", v[0])
+		case "store":
+			assert.Equal("0", v[0])
+		case "norep":
+			assert.Equal("true", v[0])
 		}
-
-		stringifiedQuery += fmt.Sprintf("%s=%s", k, v[0])
-		i++
 	}
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s%s", expectedString, "?meta=\"a\"&store=0&norep=true"),
-		fmt.Sprintf("%s?%s", path, stringifiedQuery),
+		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
+		fmt.Sprintf("%s", path),
 		[]int{})
 
 	body, err := o.opts.buildBody()
@@ -97,6 +99,7 @@ func AssertSuccessFirePost(t *testing.T, expectedBody string, message interface{
 		u.EscapedPath(), []int{})
 
 	body, err := opts.buildBody()
+	assert.Equal(opts.UsePost, true)
 	assert.Nil(err)
 	assert.Equal(expectedBody, string(body))
 }
@@ -117,6 +120,33 @@ func AssertSuccessFireQuery(t *testing.T, expectedString string, message interfa
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"seqn", "pnsdk", "uuid", "store", "norep"}, []string{})
 
+}
+
+func TestFireDoNotSerializePost(t *testing.T) {
+	assert := assert.New(t)
+
+	message := "{\"one\":\"hey\"}"
+
+	opts := &fireOpts{
+		Channel:   "ch",
+		Message:   message,
+		pubnub:    pubnub,
+		UsePost:   true,
+		Serialize: false,
+	}
+
+	path, err := opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/publish/pub_key/sub_key/0/ch/0",
+		u.EscapedPath(), []int{})
+
+	body, err := opts.buildBody()
+	assert.Nil(err)
+	assert.NotEmpty(body)
 }
 
 func TestFirePath(t *testing.T) {
