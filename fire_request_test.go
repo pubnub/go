@@ -46,9 +46,25 @@ func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, mess
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
 
+	query, _ := o.opts.buildQuery()
+	i := 0
+	stringifiedQuery := ""
+	for k, v := range *query {
+		if k == "pnsdk" || k == "uuid" || k == "seqn" {
+			continue
+		}
+		if i > 0 {
+			stringifiedQuery += "&"
+		}
+
+		stringifiedQuery += fmt.Sprintf("%s=%s", k, v[0])
+		i++
+	}
+
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
-		path, []int{})
+		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s%s", expectedString, "?meta=\"a\"&store=0&norep=true"),
+		fmt.Sprintf("%s?%s", path, stringifiedQuery),
+		[]int{})
 
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
@@ -113,6 +129,12 @@ func TestFireQuery(t *testing.T) {
 	AssertSuccessFireQuery(t, "%22test%22?store=0&norep=true&", message)
 }
 
+func TestFireGetAllParameters(t *testing.T) {
+	message := "test"
+	AssertSuccessFireGetAllParameters(t, "%22test%22", message)
+}
+
 func TestFirePathPost(t *testing.T) {
+
 	AssertSuccessFirePost(t, "[1,2,3]", []int{1, 2, 3})
 }
