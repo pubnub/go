@@ -31,11 +31,61 @@ func AssertSuccessFireGet(t *testing.T, expectedString string, message interface
 	assert.Empty(body)
 }
 
-func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, message interface{}, cipher string) {
+func AssertSuccessFirePostAllParameters(t *testing.T, expectedString string, message interface{}, cipher string) {
 	assert := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = cipher
+
+	o := newFireBuilder(pn)
+	o.Channel("ch")
+	o.Message(message)
+	o.Serialize(false)
+	o.UsePost(true)
+	o.opts.setTTL = true
+	o.TTL(20)
+	o.Meta("a")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	query, _ := o.opts.buildQuery()
+	for k, v := range *query {
+		if k == "pnsdk" || k == "uuid" || k == "seqn" {
+			continue
+		}
+		switch k {
+		case "meta":
+			assert.Equal("\"a\"", v[0])
+		case "store":
+			assert.Equal("0", v[0])
+		case "norep":
+			assert.Equal("true", v[0])
+		}
+	}
+
+	h.AssertPathsEqual(t,
+		"/publish/demo/demo/0/ch/0",
+		path,
+		[]int{})
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+
+	c := o.opts.config()
+
+	assert.Equal(expectedString, string(body))
+	assert.Equal(o.opts.Meta, "a")
+	assert.Equal(o.opts.TTL, 20)
+	assert.Equal(o.opts.UsePost, true)
+	assert.Equal(c.UUID, pn.Config.UUID)
+	assert.Equal(o.opts.Serialize, false)
+}
+
+func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, message interface{}) {
+	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
 
 	o := newFireBuilder(pn)
 	o.Channel("ch")
@@ -50,8 +100,6 @@ func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, mess
 	assert.Nil(err)
 
 	query, _ := o.opts.buildQuery()
-	//i := 0
-	//stringifiedQuery := ""
 	for k, v := range *query {
 		if k == "pnsdk" || k == "uuid" || k == "seqn" {
 			continue
@@ -196,14 +244,21 @@ func TestValidateMessage(t *testing.T) {
 	assert.Equal("pubnub/validation: pubnub: \x04: Missing Message", opts.validate().Error())
 }
 
+func TestValidate(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &fireOpts{
+		Channel: "ch",
+		Message: "a",
+		pubnub:  pn,
+	}
+	err := opts.validate()
+	assert.Nil(err)
+}
+
 func TestFirePath(t *testing.T) {
 	message := "test"
 	AssertSuccessFireGet(t, "%22test%22", message)
-}
-
-func TestFireGetAllParametersCipher(t *testing.T) {
-	message := "test"
-	AssertSuccessFireGetAllParameters(t, "%22c3dSanMrRnc4ZnNNT1BEaGFnZmd1QT09%22", message, "enigma")
 }
 
 func TestFireQuery(t *testing.T) {
@@ -213,7 +268,12 @@ func TestFireQuery(t *testing.T) {
 
 func TestFireGetAllParameters(t *testing.T) {
 	message := "test"
-	AssertSuccessFireGetAllParameters(t, "%22test%22", message, "")
+	AssertSuccessFireGetAllParameters(t, "%22test%22", message)
+}
+
+func TestFirePostAllParameters(t *testing.T) {
+	message := "test"
+	AssertSuccessFirePostAllParameters(t, "\"+3AfkVAl8saHsXJdtOhRVQ==\"", message, "enigma")
 }
 
 func TestFirePathPost(t *testing.T) {
