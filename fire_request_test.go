@@ -80,12 +80,14 @@ func AssertSuccessFirePostAllParameters(t *testing.T, expectedString string, mes
 	assert.Equal(o.opts.UsePost, true)
 	assert.Equal(c.UUID, pn.Config.UUID)
 	assert.Equal(o.opts.Serialize, false)
+	assert.Equal(o.opts.httpMethod(), "POST")
 }
 
-func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, message interface{}) {
+func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, message interface{}, cipher string) {
 	assert := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
+	pn.Config.CipherKey = cipher
 
 	o := newFireBuilder(pn)
 	o.Channel("ch")
@@ -130,6 +132,7 @@ func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, mess
 	assert.Equal(o.opts.UsePost, false)
 	assert.Equal(c.UUID, pn.Config.UUID)
 	assert.Equal(o.opts.Serialize, false)
+	assert.Equal(o.opts.httpMethod(), "GET")
 }
 
 func AssertSuccessFirePost(t *testing.T, expectedBody string, message interface{}) {
@@ -268,7 +271,11 @@ func TestFireQuery(t *testing.T) {
 
 func TestFireGetAllParameters(t *testing.T) {
 	message := "test"
-	AssertSuccessFireGetAllParameters(t, "%22test%22", message)
+	AssertSuccessFireGetAllParameters(t, "%22test%22", message, "")
+}
+func TestFireGetAllParametersCipher(t *testing.T) {
+	message := "test"
+	AssertSuccessFireGetAllParameters(t, "%22c3dSanMrRnc4ZnNNT1BEaGFnZmd1QT09%22", message, "enigma")
 }
 
 func TestFirePostAllParameters(t *testing.T) {
