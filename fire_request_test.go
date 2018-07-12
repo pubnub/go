@@ -31,15 +31,18 @@ func AssertSuccessFireGet(t *testing.T, expectedString string, message interface
 	assert.Empty(body)
 }
 
-func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, message interface{}) {
+func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, message interface{}, cipher string) {
 	assert := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
+	pn.Config.CipherKey = cipher
 
 	o := newFireBuilder(pn)
 	o.Channel("ch")
 	o.Message(message)
 	o.Serialize(false)
+	o.UsePost(false)
+	o.opts.setTTL = true
 	o.TTL(20)
 	o.Meta("a")
 
@@ -71,9 +74,13 @@ func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, mess
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
 
+	c := o.opts.config()
+
 	assert.Empty(body)
 	assert.Equal(o.opts.Meta, "a")
 	assert.Equal(o.opts.TTL, 20)
+	assert.Equal(o.opts.UsePost, false)
+	assert.Equal(c.UUID, pn.Config.UUID)
 	assert.Equal(o.opts.Serialize, false)
 }
 
@@ -99,6 +106,7 @@ func AssertSuccessFirePost(t *testing.T, expectedBody string, message interface{
 		u.EscapedPath(), []int{})
 
 	body, err := opts.buildBody()
+
 	assert.Equal(opts.UsePost, true)
 	assert.Nil(err)
 	assert.Equal(expectedBody, string(body))
@@ -149,9 +157,53 @@ func TestFireDoNotSerializePost(t *testing.T) {
 	assert.NotEmpty(body)
 }
 
+func TestValidatePublishKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.PublishKey = ""
+	opts := &fireOpts{
+		pubnub: pn,
+	}
+	assert.Equal("pubnub/validation: pubnub: \x04: Missing Publish Key", opts.validate().Error())
+}
+
+func TestValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &fireOpts{
+		pubnub: pn,
+	}
+	assert.Equal("pubnub/validation: pubnub: \x04: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestValidateChannel(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &fireOpts{
+		pubnub: pn,
+	}
+	assert.Equal("pubnub/validation: pubnub: \x04: Missing Channel", opts.validate().Error())
+}
+
+func TestValidateMessage(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &fireOpts{
+		Channel: "ch",
+		pubnub:  pn,
+	}
+	assert.Equal("pubnub/validation: pubnub: \x04: Missing Message", opts.validate().Error())
+}
+
 func TestFirePath(t *testing.T) {
 	message := "test"
 	AssertSuccessFireGet(t, "%22test%22", message)
+}
+
+func TestFireGetAllParametersCipher(t *testing.T) {
+	message := "test"
+	AssertSuccessFireGetAllParameters(t, "%22c3dSanMrRnc4ZnNNT1BEaGFnZmd1QT09%22", message, "enigma")
 }
 
 func TestFireQuery(t *testing.T) {
@@ -161,7 +213,7 @@ func TestFireQuery(t *testing.T) {
 
 func TestFireGetAllParameters(t *testing.T) {
 	message := "test"
-	AssertSuccessFireGetAllParameters(t, "%22test%22", message)
+	AssertSuccessFireGetAllParameters(t, "%22test%22", message, "")
 }
 
 func TestFirePathPost(t *testing.T) {
