@@ -47,7 +47,7 @@ func TestWhereNowMultipleChannels(t *testing.T) {
 	assert.Equal("b", res.Channels[1])
 }
 
-func TestWhereNowMultipleChannels(t *testing.T) {
+func TestWhereNowMultipleChannelsHTTP2(t *testing.T) {
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
