@@ -32,11 +32,7 @@ func TestExponentialExhaustion(t *testing.T) {
 	pn.SetClient(interceptor.GetClient())
 	t1 := time.Now()
 	r := newReconnectionManager(pn)
-	reconnected := false
 	reconnectionExhausted := false
-	r.HandleReconnection(func() {
-		reconnected = true
-	})
 	r.HandleOnMaxReconnectionExhaustion(func() {
 		reconnectionExhausted = true
 	})
@@ -69,11 +65,7 @@ func TestLinearExhaustion(t *testing.T) {
 	pn.SetClient(interceptor.GetClient())
 	t1 := time.Now()
 	r := newReconnectionManager(pn)
-	reconnected := false
 	reconnectionExhausted := false
-	r.HandleReconnection(func() {
-		reconnected = true
-	})
 	r.HandleOnMaxReconnectionExhaustion(func() {
 		reconnectionExhausted = true
 	})
@@ -98,16 +90,11 @@ func TestReconnect(t *testing.T) {
 	r := newReconnectionManager(pn)
 	r.FailedCalls = 1
 	reconnected := false
-	reconnectionExhausted := false
 	doneReconnected := make(chan bool)
 	r.HandleReconnection(func() {
 		reconnected = true
 		doneReconnected <- true
 	})
-	r.HandleOnMaxReconnectionExhaustion(func() {
-		reconnectionExhausted = true
-	})
-
 	go r.startHeartbeatTimer()
 	<-doneReconnected
 	assert.True(reconnected)
