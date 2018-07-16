@@ -128,3 +128,81 @@ func TestGetStateMultipleChannelsChannelGroups(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
 }
+
+func TestGetStateValidateChannel(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &getStateOpts{
+		pubnub: pn,
+	}
+	assert.Equal("pubnub/validation: pubnub: \v: Missing Channel or Channel Group", opts.validate().Error())
+}
+
+func TestGetStateValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &getStateOpts{
+		Channels:      []string{"ch1", "ch2", "ch3"},
+		ChannelGroups: []string{"cg1", "cg2", "cg3"},
+		pubnub:        pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \v: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestNewGetStateResponseErrorUnmarshalling(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`s`)
+
+	_, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
+
+func TestNewGetStateResponseParsingError(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`"s"`)
+
+	_, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Equal("Response parsing error", err.Error())
+}
+
+func TestNewGetStateResponseParsingPayloadError(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": "error", "uuid": "my-custom-uuid", "service": "Presence"}`)
+
+	_, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Equal("Response parsing payload 2", err.Error())
+}
+
+func TestNewGetStateResponseParsingPayloadChannelsError(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": {"channels": "a"}, "uuid": "my-custom-uuid", "service": "Presence"}`)
+
+	_, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Equal("Response parsing channels", err.Error())
+}
+
+func TestNewGetStateResponseParsingPayloadChannelError(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": null, "uuid": "my-custom-uuid", "channel": "my-channel", "service": "Presence"}`)
+
+	_, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Equal("Response parsing channel", err.Error())
+}
+
+func TestNewGetStateResponseParsingChannelError(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`{"status": 200, "message": "OK", "uuid": "my-custom-uuid", "channel": "my-channel", "service": "Presence"}`)
+
+	_, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Equal("Response parsing channel", err.Error())
+}
+
+func TestNewGetStateResponseParsingChannelNull(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`{"status": 200, "message": "OK", "uuid": "my-custom-uuid", "channel": {}, "service": "Presence"}`)
+
+	_, _, err := newGetStateResponse(jsonBytes, fakeResponseState)
+	assert.Equal("Response parsing channel 2", err.Error())
+}
