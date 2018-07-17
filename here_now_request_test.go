@@ -152,3 +152,11 @@ func TestNewHereNowResponseErrorUnmarshalling(t *testing.T) {
 	_, _, err := newHereNowResponse(jsonBytes, nil, StatusResponse{})
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
+
+func TestNewHereNowResponseOneChannel(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte("{\"status\":200,\"message\":\"OK\",\"service\":\"Presence\",\"uuids\":[{\"uuid\":\"a3ffd012-a3b9-478c-8705-64089f24d71e\",\"state\":{\"age\":10}}],\"occupancy\":1}")
+
+	_, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
+	assert.Nil(err)
+}
