@@ -17,6 +17,9 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 	o := newPublishBuilder(pn)
 	o.Channel("ch")
 	o.Message(message)
+	o.TTL(10)
+	o.ShouldStore(true)
+	o.DoNotReplicate(true)
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -29,6 +32,9 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 
 	assert.Nil(err)
 	assert.Empty(body)
+	assert.Equal(10, o.opts.TTL)
+	assert.Equal(true, o.opts.ShouldStore)
+	assert.Equal(true, o.opts.DoNotReplicate)
 }
 
 func AssertSuccessPublishPost(t *testing.T, expectedBody string, message interface{}) {
@@ -319,4 +325,39 @@ func TestPublishSequenceCounter(t *testing.T) {
 			break
 		}
 	}
+}
+
+func TestNewPublishResponse(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`s`)
+
+	_, _, err := newPublishResponse(jsonBytes, StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
+
+func TestNewPublishResponseTimestamp(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`[1, Sent, "a"]`)
+
+	_, _, err := newPublishResponse(jsonBytes, StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {[1, Sent, \"a\"]}", err.Error())
+}
+
+func TestNewPublishResponseTimestamp2(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`[1, "Sent", "a"]`)
+
+	_, _, err := newPublishResponse(jsonBytes, StatusResponse{})
+	assert.Equal("strconv.Atoi: parsing \"a\": invalid syntax", err.Error())
+}
+
+func TestPublishValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &publishOpts{
+		pubnub: pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x03: Missing Subscribe Key", opts.validate().Error())
 }
