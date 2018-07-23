@@ -156,5 +156,5 @@ func TestNewSetStateResponseValueError(t *testing.T) {
 	}
 
 	_, _, err := newSetStateResponse([]byte(b), StatusResponse{})
-	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+	assert.Equal("", err.Error())
 }
