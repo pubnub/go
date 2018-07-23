@@ -361,3 +361,20 @@ func TestPublishValidateSubscribeKey(t *testing.T) {
 
 	assert.Equal("pubnub/validation: pubnub: \x03: Missing Subscribe Key", opts.validate().Error())
 }
+
+func TestEncryptProcessing(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.DisablePNOtherProcessing = true
+	s := `{"pn_other":"s'"}`
+	opts := &publishOpts{
+		Channel:   "ch",
+		Message:   s,
+		pubnub:    pn,
+		Serialize: false,
+	}
+
+	r, err := opts.encryptProcessing("")
+	assert.Equal("", r)
+	assert.Equal("", err.Error())
+}
