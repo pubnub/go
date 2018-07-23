@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"testing"
@@ -101,4 +102,59 @@ func TestSetStateMultipleChannelGroups(t *testing.T) {
 	expected := &url.Values{}
 	expected.Set("channel-group", "cg1,cg2,cg3")
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+}
+
+func TestSetStateValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &setStateOpts{
+		ChannelGroups: []string{"cg1", "cg2", "cg3"},
+		pubnub:        pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \n: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestSetStateValidateCG(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &setStateOpts{
+		pubnub: pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \n: Missing Channel or Channel Group", opts.validate().Error())
+}
+
+func TestSetStateValidateState(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &setStateOpts{
+		ChannelGroups: []string{"cg1", "cg2", "cg3"},
+		pubnub:        pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \n: Missing State", opts.validate().Error())
+}
+
+func TestNewSetStateResponseErrorUnmarshalling(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`s`)
+
+	_, _, err := newSetStateResponse(jsonBytes, StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
+
+func TestNewSetStateResponseValueError(t *testing.T) {
+	assert := assert.New(t)
+	state := make(map[string]interface{})
+	state["name"] = "Alex"
+	state["error"] = 5
+	b, err1 := json.Marshal(state)
+	if err1 != nil {
+		panic(err1)
+	}
+
+	_, _, err := newSetStateResponse([]byte(b), StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
