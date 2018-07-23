@@ -45,3 +45,23 @@ func TestWhereNowBasicRequest(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
 }
+
+func TestNewWhereNowResponserrorUnmarshalling(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`s`)
+
+	_, _, err := newWhereNowResponse(jsonBytes, StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
+
+func TestWhereNowValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &whereNowOpts{
+		UUID:   "my-custom-uuid",
+		pubnub: pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \a: Missing Subscribe Key", opts.validate().Error())
+}

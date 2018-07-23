@@ -81,7 +81,7 @@ func TestListPushProvisionsRequestBuildBody(t *testing.T) {
 
 }
 
-func TestListPushProvisionsNewAllChannelGroupResponseErrorUnmarshalling(t *testing.T) {
+func TestListPushProvisionsNewListPushProvisionsRequestResponseErrorUnmarshalling(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`s`)
 
