@@ -80,3 +80,23 @@ func TestListPushProvisionsRequestBuildBody(t *testing.T) {
 	assert.Nil(err)
 
 }
+
+func TestListPushProvisionsNewAllChannelGroupResponseErrorUnmarshalling(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`s`)
+
+	_, _, err := newListPushProvisionsRequestResponse(jsonBytes, StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
+
+func TestListPushProvisionsValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &allChannelGroupOpts{
+		ChannelGroup: "cg",
+		pubnub:       pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x0f: Missing Subscribe Key", opts.validate().Error())
+}
