@@ -225,3 +225,16 @@ func TestFireValidateCH(t *testing.T) {
 	}
 	assert.Equal("pubnub/validation: pubnub: \x06: Missing Channel", opts.validate().Error())
 }
+
+func TestNewFetchResponseValueError(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &fetchOpts{
+		Reverse: false,
+		pubnub:  pn,
+	}
+	jsonBytes := []byte(`s`)
+
+	_, _, err := newFetchResponse(jsonBytes, opts, StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
