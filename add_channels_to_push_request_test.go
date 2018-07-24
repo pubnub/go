@@ -96,3 +96,16 @@ func TestAddChannelsToPushOptsBuildBody(t *testing.T) {
 	assert.Nil(err)
 
 }
+
+func TestAddChannelsToPushValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &addChannelsToPushOpts{
+		DeviceIDForPush: "deviceId",
+		PushType:        PNPushTypeAPNS,
+		pubnub:          pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x0e: Missing Subscribe Key", opts.validate().Error())
+}
