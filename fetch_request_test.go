@@ -203,3 +203,25 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 	pn.Config.CipherKey = ""
 
 }
+
+func TestFireValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &fetchOpts{
+		Reverse: false,
+		pubnub:  pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x06: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestFireValidateCH(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &fetchOpts{
+		Reverse: false,
+		pubnub:  pn,
+	}
+	assert.Equal("pubnub/validation: pubnub: \x06: Missing Channel", opts.validate().Error())
+}
