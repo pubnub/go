@@ -81,11 +81,11 @@ func TestRemoveAllPushNotificationsBuildBody(t *testing.T) {
 
 }
 
-func TestListPushProvisionsRequestValidateSub(t *testing.T) {
+func TestRemoveAllPushChannelsForDeviceOptsValidateSub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &listPushProvisionsRequestOpts{
+	opts := &removeAllPushChannelsForDeviceOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
 		pubnub:          pn,
