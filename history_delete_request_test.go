@@ -43,3 +43,35 @@ func TestHistoryDeleteRequestAllParams(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
 }
+
+func TestHistoryDeleteOptsValidateSub(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &historyDeleteOpts{
+		Channel:  "ch",
+		SetStart: true,
+		SetEnd:   true,
+		Start:    int64(123),
+		End:      int64(456),
+		pubnub:   pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x17: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestHistoryDeleteOptsValidateSec(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SecretKey = ""
+	opts := &historyDeleteOpts{
+		Channel:  "ch",
+		SetStart: true,
+		SetEnd:   true,
+		Start:    int64(123),
+		End:      int64(456),
+		pubnub:   pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x17: Missing Secret Key", opts.validate().Error())
+}
