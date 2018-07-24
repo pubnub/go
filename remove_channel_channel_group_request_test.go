@@ -49,3 +49,16 @@ func TestRemoveChannelRequestBasic(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
 }
+
+func TestRemChannelsFromCGValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &removeChannelOpts{
+		DeviceIDForPush: "deviceId",
+		PushType:        PNPushTypeAPNS,
+		pubnub:          pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x0e: Missing Subscribe Key", opts.validate().Error())
+}
