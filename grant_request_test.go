@@ -53,3 +53,68 @@ func TestGrantRequestBasic(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
 }
+
+func TestGrantOptsValidateSub(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &grantOpts{
+		AuthKeys:      []string{"my-auth-key"},
+		Channels:      []string{"ch"},
+		ChannelGroups: []string{"cg"},
+		Read:          true,
+		Write:         true,
+		Manage:        true,
+		TTL:           5000,
+		setTTL:        true,
+		pubnub:        pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x15: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestGrantOptsValidateSec(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SecretKey = ""
+	opts := &grantOpts{
+		AuthKeys:      []string{"my-auth-key"},
+		Channels:      []string{"ch"},
+		ChannelGroups: []string{"cg"},
+		Read:          true,
+		Write:         true,
+		Manage:        true,
+		TTL:           5000,
+		setTTL:        true,
+		pubnub:        pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x15: Missing Secret Key", opts.validate().Error())
+}
+
+func TestGrantOptsValidatePub(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.PublishKey = ""
+	opts := &grantOpts{
+		AuthKeys:      []string{"my-auth-key"},
+		Channels:      []string{"ch"},
+		ChannelGroups: []string{"cg"},
+		Read:          true,
+		Write:         true,
+		Manage:        true,
+		TTL:           5000,
+		setTTL:        true,
+		pubnub:        pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x15: Missing Publish Key", opts.validate().Error())
+}
+
+func TestNewGrantResponseErrorUnmarshalling(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`s`)
+
+	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
