@@ -37,3 +37,15 @@ func TestDeleteChannelGroupRequestBasic(t *testing.T) {
 
 	assert.Equal([]byte{}, body)
 }
+
+func TestDeleteChannelGroupOptsValidateSub(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &deleteChannelGroupOpts{
+		ChannelGroup: "cg",
+		pubnub:       pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x0e: Missing Subscribe Key", opts.validate().Error())
+}
