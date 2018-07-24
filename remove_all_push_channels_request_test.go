@@ -80,3 +80,16 @@ func TestRemoveAllPushNotificationsBuildBody(t *testing.T) {
 	assert.Nil(err)
 
 }
+
+func TestListPushProvisionsRequestValidateSub(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &listPushProvisionsRequestOpts{
+		DeviceIDForPush: "deviceId",
+		PushType:        PNPushTypeAPNS,
+		pubnub:          pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x0e: Missing Subscribe Key", opts.validate().Error())
+}
