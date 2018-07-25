@@ -123,18 +123,28 @@ func TestNewGrantResponseManageEnabled(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"r":1,"m":1,"w":1,"channels":{"ch1":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"ch2":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"ch3":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}}},"channel-groups":{"cg1":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"cg2":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0,"ttl":1},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"cg3":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}}}},"service":"Access Manager","status":200}`)
 
-	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
+	e, _, err := newGrantResponse(jsonBytes, StatusResponse{})
 
 	assert.Nil(err)
+	assert.Equal(true, e.ManageEnabled)
+	assert.Equal(true, e.ReadEnabled)
+	assert.Equal(true, e.WriteEnabled)
+	assert.Equal(1440, e.TTL)
+
 }
 
 func TestNewGrantResponseManageEnabledInv(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":0,"r":0,"m":0,"w":0,"channels":{"ch1":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"ch2":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"ch3":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}}},"channel-groups":{"cg1":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1,"ttl":4},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"cg2":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1,"ttl":6},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"cg3":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}}}},"service":"Access Manager","status":200}`)
 
-	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
+	e, _, err := newGrantResponse(jsonBytes, StatusResponse{})
 
 	assert.Nil(err)
+	assert.Equal(false, e.ManageEnabled)
+	assert.Equal(false, e.ReadEnabled)
+	assert.Equal(false, e.WriteEnabled)
+	assert.Equal(0, e.TTL)
+
 }
 
 func TestNewGrantResponseManageEnabledCH(t *testing.T) {
@@ -144,6 +154,7 @@ func TestNewGrantResponseManageEnabledCH(t *testing.T) {
 	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
 
 	assert.Nil(err)
+
 }
 
 func TestNewGrantResponseManageEnabledCHM(t *testing.T) {
