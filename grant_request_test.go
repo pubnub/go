@@ -150,6 +150,10 @@ func TestNewGrantResponseManageEnabledInv(t *testing.T) {
 	assert.Equal(false, e.ChannelGroups["cg1"].AuthKeys["my-auth-key-1"].ManageEnabled)
 	assert.Equal(false, e.ChannelGroups["cg1"].AuthKeys["my-auth-key-1"].ReadEnabled)
 	assert.Equal(false, e.ChannelGroups["cg1"].AuthKeys["my-auth-key-1"].WriteEnabled)
+	assert.Equal(false, e.ChannelGroups["cg1"].ManageEnabled)
+	assert.Equal(false, e.ChannelGroups["cg1"].ReadEnabled)
+	assert.Equal(false, e.ChannelGroups["cg1"].WriteEnabled)
+
 	assert.Equal(0, e.ChannelGroups["cg1"].TTL)
 }
 
