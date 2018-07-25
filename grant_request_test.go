@@ -128,6 +128,15 @@ func TestNewGrantResponseManageEnabled(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestNewGrantResponseManageEnabledInv(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":0,"channels":{"ch1":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"ch2":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"ch3":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}}},"channel-groups":{"cg1":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"cg2":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1,"ttl":6},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"cg3":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}}}},"service":"Access Manager","status":200}`)
+
+	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
+
+	assert.Nil(err)
+}
+
 func TestGrantTTL(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
