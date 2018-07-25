@@ -154,7 +154,6 @@ func TestNewGrantResponseManageEnabledCH(t *testing.T) {
 	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
 
 	assert.Nil(err)
-
 }
 
 func TestNewGrantResponseManageEnabledCHM(t *testing.T) {
