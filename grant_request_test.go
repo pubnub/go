@@ -137,6 +137,15 @@ func TestNewGrantResponseManageEnabledInv(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestNewGrantResponseManageEnabledCH(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`{"message":"Success","payload":{"level":"user","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channel":"ch1","auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`)
+
+	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
+
+	assert.Nil(err)
+}
+
 func TestGrantTTL(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
