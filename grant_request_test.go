@@ -133,6 +133,13 @@ func TestNewGrantResponseManageEnabled(t *testing.T) {
 	assert.Equal(true, e.ChannelGroups["cg1"].AuthKeys["my-auth-key-1"].ManageEnabled)
 	assert.Equal(true, e.ChannelGroups["cg1"].AuthKeys["my-auth-key-1"].ReadEnabled)
 	assert.Equal(true, e.ChannelGroups["cg1"].AuthKeys["my-auth-key-1"].WriteEnabled)
+	assert.Equal(false, e.ChannelGroups["cg1"].ManageEnabled)
+	assert.Equal(false, e.ChannelGroups["cg1"].ReadEnabled)
+	assert.Equal(false, e.ChannelGroups["cg1"].WriteEnabled)
+	assert.Equal(1440, e.ChannelGroups["cg1"].TTL)
+	assert.Equal(true, e.Channels["ch1"].AuthKeys["my-auth-key-1"].ManageEnabled)
+	assert.Equal(true, e.Channels["ch1"].AuthKeys["my-auth-key-1"].ReadEnabled)
+	assert.Equal(true, e.Channels["ch1"].AuthKeys["my-auth-key-1"].WriteEnabled)
 
 }
 
@@ -150,11 +157,15 @@ func TestNewGrantResponseManageEnabledInv(t *testing.T) {
 	assert.Equal(false, e.ChannelGroups["cg1"].AuthKeys["my-auth-key-1"].ManageEnabled)
 	assert.Equal(false, e.ChannelGroups["cg1"].AuthKeys["my-auth-key-1"].ReadEnabled)
 	assert.Equal(false, e.ChannelGroups["cg1"].AuthKeys["my-auth-key-1"].WriteEnabled)
+	assert.Equal(0, e.ChannelGroups["cg1"].TTL)
 	assert.Equal(false, e.ChannelGroups["cg1"].ManageEnabled)
 	assert.Equal(false, e.ChannelGroups["cg1"].ReadEnabled)
 	assert.Equal(false, e.ChannelGroups["cg1"].WriteEnabled)
 
 	assert.Equal(0, e.ChannelGroups["cg1"].TTL)
+	assert.Equal(false, e.Channels["ch1"].AuthKeys["my-auth-key-1"].ManageEnabled)
+	assert.Equal(false, e.Channels["ch1"].AuthKeys["my-auth-key-1"].ReadEnabled)
+	assert.Equal(false, e.Channels["ch1"].AuthKeys["my-auth-key-1"].WriteEnabled)
 }
 
 func TestNewGrantResponseManageEnabledCH(t *testing.T) {
