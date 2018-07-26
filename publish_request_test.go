@@ -37,6 +37,58 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 	assert.Equal(true, o.opts.DoNotReplicate)
 }
 
+func AssertSuccessPublishGet2(t *testing.T, expectedString string, message interface{}) {
+	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newPublishBuilder(pn)
+	o.Channel("ch")
+	o.Message(message)
+	o.TTL(10)
+	o.ShouldStore(false)
+	o.DoNotReplicate(true)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
+		path, []int{})
+
+	query, err := o.opts.buildQuery()
+
+	assert.Nil(err)
+	expected := &url.Values{}
+	expected.Set("store", "0")
+	expected.Set("norep", "0")
+	expected.Set("norep", "10")
+
+	h.AssertQueriesEqual(t, expected, query,
+		[]string{"seqn", "pnsdk", "uuid"}, []string{})
+
+}
+
+func AssertSuccessPublishGetMeta(t *testing.T, expectedString string, message interface{}) {
+	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newPublishBuilder(pn)
+	o.Meta(nil)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
+		path, []int{})
+
+	_, err1 := o.opts.buildQuery()
+
+	assert.Nil(err1)
+}
+
 func AssertSuccessPublishPost(t *testing.T, expectedBody string, message interface{}) {
 	assert := assert.New(t)
 
