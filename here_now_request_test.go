@@ -12,9 +12,11 @@ func TestHereNowChannelsGroups(t *testing.T) {
 	assert := assert.New(t)
 
 	opts := &hereNowOpts{
-		Channels:      []string{"ch1", "ch2", "ch3"},
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pubnub,
+		Channels:        []string{"ch1", "ch2", "ch3"},
+		ChannelGroups:   []string{"cg1", "cg2", "cg3"},
+		pubnub:          pubnub,
+		IncludeUUIDs:    true,
+		SetIncludeUUIDs: true,
 	}
 
 	path, err := opts.buildPath()
@@ -31,12 +33,27 @@ func TestHereNowChannelsGroups(t *testing.T) {
 
 	expected := &url.Values{}
 	expected.Set("channel-group", "cg1,cg2,cg3")
+	expected.Set("disable-uuids", "0")
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
 
 	body, err := opts.buildBody()
 
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
+}
+
+func TestHereNowNoChannel(t *testing.T) {
+	assert := assert.New(t)
+
+	opts := &hereNowOpts{
+		ChannelGroups: []string{"cg1", "cg2", "cg3"},
+		pubnub:        pubnub,
+	}
+
+	path, err := opts.buildPath()
+	assert.Nil(err)
+	assert.Equal("/v2/presence/sub_key/sub_key/channel/,", path)
+	//h.AssertQueriesEqual(t, expected, path, []string{"pnsdk", "uuid"}, []string{})
 }
 
 func TestHereNowMultipleWithOpts(t *testing.T) {
@@ -156,6 +173,14 @@ func TestNewHereNowResponseErrorUnmarshalling(t *testing.T) {
 func TestNewHereNowResponseOneChannel(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte("{\"status\":200,\"message\":\"OK\",\"service\":\"Presence\",\"uuids\":[{\"uuid\":\"a3ffd012-a3b9-478c-8705-64089f24d71e\",\"state\":{\"age\":10}}],\"occupancy\":1}")
+
+	_, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
+	assert.Nil(err)
+}
+
+func TestNewHereNowResponseOccupancyZero(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte("{\"status\":200,\"message\":\"OK\",\"service\":\"Presence\",\"occupancy\":0,\"total_channels\":1,\"total_occupancy\":1}")
 
 	_, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
 	assert.Nil(err)
