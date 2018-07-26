@@ -32,9 +32,9 @@ func AssertSuccessFireGet(t *testing.T, expectedString string, message interface
 	assert.Empty(body)
 }
 
-func AssertSuccessFireGetContext(t *testing.T, expectedString string, message interface{}) {
+func TestAssertSuccessFireGetContext(t *testing.T) {
 	assert := assert.New(t)
-
+	message := "test"
 	pn := NewPubNub(NewDemoConfig())
 
 	o := newFireBuilderWithContext(pn, context.Background())
@@ -45,7 +45,7 @@ func AssertSuccessFireGetContext(t *testing.T, expectedString string, message in
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
+		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", "%22test%22"),
 		path, []int{})
 
 	body, err := o.opts.buildBody()
