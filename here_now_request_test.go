@@ -182,30 +182,40 @@ func TestNewHereNowResponseOccupancyZero(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte("{\"status\":200,\"message\":\"OK\",\"service\":\"Presence\",\"occupancy\":0,\"total_channels\":1,\"total_occupancy\":1}")
 
-	_, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
+	r, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
 	assert.Nil(err)
+	assert.Equal(1, r.TotalChannels)
+	assert.Equal(0, r.TotalOccupancy)
+
 }
 
 func TestNewHereNowResponseOccupancyZeroPayload(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte("{\"status\":200,\"message\":\"OK\",\"service\":\"Presence\",\"occupancy\":\"0\",\"total_channels\":1,\"total_occupancy\":1}")
 
-	_, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
+	r, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
 	assert.Nil(err)
+	assert.Equal(1, r.TotalChannels)
+	assert.Equal(0, r.TotalOccupancy)
 }
 
 func TestNewHereNowResponseOccupancyZeroPayloadWithCh(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte("{\"status\":200,\"message\":\"OK\",\"payload\":{\"total_occupancy\":3,\"total_channels\":1,\"channels\":{\"ch1\":{\"occupancy\":1,\"uuids\":[{\"uuid\":\"user1\",\"state\":{\"age\":10}}]}}},\"service\":\"Presence\"}")
 
-	_, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
+	r, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
 	assert.Nil(err)
+	assert.Equal(1, r.TotalChannels)
+	assert.Equal(3, r.TotalOccupancy)
 }
 
 func TestNewHereNowResponseOccupancyZeroPayloadWithoutCh(t *testing.T) {
 	assert := assert.New(t)
-	jsonBytes := []byte("{\"status\":200,\"message\":\"OK\",\"payload\":{\"total_occupancy\":3,\"total_channels\":2},\"service\":\"Presence\", \"total_channels\":1,\"total_occupancy\":1}")
+	jsonBytes := []byte("{\"status\":200,\"message\":\"OK\",\"payload\":{\"total_occupancy\":3,\"total_channels\":2},\"service\":\"Presence\"}")
 
-	_, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
+	r, _, err := newHereNowResponse(jsonBytes, []string{"a"}, StatusResponse{})
 	assert.Nil(err)
+	assert.Equal(1, r.TotalChannels)
+	assert.Equal(0, r.TotalOccupancy)
+
 }
