@@ -53,7 +53,6 @@ func TestHereNowNoChannel(t *testing.T) {
 	path, err := opts.buildPath()
 	assert.Nil(err)
 	assert.Equal("/v2/presence/sub_key/sub_key/channel/,", path)
-	//h.AssertQueriesEqual(t, expected, path, []string{"pnsdk", "uuid"}, []string{})
 }
 
 func TestHereNowMultipleWithOpts(t *testing.T) {

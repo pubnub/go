@@ -357,3 +357,29 @@ func TestHistoryEncryptMap(t *testing.T) {
 
 	pnconfig.CipherKey = ""
 }
+
+func TestHistoryResponseError(t *testing.T) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`s`)
+
+	_, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
+
+func TestHistoryResponseStartTTError(t *testing.T) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`[[{"message":[1,2,3,["one","two","three"]],"timetoken":1111}],"s","a"]`)
+
+	_, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	assert.Equal("pubnub/parsing: Error parsing response: {[[{\"message\":[1,2,3,[\"one\",\"two\",\"three\"]],\"timetoken\":1111}],\"s\",\"a\"]}", err.Error())
+}
+func TestHistoryResponseEndTTError(t *testing.T) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`[[{"message":[1,2,3,["one","two","three"]],"timetoken":1111}],121324,"a"]`)
+
+	_, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	assert.Equal("pubnub/parsing: Error parsing response: {[[{\"message\":[1,2,3,[\"one\",\"two\",\"three\"]],\"timetoken\":1111}],121324,\"a\"]}", err.Error())
+}
