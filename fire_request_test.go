@@ -7,6 +7,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func AssertSuccessFireGet(t *testing.T, expectedString string, message interface{}) {
@@ -15,6 +16,28 @@ func AssertSuccessFireGet(t *testing.T, expectedString string, message interface
 	pn := NewPubNub(NewDemoConfig())
 
 	o := newFireBuilder(pn)
+	o.Channel("ch")
+	o.Message(message)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
+		path, []int{})
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+
+	assert.Empty(body)
+}
+
+func AssertSuccessFireGetContext(t *testing.T, expectedString string, message interface{}) {
+	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newFireBuilderWithContext(pn, context.Background())
 	o.Channel("ch")
 	o.Message(message)
 
