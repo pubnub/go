@@ -6,6 +6,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestHereNowChannelsGroups(t *testing.T) {
@@ -51,6 +52,28 @@ func TestHereNowNoChannel(t *testing.T) {
 	}
 
 	path, err := opts.buildPath()
+	assert.Nil(err)
+	assert.Equal("/v2/presence/sub_key/sub_key/channel/,", path)
+}
+
+func TestNewHereNowBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newHereNowBuilder(pubnub)
+	o.ChannelGroups([]string{"cg1", "cg2", "cg3"})
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	assert.Equal("/v2/presence/sub_key/sub_key/channel/,", path)
+}
+
+func TestNewHereNowBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newHereNowBuilderWithContext(pubnub, context.Background())
+	o.ChannelGroups([]string{"cg1", "cg2", "cg3"})
+
+	path, err := o.opts.buildPath()
 	assert.Nil(err)
 	assert.Equal("/v2/presence/sub_key/sub_key/channel/,", path)
 }

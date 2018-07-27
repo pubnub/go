@@ -7,6 +7,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestListAllChannelGroupRequestBasic(t *testing.T) {
@@ -34,6 +35,58 @@ func TestListAllChannelGroupRequestBasic(t *testing.T) {
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
 
 	body, err := opts.buildBody()
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestNewAllChannelGroupBuilder(t *testing.T) {
+	assert := assert.New(t)
+	o := newAllChannelGroupBuilder(pubnub)
+	o.ChannelGroup("cg")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v1/channel-registration/sub-key/sub_key/channel-group/cg"),
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestNewAllChannelGroupBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+	o := newAllChannelGroupBuilderWithContext(pubnub, context.Background())
+	o.ChannelGroup("cg")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v1/channel-registration/sub-key/sub_key/channel-group/cg"),
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := o.opts.buildBody()
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
 }

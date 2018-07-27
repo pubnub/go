@@ -7,6 +7,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestHistoryDeleteRequestAllParams(t *testing.T) {
@@ -42,6 +43,46 @@ func TestHistoryDeleteRequestAllParams(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
+}
+
+func TestNewHistoryDeleteBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newHistoryDeleteBuilder(pubnub)
+	o.Channel("ch")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v3/history/sub-key/sub_key/channel/%s", o.opts.Channel),
+		u.EscapedPath(), []int{})
+
+	_, err1 := o.opts.buildQuery()
+	assert.Nil(err1)
+
+}
+
+func TestNewHistoryDeleteBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newHistoryDeleteBuilderWithContext(pubnub, context.Background())
+	o.Channel("ch")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v3/history/sub-key/sub_key/channel/%s", o.opts.Channel),
+		u.EscapedPath(), []int{})
+
+	_, err1 := o.opts.buildQuery()
+	assert.Nil(err1)
+
 }
 
 func TestHistoryDeleteOptsValidateSub(t *testing.T) {

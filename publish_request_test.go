@@ -7,6 +7,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func AssertSuccessPublishGet(t *testing.T, expectedString string, message interface{}) {
@@ -15,6 +16,34 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 	pn := NewPubNub(NewDemoConfig())
 
 	o := newPublishBuilder(pn)
+	o.Channel("ch")
+	o.Message(message)
+	o.TTL(10)
+	o.ShouldStore(true)
+	o.DoNotReplicate(true)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
+		path, []int{})
+
+	body, err := o.opts.buildBody()
+
+	assert.Nil(err)
+	assert.Empty(body)
+	assert.Equal(10, o.opts.TTL)
+	assert.Equal(true, o.opts.ShouldStore)
+	assert.Equal(true, o.opts.DoNotReplicate)
+}
+
+func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message interface{}) {
+	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newPublishBuilderWithContext(pn, context.Background())
 	o.Channel("ch")
 	o.Message(message)
 	o.TTL(10)
@@ -139,6 +168,32 @@ func TestPublishMixedGet(t *testing.T) {
 	AssertSuccessPublishGet(t,
 		"%7B%22one%22%3A%22hey1%22%2C%22three%22%3A%22hey3%22%2C%22two%22%3A%22hey2%22%7D",
 		msgMap)
+
+	AssertSuccessPublishGetContext(t, "12", 12)
+	AssertSuccessPublishGetContext(t, "%22hey%22", "hey")
+	AssertSuccessPublishGetContext(t, "true", true)
+	AssertSuccessPublishGetContext(t, "%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
+		[]string{"hey1", "hey2", "hey3"})
+	AssertSuccessPublishGetContext(t, "%5B1%2C2%2C3%5D", []int{1, 2, 3})
+	AssertSuccessPublishGetContext(t,
+		"%7B%22one%22%3A%22hey1%22%2C%22two%22%3A%22hey2%22%2C%22three%22%3A%22hey3%22%7D",
+		msgStruct)
+	AssertSuccessPublishGetContext(t,
+		"%7B%22one%22%3A%22hey1%22%2C%22three%22%3A%22hey3%22%2C%22two%22%3A%22hey2%22%7D",
+		msgMap)
+
+	// AssertSuccessPublishGet2(t, "12", 12)
+	// AssertSuccessPublishGet2(t, "%22hey%22", "hey")
+	// AssertSuccessPublishGet2(t, "true", true)
+	// AssertSuccessPublishGet2(t, "%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
+	// 	[]string{"hey1", "hey2", "hey3"})
+	// AssertSuccessPublishGet2(t, "%5B1%2C2%2C3%5D", []int{1, 2, 3})
+	// AssertSuccessPublishGet2(t,
+	// 	"%7B%22one%22%3A%22hey1%22%2C%22two%22%3A%22hey2%22%2C%22three%22%3A%22hey3%22%7D",
+	// 	msgStruct)
+	// AssertSuccessPublishGet2(t,
+	// 	"%7B%22one%22%3A%22hey1%22%2C%22three%22%3A%22hey3%22%2C%22two%22%3A%22hey2%22%7D",
+	// 	msgMap)
 }
 
 func TestPublishMixedPost(t *testing.T) {

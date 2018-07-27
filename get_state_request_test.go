@@ -6,6 +6,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestNewGetStateResponse(t *testing.T) {
@@ -93,6 +94,66 @@ func TestGetStateBasicRequest(t *testing.T) {
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
 
 	body, err := opts.buildBody()
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestNewGetStateBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub.Config.UUID = "my-custom-uuid"
+
+	o := newGetStateBuilder(pubnub)
+	o.Channels([]string{"ch"})
+	o.ChannelGroups([]string{"cg"})
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/channel/ch/uuid/my-custom-uuid",
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("channel-group", "cg")
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestNewGetStateBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub.Config.UUID = "my-custom-uuid"
+
+	o := newGetStateBuilderWithContext(pubnub, context.Background())
+	o.Channels([]string{"ch"})
+	o.ChannelGroups([]string{"cg"})
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/channel/ch/uuid/my-custom-uuid",
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("channel-group", "cg")
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := o.opts.buildBody()
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
 }

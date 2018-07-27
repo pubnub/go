@@ -7,6 +7,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func AssertSuccessFetchGet(t *testing.T, expectedString string, channels []string) {
@@ -44,6 +45,40 @@ func AssertSuccessFetchQuery(t *testing.T, expectedString string, channels []str
 	assert.Equal(t, "25", query.Get("max"))
 	assert.Equal(t, "false", query.Get("reverse"))
 
+}
+
+func AssertNewFetchBuilder(t *testing.T, expectedString string, channels []string) {
+	o := newFetchBuilder(pubnub)
+	o.Channels(channels)
+	o.Reverse(false)
+
+	query, _ := o.opts.buildQuery()
+
+	assert.Equal(t, "25", query.Get("max"))
+	assert.Equal(t, "false", query.Get("reverse"))
+
+}
+
+func TestNewFetchBuilder(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertNewFetchBuilder(t, "%22test%22?max=25&reverse=false", channels)
+}
+
+func AssertNewFetchBuilderContext(t *testing.T, expectedString string, channels []string) {
+	o := newFetchBuilderWithContext(pubnub, context.Background())
+	o.Channels(channels)
+	o.Reverse(false)
+
+	query, _ := o.opts.buildQuery()
+
+	assert.Equal(t, "25", query.Get("max"))
+	assert.Equal(t, "false", query.Get("reverse"))
+
+}
+
+func TestNewFetchBuilderContext(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertNewFetchBuilderContext(t, "%22test%22?max=25&reverse=false", channels)
 }
 
 func TestFetchPath(t *testing.T) {

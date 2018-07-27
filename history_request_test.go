@@ -8,6 +8,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 var (
@@ -55,6 +56,66 @@ func TestHistoryRequestBasic(t *testing.T) {
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
 
 	body, err := opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestNewHistoryBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newHistoryBuilder(pubnub)
+	o.Channel("ch")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/history/sub-key/sub_key/channel/%s", o.opts.Channel),
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("count", "100")
+	expected.Set("reverse", "false")
+	expected.Set("include_token", "false")
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := o.opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestNewHistoryBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newHistoryBuilderWithContext(pubnub, context.Background())
+	o.Channel("ch")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/history/sub-key/sub_key/channel/%s", o.opts.Channel),
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("count", "100")
+	expected.Set("reverse", "false")
+	expected.Set("include_token", "false")
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := o.opts.buildBody()
 
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)

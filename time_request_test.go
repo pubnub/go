@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestTimeRequestHTTP2(t *testing.T) {
@@ -31,4 +32,20 @@ func TestNewTimeResponseUnmarshalling(t *testing.T) {
 	a, err := opts.buildBody()
 	assert.Nil(err)
 	assert.Equal(a, []byte{})
+}
+
+func TestNewTimeBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newTimeBuilder(pubnub)
+	_, err := o.opts.buildBody()
+	assert.Nil(err)
+}
+
+func TestNewTimeBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newTimeBuilderWithContext(pubnub, context.Background())
+	_, err := o.opts.buildBody()
+	assert.Nil(err)
 }

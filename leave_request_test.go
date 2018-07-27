@@ -7,6 +7,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestLeaveRequestSingleChannel(t *testing.T) {
@@ -126,6 +127,36 @@ func TestLeaveRequestBuildPath(t *testing.T) {
 		pubnub: pubnub,
 	}
 	path, err := opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/channel/,/leave",
+		u.EscapedPath(), []int{})
+
+}
+
+func TestNewLeaveBuilder(t *testing.T) {
+	assert := assert.New(t)
+	o := newLeaveBuilder(pubnub)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/channel/,/leave",
+		u.EscapedPath(), []int{})
+
+}
+
+func TestNewLeaveBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+	o := newLeaveBuilderWithContext(pubnub, context.Background())
+
+	path, err := o.opts.buildPath()
 	assert.Nil(err)
 	u := &url.URL{
 		Path: path,

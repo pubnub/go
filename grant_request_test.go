@@ -7,6 +7,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestGrantRequestBasic(t *testing.T) {
@@ -49,6 +50,88 @@ func TestGrantRequestBasic(t *testing.T) {
 		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
 
 	body, err := opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestNewGrantBuilder(t *testing.T) {
+	assert := assert.New(t)
+	o := newGrantBuilder(pubnub)
+	o.AuthKeys([]string{"my-auth-key"})
+	o.Channels([]string{"ch"})
+	o.ChannelGroups([]string{"cg"})
+	o.Read(true)
+	o.Write(true)
+	o.Manage(true)
+	o.TTL(5000)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v1/auth/grant/sub-key/%s", o.opts.pubnub.Config.SubscribeKey),
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("auth", "my-auth-key")
+	expected.Set("channel", "ch")
+	expected.Set("channel-group", "cg")
+	expected.Set("r", "1")
+	expected.Set("w", "1")
+	expected.Set("m", "1")
+	expected.Set("ttl", "5000")
+	h.AssertQueriesEqual(t, expected, query,
+		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
+
+	body, err := o.opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestNewGrantBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+	o := newGrantBuilderWithContext(pubnub, context.Background())
+	o.AuthKeys([]string{"my-auth-key"})
+	o.Channels([]string{"ch"})
+	o.ChannelGroups([]string{"cg"})
+	o.Read(true)
+	o.Write(true)
+	o.Manage(true)
+	o.TTL(5000)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v1/auth/grant/sub-key/%s", o.opts.pubnub.Config.SubscribeKey),
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("auth", "my-auth-key")
+	expected.Set("channel", "ch")
+	expected.Set("channel-group", "cg")
+	expected.Set("r", "1")
+	expected.Set("w", "1")
+	expected.Set("m", "1")
+	expected.Set("ttl", "5000")
+	h.AssertQueriesEqual(t, expected, query,
+		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
+
+	body, err := o.opts.buildBody()
 
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)

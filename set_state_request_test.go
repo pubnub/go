@@ -8,7 +8,46 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
+
+func TestNewSetStateBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newSetStateBuilder(pubnub)
+	o.Channels([]string{"ch1", "ch2", "ch3"})
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	u := &url.URL{
+		Path: path,
+	}
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/presence/sub-key/sub_key/channel/ch1,ch2,ch3/uuid/%s/data",
+			o.opts.pubnub.Config.UUID),
+		u.EscapedPath(), []int{})
+}
+
+func TestNewSetStateBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newSetStateBuilderWithContext(pubnub, context.Background())
+	o.Channels([]string{"ch1", "ch2", "ch3"})
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	u := &url.URL{
+		Path: path,
+	}
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/presence/sub-key/sub_key/channel/ch1,ch2,ch3/uuid/%s/data",
+			o.opts.pubnub.Config.UUID),
+		u.EscapedPath(), []int{})
+}
 
 func TestNewSetStateResponse(t *testing.T) {
 	assert := assert.New(t)

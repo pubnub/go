@@ -6,6 +6,7 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func init() {
@@ -44,6 +45,38 @@ func TestWhereNowBasicRequest(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
+}
+
+func TestNewWhereNowBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newWhereNowBuilder(pubnub)
+	o.UUID("my-custom-uuid")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/uuid/my-custom-uuid",
+		u.EscapedPath(), []int{})
+}
+
+func TestNewWhereNowBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newWhereNowBuilderWithContext(pubnub, context.Background())
+	o.UUID("my-custom-uuid")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/uuid/my-custom-uuid",
+		u.EscapedPath(), []int{})
 }
 
 func TestNewWhereNowResponserrorUnmarshalling(t *testing.T) {

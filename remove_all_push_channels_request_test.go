@@ -4,7 +4,32 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
+
+func TestNewRemoveAllPushChannelsForDeviceBuilder(t *testing.T) {
+	assert := assert.New(t)
+	o := newRemoveAllPushChannelsForDeviceBuilder(pubnub)
+	o.DeviceIDForPush("deviceId")
+	o.PushType(PNPushTypeAPNS)
+
+	str, err := o.opts.buildPath()
+	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId/remove", str)
+	assert.Nil(err)
+
+}
+
+func TestNewRemoveAllPushChannelsForDeviceBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+	o := newRemoveAllPushChannelsForDeviceBuilderWithContext(pubnub, context.Background())
+	o.DeviceIDForPush("deviceId")
+	o.PushType(PNPushTypeAPNS)
+
+	str, err := o.opts.buildPath()
+	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId/remove", str)
+	assert.Nil(err)
+
+}
 
 func TestRemoveAllPushNotificationsValidate(t *testing.T) {
 	assert := assert.New(t)

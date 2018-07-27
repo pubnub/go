@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestRemoveChannelsFromPushRequestValidate(t *testing.T) {
@@ -91,6 +92,33 @@ func TestRemoveChannelsFromPushRequestBuildBody(t *testing.T) {
 	}
 
 	_, err := opts.buildBody()
+	assert.Nil(err)
+
+}
+
+func TestNewRemoveChannelsFromPushBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newRemoveChannelsFromPushBuilder(pubnub)
+	o.Channels([]string{"ch1", "ch2", "ch3"})
+	o.DeviceIDForPush("deviceId")
+	o.PushType(PNPushTypeAPNS)
+	u, err := o.opts.buildQuery()
+	assert.Equal("ch1,ch2,ch3", u.Get("remove"))
+	assert.Equal("apns", u.Get("type"))
+	assert.Nil(err)
+}
+
+func TestNewRemoveChannelsFromPushBuilderWithContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newRemoveChannelsFromPushBuilderWithContext(pubnub, context.Background())
+	o.Channels([]string{"ch1", "ch2", "ch3"})
+	o.DeviceIDForPush("deviceId")
+	o.PushType(PNPushTypeAPNS)
+	u, err := o.opts.buildQuery()
+	assert.Equal("ch1,ch2,ch3", u.Get("remove"))
+	assert.Equal("apns", u.Get("type"))
 	assert.Nil(err)
 
 }
