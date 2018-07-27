@@ -20,6 +20,17 @@ func TestListAllChannelGroupNotStubbed(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestListAllChannelGroupNotStubbedContext(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+	_, _, err := pn.ListChannelsInChannelGroupWithContext(backgroundContext).
+		ChannelGroup("cg1").
+		Execute()
+
+	assert.Nil(err)
+}
+
 func TestListAllChannelGroupMissingGroup(t *testing.T) {
 	assert := assert.New(t)
 

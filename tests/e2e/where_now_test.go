@@ -60,3 +60,17 @@ func TestWhereNowNoUUID(t *testing.T) {
 
 	assert.NotEqual(0, len(res.Channels))
 }
+
+func TestWhereNowNoUUIDContext(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(config)
+	pn.Subscribe().Channels([]string{"ch1"}).Execute()
+
+	res, _, err := pn.WhereNowWithContext(backgroundContext).
+		Execute()
+
+	assert.Nil(err)
+
+	assert.NotEqual(0, len(res.Channels))
+}

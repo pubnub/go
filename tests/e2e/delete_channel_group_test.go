@@ -20,6 +20,18 @@ func TestRemoveChannelGroupNotStubbed(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestRemoveChannelGroupNotStubbedContext(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+
+	_, _, err := pn.DeleteChannelGroupWithContext(backgroundContext).
+		ChannelGroup("cg1").
+		Execute()
+
+	assert.Nil(err)
+}
+
 func TestRemoveChannelGroupMissingGroup(t *testing.T) {
 	assert := assert.New(t)
 

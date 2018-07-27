@@ -82,6 +82,38 @@ func TestHistorySuccess(t *testing.T) {
 		res.Messages[1].Message)
 }
 
+func TestHistorySuccessContext(t *testing.T) {
+	assert := assert.New(t)
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v2/history/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch",
+		Query:              "count=100&include_token=false&reverse=false",
+		ResponseBody:       historyResponseSuccess,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(config)
+	pn.SetClient(interceptor.GetClient())
+
+	res, _, err := pn.HistoryWithContext(backgroundContext).
+		Channel("ch").
+		Transport(interceptor.Transport).
+		Execute()
+
+	assert.Nil(err)
+	assert.Equal(int64(1234), res.StartTimetoken)
+	assert.Equal(int64(4321), res.EndTimetoken)
+	assert.Equal(2, len(res.Messages))
+	assert.Equal(int64(1111), res.Messages[0].Timetoken)
+	assert.Equal(map[string]interface{}{"a": float64(11), "b": float64(22)},
+		res.Messages[0].Message)
+	assert.Equal(int64(2222), res.Messages[1].Timetoken)
+	assert.Equal(map[string]interface{}{"a": float64(33), "b": float64(44)},
+		res.Messages[1].Message)
+}
+
 func TestHistoryEncryptedPNOther(t *testing.T) {
 	assert := assert.New(t)
 

@@ -23,6 +23,20 @@ func TestGetStateNotStubbed(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestGetStateNotStubbedContext(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+
+	_, _, err := pn.GetStateWithContext(backgroundContext).
+		Channels([]string{"ch"}).
+		ChannelGroups([]string{"cg"}).
+		UUID("my-custom-uuid").
+		Execute()
+
+	assert.Nil(err)
+}
+
 func TestGetStateSuperCall(t *testing.T) {
 	assert := assert.New(t)
 

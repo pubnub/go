@@ -24,6 +24,22 @@ func TestGrantSucccessNotStubbed(t *testing.T) {
 	assert.NotNil(res)
 }
 
+func TestGrantSucccessNotStubbedContext(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	pn.Config.UUID = "asd,|//&aqwe"
+
+	res, _, err := pn.GrantWithContext(backgroundContext).
+		Read(true).Write(true).Manage(true).
+		AuthKeys([]string{"pam-key"}).Channels([]string{"ch1", "ch2"}).
+		Execute()
+
+	assert.Nil(err)
+	assert.NotNil(res)
+}
+
 func TestGrantMultipleMixed(t *testing.T) {
 	assert := assert.New(t)
 

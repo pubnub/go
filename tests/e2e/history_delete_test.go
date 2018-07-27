@@ -20,6 +20,19 @@ func TestHistoryDeleteNotStubbed(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestHistoryDeleteNotStubbedContext(t *testing.T) {
+	assert := assert.New(t)
+
+	ch := randomized("h-ch")
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	_, _, err := pn.DeleteMessagesWithContext(backgroundContext).
+		Channel(ch).
+		Execute()
+
+	assert.Nil(err)
+}
+
 func TestHistoryDeleteMissingChannelError(t *testing.T) {
 	assert := assert.New(t)
 

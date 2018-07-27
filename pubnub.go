@@ -308,8 +308,8 @@ func (pn *PubNub) DeleteMessages() *historyDeleteBuilder {
 	return newHistoryDeleteBuilder(pn)
 }
 
-func (pn *PubNub) DeleteMessagesWithContext() *historyDeleteBuilder {
-	return newHistoryDeleteBuilder(pn)
+func (pn *PubNub) DeleteMessagesWithContext(ctx Context) *historyDeleteBuilder {
+	return newHistoryDeleteBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) Destroy() {

@@ -33,6 +33,18 @@ func TestRemoveChannelFromChannelGroupMissingChannel(t *testing.T) {
 	assert.Contains(err.Error(), "Missing Channel")
 }
 
+func TestRemoveChannelFromChannelGroupMissingChannelContext(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+
+	_, _, err := pn.RemoveChannelFromChannelGroupWithContext(backgroundContext).
+		ChannelGroup("cg2").
+		Execute()
+
+	assert.Contains(err.Error(), "Missing Channel")
+}
+
 func TestRemoveChannelFromChannelGroupMissingGroup(t *testing.T) {
 	assert := assert.New(t)
 
