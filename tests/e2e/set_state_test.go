@@ -50,7 +50,7 @@ func TestSetStateSucessNotStubbedContext(t *testing.T) {
 	state := make(map[string]interface{})
 	state["age"] = "20"
 
-	setStateRes, _, err := pn.SetState().State(state).Channels([]string{"ch"}).
+	setStateRes, _, err := pn.SetStateWithContext(backgroundContext).State(state).Channels([]string{"ch"}).
 		ChannelGroups([]string{"cg"}).Execute()
 
 	assert.Nil(err)

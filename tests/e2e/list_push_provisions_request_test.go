@@ -45,7 +45,7 @@ func TestListPushProvisionsNotStubbedContext(t *testing.T) {
 
 	assert.Nil(err)
 
-	resp, _, err := pn.ListPushProvisions().
+	resp, _, err := pn.ListPushProvisionsWithContext(backgroundContext).
 		DeviceIDForPush("cg2").
 		PushType(pubnub.PNPushTypeGCM).
 		Execute()
