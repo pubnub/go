@@ -8,7 +8,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 var (
@@ -94,7 +93,7 @@ func TestNewHistoryBuilder(t *testing.T) {
 func TestNewHistoryBuilderContext(t *testing.T) {
 	assert := assert.New(t)
 
-	o := newHistoryBuilderWithContext(pubnub, context.Background())
+	o := newHistoryBuilderWithContext(pubnub, backgroundContext)
 	o.Channel("ch")
 
 	path, err := o.opts.buildPath()

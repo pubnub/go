@@ -7,7 +7,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func AssertSuccessPublishGet(t *testing.T, expectedString string, message interface{}) {
@@ -43,7 +42,7 @@ func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message
 
 	pn := NewPubNub(NewDemoConfig())
 
-	o := newPublishBuilderWithContext(pn, context.Background())
+	o := newPublishBuilderWithContext(pn, backgroundContext)
 	o.Channel("ch")
 	o.Message(message)
 	o.TTL(10)

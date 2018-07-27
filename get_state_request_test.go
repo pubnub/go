@@ -6,7 +6,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestNewGetStateResponse(t *testing.T) {
@@ -133,7 +132,7 @@ func TestNewGetStateBuilderContext(t *testing.T) {
 
 	pubnub.Config.UUID = "my-custom-uuid"
 
-	o := newGetStateBuilderWithContext(pubnub, context.Background())
+	o := newGetStateBuilderWithContext(pubnub, backgroundContext)
 	o.Channels([]string{"ch"})
 	o.ChannelGroups([]string{"cg"})
 

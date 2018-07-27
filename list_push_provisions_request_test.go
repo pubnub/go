@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestListPushProvisionsRequestValidate(t *testing.T) {
@@ -69,7 +68,7 @@ func TestNewListPushProvisionsRequestBuilder(t *testing.T) {
 func TestNewListPushProvisionsRequestBuilderContext(t *testing.T) {
 	assert := assert.New(t)
 
-	o := newListPushProvisionsRequestBuilderWithContext(pubnub, context.Background())
+	o := newListPushProvisionsRequestBuilderWithContext(pubnub, backgroundContext)
 	o.DeviceIDForPush("deviceId")
 	o.PushType(PNPushTypeAPNS)
 	str, err := o.opts.buildPath()

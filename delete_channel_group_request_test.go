@@ -7,7 +7,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestDeleteChannelGroupRequestBasic(t *testing.T) {
@@ -67,7 +66,7 @@ func TestNewDeleteChannelGroupBuilder(t *testing.T) {
 
 func TestNewDeleteChannelGroupBuilderContext(t *testing.T) {
 	assert := assert.New(t)
-	o := newDeleteChannelGroupBuilderWithContext(pubnub, context.Background())
+	o := newDeleteChannelGroupBuilderWithContext(pubnub, backgroundContext)
 	o.ChannelGroup("cg")
 
 	path, err := o.opts.buildPath()

@@ -6,7 +6,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func init() {
@@ -66,7 +65,7 @@ func TestNewWhereNowBuilder(t *testing.T) {
 func TestNewWhereNowBuilderContext(t *testing.T) {
 	assert := assert.New(t)
 
-	o := newWhereNowBuilderWithContext(pubnub, context.Background())
+	o := newWhereNowBuilderWithContext(pubnub, backgroundContext)
 	o.UUID("my-custom-uuid")
 
 	path, err := o.opts.buildPath()

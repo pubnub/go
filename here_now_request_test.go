@@ -6,7 +6,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestHereNowChannelsGroups(t *testing.T) {
@@ -70,7 +69,7 @@ func TestNewHereNowBuilder(t *testing.T) {
 func TestNewHereNowBuilderContext(t *testing.T) {
 	assert := assert.New(t)
 
-	o := newHereNowBuilderWithContext(pubnub, context.Background())
+	o := newHereNowBuilderWithContext(pubnub, backgroundContext)
 	o.ChannelGroups([]string{"cg1", "cg2", "cg3"})
 
 	path, err := o.opts.buildPath()

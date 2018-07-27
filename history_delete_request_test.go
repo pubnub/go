@@ -7,7 +7,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestHistoryDeleteRequestAllParams(t *testing.T) {
@@ -68,7 +67,7 @@ func TestNewHistoryDeleteBuilder(t *testing.T) {
 func TestNewHistoryDeleteBuilderContext(t *testing.T) {
 	assert := assert.New(t)
 
-	o := newHistoryDeleteBuilderWithContext(pubnub, context.Background())
+	o := newHistoryDeleteBuilderWithContext(pubnub, backgroundContext)
 	o.Channel("ch")
 
 	path, err := o.opts.buildPath()

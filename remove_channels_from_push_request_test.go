@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestRemoveChannelsFromPushRequestValidate(t *testing.T) {
@@ -112,7 +111,7 @@ func TestNewRemoveChannelsFromPushBuilder(t *testing.T) {
 func TestNewRemoveChannelsFromPushBuilderWithContext(t *testing.T) {
 	assert := assert.New(t)
 
-	o := newRemoveChannelsFromPushBuilderWithContext(pubnub, context.Background())
+	o := newRemoveChannelsFromPushBuilderWithContext(pubnub, backgroundContext)
 	o.Channels([]string{"ch1", "ch2", "ch3"})
 	o.DeviceIDForPush("deviceId")
 	o.PushType(PNPushTypeAPNS)

@@ -7,7 +7,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func AssertSuccessFetchGet(t *testing.T, expectedString string, channels []string) {
@@ -65,7 +64,7 @@ func TestNewFetchBuilder(t *testing.T) {
 }
 
 func AssertNewFetchBuilderContext(t *testing.T, expectedString string, channels []string) {
-	o := newFetchBuilderWithContext(pubnub, context.Background())
+	o := newFetchBuilderWithContext(pubnub, backgroundContext)
 	o.Channels(channels)
 	o.Reverse(false)
 

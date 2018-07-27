@@ -8,7 +8,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestHeartbeatRequestBasic(t *testing.T) {
@@ -80,7 +79,7 @@ func TestNewHeartbeatBuilderContext(t *testing.T) {
 	state["one"] = []string{"qwerty"}
 	state["two"] = 2
 
-	o := newHeartbeatBuilderWithContext(pubnub, context.Background())
+	o := newHeartbeatBuilderWithContext(pubnub, backgroundContext)
 	o.State(state)
 	o.Channels([]string{"ch"})
 	o.ChannelGroups([]string{"cg"})

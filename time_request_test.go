@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestTimeRequestHTTP2(t *testing.T) {
@@ -45,7 +44,7 @@ func TestNewTimeBuilder(t *testing.T) {
 func TestNewTimeBuilderContext(t *testing.T) {
 	assert := assert.New(t)
 
-	o := newTimeBuilderWithContext(pubnub, context.Background())
+	o := newTimeBuilderWithContext(pubnub, backgroundContext)
 	_, err := o.opts.buildBody()
 	assert.Nil(err)
 }

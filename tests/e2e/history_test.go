@@ -5,6 +5,7 @@ import (
 	pubnub "github.com/pubnub/go"
 	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
+
 	"testing"
 )
 

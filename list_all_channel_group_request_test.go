@@ -7,7 +7,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestListAllChannelGroupRequestBasic(t *testing.T) {
@@ -67,7 +66,7 @@ func TestNewAllChannelGroupBuilder(t *testing.T) {
 
 func TestNewAllChannelGroupBuilderContext(t *testing.T) {
 	assert := assert.New(t)
-	o := newAllChannelGroupBuilderWithContext(pubnub, context.Background())
+	o := newAllChannelGroupBuilderWithContext(pubnub, backgroundContext)
 	o.ChannelGroup("cg")
 
 	path, err := o.opts.buildPath()

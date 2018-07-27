@@ -8,7 +8,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestNewSetStateBuilder(t *testing.T) {
@@ -33,7 +32,7 @@ func TestNewSetStateBuilder(t *testing.T) {
 func TestNewSetStateBuilderContext(t *testing.T) {
 	assert := assert.New(t)
 
-	o := newSetStateBuilderWithContext(pubnub, context.Background())
+	o := newSetStateBuilderWithContext(pubnub, backgroundContext)
 	o.Channels([]string{"ch1", "ch2", "ch3"})
 
 	path, err := o.opts.buildPath()

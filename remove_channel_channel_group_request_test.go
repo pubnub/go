@@ -7,7 +7,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func init() {
@@ -81,7 +80,7 @@ func TestNewRemoveChannelFromChannelGroupBuilder(t *testing.T) {
 
 func TestNewRemoveChannelFromChannelGroupBuilderContext(t *testing.T) {
 	assert := assert.New(t)
-	o := newRemoveChannelFromChannelGroupBuilderWithContext(pubnub, context.Background())
+	o := newRemoveChannelFromChannelGroupBuilderWithContext(pubnub, backgroundContext)
 	o.ChannelGroup("cg")
 	o.Channels([]string{"ch1", "ch2", "ch3"})
 

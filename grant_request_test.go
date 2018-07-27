@@ -7,7 +7,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestGrantRequestBasic(t *testing.T) {
@@ -98,7 +97,7 @@ func TestNewGrantBuilder(t *testing.T) {
 
 func TestNewGrantBuilderContext(t *testing.T) {
 	assert := assert.New(t)
-	o := newGrantBuilderWithContext(pubnub, context.Background())
+	o := newGrantBuilderWithContext(pubnub, backgroundContext)
 	o.AuthKeys([]string{"my-auth-key"})
 	o.Channels([]string{"ch"})
 	o.ChannelGroups([]string{"cg"})

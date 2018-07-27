@@ -7,7 +7,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func AssertSuccessFireGet(t *testing.T, expectedString string, message interface{}) {
@@ -37,7 +36,7 @@ func TestAssertSuccessFireGetContext(t *testing.T) {
 	message := "test"
 	pn := NewPubNub(NewDemoConfig())
 
-	o := newFireBuilderWithContext(pn, context.Background())
+	o := newFireBuilderWithContext(pn, backgroundContext)
 	o.Channel("ch")
 	o.Message(message)
 

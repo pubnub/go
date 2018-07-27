@@ -7,7 +7,6 @@ import (
 
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestLeaveRequestSingleChannel(t *testing.T) {
@@ -154,7 +153,7 @@ func TestNewLeaveBuilder(t *testing.T) {
 
 func TestNewLeaveBuilderContext(t *testing.T) {
 	assert := assert.New(t)
-	o := newLeaveBuilderWithContext(pubnub, context.Background())
+	o := newLeaveBuilderWithContext(pubnub, backgroundContext)
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
