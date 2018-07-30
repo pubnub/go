@@ -163,6 +163,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	}
 
 	//fmt.Println("calling Unsubscribe...")
+	time.Sleep(5 * time.Second)
 
 	pn.Unsubscribe().
 		Channels([]string{ch}).
@@ -1341,6 +1342,8 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+
+	time.Sleep(5 * time.Second)
 
 	pn.Unsubscribe().
 		ChannelGroups([]string{cg}).
