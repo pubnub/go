@@ -454,7 +454,7 @@ func TestNewPublishResponseTimestamp2(t *testing.T) {
 	jsonBytes := []byte(`[1, "Sent", "a"]`)
 
 	_, _, err := newPublishResponse(jsonBytes, StatusResponse{})
-	assert.Equal("strconv.Atoi: parsing \"a\": invalid syntax", err.Error())
+	assert.Contains(err.Error(), "parsing \"a\": invalid syntax")
 }
 
 func TestPublishValidateSubscribeKey(t *testing.T) {
