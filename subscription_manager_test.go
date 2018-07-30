@@ -331,3 +331,90 @@ func TestParseCipherInterfaceCipherWithoutCipherStruct2(t *testing.T) {
 	}
 
 }
+
+func ProcessSubscribePayloadFail(t *testing.T) {
+	assert := assert.New(t)
+	doneFail := make(chan bool)
+	pn := NewPubNub(NewDemoConfig())
+	listener := NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				assert.Equal(true, status.Error)
+				doneFail <- true
+				break
+			case _ = <-listener.Message:
+				assert.Fail("No error")
+
+				doneFail <- true
+				break
+			case _ = <-listener.Presence:
+				doneFail <- true
+				break
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel-pnpres",
+		Channel:           "channel-pnpres",
+		Payload:           "{}",
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+	<-doneFail
+}
+
+func TestProcessSubscribePayload(t *testing.T) {
+	assert := assert.New(t)
+	done := make(chan bool)
+	pn := NewPubNub(NewDemoConfig())
+	listener := NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				assert.Nil(status.Error)
+				done <- true
+				break
+			case _ = <-listener.Message:
+				assert.Fail("No error")
+				done <- true
+				break
+			case presence := <-listener.Presence:
+				assert.Equal("join", presence.Event)
+				assert.Equal("channel", presence.Channel)
+				assert.Equal(int64(15078947309567840), presence.Timestamp)
+				assert.Equal("bfce00ff4018fce180438bb04afc8da8", presence.UUID)
+				assert.Equal(1, presence.Occupancy)
+				done <- true
+				break
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	payload := &map[string]interface{}{
+		"action":    "join",
+		"timestamp": 15078947309567840,
+		"uuid":      "bfce00ff4018fce180438bb04afc8da8",
+		"occupancy": 1,
+	}
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel-pnpres",
+		Channel:           "channel-pnpres",
+		Payload:           *payload,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+	<-done
+}
