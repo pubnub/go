@@ -3,9 +3,9 @@ package e2e
 import (
 	//"encoding/json"
 	"fmt"
-	"log"
+	//"log"
 	"math/rand"
-	"os"
+	//"os"
 	//"reflect"
 	"sync"
 	"testing"
@@ -19,7 +19,7 @@ import (
 //import _ "net/http/pprof"
 //import "net/http"
 
-var timeout = 1000
+var timeout = 1
 
 func TestRequestMesssageOverflow(t *testing.T) {
 	assert := assert.New(t)
@@ -29,7 +29,7 @@ func TestRequestMesssageOverflow(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 	pn.Config.MessageQueueOverflowCount = 2
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	timestamp1 := GetTimetoken(pn)
 	for i := 0; i < 3; i++ {
@@ -100,20 +100,8 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	// 	log.Println(http.ListenAndServe("localhost:6063", nil))
 	// }()
 
-	interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               fmt.Sprintf("/v2/subscribe/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/%s/0", ch),
-		Query:              "heartbeat=300",
-		ResponseBody:       `{"t":{"t":"15079041051785708","r":12},"m":[]}`,
-		IgnoreQueryKeys:    []string{"pnsdk", "uuid", "tt"},
-		ResponseStatusCode: 200,
-	})
-
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-
-	//pn.SetSubscribeClient(interceptor.GetClient())
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	listener := pubnub.NewListener()
 
@@ -139,14 +127,14 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 				default:
 					//fmt.Println("default...", status)
 					errChan <- fmt.Sprintf("error ===> %v", status)
-					break
+					//break
 				}
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a status event"
-				break
+				//break
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
-				break
+				//break
 			}
 		}
 		//fmt.Println("exit listening...")
@@ -156,20 +144,24 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 
 	pn.Subscribe().Channels([]string{ch}).Execute()
 
+	tic1 := time.NewTicker(time.Duration(timeout) * time.Second * 3)
 	select {
 	case <-doneSubscribe:
 	case err := <-errChan:
 		assert.Fail(err)
+	case <-tic1.C:
+		tic1.Stop()
+		assert.Fail("timeout")
 	}
 
 	//fmt.Println("calling Unsubscribe...")
-	time.Sleep(5 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	pn.Unsubscribe().
 		Channels([]string{ch}).
 		Execute()
 
-	tic := time.NewTicker(time.Duration(timeout) * time.Second * 2)
+	tic := time.NewTicker(time.Duration(timeout) * time.Second * 3)
 	select {
 	case <-doneUnsubscribe:
 		//fmt.Println("doneUnsubscribe...")
@@ -591,7 +583,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 
 	pn.Config.CipherKey = cipher
 	pn.Config.DisablePNOtherProcessing = disablePNOtherProcessing
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	listener := pubnub.NewListener()
 
@@ -1287,7 +1279,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	cg := randomized("sub-sug-cg")
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	listener := pubnub.NewListener()
 
@@ -1309,14 +1301,14 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 					continue
 				default:
 					errChan <- fmt.Sprintf("%v", status)
-					break
+					//break
 				}
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a status event"
-				break
+				//break
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
-				break
+				//break
 			}
 		}
 	}()
@@ -1337,19 +1329,24 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 		ChannelGroups([]string{cg}).
 		Execute()
 
+	tic1 := time.NewTicker(time.Duration(timeout) * time.Second * 3)
 	select {
 	case <-doneSubscribe:
 	case err := <-errChan:
 		assert.Fail(err)
+	case <-tic1.C:
+		tic1.Stop()
+		assert.Fail("timeout")
+
 	}
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	pn.Unsubscribe().
 		ChannelGroups([]string{cg}).
 		Execute()
 
-	tic := time.NewTicker(time.Duration(timeout) * time.Second * 2)
+	tic := time.NewTicker(time.Duration(timeout) * time.Second * 3)
 	select {
 	case <-doneUnsubscribe:
 	case err := <-errChan:
@@ -1376,7 +1373,7 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	listener := pubnub.NewListener()
 	doneSubscribe := make(chan bool)
 	donePublish := make(chan bool)
