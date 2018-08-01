@@ -100,3 +100,64 @@ func TestSubscribeMixedParams(t *testing.T) {
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"pnsdk", "uuid"}, []string{})
 }
+
+func TestSubscribeValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &subscribeOpts{
+		Channels:         []string{"ch"},
+		ChannelGroups:    []string{"cg"},
+		Region:           "us-east-1",
+		Timetoken:        123,
+		FilterExpression: "abc",
+		pubnub:           pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x01: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestSubscribeValidatePublishKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.PublishKey = ""
+	opts := &subscribeOpts{
+		Channels:         []string{"ch"},
+		ChannelGroups:    []string{"cg"},
+		Region:           "us-east-1",
+		Timetoken:        123,
+		FilterExpression: "abc",
+		pubnub:           pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x01: Missing Publish Key", opts.validate().Error())
+}
+
+func TestSubscribeValidateCHAndCG(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &subscribeOpts{
+		Region:           "us-east-1",
+		Timetoken:        123,
+		FilterExpression: "abc",
+		pubnub:           pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x01: Missing Channel", opts.validate().Error())
+}
+
+func TestSubscribeValidateState(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &subscribeOpts{
+		Channels:         []string{"ch"},
+		ChannelGroups:    []string{"cg"},
+		Region:           "us-east-1",
+		Timetoken:        123,
+		FilterExpression: "abc",
+		pubnub:           pn,
+	}
+	opts.State = map[string]interface{}{"a": "a"}
+
+	assert.Nil(opts.validate())
+}

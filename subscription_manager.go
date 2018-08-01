@@ -3,14 +3,13 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
+	"github.com/pubnub/go/utils"
 	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/pubnub/go/utils"
 )
 
 // SubscriptionManager Events:
@@ -658,7 +657,10 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		action, _ = presencePayload["action"].(string)
 		uuid, _ = presencePayload["uuid"].(string)
 		occupancy, _ = presencePayload["occupancy"].(int)
-		timestamp, _ = presencePayload["timestamp"].(int64)
+		if presencePayload["timestamp"] != nil {
+			timestamp = int64(presencePayload["timestamp"].(int))
+		}
+
 		data = presencePayload["data"]
 		if presencePayload["here_now_refresh"] != nil {
 			hereNowRefresh = presencePayload["here_now_refresh"].(bool)

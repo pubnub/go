@@ -92,8 +92,9 @@ func newPublishBuilder(pubnub *PubNub) *publishBuilder {
 func newPublishBuilderWithContext(pubnub *PubNub, context Context) *publishBuilder {
 	builder := publishBuilder{
 		opts: &publishOpts{
-			pubnub: pubnub,
-			ctx:    context,
+			pubnub:    pubnub,
+			ctx:       context,
+			Serialize: true,
 		},
 	}
 

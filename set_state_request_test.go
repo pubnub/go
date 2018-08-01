@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"testing"
@@ -8,6 +9,44 @@ import (
 	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNewSetStateBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newSetStateBuilder(pubnub)
+	o.Channels([]string{"ch1", "ch2", "ch3"})
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	u := &url.URL{
+		Path: path,
+	}
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/presence/sub-key/sub_key/channel/ch1,ch2,ch3/uuid/%s/data",
+			o.opts.pubnub.Config.UUID),
+		u.EscapedPath(), []int{})
+}
+
+func TestNewSetStateBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newSetStateBuilderWithContext(pubnub, backgroundContext)
+	o.Channels([]string{"ch1", "ch2", "ch3"})
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	u := &url.URL{
+		Path: path,
+	}
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/presence/sub-key/sub_key/channel/ch1,ch2,ch3/uuid/%s/data",
+			o.opts.pubnub.Config.UUID),
+		u.EscapedPath(), []int{})
+}
 
 func TestNewSetStateResponse(t *testing.T) {
 	assert := assert.New(t)
@@ -101,4 +140,59 @@ func TestSetStateMultipleChannelGroups(t *testing.T) {
 	expected := &url.Values{}
 	expected.Set("channel-group", "cg1,cg2,cg3")
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+}
+
+func TestSetStateValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &setStateOpts{
+		ChannelGroups: []string{"cg1", "cg2", "cg3"},
+		pubnub:        pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \n: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestSetStateValidateCG(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &setStateOpts{
+		pubnub: pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \n: Missing Channel or Channel Group", opts.validate().Error())
+}
+
+func TestSetStateValidateState(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &setStateOpts{
+		ChannelGroups: []string{"cg1", "cg2", "cg3"},
+		pubnub:        pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \n: Missing State", opts.validate().Error())
+}
+
+func TestNewSetStateResponseErrorUnmarshalling(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`s`)
+
+	_, _, err := newSetStateResponse(jsonBytes, StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
+
+func TestNewSetStateResponseValueError(t *testing.T) {
+	assert := assert.New(t)
+	state := make(map[string]interface{})
+	state["name"] = "Alex"
+	state["error"] = 5
+	b, err1 := json.Marshal(state)
+	if err1 != nil {
+		panic(err1)
+	}
+
+	_, _, err := newSetStateResponse([]byte(b), StatusResponse{})
+	assert.Equal("", err.Error())
 }

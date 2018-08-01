@@ -60,7 +60,7 @@ func TestFetch(t *testing.T) {
 	assert.Nil(err)
 	MatchFetchMessages(ret, 0, ch1, ch2, assert)
 
-	ret1, _, err1 := pn.Fetch().
+	ret1, _, err1 := pn.FetchWithContext(backgroundContext).
 		Channels([]string{ch1, ch2}).
 		Count(25).
 		Reverse(reverse).

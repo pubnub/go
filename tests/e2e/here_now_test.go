@@ -170,6 +170,40 @@ func TestHereNowSingleChannelWithState(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestHereNowSingleChannelWithStateContext(t *testing.T) {
+	assert := assert.New(t)
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               "/v2/presence/sub_key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/game1",
+		Query:              "state=1",
+		ResponseBody:       "{\"status\":200,\"message\":\"OK\",\"service\":\"Presence\",\"uuids\":[{\"uuid\":\"a3ffd012-a3b9-478c-8705-64089f24d71e\",\"state\":{\"age\":10}}],\"occupancy\":1}",
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(config)
+	pn.SetClient(interceptor.GetClient())
+
+	res, _, err := pn.HereNowWithContext(backgroundContext).
+		Channels([]string{"game1"}).
+		IncludeState(true).
+		Execute()
+
+	assert.Equal(1, res.TotalChannels)
+	assert.Equal(1, res.TotalOccupancy)
+	assert.Equal(1, len(res.Channels))
+
+	assert.Equal("game1", res.Channels[0].ChannelName)
+	assert.Equal(1, res.Channels[0].Occupancy)
+	assert.Equal("a3ffd012-a3b9-478c-8705-64089f24d71e",
+		res.Channels[0].Occupants[0].UUID)
+	assert.Equal(map[string]interface{}{"age": float64(10)}, res.Channels[0].Occupants[0].State)
+
+	assert.Nil(err)
+}
+
 func TestHereNowSingleChannelWithoutState(t *testing.T) {
 	assert := assert.New(t)
 

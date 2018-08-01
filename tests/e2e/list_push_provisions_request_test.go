@@ -30,3 +30,25 @@ func TestListPushProvisionsNotStubbed(t *testing.T) {
 	assert.Equal("ch1", resp.Channels[0])
 	assert.Nil(err)
 }
+
+func TestListPushProvisionsNotStubbedContext(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	_, _, err := pn.AddPushNotificationsOnChannelsWithContext(backgroundContext).
+		Channels([]string{"ch2"}).
+		DeviceIDForPush("cg2").
+		PushType(pubnub.PNPushTypeGCM).
+		Execute()
+
+	assert.Nil(err)
+
+	resp, _, err := pn.ListPushProvisionsWithContext(backgroundContext).
+		DeviceIDForPush("cg2").
+		PushType(pubnub.PNPushTypeGCM).
+		Execute()
+	assert.Equal("ch2", resp.Channels[0])
+	assert.Nil(err)
+}

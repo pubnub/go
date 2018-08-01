@@ -106,3 +106,83 @@ func TestLeaveRequestChannelsAndGroups(t *testing.T) {
 
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
 }
+
+func TestLeaveRequestBuildQuery(t *testing.T) {
+	assert := assert.New(t)
+	opts := &leaveOpts{
+		Channels:      []string{"ch1", "ch2", "ch3"},
+		ChannelGroups: []string{"cg1", "cg2", "cg3"},
+		pubnub:        pubnub,
+	}
+	query, err := opts.buildQuery()
+	assert.NotNil(query)
+	assert.Nil(err)
+
+}
+
+func TestLeaveRequestBuildPath(t *testing.T) {
+	assert := assert.New(t)
+	opts := &leaveOpts{
+		pubnub: pubnub,
+	}
+	path, err := opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/channel/,/leave",
+		u.EscapedPath(), []int{})
+
+}
+
+func TestNewLeaveBuilder(t *testing.T) {
+	assert := assert.New(t)
+	o := newLeaveBuilder(pubnub)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/channel/,/leave",
+		u.EscapedPath(), []int{})
+
+}
+
+func TestNewLeaveBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+	o := newLeaveBuilderWithContext(pubnub, backgroundContext)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/channel/,/leave",
+		u.EscapedPath(), []int{})
+
+}
+
+func TestLeaveOptsValidateSub(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &leaveOpts{
+		pubnub: pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x02: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestLeaveOptsValidateCH(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &leaveOpts{
+		pubnub: pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x02: Missing Channel or Channel Group", opts.validate().Error())
+}

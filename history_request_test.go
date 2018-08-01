@@ -60,6 +60,66 @@ func TestHistoryRequestBasic(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
+func TestNewHistoryBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newHistoryBuilder(pubnub)
+	o.Channel("ch")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/history/sub-key/sub_key/channel/%s", o.opts.Channel),
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("count", "100")
+	expected.Set("reverse", "false")
+	expected.Set("include_token", "false")
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := o.opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestNewHistoryBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newHistoryBuilderWithContext(pubnub, backgroundContext)
+	o.Channel("ch")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/history/sub-key/sub_key/channel/%s", o.opts.Channel),
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("count", "100")
+	expected.Set("reverse", "false")
+	expected.Set("include_token", "false")
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := o.opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
 func TestHistoryRequestAllParams(t *testing.T) {
 	assert := assert.New(t)
 
@@ -356,4 +416,30 @@ func TestHistoryEncryptMap(t *testing.T) {
 	}
 
 	pnconfig.CipherKey = ""
+}
+
+func TestHistoryResponseError(t *testing.T) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`s`)
+
+	_, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
+
+func TestHistoryResponseStartTTError(t *testing.T) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`[[{"message":[1,2,3,["one","two","three"]],"timetoken":1111}],"s","a"]`)
+
+	_, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	assert.Equal("pubnub/parsing: Error parsing response: {[[{\"message\":[1,2,3,[\"one\",\"two\",\"three\"]],\"timetoken\":1111}],\"s\",\"a\"]}", err.Error())
+}
+func TestHistoryResponseEndTTError(t *testing.T) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`[[{"message":[1,2,3,["one","two","three"]],"timetoken":1111}],121324,"a"]`)
+
+	_, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	assert.Equal("pubnub/parsing: Error parsing response: {[[{\"message\":[1,2,3,[\"one\",\"two\",\"three\"]],\"timetoken\":1111}],121324,\"a\"]}", err.Error())
 }

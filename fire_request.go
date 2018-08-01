@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"strconv"
 
 	"github.com/pubnub/go/pnerr"
@@ -34,32 +31,6 @@ type fireOpts struct {
 
 type fireBuilder struct {
 	opts *fireOpts
-}
-
-func newFireResponse(jsonBytes []byte, status StatusResponse) (
-	*PublishResponse, StatusResponse, error) {
-	var value []interface{}
-
-	err := json.Unmarshal(jsonBytes, &value)
-	if err != nil {
-		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
-
-		return emptyPublishResponse, status, e
-	}
-
-	timeString, ok := value[2].(string)
-	if !ok {
-		return emptyPublishResponse, status, pnerr.NewResponseParsingError(fmt.Sprintf("Error unmarshalling response, %s %v", value[2], value), nil, nil)
-	}
-	timestamp, err := strconv.Atoi(timeString)
-	if err != nil {
-		return emptyPublishResponse, status, err
-	}
-
-	return &PublishResponse{
-		Timestamp: timestamp,
-	}, status, nil
 }
 
 func newFireBuilder(pubnub *PubNub) *fireBuilder {

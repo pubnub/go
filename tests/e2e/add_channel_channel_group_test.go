@@ -25,6 +25,18 @@ func TestAddChannelToChannelGroupNotStubbed(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestAddChannelToChannelGroupNotStubbedContext(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+
+	_, _, err := pn.AddChannelToChannelGroupWithContext(backgroundContext).
+		Channels([]string{"ch"}).
+		ChannelGroup("cg").
+		Execute()
+	assert.Nil(err)
+}
+
 func TestAddChannelToChannelGroupMissingGroup(t *testing.T) {
 	assert := assert.New(t)
 

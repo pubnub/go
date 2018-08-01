@@ -96,3 +96,42 @@ func TestAddChannelsToPushOptsBuildBody(t *testing.T) {
 	assert.Nil(err)
 
 }
+
+func TestNewAddPushNotificationsOnChannelsBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newAddPushNotificationsOnChannelsBuilder(pubnub)
+	o.Channels([]string{"ch1", "ch2", "ch3"})
+	o.DeviceIDForPush("deviceID")
+	o.PushType(PNPushTypeAPNS)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceID", path)
+}
+
+func TestNewAddPushNotificationsOnChannelsBuilderWithContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newAddPushNotificationsOnChannelsBuilderWithContext(pubnub, backgroundContext)
+	o.Channels([]string{"ch1", "ch2", "ch3"})
+	o.DeviceIDForPush("deviceID")
+	o.PushType(PNPushTypeAPNS)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceID", path)
+}
+
+func TestAddChannelsToPushValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &addChannelsToPushOpts{
+		DeviceIDForPush: "deviceId",
+		PushType:        PNPushTypeAPNS,
+		pubnub:          pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x0e: Missing Subscribe Key", opts.validate().Error())
+}

@@ -53,6 +53,30 @@ func TestListPushProvisionsRequestBuildPath(t *testing.T) {
 
 }
 
+func TestNewListPushProvisionsRequestBuilder(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newListPushProvisionsRequestBuilder(pubnub)
+	o.DeviceIDForPush("deviceId")
+	o.PushType(PNPushTypeAPNS)
+	str, err := o.opts.buildPath()
+	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId", str)
+	assert.Nil(err)
+
+}
+
+func TestNewListPushProvisionsRequestBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+
+	o := newListPushProvisionsRequestBuilderWithContext(pubnub, backgroundContext)
+	o.DeviceIDForPush("deviceId")
+	o.PushType(PNPushTypeAPNS)
+	str, err := o.opts.buildPath()
+	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId", str)
+	assert.Nil(err)
+
+}
+
 func TestListPushProvisionsRequestBuildQuery(t *testing.T) {
 	assert := assert.New(t)
 
@@ -79,4 +103,25 @@ func TestListPushProvisionsRequestBuildBody(t *testing.T) {
 	_, err := opts.buildBody()
 	assert.Nil(err)
 
+}
+
+func TestListPushProvisionsNewListPushProvisionsRequestResponseErrorUnmarshalling(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`s`)
+
+	_, _, err := newListPushProvisionsRequestResponse(jsonBytes, StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
+
+func TestListPushProvisionsValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &listPushProvisionsRequestOpts{
+		DeviceIDForPush: "deviceId",
+		PushType:        PNPushTypeAPNS,
+		pubnub:          pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x0e: Missing Subscribe Key", opts.validate().Error())
 }

@@ -6,6 +6,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewRemoveAllPushChannelsForDeviceBuilder(t *testing.T) {
+	assert := assert.New(t)
+	o := newRemoveAllPushChannelsForDeviceBuilder(pubnub)
+	o.DeviceIDForPush("deviceId")
+	o.PushType(PNPushTypeAPNS)
+
+	str, err := o.opts.buildPath()
+	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId/remove", str)
+	assert.Nil(err)
+
+}
+
+func TestNewRemoveAllPushChannelsForDeviceBuilderContext(t *testing.T) {
+	assert := assert.New(t)
+	o := newRemoveAllPushChannelsForDeviceBuilderWithContext(pubnub, backgroundContext)
+	o.DeviceIDForPush("deviceId")
+	o.PushType(PNPushTypeAPNS)
+
+	str, err := o.opts.buildPath()
+	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId/remove", str)
+	assert.Nil(err)
+
+}
+
 func TestRemoveAllPushNotificationsValidate(t *testing.T) {
 	assert := assert.New(t)
 
@@ -79,4 +103,17 @@ func TestRemoveAllPushNotificationsBuildBody(t *testing.T) {
 	_, err := opts.buildBody()
 	assert.Nil(err)
 
+}
+
+func TestRemoveAllPushChannelsForDeviceOptsValidateSub(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &removeAllPushChannelsForDeviceOpts{
+		DeviceIDForPush: "deviceId",
+		PushType:        PNPushTypeAPNS,
+		pubnub:          pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x0e: Missing Subscribe Key", opts.validate().Error())
 }

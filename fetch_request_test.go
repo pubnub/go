@@ -46,6 +46,40 @@ func AssertSuccessFetchQuery(t *testing.T, expectedString string, channels []str
 
 }
 
+func AssertNewFetchBuilder(t *testing.T, expectedString string, channels []string) {
+	o := newFetchBuilder(pubnub)
+	o.Channels(channels)
+	o.Reverse(false)
+
+	query, _ := o.opts.buildQuery()
+
+	assert.Equal(t, "25", query.Get("max"))
+	assert.Equal(t, "false", query.Get("reverse"))
+
+}
+
+func TestNewFetchBuilder(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertNewFetchBuilder(t, "%22test%22?max=25&reverse=false", channels)
+}
+
+func AssertNewFetchBuilderContext(t *testing.T, expectedString string, channels []string) {
+	o := newFetchBuilderWithContext(pubnub, backgroundContext)
+	o.Channels(channels)
+	o.Reverse(false)
+
+	query, _ := o.opts.buildQuery()
+
+	assert.Equal(t, "25", query.Get("max"))
+	assert.Equal(t, "false", query.Get("reverse"))
+
+}
+
+func TestNewFetchBuilderContext(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertNewFetchBuilderContext(t, "%22test%22?max=25&reverse=false", channels)
+}
+
 func TestFetchPath(t *testing.T) {
 	channels := []string{"test1", "test2"}
 	AssertSuccessFetchGet(t, "test1,test2", channels)
@@ -202,4 +236,39 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 	assert.Equal("15229450607090584", respMyChannel[2].Timetoken)
 	pn.Config.CipherKey = ""
 
+}
+
+func TestFireValidateSubscribeKey(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.SubscribeKey = ""
+	opts := &fetchOpts{
+		Reverse: false,
+		pubnub:  pn,
+	}
+
+	assert.Equal("pubnub/validation: pubnub: \x06: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestFireValidateCH(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &fetchOpts{
+		Reverse: false,
+		pubnub:  pn,
+	}
+	assert.Equal("pubnub/validation: pubnub: \x06: Missing Channel", opts.validate().Error())
+}
+
+func TestNewFetchResponseValueError(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := &fetchOpts{
+		Reverse: false,
+		pubnub:  pn,
+	}
+	jsonBytes := []byte(`s`)
+
+	_, _, err := newFetchResponse(jsonBytes, opts, StatusResponse{})
+	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }

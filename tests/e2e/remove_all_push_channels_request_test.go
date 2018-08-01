@@ -21,3 +21,16 @@ func TestRemoveAllPushNotifications(t *testing.T) {
 		Execute()
 	assert.Nil(err)
 }
+
+func TestRemoveAllPushNotificationsContext(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	_, _, err := pn.RemoveAllPushNotificationsWithContext(backgroundContext).
+		DeviceIDForPush("cg").
+		PushType(pubnub.PNPushTypeGCM).
+		Execute()
+	assert.Nil(err)
+}

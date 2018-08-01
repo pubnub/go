@@ -11,7 +11,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.1.1"
+	Version = "4.1.2"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -308,8 +308,8 @@ func (pn *PubNub) DeleteMessages() *historyDeleteBuilder {
 	return newHistoryDeleteBuilder(pn)
 }
 
-func (pn *PubNub) DeleteMessagesWithContext() *historyDeleteBuilder {
-	return newHistoryDeleteBuilder(pn)
+func (pn *PubNub) DeleteMessagesWithContext(ctx Context) *historyDeleteBuilder {
+	return newHistoryDeleteBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) Destroy() {
