@@ -11,6 +11,7 @@ changelog:
       - 
         text: "coverage improvements"
         type: improvement
+    date: Aug 1, 18  
     version: v4.1.2
   - 
     changes: 
@@ -23,6 +24,7 @@ changelog:
       - 
         text: "integration tests optimizations"
         type: improvement
+    date: Jun 21, 18       
     version: v4.1.1
   - 
     changes: 
@@ -56,6 +58,7 @@ changelog:
       - 
         text: "Uuid is now UUID in StatusResponse and ResponseInfo"
         type: improvement
+    date: Jun 18, 18        
     version: v4.1.0
   - 
     changes: 
