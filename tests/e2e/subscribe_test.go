@@ -19,7 +19,7 @@ import (
 //import _ "net/http/pprof"
 //import "net/http"
 
-var timeout = 1
+var timeout = 5
 
 func TestRequestMesssageOverflow(t *testing.T) {
 	assert := assert.New(t)
