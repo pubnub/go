@@ -53,7 +53,7 @@ func TestGrantParseLogsForAuthKey(t *testing.T) {
 	// assert.Contains(s, expected)
 
 	//auth=myAuthKey&pnsdk=PubNub-Go/4.1.3
-	expected2 := fmt.Sprintf("&auth=%s",
+	expected2 := fmt.Sprintf("auth=%s",
 		pn.Config.AuthKey)
 
 	assert.Contains(s, expected2)
