@@ -658,7 +658,16 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		uuid, _ = presencePayload["uuid"].(string)
 		occupancy, _ = presencePayload["occupancy"].(int)
 		if presencePayload["timestamp"] != nil {
-			timestamp = int64(presencePayload["timestamp"].(int))
+			m.pubnub.Config.Log.Println("presencePayload['timestamp'] type", reflect.TypeOf(presencePayload["timestamp"]).Kind())
+			switch presencePayload["timestamp"].(type) {
+			case int:
+				timestamp = int64(presencePayload["timestamp"].(int))
+				break
+			case float64:
+				timestamp = int64(presencePayload["timestamp"].(float64))
+				break
+			}
+
 		}
 
 		data = presencePayload["data"]
