@@ -1270,7 +1270,7 @@ func JoinLeaveChannel(t *testing.T) {
 // Channel Group Subscription
 /////////////////////////////
 
-func TestSubscribeUnsubscribeGroup(t *testing.T) {
+func SubscribeUnsubscribeGroup(t *testing.T) {
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)
 	doneUnsubscribe := make(chan bool)
@@ -1366,7 +1366,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 		Execute()
 }
 
-func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
+func SubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	// go func() {
 	// 	log.Println(http.ListenAndServe("localhost:6061", nil))
 	// }()
