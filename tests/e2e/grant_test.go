@@ -1,12 +1,102 @@
 package e2e
 
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 	"testing"
+	"time"
 
 	pubnub "github.com/pubnub/go"
 	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestGrantParseLogsForAuthKey(t *testing.T) {
+
+	assert := assert.New(t)
+	rescueStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.SecretKey = "sec-key"
+	pn.Config.AuthKey = "myAuthKey"
+
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	pn.Grant().
+		Read(true).Write(true).Manage(true).
+		Channels([]string{"ch1", "ch2"}).
+		Execute()
+
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
+	select {
+	case <-tic.C:
+		tic.Stop()
+	}
+
+	w.Close()
+	out, _ := ioutil.ReadAll(r)
+	os.Stdout = rescueStdout
+
+	//fmt.Printf("Captured: %s", out)
+
+	s := fmt.Sprintf("%s", out)
+	// //https://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64?w=1&m=1&channel=ch1,ch2&timestamp=1535719943&auth=myAuthKey&pnsdk=PubNub-Go/4.1.3&uuid=pn-621c7b2a-f87c-4362-bd1e-6c6762dfc667&r=1&signature=PntTQe-zBfJa6AvN4bu4u0txG_TOoksHGod7OnijmwM=
+	// expected := fmt.Sprintf("https://%s/v1/auth/grant/sub-key/%s?&uuid=%sw=1&m=1&channel=ch1,ch2",
+	// 	pn.Config.Origin,
+	// 	pn.Config.SubscribeKey,
+	// )
+
+	// assert.Contains(s, expected)
+
+	//auth=myAuthKey&pnsdk=PubNub-Go/4.1.3
+	expected2 := fmt.Sprintf("auth=%s&pnsdk=PubNub-Go/%s",
+		pn.Config.AuthKey,
+		pubnub.Version)
+
+	assert.Contains(s, expected2)
+
+}
+
+func TestGrantParseLogsForMultipleAuthKeys(t *testing.T) {
+
+	assert := assert.New(t)
+	rescueStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.SecretKey = "sec-key"
+	pn.Config.AuthKey = "myAuthKey"
+
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	pn.Grant().
+		Read(true).Write(true).Manage(true).
+		AuthKeys([]string{"authkey1", "authkey2"}).
+		Channels([]string{"ch1", "ch2"}).
+		Execute()
+
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
+	select {
+	case <-tic.C:
+		tic.Stop()
+	}
+
+	w.Close()
+	out, _ := ioutil.ReadAll(r)
+	os.Stdout = rescueStdout
+
+	//fmt.Printf("Captured: %s", out)
+
+	s := fmt.Sprintf("%s", out)
+
+	//https://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64?m=1&auth=authkey1,authkey2&channel=ch1,ch2&timestamp=1535719219&pnsdk=PubNub-Go/4.1.3&uuid=pn-a83164fe-7ecf-42ab-ba14-d2d8e6eabd7a&r=1&w=1&signature=0SkyfvohAq8_0phVi0YhCL4c2ZRSPBVwCwQ9fANvPmM=
+	assert.Contains(s, "auth=authkey1,authkey2&channel=ch1,ch2&timestamp=")
+}
 
 func TestGrantSucccessNotStubbed(t *testing.T) {
 	assert := assert.New(t)
