@@ -5,7 +5,10 @@ changelog:
       - 
         text: "Multiple auth keys in grant fix"
         type: bug
-    date: Aug 30, 18  
+      - 
+        text: "Presence timetoken float64 fix"
+        type: bug
+    date: Sep 4, 18  
     version: v4.1.3
   - 
     changes: 
