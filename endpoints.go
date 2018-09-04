@@ -58,7 +58,7 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 		query.Set("filter-expr", o.config().FilterExpression)
 	}
 
-	if v := o.config().AuthKey; v != "" {
+	if v := o.config().AuthKey; v != "" && query.Get("auth") == "" {
 		query.Set("auth", v)
 	}
 

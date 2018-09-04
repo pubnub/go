@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"testing"
 
@@ -69,6 +70,7 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 	assert := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
+	pn.Config.AuthKey = "a"
 
 	o := newPublishBuilder(pn)
 	o.Channel("ch")
@@ -85,15 +87,49 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 		path, []int{})
 
 	query, err := o.opts.buildQuery()
+	log.Println(query)
 
 	assert.Nil(err)
 	expected := &url.Values{}
-	expected.Set("store", "0")
-	expected.Set("norep", "0")
-	expected.Set("norep", "10")
+	expected.Set("seqn", "1")
+	expected.Set("uuid", pn.Config.UUID)
+	expected.Set("ttl", "10")
+	expected.Set("pnsdk", Version)
+	expected.Set("norep", "true")
 
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"seqn", "pnsdk", "uuid"}, []string{})
+
+}
+
+func AssertSuccessPublishGetAuth(t *testing.T, expectedString string, message interface{}) {
+
+	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.AuthKey = "PubAuthKey"
+
+	o := newPublishBuilder(pn)
+	o.Channel("ch")
+	o.Message(message)
+	o.TTL(10)
+	o.ShouldStore(true)
+	o.DoNotReplicate(true)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
+		path, []int{})
+
+	body, err := o.opts.buildBody()
+
+	assert.Nil(err)
+	assert.Empty(body)
+	assert.Equal(10, o.opts.TTL)
+	assert.Equal(true, o.opts.ShouldStore)
+	assert.Equal(true, o.opts.DoNotReplicate)
 
 }
 
@@ -156,6 +192,7 @@ func TestPublishMixedGet(t *testing.T) {
 	msgMap["three"] = "hey3"
 
 	AssertSuccessPublishGet(t, "12", 12)
+	AssertSuccessPublishGetAuth(t, "12", 12)
 	AssertSuccessPublishGet(t, "%22hey%22", "hey")
 	AssertSuccessPublishGet(t, "true", true)
 	AssertSuccessPublishGet(t, "%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
@@ -181,18 +218,18 @@ func TestPublishMixedGet(t *testing.T) {
 		"%7B%22one%22%3A%22hey1%22%2C%22three%22%3A%22hey3%22%2C%22two%22%3A%22hey2%22%7D",
 		msgMap)
 
-	// AssertSuccessPublishGet2(t, "12", 12)
-	// AssertSuccessPublishGet2(t, "%22hey%22", "hey")
-	// AssertSuccessPublishGet2(t, "true", true)
-	// AssertSuccessPublishGet2(t, "%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
-	// 	[]string{"hey1", "hey2", "hey3"})
-	// AssertSuccessPublishGet2(t, "%5B1%2C2%2C3%5D", []int{1, 2, 3})
-	// AssertSuccessPublishGet2(t,
-	// 	"%7B%22one%22%3A%22hey1%22%2C%22two%22%3A%22hey2%22%2C%22three%22%3A%22hey3%22%7D",
-	// 	msgStruct)
-	// AssertSuccessPublishGet2(t,
-	// 	"%7B%22one%22%3A%22hey1%22%2C%22three%22%3A%22hey3%22%2C%22two%22%3A%22hey2%22%7D",
-	// 	msgMap)
+	AssertSuccessPublishGet2(t, "12", 12)
+	AssertSuccessPublishGet2(t, "%22hey%22", "hey")
+	AssertSuccessPublishGet2(t, "true", true)
+	AssertSuccessPublishGet2(t, "%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
+		[]string{"hey1", "hey2", "hey3"})
+	AssertSuccessPublishGet2(t, "%5B1%2C2%2C3%5D", []int{1, 2, 3})
+	AssertSuccessPublishGet2(t,
+		"%7B%22one%22%3A%22hey1%22%2C%22two%22%3A%22hey2%22%2C%22three%22%3A%22hey3%22%7D",
+		msgStruct)
+	AssertSuccessPublishGet2(t,
+		"%7B%22one%22%3A%22hey1%22%2C%22three%22%3A%22hey3%22%2C%22two%22%3A%22hey2%22%7D",
+		msgMap)
 }
 
 func TestPublishMixedPost(t *testing.T) {

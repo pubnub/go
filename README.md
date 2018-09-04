@@ -1,11 +1,11 @@
 
-# PubNub 4.1.2 client for Go
-* Go (1.7.1+)
+# PubNub 4.1.3 client for Go
+* Go (1.7.6+)
 
 # Please direct all Support Questions and Concerns to Support@PubNub.com
 
 [![GoDoc](https://godoc.org/github.com/pubnub/go?status.svg)](https://godoc.org/github.com/pubnub/go)
-[![Build Status](https://travis-ci.org/pubnub/go.svg)](https://travis-ci.org/pubnub/go)
+[![Build Status](https://api.travis-ci.org/pubnub/go.svg?branch=master)](https://travis-ci.org/pubnub/go)
 [![codecov.io](https://codecov.io/github/pubnub/go/coverage.svg)](https://codecov.io/github/pubnub/go)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pubnub/go)](https://goreportcard.com/report/github.com/pubnub/go)
 

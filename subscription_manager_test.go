@@ -420,6 +420,57 @@ func TestProcessSubscribePayload(t *testing.T) {
 	//pn.Destroy()
 }
 
+func TestProcessSubscribePayloadPresence(t *testing.T) {
+	assert := assert.New(t)
+	done := make(chan bool)
+	pn := NewPubNub(NewDemoConfig())
+	listener := NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				assert.Nil(status.Error)
+				done <- true
+				break
+			case _ = <-listener.Message:
+				assert.Fail("No error")
+				done <- true
+				break
+			case presence := <-listener.Presence:
+				assert.Equal("join", presence.Event)
+				assert.Equal("channel", presence.Channel)
+				assert.Equal(int64(1535709775), presence.Timestamp)
+				assert.Equal("pn-7b82321a-5359-4780-bfc0-611659105d74", presence.UUID)
+				assert.Equal(4, presence.Occupancy)
+				done <- true
+				break
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	//{"action":"join","uuid":"pn-7b82321a-5359-4780-bfc0-611659105d74","timestamp":1535709775,"occupancy":4}
+	payload := &map[string]interface{}{
+		"action":    "join",
+		"timestamp": float64(1535709775),
+		"uuid":      "pn-7b82321a-5359-4780-bfc0-611659105d74",
+		"occupancy": 4,
+	}
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel-pnpres",
+		Channel:           "channel-pnpres",
+		Payload:           *payload,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+	<-done
+	//pn.Destroy()
+}
+
 func TestProcessSubscribePayloadSubMatch(t *testing.T) {
 	assert := assert.New(t)
 	done1 := make(chan bool)
