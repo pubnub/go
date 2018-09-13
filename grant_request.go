@@ -61,6 +61,12 @@ func (b *grantBuilder) Manage(manage bool) *grantBuilder {
 	return b
 }
 
+func (b *grantBuilder) Delete(del bool) *grantBuilder {
+	b.opts.Delete = del
+
+	return b
+}
+
 // TTL in minutes for which granted permissions are valid.
 //
 // Min: 1
@@ -126,7 +132,7 @@ type grantOpts struct {
 	Read   bool
 	Write  bool
 	Manage bool
-
+	Delete bool
 	// Max: 525600
 	// Min: 1
 	// Default: 1440
@@ -188,6 +194,12 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 		q.Set("m", "1")
 	} else {
 		q.Set("m", "0")
+	}
+
+	if o.Delete {
+		q.Set("d", "1")
+	} else {
+		q.Set("d", "0")
 	}
 
 	if len(o.AuthKeys) > 0 {
