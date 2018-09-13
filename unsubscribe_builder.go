@@ -28,6 +28,12 @@ func (b *unsubscribeBuilder) ChannelGroups(groups []string) *unsubscribeBuilder 
 	return b
 }
 
+func (b *unsubscribeBuilder) QueryParam(queryParam map[string]string) *unsubscribeBuilder {
+	b.operation.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the Unsubscribe request and unsubscribes from the specified channels.
 func (b *unsubscribeBuilder) Execute() {
 	b.pubnub.subscriptionManager.adaptUnsubscribe(b.operation)

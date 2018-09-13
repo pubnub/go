@@ -45,6 +45,12 @@ func (b *deleteChannelGroupBuilder) ChannelGroup(
 	return b
 }
 
+func (b *deleteChannelGroupBuilder) QueryParam(queryParam map[string]string) *deleteChannelGroupBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the DeleteChannelGroup request.
 func (b *deleteChannelGroupBuilder) Execute() (
 	*DeleteChannelGroupResponse, StatusResponse, error) {
@@ -58,13 +64,11 @@ func (b *deleteChannelGroupBuilder) Execute() (
 }
 
 type deleteChannelGroupOpts struct {
-	pubnub *PubNub
-
+	pubnub       *PubNub
 	ChannelGroup string
-
-	Transport http.RoundTripper
-
-	ctx Context
+	Transport    http.RoundTripper
+	QueryParam   map[string]string
+	ctx          Context
 }
 
 func (o *deleteChannelGroupOpts) config() Config {

@@ -73,6 +73,12 @@ func (b *hereNowBuilder) IncludeUUIDs(uuid bool) *hereNowBuilder {
 	return b
 }
 
+func (b *hereNowBuilder) QueryParam(queryParam map[string]string) *hereNowBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the HereNow request.
 func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -86,14 +92,13 @@ func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
 type hereNowOpts struct {
 	pubnub *PubNub
 
-	Channels      []string
-	ChannelGroups []string
-
-	IncludeUUIDs bool
-	IncludeState bool
-
+	Channels        []string
+	ChannelGroups   []string
+	IncludeUUIDs    bool
+	IncludeState    bool
 	SetIncludeState bool
 	SetIncludeUUIDs bool
+	QueryParam      map[string]string
 
 	Transport http.RoundTripper
 
@@ -155,6 +160,8 @@ func (o *hereNowOpts) buildQuery() (*url.Values, error) {
 	} else if o.SetIncludeUUIDs && o.IncludeUUIDs {
 		q.Set("disable-uuids", "0")
 	}
+
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
 }

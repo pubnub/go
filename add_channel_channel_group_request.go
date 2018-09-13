@@ -66,6 +66,12 @@ func (b *addChannelToChannelGroupBuilder) Transport(
 	return b
 }
 
+func (b *addChannelToChannelGroupBuilder) QueryParam(queryParam map[string]string) *addChannelToChannelGroupBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs AddChannelToChannelGroup request
 func (b *addChannelToChannelGroupBuilder) Execute() (
 	*AddChannelToChannelGroupResponse, StatusResponse, error) {
@@ -78,15 +84,12 @@ func (b *addChannelToChannelGroupBuilder) Execute() (
 }
 
 type addChannelOpts struct {
-	pubnub *PubNub
-
-	Channels []string
-
+	pubnub       *PubNub
+	Channels     []string
 	ChannelGroup string
-
-	Transport http.RoundTripper
-
-	ctx Context
+	QueryParam   map[string]string
+	Transport    http.RoundTripper
+	ctx          Context
 }
 
 func (o *addChannelOpts) config() Config {
@@ -133,6 +136,7 @@ func (o *addChannelOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("add", strings.Join(channels, ","))
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
 }

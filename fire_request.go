@@ -24,6 +24,7 @@ type fireOpts struct {
 	DoNotReplicate bool
 	Transport      http.RoundTripper
 	ctx            Context
+	QueryParam     map[string]string
 	// nil hacks
 	setTTL         bool
 	setShouldStore bool
@@ -101,6 +102,12 @@ func (b *fireBuilder) Serialize(serialize bool) *fireBuilder {
 // Transport sets the Transport for the Fire request.
 func (b *fireBuilder) Transport(tr http.RoundTripper) *fireBuilder {
 	b.opts.Transport = tr
+
+	return b
+}
+
+func (b *fireBuilder) QueryParam(queryParam map[string]string) *fireBuilder {
+	b.opts.QueryParam = queryParam
 
 	return b
 }
@@ -202,6 +209,7 @@ func (o *fireOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("seqn", strconv.Itoa(o.pubnub.getPublishSequence()))
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
 }

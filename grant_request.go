@@ -96,6 +96,12 @@ func (b *grantBuilder) ChannelGroups(groups []string) *grantBuilder {
 	return b
 }
 
+func (b *grantBuilder) QueryParam(queryParam map[string]string) *grantBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the Grant request.
 func (b *grantBuilder) Execute() (*GrantResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -113,6 +119,7 @@ type grantOpts struct {
 	AuthKeys      []string
 	Channels      []string
 	ChannelGroups []string
+	QueryParam    map[string]string
 
 	// Stringified permissions
 	// Setting 'true' or 'false' will apply permissions to level
@@ -203,6 +210,7 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 
 	timestamp := time.Now().Unix()
 	q.Set("timestamp", strconv.Itoa(int(timestamp)))
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
 }

@@ -26,6 +26,14 @@ type endpointOpts interface {
 	telemetryManager() *TelemetryManager
 }
 
+func SetQueryParam(q *url.Values, queryParam map[string]string) {
+	if queryParam != nil {
+		for key, value := range queryParam {
+			q.Set(key, value)
+		}
+	}
+}
+
 func defaultQuery(uuid string, telemetryManager *TelemetryManager) *url.Values {
 	v := &url.Values{}
 

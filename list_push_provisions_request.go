@@ -56,6 +56,12 @@ func (b *listPushProvisionsRequestBuilder) DeviceIDForPush(
 	return b
 }
 
+func (b *listPushProvisionsRequestBuilder) QueryParam(queryParam map[string]string) *listPushProvisionsRequestBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the List Push Provisions request.
 func (b *listPushProvisionsRequestBuilder) Execute() (
 	*ListPushProvisionsRequestResponse, StatusResponse, error) {
@@ -98,8 +104,8 @@ type listPushProvisionsRequestOpts struct {
 	PushType PNPushType
 
 	DeviceIDForPush string
-
-	Transport http.RoundTripper
+	QueryParam      map[string]string
+	Transport       http.RoundTripper
 
 	ctx Context
 }
@@ -146,7 +152,7 @@ func (o *listPushProvisionsRequestOpts) buildPath() (string, error) {
 func (o *listPushProvisionsRequestOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 	q.Set("type", o.PushType.String())
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
 }
 

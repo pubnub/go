@@ -954,6 +954,10 @@ func publishRequest(args []string) {
 	}
 
 	channels := strings.Split(args[4], ",")
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
 
 	for _, ch := range channels {
 		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
@@ -962,7 +966,7 @@ func publishRequest(args []string) {
 			Message(res).
 			UsePost(usePost).
 			ShouldStore(store).
-			DoNotReplicate(repl).
+			DoNotReplicate(repl).QueryParam(queryParam).
 			Execute()
 
 		if err != nil {

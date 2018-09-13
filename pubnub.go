@@ -5,13 +5,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"runtime"
 	"sync"
 )
 
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.1.3"
+	Version = "4.1.4"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -347,7 +348,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	if pnconf.Log == nil {
 		pnconf.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-	pnconf.Log.Println(fmt.Sprintf("PubNub Go v4 SDK: %s\npnconf: %v", Version, pnconf))
+	pnconf.Log.Println(fmt.Sprintf("PubNub Go v4 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
 
 	pn := &PubNub{
 		Config:              pnconf,

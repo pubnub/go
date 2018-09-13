@@ -83,6 +83,12 @@ func (b *historyBuilder) IncludeTimetoken(i bool) *historyBuilder {
 	return b
 }
 
+func (b *historyBuilder) QueryParam(queryParam map[string]string) *historyBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Transport sets the Transport for the History request.
 func (b *historyBuilder) Transport(tr http.RoundTripper) *historyBuilder {
 	b.opts.Transport = tr
@@ -104,8 +110,9 @@ type historyOpts struct {
 
 	Channel string
 
-	Start int64
-	End   int64
+	Start      int64
+	End        int64
+	QueryParam map[string]string
 
 	// default: 100
 	Count int
@@ -174,6 +181,8 @@ func (o *historyOpts) buildQuery() (*url.Values, error) {
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_token", strconv.FormatBool(o.IncludeTimetoken))
+
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
 }

@@ -54,6 +54,12 @@ func (b *removeChannelFromChannelGroupBuilder) ChannelGroup(
 	return b
 }
 
+func (b *removeChannelFromChannelGroupBuilder) QueryParam(queryParam map[string]string) *removeChannelFromChannelGroupBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs RemoveChannelFromChannelGroup request
 func (b *removeChannelFromChannelGroupBuilder) Execute() (
 	*RemoveChannelFromChannelGroupResponse, StatusResponse, error) {
@@ -68,8 +74,8 @@ func (b *removeChannelFromChannelGroupBuilder) Execute() (
 type removeChannelOpts struct {
 	pubnub *PubNub
 
-	Channels []string
-
+	Channels     []string
+	QueryParam   map[string]string
 	ChannelGroup string
 
 	Transport http.RoundTripper
@@ -121,7 +127,7 @@ func (o *removeChannelOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("remove", strings.Join(channels, ","))
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
 }
 

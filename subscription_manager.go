@@ -86,6 +86,7 @@ type SubscribeOperation struct {
 type UnsubscribeOperation struct {
 	Channels      []string
 	ChannelGroups []string
+	QueryParam    map[string]string
 }
 
 type StateOperation struct {
@@ -220,7 +221,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 		announceAck := false
 		if !m.pubnub.Config.SuppressLeaveEvents {
 			_, err := m.pubnub.Leave().Channels(unsubscribeOperation.Channels).
-				ChannelGroups(unsubscribeOperation.ChannelGroups).Execute()
+				ChannelGroups(unsubscribeOperation.ChannelGroups).QueryParam(unsubscribeOperation.QueryParam).Execute()
 
 			if err != nil {
 				pnStatus := &PNStatus{

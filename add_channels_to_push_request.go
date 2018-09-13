@@ -61,6 +61,12 @@ func (b *addPushNotificationsOnChannelsBuilder) DeviceIDForPush(
 	return b
 }
 
+func (b *addPushNotificationsOnChannelsBuilder) QueryParam(queryParam map[string]string) *addPushNotificationsOnChannelsBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs add Push Notifications on channels request
 func (b *addPushNotificationsOnChannelsBuilder) Execute() (
 	*AddPushNotificationsOnChannelsResponse, StatusResponse, error) {
@@ -73,17 +79,13 @@ func (b *addPushNotificationsOnChannelsBuilder) Execute() (
 }
 
 type addChannelsToPushOpts struct {
-	pubnub *PubNub
-
-	Channels []string
-
-	PushType PNPushType
-
+	pubnub          *PubNub
+	Channels        []string
+	PushType        PNPushType
 	DeviceIDForPush string
-
-	Transport http.RoundTripper
-
-	ctx Context
+	QueryParam      map[string]string
+	Transport       http.RoundTripper
+	ctx             Context
 }
 
 func (o *addChannelsToPushOpts) config() Config {
@@ -138,6 +140,7 @@ func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
 
 	q.Set("add", strings.Join(channels, ","))
 	q.Set("type", o.PushType.String())
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
 }
