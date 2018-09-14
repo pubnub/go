@@ -44,6 +44,7 @@ func TestGrantRequestBasic(t *testing.T) {
 	expected.Set("r", "1")
 	expected.Set("w", "1")
 	expected.Set("m", "1")
+	expected.Set("d", "0")
 	expected.Set("ttl", "5000")
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
@@ -85,6 +86,7 @@ func TestNewGrantBuilder(t *testing.T) {
 	expected.Set("r", "1")
 	expected.Set("w", "1")
 	expected.Set("m", "1")
+	expected.Set("d", "0")
 	expected.Set("ttl", "5000")
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
@@ -126,6 +128,7 @@ func TestNewGrantBuilderContext(t *testing.T) {
 	expected.Set("r", "1")
 	expected.Set("w", "1")
 	expected.Set("m", "1")
+	expected.Set("d", "0")
 	expected.Set("ttl", "5000")
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
