@@ -110,7 +110,80 @@ func TestGrantSucccessNotStubbed(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
+	log.Println(res)
 	assert.NotNil(res)
+
+	assert.True(res.Channels["ch2"].AuthKeys["pam-key"].WriteEnabled)
+	assert.True(res.Channels["ch2"].AuthKeys["pam-key"].ReadEnabled)
+	assert.True(res.Channels["ch2"].AuthKeys["pam-key"].ManageEnabled)
+	assert.True(!res.Channels["ch2"].AuthKeys["pam-key"].DeleteEnabled)
+
+}
+
+func TestGrantSucccessAppLevelFalse(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	pn.Config.UUID = "asd,|//&aqwe"
+
+	res, _, err := pn.Grant().
+		Read(false).Write(false).Manage(false).Delete(false).
+		Execute()
+
+	assert.Nil(err)
+	log.Println(res)
+	assert.NotNil(res)
+
+	assert.True(!res.WriteEnabled)
+	assert.True(!res.ReadEnabled)
+	assert.True(!res.ManageEnabled)
+	assert.True(!res.DeleteEnabled)
+
+}
+
+func TestGrantSucccessAppLevelMixed(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	pn.Config.UUID = "asd,|//&aqwe"
+
+	res, _, err := pn.Grant().
+		Read(false).Write(true).Manage(false).Delete(true).
+		Execute()
+
+	assert.Nil(err)
+	log.Println(res)
+	assert.NotNil(res)
+
+	assert.True(res.WriteEnabled)
+	assert.True(!res.ReadEnabled)
+	assert.True(!res.ManageEnabled)
+	assert.True(res.DeleteEnabled)
+
+}
+
+func TestGrantSucccessAppLevelMixed2(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	pn.Config.UUID = "asd,|//&aqwe"
+
+	res, _, err := pn.Grant().
+		Read(true).Write(false).Manage(true).Delete(false).
+		Execute()
+
+	assert.Nil(err)
+	log.Println(res)
+	assert.NotNil(res)
+
+	assert.True(!res.WriteEnabled)
+	assert.True(res.ReadEnabled)
+	assert.True(res.ManageEnabled)
+	assert.True(!res.DeleteEnabled)
+
 }
 
 func TestGrantSucccessNotStubbedContext(t *testing.T) {
