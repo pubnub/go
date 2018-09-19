@@ -319,7 +319,8 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 		}
 
 		for key, value := range channelMap {
-			valueMap := value.(map[string]interface{})
+			auths[key] = createPNAccessManagerKeyData(value, entityData) //keyData
+			/*valueMap := value.(map[string]interface{})
 			keyData := &PNAccessManagerKeyData{}
 
 			if val, ok := valueMap["r"]; ok {
@@ -347,9 +348,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 				} else {
 					keyData.ManageEnabled = false
 				}
-			}
-
-			auths[key] = keyData
+			}*/
 		}
 
 		entityData.AuthKeys = auths
@@ -360,59 +359,60 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	if val, ok := parsedPayload["channel-groups"]; ok {
 		groupName, _ := val.(string)
 		constructedAuthKey := make(map[string]*PNAccessManagerKeyData)
-		entityData := PNPAMEntityData{
+		entityData := &PNPAMEntityData{
 			Name: groupName,
 		}
 
 		if _, ok := val.(string); ok {
 			for authKeyName, value := range auths {
-				auth, _ := value.(map[string]interface{})
+				// auth, _ := value.(map[string]interface{})
 
-				managerKeyData := &PNAccessManagerKeyData{}
+				// managerKeyData := &PNAccessManagerKeyData{}
 
-				if val, ok := auth["r"]; ok {
-					parsedValue, _ := val.(float64)
-					if parsedValue == float64(1) {
-						managerKeyData.ReadEnabled = true
-					} else {
-						managerKeyData.ReadEnabled = false
-					}
-				}
+				// if val, ok := auth["r"]; ok {
+				// 	parsedValue, _ := val.(float64)
+				// 	if parsedValue == float64(1) {
+				// 		managerKeyData.ReadEnabled = true
+				// 	} else {
+				// 		managerKeyData.ReadEnabled = false
+				// 	}
+				// }
 
-				if val, ok := auth["w"]; ok {
-					parsedValue, _ := val.(float64)
-					if parsedValue == float64(1) {
-						managerKeyData.WriteEnabled = true
-					} else {
-						managerKeyData.WriteEnabled = false
-					}
-				}
+				// if val, ok := auth["w"]; ok {
+				// 	parsedValue, _ := val.(float64)
+				// 	if parsedValue == float64(1) {
+				// 		managerKeyData.WriteEnabled = true
+				// 	} else {
+				// 		managerKeyData.WriteEnabled = false
+				// 	}
+				// }
 
-				if val, ok := auth["m"]; ok {
-					parsedValue, _ := val.(float64)
-					if parsedValue == float64(1) {
-						managerKeyData.ManageEnabled = true
-					} else {
-						managerKeyData.ManageEnabled = false
-					}
-				}
+				// if val, ok := auth["m"]; ok {
+				// 	parsedValue, _ := val.(float64)
+				// 	if parsedValue == float64(1) {
+				// 		managerKeyData.ManageEnabled = true
+				// 	} else {
+				// 		managerKeyData.ManageEnabled = false
+				// 	}
+				// }
 
-				if val, ok := auth["ttl"]; ok {
-					parsedVal, _ := val.(int)
-					entityData.TTL = parsedVal
-				}
+				// if val, ok := auth["ttl"]; ok {
+				// 	parsedVal, _ := val.(int)
+				// 	entityData.TTL = parsedVal
+				// }
+				constructedAuthKey[authKeyName] = createPNAccessManagerKeyData(value, entityData)
 
-				constructedAuthKey[authKeyName] = managerKeyData
+				//constructedAuthKey[authKeyName] = managerKeyData
 			}
 
 			entityData.AuthKeys = constructedAuthKey
-			constructedGroups[groupName] = &entityData
+			constructedGroups[groupName] = entityData
 		}
 
 		if groupMap, ok := val.(map[string]interface{}); ok {
 			groupName, _ := val.(string)
 			constructedAuthKey := make(map[string]*PNAccessManagerKeyData)
-			entityData := PNPAMEntityData{
+			entityData := &PNPAMEntityData{
 				Name: groupName,
 			}
 
@@ -421,39 +421,40 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 
 				if keys, ok := valueMap["auths"]; ok {
 					parsedKeys, _ := keys.(map[string]interface{})
-					keyData := &PNAccessManagerKeyData{}
+					//keyData := &PNAccessManagerKeyData{}
 
 					for keyName, value := range parsedKeys {
-						valueMap, _ := value.(map[string]interface{})
+						// valueMap, _ := value.(map[string]interface{})
 
-						if val, ok := valueMap["r"]; ok {
-							parsedValue, _ := val.(float64)
-							if parsedValue == float64(1) {
-								keyData.ReadEnabled = true
-							} else {
-								keyData.ReadEnabled = false
-							}
-						}
+						// if val, ok := valueMap["r"]; ok {
+						// 	parsedValue, _ := val.(float64)
+						// 	if parsedValue == float64(1) {
+						// 		keyData.ReadEnabled = true
+						// 	} else {
+						// 		keyData.ReadEnabled = false
+						// 	}
+						// }
 
-						if val, ok := valueMap["w"]; ok {
-							parsedValue, _ := val.(float64)
-							if parsedValue == float64(1) {
-								keyData.WriteEnabled = true
-							} else {
-								keyData.WriteEnabled = false
-							}
-						}
+						// if val, ok := valueMap["w"]; ok {
+						// 	parsedValue, _ := val.(float64)
+						// 	if parsedValue == float64(1) {
+						// 		keyData.WriteEnabled = true
+						// 	} else {
+						// 		keyData.WriteEnabled = false
+						// 	}
+						// }
 
-						if val, ok := valueMap["m"]; ok {
-							parsedValue, _ := val.(float64)
-							if parsedValue == float64(1) {
-								keyData.ManageEnabled = true
-							} else {
-								keyData.ManageEnabled = false
-							}
-						}
+						// if val, ok := valueMap["m"]; ok {
+						// 	parsedValue, _ := val.(float64)
+						// 	if parsedValue == float64(1) {
+						// 		keyData.ManageEnabled = true
+						// 	} else {
+						// 		keyData.ManageEnabled = false
+						// 	}
+						// }
 
-						constructedAuthKey[keyName] = keyData
+						//constructedAuthKey[keyName] = keyData
+						constructedAuthKey[keyName] = createPNAccessManagerKeyData(value, entityData) //keyData
 					}
 				}
 
@@ -490,7 +491,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 				}
 
 				entityData.AuthKeys = constructedAuthKey
-				constructedGroups[groupName] = &entityData
+				constructedGroups[groupName] = entityData
 			}
 		}
 	}
@@ -561,37 +562,7 @@ func fetchChannel(channelName string,
 		parsedValue := val.(map[string]interface{})
 
 		for key, value := range parsedValue {
-			valueMap := value.(map[string]interface{})
-			keyData := &PNAccessManagerKeyData{}
-
-			if val, ok := valueMap["r"]; ok {
-				parsedValue, _ := val.(float64)
-				if parsedValue == float64(1) {
-					keyData.ReadEnabled = true
-				} else {
-					keyData.ReadEnabled = false
-				}
-			}
-
-			if val, ok := valueMap["w"]; ok {
-				parsedValue, _ := val.(float64)
-				if parsedValue == float64(1) {
-					keyData.WriteEnabled = true
-				} else {
-					keyData.WriteEnabled = false
-				}
-			}
-
-			if val, ok := valueMap["m"]; ok {
-				parsedValue, _ := val.(float64)
-				if parsedValue == float64(1) {
-					keyData.ManageEnabled = true
-				} else {
-					keyData.ManageEnabled = false
-				}
-			}
-
-			auths[key] = keyData
+			auths[key] = createPNAccessManagerKeyData(value, entityData) //keyData
 		}
 	}
 
@@ -630,4 +601,42 @@ func fetchChannel(channelName string,
 	entityData.AuthKeys = auths
 
 	return entityData
+}
+
+func createPNAccessManagerKeyData(value interface{}, entityData *PNPAMEntityData) *PNAccessManagerKeyData {
+	valueMap := value.(map[string]interface{})
+	keyData := &PNAccessManagerKeyData{}
+
+	if val, ok := valueMap["r"]; ok {
+		parsedValue, _ := val.(float64)
+		if parsedValue == float64(1) {
+			keyData.ReadEnabled = true
+		} else {
+			keyData.ReadEnabled = false
+		}
+	}
+
+	if val, ok := valueMap["w"]; ok {
+		parsedValue, _ := val.(float64)
+		if parsedValue == float64(1) {
+			keyData.WriteEnabled = true
+		} else {
+			keyData.WriteEnabled = false
+		}
+	}
+
+	if val, ok := valueMap["m"]; ok {
+		parsedValue, _ := val.(float64)
+		if parsedValue == float64(1) {
+			keyData.ManageEnabled = true
+		} else {
+			keyData.ManageEnabled = false
+		}
+	}
+
+	if val, ok := valueMap["ttl"]; ok {
+		parsedVal, _ := val.(int)
+		entityData.TTL = parsedVal
+	}
+	return keyData
 }
