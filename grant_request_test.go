@@ -151,6 +151,11 @@ func TestNewGrantBuilderContext(t *testing.T) {
 	o.Write(true)
 	o.Manage(true)
 	o.TTL(5000)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -174,6 +179,8 @@ func TestNewGrantBuilderContext(t *testing.T) {
 	expected.Set("m", "1")
 	expected.Set("d", "0")
 	expected.Set("ttl", "5000")
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
 
