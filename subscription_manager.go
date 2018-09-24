@@ -71,6 +71,7 @@ type SubscriptionManager struct {
 	heartbeatStopCalled          bool
 	exitSubscriptionManagerMutex sync.Mutex
 	exitSubscriptionManager      chan bool
+	queryParam                   map[string]string
 }
 
 // SubscribeOperation
@@ -192,6 +193,7 @@ func (m *SubscriptionManager) adaptSubscribe(
 	m.Lock()
 
 	m.subscriptionStateAnnounced = false
+	m.queryParam = subscribeOperation.QueryParam
 
 	if subscribeOperation.Timetoken != 0 {
 		m.timetoken = subscribeOperation.Timetoken
@@ -307,6 +309,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			Heartbeat:        m.pubnub.Config.PresenceTimeout,
 			FilterExpression: m.pubnub.Config.FilterExpression,
 			ctx:              ctx,
+			QueryParam:       m.queryParam,
 		}
 
 		if s := m.stateManager.createStatePayload(); len(s) > 0 {

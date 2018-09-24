@@ -29,7 +29,6 @@ type endpointOpts interface {
 func SetQueryParam(q *url.Values, queryParam map[string]string) {
 	if queryParam != nil {
 		for key, value := range queryParam {
-			fmt.Println("SetQueryParam...", key, value)
 			q.Set(key, value)
 		}
 	}

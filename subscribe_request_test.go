@@ -101,6 +101,39 @@ func TestSubscribeMixedParams(t *testing.T) {
 		[]string{"pnsdk", "uuid"}, []string{})
 }
 
+func TestSubscribeMixedQueryParams(t *testing.T) {
+	assert := assert.New(t)
+
+	opts := &subscribeOpts{
+		Channels:         []string{"ch"},
+		ChannelGroups:    []string{"cg"},
+		Region:           "us-east-1",
+		Timetoken:        123,
+		FilterExpression: "abc",
+		pubnub:           pubnub,
+	}
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts.QueryParam = queryParam
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("channel-group", "cg")
+	expected.Set("tr", "us-east-1")
+	expected.Set("filter-expr", "abc")
+	expected.Set("tt", "123")
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query,
+		[]string{"pnsdk", "uuid"}, []string{})
+}
+
 func TestSubscribeValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
