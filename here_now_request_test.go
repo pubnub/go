@@ -113,6 +113,42 @@ func TestHereNowMultipleWithOpts(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
+func TestHereNowMultipleWithOptsQueryParam(t *testing.T) {
+	assert := assert.New(t)
+
+	opts := &hereNowOpts{
+		Channels:        []string{"ch1", "ch2", "ch3"},
+		ChannelGroups:   []string{"cg1", "cg2", "cg3"},
+		IncludeUUIDs:    false,
+		IncludeState:    true,
+		SetIncludeState: true,
+		SetIncludeUUIDs: true,
+		pubnub:          pubnub,
+	}
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts.QueryParam = queryParam
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("channel-group", "cg1,cg2,cg3")
+	expected.Set("state", "1")
+	expected.Set("disable-uuids", "1")
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := opts.buildBody()
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
 func TestHereNowGlobal(t *testing.T) {
 	assert := assert.New(t)
 

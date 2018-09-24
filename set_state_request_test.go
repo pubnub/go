@@ -142,6 +142,31 @@ func TestSetStateMultipleChannelGroups(t *testing.T) {
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
 }
 
+func TestSetStateMultipleChannelGroupsQueryParam(t *testing.T) {
+	assert := assert.New(t)
+
+	opts := &setStateOpts{
+		ChannelGroups: []string{"cg1", "cg2", "cg3"},
+		pubnub:        pubnub,
+	}
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts.QueryParam = queryParam
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("channel-group", "cg1,cg2,cg3")
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+}
+
 func TestSetStateValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())

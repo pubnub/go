@@ -1051,6 +1051,10 @@ func subscribeRequest(args []string) {
 	}
 
 	withPresence, _ := strconv.ParseBool(args[0])
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
 
 	channels := strings.Split(args[1], ",")
 	if (len(args)) > 3 {
@@ -1092,6 +1096,7 @@ func subscribeRequest(args []string) {
 		pn.Subscribe().
 			Channels(channels).
 			WithPresence(withPresence).
+			QueryParam(queryParam).
 			Execute()
 	}
 

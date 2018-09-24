@@ -1,8 +1,10 @@
 package pubnub
 
 import (
+	"net/url"
 	"testing"
 
+	h "github.com/pubnub/go/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,6 +30,44 @@ func TestNewTimeResponseUnmarshalling(t *testing.T) {
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 
 	opts := &timeOpts{}
+	a, err := opts.buildBody()
+	assert.Nil(err)
+	assert.Equal(a, []byte{})
+}
+
+func TestNewTimeResponseQueryParam(t *testing.T) {
+	assert := assert.New(t)
+
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+	config := NewConfig()
+	pn := NewPubNub(config)
+
+	opts := &timeOpts{}
+	opts.pubnub = pn
+	opts.QueryParam = queryParam
+
+	expected := &url.Values{}
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	path, err := opts.buildPath()
+	u := &url.URL{
+		Path: path,
+	}
+	assert.Nil(err)
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	h.AssertPathsEqual(t,
+		"/time/0",
+		u.EscapedPath(), []int{})
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
 	a, err := opts.buildBody()
 	assert.Nil(err)
 	assert.Equal(a, []byte{})

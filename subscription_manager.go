@@ -81,6 +81,7 @@ type SubscribeOperation struct {
 	Timetoken        int64
 	FilterExpression string
 	State            map[string]interface{}
+	QueryParam       map[string]string
 }
 
 type UnsubscribeOperation struct {

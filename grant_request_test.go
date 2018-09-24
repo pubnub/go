@@ -55,6 +55,53 @@ func TestGrantRequestBasic(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
+func TestGrantRequestBasicQueryParam(t *testing.T) {
+	assert := assert.New(t)
+
+	opts := &grantOpts{
+		AuthKeys:      []string{"my-auth-key"},
+		Channels:      []string{"ch"},
+		ChannelGroups: []string{"cg"},
+		Read:          true,
+		Write:         true,
+		Manage:        true,
+		TTL:           5000,
+		setTTL:        true,
+		pubnub:        pubnub,
+	}
+
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts.QueryParam = queryParam
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("auth", "my-auth-key")
+	expected.Set("channel", "ch")
+	expected.Set("channel-group", "cg")
+	expected.Set("r", "1")
+	expected.Set("w", "1")
+	expected.Set("m", "1")
+	expected.Set("d", "0")
+	expected.Set("ttl", "5000")
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query,
+		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
+
+	body, err := opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+
+}
+
 func TestNewGrantBuilder(t *testing.T) {
 	assert := assert.New(t)
 	o := newGrantBuilder(pubnub)

@@ -78,9 +78,15 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{channelCharacters}).
 		ChannelGroup(validCharacters).
+		QueryParam(queryParam).
 		Execute()
 	//fmt.Println(err.Error())
 	assert.Nil(err)
@@ -89,12 +95,13 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group",
-		Query:              "add=my-channel",
+		Query:              "add=my-channel&q1=v1&q2=v2",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"channel-registry\", \"error\": \"false\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
 		ResponseStatusCode: 200,
@@ -102,7 +109,7 @@ func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group",
-		Query:              "",
+		Query:              "q1=v1&q2=v2",
 		ResponseBody:       "{\"status\": \"200\", \"payload\": {\"channels\": [\"my-channel\"], \"group\": \"my-unique-group\"}, \"service\": \"channel-registry\", \"error\": \"false\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
 		ResponseStatusCode: 200,
@@ -111,18 +118,22 @@ func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	myChannel := "my-channel"
 	myGroup := "my-unique-group"
 
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
 	pn.SetClient(interceptor.GetClient())
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{myChannel}).
-		ChannelGroup(myGroup).
+		ChannelGroup(myGroup).QueryParam(queryParam).
 		Execute()
-	//fmt.Println(err.Error())
+
 	assert.Nil(err)
 
 	res, _, err := pn.ListChannelsInChannelGroup().
-		ChannelGroup(myGroup).
+		ChannelGroup(myGroup).QueryParam(queryParam).
 		Execute()
 
 	assert.Nil(err)

@@ -44,6 +44,42 @@ func TestHistoryDeleteRequestAllParams(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
+func TestHistoryDeleteRequestQueryParams(t *testing.T) {
+	assert := assert.New(t)
+
+	opts := &historyDeleteOpts{
+		Channel:  "ch",
+		SetStart: true,
+		SetEnd:   true,
+		Start:    int64(123),
+		End:      int64(456),
+		pubnub:   pubnub,
+	}
+
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts.QueryParam = queryParam
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("start", "123")
+	expected.Set("end", "456")
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
 func TestNewHistoryDeleteBuilder(t *testing.T) {
 	assert := assert.New(t)
 

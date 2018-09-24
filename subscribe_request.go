@@ -87,7 +87,7 @@ func (b *subscribeBuilder) State(state map[string]interface{}) *subscribeBuilder
 }
 
 func (b *subscribeBuilder) QueryParam(queryParam map[string]string) *subscribeBuilder {
-	b.opts.QueryParam = queryParam
+	b.operation.QueryParam = queryParam
 
 	return b
 }
