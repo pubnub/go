@@ -157,7 +157,8 @@ func (pn *PubNub) GetClient() *http.Client {
 				pn.Config.NonSubscribeRequestTimeout)
 		} else {
 			pn.client = NewHTTP1Client(pn.Config.ConnectTimeout,
-				pn.Config.NonSubscribeRequestTimeout)
+				pn.Config.NonSubscribeRequestTimeout,
+				pn.Config.MaxIdleConnsPerHost)
 		}
 	}
 
@@ -181,7 +182,7 @@ func (pn *PubNub) GetSubscribeClient() *http.Client {
 				pn.Config.SubscribeRequestTimeout)
 		} else {
 			pn.subscribeClient = NewHTTP1Client(pn.Config.ConnectTimeout,
-				pn.Config.SubscribeRequestTimeout)
+				pn.Config.SubscribeRequestTimeout, pn.Config.MaxIdleConnsPerHost)
 		}
 
 	}

@@ -8,12 +8,13 @@ import (
 )
 
 // NewHTTP1Client creates a new HTTP 1 client with a new transport initialized with connect and read timeout
-func NewHTTP1Client(connectTimeout int, responseReadTimeout int) *http.Client {
+func NewHTTP1Client(connectTimeout, responseReadTimeout, maxIdleConnsPerHost int) *http.Client {
 	transport := &http.Transport{
 		Dial: (&net.Dialer{
 			// Covers establishing a new TCP connection
 			Timeout: time.Duration(connectTimeout) * time.Second,
 		}).Dial,
+		MaxIdleConnsPerHost: maxIdleConnsPerHost,
 	}
 
 	client := &http.Client{

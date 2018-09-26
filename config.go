@@ -36,6 +36,7 @@ type Config struct {
 	DisablePNOtherProcessing   bool               // PNOther processing looks for pn_other in the JSON on the recevied message
 	UseHTTP2                   bool               // HTTP2 Flag
 	MessageQueueOverflowCount  int                // When the limit is exceeded by the number of messages received in a single subscribe request, a status event PNRequestMessageCountExceededCategory is fired.
+	MaxIdleConnsPerHost        int                // Used to set the value of HTTP Transport's MaxIdleConnsPerHost.
 }
 
 // NewDemoConfig initiates the config with demo keys, for tests only.
@@ -65,6 +66,7 @@ func NewConfig() *Config {
 		DisablePNOtherProcessing:   false,
 		PNReconnectionPolicy:       PNNonePolicy,
 		MessageQueueOverflowCount:  100,
+		MaxIdleConnsPerHost:        30,
 	}
 
 	return &c
