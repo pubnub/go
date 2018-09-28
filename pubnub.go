@@ -50,6 +50,8 @@ type PubNub struct {
 	telemetryManager     *TelemetryManager
 	client               *http.Client
 	subscribeClient      *http.Client
+	requestWorkers       *RequestWorkers
+	jobQueue             chan *JobQItem
 	ctx                  Context
 	cancel               func()
 }
@@ -361,8 +363,23 @@ func NewPubNub(pnconf *Config) *PubNub {
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
 	pn.telemetryManager = newTelemetryManager(
 		pnconf.MaximumLatencyDataAge, ctx)
+	pn.jobQueue = make(chan *JobQItem)
+	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers)
 
 	return pn
+}
+
+func (pn *PubNub) newNonSubQueueProcessor(maxWorkers int) *RequestWorkers {
+	workers := make(chan chan *JobQItem, maxWorkers)
+
+	pn.Config.Log.Printf("Init RequestWorkers: workers %d", maxWorkers)
+
+	p := &RequestWorkers{
+		Workers:    workers,
+		MaxWorkers: maxWorkers,
+	}
+	p.Start(pn)
+	return p
 }
 
 func NewPubNubDemo() *PubNub {

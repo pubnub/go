@@ -58,7 +58,6 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	config.SecretKey = "demo"
-
 	config.AuthKey = "akey"
 
 	config.CipherKey = "enigma"

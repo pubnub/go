@@ -145,6 +145,10 @@ func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *removeChannelsFromPushOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *removeChannelsFromPushOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

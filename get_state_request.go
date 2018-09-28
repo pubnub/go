@@ -155,6 +155,10 @@ func (o *getStateOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *getStateOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *getStateOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

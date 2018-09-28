@@ -12,15 +12,14 @@ import (
 )
 
 type endpointOpts interface {
+	jobQueue() chan *JobQItem
 	config() Config
 	client() *http.Client
 	context() Context
 	validate() error
-
 	buildPath() (string, error)
 	buildQuery() (*url.Values, error)
 	buildBody() ([]byte, error)
-
 	httpMethod() string
 	operationType() OperationType
 	telemetryManager() *TelemetryManager

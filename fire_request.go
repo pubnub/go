@@ -214,6 +214,10 @@ func (o *fireOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *fireOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *fireOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		var msg []byte

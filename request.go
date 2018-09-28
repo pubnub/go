@@ -37,6 +37,15 @@ type ResponseInfo struct {
 	OriginalResponse *http.Response
 }
 
+func AddToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan *JobQResponse) {
+	jqi := &JobQItem{
+		Req:         req,
+		Client:      client,
+		JobResponse: j,
+	}
+	opts.jobQueue() <- jqi
+}
+
 func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	err := opts.validate()
 
@@ -95,7 +104,26 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 
 	client := opts.client()
 	startTimestamp := time.Now()
-	res, err := client.Do(req)
+
+	var res *http.Response
+	runRequestWorker := false
+
+	switch opts.operationType() {
+	case PNPublishOperation, PNAccessManagerGrant:
+		runRequestWorker = true
+	}
+
+	if runRequestWorker && opts.config().MaxWorkers > 0 {
+		j := make(chan *JobQResponse)
+		go AddToJobQ(req, client, opts, j)
+		jr := <-j
+		close(j)
+		res = jr.Resp
+		err = jr.Error
+	} else {
+		res, err = client.Do(req)
+	}
+
 	// Host lookup failed
 	if err != nil {
 		opts.config().Log.Println("err.Error()", err.Error())

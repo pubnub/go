@@ -141,6 +141,10 @@ func (o *addChannelOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *addChannelOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *addChannelOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

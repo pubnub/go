@@ -110,6 +110,10 @@ func (o *deleteChannelGroupOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *deleteChannelGroupOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *deleteChannelGroupOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

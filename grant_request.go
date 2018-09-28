@@ -235,6 +235,10 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *grantOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *grantOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

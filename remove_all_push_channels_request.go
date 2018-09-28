@@ -125,6 +125,10 @@ func (o *removeAllPushChannelsForDeviceOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *removeAllPushChannelsForDeviceOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *removeAllPushChannelsForDeviceOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

@@ -37,6 +37,7 @@ type Config struct {
 	UseHTTP2                   bool               // HTTP2 Flag
 	MessageQueueOverflowCount  int                // When the limit is exceeded by the number of messages received in a single subscribe request, a status event PNRequestMessageCountExceededCategory is fired.
 	MaxIdleConnsPerHost        int                // Used to set the value of HTTP Transport's MaxIdleConnsPerHost.
+	MaxWorkers                 int                // Number of max workers for Publish and Grant requests
 }
 
 // NewDemoConfig initiates the config with demo keys, for tests only.
@@ -67,6 +68,7 @@ func NewConfig() *Config {
 		PNReconnectionPolicy:       PNNonePolicy,
 		MessageQueueOverflowCount:  100,
 		MaxIdleConnsPerHost:        30,
+		MaxWorkers:                 20,
 	}
 
 	return &c

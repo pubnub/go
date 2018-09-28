@@ -166,6 +166,10 @@ func (o *hereNowOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *hereNowOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *hereNowOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

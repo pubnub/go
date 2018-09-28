@@ -354,6 +354,10 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *publishOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *publishOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
