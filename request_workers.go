@@ -46,7 +46,7 @@ func (pw Worker) Process(pubnub *PubNub) {
 			pw.Workers <- pw.JobChannel
 			pubnub.Config.Log.Printf("Process: Worker started: %d", pw.id)
 			job := <-pw.JobChannel
-			pubnub.Config.Log.Printf("Process: Worker %d processing job %s", pw.id, job.Req)
+			pubnub.Config.Log.Printf("Process: Worker %d processing job %v", pw.id, job.Req)
 			res, err := job.Client.Do(job.Req)
 			pubnub.Config.Log.Println(res, err)
 			jqr := &JobQResponse{
@@ -71,7 +71,7 @@ func (p *RequestWorkers) Start(pubnub *PubNub) {
 
 func (p *RequestWorkers) ReadQueue(pubnub *PubNub) {
 	for job := range pubnub.jobQueue {
-		pubnub.Config.Log.Printf("ReadQueue: Got job for channel %s ", job.Req)
+		pubnub.Config.Log.Printf("ReadQueue: Got job for channel %v ", job.Req)
 		go func(job *JobQItem) {
 			jobChannel := <-p.Workers
 			jobChannel <- job
