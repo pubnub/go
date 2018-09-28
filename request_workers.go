@@ -2,14 +2,6 @@ package pubnub
 
 import "net/http"
 
-/*
-Create q
-Initialize RequestWorkers
-Start request workers
-Add job to q
-Process request workers q
-*/
-
 type nonSubMsgType int
 
 const (
@@ -40,20 +32,6 @@ type Worker struct {
 	id         int
 }
 
-// type NonSubJob struct {
-// 	Channel         string
-// 	NonSubURL       string
-// 	NonSubMsgType   nonSubMsgType
-// 	CallbackChannel chan []byte
-// 	ErrorChannel    chan []byte
-// }
-
-// type NonSubWorker struct {
-// 	Workers    chan chan NonSubJob
-// 	JobChannel chan NonSubJob
-// 	id         int
-// }
-
 func NewRequestWorkers(workers chan chan *JobQItem, id int) Worker {
 	return Worker{
 		Workers:    workers,
@@ -83,7 +61,6 @@ func (pw Worker) Process(pubnub *PubNub) {
 
 func (p *RequestWorkers) Start(pubnub *PubNub) {
 	pubnub.Config.Log.Printf("Start: Running with workers %d", p.MaxWorkers)
-	//logic 1
 	for i := 0; i < p.MaxWorkers; i++ {
 		pubnub.Config.Log.Printf("Start: StartNonSubWorker %d", i)
 		worker := NewRequestWorkers(p.Workers, i)
