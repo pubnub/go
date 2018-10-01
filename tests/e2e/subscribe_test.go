@@ -66,7 +66,7 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 	//auth=myAuthKey&pnsdk=PubNub-Go/4.1.3
 	expected2 := fmt.Sprintf("q1=v1")
 	expected3 := fmt.Sprintf("q2=v2")
-	pn.Config.Log = log.New(ioutil.Discard(), "", log.Ldate|log.Ltime|log.Lshortfile)
+	pn.Config.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 	w.Close()
 
 	assert.Contains(s, expected2)
