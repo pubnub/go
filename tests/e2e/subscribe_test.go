@@ -50,6 +50,7 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 	}
 
 	out, _ := ioutil.ReadAll(r)
+	w.Close()
 	os.Stdout = rescueStdout
 
 	//fmt.Printf("Captured: %s", out)
@@ -69,7 +70,7 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 
 	assert.Contains(s, expected2)
 	assert.Contains(s, expected3)
-	w.Close()
+
 }
 
 func TestRequestMesssageOverflow(t *testing.T) {
