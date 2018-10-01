@@ -49,7 +49,6 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 		tic.Stop()
 	}
 
-	//w.Close()
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout
 
@@ -67,6 +66,7 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 	//auth=myAuthKey&pnsdk=PubNub-Go/4.1.3
 	expected2 := fmt.Sprintf("q1=v1")
 	expected3 := fmt.Sprintf("q2=v2")
+	w.Close()
 
 	assert.Contains(s, expected2)
 	assert.Contains(s, expected3)
