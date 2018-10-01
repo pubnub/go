@@ -48,12 +48,15 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 	case <-tic.C:
 		tic.Stop()
 	}
+	fmt.Printf("Timer started")
 
 	out, _ := ioutil.ReadAll(r)
-	w.Close()
-	os.Stdout = rescueStdout
+	fmt.Printf("Captured: %s", out)
 
-	//fmt.Printf("Captured: %s", out)
+	w.Close()
+	fmt.Printf("w.close")
+	os.Stdout = rescueStdout
+	fmt.Printf("rescueStdout")
 
 	s := fmt.Sprintf("%s", out)
 	// //https://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64?w=1&m=1&channel=ch1,ch2&timestamp=1535719943&auth=myAuthKey&pnsdk=PubNub-Go/4.1.3&uuid=pn-621c7b2a-f87c-4362-bd1e-6c6762dfc667&r=1&signature=PntTQe-zBfJa6AvN4bu4u0txG_TOoksHGod7OnijmwM=
