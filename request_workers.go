@@ -60,9 +60,9 @@ func (pw Worker) Process(pubnub *PubNub) {
 }
 
 func (p *RequestWorkers) Start(pubnub *PubNub) {
-	pubnub.Config.Log.Println("Start: Running with workers %d", p.MaxWorkers)
+	pubnub.Config.Log.Println("Start: Running with workers ", p.MaxWorkers)
 	for i := 0; i < p.MaxWorkers; i++ {
-		pubnub.Config.Log.Println("Start: StartNonSubWorker %d", i)
+		pubnub.Config.Log.Println("Start: StartNonSubWorker ", i)
 		worker := NewRequestWorkers(p.Workers, i)
 		worker.Process(pubnub)
 	}
@@ -71,7 +71,7 @@ func (p *RequestWorkers) Start(pubnub *PubNub) {
 
 func (p *RequestWorkers) ReadQueue(pubnub *PubNub) {
 	for job := range pubnub.jobQueue {
-		pubnub.Config.Log.Println("ReadQueue: Got job for channel %v ", job.Req)
+		pubnub.Config.Log.Println("ReadQueue: Got job for channel ", job.Req)
 		go func(job *JobQItem) {
 			jobChannel := <-p.Workers
 			jobChannel <- job
