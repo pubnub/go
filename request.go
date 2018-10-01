@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/pubnub/go/pnerr"
 	"io"
 	"io/ioutil"
@@ -65,8 +66,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 			err
 	}
 
-	opts.config().Log.Println(url)
-	opts.config().Log.Println(opts.httpMethod())
+	opts.config().Log.Println(fmt.Sprintf("url:%s\nmethod:%s", url, opts.httpMethod()))
 
 	var req *http.Request
 

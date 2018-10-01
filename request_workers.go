@@ -44,25 +44,25 @@ func (pw Worker) Process(pubnub *PubNub) {
 	go func() {
 		for {
 			pw.Workers <- pw.JobChannel
-			pubnub.Config.Log.Printf("Process: Worker started: %d", pw.id)
+			//pubnub.Config.Log.Println("Process: Worker started: %d", pw.id)
 			job := <-pw.JobChannel
-			pubnub.Config.Log.Printf("Process: Worker %d processing job %v", pw.id, job.Req)
+			//pubnub.Config.Log.Println("Process: Worker %d processing job %v", pw.id, job.Req)
 			res, err := job.Client.Do(job.Req)
-			pubnub.Config.Log.Println(res, err)
+			//pubnub.Config.Log.Println(res, err)
 			jqr := &JobQResponse{
 				Error: err,
 				Resp:  res,
 			}
-			pubnub.Config.Log.Printf("Process: send on channel")
+			//pubnub.Config.Log.Println("Process: send on channel")
 			job.JobResponse <- jqr
 		}
 	}()
 }
 
 func (p *RequestWorkers) Start(pubnub *PubNub) {
-	pubnub.Config.Log.Printf("Start: Running with workers %d", p.MaxWorkers)
+	pubnub.Config.Log.Println("Start: Running with workers %d", p.MaxWorkers)
 	for i := 0; i < p.MaxWorkers; i++ {
-		pubnub.Config.Log.Printf("Start: StartNonSubWorker %d", i)
+		pubnub.Config.Log.Println("Start: StartNonSubWorker %d", i)
 		worker := NewRequestWorkers(p.Workers, i)
 		worker.Process(pubnub)
 	}
@@ -71,13 +71,13 @@ func (p *RequestWorkers) Start(pubnub *PubNub) {
 
 func (p *RequestWorkers) ReadQueue(pubnub *PubNub) {
 	for job := range pubnub.jobQueue {
-		pubnub.Config.Log.Printf("ReadQueue: Got job for channel %v ", job.Req)
+		pubnub.Config.Log.Println("ReadQueue: Got job for channel %v ", job.Req)
 		go func(job *JobQItem) {
 			jobChannel := <-p.Workers
 			jobChannel <- job
 		}(job)
 	}
-	pubnub.Config.Log.Printf("ReadQueue: Exit")
+	pubnub.Config.Log.Println("ReadQueue: Exit")
 }
 
 func (p *RequestWorkers) Close() {
