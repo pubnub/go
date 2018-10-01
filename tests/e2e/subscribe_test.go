@@ -26,6 +26,7 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 	assert := assert.New(t)
 	rescueStdout := os.Stdout
 	r, w, _ := os.Pipe()
+	fmt.Printf("pipe")
 	os.Stdout = w
 
 	pn := pubnub.NewPubNub(configCopy())
@@ -35,6 +36,7 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 		"q1": "v1",
 		"q2": "v2",
 	}
+	fmt.Printf("Log os.Stdout")
 
 	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
