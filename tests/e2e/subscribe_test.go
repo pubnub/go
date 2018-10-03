@@ -47,7 +47,6 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 		tic.Stop()
 	}
 
-	w.Close()
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout
 
