@@ -61,59 +61,6 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 	assert.Contains(s, expected3)
 
 	//https://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64?m=1&auth=authkey1,authkey2&channel=ch1,ch2&timestamp=1535719219&pnsdk=PubNub-Go/4.1.3&uuid=pn-a83164fe-7ecf-42ab-ba14-d2d8e6eabd7a&r=1&w=1&signature=0SkyfvohAq8_0phVi0YhCL4c2ZRSPBVwCwQ9fANvPmM=
-	// assert.Contains(s, "auth=authkey1,authkey2")
-
-	// assert := assert.New(t)
-	// rescueStdout := os.Stdout
-	// r, _, _ := os.Pipe()
-	// //os.Stdout = w
-
-	// pn := pubnub.NewPubNub(configCopy())
-	// pn.Config.SecretKey = "sec-key"
-	// pn.Config.AuthKey = "myAuthKey"
-	// queryParam := map[string]string{
-	// 	"q1": "v1",
-	// 	"q2": "v2",
-	// }
-	// fmt.Printf("Log os.Stdout")
-
-	// pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-
-	// pn.Subscribe().
-	// 	Channels([]string{"ch1", "ch2"}).
-	// 	QueryParam(queryParam).
-	// 	Execute()
-
-	// tic := time.NewTicker(time.Duration(timeout) * time.Second)
-	// select {
-	// case <-tic.C:
-	// 	tic.Stop()
-	// }
-	// fmt.Printf("Timer started")
-
-	// out, _ := ioutil.ReadAll(r)
-	// fmt.Printf("Captured: %s", out)
-
-	// //w.Close()
-	// fmt.Printf("w.close")
-	// os.Stdout = rescueStdout
-	// fmt.Printf("rescueStdout")
-
-	// s := fmt.Sprintf("%s", out)
-	// // //https://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64?w=1&m=1&channel=ch1,ch2&timestamp=1535719943&auth=myAuthKey&pnsdk=PubNub-Go/4.1.3&uuid=pn-621c7b2a-f87c-4362-bd1e-6c6762dfc667&r=1&signature=PntTQe-zBfJa6AvN4bu4u0txG_TOoksHGod7OnijmwM=
-	// // expected := fmt.Sprintf("https://%s/v1/auth/grant/sub-key/%s?&uuid=%sw=1&m=1&channel=ch1,ch2",
-	// // 	pn.Config.Origin,
-	// // 	pn.Config.SubscribeKey,
-	// // )
-
-	// // assert.Contains(s, expected)
-
-	// //auth=myAuthKey&pnsdk=PubNub-Go/4.1.3
-	// expected2 := fmt.Sprintf("q1=v1")
-	// expected3 := fmt.Sprintf("q2=v2")
-
-	// assert.Contains(s, expected2)
-	// assert.Contains(s, expected3)
 
 }
 
@@ -1531,8 +1478,15 @@ func TestSubscribe403Error(t *testing.T) {
 	doneSubscribe := make(chan bool)
 	doneAccessDenied := make(chan bool)
 	errChan := make(chan string)
+	ch := randomized("sub-403-ch")
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	pamConfig := pamConfigCopy()
+	pamConfig.SecretKey = ""
+	pn2 := pubnub.NewPubNub(pamConfig)
+
+	pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	listener := pubnub.NewListener()
 
 	go func() {
@@ -1557,20 +1511,20 @@ func TestSubscribe403Error(t *testing.T) {
 		}
 	}()
 
-	pn.AddListener(listener)
+	pn2.AddListener(listener)
 
 	pn.Grant().
 		Read(false).
 		Write(false).
 		Manage(false).
-		AuthKeys([]string{"pam-key"}).
-		Channels([]string{"ch"}).
+		TTL(10).
 		Execute()
 
-	pn.Config.SecretKey = ""
-
-	pn.Subscribe().
-		Channels([]string{"ch"}).
+	fmt.Println("sleeping")
+	time.Sleep(5 * time.Second)
+	fmt.Println("after sleeping")
+	pn2.Subscribe().
+		Channels([]string{ch}).
 		Execute()
 
 	tic := time.NewTicker(time.Duration(timeout) * time.Second)
@@ -1586,8 +1540,8 @@ func TestSubscribe403Error(t *testing.T) {
 
 	}
 
-	assert.Zero(len(pn.GetSubscribedChannels()))
-	assert.Zero(len(pn.GetSubscribedGroups()))
+	assert.Zero(len(pn2.GetSubscribedChannels()))
+	assert.Zero(len(pn2.GetSubscribedGroups()))
 }
 
 func TestSubscribeParseUserMeta(t *testing.T) {
