@@ -16,12 +16,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//import _ "net/http/pprof"
-//import "net/http"
+import _ "net/http/pprof"
+import "net/http"
 
 var timeout = 3
 
 func TestSubscribesLogsForQueryParams(t *testing.T) {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6061", nil))
+	}()
+
 	assert := assert.New(t)
 	rescueStdout := os.Stdout
 	r, w, _ := os.Pipe()
@@ -47,8 +51,6 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 		tic.Stop()
 
 	}
-	pn.Destroy()
-	time.Sleep(5 * time.Second)
 	w.Close()
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout

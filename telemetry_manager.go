@@ -134,7 +134,6 @@ func (m *TelemetryManager) startCleanUpTimer() {
 				m.cleanUpTimer.Stop()
 				return
 			case <-m.ExitTelemetryManager:
-				fmt.Println("ExitTelemetryManager")
 				m.Lock()
 				m.IsRunning = false
 				m.Unlock()
