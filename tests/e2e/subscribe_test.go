@@ -45,8 +45,11 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 	select {
 	case <-tic.C:
 		tic.Stop()
-	}
 
+	}
+	pn.Destroy()
+	time.Sleep(2 * time.Second)
+	w.Close()
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout
 

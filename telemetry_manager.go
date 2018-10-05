@@ -34,6 +34,7 @@ type TelemetryManager struct {
 
 	maxLatencyDataAge    int
 	ExitTelemetryManager chan bool
+	IsRunning            bool
 }
 
 func newTelemetryManager(maxLatencyDataAge int, ctx Context) *TelemetryManager {
@@ -119,15 +120,22 @@ func (m *TelemetryManager) startCleanUpTimer() {
 	go func() {
 		for {
 			m.RLock()
+			m.IsRunning = true
 			timerCh := m.cleanUpTimer.C
 			m.RUnlock()
 			select {
 			case <-timerCh:
 				m.CleanUpTelemetryData()
 			case <-m.ctx.Done():
+				m.RLock()
+				m.IsRunning = false
+				m.RUnlock()
 				m.cleanUpTimer.Stop()
 				return
 			case <-m.ExitTelemetryManager:
+				m.RLock()
+				m.IsRunning = false
+				m.RUnlock()
 				m.cleanUpTimer.Stop()
 				return
 			}

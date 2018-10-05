@@ -322,7 +322,7 @@ func (pn *PubNub) Destroy() {
 	pn.Config.Log.Println("calling RemoveAllListeners")
 	pn.subscriptionManager.RemoveAllListeners()
 	pn.Config.Log.Println("after RemoveAllListeners")
-	if pn.telemetryManager.ExitTelemetryManager != nil {
+	if (pn.telemetryManager.ExitTelemetryManager != nil) && (pn.telemetryManager.IsRunning) {
 		pn.Config.Log.Println("calling exitTelemetryManager")
 		pn.telemetryManager.ExitTelemetryManager <- true
 		pn.Config.Log.Println("after exitTelemetryManager")
@@ -361,8 +361,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	}
 
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
-	pn.telemetryManager = newTelemetryManager(
-		pnconf.MaximumLatencyDataAge, ctx)
+	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge, ctx)
 	pn.jobQueue = make(chan *JobQItem)
 	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers)
 

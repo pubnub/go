@@ -72,6 +72,7 @@ type SubscriptionManager struct {
 	exitSubscriptionManagerMutex sync.Mutex
 	exitSubscriptionManager      chan bool
 	queryParam                   map[string]string
+	channelsOpen                 bool
 }
 
 // SubscribeOperation
@@ -112,7 +113,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 	manager.ctx, manager.subscribeCancel = contextWithCancel(backgroundContext)
 	manager.messages = make(chan subscribeMessage, 1000)
 	manager.reconnectionManager = newReconnectionManager(pubnub)
-
+	manager.channelsOpen = true
 	manager.Unlock()
 
 	if manager.pubnub.Config.PNReconnectionPolicy != PNNonePolicy {
@@ -169,14 +170,19 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 func (m *SubscriptionManager) Destroy() {
 	m.subscribeCancel()
-	if m.exitSubscriptionManager != nil {
-		close(m.exitSubscriptionManager)
-	}
-	if m.listenerManager.exitListener != nil {
-		close(m.listenerManager.exitListener)
-	}
-	if m.reconnectionManager.exitReconnectionManager != nil {
-		close(m.reconnectionManager.exitReconnectionManager)
+	if m.channelsOpen {
+		m.RLock()
+		m.channelsOpen = false
+		m.RUnlock()
+		if m.exitSubscriptionManager != nil {
+			close(m.exitSubscriptionManager)
+		}
+		if m.listenerManager.exitListener != nil {
+			close(m.listenerManager.exitListener)
+		}
+		if m.reconnectionManager.exitReconnectionManager != nil {
+			close(m.reconnectionManager.exitReconnectionManager)
+		}
 	}
 }
 
