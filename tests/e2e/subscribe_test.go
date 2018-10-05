@@ -48,7 +48,7 @@ func TestSubscribesLogsForQueryParams(t *testing.T) {
 
 	}
 	pn.Destroy()
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 	w.Close()
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout

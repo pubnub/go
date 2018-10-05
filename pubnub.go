@@ -322,7 +322,10 @@ func (pn *PubNub) Destroy() {
 	pn.Config.Log.Println("calling RemoveAllListeners")
 	pn.subscriptionManager.RemoveAllListeners()
 	pn.Config.Log.Println("after RemoveAllListeners")
-	if (pn.telemetryManager.ExitTelemetryManager != nil) && (pn.telemetryManager.IsRunning) {
+	pn.telemetryManager.RLock()
+	telManagerRunning := pn.telemetryManager.IsRunning
+	pn.telemetryManager.RUnlock()
+	if (pn.telemetryManager.ExitTelemetryManager != nil) && (telManagerRunning) {
 		pn.Config.Log.Println("calling exitTelemetryManager")
 		pn.telemetryManager.ExitTelemetryManager <- true
 		pn.Config.Log.Println("after exitTelemetryManager")
