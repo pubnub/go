@@ -21,7 +21,7 @@ import "net/http"
 
 var timeout = 3
 
-func TestSubscribesLogsForQueryParams(t *testing.T) {
+func SubscribesLogsForQueryParams(t *testing.T) {
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6061", nil))
 	}()
