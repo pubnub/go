@@ -60,6 +60,7 @@ func (b *removeChannelsFromPushBuilder) DeviceIDForPush(
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *removeChannelsFromPushBuilder) QueryParam(queryParam map[string]string) *removeChannelsFromPushBuilder {
 	b.opts.QueryParam = queryParam
 

@@ -172,6 +172,7 @@ func (b *publishBuilder) Transport(tr http.RoundTripper) *publishBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *publishBuilder) QueryParam(queryParam map[string]string) *publishBuilder {
 	b.opts.QueryParam = queryParam
 

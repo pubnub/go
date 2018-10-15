@@ -58,6 +58,7 @@ func (b *getStateBuilder) ChannelGroups(cg []string) *getStateBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *getStateBuilder) QueryParam(queryParam map[string]string) *getStateBuilder {
 	b.opts.QueryParam = queryParam
 

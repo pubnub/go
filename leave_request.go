@@ -47,6 +47,7 @@ func (b *leaveBuilder) ChannelGroups(groups []string) *leaveBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *leaveBuilder) QueryParam(queryParam map[string]string) *leaveBuilder {
 	b.opts.QueryParam = queryParam
 

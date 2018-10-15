@@ -28,6 +28,7 @@ func (b *unsubscribeBuilder) ChannelGroups(groups []string) *unsubscribeBuilder 
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *unsubscribeBuilder) QueryParam(queryParam map[string]string) *unsubscribeBuilder {
 	b.operation.QueryParam = queryParam
 

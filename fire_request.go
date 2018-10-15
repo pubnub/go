@@ -106,6 +106,7 @@ func (b *fireBuilder) Transport(tr http.RoundTripper) *fireBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *fireBuilder) QueryParam(queryParam map[string]string) *fireBuilder {
 	b.opts.QueryParam = queryParam
 

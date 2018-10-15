@@ -86,6 +86,7 @@ func (b *subscribeBuilder) State(state map[string]interface{}) *subscribeBuilder
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *subscribeBuilder) QueryParam(queryParam map[string]string) *subscribeBuilder {
 	b.operation.QueryParam = queryParam
 

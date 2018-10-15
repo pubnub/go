@@ -38,7 +38,7 @@ type ResponseInfo struct {
 	OriginalResponse *http.Response
 }
 
-func AddToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan *JobQResponse) {
+func addToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan *JobQResponse) {
 	jqi := &JobQItem{
 		Req:         req,
 		Client:      client,
@@ -115,7 +115,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 
 	if runRequestWorker && opts.config().MaxWorkers > 0 {
 		j := make(chan *JobQResponse)
-		go AddToJobQ(req, client, opts, j)
+		go addToJobQ(req, client, opts, j)
 		jr := <-j
 		close(j)
 		res = jr.Resp

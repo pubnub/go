@@ -14,13 +14,18 @@ import (
 	"github.com/pubnub/go/pnerr"
 )
 
+// PNGrantType grant types
 type PNGrantType int
 
 const grantPath = "/v1/auth/grant/sub-key/%s"
 const (
+	// PNReadEnabled Read Enabled
 	PNReadEnabled PNGrantType = 1 + iota
+	// PNWriteEnabled Write Enabled
 	PNWriteEnabled
+	// PNManageEnabled Manage Enabled
 	PNManageEnabled
+	// PNDeleteEnabled Delete Enabled
 	PNDeleteEnabled
 )
 
@@ -110,6 +115,7 @@ func (b *grantBuilder) ChannelGroups(groups []string) *grantBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *grantBuilder) QueryParam(queryParam map[string]string) *grantBuilder {
 	b.opts.QueryParam = queryParam
 

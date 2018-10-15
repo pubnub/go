@@ -83,6 +83,7 @@ func (b *historyBuilder) IncludeTimetoken(i bool) *historyBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *historyBuilder) QueryParam(queryParam map[string]string) *historyBuilder {
 	b.opts.QueryParam = queryParam
 

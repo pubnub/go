@@ -66,6 +66,7 @@ func (b *addChannelToChannelGroupBuilder) Transport(
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *addChannelToChannelGroupBuilder) QueryParam(queryParam map[string]string) *addChannelToChannelGroupBuilder {
 	b.opts.QueryParam = queryParam
 

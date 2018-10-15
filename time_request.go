@@ -45,6 +45,7 @@ func (b *timeBuilder) Transport(tr http.RoundTripper) *timeBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *timeBuilder) QueryParam(queryParam map[string]string) *timeBuilder {
 	b.opts.QueryParam = queryParam
 

@@ -54,6 +54,7 @@ func (b *removeChannelFromChannelGroupBuilder) ChannelGroup(
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *removeChannelFromChannelGroupBuilder) QueryParam(queryParam map[string]string) *removeChannelFromChannelGroupBuilder {
 	b.opts.QueryParam = queryParam
 
