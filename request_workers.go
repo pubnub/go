@@ -44,16 +44,12 @@ func (pw Worker) Process(pubnub *PubNub) {
 	go func() {
 		for {
 			pw.Workers <- pw.JobChannel
-			//pubnub.Config.Log.Println("Process: Worker started: %d", pw.id)
 			job := <-pw.JobChannel
-			//pubnub.Config.Log.Println("Process: Worker %d processing job %v", pw.id, job.Req)
 			res, err := job.Client.Do(job.Req)
-			//pubnub.Config.Log.Println(res, err)
 			jqr := &JobQResponse{
 				Error: err,
 				Resp:  res,
 			}
-			//pubnub.Config.Log.Println("Process: send on channel")
 			job.JobResponse <- jqr
 		}
 	}()
