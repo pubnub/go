@@ -49,6 +49,13 @@ func (b *allChannelGroupBuilder) ChannelGroup(
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *allChannelGroupBuilder) QueryParam(queryParam map[string]string) *allChannelGroupBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the ListChannelsInChannelGroup request.
 func (b *allChannelGroupBuilder) Execute() (
 	*AllChannelGroupResponse, StatusResponse, error) {
@@ -64,8 +71,8 @@ type allChannelGroupOpts struct {
 	pubnub *PubNub
 
 	ChannelGroup string
-
-	Transport http.RoundTripper
+	QueryParam   map[string]string
+	Transport    http.RoundTripper
 
 	ctx Context
 }
@@ -102,8 +109,12 @@ func (o *allChannelGroupOpts) buildPath() (string, error) {
 
 func (o *allChannelGroupOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
+}
+
+func (o *allChannelGroupOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *allChannelGroupOpts) buildBody() ([]byte, error) {

@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/pubnub/go/pnerr"
 	"io"
 	"io/ioutil"
@@ -37,6 +38,15 @@ type ResponseInfo struct {
 	OriginalResponse *http.Response
 }
 
+func addToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan *JobQResponse) {
+	jqi := &JobQItem{
+		Req:         req,
+		Client:      client,
+		JobResponse: j,
+	}
+	opts.jobQueue() <- jqi
+}
+
 func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	err := opts.validate()
 
@@ -56,8 +66,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 			err
 	}
 
-	opts.config().Log.Println(url)
-	opts.config().Log.Println(opts.httpMethod())
+	opts.config().Log.Println(fmt.Sprintf("url:%s\nmethod:%s", url, opts.httpMethod()))
 
 	var req *http.Request
 
@@ -95,7 +104,26 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 
 	client := opts.client()
 	startTimestamp := time.Now()
-	res, err := client.Do(req)
+
+	var res *http.Response
+	runRequestWorker := false
+
+	switch opts.operationType() {
+	case PNPublishOperation, PNAccessManagerGrant:
+		runRequestWorker = true
+	}
+
+	if runRequestWorker && opts.config().MaxWorkers > 0 {
+		j := make(chan *JobQResponse)
+		go addToJobQ(req, client, opts, j)
+		jr := <-j
+		close(j)
+		res = jr.Resp
+		err = jr.Error
+	} else {
+		res, err = client.Do(req)
+	}
+
 	// Host lookup failed
 	if err != nil {
 		opts.config().Log.Println("err.Error()", err.Error())

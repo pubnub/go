@@ -48,6 +48,13 @@ func (b *whereNowBuilder) UUID(uuid string) *whereNowBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *whereNowBuilder) QueryParam(queryParam map[string]string) *whereNowBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the WhereNow request.
 func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
 	if len(b.opts.UUID) <= 0 {
@@ -65,9 +72,9 @@ func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
 type whereNowOpts struct {
 	pubnub *PubNub
 
-	UUID string
-
-	Transport http.RoundTripper
+	UUID       string
+	QueryParam map[string]string
+	Transport  http.RoundTripper
 
 	ctx Context
 }
@@ -100,8 +107,12 @@ func (o *whereNowOpts) buildPath() (string, error) {
 
 func (o *whereNowOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
+}
+
+func (o *whereNowOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *whereNowOpts) buildBody() ([]byte, error) {

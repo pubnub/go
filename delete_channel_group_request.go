@@ -45,6 +45,13 @@ func (b *deleteChannelGroupBuilder) ChannelGroup(
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *deleteChannelGroupBuilder) QueryParam(queryParam map[string]string) *deleteChannelGroupBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the DeleteChannelGroup request.
 func (b *deleteChannelGroupBuilder) Execute() (
 	*DeleteChannelGroupResponse, StatusResponse, error) {
@@ -58,13 +65,11 @@ func (b *deleteChannelGroupBuilder) Execute() (
 }
 
 type deleteChannelGroupOpts struct {
-	pubnub *PubNub
-
+	pubnub       *PubNub
 	ChannelGroup string
-
-	Transport http.RoundTripper
-
-	ctx Context
+	Transport    http.RoundTripper
+	QueryParam   map[string]string
+	ctx          Context
 }
 
 func (o *deleteChannelGroupOpts) config() Config {
@@ -102,8 +107,12 @@ func (o *deleteChannelGroupOpts) buildPath() (string, error) {
 
 func (o *deleteChannelGroupOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
+}
+
+func (o *deleteChannelGroupOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *deleteChannelGroupOpts) buildBody() ([]byte, error) {

@@ -60,6 +60,13 @@ func (b *removeChannelsFromPushBuilder) DeviceIDForPush(
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *removeChannelsFromPushBuilder) QueryParam(queryParam map[string]string) *removeChannelsFromPushBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the RemovePushNotificationsFromChannels request.
 func (b *removeChannelsFromPushBuilder) Execute() (
 	*RemoveChannelsFromPushResponse, StatusResponse, error) {
@@ -74,10 +81,9 @@ func (b *removeChannelsFromPushBuilder) Execute() (
 type removeChannelsFromPushOpts struct {
 	pubnub *PubNub
 
-	Channels []string
-
-	PushType PNPushType
-
+	Channels        []string
+	QueryParam      map[string]string
+	PushType        PNPushType
 	DeviceIDForPush string
 
 	Transport http.RoundTripper
@@ -136,8 +142,12 @@ func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("remove", strings.Join(channels, ","))
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
+}
+
+func (o *removeChannelsFromPushOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *removeChannelsFromPushOpts) buildBody() ([]byte, error) {

@@ -58,6 +58,13 @@ func (b *getStateBuilder) ChannelGroups(cg []string) *getStateBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *getStateBuilder) QueryParam(queryParam map[string]string) *getStateBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // UUID sets the UUID for the Get State request.
 func (b *getStateBuilder) UUID(uuid string) *getStateBuilder {
 	b.opts.UUID = uuid
@@ -86,13 +93,11 @@ func (b *getStateBuilder) Execute() (
 }
 
 type getStateOpts struct {
-	pubnub *PubNub
-
-	Channels []string
-
+	pubnub        *PubNub
+	Channels      []string
 	ChannelGroups []string
-
-	UUID string
+	UUID          string
+	QueryParam    map[string]string
 
 	Transport http.RoundTripper
 
@@ -146,8 +151,13 @@ func (o *getStateOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("channel-group", strings.Join(groups, ","))
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
+}
+
+func (o *getStateOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *getStateOpts) buildBody() ([]byte, error) {

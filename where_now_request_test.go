@@ -46,6 +46,42 @@ func TestWhereNowBasicRequest(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
+func TestWhereNowBasicRequestQueryParam(t *testing.T) {
+	assert := assert.New(t)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+	opts := &whereNowOpts{
+		UUID:   "my-custom-uuid",
+		pubnub: pubnub,
+	}
+	opts.QueryParam = queryParam
+	path, err := opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/uuid/my-custom-uuid",
+		u.EscapedPath(), []int{})
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
 func TestNewWhereNowBuilder(t *testing.T) {
 	assert := assert.New(t)
 

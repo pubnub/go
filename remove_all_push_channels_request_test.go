@@ -77,6 +77,28 @@ func TestRemoveAllPushNotificationsBuildPath(t *testing.T) {
 
 }
 
+func TestRemoveAllPushNotificationsBuildQueryParam(t *testing.T) {
+	assert := assert.New(t)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts := &removeAllPushChannelsForDeviceOpts{
+		DeviceIDForPush: "deviceId",
+		PushType:        PNPushTypeAPNS,
+		pubnub:          pubnub,
+		QueryParam:      queryParam,
+	}
+
+	u, err := opts.buildQuery()
+	assert.Equal("apns", u.Get("type"))
+	assert.Equal("v1", u.Get("q1"))
+	assert.Equal("v2", u.Get("q2"))
+
+	assert.Nil(err)
+}
+
 func TestRemoveAllPushNotificationsBuildQuery(t *testing.T) {
 	assert := assert.New(t)
 
@@ -88,6 +110,7 @@ func TestRemoveAllPushNotificationsBuildQuery(t *testing.T) {
 
 	u, err := opts.buildQuery()
 	assert.Equal("apns", u.Get("type"))
+
 	assert.Nil(err)
 }
 

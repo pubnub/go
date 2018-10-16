@@ -12,18 +12,25 @@ import (
 )
 
 type endpointOpts interface {
+	jobQueue() chan *JobQItem
 	config() Config
 	client() *http.Client
 	context() Context
 	validate() error
-
 	buildPath() (string, error)
 	buildQuery() (*url.Values, error)
 	buildBody() ([]byte, error)
-
 	httpMethod() string
 	operationType() OperationType
 	telemetryManager() *TelemetryManager
+}
+
+func SetQueryParam(q *url.Values, queryParam map[string]string) {
+	if queryParam != nil {
+		for key, value := range queryParam {
+			q.Set(key, value)
+		}
+	}
 }
 
 func defaultQuery(uuid string, telemetryManager *TelemetryManager) *url.Values {
@@ -76,6 +83,7 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 		}
 
 		signedInput += utils.PreparePamParams(query)
+		//o.config().Log.Println("signedInput:", signedInput)
 
 		signature = utils.GetHmacSha256(o.config().SecretKey, signedInput)
 	}

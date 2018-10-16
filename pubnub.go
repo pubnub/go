@@ -5,13 +5,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"runtime"
 	"sync"
 )
 
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.1.3"
+	Version = "4.1.4"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -49,6 +50,8 @@ type PubNub struct {
 	telemetryManager     *TelemetryManager
 	client               *http.Client
 	subscribeClient      *http.Client
+	requestWorkers       *RequestWorkers
+	jobQueue             chan *JobQItem
 	ctx                  Context
 	cancel               func()
 }
@@ -156,7 +159,8 @@ func (pn *PubNub) GetClient() *http.Client {
 				pn.Config.NonSubscribeRequestTimeout)
 		} else {
 			pn.client = NewHTTP1Client(pn.Config.ConnectTimeout,
-				pn.Config.NonSubscribeRequestTimeout)
+				pn.Config.NonSubscribeRequestTimeout,
+				pn.Config.MaxIdleConnsPerHost)
 		}
 	}
 
@@ -180,7 +184,7 @@ func (pn *PubNub) GetSubscribeClient() *http.Client {
 				pn.Config.SubscribeRequestTimeout)
 		} else {
 			pn.subscribeClient = NewHTTP1Client(pn.Config.ConnectTimeout,
-				pn.Config.SubscribeRequestTimeout)
+				pn.Config.SubscribeRequestTimeout, pn.Config.MaxIdleConnsPerHost)
 		}
 
 	}
@@ -318,7 +322,10 @@ func (pn *PubNub) Destroy() {
 	pn.Config.Log.Println("calling RemoveAllListeners")
 	pn.subscriptionManager.RemoveAllListeners()
 	pn.Config.Log.Println("after RemoveAllListeners")
-	if pn.telemetryManager.ExitTelemetryManager != nil {
+	pn.telemetryManager.RLock()
+	telManagerRunning := pn.telemetryManager.IsRunning
+	pn.telemetryManager.RUnlock()
+	if (pn.telemetryManager.ExitTelemetryManager != nil) && (telManagerRunning) {
 		pn.Config.Log.Println("calling exitTelemetryManager")
 		pn.telemetryManager.ExitTelemetryManager <- true
 		pn.Config.Log.Println("after exitTelemetryManager")
@@ -347,7 +354,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	if pnconf.Log == nil {
 		pnconf.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-	pnconf.Log.Println(fmt.Sprintf("PubNub Go v4 SDK: %s\npnconf: %v", Version, pnconf))
+	pnconf.Log.Println(fmt.Sprintf("PubNub Go v4 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
 
 	pn := &PubNub{
 		Config:              pnconf,
@@ -357,10 +364,24 @@ func NewPubNub(pnconf *Config) *PubNub {
 	}
 
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
-	pn.telemetryManager = newTelemetryManager(
-		pnconf.MaximumLatencyDataAge, ctx)
+	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge, ctx)
+	pn.jobQueue = make(chan *JobQItem)
+	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers)
 
 	return pn
+}
+
+func (pn *PubNub) newNonSubQueueProcessor(maxWorkers int) *RequestWorkers {
+	workers := make(chan chan *JobQItem, maxWorkers)
+
+	pn.Config.Log.Printf("Init RequestWorkers: workers %d", maxWorkers)
+
+	p := &RequestWorkers{
+		Workers:    workers,
+		MaxWorkers: maxWorkers,
+	}
+	p.Start(pn)
+	return p
 }
 
 func NewPubNubDemo() *PubNub {

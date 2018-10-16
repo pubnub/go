@@ -127,6 +127,48 @@ func TestNewGetStateBuilder(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
+func TestNewGetStateBuilderQueryParam(t *testing.T) {
+	assert := assert.New(t)
+
+	pubnub.Config.UUID = "my-custom-uuid"
+
+	o := newGetStateBuilder(pubnub)
+	o.Channels([]string{"ch"})
+	o.ChannelGroups([]string{"cg"})
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	path, err := o.opts.buildPath()
+	o.opts.QueryParam = queryParam
+
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		"/v2/presence/sub-key/sub_key/channel/ch/uuid/my-custom-uuid",
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Equal("v1", query.Get("q1"))
+	assert.Equal("v2", query.Get("q2"))
+
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("channel-group", "cg")
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
 func TestNewGetStateBuilderContext(t *testing.T) {
 	assert := assert.New(t)
 

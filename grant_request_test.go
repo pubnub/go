@@ -44,6 +44,7 @@ func TestGrantRequestBasic(t *testing.T) {
 	expected.Set("r", "1")
 	expected.Set("w", "1")
 	expected.Set("m", "1")
+	expected.Set("d", "0")
 	expected.Set("ttl", "5000")
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
@@ -52,6 +53,53 @@ func TestGrantRequestBasic(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal([]byte{}, body)
+}
+
+func TestGrantRequestBasicQueryParam(t *testing.T) {
+	assert := assert.New(t)
+
+	opts := &grantOpts{
+		AuthKeys:      []string{"my-auth-key"},
+		Channels:      []string{"ch"},
+		ChannelGroups: []string{"cg"},
+		Read:          true,
+		Write:         true,
+		Manage:        true,
+		TTL:           5000,
+		setTTL:        true,
+		pubnub:        pubnub,
+	}
+
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts.QueryParam = queryParam
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("auth", "my-auth-key")
+	expected.Set("channel", "ch")
+	expected.Set("channel-group", "cg")
+	expected.Set("r", "1")
+	expected.Set("w", "1")
+	expected.Set("m", "1")
+	expected.Set("d", "0")
+	expected.Set("ttl", "5000")
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query,
+		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
+
+	body, err := opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+
 }
 
 func TestNewGrantBuilder(t *testing.T) {
@@ -63,6 +111,7 @@ func TestNewGrantBuilder(t *testing.T) {
 	o.Read(true)
 	o.Write(true)
 	o.Manage(true)
+	o.Delete(true)
 	o.TTL(5000)
 
 	path, err := o.opts.buildPath()
@@ -85,6 +134,50 @@ func TestNewGrantBuilder(t *testing.T) {
 	expected.Set("r", "1")
 	expected.Set("w", "1")
 	expected.Set("m", "1")
+	expected.Set("d", "1")
+	expected.Set("ttl", "5000")
+	h.AssertQueriesEqual(t, expected, query,
+		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
+
+	body, err := o.opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestNewGrantBuilderDelFalse(t *testing.T) {
+	assert := assert.New(t)
+	o := newGrantBuilder(pubnub)
+	o.AuthKeys([]string{"my-auth-key"})
+	o.Channels([]string{"ch"})
+	o.ChannelGroups([]string{"cg"})
+	o.Read(true)
+	o.Write(true)
+	o.Manage(true)
+	o.Delete(false)
+	o.TTL(5000)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v1/auth/grant/sub-key/%s", o.opts.pubnub.Config.SubscribeKey),
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("auth", "my-auth-key")
+	expected.Set("channel", "ch")
+	expected.Set("channel-group", "cg")
+	expected.Set("r", "1")
+	expected.Set("w", "1")
+	expected.Set("m", "1")
+	expected.Set("d", "0")
 	expected.Set("ttl", "5000")
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
@@ -105,6 +198,11 @@ func TestNewGrantBuilderContext(t *testing.T) {
 	o.Write(true)
 	o.Manage(true)
 	o.TTL(5000)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -126,7 +224,10 @@ func TestNewGrantBuilderContext(t *testing.T) {
 	expected.Set("r", "1")
 	expected.Set("w", "1")
 	expected.Set("m", "1")
+	expected.Set("d", "0")
 	expected.Set("ttl", "5000")
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"pnsdk", "uuid", "timestamp"}, []string{})
 

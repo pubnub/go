@@ -32,6 +32,7 @@ type publishOpts struct {
 	ShouldStore    bool
 	Serialize      bool
 	DoNotReplicate bool
+	QueryParam     map[string]string
 
 	Transport http.RoundTripper
 
@@ -167,6 +168,13 @@ func (b *publishBuilder) DoNotReplicate(repl bool) *publishBuilder {
 // Transport sets the Transport for the Publish request.
 func (b *publishBuilder) Transport(tr http.RoundTripper) *publishBuilder {
 	b.opts.Transport = tr
+
+	return b
+}
+
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *publishBuilder) QueryParam(queryParam map[string]string) *publishBuilder {
+	b.opts.QueryParam = queryParam
 
 	return b
 }
@@ -337,11 +345,18 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 	o.pubnub.Config.Log.Println("seqn:", seqn)
 	q.Set("seqn", seqn)
 
+	SetQueryParam(q, o.QueryParam)
+
 	if o.DoNotReplicate == true {
 		q.Set("norep", "true")
 	}
+	o.pubnub.Config.Log.Println(q)
 
 	return q, nil
+}
+
+func (o *publishOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *publishOpts) buildBody() ([]byte, error) {

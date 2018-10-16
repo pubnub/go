@@ -56,6 +56,13 @@ func (b *listPushProvisionsRequestBuilder) DeviceIDForPush(
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *listPushProvisionsRequestBuilder) QueryParam(queryParam map[string]string) *listPushProvisionsRequestBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the List Push Provisions request.
 func (b *listPushProvisionsRequestBuilder) Execute() (
 	*ListPushProvisionsRequestResponse, StatusResponse, error) {
@@ -98,8 +105,8 @@ type listPushProvisionsRequestOpts struct {
 	PushType PNPushType
 
 	DeviceIDForPush string
-
-	Transport http.RoundTripper
+	QueryParam      map[string]string
+	Transport       http.RoundTripper
 
 	ctx Context
 }
@@ -146,8 +153,12 @@ func (o *listPushProvisionsRequestOpts) buildPath() (string, error) {
 func (o *listPushProvisionsRequestOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 	q.Set("type", o.PushType.String())
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
+}
+
+func (o *listPushProvisionsRequestOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *listPushProvisionsRequestOpts) buildBody() ([]byte, error) {

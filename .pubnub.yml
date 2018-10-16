@@ -3,6 +3,22 @@ changelog:
   - 
     changes: 
       - 
+        text: "QueryParams in all API calls"
+        type: feature
+      - 
+        text: "d in grant"
+        type: feature
+      - 
+        text: "maxIdleConnsPerHost setting in config"
+        type: feature
+      - 
+        text: "Max concurrent workers for Publish and Grant requests"
+        type: improvement
+    date: Oct 16, 18  
+    version: v4.1.4
+  - 
+    changes: 
+      - 
         text: "Multiple auth keys in grant fix"
         type: bug
       - 
@@ -269,10 +285,11 @@ supported-platforms:
       - "1.8.7"
       - "1.9.7"
       - "1.10.3"
+      - "1.11.1"
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.1.3
+version: v4.1.4

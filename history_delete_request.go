@@ -59,6 +59,13 @@ func (b *historyDeleteBuilder) End(end int64) *historyDeleteBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *historyDeleteBuilder) QueryParam(queryParam map[string]string) *historyDeleteBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Transport sets the Transport for the DeleteMessages request.
 func (b *historyDeleteBuilder) Transport(tr http.RoundTripper) *historyDeleteBuilder {
 	b.opts.Transport = tr
@@ -78,10 +85,10 @@ func (b *historyDeleteBuilder) Execute() (*HistoryDeleteResponse, StatusResponse
 type historyDeleteOpts struct {
 	pubnub *PubNub
 
-	Channel string
-
-	Start int64
-	End   int64
+	Channel    string
+	Start      int64
+	End        int64
+	QueryParam map[string]string
 
 	SetStart bool
 	SetEnd   bool
@@ -119,6 +126,10 @@ func (o *historyDeleteOpts) validate() error {
 	return nil
 }
 
+func (o *historyDeleteOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *historyDeleteOpts) buildPath() (string, error) {
 	return fmt.Sprintf(historyDeletePath,
 		o.pubnub.Config.SubscribeKey,
@@ -135,6 +146,8 @@ func (o *historyDeleteOpts) buildQuery() (*url.Values, error) {
 	if o.SetEnd {
 		q.Set("end", strconv.FormatInt(o.End, 10))
 	}
+
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
 }

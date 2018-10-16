@@ -71,6 +71,8 @@ type SubscriptionManager struct {
 	heartbeatStopCalled          bool
 	exitSubscriptionManagerMutex sync.Mutex
 	exitSubscriptionManager      chan bool
+	queryParam                   map[string]string
+	channelsOpen                 bool
 }
 
 // SubscribeOperation
@@ -81,11 +83,13 @@ type SubscribeOperation struct {
 	Timetoken        int64
 	FilterExpression string
 	State            map[string]interface{}
+	QueryParam       map[string]string
 }
 
 type UnsubscribeOperation struct {
 	Channels      []string
 	ChannelGroups []string
+	QueryParam    map[string]string
 }
 
 type StateOperation struct {
@@ -109,7 +113,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 	manager.ctx, manager.subscribeCancel = contextWithCancel(backgroundContext)
 	manager.messages = make(chan subscribeMessage, 1000)
 	manager.reconnectionManager = newReconnectionManager(pubnub)
-
+	manager.channelsOpen = true
 	manager.Unlock()
 
 	if manager.pubnub.Config.PNReconnectionPolicy != PNNonePolicy {
@@ -166,14 +170,19 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 
 func (m *SubscriptionManager) Destroy() {
 	m.subscribeCancel()
-	if m.exitSubscriptionManager != nil {
-		close(m.exitSubscriptionManager)
-	}
-	if m.listenerManager.exitListener != nil {
-		close(m.listenerManager.exitListener)
-	}
-	if m.reconnectionManager.exitReconnectionManager != nil {
-		close(m.reconnectionManager.exitReconnectionManager)
+	if m.channelsOpen {
+		m.RLock()
+		m.channelsOpen = false
+		m.RUnlock()
+		if m.exitSubscriptionManager != nil {
+			close(m.exitSubscriptionManager)
+		}
+		if m.listenerManager.exitListener != nil {
+			close(m.listenerManager.exitListener)
+		}
+		if m.reconnectionManager.exitReconnectionManager != nil {
+			close(m.reconnectionManager.exitReconnectionManager)
+		}
 	}
 }
 
@@ -190,6 +199,7 @@ func (m *SubscriptionManager) adaptSubscribe(
 	m.Lock()
 
 	m.subscriptionStateAnnounced = false
+	m.queryParam = subscribeOperation.QueryParam
 
 	if subscribeOperation.Timetoken != 0 {
 		m.timetoken = subscribeOperation.Timetoken
@@ -220,7 +230,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 		announceAck := false
 		if !m.pubnub.Config.SuppressLeaveEvents {
 			_, err := m.pubnub.Leave().Channels(unsubscribeOperation.Channels).
-				ChannelGroups(unsubscribeOperation.ChannelGroups).Execute()
+				ChannelGroups(unsubscribeOperation.ChannelGroups).QueryParam(unsubscribeOperation.QueryParam).Execute()
 
 			if err != nil {
 				pnStatus := &PNStatus{
@@ -305,6 +315,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			Heartbeat:        m.pubnub.Config.PresenceTimeout,
 			FilterExpression: m.pubnub.Config.FilterExpression,
 			ctx:              ctx,
+			QueryParam:       m.queryParam,
 		}
 
 		if s := m.stateManager.createStatePayload(); len(s) > 0 {

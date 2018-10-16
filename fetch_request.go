@@ -77,6 +77,13 @@ func (b *fetchBuilder) Reverse(r bool) *fetchBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *fetchBuilder) QueryParam(queryParam map[string]string) *fetchBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Transport sets the Transport for the Fetch request.
 func (b *fetchBuilder) Transport(tr http.RoundTripper) *fetchBuilder {
 	b.opts.Transport = tr
@@ -109,6 +116,7 @@ type fetchOpts struct {
 
 	// default: false
 	IncludeTimetoken bool
+	QueryParam       map[string]string
 
 	// nil hacks
 	setStart bool
@@ -169,8 +177,13 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
+}
+
+func (o *fetchOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *fetchOpts) buildBody() ([]byte, error) {

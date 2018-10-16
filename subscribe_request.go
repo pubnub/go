@@ -15,9 +15,9 @@ const subscribePath = "/v2/subscribe/%s/%s/0"
 type subscribeOpts struct {
 	pubnub *PubNub
 
-	Channels      []string
-	ChannelGroups []string
-
+	Channels         []string
+	ChannelGroups    []string
+	QueryParam       map[string]string
 	Heartbeat        int
 	Region           string
 	Timetoken        int64
@@ -83,6 +83,13 @@ func (b *subscribeBuilder) WithPresence(pres bool) *subscribeBuilder {
 // State sets the state of the channels while subscribing.
 func (b *subscribeBuilder) State(state map[string]interface{}) *subscribeBuilder {
 	b.operation.State = state
+	return b
+}
+
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *subscribeBuilder) QueryParam(queryParam map[string]string) *subscribeBuilder {
+	b.operation.QueryParam = queryParam
+
 	return b
 }
 
@@ -164,8 +171,13 @@ func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 	if o.stringState != "" {
 		q.Set("state", o.stringState)
 	}
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
+}
+
+func (o *subscribeOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *subscribeOpts) buildBody() ([]byte, error) {

@@ -91,6 +91,29 @@ func TestListPushProvisionsRequestBuildQuery(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestListPushProvisionsRequestBuildQueryParam(t *testing.T) {
+	assert := assert.New(t)
+
+	opts := &listPushProvisionsRequestOpts{
+		DeviceIDForPush: "deviceId",
+		PushType:        PNPushTypeAPNS,
+		pubnub:          pubnub,
+	}
+
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts.QueryParam = queryParam
+
+	u, err := opts.buildQuery()
+	assert.Equal("apns", u.Get("type"))
+	assert.Equal("v1", u.Get("q1"))
+	assert.Equal("v2", u.Get("q2"))
+	assert.Nil(err)
+}
+
 func TestListPushProvisionsRequestBuildBody(t *testing.T) {
 	assert := assert.New(t)
 

@@ -38,6 +38,43 @@ func TestDeleteChannelGroupRequestBasic(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
+func TestDeleteChannelGroupRequestBasicQueryParam(t *testing.T) {
+	assert := assert.New(t)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts := &deleteChannelGroupOpts{
+		ChannelGroup: "cg",
+		pubnub:       pubnub,
+		QueryParam:   queryParam,
+	}
+
+	path, err := opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v1/channel-registration/sub-key/sub_key/channel-group/cg/remove"),
+		u.EscapedPath(), []int{})
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := opts.buildBody()
+	assert.Nil(err)
+
+	assert.Equal([]byte{}, body)
+}
+
 func TestNewDeleteChannelGroupBuilder(t *testing.T) {
 	assert := assert.New(t)
 	o := newDeleteChannelGroupBuilder(pubnub)

@@ -30,6 +30,10 @@ func (o *fakeEndpointOpts) buildBody() ([]byte, error) {
 	return []byte("myBody"), nil
 }
 
+func (o *fakeEndpointOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *fakeEndpointOpts) config() Config {
 	return *o.pubnub.Config
 }

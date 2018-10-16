@@ -61,6 +61,13 @@ func (b *addPushNotificationsOnChannelsBuilder) DeviceIDForPush(
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *addPushNotificationsOnChannelsBuilder) QueryParam(queryParam map[string]string) *addPushNotificationsOnChannelsBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs add Push Notifications on channels request
 func (b *addPushNotificationsOnChannelsBuilder) Execute() (
 	*AddPushNotificationsOnChannelsResponse, StatusResponse, error) {
@@ -73,17 +80,13 @@ func (b *addPushNotificationsOnChannelsBuilder) Execute() (
 }
 
 type addChannelsToPushOpts struct {
-	pubnub *PubNub
-
-	Channels []string
-
-	PushType PNPushType
-
+	pubnub          *PubNub
+	Channels        []string
+	PushType        PNPushType
 	DeviceIDForPush string
-
-	Transport http.RoundTripper
-
-	ctx Context
+	QueryParam      map[string]string
+	Transport       http.RoundTripper
+	ctx             Context
 }
 
 func (o *addChannelsToPushOpts) config() Config {
@@ -138,8 +141,13 @@ func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
 
 	q.Set("add", strings.Join(channels, ","))
 	q.Set("type", o.PushType.String())
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
+}
+
+func (o *addChannelsToPushOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *addChannelsToPushOpts) buildBody() ([]byte, error) {

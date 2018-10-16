@@ -58,6 +58,11 @@ func TestFetch(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
 	MatchFetchMessages(ret, 0, ch1, ch2, assert)
 
 	ret1, _, err1 := pn.FetchWithContext(backgroundContext).
@@ -66,6 +71,7 @@ func TestFetch(t *testing.T) {
 		Reverse(reverse).
 		Start(timestamp1).
 		End(timestamp2).
+		QueryParam(queryParam).
 		Execute()
 
 	assert.Nil(err1)

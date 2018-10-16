@@ -102,6 +102,43 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 
 }
 
+func AssertSuccessPublishGet3(t *testing.T, expectedString string, message interface{}) {
+	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.AuthKey = "a"
+
+	o := newPublishBuilder(pn)
+	o.Channel("ch")
+	o.Message(message)
+	o.TTL(10)
+	o.ShouldStore(false)
+	o.DoNotReplicate(true)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	o.QueryParam(queryParam)
+
+	query, err := o.opts.buildQuery()
+	log.Println(query)
+
+	assert.Nil(err)
+	expected := &url.Values{}
+	expected.Set("seqn", "1")
+	expected.Set("uuid", pn.Config.UUID)
+	expected.Set("ttl", "10")
+	expected.Set("pnsdk", Version)
+	expected.Set("norep", "true")
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query,
+		[]string{"seqn", "pnsdk", "uuid"}, []string{})
+
+}
+
 func AssertSuccessPublishGetAuth(t *testing.T, expectedString string, message interface{}) {
 
 	assert := assert.New(t)
@@ -219,6 +256,7 @@ func TestPublishMixedGet(t *testing.T) {
 		msgMap)
 
 	AssertSuccessPublishGet2(t, "12", 12)
+	AssertSuccessPublishGet3(t, "12", 12)
 	AssertSuccessPublishGet2(t, "%22hey%22", "hey")
 	AssertSuccessPublishGet2(t, "true", true)
 	AssertSuccessPublishGet2(t, "%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",

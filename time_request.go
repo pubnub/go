@@ -45,6 +45,13 @@ func (b *timeBuilder) Transport(tr http.RoundTripper) *timeBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *timeBuilder) QueryParam(queryParam map[string]string) *timeBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the Time request and fetches the time from the server.
 func (b *timeBuilder) Execute() (*TimeResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -56,9 +63,9 @@ func (b *timeBuilder) Execute() (*TimeResponse, StatusResponse, error) {
 }
 
 type timeOpts struct {
-	pubnub *PubNub
-
-	Transport http.RoundTripper
+	pubnub     *PubNub
+	QueryParam map[string]string
+	Transport  http.RoundTripper
 
 	ctx Context
 }
@@ -85,8 +92,12 @@ func (o *timeOpts) buildPath() (string, error) {
 
 func (o *timeOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
+}
+
+func (o *timeOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *timeOpts) buildBody() ([]byte, error) {

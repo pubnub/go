@@ -110,7 +110,80 @@ func TestGrantSucccessNotStubbed(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
+	log.Println(res)
 	assert.NotNil(res)
+
+	assert.True(res.Channels["ch2"].AuthKeys["pam-key"].WriteEnabled)
+	assert.True(res.Channels["ch2"].AuthKeys["pam-key"].ReadEnabled)
+	assert.True(res.Channels["ch2"].AuthKeys["pam-key"].ManageEnabled)
+	assert.True(!res.Channels["ch2"].AuthKeys["pam-key"].DeleteEnabled)
+
+}
+
+func TestGrantSucccessAppLevelFalse(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	pn.Config.UUID = "asd,|//&aqwe"
+
+	res, _, err := pn.Grant().
+		Read(false).Write(false).Manage(false).Delete(false).
+		Execute()
+
+	assert.Nil(err)
+	log.Println(res)
+	assert.NotNil(res)
+
+	assert.True(!res.WriteEnabled)
+	assert.True(!res.ReadEnabled)
+	assert.True(!res.ManageEnabled)
+	assert.True(!res.DeleteEnabled)
+
+}
+
+func TestGrantSucccessAppLevelMixed(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	pn.Config.UUID = "asd,|//&aqwe"
+
+	res, _, err := pn.Grant().
+		Read(false).Write(true).Manage(false).Delete(true).
+		Execute()
+
+	assert.Nil(err)
+	log.Println(res)
+	assert.NotNil(res)
+
+	assert.True(res.WriteEnabled)
+	assert.True(!res.ReadEnabled)
+	assert.True(!res.ManageEnabled)
+	assert.True(res.DeleteEnabled)
+
+}
+
+func TestGrantSucccessAppLevelMixed2(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	pn.Config.UUID = "asd,|//&aqwe"
+
+	res, _, err := pn.Grant().
+		Read(true).Write(false).Manage(true).Delete(false).
+		Execute()
+
+	assert.Nil(err)
+	log.Println(res)
+	assert.NotNil(res)
+
+	assert.True(!res.WriteEnabled)
+	assert.True(res.ReadEnabled)
+	assert.True(res.ManageEnabled)
+	assert.True(!res.DeleteEnabled)
+
 }
 
 func TestGrantSucccessNotStubbedContext(t *testing.T) {
@@ -136,7 +209,7 @@ func TestGrantMultipleMixed(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/auth/grant/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4",
-		Query:              "auth=my-auth-key-1%2Cmy-auth-key-2&channel=ch1%2Cch2%2Cch3&channel-group=cg1%2Ccg2%2Ccg3&r=1&m=1&w=1",
+		Query:              "auth=my-auth-key-1%2Cmy-auth-key-2&channel=ch1%2Cch2%2Cch3&channel-group=cg1%2Ccg2%2Ccg3&r=1&m=1&w=1&d=0",
 		ResponseBody:       `{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channels":{"ch1":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"ch2":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"ch3":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}}},"channel-groups":{"cg1":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"cg2":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"cg3":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}}}},"service":"Access Manager","status":200}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},
 		ResponseStatusCode: 200,
@@ -144,6 +217,7 @@ func TestGrantMultipleMixed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
@@ -163,7 +237,7 @@ func TestGrantSingleChannel(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/auth/grant/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4",
-		Query:              "channel=ch1&m=0&r=1&w=1",
+		Query:              "channel=ch1&m=0&r=1&w=1&d=0",
 		ResponseBody:       `{"message":"Success","payload":{"level":"channel","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channels":{"ch1":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,
@@ -171,6 +245,7 @@ func TestGrantSingleChannel(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).
@@ -191,7 +266,7 @@ func TestGrantSingleChannelWithAuth(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/auth/grant/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4",
-		Query:              "auth=my-pam-key&channel=ch1&m=0&r=1&w=1",
+		Query:              "auth=my-pam-key&channel=ch1&m=0&r=1&w=1&d=0",
 		ResponseBody:       `{"message":"Success","payload":{"level":"user","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channel":"ch1","auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,
@@ -220,7 +295,7 @@ func TestGrantMultipleChannels(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/auth/grant/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4",
-		Query:              "channel=ch1%2Cch2&m=0&r=1&w=1",
+		Query:              "channel=ch1%2Cch2&m=0&r=1&w=1&d=0",
 		ResponseBody:       `{"message":"Success","payload":{"level":"channel","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channels":{"ch1":{"r":1,"w":1,"m":0,"d":0},"ch2":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,
@@ -253,7 +328,7 @@ func TestGrantMultipleChannelsWithAuth(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/auth/grant/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4",
-		Query:              "auth=my-pam-key&channel=ch1%2Cch2&m=0&r=1&w=1",
+		Query:              "auth=my-pam-key&channel=ch1%2Cch2&m=0&r=1&w=1&d=0",
 		ResponseBody:       `{"message":"Success","payload":{"level":"user","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channels":{"ch1":{"auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}},"ch2":{"auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}}}},"service":"Access Manager","status":200}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,
@@ -287,7 +362,7 @@ func TestGrantSingleGroup(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/auth/grant/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4",
-		Query:              "channel-group=cg1&m=0&r=1&w=1",
+		Query:              "channel-group=cg1&m=0&r=1&w=1&d=0",
 		ResponseBody:       `{"message":"Success","payload":{"level":"channel-group","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channel-groups":{"cg1":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,
@@ -316,7 +391,7 @@ func TestGrantSingleGroupWithAuth(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/auth/grant/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4",
-		Query:              "auth=my-pam-key&channel-group=cg1&m=0&r=1&w=1",
+		Query:              "auth=my-pam-key&channel-group=cg1&m=0&r=1&w=1&d=0",
 		ResponseBody:       `{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channel-groups":"cg1","auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,
@@ -347,7 +422,7 @@ func TestGrantMultipleGroups(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/auth/grant/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4",
-		Query:              "channel-group=cg1%2Ccg2&m=0&r=1&w=1",
+		Query:              "channel-group=cg1%2Ccg2&m=0&r=1&w=1&d=0",
 		ResponseBody:       `{"message":"Success","payload":{"level":"channel-group","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channel-groups":{"cg1":{"r":1,"w":1,"m":0,"d":0},"cg2":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,
@@ -380,7 +455,7 @@ func TestGrantMultipleGroupsWithAuth(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/auth/grant/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4",
-		Query:              "auth=my-pam-key&channel-group=cg1%2Ccg2&m=0&r=1&w=1",
+		Query:              "auth=my-pam-key&channel-group=cg1%2Ccg2&m=0&r=1&w=1&d=0",
 		ResponseBody:       `{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channel-groups":{"cg1":{"auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}},"cg2":{"auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}}}},"service":"Access Manager","status":200}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
 		ResponseStatusCode: 200,

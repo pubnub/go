@@ -32,6 +32,34 @@ func AssertSuccessFetchGet(t *testing.T, expectedString string, channels []strin
 	assert.Empty(body)
 }
 
+func TestFetchQueryParam(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetQueryParam(t, "%22test%22?max=25&reverse=false", channels)
+}
+
+func AssertSuccessFetchGetQueryParam(t *testing.T, expectedString string, channels []string) {
+	assert := assert.New(t)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts := &fetchOpts{
+		Channels:         channels,
+		Reverse:          false,
+		IncludeTimetoken: true,
+		pubnub:           pubnub,
+		QueryParam:       queryParam,
+	}
+
+	u, err := opts.buildQuery()
+	assert.Nil(err)
+
+	assert.Equal("v1", u.Get("q1"))
+	assert.Equal("v2", u.Get("q2"))
+
+}
+
 func AssertSuccessFetchQuery(t *testing.T, expectedString string, channels []string) {
 	opts := &fetchOpts{
 		Channels: channels,

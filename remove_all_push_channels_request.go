@@ -52,6 +52,13 @@ func (b *removeAllPushChannelsForDeviceBuilder) DeviceIDForPush(
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *removeAllPushChannelsForDeviceBuilder) QueryParam(queryParam map[string]string) *removeAllPushChannelsForDeviceBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the RemoveAllPushNotifications request.
 func (b *removeAllPushChannelsForDeviceBuilder) Execute() (
 	*RemoveAllPushChannelsForDeviceResponse, StatusResponse, error) {
@@ -66,8 +73,8 @@ func (b *removeAllPushChannelsForDeviceBuilder) Execute() (
 type removeAllPushChannelsForDeviceOpts struct {
 	pubnub *PubNub
 
-	PushType PNPushType
-
+	PushType        PNPushType
+	QueryParam      map[string]string
 	DeviceIDForPush string
 
 	Transport http.RoundTripper
@@ -115,8 +122,12 @@ func (o *removeAllPushChannelsForDeviceOpts) buildPath() (string, error) {
 func (o *removeAllPushChannelsForDeviceOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 	q.Set("type", o.PushType.String())
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
+}
+
+func (o *removeAllPushChannelsForDeviceOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *removeAllPushChannelsForDeviceOpts) buildBody() ([]byte, error) {

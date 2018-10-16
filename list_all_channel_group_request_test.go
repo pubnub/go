@@ -38,6 +38,34 @@ func TestListAllChannelGroupRequestBasic(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
+func TestListAllChannelGroupRequestBasicQueryParam(t *testing.T) {
+	assert := assert.New(t)
+
+	opts := &allChannelGroupOpts{
+		ChannelGroup: "cg",
+		pubnub:       pubnub,
+	}
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts.QueryParam = queryParam
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := opts.buildBody()
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
 func TestNewAllChannelGroupBuilder(t *testing.T) {
 	assert := assert.New(t)
 	o := newAllChannelGroupBuilder(pubnub)

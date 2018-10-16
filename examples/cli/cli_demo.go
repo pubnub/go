@@ -58,10 +58,12 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	config.SecretKey = "demo"
+
 	config.AuthKey = "akey"
 
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
+
 	// for subscribe event
 	listener := pubnub.NewListener()
 
@@ -954,6 +956,10 @@ func publishRequest(args []string) {
 	}
 
 	channels := strings.Split(args[4], ",")
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
 
 	for _, ch := range channels {
 		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
@@ -962,7 +968,7 @@ func publishRequest(args []string) {
 			Message(res).
 			UsePost(usePost).
 			ShouldStore(store).
-			DoNotReplicate(repl).
+			DoNotReplicate(repl).QueryParam(queryParam).
 			Execute()
 
 		if err != nil {
@@ -1043,6 +1049,10 @@ func subscribeRequest(args []string) {
 	}
 
 	withPresence, _ := strconv.ParseBool(args[0])
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
 
 	channels := strings.Split(args[1], ",")
 	if (len(args)) > 3 {
@@ -1084,6 +1094,7 @@ func subscribeRequest(args []string) {
 		pn.Subscribe().
 			Channels(channels).
 			WithPresence(withPresence).
+			QueryParam(queryParam).
 			Execute()
 	}
 

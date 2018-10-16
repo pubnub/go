@@ -47,6 +47,13 @@ func (b *leaveBuilder) ChannelGroups(groups []string) *leaveBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *leaveBuilder) QueryParam(queryParam map[string]string) *leaveBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the Leave request.
 func (b *leaveBuilder) Execute() (StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
@@ -60,6 +67,7 @@ func (b *leaveBuilder) Execute() (StatusResponse, error) {
 type leaveOpts struct {
 	Channels      []string
 	ChannelGroups []string
+	QueryParam    map[string]string
 
 	pubnub *PubNub
 	ctx    Context
@@ -85,6 +93,10 @@ func (o *leaveOpts) buildPath() (string, error) {
 		channels), nil
 }
 
+func (o *leaveOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
 func (o *leaveOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
@@ -92,7 +104,7 @@ func (o *leaveOpts) buildQuery() (*url.Values, error) {
 		channelGroup := utils.JoinChannels(o.ChannelGroups)
 		q.Set("channel-group", string(channelGroup))
 	}
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
 }
 

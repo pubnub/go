@@ -73,6 +73,13 @@ func (b *hereNowBuilder) IncludeUUIDs(uuid bool) *hereNowBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *hereNowBuilder) QueryParam(queryParam map[string]string) *hereNowBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the HereNow request.
 func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -86,14 +93,13 @@ func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
 type hereNowOpts struct {
 	pubnub *PubNub
 
-	Channels      []string
-	ChannelGroups []string
-
-	IncludeUUIDs bool
-	IncludeState bool
-
+	Channels        []string
+	ChannelGroups   []string
+	IncludeUUIDs    bool
+	IncludeState    bool
 	SetIncludeState bool
 	SetIncludeUUIDs bool
+	QueryParam      map[string]string
 
 	Transport http.RoundTripper
 
@@ -156,7 +162,13 @@ func (o *hereNowOpts) buildQuery() (*url.Values, error) {
 		q.Set("disable-uuids", "0")
 	}
 
+	SetQueryParam(q, o.QueryParam)
+
 	return q, nil
+}
+
+func (o *hereNowOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *hereNowOpts) buildBody() ([]byte, error) {

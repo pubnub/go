@@ -63,6 +63,32 @@ func TestLeaveRequestSingleChannelGroup(t *testing.T) {
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
 }
 
+func TestLeaveRequestSingleChannelGroupQueryParam(t *testing.T) {
+	assert := assert.New(t)
+
+	opts := &leaveOpts{
+		ChannelGroups: []string{"cg"},
+		pubnub:        pubnub,
+	}
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts.QueryParam = queryParam
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("q1", "v1")
+	expected.Set("q2", "v2")
+
+	expected.Set("channel-group", "cg")
+
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+}
+
 func TestLeaveRequestMultipleChannelGroups(t *testing.T) {
 	assert := assert.New(t)
 

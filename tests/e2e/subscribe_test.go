@@ -3,7 +3,10 @@ package e2e
 import (
 	//"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"math/rand"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -13,10 +16,57 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//import _ "net/http/pprof"
-//import "net/http"
+import _ "net/http/pprof"
+import "net/http"
 
 var timeout = 3
+
+func SubscribesLogsForQueryParams(t *testing.T) {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6061", nil))
+	}()
+
+	assert := assert.New(t)
+	rescueStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.SecretKey = "sec-key"
+	pn.Config.AuthKey = "myAuthKey"
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	pn.Subscribe().
+		Channels([]string{"ch1", "ch2"}).
+		QueryParam(queryParam).
+		Execute()
+
+	tic := time.NewTicker(time.Duration(timeout) * time.Second)
+	select {
+	case <-tic.C:
+		tic.Stop()
+
+	}
+	w.Close()
+	out, _ := ioutil.ReadAll(r)
+	os.Stdout = rescueStdout
+
+	//fmt.Printf("Captured: %s", out)
+
+	s := fmt.Sprintf("%s", out)
+	expected2 := fmt.Sprintf("q1=v1")
+	expected3 := fmt.Sprintf("q2=v2")
+
+	assert.Contains(s, expected2)
+	assert.Contains(s, expected3)
+
+	//https://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64?m=1&auth=authkey1,authkey2&channel=ch1,ch2&timestamp=1535719219&pnsdk=PubNub-Go/4.1.3&uuid=pn-a83164fe-7ecf-42ab-ba14-d2d8e6eabd7a&r=1&w=1&signature=0SkyfvohAq8_0phVi0YhCL4c2ZRSPBVwCwQ9fANvPmM=
+
+}
 
 func TestRequestMesssageOverflow(t *testing.T) {
 	assert := assert.New(t)
@@ -1432,8 +1482,15 @@ func TestSubscribe403Error(t *testing.T) {
 	doneSubscribe := make(chan bool)
 	doneAccessDenied := make(chan bool)
 	errChan := make(chan string)
+	ch := randomized("sub-403-ch")
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	pamConfig := pamConfigCopy()
+	pamConfig.SecretKey = ""
+	pn2 := pubnub.NewPubNub(pamConfig)
+
+	pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	listener := pubnub.NewListener()
 
 	go func() {
@@ -1458,20 +1515,20 @@ func TestSubscribe403Error(t *testing.T) {
 		}
 	}()
 
-	pn.AddListener(listener)
+	pn2.AddListener(listener)
 
 	pn.Grant().
 		Read(false).
 		Write(false).
 		Manage(false).
-		AuthKeys([]string{"pam-key"}).
-		Channels([]string{"ch"}).
+		TTL(10).
 		Execute()
 
-	pn.Config.SecretKey = ""
-
-	pn.Subscribe().
-		Channels([]string{"ch"}).
+	fmt.Println("sleeping")
+	time.Sleep(5 * time.Second)
+	fmt.Println("after sleeping")
+	pn2.Subscribe().
+		Channels([]string{ch}).
 		Execute()
 
 	tic := time.NewTicker(time.Duration(timeout) * time.Second)
@@ -1487,8 +1544,8 @@ func TestSubscribe403Error(t *testing.T) {
 
 	}
 
-	assert.Zero(len(pn.GetSubscribedChannels()))
-	assert.Zero(len(pn.GetSubscribedGroups()))
+	assert.Zero(len(pn2.GetSubscribedChannels()))
+	assert.Zero(len(pn2.GetSubscribedGroups()))
 }
 
 func TestSubscribeParseUserMeta(t *testing.T) {

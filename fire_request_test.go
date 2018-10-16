@@ -230,6 +230,29 @@ func TestFireDoNotSerializePost(t *testing.T) {
 	assert.NotEmpty(body)
 }
 
+func TestFireDoNotSerializeQueryParam(t *testing.T) {
+	assert := assert.New(t)
+
+	message := "{\"one\":\"hey\"}"
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts := &fireOpts{
+		Channel:    "ch",
+		Message:    message,
+		pubnub:     pubnub,
+		QueryParam: queryParam,
+	}
+
+	b, err := opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("v1", b.Get("q1"))
+	assert.Equal("v2", b.Get("q2"))
+
+}
+
 func TestValidatePublishKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())

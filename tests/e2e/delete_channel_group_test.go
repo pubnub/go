@@ -58,8 +58,14 @@ func TestRemoveChannelGroupSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
 	_, _, err := pn.DeleteChannelGroup().
 		ChannelGroup(validCharacters).
+		QueryParam(queryParam).
 		Execute()
 
 	assert.Nil(err)
@@ -82,7 +88,7 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group-remove",
-		Query:              "remove=my-channel-remove",
+		Query:              "remove=my-channel-remove&q1=v1&q2=v2",
 		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
 		ResponseStatusCode: 200,
@@ -106,9 +112,15 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 
 	assert.Nil(err)
 
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
 	_, _, err = pn.RemoveChannelFromChannelGroup().
 		Channels([]string{myChannel}).
 		ChannelGroup(myGroup).
+		QueryParam(queryParam).
 		Execute()
 
 	assert.Nil(err)

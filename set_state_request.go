@@ -59,6 +59,13 @@ func (b *setStateBuilder) ChannelGroups(groups []string) *setStateBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *setStateBuilder) QueryParam(queryParam map[string]string) *setStateBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // Execute runs the the Set State request and returns the SetStateResponse
 func (b *setStateBuilder) Execute() (*SetStateResponse, StatusResponse, error) {
 	stateOperation := StateOperation{}
@@ -80,10 +87,10 @@ type setStateOpts struct {
 	State         map[string]interface{}
 	Channels      []string
 	ChannelGroups []string
-
-	pubnub      *PubNub
-	stringState string
-	ctx         Context
+	QueryParam    map[string]string
+	pubnub        *PubNub
+	stringState   string
+	ctx           Context
 }
 
 func (o *setStateOpts) config() Config {
@@ -144,8 +151,12 @@ func (o *setStateOpts) buildQuery() (*url.Values, error) {
 	if len(o.ChannelGroups) > 0 {
 		q.Set("channel-group", string(groups))
 	}
-
+	SetQueryParam(q, o.QueryParam)
 	return q, nil
+}
+
+func (o *setStateOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
 }
 
 func (o *setStateOpts) buildBody() ([]byte, error) {
