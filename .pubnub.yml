@@ -218,6 +218,8 @@ changelog:
 features: 
   access: 
     - ACCESS-GRANT
+    - ACCESS-GRANT-MANAGE
+    - ACCESS-GRANT-DELETE
     - ACCESS-SECRET-KEY-ALL-ACCESS
   channel-groups: 
     - CHANNEL-GROUPS-ADD-CHANNELS
@@ -273,6 +275,7 @@ features:
   others:
     - PN-OTHER-PROCESSING
     - TELEMETRY
+    - QUERY-PARAM
   notify:
     - REQUEST-MESSAGE-COUNT-EXCEEDED  
 name: go
