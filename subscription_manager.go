@@ -3,6 +3,7 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/pubnub/go/utils"
 	"net/http"
 	"reflect"
@@ -73,6 +74,7 @@ type SubscriptionManager struct {
 	exitSubscriptionManager      chan bool
 	queryParam                   map[string]string
 	channelsOpen                 bool
+	requestSentAt                int64
 }
 
 // SubscribeOperation
@@ -195,6 +197,10 @@ func (m *SubscriptionManager) adaptSubscribe(
 	m.stateManager.adaptSubscribeOperation(subscribeOperation)
 	m.pubnub.Config.Log.Println("adapting a new subscription", subscribeOperation.Channels,
 		subscribeOperation.PresenceEnabled)
+
+	m.hbDataMutex.Lock()
+	m.requestSentAt = time.Now().Unix()
+	m.hbDataMutex.Unlock()
 
 	m.Lock()
 
@@ -479,11 +485,31 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 			m.hbDataMutex.RLock()
 			timerCh := m.hbTimer.C
 			doneCh := m.hbDone
-
 			m.hbDataMutex.RUnlock()
 
 			select {
 			case <-timerCh:
+				timeNow := time.Now().Unix()
+				m.hbDataMutex.RLock()
+				reqSentAt := m.requestSentAt
+				m.hbDataMutex.RUnlock()
+				if reqSentAt > 0 {
+					timediff := timeNow - reqSentAt
+					m.requestSentAt = 0
+					m.log(fmt.Sprintf("timediff: %d", timediff))
+					if timediff > 10 {
+						m.hbDataMutex.Lock()
+						m.hbTimer.Stop()
+						m.hbDataMutex.Unlock()
+
+						m.log(fmt.Sprintf("sleeping timediff: %d", timediff))
+						time.Sleep(time.Duration(timediff) * time.Millisecond)
+
+						m.hbDataMutex.Lock()
+						m.hbTimer = time.NewTicker(time.Duration(m.pubnub.Config.HeartbeatInterval) * time.Second)
+						m.hbDataMutex.Unlock()
+					}
+				}
 				m.performHeartbeatLoop()
 			case <-doneCh:
 				m.log("heartbeat: loop: after stop")
