@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "Presence Heartbeat call skips when Subscribe call preceeds it"
+        type: improvement
+    date: Nov 16, 18  
+    version: v4.1.5
+  - 
+    changes: 
+      - 
         text: "QueryParams in all API calls"
         type: feature
       - 
@@ -293,4 +300,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.1.4
+version: v4.1.5
