@@ -198,10 +198,6 @@ func (m *SubscriptionManager) adaptSubscribe(
 	m.pubnub.Config.Log.Println("adapting a new subscription", subscribeOperation.Channels,
 		subscribeOperation.PresenceEnabled)
 
-	m.hbDataMutex.Lock()
-	m.requestSentAt = time.Now().Unix()
-	m.hbDataMutex.Unlock()
-
 	m.Lock()
 
 	m.subscriptionStateAnnounced = false
@@ -327,6 +323,10 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		if s := m.stateManager.createStatePayload(); len(s) > 0 {
 			opts.State = s
 		}
+		m.hbDataMutex.Lock()
+		m.requestSentAt = time.Now().Unix()
+		m.hbDataMutex.Unlock()
+
 		res, _, err := executeRequest(opts)
 		if err != nil {
 			m.pubnub.Config.Log.Println(err.Error())
@@ -494,17 +494,17 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 				reqSentAt := m.requestSentAt
 				m.hbDataMutex.RUnlock()
 				if reqSentAt > 0 {
-					timediff := timeNow - reqSentAt
+					timediff := int64(m.pubnub.Config.HeartbeatInterval) - (timeNow - reqSentAt)
+					m.log(fmt.Sprintf("heartbeat timediff: %d", timediff))
 					m.requestSentAt = 0
-					m.log(fmt.Sprintf("timediff: %d", timediff))
 					if timediff > 10 {
 						m.hbDataMutex.Lock()
 						m.hbTimer.Stop()
 						m.hbDataMutex.Unlock()
 
-						m.log(fmt.Sprintf("sleeping timediff: %d", timediff))
-						time.Sleep(time.Duration(timediff) * time.Millisecond)
-
+						m.log(fmt.Sprintf("heartbeat sleeping timediff: %d", timediff))
+						time.Sleep(time.Duration(timediff) * time.Second)
+						m.log("heartbeat sleep end")
 						m.hbDataMutex.Lock()
 						m.hbTimer = time.NewTicker(time.Duration(m.pubnub.Config.HeartbeatInterval) * time.Second)
 						m.hbDataMutex.Unlock()
@@ -512,7 +512,7 @@ func (m *SubscriptionManager) startHeartbeatTimer() {
 				}
 				m.performHeartbeatLoop()
 			case <-doneCh:
-				m.log("heartbeat: loop: after stop")
+				m.log("heartbeat: loop after stop")
 				return
 			}
 		}
