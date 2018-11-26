@@ -532,6 +532,7 @@ func (m *SubscriptionManager) stopHeartbeat() {
 		m.hbDone <- true
 		m.pubnub.Config.Log.Println("heartbeat: loop: done channel stopped")
 	}
+	m.requestSentAt = 0
 	m.hbDataMutex.Unlock()
 }
 
