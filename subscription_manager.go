@@ -3,7 +3,7 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	//"fmt"
 	"github.com/pubnub/go/utils"
 	"net/http"
 	"reflect"
@@ -42,17 +42,13 @@ type SubscriptionManager struct {
 	sync.RWMutex
 
 	subscriptionLock sync.Mutex
+	hbDataMutex      sync.RWMutex
 
 	listenerManager     *ListenerManager
 	stateManager        *StateManager
 	pubnub              *PubNub
 	reconnectionManager *ReconnectionManager
 	transport           http.RoundTripper
-
-	hbLoopMutex sync.RWMutex
-	hbDataMutex sync.RWMutex
-	hbTimer     *time.Ticker
-	hbDone      chan bool
 
 	messages        chan subscribeMessage
 	ctx             Context
@@ -460,130 +456,6 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 	}
 }
 
-func (m *SubscriptionManager) startHeartbeatTimer() {
-	m.stopHeartbeat()
-	m.pubnub.Config.Log.Println("heartbeat: new timer", m.pubnub.Config.HeartbeatInterval)
-	if m.pubnub.Config.PresenceTimeout <= 0 && m.pubnub.Config.HeartbeatInterval <= 0 {
-		return
-	}
-
-	m.hbLoopMutex.Lock()
-	m.hbDataMutex.Lock()
-	m.hbDone = make(chan bool)
-	m.hbTimer = time.NewTicker(time.Duration(m.pubnub.Config.HeartbeatInterval) * time.Second)
-	m.hbDataMutex.Unlock()
-
-	go func() {
-		defer m.hbLoopMutex.Unlock()
-		defer func() {
-			m.hbDataMutex.Lock()
-			m.hbDone = nil
-			m.hbDataMutex.Unlock()
-		}()
-
-		for {
-			m.hbDataMutex.RLock()
-			timerCh := m.hbTimer.C
-			doneCh := m.hbDone
-			m.hbDataMutex.RUnlock()
-
-			select {
-			case <-timerCh:
-				timeNow := time.Now().Unix()
-				m.hbDataMutex.RLock()
-				reqSentAt := m.requestSentAt
-				m.hbDataMutex.RUnlock()
-				if reqSentAt > 0 {
-					timediff := int64(m.pubnub.Config.HeartbeatInterval) - (timeNow - reqSentAt)
-					m.log(fmt.Sprintf("heartbeat timediff: %d", timediff))
-					m.requestSentAt = 0
-					if timediff > 10 {
-						m.hbDataMutex.Lock()
-						m.hbTimer.Stop()
-						m.hbDataMutex.Unlock()
-
-						m.log(fmt.Sprintf("heartbeat sleeping timediff: %d", timediff))
-						time.Sleep(time.Duration(timediff) * time.Second)
-						m.log("heartbeat sleep end")
-						m.hbDataMutex.Lock()
-						m.hbTimer = time.NewTicker(time.Duration(m.pubnub.Config.HeartbeatInterval) * time.Second)
-						m.hbDataMutex.Unlock()
-					}
-				}
-				m.performHeartbeatLoop()
-			case <-doneCh:
-				m.log("heartbeat: loop after stop")
-				return
-			}
-		}
-	}()
-}
-
-func (m *SubscriptionManager) stopHeartbeat() {
-	m.log("heartbeat: loop: stopping...")
-
-	m.hbDataMutex.Lock()
-	if m.hbTimer != nil {
-		m.hbTimer.Stop()
-		m.pubnub.Config.Log.Println("heartbeat: loop: timer stopped")
-	}
-
-	if m.hbDone != nil {
-		m.hbDone <- true
-		m.pubnub.Config.Log.Println("heartbeat: loop: done channel stopped")
-	}
-	m.requestSentAt = 0
-	m.hbDataMutex.Unlock()
-}
-
-func (m *SubscriptionManager) performHeartbeatLoop() error {
-	presenceChannels := m.stateManager.prepareChannelList(false)
-	presenceGroups := m.stateManager.prepareGroupList(false)
-	stateStorage := m.stateManager.createStatePayload()
-
-	if m.stateManager.hasNonPresenceChannels() {
-		m.pubnub.Config.Log.Println("heartbeat: no channels left")
-		go m.stopHeartbeat()
-		return nil
-	}
-	m.stateManager.RLock()
-	m.pubnub.Config.Log.Println(len(m.stateManager.channels), len(m.stateManager.groups), len(m.stateManager.presenceChannels), len(m.stateManager.presenceGroups))
-	m.stateManager.RUnlock()
-
-	_, status, err := newHeartbeatBuilder(m.pubnub).
-		Channels(presenceChannels).
-		ChannelGroups(presenceGroups).
-		State(stateStorage).
-		Execute()
-
-	if err != nil {
-
-		pnStatus := &PNStatus{
-			Operation: PNHeartBeatOperation,
-			Category:  PNBadRequestCategory,
-			Error:     true,
-			ErrorData: err,
-		}
-		m.pubnub.Config.Log.Println("performHeartbeatLoop: err", err, pnStatus)
-
-		m.listenerManager.announceStatus(pnStatus)
-
-		return err
-	}
-
-	pnStatus := &PNStatus{
-		Category:   PNUnknownCategory,
-		Error:      false,
-		Operation:  PNHeartBeatOperation,
-		StatusCode: status.StatusCode,
-	}
-	m.pubnub.Config.Log.Println("performHeartbeatLoop: err", err, pnStatus)
-
-	m.listenerManager.announceStatus(pnStatus)
-
-	return nil
-}
-
 type subscribeEnvelope struct {
 	Messages []subscribeMessage `json:"m"`
 	Metadata struct {
@@ -881,7 +753,7 @@ func (m *SubscriptionManager) reconnect() {
 		m.pubnub.Config.Log.Println("All channels or channel groups unsubscribed.")
 	} else {
 		go m.startSubscribeLoop()
-		go m.startHeartbeatTimer()
+		go m.pubnub.heartbeatManager.startHeartbeatTimer()
 	}
 }
 
@@ -893,7 +765,7 @@ func (m *SubscriptionManager) Disconnect() {
 	}
 	m.reconnectionManager.stopHeartbeatTimer()
 
-	m.stopHeartbeat()
+	m.pubnub.heartbeatManager.stopHeartbeat()
 	m.unsubscribeAll()
 	m.stopSubscribeLoop()
 

@@ -48,6 +48,7 @@ type PubNub struct {
 	publishSequenceMutex sync.RWMutex
 	subscriptionManager  *SubscriptionManager
 	telemetryManager     *TelemetryManager
+	heartbeatManager     *HeartbeatManager
 	client               *http.Client
 	subscribeClient      *http.Client
 	requestWorkers       *RequestWorkers
@@ -131,6 +132,10 @@ func (pn *PubNub) Leave() *leaveBuilder {
 
 func (pn *PubNub) LeaveWithContext(ctx Context) *leaveBuilder {
 	return newLeaveBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) Presence() *presenceBuilder {
+	return newPresenceBuilder(pn)
 }
 
 func (pn *PubNub) heartbeat() *heartbeatBuilder {
@@ -332,6 +337,7 @@ func (pn *PubNub) Destroy() {
 	}
 	pn.Config.Log.Println("calling subscriptionManager Destroy")
 	pn.subscriptionManager.Destroy()
+	pn.heartbeatManager.Destroy()
 	pn.Config.Log.Println("After Destroy")
 }
 
@@ -364,6 +370,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	}
 
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
+	pn.heartbeatManager = newHeartbeatManager(pn, ctx)
 	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge, ctx)
 	pn.jobQueue = make(chan *JobQItem)
 	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers)
