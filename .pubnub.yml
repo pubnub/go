@@ -3,7 +3,7 @@ changelog:
   - 
     changes: 
       - 
-        text: "Presence Heartbeat call skips when Subscribe call preceeds it"
+        text: "Presence Heartbeat call delays itself when a Subscribe call preceeds it"
         type: improvement
       - 
         text: "Heartbeats per channel"
