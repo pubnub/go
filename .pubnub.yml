@@ -5,7 +5,10 @@ changelog:
       - 
         text: "Presence Heartbeat call skips when Subscribe call preceeds it"
         type: improvement
-    date: Nov 16, 18  
+      - 
+        text: "Heartbeats per channel"
+        type: feature
+    date: Nov 30, 18  
     version: v4.1.5
   - 
     changes: 
