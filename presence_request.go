@@ -11,9 +11,9 @@ type presenceBuilder struct {
 type presenceOpts struct {
 	pubnub *PubNub
 
-	Channels      []string
-	ChannelGroups []string
-	Connected     bool
+	channels      []string
+	channelGroups []string
+	connected     bool
 	ctx           Context
 }
 
@@ -40,21 +40,21 @@ func newPresenceBuilderWithContext(pubnub *PubNub, context Context) *presenceBui
 
 // Channels sets the Channels for the Presence request.
 func (b *presenceBuilder) Channels(ch []string) *presenceBuilder {
-	b.opts.Channels = ch
+	b.opts.channels = ch
 
 	return b
 }
 
 // ChannelGroups sets the ChannelGroups for the Presence request.
 func (b *presenceBuilder) ChannelGroups(cg []string) *presenceBuilder {
-	b.opts.ChannelGroups = cg
+	b.opts.channelGroups = cg
 
 	return b
 }
 
 // Channels sets the Channels for the Presence request.
 func (b *presenceBuilder) Connected(connected bool) *presenceBuilder {
-	b.opts.Connected = connected
+	b.opts.connected = connected
 
 	return b
 }
@@ -103,20 +103,31 @@ func (b *presenceBuilder) Connected(connected bool) *presenceBuilder {
 // }
 
 func (b *presenceBuilder) Execute() {
-	for _, ch := range b.opts.Channels {
-		if strings.Contains(ch, "-pnpres") {
-			ch = strings.Replace(ch, "-pnpres", "", -1)
+	if b.opts.connected {
+		for _, ch := range b.opts.channels {
+			if strings.Contains(ch, "-pnpres") {
+				ch = strings.Replace(ch, "-pnpres", "", -1)
+			}
+			b.opts.pubnub.heartbeatManager.Lock()
+			b.opts.pubnub.heartbeatManager.heartbeatChannels[ch] = newSubscriptionItem(ch)
+			b.opts.pubnub.heartbeatManager.Unlock()
 		}
-		b.opts.pubnub.heartbeatManager.heartbeatChannels[ch] = newSubscriptionItem(ch)
-	}
-	for _, cg := range b.opts.ChannelGroups {
-		if strings.Contains(cg, "-pnpres") {
-			cg = strings.Replace(cg, "-pnpres", "", -1)
+		for _, cg := range b.opts.channelGroups {
+			if strings.Contains(cg, "-pnpres") {
+				cg = strings.Replace(cg, "-pnpres", "", -1)
+			}
+			b.opts.pubnub.heartbeatManager.Lock()
+			b.opts.pubnub.heartbeatManager.heartbeatGroups[cg] = newSubscriptionItem(cg)
+			b.opts.pubnub.heartbeatManager.Unlock()
 		}
-		b.opts.pubnub.heartbeatManager.heartbeatGroups[cg] = newSubscriptionItem(cg)
-	}
 
-	b.opts.pubnub.heartbeatManager.startHeartbeatTimer()
+		b.opts.pubnub.heartbeatManager.startHeartbeatTimer()
+	} else {
+		b.opts.pubnub.heartbeatManager.Lock()
+		b.opts.pubnub.heartbeatManager.heartbeatChannels = nil
+		b.opts.pubnub.heartbeatManager.heartbeatGroups = nil
+		b.opts.pubnub.heartbeatManager.Unlock()
+	}
 }
 
 // func (o *presenceOpts) config() Config {

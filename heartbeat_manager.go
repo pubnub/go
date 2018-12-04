@@ -107,19 +107,35 @@ func (m *HeartbeatManager) stopHeartbeat() {
 	m.pubnub.subscriptionManager.hbDataMutex.Unlock()
 }
 
-func (m *HeartbeatManager) performHeartbeatLoop() error {
-	presenceChannels := m.pubnub.subscriptionManager.stateManager.prepareChannelList(false)
-	presenceGroups := m.pubnub.subscriptionManager.stateManager.prepareGroupList(false)
-	stateStorage := m.pubnub.subscriptionManager.stateManager.createStatePayload()
+func (m *HeartbeatManager) prepareList(subItem map[string]*SubscriptionItem) []string {
+	response := []string{}
 
-	if m.pubnub.subscriptionManager.stateManager.hasNonPresenceChannels() {
+	for _, v := range subItem {
+		response = append(response, v.name)
+	}
+	return response
+}
+
+func (m *HeartbeatManager) performHeartbeatLoop() error {
+	m.RLock()
+	presenceChannels := m.prepareList(m.heartbeatChannels)
+	presenceGroups := m.prepareList(m.heartbeatGroups)
+	m.pubnub.Config.Log.Println("performHeartbeatLoop: count presenceChannels, presenceGroups", len(presenceChannels), len(presenceGroups))
+	m.RUnlock()
+	var stateStorage map[string]interface{}
+	if (len(presenceChannels) == 0) && (len(presenceGroups) == 0) {
+		m.pubnub.Config.Log.Println("performHeartbeatLoop: count presenceChannels, presenceGroups nil")
+		presenceChannels = m.pubnub.subscriptionManager.stateManager.prepareChannelList(false)
+		presenceGroups = m.pubnub.subscriptionManager.stateManager.prepareGroupList(false)
+		stateStorage = m.pubnub.subscriptionManager.stateManager.createStatePayload()
+		m.pubnub.Config.Log.Println("performHeartbeatLoop: count sub presenceChannels, presenceGroups", len(presenceChannels), len(presenceGroups))
+	}
+
+	if len(presenceChannels) <= 0 && len(presenceGroups) <= 0 {
 		m.pubnub.Config.Log.Println("heartbeat: no channels left")
 		go m.stopHeartbeat()
 		return nil
 	}
-	m.pubnub.subscriptionManager.stateManager.RLock()
-	m.pubnub.Config.Log.Println(len(m.pubnub.subscriptionManager.stateManager.channels), len(m.pubnub.subscriptionManager.stateManager.groups), len(m.pubnub.subscriptionManager.stateManager.presenceChannels), len(m.pubnub.subscriptionManager.stateManager.presenceGroups))
-	m.pubnub.subscriptionManager.stateManager.RUnlock()
 
 	_, status, err := newHeartbeatBuilder(m.pubnub).
 		Channels(presenceChannels).
