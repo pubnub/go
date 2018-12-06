@@ -753,7 +753,7 @@ func (m *SubscriptionManager) reconnect() {
 		m.pubnub.Config.Log.Println("All channels or channel groups unsubscribed.")
 	} else {
 		go m.startSubscribeLoop()
-		go m.pubnub.heartbeatManager.startHeartbeatTimer()
+		go m.pubnub.heartbeatManager.startHeartbeatTimer(false)
 	}
 }
 
@@ -765,7 +765,7 @@ func (m *SubscriptionManager) Disconnect() {
 	}
 	m.reconnectionManager.stopHeartbeatTimer()
 
-	m.pubnub.heartbeatManager.stopHeartbeat()
+	m.pubnub.heartbeatManager.stopHeartbeat(false, false)
 	m.unsubscribeAll()
 	m.stopSubscribeLoop()
 

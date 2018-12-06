@@ -138,6 +138,10 @@ func (pn *PubNub) Presence() *presenceBuilder {
 	return newPresenceBuilder(pn)
 }
 
+func (pn *PubNub) PresenceWithContext(ctx Context) *presenceBuilder {
+	return newPresenceBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) heartbeat() *heartbeatBuilder {
 	return newHeartbeatBuilder(pn)
 }
@@ -336,8 +340,9 @@ func (pn *PubNub) Destroy() {
 		pn.Config.Log.Println("after exitTelemetryManager")
 	}
 	pn.Config.Log.Println("calling subscriptionManager Destroy")
-	pn.subscriptionManager.Destroy()
 	pn.heartbeatManager.Destroy()
+	pn.subscriptionManager.Destroy()
+
 	pn.Config.Log.Println("After Destroy")
 }
 
