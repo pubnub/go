@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// HeartbeatManager is a struct that assists in running of the heartbeat.
 type HeartbeatManager struct {
 	sync.RWMutex
 
@@ -30,6 +31,7 @@ func newHeartbeatManager(pn *PubNub, context Context) *HeartbeatManager {
 	}
 }
 
+// Destroy stops the running heartbeat.
 func (m *HeartbeatManager) Destroy() {
 	m.stopHeartbeat(true, true)
 }
