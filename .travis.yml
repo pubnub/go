@@ -16,9 +16,9 @@ matrix:
 go_import_path: github.com/pubnub/go  
 
 install:
-  - pacman -S dep
-  - dep status
-  - dep ensure
+  # - pacman -S dep
+  # - dep status
+  # - dep ensure
   # - mkdir -p $GOPATH/src/github.com/pubnub
   # - go get -u golang.org/x/net/context
   # - go get -u github.com/wadey/gocovmerge
