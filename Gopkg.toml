@@ -22,12 +22,12 @@
 
 [[constraint]]
   name = "github.com/satori/go.uuid"
-  version = "1.1.0"
-
-[[constraint]]
-  name = "github.com/stretchr/testify"
   version = "1.2.0"
 
 [[constraint]]
-  branch = "master"
+  name = "github.com/stretchr/testify"
+  version = "1.2.2"
+
+[[constraint]]
   name = "golang.org/x/net"
+  revision = "434ec0c7fe3742c984919a691b2018a6e9694425"
