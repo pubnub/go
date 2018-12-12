@@ -164,8 +164,16 @@ func (pn *PubNub) GetClient() *http.Client {
 
 	if pn.client == nil {
 		if pn.Config.UseHTTP2 {
-			pn.client = NewHTTP2Client(pn.Config.ConnectTimeout,
-				pn.Config.NonSubscribeRequestTimeout)
+			pn.subscribeClient = NewHTTP2Client(pn.Config.ConnectTimeout,
+				pn.Config.SubscribeRequestTimeout)
+
+			//var usingHTTP1 bool
+
+			// pn.client, usingHTTP1 = NewHTTP2Client(pn.Config.ConnectTimeout,
+			// 	pn.Config.NonSubscribeRequestTimeout, pn.Config.MaxIdleConnsPerHost)
+			// if usingHTTP1 {
+			// 	pn.Config.Log.Println("HTTP/2 support on PubNub Go SDK works with go 1.9 onwards, defaulting to HTTP/1.1")
+			// }
 		} else {
 			pn.client = NewHTTP1Client(pn.Config.ConnectTimeout,
 				pn.Config.NonSubscribeRequestTimeout,
@@ -191,6 +199,12 @@ func (pn *PubNub) GetSubscribeClient() *http.Client {
 		if pn.Config.UseHTTP2 {
 			pn.subscribeClient = NewHTTP2Client(pn.Config.ConnectTimeout,
 				pn.Config.SubscribeRequestTimeout)
+			// var usingHTTP1 bool
+			// pn.subscribeClient, usingHTTP1 = NewHTTP2Client(pn.Config.ConnectTimeout,
+			// 	pn.Config.SubscribeRequestTimeout, pn.Config.MaxIdleConnsPerHost)
+			// if usingHTTP1 {
+			// 	pn.Config.Log.Println("HTTP/2 support on PubNub Go SDK works with go 1.9 onwards, defaulting to HTTP/1.1")
+			// }
 		} else {
 			pn.subscribeClient = NewHTTP1Client(pn.Config.ConnectTimeout,
 				pn.Config.SubscribeRequestTimeout, pn.Config.MaxIdleConnsPerHost)

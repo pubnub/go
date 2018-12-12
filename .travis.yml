@@ -17,14 +17,14 @@ go_import_path: github.com/pubnub/go
 
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
-  - go get golang.org/x/net/context
-  - go get github.com/wadey/gocovmerge
-  - go get github.com/stretchr/testify
-  - go get github.com/satori/go.uuid
-  - go get golang.org/x/text/secure/bidirule
-  - go get golang.org/x/text/unicode/bidi
-  - go get golang.org/x/text/unicode/norm
-  - go get -u -v golang.org/x/net/http2
+  - go get -u golang.org/x/net/context
+  - go get -u github.com/wadey/gocovmerge
+  - go get -u github.com/stretchr/testify
+  - go get -u github.com/satori/go.uuid
+  - go get -u golang.org/x/text/secure/bidirule
+  - go get -u golang.org/x/text/unicode/bidi
+  - go get -u golang.org/x/text/unicode/norm
+  - go get -u golang.org/x/net/http2
 
 script:
   - bash ./scripts/run-tests.sh
