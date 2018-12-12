@@ -16,18 +16,14 @@ matrix:
 go_import_path: github.com/pubnub/go  
 
 install:
-  # - pacman -S dep
-  # - dep status
-  # - dep ensure
-  # - mkdir -p $GOPATH/src/github.com/pubnub
-  # - go get -u golang.org/x/net/context
-  # - go get -u github.com/wadey/gocovmerge
-  # - go get -u github.com/stretchr/testify
-  # - go get -u github.com/satori/go.uuid
-  # - go get -u golang.org/x/text/secure/bidirule
-  # - go get -u golang.org/x/text/unicode/bidi
-  # - go get -u golang.org/x/text/unicode/norm
-  # - go get -u golang.org/x/net/http2
+  - mkdir -p $GOPATH/src/github.com/pubnub
+  - go get -u golang.org/x/net/context
+  - go get -u github.com/wadey/gocovmerge
+  - go get -u github.com/stretchr/testify
+  - go get -u github.com/satori/go.uuid
+  - go get -u golang.org/x/text/secure/bidirule
+  - go get -u golang.org/x/text/unicode/bidi
+  - go get -u golang.org/x/text/unicode/norm
 
 script:
   - bash ./scripts/run-tests.sh

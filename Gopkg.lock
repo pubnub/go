@@ -37,7 +37,6 @@
   digest = "1:cf18df59978fa61823ae19ca67c1eded2077045f064812b204eeb3ee84e6466d"
   name = "golang.org/x/net"
   packages = [
-    "context",
     "http2",
     "http2/hpack",
     "idna",
@@ -75,7 +74,6 @@
   input-imports = [
     "github.com/satori/go.uuid",
     "github.com/stretchr/testify/assert",
-    "golang.org/x/net/context",
     "golang.org/x/net/http2",
   ]
   solver-name = "gps-cdcl"
