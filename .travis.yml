@@ -21,16 +21,20 @@ go_import_path: github.com/pubnub/go
 before_install:
   - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
   - chmod +x $GOPATH/bin/dep
-  
+
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
-  - go get -u golang.org/x/net/context
-  - go get -u github.com/wadey/gocovmerge
-  - go get -u github.com/stretchr/testify
-  - go get -u github.com/satori/go.uuid
-  - go get -u golang.org/x/text/secure/bidirule
-  - go get -u golang.org/x/text/unicode/bidi
-  - go get -u golang.org/x/text/unicode/norm
+  - dep check
+  - dep ensure
+  - dep status
+
+  # - go get -u golang.org/x/net/context
+  # - go get -u github.com/wadey/gocovmerge
+  # - go get -u github.com/stretchr/testify
+  # - go get -u github.com/satori/go.uuid
+  # - go get -u golang.org/x/text/secure/bidirule
+  # - go get -u golang.org/x/text/unicode/bidi
+  # - go get -u golang.org/x/text/unicode/norm
 
 script:
   - bash ./scripts/run-tests.sh
