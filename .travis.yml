@@ -24,7 +24,6 @@ before_install:
 
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
-  - dep check
   - dep ensure
   - dep status
 
