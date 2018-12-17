@@ -26,9 +26,9 @@ install:
   - mkdir -p $GOPATH/src/github.com/pubnub
   - dep ensure
   - dep status
+  - go get -u github.com/wadey/gocovmerge
 
   # - go get -u golang.org/x/net/context
-  # - go get -u github.com/wadey/gocovmerge
   # - go get -u github.com/stretchr/testify
   # - go get -u github.com/satori/go.uuid
   # - go get -u golang.org/x/text/secure/bidirule
