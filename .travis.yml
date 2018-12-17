@@ -8,6 +8,9 @@ go:
   - 1.11.1
   - master
   - tip
+
+env:
+  - DEP_VERSION=0.5.0  
   
 matrix:
   allow_failures:
@@ -15,6 +18,10 @@ matrix:
   fast_finish: true
 go_import_path: github.com/pubnub/go  
 
+before_install:
+  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
+  - chmod +x $GOPATH/bin/dep
+  
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
   - go get -u golang.org/x/net/context
