@@ -164,7 +164,7 @@ func (pn *PubNub) GetClient() *http.Client {
 
 	if pn.client == nil {
 		if pn.Config.UseHTTP2 {
-			pn.subscribeClient = NewHTTP2Client(pn.Config.ConnectTimeout,
+			pn.client = NewHTTP2Client(pn.Config.ConnectTimeout,
 				pn.Config.SubscribeRequestTimeout)
 
 			//var usingHTTP1 bool
