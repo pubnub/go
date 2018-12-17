@@ -3,7 +3,7 @@ language: go
 go:
   - 1.9.7
   - 1.10.3
-  - 1.11.4
+  - 1.11.4  
   - master
   - tip
 
@@ -25,13 +25,6 @@ install:
   - dep ensure
   - dep status
   - go get -u github.com/wadey/gocovmerge
-
-  # - go get -u golang.org/x/net/context
-  # - go get -u github.com/stretchr/testify
-  # - go get -u github.com/satori/go.uuid
-  # - go get -u golang.org/x/text/secure/bidirule
-  # - go get -u golang.org/x/text/unicode/bidi
-  # - go get -u golang.org/x/text/unicode/norm
 
 script:
   - bash ./scripts/run-tests.sh

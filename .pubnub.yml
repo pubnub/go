@@ -8,7 +8,7 @@ changelog:
       - 
         text: "Heartbeats per channel"
         type: feature
-    date: Nov 30, 18  
+    date: Dec 18, 18  
     version: v4.1.5
   - 
     changes: 
