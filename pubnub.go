@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.1.4"
+	Version = "4.1.5"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -48,6 +48,7 @@ type PubNub struct {
 	publishSequenceMutex sync.RWMutex
 	subscriptionManager  *SubscriptionManager
 	telemetryManager     *TelemetryManager
+	heartbeatManager     *HeartbeatManager
 	client               *http.Client
 	subscribeClient      *http.Client
 	requestWorkers       *RequestWorkers
@@ -133,6 +134,14 @@ func (pn *PubNub) LeaveWithContext(ctx Context) *leaveBuilder {
 	return newLeaveBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) Presence() *presenceBuilder {
+	return newPresenceBuilder(pn)
+}
+
+func (pn *PubNub) PresenceWithContext(ctx Context) *presenceBuilder {
+	return newPresenceBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) heartbeat() *heartbeatBuilder {
 	return newHeartbeatBuilder(pn)
 }
@@ -156,7 +165,7 @@ func (pn *PubNub) GetClient() *http.Client {
 	if pn.client == nil {
 		if pn.Config.UseHTTP2 {
 			pn.client = NewHTTP2Client(pn.Config.ConnectTimeout,
-				pn.Config.NonSubscribeRequestTimeout)
+				pn.Config.SubscribeRequestTimeout)
 		} else {
 			pn.client = NewHTTP1Client(pn.Config.ConnectTimeout,
 				pn.Config.NonSubscribeRequestTimeout,
@@ -331,7 +340,9 @@ func (pn *PubNub) Destroy() {
 		pn.Config.Log.Println("after exitTelemetryManager")
 	}
 	pn.Config.Log.Println("calling subscriptionManager Destroy")
+	pn.heartbeatManager.Destroy()
 	pn.subscriptionManager.Destroy()
+
 	pn.Config.Log.Println("After Destroy")
 }
 
@@ -364,6 +375,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	}
 
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
+	pn.heartbeatManager = newHeartbeatManager(pn, ctx)
 	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge, ctx)
 	pn.jobQueue = make(chan *JobQItem)
 	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers)

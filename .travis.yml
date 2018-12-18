@@ -1,12 +1,14 @@
 language: go
 
 go:
-  - 1.7.6
-  - 1.8.7
   - 1.9.7
   - 1.10.3
-  - 1.11.1
+  - 1.11.4  
+  - master
   - tip
+
+env:
+  - DEP_VERSION=0.5.0  
   
 matrix:
   allow_failures:
@@ -14,15 +16,15 @@ matrix:
   fast_finish: true
 go_import_path: github.com/pubnub/go  
 
+before_install:
+  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
+  - chmod +x $GOPATH/bin/dep
+
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
-  - go get golang.org/x/net/context
-  - go get github.com/wadey/gocovmerge
-  - go get github.com/stretchr/testify
-  - go get github.com/satori/go.uuid
-  - go get golang.org/x/text/secure/bidirule
-  - go get golang.org/x/text/unicode/bidi
-  - go get golang.org/x/text/unicode/norm
+  - dep ensure
+  - dep status
+  - go get -u github.com/wadey/gocovmerge
 
 script:
   - bash ./scripts/run-tests.sh

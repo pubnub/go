@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Presence Heartbeat call delays itself when a Subscribe call precedes it"
+        type: improvement
+      - 
+        text: "Heartbeats per channel"
+        type: feature
+    date: Dec 18, 18  
+    version: v4.1.5
+  - 
+    changes: 
+      - 
         text: "QueryParams in all API calls"
         type: feature
       - 
@@ -232,6 +242,8 @@ features:
     - PRESENCE-GET-STATE
     - PRESENCE-SET-STATE
     - PRESENCE-HEARTBEAT
+    - PRESENCE-HEARTBEAT-ON-DEMAND
+    - PRESENCE-HEARTBEAT-THROTTLED
     - PRESENCE-HERE-NOW-REFRESH
   publish: 
     - PUBLISH-STORE-FLAG
@@ -282,8 +294,6 @@ scm: github.com/pubnub/go
 supported-platforms: 
   - 
     editors: 
-      - "1.7.6"
-      - "1.8.7"
       - "1.9.7"
       - "1.10.3"
       - "1.11.1"
@@ -293,4 +303,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.1.4
+version: v4.1.5

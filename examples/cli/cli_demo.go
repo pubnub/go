@@ -159,6 +159,7 @@ func showHelp() {
 	showGrantHelp()
 	showSubscribeWithStateHelp()
 	showPresenceTimeoutHelp()
+	showPresenceHelp()
 	fmt.Println("")
 	fmt.Println("================")
 	fmt.Println(" ||  COMMANDS  ||")
@@ -282,6 +283,12 @@ func showPresenceTimeoutHelp() {
 	fmt.Println("	setpto 120 59")
 }
 
+func showPresenceHelp() {
+	fmt.Println(" Presence: ")
+	fmt.Println("	presence Connected Channels ChannelGroups")
+	fmt.Println("	presence true my-channel,my-another-channel my-channelgroup,my-another-channel-group")
+}
+
 func readCommand(cmd string) {
 	command := strings.Split(cmd, " ")
 
@@ -328,6 +335,8 @@ func readCommand(cmd string) {
 		publishTest()
 	case "setpto":
 		setPresenceTimeout(command[1:])
+	case "presence":
+		runPresenceRequest(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -335,6 +344,23 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func runPresenceRequest(args []string) {
+	if len(args) < 2 {
+		showPresenceHelp()
+	}
+	var connected bool
+	connected, _ = strconv.ParseBool(args[0])
+
+	var channels []string
+	channels = strings.Split(args[1], ",")
+
+	var groups []string
+	if len(args) > 2 {
+		groups = strings.Split(args[2], ",")
+	}
+	pn.Presence().Connected(connected).Channels(channels).ChannelGroups(groups).Execute()
 }
 
 func setPresenceTimeout(args []string) {

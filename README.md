@@ -1,6 +1,6 @@
 
-# PubNub 4.1.4 client for Go
-* Go (1.7.6+)
+# PubNub 4.1.5 client for Go
+* Go (1.9+)
 
 # Please direct all Support Questions and Concerns to Support@PubNub.com
 
