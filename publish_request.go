@@ -45,7 +45,7 @@ type publishOpts struct {
 
 // PublishResponse is the response after the execution on Publish and Fire operations.
 type PublishResponse struct {
-	Timestamp int
+	Timestamp int64
 }
 
 type publishBuilder struct {
@@ -68,7 +68,7 @@ func newPublishResponse(jsonBytes []byte, status StatusResponse) (
 	if !ok {
 		return emptyPublishResponse, status, pnerr.NewResponseParsingError(fmt.Sprintf("Error unmarshalling response, %s %v", value[2], value), nil, nil)
 	}
-	timestamp, err := strconv.Atoi(timeString)
+	timestamp, err := strconv.ParseInt(timeString, 10, 64)
 	if err != nil {
 		return emptyPublishResponse, status, err
 	}
