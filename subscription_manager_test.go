@@ -403,7 +403,7 @@ func TestProcessSubscribePayload(t *testing.T) {
 
 	payload := &map[string]interface{}{
 		"action":    "join",
-		"timestamp": 15078947309567840,
+		"timestamp": int64(15078947309567840),
 		"uuid":      "bfce00ff4018fce180438bb04afc8da8",
 		"occupancy": 1,
 	}
@@ -504,7 +504,7 @@ func TestProcessSubscribePayloadSubMatch(t *testing.T) {
 
 	payload := &map[string]interface{}{
 		"action":           "join",
-		"timestamp":        15078947309567840,
+		"timestamp":        int64(15078947309567840),
 		"uuid":             "bfce00ff4018fce180438bb04afc8da8",
 		"occupancy":        1,
 		"here_now_refresh": true,

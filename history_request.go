@@ -251,7 +251,7 @@ func parseInterface(vv []interface{}, o *historyOpts) []HistoryResponseItem {
 					s := fmt.Sprintf("%.0f", f)
 					o.pubnub.Config.Log.Println("s:", s)
 
-					if tt, err := strconv.Atoi(s); err == nil {
+					if tt, err := strconv.ParseInt(s, 10, 64); err == nil {
 						o.pubnub.Config.Log.Println("tt:", tt)
 						items[i].Timetoken = int64(tt)
 					} else {
