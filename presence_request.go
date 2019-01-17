@@ -15,6 +15,8 @@ type presenceOpts struct {
 	channelGroups []string
 	connected     bool
 	ctx           Context
+	queryParam    map[string]string
+	state         map[string]interface{}
 }
 
 func newPresenceBuilder(pubnub *PubNub) *presenceBuilder {
@@ -59,6 +61,19 @@ func (b *presenceBuilder) Connected(connected bool) *presenceBuilder {
 	return b
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *presenceBuilder) QueryParam(queryParam map[string]string) *presenceBuilder {
+	b.opts.queryParam = queryParam
+
+	return b
+}
+
+// State sets the State for the Set State request.
+func (b *presenceBuilder) State(state map[string]interface{}) *presenceBuilder {
+	b.opts.state = state
+	return b
+}
+
 func (b *presenceBuilder) Execute() {
 	if b.opts.connected {
 		for _, ch := range b.opts.channels {
@@ -77,12 +92,16 @@ func (b *presenceBuilder) Execute() {
 			b.opts.pubnub.heartbeatManager.heartbeatGroups[cg] = newSubscriptionItem(cg)
 			b.opts.pubnub.heartbeatManager.Unlock()
 		}
-
+		b.opts.pubnub.heartbeatManager.state = b.opts.state
+		b.opts.pubnub.heartbeatManager.queryParam = b.opts.queryParam
 		b.opts.pubnub.heartbeatManager.startHeartbeatTimer(true)
 	} else {
 		b.opts.pubnub.heartbeatManager.Lock()
 		b.opts.pubnub.heartbeatManager.heartbeatChannels = make(map[string]*SubscriptionItem)
 		b.opts.pubnub.heartbeatManager.heartbeatGroups = make(map[string]*SubscriptionItem)
+		b.opts.pubnub.heartbeatManager.state = nil
+		b.opts.pubnub.heartbeatManager.queryParam = nil
+
 		b.opts.pubnub.heartbeatManager.Unlock()
 		// b.opts.pubnub.heartbeatManager.stopHeartbeat(true, true)
 	}
