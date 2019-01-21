@@ -39,6 +39,13 @@ func newHeartbeatBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *heartbeatBuilder) QueryParam(queryParam map[string]string) *heartbeatBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
 // State sets the state for the Heartbeat request.
 func (b *heartbeatBuilder) State(state interface{}) *heartbeatBuilder {
 	b.opts.State = state
@@ -84,6 +91,7 @@ type heartbeatOpts struct {
 
 	Channels      []string
 	ChannelGroups []string
+	QueryParam    map[string]string
 
 	ctx Context
 }
@@ -139,6 +147,7 @@ func (o *heartbeatOpts) buildQuery() (*url.Values, error) {
 			q.Set("state", string(state))
 		}
 	}
+	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
 }

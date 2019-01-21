@@ -360,7 +360,14 @@ func runPresenceRequest(args []string) {
 	if len(args) > 2 {
 		groups = strings.Split(args[2], ",")
 	}
-	pn.Presence().Connected(connected).Channels(channels).ChannelGroups(groups).Execute()
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+	state := map[string]interface{}{
+		"state": "stateval",
+	}
+	pn.Presence().Connected(connected).Channels(channels).QueryParam(queryParam).State(state).ChannelGroups(groups).Execute()
 }
 
 func setPresenceTimeout(args []string) {

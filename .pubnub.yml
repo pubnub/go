@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Fixes for 32bit and armv7 systems"
+        type: improvement
+      - 
+        text: "QueryParam and State in Presence Heartbeat"
+        type: improvement
+    date: Jan 15, 19  
+    version: v4.1.6
+  - 
+    changes: 
+      - 
         text: "Presence Heartbeat call delays itself when a Subscribe call precedes it"
         type: improvement
       - 
@@ -303,4 +313,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.1.5
+version: v4.1.6

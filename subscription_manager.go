@@ -573,6 +573,9 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			case int:
 				timestamp = int64(presencePayload["timestamp"].(int))
 				break
+			case int64:
+				timestamp = presencePayload["timestamp"].(int64)
+				break
 			case float64:
 				timestamp = int64(presencePayload["timestamp"].(float64))
 				break

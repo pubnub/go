@@ -20,6 +20,8 @@ type HeartbeatManager struct {
 	ctx                       Context
 	runIndependentOfSubscribe bool
 	hbRunning                 bool
+	queryParam                map[string]string
+	state                     map[string]interface{}
 }
 
 func newHeartbeatManager(pn *PubNub, context Context) *HeartbeatManager {
@@ -156,17 +158,23 @@ func (m *HeartbeatManager) prepareList(subItem map[string]*SubscriptionItem) []s
 }
 
 func (m *HeartbeatManager) performHeartbeatLoop() error {
+	var stateStorage map[string]interface{}
+
 	m.RLock()
 	presenceChannels := m.prepareList(m.heartbeatChannels)
 	presenceGroups := m.prepareList(m.heartbeatGroups)
+	stateStorage = m.state
+	queryParam := m.queryParam
 	m.pubnub.Config.Log.Println("performHeartbeatLoop: count presenceChannels, presenceGroups", len(presenceChannels), len(presenceGroups))
 	m.RUnlock()
-	var stateStorage map[string]interface{}
+
 	if (len(presenceChannels) == 0) && (len(presenceGroups) == 0) {
 		m.pubnub.Config.Log.Println("performHeartbeatLoop: count presenceChannels, presenceGroups nil")
 		presenceChannels = m.pubnub.subscriptionManager.stateManager.prepareChannelList(false)
 		presenceGroups = m.pubnub.subscriptionManager.stateManager.prepareGroupList(false)
 		stateStorage = m.pubnub.subscriptionManager.stateManager.createStatePayload()
+		queryParam = nil
+
 		m.pubnub.Config.Log.Println("performHeartbeatLoop: count sub presenceChannels, presenceGroups", len(presenceChannels), len(presenceGroups))
 	}
 
@@ -180,6 +188,7 @@ func (m *HeartbeatManager) performHeartbeatLoop() error {
 		Channels(presenceChannels).
 		ChannelGroups(presenceGroups).
 		State(stateStorage).
+		QueryParam(queryParam).
 		Execute()
 
 	if err != nil {
