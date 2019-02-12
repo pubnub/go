@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Implement history unread messages"
+        type: improvement
+      - 
+        text: "All request were secure (https), even when the Secure flag was false"
+        type: bug
+    date: Feb 15, 19  
+    version: v4.1.7
+  - 
+    changes: 
+      - 
         text: "Fixes for 32bit and armv7 systems"
         type: improvement
       - 
