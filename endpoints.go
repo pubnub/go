@@ -121,9 +121,14 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 
 	path = fmt.Sprintf("//%s%s", o.config().Origin, path)
 
+	secure := ""
+	if o.config().Secure {
+		secure = "s"
+	}
+
 	retURL := &url.URL{
 		Opaque:   path,
-		Scheme:   "https",
+		Scheme:   fmt.Sprintf("http%s", secure),
 		Host:     o.config().Origin,
 		RawQuery: stringifiedQuery,
 	}

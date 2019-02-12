@@ -106,6 +106,8 @@ const (
 	PNAccessManagerRevoke
 	// PNDeleteMessagesOperation is the enum used for the Delete Messages from History operation.
 	PNDeleteMessagesOperation
+	// PNHistoryWithMessagesOperation is the enum used for History with messages operation.
+	PNHistoryWithMessagesOperation
 )
 
 const (

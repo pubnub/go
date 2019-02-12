@@ -55,9 +55,11 @@ func connect() {
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
+	config.Origin = "balancer1g.bronze.aws-pdx-1.ps.pn"
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	config.SecretKey = "demo"
+	config.Secure = false
 
 	config.AuthKey = "akey"
 
@@ -160,6 +162,7 @@ func showHelp() {
 	showSubscribeWithStateHelp()
 	showPresenceTimeoutHelp()
 	showPresenceHelp()
+	showHistoryWithMessagesHelp()
 	fmt.Println("")
 	fmt.Println("================")
 	fmt.Println(" ||  COMMANDS  ||")
@@ -167,6 +170,12 @@ func showHelp() {
 	fmt.Println("")
 	fmt.Println(" UNSUBSCRIBE ALL \n\tq ")
 	fmt.Println(" QUIT \n\tctrl+c ")
+}
+
+func showHistoryWithMessagesHelp() {
+	fmt.Println(" HistoryWithMessages EXAMPLE: ")
+	fmt.Println("	historyWithMessages Channel(s) timetoken timetoken1,timetoken2")
+	fmt.Println("	historyWithMessages my-channel,my-channel1 15210190573608384 15210190573608384,15211140747622125")
 }
 
 func showGetStateHelp() {
@@ -337,6 +346,8 @@ func readCommand(cmd string) {
 		setPresenceTimeout(command[1:])
 	case "presence":
 		runPresenceRequest(command[1:])
+	case "historyWithMessages":
+		historyWithMessages(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -344,6 +355,29 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func historyWithMessages(args []string) {
+	if len(args) < 2 {
+		showHistoryWithMessagesHelp()
+	}
+
+	var channels []string
+	channels = strings.Split(args[0], ",")
+
+	var timetoken string
+	timetoken = args[1]
+
+	var channelTimetokens []string
+	channelTimetokens = strings.Split(args[2], ",")
+
+	res, status, err := pn.HistoryWithMessages().Channels(channels).Timetoken(timetoken).ChannelTimetokens(channelTimetokens).Execute()
+	for ch, v := range res.Channels {
+		fmt.Printf("%s %d", ch, v)
+		fmt.Println("")
+	}
+	fmt.Println(status)
+	fmt.Println(err)
 }
 
 func runPresenceRequest(args []string) {

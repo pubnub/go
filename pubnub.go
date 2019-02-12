@@ -94,6 +94,14 @@ func (pn *PubNub) FetchWithContext(ctx Context) *fetchBuilder {
 	return newFetchBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) HistoryWithMessages() *historyWithMessagesBuilder {
+	return newHistoryWithMessagesBuilder(pn)
+}
+
+func (pn *PubNub) HistoryWithMessagesWithContext(ctx Context) *historyWithMessagesBuilder {
+	return newHistoryWithMessagesBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) SetState() *setStateBuilder {
 	return newSetStateBuilder(pn)
 }
