@@ -368,10 +368,10 @@ func historyWithMessages(args []string) {
 	var timetoken string
 	timetoken = args[1]
 
-	var channelTimetokens []string
-	channelTimetokens = strings.Split(args[2], ",")
+	var channelsTimetoken []string
+	channelsTimetoken = strings.Split(args[2], ",")
 
-	res, status, err := pn.HistoryWithMessages().Channels(channels).Timetoken(timetoken).ChannelTimetokens(channelTimetokens).Execute()
+	res, status, err := pn.HistoryWithMessages().Channels(channels).Timetoken(timetoken).ChannelsTimetoken(channelsTimetoken).Execute()
 	for ch, v := range res.Channels {
 		fmt.Printf("%s %d", ch, v)
 		fmt.Println("")

@@ -2,8 +2,8 @@ package e2e
 
 import (
 	"fmt"
-	"log"
-	"os"
+	//"log"
+	//"os"
 	"strconv"
 	"testing"
 
@@ -21,15 +21,6 @@ func MatchHistoryWithMessages(ret *pubnub.HistoryWithMessagesResponse, count1, c
 		}
 
 	}
-	// chMessages := ret.Channels[ch1]
-	// for i := start; i < len(chMessages); i++ {
-	// 	assert.Equal(fmt.Sprintf("testch1 %d", i), chMessages[i].Message)
-	// }
-	// ch2Messages := ret.Messages[ch2]
-	// for i := start; i < len(ch2Messages); i++ {
-	// 	assert.Equal(fmt.Sprintf("testch2 %d", i), ch2Messages[i].Message)
-	// }
-
 }
 
 func TestHistoryWithMessages(t *testing.T) {
@@ -40,7 +31,7 @@ func TestHistoryWithMessages(t *testing.T) {
 	config2.Origin = "balancer1g.bronze.aws-pdx-1.ps.pn"
 
 	pn := pubnub.NewPubNub(config2)
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	r := GenRandom()
 	ch1 := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
@@ -64,14 +55,14 @@ func TestHistoryWithMessages(t *testing.T) {
 
 	ret, s, err := pn.HistoryWithMessages().
 		Channels([]string{ch1, ch2}).
-		ChannelTimetokens([]string{strconv.FormatInt(timestamp2, 10), strconv.FormatInt(timestamp3, 10)}).
+		ChannelsTimetoken([]string{strconv.FormatInt(timestamp2, 10), strconv.FormatInt(timestamp3, 10)}).
 		Execute()
 
 	fmt.Println("s", s)
 	fmt.Println("s.StatusCode", s.StatusCode)
 
 	assert.Nil(err)
-	MatchHistoryWithMessages(ret, 10, 8, ch1, ch2, assert)
+	MatchHistoryWithMessages(ret, 5, 0, ch1, ch2, assert)
 
 	queryParam := map[string]string{
 		"q1": "v1",

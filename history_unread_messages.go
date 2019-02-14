@@ -57,9 +57,9 @@ func (b *historyWithMessagesBuilder) Timetoken(timetoken string) *historyWithMes
 	return b
 }
 
-// ChannelTimetokens sets the order of messages in the HistoryWithMessages request.
-func (b *historyWithMessagesBuilder) ChannelTimetokens(channelTimetokens []string) *historyWithMessagesBuilder {
-	b.opts.ChannelTimetokens = channelTimetokens
+// ChannelsTimetoken sets the order of messages in the HistoryWithMessages request.
+func (b *historyWithMessagesBuilder) ChannelsTimetoken(channelsTimetoken []string) *historyWithMessagesBuilder {
+	b.opts.ChannelsTimetoken = channelsTimetoken
 	return b
 }
 
@@ -91,7 +91,7 @@ type historyWithMessagesOpts struct {
 
 	Channels          []string
 	Timetoken         string
-	ChannelTimetokens []string
+	ChannelsTimetoken []string
 
 	QueryParam map[string]string
 
@@ -137,7 +137,7 @@ func (o *historyWithMessagesOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	q.Set("timetoken", o.Timetoken)
-	q.Set("channelsTimetoken", strings.Join(o.ChannelTimetokens, ","))
+	q.Set("channelsTimetoken", strings.Join(o.ChannelsTimetoken, ","))
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -180,7 +180,7 @@ type HistoryWithMessagesResponse struct {
 	Channels map[string]int
 }
 
-//http://ps.pndsn.com/v3/history/sub-key/demo/channels-with-messages/my-channel,my-channel1?timestamp=1549982652&pnsdk=PubNub-Go/4.1.6&uuid=pn-82f145ea-adc3-4917-a11d-76a957347a82&timetoken=15499825804610610&channelTimetokens=15499825804610610,15499925804610615&auth=akey&signature=pVDVge_suepcOlSMllpsXg_jpOjtEpW7B3HHFaViI4s=
+//http://ps.pndsn.com/v3/history/sub-key/demo/channels-with-messages/my-channel,my-channel1?timestamp=1549982652&pnsdk=PubNub-Go/4.1.6&uuid=pn-82f145ea-adc3-4917-a11d-76a957347a82&timetoken=15499825804610610&channelsTimetoken=15499825804610610,15499925804610615&auth=akey&signature=pVDVge_suepcOlSMllpsXg_jpOjtEpW7B3HHFaViI4s=
 //{"status": 200, "error": false, "error_message": "", "channels": {"my-channel1":1,"my-channel":2}}
 func newHistoryWithMessagesResponse(jsonBytes []byte, o *historyWithMessagesOpts,
 	status StatusResponse) (*HistoryWithMessagesResponse, StatusResponse, error) {
