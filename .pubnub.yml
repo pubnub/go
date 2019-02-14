@@ -3,7 +3,7 @@ changelog:
   - 
     changes: 
       - 
-        text: "Implement history unread messages"
+        text: "Implement history messages count"
         type: improvement
       - 
         text: "All request were secure (https), even when the Secure flag was false"
@@ -286,7 +286,7 @@ features:
     - STORAGE-COUNT
     - STORAGE-DELETE-MESSAGES
     - STORAGE-FETCH-MESSAGES
-    - STORAGE-UNREAD-COUNT
+    - STORAGE-MESSAGE-COUNT
   subscribe: 
     - SUBSCRIBE-CHANNELS
     - SUBSCRIBE-CHANNEL-GROUPS

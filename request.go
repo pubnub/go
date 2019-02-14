@@ -217,19 +217,19 @@ func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusRespon
 
 		if resp.StatusCode == 408 {
 			opts.config().Log.Println("PNTimeoutCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
-			status = createStatus(PNTimeoutCategory, "", ResponseInfo{}, e)
+			status = createStatus(PNTimeoutCategory, "", ResponseInfo{StatusCode: resp.StatusCode}, e)
 
 			return nil, status, e
 		}
 
 		if resp.StatusCode == 400 {
 			opts.config().Log.Println("PNBadRequestCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
-			status = createStatus(PNBadRequestCategory, "", ResponseInfo{}, e)
+			status = createStatus(PNBadRequestCategory, "", ResponseInfo{StatusCode: resp.StatusCode}, e)
 
 			return nil, status, e
 		}
 		opts.config().Log.Println("PNUnknownCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
-		status = createStatus(PNUnknownCategory, "", ResponseInfo{}, e)
+		status = createStatus(PNUnknownCategory, "", ResponseInfo{StatusCode: resp.StatusCode}, e)
 
 		return nil, status, e
 	}

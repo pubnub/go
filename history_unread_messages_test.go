@@ -2,7 +2,6 @@ package pubnub
 
 import (
 	"fmt"
-	//"reflect"
 	"testing"
 
 	h "github.com/pubnub/go/tests/helpers"

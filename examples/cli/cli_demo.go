@@ -55,6 +55,7 @@ func connect() {
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
+	config.Origin = "balancer1g.bronze.aws-pdx-1.ps.pn"
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	config.SecretKey = "demo"
