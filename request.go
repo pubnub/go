@@ -229,7 +229,7 @@ func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusRespon
 			return nil, status, e
 		}
 		opts.config().Log.Println("PNUnknownCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
-		status = createStatus(PNUnknownCategory, "", ResponseInfo{StatusCode: resp.StatusCode}, e)
+		status = createStatus(PNUnknownCategory, "", ResponseInfo{StatusCode: resp.StatusCode, Operation: opts.operationType()}, e)
 
 		return nil, status, e
 	}

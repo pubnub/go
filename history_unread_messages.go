@@ -137,7 +137,7 @@ func (o *historyWithMessagesOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	q.Set("timetoken", o.Timetoken)
-	q.Set("channelTimetokens", strings.Join(o.ChannelTimetokens, ","))
+	q.Set("channelsTimetoken", strings.Join(o.ChannelTimetokens, ","))
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -168,7 +168,7 @@ func (o *historyWithMessagesOpts) connectTimeout() int {
 }
 
 func (o *historyWithMessagesOpts) operationType() OperationType {
-	return PNHistoryWithMessagesOperation
+	return PNMessageCountOperation
 }
 
 func (o *historyWithMessagesOpts) telemetryManager() *TelemetryManager {
