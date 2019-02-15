@@ -11,7 +11,7 @@ import (
 	a "github.com/stretchr/testify/assert"
 )
 
-func MatchHistoryWithMessages(ret *pubnub.HistoryWithMessagesResponse, count1, count2 int, ch1, ch2 string, assert *a.Assertions) {
+func MatchMessageCounts(ret *pubnub.MessageCountsResponse, count1, count2 int, ch1, ch2 string, assert *a.Assertions) {
 	for ch, v := range ret.Channels {
 		if ch == ch1 {
 			assert.Equal(count1, v)
@@ -23,7 +23,7 @@ func MatchHistoryWithMessages(ret *pubnub.HistoryWithMessagesResponse, count1, c
 	}
 }
 
-func TestHistoryWithMessages(t *testing.T) {
+func TestMessageCounts(t *testing.T) {
 	assert := a.New(t)
 
 	config2 := pubnub.NewDemoConfig()
@@ -53,7 +53,7 @@ func TestHistoryWithMessages(t *testing.T) {
 	timestamp3 := GetTimetoken(pn)
 	fmt.Println("here", strconv.FormatInt(timestamp2, 10), strconv.FormatInt(timestamp3, 10))
 
-	ret, s, err := pn.HistoryWithMessages().
+	ret, s, err := pn.MessageCounts().
 		Channels([]string{ch1, ch2}).
 		ChannelsTimetoken([]string{strconv.FormatInt(timestamp2, 10), strconv.FormatInt(timestamp3, 10)}).
 		Execute()
@@ -62,23 +62,23 @@ func TestHistoryWithMessages(t *testing.T) {
 	fmt.Println("s.StatusCode", s.StatusCode)
 
 	assert.Nil(err)
-	MatchHistoryWithMessages(ret, 5, 0, ch1, ch2, assert)
+	MatchMessageCounts(ret, 5, 0, ch1, ch2, assert)
 
 	queryParam := map[string]string{
 		"q1": "v1",
 		"q2": "v2",
 	}
 
-	ret3, _, err := pn.HistoryWithMessages().
+	ret3, _, err := pn.MessageCounts().
 		Channels([]string{ch1, ch2}).
 		Timetoken(strconv.FormatInt(timestamp1, 10)).
 		QueryParam(queryParam).
 		Execute()
 
-	MatchHistoryWithMessages(ret3, 10, 9, ch1, ch2, assert)
+	MatchMessageCounts(ret3, 10, 9, ch1, ch2, assert)
 	assert.Nil(err)
 
-	ret1, _, err1 := pn.HistoryWithMessagesWithContext(backgroundContext).
+	ret1, _, err1 := pn.MessageCountsWithContext(backgroundContext).
 		Channels([]string{ch1, ch2}).
 		Timetoken(strconv.FormatInt(timestamp2, 10)).
 		QueryParam(queryParam).
@@ -86,6 +86,6 @@ func TestHistoryWithMessages(t *testing.T) {
 
 	assert.Nil(err1)
 
-	MatchHistoryWithMessages(ret1, 5, 4, ch1, ch2, assert)
+	MatchMessageCounts(ret1, 5, 4, ch1, ch2, assert)
 
 }

@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertSuccessHistoryWithMessagesGet(t *testing.T, expectedString string, channels []string, timetoken string, channelsTimetoken []string) {
+func AssertSuccessMessageCountsGet(t *testing.T, expectedString string, channels []string, timetoken string, channelsTimetoken []string) {
 	assert := assert.New(t)
 
-	opts := &historyWithMessagesOpts{
+	opts := &messageCountsOpts{
 		Channels:          channels,
 		Timetoken:         timetoken,
 		ChannelsTimetoken: channelsTimetoken,
@@ -22,7 +22,7 @@ func AssertSuccessHistoryWithMessagesGet(t *testing.T, expectedString string, ch
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v3/history/sub-key/sub_key/channels-with-messages/%s", expectedString),
+		fmt.Sprintf("/v3/history/sub-key/sub_key/message-counts/%s", expectedString),
 		path, []int{})
 
 	body, err := opts.buildBody()
@@ -31,38 +31,38 @@ func AssertSuccessHistoryWithMessagesGet(t *testing.T, expectedString string, ch
 	assert.Empty(body)
 }
 
-func TestHistoryWithMessagesPath(t *testing.T) {
+func TestMessageCountsPath(t *testing.T) {
 	channels := []string{"test1", "test2"}
 	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertSuccessHistoryWithMessagesGet(t, "test1,test2", channels, "15499825804610610", channelsTimetoken)
+	AssertSuccessMessageCountsGet(t, "test1,test2", channels, "15499825804610610", channelsTimetoken)
 }
 
-func TestHistoryWithMessagesQuery(t *testing.T) {
+func TestMessageCountsQuery(t *testing.T) {
 	channels := []string{"test1", "test2"}
 	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertSuccessHistoryWithMessagesGetQuery(t, "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
+	AssertSuccessMessageCountsGetQuery(t, "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
 }
 
-func TestHistoryWithMessagesQuery2(t *testing.T) {
+func TestMessageCountsQuery2(t *testing.T) {
 	channels := []string{"test1", "test2"}
 	channelsTimetoken := []string{}
-	AssertSuccessHistoryWithMessagesGetQuery(t, "15499825804610610", "", channels, "15499825804610610", channelsTimetoken)
+	AssertSuccessMessageCountsGetQuery(t, "15499825804610610", "", channels, "15499825804610610", channelsTimetoken)
 }
 
-func TestHistoryWithMessagesQuery3(t *testing.T) {
+func TestMessageCountsQuery3(t *testing.T) {
 	channels := []string{"test1", "test2"}
 	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertSuccessHistoryWithMessagesGetQuery(t, "", "15499825804610610,15499925804610615", channels, "", channelsTimetoken)
+	AssertSuccessMessageCountsGetQuery(t, "", "15499825804610610,15499925804610615", channels, "", channelsTimetoken)
 }
 
-func AssertSuccessHistoryWithMessagesGetQuery(t *testing.T, expectedString1 string, expectedString2 string, channels []string, timetoken string, channelsTimetoken []string) {
+func AssertSuccessMessageCountsGetQuery(t *testing.T, expectedString1 string, expectedString2 string, channels []string, timetoken string, channelsTimetoken []string) {
 	assert := assert.New(t)
 	queryParam := map[string]string{
 		"q1": "v1",
 		"q2": "v2",
 	}
 
-	opts := &historyWithMessagesOpts{
+	opts := &messageCountsOpts{
 		Channels:          channels,
 		Timetoken:         timetoken,
 		ChannelsTimetoken: channelsTimetoken,
@@ -81,15 +81,15 @@ func AssertSuccessHistoryWithMessagesGetQuery(t *testing.T, expectedString1 stri
 
 }
 
-func AssertNewHistoryWithMessagesBuilder(t *testing.T, testQueryParam bool, testContext bool, expectedString string, expectedString1 string, expectedString2 string, channels []string, timetoken string, channelsTimetoken []string) {
+func AssertNewMessageCountsBuilder(t *testing.T, testQueryParam bool, testContext bool, expectedString string, expectedString1 string, expectedString2 string, channels []string, timetoken string, channelsTimetoken []string) {
 	assert := assert.New(t)
 	queryParam := map[string]string{
 		"q1": "v1",
 		"q2": "v2",
 	}
-	o := newHistoryWithMessagesBuilder(pubnub)
+	o := newMessageCountsBuilder(pubnub)
 	if testContext {
-		o = newHistoryWithMessagesBuilderWithContext(pubnub, backgroundContext)
+		o = newMessageCountsBuilderWithContext(pubnub, backgroundContext)
 	}
 	o.Channels(channels)
 	o.Timetoken(timetoken)
@@ -102,7 +102,7 @@ func AssertNewHistoryWithMessagesBuilder(t *testing.T, testQueryParam bool, test
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v3/history/sub-key/sub_key/channels-with-messages/%s", expectedString),
+		fmt.Sprintf("/v3/history/sub-key/sub_key/message-counts/%s", expectedString),
 		path, []int{})
 
 	u, _ := o.opts.buildQuery()
@@ -117,52 +117,52 @@ func AssertNewHistoryWithMessagesBuilder(t *testing.T, testQueryParam bool, test
 
 }
 
-func TestHistoryWithMessagesBuilder(t *testing.T) {
+func TestMessageCountsBuilder(t *testing.T) {
 	channels := []string{"test1", "test2"}
 	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertNewHistoryWithMessagesBuilder(t, false, false, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
+	AssertNewMessageCountsBuilder(t, false, false, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
 }
 
-func TestHistoryWithMessagesBuilderQP(t *testing.T) {
+func TestMessageCountsBuilderQP(t *testing.T) {
 	channels := []string{"test1", "test2"}
 	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertNewHistoryWithMessagesBuilder(t, true, false, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
+	AssertNewMessageCountsBuilder(t, true, false, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
 }
 
-func TestHistoryWithMessagesBuilderContext(t *testing.T) {
+func TestMessageCountsBuilderContext(t *testing.T) {
 	channels := []string{"test1", "test2"}
 	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertNewHistoryWithMessagesBuilder(t, false, true, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
+	AssertNewMessageCountsBuilder(t, false, true, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
 }
 
-func TestHistoryWithMessagesBuilderContextQP(t *testing.T) {
+func TestMessageCountsBuilderContextQP(t *testing.T) {
 	channels := []string{"test1", "test2"}
 	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertNewHistoryWithMessagesBuilder(t, true, true, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
+	AssertNewMessageCountsBuilder(t, true, true, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
 }
 
-func TestHistoryWithMessagesResponseValueError(t *testing.T) {
+func TestMessageCountsResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &historyWithMessagesOpts{
+	opts := &messageCountsOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`s`)
 
-	_, _, err := newHistoryWithMessagesResponse(jsonBytes, opts, StatusResponse{})
+	_, _, err := newMessageCountsResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
 //{"status": 200, "error": false, "error_message": "", "channels": {"my-channel1":1,"my-channel":2}}
-func TestHistoryWithMessagesResponseValuePass(t *testing.T) {
+func TestMessageCountsResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &historyWithMessagesOpts{
+	opts := &messageCountsOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"my-channel1":1,"my-channel":2}}`)
 
-	res, _, err := newHistoryWithMessagesResponse(jsonBytes, opts, StatusResponse{})
+	res, _, err := newMessageCountsResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(2, res.Channels["my-channel"])
 	assert.Equal(1, res.Channels["my-channel1"])
 	assert.Nil(err)

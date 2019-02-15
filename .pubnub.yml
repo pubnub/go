@@ -3,7 +3,7 @@ changelog:
   - 
     changes: 
       - 
-        text: "Implement history messages count"
+        text: "Implement history Message Counts"
         type: improvement
       - 
         text: "All request were secure (https), even when the Secure flag was false"

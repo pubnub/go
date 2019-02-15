@@ -162,7 +162,7 @@ func showHelp() {
 	showSubscribeWithStateHelp()
 	showPresenceTimeoutHelp()
 	showPresenceHelp()
-	showHistoryWithMessagesHelp()
+	showMessageCountsHelp()
 	fmt.Println("")
 	fmt.Println("================")
 	fmt.Println(" ||  COMMANDS  ||")
@@ -172,10 +172,10 @@ func showHelp() {
 	fmt.Println(" QUIT \n\tctrl+c ")
 }
 
-func showHistoryWithMessagesHelp() {
-	fmt.Println(" HistoryWithMessages EXAMPLE: ")
-	fmt.Println("	historyWithMessages Channel(s) timetoken timetoken1,timetoken2")
-	fmt.Println("	historyWithMessages my-channel,my-channel1 15210190573608384 15210190573608384,15211140747622125")
+func showMessageCountsHelp() {
+	fmt.Println(" MessageCounts EXAMPLE: ")
+	fmt.Println("	messageCounts Channel(s) timetoken timetoken1,timetoken2")
+	fmt.Println("	messageCounts my-channel,my-channel1 15210190573608384 15210190573608384,15211140747622125")
 }
 
 func showGetStateHelp() {
@@ -346,8 +346,8 @@ func readCommand(cmd string) {
 		setPresenceTimeout(command[1:])
 	case "presence":
 		runPresenceRequest(command[1:])
-	case "historyWithMessages":
-		historyWithMessages(command[1:])
+	case "messageCounts":
+		messageCounts(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -357,9 +357,9 @@ func readCommand(cmd string) {
 	}
 }
 
-func historyWithMessages(args []string) {
+func messageCounts(args []string) {
 	if len(args) < 2 {
-		showHistoryWithMessagesHelp()
+		showMessageCountsHelp()
 	}
 
 	var channels []string
@@ -371,7 +371,7 @@ func historyWithMessages(args []string) {
 	var channelsTimetoken []string
 	channelsTimetoken = strings.Split(args[2], ",")
 
-	res, status, err := pn.HistoryWithMessages().Channels(channels).Timetoken(timetoken).ChannelsTimetoken(channelsTimetoken).Execute()
+	res, status, err := pn.MessageCounts().Channels(channels).Timetoken(timetoken).ChannelsTimetoken(channelsTimetoken).Execute()
 	for ch, v := range res.Channels {
 		fmt.Printf("%s %d", ch, v)
 		fmt.Println("")
