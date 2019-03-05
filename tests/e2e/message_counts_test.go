@@ -6,6 +6,7 @@ import (
 	//"os"
 	"strconv"
 	"testing"
+	"time"
 
 	pubnub "github.com/pubnub/go"
 	a "github.com/stretchr/testify/assert"
@@ -40,10 +41,14 @@ func TestMessageCounts(t *testing.T) {
 		if i == 5 {
 			timestamp2 = GetTimetoken(pn)
 		}
+
 		pn.Publish().Channel(ch1).Message(fmt.Sprintf("testch1 %d", i)).Execute()
+		time.Sleep(1 * time.Second)
 		if i < 6 {
 			pn.Publish().Channel(ch2).Message(fmt.Sprintf("testch2 %d", i)).Execute()
+			time.Sleep(1 * time.Second)
 		}
+
 	}
 
 	timestamp3 := GetTimetoken(pn)
