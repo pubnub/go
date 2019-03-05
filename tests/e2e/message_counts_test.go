@@ -26,11 +26,7 @@ func MatchMessageCounts(ret *pubnub.MessageCountsResponse, count1, count2 int, c
 func TestMessageCounts(t *testing.T) {
 	assert := a.New(t)
 
-	config2 := pubnub.NewDemoConfig()
-	config2.Secure = false
-	config2.Origin = "balancer1g.bronze.aws-pdx-1.ps.pn"
-
-	pn := pubnub.NewPubNub(config2)
+	pn := pubnub.NewPubNub(pamConfigCopy())
 	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	r := GenRandom()
@@ -45,7 +41,7 @@ func TestMessageCounts(t *testing.T) {
 			timestamp2 = GetTimetoken(pn)
 		}
 		pn.Publish().Channel(ch1).Message(fmt.Sprintf("testch1 %d", i)).Execute()
-		if i < 9 {
+		if i < 6 {
 			pn.Publish().Channel(ch2).Message(fmt.Sprintf("testch2 %d", i)).Execute()
 		}
 	}
@@ -75,7 +71,7 @@ func TestMessageCounts(t *testing.T) {
 		QueryParam(queryParam).
 		Execute()
 
-	MatchMessageCounts(ret3, 10, 9, ch1, ch2, assert)
+	MatchMessageCounts(ret3, 10, 6, ch1, ch2, assert)
 	assert.Nil(err)
 
 	ret1, _, err1 := pn.MessageCountsWithContext(backgroundContext).
@@ -86,6 +82,6 @@ func TestMessageCounts(t *testing.T) {
 
 	assert.Nil(err1)
 
-	MatchMessageCounts(ret1, 5, 4, ch1, ch2, assert)
+	MatchMessageCounts(ret1, 5, 1, ch1, ch2, assert)
 
 }

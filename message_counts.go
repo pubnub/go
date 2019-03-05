@@ -168,7 +168,7 @@ func (o *messageCountsOpts) connectTimeout() int {
 }
 
 func (o *messageCountsOpts) operationType() OperationType {
-	return PNMessageCountOperation
+	return PNMessageCountsOperation
 }
 
 func (o *messageCountsOpts) telemetryManager() *TelemetryManager {

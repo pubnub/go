@@ -8,7 +8,7 @@ changelog:
       - 
         text: "All request were secure (https), even when the Secure flag was false"
         type: bug
-    date: Feb 15, 19  
+    date: Mar 5, 19  
     version: v4.1.7
   - 
     changes: 

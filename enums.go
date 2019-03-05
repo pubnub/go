@@ -107,7 +107,7 @@ const (
 	// PNDeleteMessagesOperation is the enum used for the Delete Messages from History operation.
 	PNDeleteMessagesOperation
 	// PNMessageCountOperation is the enum used for History with messages operation.
-	PNMessageCountOperation
+	PNMessageCountsOperation
 )
 
 const (
