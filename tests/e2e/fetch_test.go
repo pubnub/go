@@ -5,6 +5,7 @@ import (
 	//"log"
 	//"os"
 	"testing"
+	"time"
 
 	pubnub "github.com/pubnub/go"
 	a "github.com/stretchr/testify/assert"
@@ -46,7 +47,9 @@ func TestFetch(t *testing.T) {
 			timestamp2 = GetTimetoken(pn)
 		}
 		pn.Publish().Channel(ch1).Message(fmt.Sprintf("testch1 %d", i)).Execute()
+		time.Sleep(1 * time.Second)
 		pn.Publish().Channel(ch2).Message(fmt.Sprintf("testch2 %d", i)).Execute()
+		time.Sleep(1 * time.Second)
 	}
 
 	timestamp3 := GetTimetoken(pn)

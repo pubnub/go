@@ -151,7 +151,12 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 	case PNPublishOperation:
 		endpoint = "pub"
 		break
+	case PNMessageCountsOperation:
+		endpoint = "mc"
+		break
 	case PNHistoryOperation:
+		fallthrough
+	case PNFetchMessagesOperation:
 		fallthrough
 	case PNDeleteMessagesOperation:
 		endpoint = "hist"

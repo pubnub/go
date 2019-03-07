@@ -58,6 +58,7 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	config.SecretKey = "demo"
+	//config.Secure = false
 
 	config.AuthKey = "akey"
 
@@ -160,6 +161,7 @@ func showHelp() {
 	showSubscribeWithStateHelp()
 	showPresenceTimeoutHelp()
 	showPresenceHelp()
+	showMessageCountsHelp()
 	fmt.Println("")
 	fmt.Println("================")
 	fmt.Println(" ||  COMMANDS  ||")
@@ -167,6 +169,12 @@ func showHelp() {
 	fmt.Println("")
 	fmt.Println(" UNSUBSCRIBE ALL \n\tq ")
 	fmt.Println(" QUIT \n\tctrl+c ")
+}
+
+func showMessageCountsHelp() {
+	fmt.Println(" MessageCounts EXAMPLE: ")
+	fmt.Println("	messageCounts Channel(s) timetoken timetoken1,timetoken2")
+	fmt.Println("	messageCounts my-channel,my-channel1 15210190573608384 15210190573608384,15211140747622125")
 }
 
 func showGetStateHelp() {
@@ -337,6 +345,8 @@ func readCommand(cmd string) {
 		setPresenceTimeout(command[1:])
 	case "presence":
 		runPresenceRequest(command[1:])
+	case "messageCounts":
+		messageCounts(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -344,6 +354,32 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func messageCounts(args []string) {
+	if len(args) < 2 {
+		showMessageCountsHelp()
+	}
+
+	var channels []string
+	channels = strings.Split(args[0], ",")
+
+	var timetoken string
+	timetoken = args[1]
+
+	var channelsTimetoken []string
+	if len(args) > 2 {
+		channelsTimetoken = strings.Split(args[2], ",")
+	}
+
+	res, status, err := pn.MessageCounts().Channels(channels).Timetoken(timetoken).ChannelsTimetoken(channelsTimetoken).Execute()
+	fmt.Println(status)
+	fmt.Println(err)
+	for ch, v := range res.Channels {
+		fmt.Printf("%s %d", ch, v)
+		fmt.Println("")
+	}
+
 }
 
 func runPresenceRequest(args []string) {

@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Implement history Message Counts"
+        type: improvement
+      - 
+        text: "All request were secure (https), even when the Secure flag was false"
+        type: bug
+    date: Mar 5, 19  
+    version: v4.1.7
+  - 
+    changes: 
+      - 
         text: "Fixes for 32bit and armv7 systems"
         type: improvement
       - 
@@ -276,6 +286,7 @@ features:
     - STORAGE-COUNT
     - STORAGE-DELETE-MESSAGES
     - STORAGE-FETCH-MESSAGES
+    - STORAGE-MESSAGE-COUNT
   subscribe: 
     - SUBSCRIBE-CHANNELS
     - SUBSCRIBE-CHANNEL-GROUPS
@@ -313,4 +324,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.1.6
+version: v4.1.7
