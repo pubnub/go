@@ -152,7 +152,6 @@ func (o *messageCountsOpts) buildQuery() (*url.Values, error) {
 	} else if o.ChannelsTimetoken != nil {
 		q.Set("timetoken", "")
 		q.Set("channelsTimetoken", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(o.ChannelsTimetoken)), ","), "[]"))
-		//q.Set("channelsTimetoken", strings.Join(o.ChannelsTimetoken, ","))
 	} else {
 		// TODO: Remove in next major version bump
 		q.Set("timetoken", strconv.FormatInt(o.Timetoken, 10))
