@@ -9,6 +9,7 @@ import (
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"net/http"
@@ -51,14 +52,15 @@ func (b *messageCountsBuilder) Channels(channels []string) *messageCountsBuilder
 	return b
 }
 
-// Timetoken sets the number of items to return in the MessageCounts request.
-func (b *messageCountsBuilder) Timetoken(timetoken string) *messageCountsBuilder {
+// Deprecated: Use ChannelsTimetoken instead, pass one value in ChannelsTimetoken to achieve the same results.
+// TODO: Remove in next major version bump
+func (b *messageCountsBuilder) Timetoken(timetoken int64) *messageCountsBuilder {
 	b.opts.Timetoken = timetoken
 	return b
 }
 
-// ChannelsTimetoken sets the order of messages in the MessageCounts request.
-func (b *messageCountsBuilder) ChannelsTimetoken(channelsTimetoken []string) *messageCountsBuilder {
+// ChannelsTimetoken Array of timetokens, in order of the channels list..
+func (b *messageCountsBuilder) ChannelsTimetoken(channelsTimetoken []int64) *messageCountsBuilder {
 	b.opts.ChannelsTimetoken = channelsTimetoken
 	return b
 }
@@ -90,8 +92,8 @@ type messageCountsOpts struct {
 	pubnub *PubNub
 
 	Channels          []string
-	Timetoken         string
-	ChannelsTimetoken []string
+	Timetoken         int64
+	ChannelsTimetoken []int64
 
 	QueryParam map[string]string
 
@@ -122,6 +124,14 @@ func (o *messageCountsOpts) validate() error {
 		return newValidationError(o, StrMissingChannel)
 	}
 
+	if (len(o.ChannelsTimetoken) <= 0) && (o.Timetoken == 0) {
+		return newValidationError(o, StrChannelsTimetoken)
+	}
+
+	if (len(o.ChannelsTimetoken) > 1) && (len(o.Channels) != len(o.ChannelsTimetoken)) {
+		return newValidationError(o, StrChannelsTimetokenLength)
+	}
+
 	return nil
 }
 
@@ -136,8 +146,19 @@ func (o *messageCountsOpts) buildPath() (string, error) {
 func (o *messageCountsOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
-	q.Set("timetoken", o.Timetoken)
-	q.Set("channelsTimetoken", strings.Join(o.ChannelsTimetoken, ","))
+	if (o.ChannelsTimetoken != nil) && (len(o.ChannelsTimetoken) == 1) {
+		q.Set("timetoken", strconv.FormatInt(o.ChannelsTimetoken[0], 10))
+		q.Set("channelsTimetoken", "")
+	} else if o.ChannelsTimetoken != nil {
+		q.Set("timetoken", "")
+		q.Set("channelsTimetoken", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(o.ChannelsTimetoken)), ","), "[]"))
+		//q.Set("channelsTimetoken", strings.Join(o.ChannelsTimetoken, ","))
+	} else {
+		// TODO: Remove in next major version bump
+		q.Set("timetoken", strconv.FormatInt(o.Timetoken, 10))
+		q.Set("channelsTimetoken", "")
+	}
+
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil

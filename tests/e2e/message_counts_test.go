@@ -54,9 +54,17 @@ func TestMessageCounts(t *testing.T) {
 	timestamp3 := GetTimetoken(pn)
 	fmt.Println("here", strconv.FormatInt(timestamp2, 10), strconv.FormatInt(timestamp3, 10))
 
+	_, s0, err0 := pn.MessageCounts().
+		Channels([]string{ch1, ch2}).
+		ChannelsTimetoken([]int64{timestamp1, timestamp2, timestamp3}).
+		Execute()
+	fmt.Println("s0", s0)
+	fmt.Println("err0", err0)
+	assert.Contains(err0.Error(), pubnub.StrChannelsTimetokenLength)
+
 	ret, s, err := pn.MessageCounts().
 		Channels([]string{ch1, ch2}).
-		ChannelsTimetoken([]string{strconv.FormatInt(timestamp2, 10), strconv.FormatInt(timestamp3, 10)}).
+		ChannelsTimetoken([]int64{timestamp2, timestamp3}).
 		Execute()
 
 	fmt.Println("s", s)
@@ -72,7 +80,7 @@ func TestMessageCounts(t *testing.T) {
 
 	ret3, _, err := pn.MessageCounts().
 		Channels([]string{ch1, ch2}).
-		Timetoken(strconv.FormatInt(timestamp1, 10)).
+		Timetoken(timestamp1).
 		QueryParam(queryParam).
 		Execute()
 
@@ -81,12 +89,22 @@ func TestMessageCounts(t *testing.T) {
 
 	ret1, _, err1 := pn.MessageCountsWithContext(backgroundContext).
 		Channels([]string{ch1, ch2}).
-		Timetoken(strconv.FormatInt(timestamp2, 10)).
+		Timetoken(timestamp2).
 		QueryParam(queryParam).
 		Execute()
 
 	assert.Nil(err1)
 
 	MatchMessageCounts(ret1, 5, 1, ch1, ch2, assert)
+
+	ret4, _, err4 := pn.MessageCountsWithContext(backgroundContext).
+		Channels([]string{ch1, ch2}).
+		ChannelsTimetoken([]int64{timestamp2}).
+		QueryParam(queryParam).
+		Execute()
+
+	assert.Nil(err4)
+
+	MatchMessageCounts(ret4, 5, 1, ch1, ch2, assert)
 
 }

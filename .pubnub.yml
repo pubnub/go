@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "Message Counts changes"
+        type: improvement
+    date: Mar 13, 19  
+    version: v4.2.0
+  - 
+    changes: 
+      - 
         text: "Implement history Message Counts"
         type: improvement
       - 
@@ -324,4 +331,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.1.7
+version: v4.2.0
