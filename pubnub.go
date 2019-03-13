@@ -12,30 +12,34 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.1.7"
+	Version = "4.2.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
 
 const (
-	// StrMissingPubKey show Missing Publish Key message
+	// StrMissingPubKey shows Missing Publish Key message
 	StrMissingPubKey = "Missing Publish Key"
-	// StrMissingSubKey show Missing Subscribe Key message
+	// StrMissingSubKey shows Missing Subscribe Key message
 	StrMissingSubKey = "Missing Subscribe Key"
-	// StrMissingChannel show Channel message
+	// StrMissingChannel shows Channel message
 	StrMissingChannel = "Missing Channel"
-	// StrMissingChannelGroup show Channel Group message
+	// StrMissingChannelGroup shows Channel Group message
 	StrMissingChannelGroup = "Missing Channel Group"
-	// StrMissingMessage show Missing Message message
+	// StrMissingMessage shows Missing Message message
 	StrMissingMessage = "Missing Message"
-	// StrMissingSecretKey show Missing Secret Key message
+	// StrMissingSecretKey shows Missing Secret Key message
 	StrMissingSecretKey = "Missing Secret Key"
-	// StrMissingUUID show Missing UUID message
+	// StrMissingUUID shows Missing UUID message
 	StrMissingUUID = "Missing UUID"
-	// StrMissingDeviceID show Missing Device ID message
+	// StrMissingDeviceID shows Missing Device ID message
 	StrMissingDeviceID = "Missing Device ID"
-	// StrMissingPushType show Missing Push Type message
+	// StrMissingPushType shows Missing Push Type message
 	StrMissingPushType = "Missing Push Type"
+	// StrChannelsTimetoken shows Missing Channels Timetoken message
+	StrChannelsTimetoken = "Missing Channels Timetoken"
+	// StrChannelsTimetokenLength shows Length of Channels Timetoken message
+	StrChannelsTimetokenLength = "Length of Channels Timetoken and Channels do not match"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.

@@ -173,8 +173,8 @@ func showHelp() {
 
 func showMessageCountsHelp() {
 	fmt.Println(" MessageCounts EXAMPLE: ")
-	fmt.Println("	messageCounts Channel(s) timetoken timetoken1,timetoken2")
-	fmt.Println("	messageCounts my-channel,my-channel1 15210190573608384 15210190573608384,15211140747622125")
+	fmt.Println("	messageCounts Channel(s) timetoken1,timetoken2")
+	fmt.Println("	messageCounts my-channel,my-channel1 15210190573608384,15211140747622125")
 }
 
 func showGetStateHelp() {
@@ -364,20 +364,28 @@ func messageCounts(args []string) {
 	var channels []string
 	channels = strings.Split(args[0], ",")
 
-	var timetoken string
-	timetoken = args[1]
-
-	var channelsTimetoken []string
-	if len(args) > 2 {
-		channelsTimetoken = strings.Split(args[2], ",")
+	var channelsTimetoken []int64
+	if len(args) > 1 {
+		strSlice := strings.Split(args[1], ",")
+		channelsTimetoken = make([]int64, len(strSlice))
+		for i := range strSlice {
+			n, err := strconv.ParseInt(strSlice[i], 10, 64)
+			if err == nil {
+				channelsTimetoken[i] = n
+			} else {
+				fmt.Println(err)
+			}
+		}
 	}
 
-	res, status, err := pn.MessageCounts().Channels(channels).Timetoken(timetoken).ChannelsTimetoken(channelsTimetoken).Execute()
+	res, status, err := pn.MessageCounts().Channels(channels).ChannelsTimetoken(channelsTimetoken).Execute()
 	fmt.Println(status)
 	fmt.Println(err)
-	for ch, v := range res.Channels {
-		fmt.Printf("%s %d", ch, v)
-		fmt.Println("")
+	if err == nil {
+		for ch, v := range res.Channels {
+			fmt.Printf("%s %d", ch, v)
+			fmt.Println("")
+		}
 	}
 
 }

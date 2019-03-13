@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertSuccessMessageCountsGet(t *testing.T, expectedString string, channels []string, timetoken string, channelsTimetoken []string) {
+func AssertSuccessMessageCountsGet(t *testing.T, expectedString string, channels []string, timetoken int64, channelsTimetoken []int64) {
 	assert := assert.New(t)
 
 	opts := &messageCountsOpts{
@@ -33,29 +33,29 @@ func AssertSuccessMessageCountsGet(t *testing.T, expectedString string, channels
 
 func TestMessageCountsPath(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertSuccessMessageCountsGet(t, "test1,test2", channels, "15499825804610610", channelsTimetoken)
+	channelsTimetoken := []int64{15499825804610610, 15499925804610615}
+	AssertSuccessMessageCountsGet(t, "test1,test2", channels, 15499825804610610, channelsTimetoken)
 }
 
 func TestMessageCountsQuery(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertSuccessMessageCountsGetQuery(t, "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
+	channelsTimetoken := []int64{15499825804610610, 15499925804610615}
+	AssertSuccessMessageCountsGetQuery(t, "", "15499825804610610,15499925804610615", channels, 15499825804610610, channelsTimetoken)
 }
 
 func TestMessageCountsQuery2(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	channelsTimetoken := []string{}
-	AssertSuccessMessageCountsGetQuery(t, "15499825804610610", "", channels, "15499825804610610", channelsTimetoken)
+	channelsTimetoken := []int64{}
+	AssertSuccessMessageCountsGetQuery(t, "", "", channels, 15499825804610610, channelsTimetoken)
 }
 
 func TestMessageCountsQuery3(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertSuccessMessageCountsGetQuery(t, "", "15499825804610610,15499925804610615", channels, "", channelsTimetoken)
+	channelsTimetoken := []int64{15499825804610610, 15499925804610615}
+	AssertSuccessMessageCountsGetQuery(t, "", "15499825804610610,15499925804610615", channels, 0, channelsTimetoken)
 }
 
-func AssertSuccessMessageCountsGetQuery(t *testing.T, expectedString1 string, expectedString2 string, channels []string, timetoken string, channelsTimetoken []string) {
+func AssertSuccessMessageCountsGetQuery(t *testing.T, expectedString1 string, expectedString2 string, channels []string, timetoken int64, channelsTimetoken []int64) {
 	assert := assert.New(t)
 	queryParam := map[string]string{
 		"q1": "v1",
@@ -81,7 +81,7 @@ func AssertSuccessMessageCountsGetQuery(t *testing.T, expectedString1 string, ex
 
 }
 
-func AssertNewMessageCountsBuilder(t *testing.T, testQueryParam bool, testContext bool, expectedString string, expectedString1 string, expectedString2 string, channels []string, timetoken string, channelsTimetoken []string) {
+func AssertNewMessageCountsBuilder(t *testing.T, testQueryParam bool, testContext bool, expectedString string, expectedString1 string, expectedString2 string, channels []string, timetoken int64, channelsTimetoken []int64) {
 	assert := assert.New(t)
 	queryParam := map[string]string{
 		"q1": "v1",
@@ -119,26 +119,27 @@ func AssertNewMessageCountsBuilder(t *testing.T, testQueryParam bool, testContex
 
 func TestMessageCountsBuilder(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertNewMessageCountsBuilder(t, false, false, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
+	channelsTimetoken := []int64{15499825804610610, 15499925804610615}
+	AssertNewMessageCountsBuilder(t, false, false, "test1,test2", "", "15499825804610610,15499925804610615", channels, 15499825804610610, channelsTimetoken)
 }
 
 func TestMessageCountsBuilderQP(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertNewMessageCountsBuilder(t, true, false, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
+	channelsTimetoken := []int64{15499825804610610, 15499925804610615}
+	AssertNewMessageCountsBuilder(t, true, false, "test1,test2", "", "15499825804610610,15499925804610615", channels, 15499825804610610, channelsTimetoken)
 }
 
 func TestMessageCountsBuilderContext(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertNewMessageCountsBuilder(t, false, true, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
+	channelsTimetoken := []int64{15499825804610610, 15499925804610615}
+	AssertNewMessageCountsBuilder(t, false, true, "test1,test2", "", "15499825804610610,15499925804610615", channels, 15499825804610610, channelsTimetoken)
 }
 
 func TestMessageCountsBuilderContextQP(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	channelsTimetoken := []string{"15499825804610610", "15499925804610615"}
-	AssertNewMessageCountsBuilder(t, true, true, "test1,test2", "15499825804610610", "15499825804610610,15499925804610615", channels, "15499825804610610", channelsTimetoken)
+	channelsTimetoken := []int64{15499825804610610, 15499925804610615}
+
+	AssertNewMessageCountsBuilder(t, true, true, "test1,test2", "", "15499825804610610,15499925804610615", channels, 15499825804610610, channelsTimetoken)
 }
 
 func TestMessageCountsResponseValueError(t *testing.T) {
