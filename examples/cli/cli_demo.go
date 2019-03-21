@@ -909,17 +909,21 @@ func historyRequest(args []string) {
 
 func parseHistory(res *pubnub.HistoryResponse, status pubnub.StatusResponse, err error) {
 	fmt.Println(fmt.Sprintf("%s ParseHistory:", outputPrefix))
-	if res.Messages != nil {
-		for _, v := range res.Messages {
-			fmt.Println(fmt.Sprintf("%s Timetoken %d", outputPrefix, v.Timetoken))
-			fmt.Println(fmt.Sprintf("%s Message %s", outputPrefix, v.Message))
+	if res != nil {
+		if res.Messages != nil {
+			for _, v := range res.Messages {
+				fmt.Println(fmt.Sprintf("%s Timetoken %d", outputPrefix, v.Timetoken))
+				fmt.Println(fmt.Sprintf("%s Message %s", outputPrefix, v.Message))
+			}
+		} else {
+			fmt.Println(fmt.Sprintf("res.Messages null"))
 		}
+		fmt.Println(fmt.Sprintf("%s EndTimetoken %d", outputPrefix, res.EndTimetoken))
+		fmt.Println(fmt.Sprintf("%s StartTimetoken %d", outputPrefix, res.StartTimetoken))
+		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	} else {
-		fmt.Println(fmt.Sprintf("res.Messages null"))
+		fmt.Println(fmt.Sprintf("%s StatusResponse %s %e", status.Error, err))
 	}
-	fmt.Println(fmt.Sprintf("%s EndTimetoken %d", outputPrefix, res.EndTimetoken))
-	fmt.Println(fmt.Sprintf("%s StartTimetoken %d", outputPrefix, res.StartTimetoken))
-	fmt.Println(fmt.Sprintf("%s", outputSuffix))
 }
 
 func timeRequest() {
