@@ -245,7 +245,7 @@ func TestHistoryResponseParsingMap(t *testing.T) {
 	assert.Equal(int64(14991868111600528), resp.EndTimetoken)
 
 	messages := resp.Messages
-	assert.Equal(map[string]interface{}{"two": float64(2), "one": float64(1)},
+	assert.Equal(map[string]interface{}{"two": int64(2), "one": int64(1)},
 		messages[0].Message)
 }
 
