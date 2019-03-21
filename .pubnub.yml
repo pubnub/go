@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "History timetoken float64 to int64 conversion loss fix"
+        type: bug
+    date: Mar 21, 19  
+    version: v4.2.1
+  - 
+    changes: 
+      - 
         text: "Message Counts simplification (Breaking changes from the previous version)."
         type: improvement
     date: Mar 13, 19  
@@ -325,10 +332,11 @@ supported-platforms:
       - "1.9.7"
       - "1.10.3"
       - "1.11.1"
+      - "1.12.1"
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.2.0
+version: v4.2.1
