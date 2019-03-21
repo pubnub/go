@@ -922,7 +922,7 @@ func parseHistory(res *pubnub.HistoryResponse, status pubnub.StatusResponse, err
 		fmt.Println(fmt.Sprintf("%s StartTimetoken %d", outputPrefix, res.StartTimetoken))
 		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	} else {
-		fmt.Println(fmt.Sprintf("%s StatusResponse %s %e", status.Error, err))
+		fmt.Println(fmt.Sprintf("%s StatusResponse %s %e", outputPrefix, status.Error, err))
 	}
 }
 

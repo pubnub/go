@@ -3,7 +3,6 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
@@ -244,7 +243,7 @@ func getHistoryItemsWithoutTimetoken(historyResponseRaw []byte, o *historyOpts, 
 	var historyResponseItems []interface{}
 	err0 := json.Unmarshal(historyResponseRaw, &historyResponseItems)
 	if err0 != nil {
-		e := logAndCreateNewResponseParsingError(o, errors.New(fmt.Sprintf("%e, %e, %s", err0, err1, string(jsonBytes))), string(jsonBytes), "Error unmarshalling response")
+		e := logAndCreateNewResponseParsingError(o, fmt.Errorf("%e, %e, %s", err0, err1, string(jsonBytes)), string(jsonBytes), "Error unmarshalling response")
 
 		return nil, e
 	}
