@@ -240,27 +240,47 @@ func logAndCreateNewResponseParsingError(o *historyOpts, err error, jsonBody str
 	return e
 }
 
-func getHistoryItemsWithoutTimetoken(historyResponseItems []interface{}, o *historyOpts) []HistoryResponseItem {
+func getHistoryItemsWithoutTimetoken(historyResponseRaw []byte, o *historyOpts, err1 error, jsonBytes []byte) ([]HistoryResponseItem, *pnerr.ResponseParsingError) {
+	var historyResponseItems []interface{}
+	err0 := json.Unmarshal(historyResponseRaw, &historyResponseItems)
+	if err0 != nil {
+		e := logAndCreateNewResponseParsingError(o, errors.New(fmt.Sprintf("%e, %e, %s", err0, err1, string(jsonBytes))), string(jsonBytes), "Error unmarshalling response")
+
+		return nil, e
+	}
+
 	items := make([]HistoryResponseItem, len(historyResponseItems))
 
 	for i, v := range historyResponseItems {
 		o.pubnub.Config.Log.Println(v)
 		items[i].Message, _ = parseCipherInterface(v, o.pubnub.Config)
 	}
-	return items
+	return items, nil
 }
 
-func getHistoryItemsWithTimetoken(historyResponseItems []HistoryResponseItem, o *historyOpts) []HistoryResponseItem {
+func getHistoryItemsWithTimetoken(historyResponseItems []HistoryResponseItem, o *historyOpts, historyResponseRaw []byte, jsonBytes []byte) ([]HistoryResponseItem, *pnerr.ResponseParsingError) {
 	items := make([]HistoryResponseItem, len(historyResponseItems))
 
-	for i, v := range historyResponseItems {
-		o.pubnub.Config.Log.Println(v.Message)
-		items[i].Message, _ = parseCipherInterface(v.Message, o.pubnub.Config)
+	b := false
 
-		o.pubnub.Config.Log.Println(v.Timetoken)
-		items[i].Timetoken = v.Timetoken
+	for i, v := range historyResponseItems {
+		if v.Message != nil {
+			o.pubnub.Config.Log.Println(v.Message)
+			items[i].Message, _ = parseCipherInterface(v.Message, o.pubnub.Config)
+
+			o.pubnub.Config.Log.Println(v.Timetoken)
+			items[i].Timetoken = v.Timetoken
+		} else {
+			b = true
+			break
+		}
 	}
-	return items
+	if b {
+		items, e := getHistoryItemsWithoutTimetoken(historyResponseRaw, o, nil, jsonBytes)
+		return items, e
+	}
+
+	return items, nil
 }
 
 func newHistoryResponse(jsonBytes []byte, o *historyOpts,
@@ -286,19 +306,19 @@ func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 		var items []HistoryResponseItem
 
 		err1 := json.Unmarshal(historyResponseRaw[0], &historyResponseItems)
+		var e *pnerr.ResponseParsingError
 		if err1 != nil {
 			o.pubnub.Config.Log.Println(err1.Error())
 
-			var historyResponseItemsWithoutTimetoken []interface{}
-			err0 := json.Unmarshal(historyResponseRaw[0], &historyResponseItemsWithoutTimetoken)
-			if err0 != nil {
-				e := logAndCreateNewResponseParsingError(o, errors.New(fmt.Sprintf("%e, %e, %s", err0, err1, string(jsonBytes))), string(jsonBytes), "Error unmarshalling response")
-
+			items, e = getHistoryItemsWithoutTimetoken(historyResponseRaw[0], o, err1, jsonBytes)
+			if e != nil {
 				return emptyHistoryResp, status, e
 			}
-			items = getHistoryItemsWithoutTimetoken(historyResponseItemsWithoutTimetoken, o)
 		} else {
-			items = getHistoryItemsWithTimetoken(historyResponseItems, o)
+			items, e = getHistoryItemsWithTimetoken(historyResponseItems, o, historyResponseRaw[0], jsonBytes)
+			if e != nil {
+				return emptyHistoryResp, status, e
+			}
 		}
 		if items != nil {
 			resp.Messages = items
