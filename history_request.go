@@ -7,7 +7,6 @@ import (
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
 	"io/ioutil"
-	"reflect"
 	"strconv"
 
 	"net/http"
@@ -227,53 +226,60 @@ type HistoryResponse struct {
 	EndTimetoken   int64
 }
 
-// parseInterface umarshals the response data, marshals the data again in a
-// different format and returns the json string. It also unescapes the data.
-//
-// parameters:
-// vv: interface array to parse and extract data from.
-// o : historyOpts
-//
-// returns []HistoryResponseItem.
-func parseInterface(vv []interface{}, o *historyOpts) []HistoryResponseItem {
-	o.pubnub.Config.Log.Println(vv)
-	items := make([]HistoryResponseItem, len(vv))
-	for i := range vv {
+// HistoryResponseItem is used to store the Message and the associated timetoken from the History request.
+type HistoryResponseItem struct {
+	Message   interface{}
+	Timetoken int64
+}
 
-		val := vv[i]
-		o.pubnub.Config.Log.Println("reflect.TypeOf(val).Kind()", reflect.TypeOf(val).Kind())
-		switch v := val.(type) {
-		case map[string]interface{}:
-			o.pubnub.Config.Log.Println("Map", v)
-			if v["timetoken"] != nil {
-				o.pubnub.Config.Log.Println("timetoken:", v["timetoken"])
-				if f, ok := v["timetoken"].(float64); ok {
-					s := fmt.Sprintf("%.0f", f)
-					o.pubnub.Config.Log.Println("s:", s)
+func logAndCreateNewResponseParsingError(o *historyOpts, err error, jsonBody string, message string) *pnerr.ResponseParsingError {
+	o.pubnub.Config.Log.Println(err.Error())
+	e := pnerr.NewResponseParsingError(message,
+		ioutil.NopCloser(bytes.NewBufferString(jsonBody)), err)
+	return e
+}
 
-					if tt, err := strconv.ParseInt(s, 10, 64); err == nil {
-						o.pubnub.Config.Log.Println("tt:", tt)
-						items[i].Timetoken = int64(tt)
-					} else {
-						o.pubnub.Config.Log.Println(f, s, err)
-					}
-				} else {
-					o.pubnub.Config.Log.Println("v[timetoken].(int64)", ok, items[i].Timetoken)
-				}
-				items[i].Message, _ = parseCipherInterface(v["message"], o.pubnub.Config)
-			} else {
-				o.pubnub.Config.Log.Println("value", v)
-				items[i].Message, _ = parseCipherInterface(v, o.pubnub.Config)
-				o.pubnub.Config.Log.Println("items[i]", items[i])
-			}
-			break
-		default:
-			o.pubnub.Config.Log.Println(v)
-			items[i].Message, _ = parseCipherInterface(v, o.pubnub.Config)
+func getHistoryItemsWithoutTimetoken(historyResponseRaw []byte, o *historyOpts, err1 error, jsonBytes []byte) ([]HistoryResponseItem, *pnerr.ResponseParsingError) {
+	var historyResponseItems []interface{}
+	err0 := json.Unmarshal(historyResponseRaw, &historyResponseItems)
+	if err0 != nil {
+		e := logAndCreateNewResponseParsingError(o, fmt.Errorf("%e, %e, %s", err0, err1, string(jsonBytes)), string(jsonBytes), "Error unmarshalling response")
+
+		return nil, e
+	}
+
+	items := make([]HistoryResponseItem, len(historyResponseItems))
+
+	for i, v := range historyResponseItems {
+		o.pubnub.Config.Log.Println(v)
+		items[i].Message, _ = parseCipherInterface(v, o.pubnub.Config)
+	}
+	return items, nil
+}
+
+func getHistoryItemsWithTimetoken(historyResponseItems []HistoryResponseItem, o *historyOpts, historyResponseRaw []byte, jsonBytes []byte) ([]HistoryResponseItem, *pnerr.ResponseParsingError) {
+	items := make([]HistoryResponseItem, len(historyResponseItems))
+
+	b := false
+
+	for i, v := range historyResponseItems {
+		if v.Message != nil {
+			o.pubnub.Config.Log.Println(v.Message)
+			items[i].Message, _ = parseCipherInterface(v.Message, o.pubnub.Config)
+
+			o.pubnub.Config.Log.Println(v.Timetoken)
+			items[i].Timetoken = v.Timetoken
+		} else {
+			b = true
 			break
 		}
 	}
-	return items
+	if b {
+		items, e := getHistoryItemsWithoutTimetoken(historyResponseRaw, o, nil, jsonBytes)
+		return items, e
+	}
+
+	return items, nil
 }
 
 func newHistoryResponse(jsonBytes []byte, o *historyOpts,
@@ -281,38 +287,38 @@ func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 
 	resp := &HistoryResponse{}
 
-	var value interface{}
+	var historyResponseRaw []json.RawMessage
 
-	err := json.Unmarshal(jsonBytes, &value)
+	err := json.Unmarshal(jsonBytes, &historyResponseRaw)
 	if err != nil {
-		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+		e := logAndCreateNewResponseParsingError(o, err, string(jsonBytes), "Error unmarshalling response")
 
 		return emptyHistoryResp, status, e
 	}
 
-	switch v := value.(type) {
-	case []interface{}:
-		startTimetoken, ok := v[1].(float64)
-		if !ok {
-			e := pnerr.NewResponseParsingError("Error parsing response",
-				ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+	if historyResponseRaw != nil && len(historyResponseRaw) > 2 {
+		o.pubnub.Config.Log.Println("M", string(historyResponseRaw[0]))
+		o.pubnub.Config.Log.Println("T1", string(historyResponseRaw[1]))
+		o.pubnub.Config.Log.Println("T2", string(historyResponseRaw[2]))
 
-			return emptyHistoryResp, status, e
+		var historyResponseItems []HistoryResponseItem
+		var items []HistoryResponseItem
+
+		err1 := json.Unmarshal(historyResponseRaw[0], &historyResponseItems)
+		var e *pnerr.ResponseParsingError
+		if err1 != nil {
+			o.pubnub.Config.Log.Println(err1.Error())
+
+			items, e = getHistoryItemsWithoutTimetoken(historyResponseRaw[0], o, err1, jsonBytes)
+			if e != nil {
+				return emptyHistoryResp, status, e
+			}
+		} else {
+			items, e = getHistoryItemsWithTimetoken(historyResponseItems, o, historyResponseRaw[0], jsonBytes)
+			if e != nil {
+				return emptyHistoryResp, status, e
+			}
 		}
-
-		endTimetoken, ok := v[2].(float64)
-		if !ok {
-			e := pnerr.NewResponseParsingError("Error parsing response",
-				ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
-
-			return emptyHistoryResp, status, e
-		}
-
-		msgs := v[0].([]interface{})
-		o.pubnub.Config.Log.Println(msgs)
-
-		items := parseInterface(msgs, o)
 		if items != nil {
 			resp.Messages = items
 			o.pubnub.Config.Log.Printf("returning []interface, %v\n", items)
@@ -320,21 +326,24 @@ func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 			o.pubnub.Config.Log.Println("items nil")
 		}
 
-		resp.StartTimetoken = int64(startTimetoken)
-		resp.EndTimetoken = int64(endTimetoken)
-		break
-	default:
-		e := pnerr.NewResponseParsingError("Error parsing response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+		startTimetoken, err := strconv.ParseInt(string(historyResponseRaw[1]), 10, 64)
+		if err == nil {
+			resp.StartTimetoken = startTimetoken
+		}
+
+		endTimetoken, err := strconv.ParseInt(string(historyResponseRaw[2]), 10, 64)
+		if err == nil {
+			resp.EndTimetoken = endTimetoken
+		}
+	} else if historyResponseRaw != nil && len(historyResponseRaw) > 0 {
+		e := logAndCreateNewResponseParsingError(o, err, string(jsonBytes), "Error unmarshalling response")
+
+		return emptyHistoryResp, status, e
+	} else {
+		e := logAndCreateNewResponseParsingError(o, err, string(jsonBytes), "Error unmarshalling response")
 
 		return emptyHistoryResp, status, e
 	}
 
 	return resp, status, nil
-}
-
-// HistoryResponseItem is used to store the Message and the associated timetoken from the History request.
-type HistoryResponseItem struct {
-	Message   interface{}
-	Timetoken int64
 }
