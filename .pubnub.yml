@@ -325,7 +325,7 @@ features:
     - REQUEST-MESSAGE-COUNT-EXCEEDED  
 name: go
 schema: 1
-scm: github.com/pubnub/go
+scm: github.com/zhashkevych/go
 supported-platforms: 
   - 
     editors: 

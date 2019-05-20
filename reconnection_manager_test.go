@@ -2,7 +2,7 @@ package pubnub
 
 import (
 	//"fmt"
-	"github.com/pubnub/go/tests/stubs"
+	"github.com/zhashkevych/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
 	//"log"
 	//"os"

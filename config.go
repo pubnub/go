@@ -2,7 +2,7 @@ package pubnub
 
 import (
 	"fmt"
-	"github.com/pubnub/go/utils"
+	"github.com/zhashkevych/go/utils"
 	"log"
 )
 
@@ -41,23 +41,31 @@ type Config struct {
 }
 
 // NewDemoConfig initiates the config with demo keys, for tests only.
-func NewDemoConfig() *Config {
-	demoConfig := NewConfig()
+func NewDemoConfig() (*Config, error) {
+	demoConfig, err := NewConfig()
+	if err != nil {
+		return nil, err
+	}
 
 	demoConfig.PublishKey = "demo"
 	demoConfig.SubscribeKey = "demo"
 	demoConfig.SecretKey = "demo"
 
-	return demoConfig
+	return demoConfig, nil
 
 }
 
 // NewConfig initiates the config with default values.
-func NewConfig() *Config {
-	c := Config{
+func NewConfig() (*Config, error) {
+	uuid, err := utils.UUID()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Config{
 		Origin:                     "ps.pndsn.com",
 		Secure:                     true,
-		UUID:                       fmt.Sprintf("pn-%s", utils.UUID()),
+		UUID:                       fmt.Sprintf("pn-%s", uuid),
 		ConnectTimeout:             10,
 		NonSubscribeRequestTimeout: 10,
 		SubscribeRequestTimeout:    310,
@@ -69,9 +77,7 @@ func NewConfig() *Config {
 		MessageQueueOverflowCount:  100,
 		MaxIdleConnsPerHost:        30,
 		MaxWorkers:                 20,
-	}
-
-	return &c
+	}, nil
 }
 
 // SetPresenceTimeoutWithCustomInterval sets the presence timeout and interval.

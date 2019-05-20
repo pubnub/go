@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
+	"github.com/zhashkevych/go/pnerr"
+	"github.com/zhashkevych/go/utils"
 )
 
 type endpointOpts interface {

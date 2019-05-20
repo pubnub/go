@@ -3,7 +3,7 @@ package pubnub
 import (
 	"bytes"
 	"fmt"
-	"github.com/pubnub/go/pnerr"
+	"github.com/zhashkevych/go/pnerr"
 	"io"
 	"io/ioutil"
 	"net/http"

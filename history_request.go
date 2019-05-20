@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
+	"github.com/zhashkevych/go/pnerr"
+	"github.com/zhashkevych/go/utils"
 	"io/ioutil"
 	"strconv"
 

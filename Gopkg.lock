@@ -18,12 +18,26 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:7f569d906bdd20d906b606415b7d794f798f91a62fcfb6a4daa6d50690fb7a3f"
+  digest = "1:ee44e2ea34d3c73a9bcd6aef8317f2b7e1a61346c1fe50eebb3da4042cf624ab"
+  name = "github.com/zhashkevych/go"
+  packages = [
+    ".",
+    "pnerr",
+    "tests/helpers",
+    "tests/stubs",
+    "utils",
+  ]
+  pruneopts = ""
+  revision = "6e31fe81b2d0e1ce94cc539a2b88312325651129"
+  version = "v4.0.0-beta.4"
+
+[[projects]]
+  branch = "master"
+  digest = "1:47081c00d00c1dfc9a530c2556e78be391a5c24db1043efe6d406af882a169a1"
   name = "github.com/satori/go.uuid"
   packages = ["."]
   pruneopts = ""
-  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
-  version = "v1.2.0"
+  revision = "b2ce2384e17bbe0c6d34077efa39dbab3e09123b"
 
 [[projects]]
   digest = "1:c587772fb8ad29ad4db67575dad25ba17a51f072ff18a22b4f0257a4d9c24f75"
@@ -33,12 +47,57 @@
   revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
   version = "v1.2.2"
 
+[[projects]]
+  branch = "master"
+  digest = "1:aa38821ad1406a84f9577465ef53e56ca4d90745a710c753190bf7792d726c82"
+  name = "golang.org/x/net"
+  packages = [
+    "context",
+    "http/httpguts",
+    "http2",
+    "http2/hpack",
+    "idna",
+  ]
+  pruneopts = ""
+  revision = "3ec19112720433827bbce8be9342797f5a6aaaf9"
+
+[[projects]]
+  digest = "1:740b51a55815493a8d0f2b1e0d0ae48fe48953bf7eaf3fcc4198823bf67768c0"
+  name = "golang.org/x/text"
+  packages = [
+    "collate",
+    "collate/build",
+    "internal/colltab",
+    "internal/gen",
+    "internal/language",
+    "internal/language/compact",
+    "internal/tag",
+    "internal/triegen",
+    "internal/ucd",
+    "language",
+    "secure/bidirule",
+    "transform",
+    "unicode/bidi",
+    "unicode/cldr",
+    "unicode/norm",
+    "unicode/rangetable",
+  ]
+  pruneopts = ""
+  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
+  version = "v0.3.2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/zhashkevych/go",
+    "github.com/zhashkevych/go/pnerr",
+    "github.com/zhashkevych/go/tests/helpers",
+    "github.com/zhashkevych/go/tests/stubs",
+    "github.com/zhashkevych/go/utils",
     "github.com/satori/go.uuid",
     "github.com/stretchr/testify/assert",
+    "golang.org/x/net/http2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

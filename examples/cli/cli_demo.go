@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	pubnub "github.com/pubnub/go"
+	pubnub "github.com/zhashkevych/go"
 )
 
 import _ "net/http/pprof"

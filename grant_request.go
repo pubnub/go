@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubnub/go/pnerr"
+	"github.com/zhashkevych/go/pnerr"
 )
 
 // PNGrantType grant types

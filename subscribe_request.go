@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/utils"
+	"github.com/zhashkevych/go/utils"
 )
 
 const subscribePath = "/v2/subscribe/%s/%s/0"

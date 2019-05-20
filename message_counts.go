@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
+	"github.com/zhashkevych/go/pnerr"
+	"github.com/zhashkevych/go/utils"
 	"reflect"
 	"strconv"
 	"strings"

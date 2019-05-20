@@ -2,7 +2,7 @@ package pubnub
 
 import (
 	"fmt"
-	"github.com/pubnub/go/utils"
+	"github.com/zhashkevych/go/utils"
 	"net/http"
 	"net/url"
 	"strings"

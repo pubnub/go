@@ -1,6 +1,6 @@
 package main
 
-import pubnub "github.com/pubnub/go"
+import pubnub "github.com/zhashkevych/go"
 
 func main() {
 	config := pubnub.NewConfig()

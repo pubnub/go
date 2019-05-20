@@ -408,6 +408,11 @@ func (pn *PubNub) newNonSubQueueProcessor(maxWorkers int) *RequestWorkers {
 	return p
 }
 
-func NewPubNubDemo() *PubNub {
-	return NewPubNub(NewDemoConfig())
+func NewPubNubDemo() (*PubNub, error) {
+	cfg, err := NewDemoConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	return NewPubNub(cfg), nil
 }

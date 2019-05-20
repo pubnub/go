@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	pnerr "github.com/pubnub/go/pnerr"
+	pnerr "github.com/zhashkevych/go/pnerr"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -101,8 +101,9 @@ func ValueAsString(value interface{}) ([]byte, error) {
 }
 
 // Generate a random uuid string
-func UUID() string {
-	return uuid.NewV4().String()
+func UUID() (string, error) {
+	id, err := uuid.NewV4()
+	return id.String(), err
 }
 
 func sortQueries(params *url.Values) []string {
