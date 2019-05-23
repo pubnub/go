@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	presenceTimeout = 120
+	presenceTimeout = 0
 )
 
 // Config instance is storage for user-provided information which describe further
@@ -79,14 +79,22 @@ func NewConfig() *Config {
 // interval: How often the client will announce itself to server.
 func (c *Config) SetPresenceTimeoutWithCustomInterval(
 	timeout, interval int) *Config {
+	if timeout < minTimeout {
+		timeout = minTimeout
+	}
 	c.PresenceTimeout = timeout
 	c.HeartbeatInterval = interval
 
 	return c
 }
 
+var minTimeout int = 20
+
 // SetPresenceTimeout sets the presence timeout and automatically calulates the preferred timeout value.
 // timeout: How long the server will consider the client alive for presence.
 func (c *Config) SetPresenceTimeout(timeout int) *Config {
+	if timeout < minTimeout {
+		timeout = minTimeout
+	}
 	return c.SetPresenceTimeoutWithCustomInterval(timeout, (timeout/2)-1)
 }
