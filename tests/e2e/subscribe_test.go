@@ -1552,7 +1552,7 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/subscribe/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/ch/0",
+		Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
 		Query:              "heartbeat=300",
 		ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","u":"my-data","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
@@ -1615,7 +1615,7 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/subscribe/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/ch/0",
+		Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
 		ResponseBody:       `{"t":{"t":"15069659902324693","r":12},"m":[]}`,
 		Query:              "heartbeat=300",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
@@ -1623,8 +1623,8 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/subscribe/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/ch/0",
-		ResponseBody:       `{"t":{"t":"14607577960932487","r":1},"m":[{"a":"4","f":0,"i":"Client-g5d4g","p":{"t":"14607577960925503","r":1},"k":"sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64","c":"ch","d":{"text":"Enter Message Here"},"b":"ch"}]}`,
+		Path:               fmt.Sprintf("/v2/subscribe/%s", config.SubscribeKey),
+		ResponseBody:       fmt.Sprintf(`{"t":{"t":"14607577960932487","r":1},"m":[{"a":"4","f":0,"i":"Client-g5d4g","p":{"t":"14607577960925503","r":1},"k":"%s","c":"ch","d":{"text":"Enter Message Here"},"b":"ch"}]}`, config.SubscribeKey),
 		Query:              "heartbeat=300&tt=1337",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
@@ -1869,7 +1869,7 @@ func ReconnectionExhaustion(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/subscribe/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/ch/0",
+		Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
 		ResponseBody:       "",
 		Query:              "heartbeat=300",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
@@ -1877,7 +1877,7 @@ func ReconnectionExhaustion(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch/leave",
+		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/ch/leave", config.SubscribeKey),
 		ResponseBody:       `{"status": 200, "message": "OK", "action": "leave", "service": "Presence"}`,
 		Query:              "",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},

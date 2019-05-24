@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -72,7 +73,7 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/" + myGroup,
+		Path:               fmt.Sprintf("/v1/channel-registration/sub-key/%s/channel-group/%s", config.SubscribeKey, myGroup),
 		Query:              "add=my-channel",
 		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
@@ -80,7 +81,7 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/" + myGroup,
+		Path:               fmt.Sprintf("/v1/channel-registration/sub-key/%s/channel-group/%s", config.SubscribeKey, myGroup),
 		Query:              "",
 		ResponseBody:       `{"status": 200, "payload": {"channels": ["my-channel"], "group": "` + myGroup + `"}, "service": "channel-registry", "error": false}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
@@ -88,7 +89,7 @@ func TestListAllChannelGroupSuccess(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/" + myGroup,
+		Path:               fmt.Sprintf("/v1/channel-registration/sub-key/%s/channel-group/%s", config.SubscribeKey, myGroup),
 		Query:              "remove=my-channel",
 		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},

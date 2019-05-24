@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -79,7 +80,7 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group-remove",
+		Path:               fmt.Sprintf("/v1/channel-registration/sub-key/%s/channel-group/my-unique-group-remove", config.SubscribeKey),
 		Query:              "add=my-channel-remove",
 		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
@@ -87,7 +88,7 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group-remove",
+		Path:               fmt.Sprintf("/v1/channel-registration/sub-key/%s/channel-group/my-unique-group-remove", config.SubscribeKey),
 		Query:              "remove=my-channel-remove&q1=v1&q2=v2",
 		ResponseBody:       `{"status": 200, "message": "OK", "service": "channel-registry", "error": false}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
@@ -95,7 +96,7 @@ func TestRemoveChannelGroupSuccessRemoved(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group-remove",
+		Path:               fmt.Sprintf("/v1/channel-registration/sub-key/%s/channel-group/my-unique-group-remove", config.SubscribeKey),
 		Query:              "",
 		ResponseBody:       `{"status": 200, "payload": {"channels": [], "group": "my-unique-group-remove"}, "service": "channel-registry", "error": false}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
