@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "Presence Timeout cannot be lower than 20"
+        type: improvement
+    date: Mar 27, 19  
+    version: v4.2.2
+  - 
+    changes: 
+      - 
         text: "History timetoken float64 to int64 conversion loss fix"
         type: bug
     date: Mar 21, 19  
@@ -339,4 +346,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.2.1
+version: v4.2.2
