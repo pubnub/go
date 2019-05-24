@@ -5,7 +5,7 @@ changelog:
       - 
         text: "Presence Timeout cannot be lower than 20"
         type: improvement
-    date: Mar 27, 19  
+    date: May 27, 19  
     version: v4.2.2
   - 
     changes: 
