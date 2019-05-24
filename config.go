@@ -96,7 +96,7 @@ func (c *Config) SetPresenceTimeoutWithCustomInterval(
 	return c
 }
 
-var minTimeout int = 20
+var minTimeout = 20
 
 // SetPresenceTimeout sets the presence timeout and automatically calulates the preferred timeout value.
 // timeout: How long the server will consider the client alive for presence.
