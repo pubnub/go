@@ -55,9 +55,9 @@ func connect() {
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
-	config.PublishKey = "pub-c-c1648ded-d156-4a2d-9dbb-a23262945fe2"
-	config.SubscribeKey = "sub-c-c14b8948-7dfe-11e9-aee4-2e27e4d79cf8"
-	config.SecretKey = "sec-c-OGI5YmJiMmUtMjIwNS00NjkzLTkxZmYtMjE1N2I2MDhlNDM5"
+	config.PublishKey = "demo"
+	config.SubscribeKey = "demo"
+	config.SecretKey = "demo"
 
 	//config.Secure = false
 
