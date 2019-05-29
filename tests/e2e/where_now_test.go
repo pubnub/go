@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"fmt"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -26,7 +27,7 @@ func TestWhereNowMultipleChannels(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/uuid/person-uuid",
+		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/uuid/person-uuid", config.SubscribeKey),
 		Query:              "",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"payload\": {\"channels\": [\"a\",\"b\"]}, \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},

@@ -1,7 +1,7 @@
 package e2e
 
 import (
-	//"fmt"
+	"fmt"
 	//"log"
 	//"os"
 	"testing"
@@ -100,7 +100,7 @@ func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group",
+		Path:               fmt.Sprintf("/v1/channel-registration/sub-key/%s/channel-group/my-unique-group", config.SubscribeKey),
 		Query:              "add=my-channel&q1=v1&q2=v2",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"channel-registry\", \"error\": \"false\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},
@@ -108,7 +108,7 @@ func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	})
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v1/channel-registration/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel-group/my-unique-group",
+		Path:               fmt.Sprintf("/v1/channel-registration/sub-key/%s/channel-group/my-unique-group", config.SubscribeKey),
 		Query:              "q1=v1&q2=v2",
 		ResponseBody:       "{\"status\": \"200\", \"payload\": {\"channels\": [\"my-channel\"], \"group\": \"my-unique-group\"}, \"service\": \"channel-registry\", \"error\": \"false\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "l_cg"},

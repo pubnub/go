@@ -2,6 +2,7 @@ package e2e
 
 import (
 	//"log"
+	"fmt"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -26,7 +27,7 @@ func TestHereNowMultipleChannelsWithState(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub_key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch1,ch2",
+		Path:               fmt.Sprintf("/v2/presence/sub_key/%s/channel/ch1,ch2", config.SubscribeKey),
 		Query:              "state=1",
 		ResponseBody:       "{\"status\":200,\"message\":\"OK\",\"payload\":{\"total_occupancy\":3,\"total_channels\":2,\"channels\":{\"ch1\":{\"occupancy\":1,\"uuids\":[{\"uuid\":\"user1\",\"state\":{\"age\":10}}]},\"ch2\":{\"occupancy\":2,\"uuids\":[{\"uuid\":\"user1\",\"state\":{\"age\":10}},{\"uuid\":\"user3\",\"state\":{\"age\":30}}]}}},\"service\":\"Presence\"}",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
@@ -78,7 +79,7 @@ func TestMultipleChannelWithoutStateSync(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub_key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/game1,game2",
+		Path:               fmt.Sprintf("/v2/presence/sub_key/%s/channel/game1,game2", config.SubscribeKey),
 		Query:              "state=0",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"payload\": {\"channels\": {\"game1\": {\"uuids\": [\"a3ffd012-a3b9-478c-8705-64089f24d71e\"], \"occupancy\": 1}}, \"total_channels\": 1, \"total_occupancy\": 1}, \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
@@ -110,7 +111,7 @@ func TestHereNowMultipleChannelsWithoutUUIDs(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub_key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/game1,game2",
+		Path:               fmt.Sprintf("/v2/presence/sub_key/%s/channel/game1,game2", config.SubscribeKey),
 		Query:              "state=0&disable-uuids=1",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"payload\": {\"channels\": {\"game1\": {\"occupancy\": 1}}, \"total_channels\": 1, \"total_occupancy\": 1}, \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
@@ -142,7 +143,7 @@ func TestHereNowSingleChannelWithState(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub_key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/game1",
+		Path:               fmt.Sprintf("/v2/presence/sub_key/%s/channel/game1", config.SubscribeKey),
 		Query:              "state=1",
 		ResponseBody:       "{\"status\":200,\"message\":\"OK\",\"service\":\"Presence\",\"uuids\":[{\"uuid\":\"a3ffd012-a3b9-478c-8705-64089f24d71e\",\"state\":{\"age\":10}}],\"occupancy\":1}",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
@@ -176,7 +177,7 @@ func TestHereNowSingleChannelWithStateContext(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub_key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/game1",
+		Path:               fmt.Sprintf("/v2/presence/sub_key/%s/channel/game1", config.SubscribeKey),
 		Query:              "state=1",
 		ResponseBody:       "{\"status\":200,\"message\":\"OK\",\"service\":\"Presence\",\"uuids\":[{\"uuid\":\"a3ffd012-a3b9-478c-8705-64089f24d71e\",\"state\":{\"age\":10}}],\"occupancy\":1}",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
@@ -210,7 +211,7 @@ func TestHereNowSingleChannelWithoutState(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub_key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/game1",
+		Path:               fmt.Sprintf("/v2/presence/sub_key/%s/channel/game1", config.SubscribeKey),
 		Query:              "state=0",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\", \"uuids\": [\"a3ffd012-a3b9-478c-8705-64089f24d71e\"], \"occupancy\": 1}",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
@@ -244,7 +245,7 @@ func TestHereNowSingleChannelAndGroup(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub_key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/game1",
+		Path:               fmt.Sprintf("/v2/presence/sub_key/%s/channel/game1", config.SubscribeKey),
 		Query:              "state=1&channel-group=cg",
 		ResponseBody:       "{\"status\":200,\"message\":\"OK\",\"payload\":{\"channels\":{}, \"total_channels\":0, \"total_occupancy\":0},\"service\":\"Presence\"}",
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
