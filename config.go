@@ -57,7 +57,6 @@ func NewConfig() *Config {
 	c := Config{
 		Origin:                     "ps.pndsn.com",
 		Secure:                     true,
-		UUID:                       fmt.Sprintf("pn-%s", utils.UUID()),
 		ConnectTimeout:             10,
 		NonSubscribeRequestTimeout: 10,
 		SubscribeRequestTimeout:    310,
@@ -70,6 +69,8 @@ func NewConfig() *Config {
 		MaxIdleConnsPerHost:        30,
 		MaxWorkers:                 20,
 	}
+
+	c.UUID = fmt.Sprintf("pn-%s", utils.UUID())
 
 	return &c
 }
