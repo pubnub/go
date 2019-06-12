@@ -205,7 +205,7 @@ func TestPublishServerError(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/publish/pub-c-afeb2ec5-45e9-449f-9a8d-c4940a9c7836/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/0/ch/0/%22hey%22",
+		Path:               fmt.Sprintf("/publish/%s/%s/0/ch/0/%s", config.PublishKey, config.SubscribeKey, "%22hey%22"),
 		Query:              "seqn=1",
 		ResponseBody:       "",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},

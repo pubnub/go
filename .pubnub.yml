@@ -3,6 +3,20 @@ changelog:
   - 
     changes: 
       - 
+        text: "UUID dependency update"
+        type: improvement
+    date: Jun 13, 19  
+    version: v4.2.3  
+  - 
+    changes: 
+      - 
+        text: "Presence Timeout cannot be lower than 20"
+        type: improvement
+    date: May 27, 19  
+    version: v4.2.2
+  - 
+    changes: 
+      - 
         text: "History timetoken float64 to int64 conversion loss fix"
         type: bug
     date: Mar 21, 19  
@@ -331,12 +345,12 @@ supported-platforms:
     editors: 
       - "1.9.7"
       - "1.10.3"
-      - "1.11.1"
-      - "1.12.1"
+      - "1.11.11"
+      - "1.12.6"
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.2.1
+version: v4.2.3

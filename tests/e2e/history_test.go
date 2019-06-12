@@ -1,7 +1,7 @@
 package e2e
 
 import (
-	//"fmt"
+	"fmt"
 	pubnub "github.com/pubnub/go"
 	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
@@ -27,7 +27,7 @@ func TestHistoryCallWithAllParams(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch",
+		Path:               fmt.Sprintf("/v2/history/sub-key/%s/channel/ch", config.SubscribeKey),
 		Query:              "count=2&end=2&include_token=true&reverse=true&start=1",
 		ResponseBody:       `[[],0,0]`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -55,7 +55,7 @@ func TestHistorySuccess(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch",
+		Path:               fmt.Sprintf("/v2/history/sub-key/%s/channel/ch", config.SubscribeKey),
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       historyResponseSuccess,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
@@ -87,7 +87,7 @@ func TestHistorySuccessContext(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch",
+		Path:               fmt.Sprintf("/v2/history/sub-key/%s/channel/ch", config.SubscribeKey),
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       historyResponseSuccess,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "signature", "timestamp"},
@@ -122,7 +122,7 @@ func TestHistoryEncryptedPNOther(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/history/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64/channel/ch",
+		Path:               fmt.Sprintf("/v2/history/sub-key/%s/channel/ch", config.SubscribeKey),
 		Query:              "count=100&include_token=false&reverse=false",
 		ResponseBody:       `[[{"pn_other":"6QoqmS9CnB3W9+I4mhmL7w=="}],14606134331557852,14606134485013970]`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "timestamp", "signature"},

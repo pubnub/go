@@ -30,13 +30,14 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 
 	config = pubnub.NewConfig()
-	config.PublishKey = "pub-c-afeb2ec5-45e9-449f-9a8d-c4940a9c7836"
-	config.SubscribeKey = "sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64"
+	config.PublishKey = "pub-c-c1648ded-d156-4a2d-9dbb-a23262945fe2"
+	config.SubscribeKey = "sub-c-c14b8948-7dfe-11e9-aee4-2e27e4d79cf8"
 
 	pamConfig = pubnub.NewConfig()
-	pamConfig.PublishKey = "pub-c-7e5c6521-91d0-4e60-9656-4bed419a769b"
-	pamConfig.SubscribeKey = "sub-c-b9ab9508-43cf-11e8-9967-869954283fb4"
-	pamConfig.SecretKey = "sec-c-MjRhODgwMTgtY2RmMS00ZWNmLTgzNTUtYjI3MzZhOThlNTY0"
+	pamConfig.PublishKey = "pub-c-2dea72e4-e0aa-4c85-9411-d75baf7568b7"
+	pamConfig.SubscribeKey = "sub-c-490a8ac8-7e0e-11e9-84e9-eed29b7b36d8"
+	pamConfig.SecretKey = "sec-c-MDU3OGY1ZjMtMDUwZS00NTc4LWFhM2ItN2E3NzhmMDVkZmQx"
+
 }
 
 func configCopy() *pubnub.Config {

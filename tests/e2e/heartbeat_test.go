@@ -152,7 +152,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/" + ch + "/heartbeat",
+		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/", config.SubscribeKey) + ch + "/heartbeat",
 		Query:              "heartbeat=6",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -161,7 +161,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/" + ch + "/leave",
+		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/", config.SubscribeKey) + ch + "/leave",
 		Query:              "",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\", \"action\": \"leave\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -217,7 +217,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 
 	select {
 	case <-doneHeartbeat:
-	case <-time.After(3 * time.Second):
+	case <-time.After(10 * time.Second):
 		assert.Fail("Heartbeat status was expected")
 	}
 
@@ -234,7 +234,7 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/" + ch + "/heartbeat",
+		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/"+ch+"/heartbeat", config.SubscribeKey),
 		Query:              "heartbeat=6",
 		ResponseBody:       "{\"status\": 404, \"message\": \"Not Found\", \"error\": \"1\", \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -243,7 +243,7 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               "/v2/presence/sub-key/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/channel/" + ch + "/leave",
+		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/"+ch+"/leave", config.SubscribeKey),
 		Query:              "",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\", \"action\": \"leave\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
@@ -296,7 +296,7 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 
 	select {
 	case <-doneHeartbeat:
-	case <-time.After(3 * time.Second):
+	case <-time.After(10 * time.Second):
 		assert.Fail("Heartbeat status was expected")
 	}
 

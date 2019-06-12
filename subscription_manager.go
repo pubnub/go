@@ -35,7 +35,7 @@ import (
 
 // Heartbeat:
 // - Heartbeat is enabled by default.
-// - Default presence timeout is 300 seconds.
+// - Default presence timeout is 0 seconds.
 // - The first Heartbeat request will be scheduled to be executed after
 // getHeartbeatInterval() seconds (default - 149).
 type SubscriptionManager struct {
