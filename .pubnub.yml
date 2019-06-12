@@ -3,7 +3,7 @@ changelog:
   - 
     changes: 
       - 
-        text: "UUID dependence update"
+        text: "UUID dependency update"
         type: improvement
     date: Jun 13, 19  
     version: v4.2.3  
