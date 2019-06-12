@@ -104,7 +104,13 @@ func ValueAsString(value interface{}) ([]byte, error) {
 
 // Generate a random uuid string
 func UUID() string {
-	return uuid.NewV4().String()
+	id, err := uuid.NewV4()
+	if err != nil {
+		panic(err)
+		return ""
+	}
+
+	return id.String()
 }
 
 func sortQueries(params *url.Values) []string {
