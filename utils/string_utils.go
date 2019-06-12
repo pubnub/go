@@ -107,7 +107,6 @@ func UUID() string {
 	id, err := uuid.NewV4()
 	if err != nil {
 		panic(err)
-		return ""
 	}
 
 	return id.String()
