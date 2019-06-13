@@ -21,18 +21,20 @@ func NewListener() *Listener {
 
 type ListenerManager struct {
 	sync.RWMutex
-	ctx          Context
-	listeners    map[*Listener]bool
-	exitListener chan bool
-	pubnub       *PubNub
+	ctx                  Context
+	listeners            map[*Listener]bool
+	exitListener         chan bool
+	exitListenerAnnounce chan bool
+	pubnub               *PubNub
 }
 
 func newListenerManager(ctx Context, pn *PubNub) *ListenerManager {
 	return &ListenerManager{
-		listeners:    make(map[*Listener]bool, 2),
-		ctx:          ctx,
-		exitListener: make(chan bool),
-		pubnub:       pn,
+		listeners:            make(map[*Listener]bool, 2),
+		ctx:                  ctx,
+		exitListener:         make(chan bool),
+		exitListenerAnnounce: make(chan bool),
+		pubnub:               pn,
 	}
 }
 
@@ -49,6 +51,7 @@ func (m *ListenerManager) removeListener(listener *Listener) {
 
 func (m *ListenerManager) removeAllListeners() {
 	m.Lock()
+	m.pubnub.Config.Log.Println("in removeAllListeners")
 	for l := range m.listeners {
 		delete(m.listeners, l)
 	}
@@ -58,15 +61,18 @@ func (m *ListenerManager) removeAllListeners() {
 func (m *ListenerManager) announceStatus(status *PNStatus) {
 	go func() {
 		m.RLock()
+		m.pubnub.Config.Log.Println("announceStatus lock")
 		for l := range m.listeners {
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceStatus exitListener")
-				return
+				break
 			case l.Status <- status:
 			}
 		}
+		m.pubnub.Config.Log.Println("announceStatus unlock")
 		m.RUnlock()
+		m.pubnub.Config.Log.Println("announceStatus exit")
 	}()
 }
 
@@ -75,9 +81,9 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 		m.RLock()
 		for l := range m.listeners {
 			select {
-			case <-m.exitListener:
-				m.pubnub.Config.Log.Println("announceMessage exitListener")
-				return
+			case <-m.exitListenerAnnounce:
+				m.pubnub.Config.Log.Println("announceMessage exitListenerAnnounce")
+				break
 			case l.Message <- message:
 			}
 		}

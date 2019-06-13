@@ -167,7 +167,9 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 }
 
 func (m *SubscriptionManager) Destroy() {
-	m.subscribeCancel()
+	if m.subscribeCancel != nil {
+		m.subscribeCancel()
+	}
 	if m.channelsOpen {
 		m.RLock()
 		m.channelsOpen = false
@@ -178,10 +180,15 @@ func (m *SubscriptionManager) Destroy() {
 		if m.listenerManager.exitListener != nil {
 			close(m.listenerManager.exitListener)
 		}
+		if m.listenerManager.exitListenerAnnounce != nil {
+			close(m.listenerManager.exitListenerAnnounce)
+		}
 		if m.reconnectionManager.exitReconnectionManager != nil {
 			close(m.reconnectionManager.exitReconnectionManager)
 		}
+
 	}
+
 }
 
 func (m *SubscriptionManager) adaptState(stateOperation StateOperation) {
@@ -342,7 +349,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					m.pubnub.Config.Log.Println("Status:", pnStatus)
 					m.listenerManager.announceStatus(pnStatus)
 					m.pubnub.Config.Log.Println("context canceled")
-					return
+					break
 				} else if strings.Contains(err.Error(), "Forbidden") ||
 					strings.Contains(err.Error(), "403") {
 					pnStatus := &PNStatus{
