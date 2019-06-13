@@ -343,7 +343,7 @@ func (pn *PubNub) Destroy() {
 	pn.cancel()
 	if pn.subscriptionManager != nil {
 		pn.subscriptionManager.Destroy()
-		pn.Config.Log.Println("after sm Destroy")
+		pn.Config.Log.Println("after subscription manager Destroy")
 	}
 
 	pn.telemetryManager.RLock()
@@ -357,7 +357,7 @@ func (pn *PubNub) Destroy() {
 	pn.Config.Log.Println("calling subscriptionManager Destroy")
 	if pn.heartbeatManager != nil {
 		pn.heartbeatManager.Destroy()
-		pn.Config.Log.Println("after hb Destroy")
+		pn.Config.Log.Println("after heartbeat manager Destroy")
 	}
 
 	pn.Config.Log.Println("After Destroy")
