@@ -2,6 +2,8 @@ package utils
 
 import (
 	"encoding/json"
+	//"log"
+
 	//"errors"
 	"fmt"
 	"net/url"
@@ -102,7 +104,12 @@ func ValueAsString(value interface{}) ([]byte, error) {
 
 // Generate a random uuid string
 func UUID() string {
-	return uuid.NewV4().String()
+	id, err := uuid.NewV4()
+	if err != nil {
+		panic(err)
+	}
+
+	return id.String()
 }
 
 func sortQueries(params *url.Values) []string {
