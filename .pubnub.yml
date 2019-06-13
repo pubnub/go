@@ -3,6 +3,9 @@ changelog:
   - 
     changes: 
       - 
+        text: "Fix deadlock on destroy"
+        type: bug
+      - 
         text: "UUID dependency update"
         type: improvement
     date: Jun 13, 19  

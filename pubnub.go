@@ -338,11 +338,14 @@ func (pn *PubNub) DeleteMessagesWithContext(ctx Context) *historyDeleteBuilder {
 }
 
 func (pn *PubNub) Destroy() {
+	close(pn.jobQueue)
 	pn.Config.Log.Println("Calling Destroy")
 	pn.cancel()
-	pn.Config.Log.Println("calling RemoveAllListeners")
-	pn.subscriptionManager.RemoveAllListeners()
-	pn.Config.Log.Println("after RemoveAllListeners")
+	if pn.subscriptionManager != nil {
+		pn.subscriptionManager.Destroy()
+		pn.Config.Log.Println("after subscription manager Destroy")
+	}
+
 	pn.telemetryManager.RLock()
 	telManagerRunning := pn.telemetryManager.IsRunning
 	pn.telemetryManager.RUnlock()
@@ -352,10 +355,16 @@ func (pn *PubNub) Destroy() {
 		pn.Config.Log.Println("after exitTelemetryManager")
 	}
 	pn.Config.Log.Println("calling subscriptionManager Destroy")
-	pn.heartbeatManager.Destroy()
-	pn.subscriptionManager.Destroy()
+	if pn.heartbeatManager != nil {
+		pn.heartbeatManager.Destroy()
+		pn.Config.Log.Println("after heartbeat manager Destroy")
+	}
 
 	pn.Config.Log.Println("After Destroy")
+	pn.Config.Log.Println("calling RemoveAllListeners")
+	pn.subscriptionManager.RemoveAllListeners()
+	pn.Config.Log.Println("after RemoveAllListeners")
+
 }
 
 func (pn *PubNub) getPublishSequence() int {

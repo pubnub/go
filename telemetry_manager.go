@@ -132,13 +132,13 @@ func (m *TelemetryManager) startCleanUpTimer() {
 				m.IsRunning = false
 				m.Unlock()
 				m.cleanUpTimer.Stop()
-				return
+				break
 			case <-m.ExitTelemetryManager:
 				m.Lock()
 				m.IsRunning = false
 				m.Unlock()
 				m.cleanUpTimer.Stop()
-				return
+				break
 			}
 		}
 	}()
