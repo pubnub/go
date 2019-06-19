@@ -33,9 +33,9 @@ type Worker struct {
 	id         int
 }
 
-var Workers []Worker
+var workers []Worker
 
-func NewRequestWorkers(workers chan chan *JobQItem, id int, ctx Context) Worker {
+func newRequestWorkers(workers chan chan *JobQItem, id int, ctx Context) Worker {
 	return Worker{
 		Workers:    workers,
 		JobChannel: make(chan *JobQItem),
@@ -44,6 +44,7 @@ func NewRequestWorkers(workers chan chan *JobQItem, id int, ctx Context) Worker 
 	}
 }
 
+// Process runs a goroutine for the worker
 func (pw Worker) Process(pubnub *PubNub) {
 	go func() {
 	B:
@@ -73,18 +74,20 @@ func (pw Worker) Process(pubnub *PubNub) {
 	}()
 }
 
+// Start starts the workers
 func (p *RequestWorkers) Start(pubnub *PubNub, ctx Context) {
 	pubnub.Config.Log.Println("Start: Running with workers ", p.MaxWorkers)
-	Workers = make([]Worker, p.MaxWorkers)
+	workers = make([]Worker, p.MaxWorkers)
 	for i := 0; i < p.MaxWorkers; i++ {
 		pubnub.Config.Log.Println("Start: StartNonSubWorker ", i)
-		worker := NewRequestWorkers(p.Workers, i, ctx)
+		worker := newRequestWorkers(p.Workers, i, ctx)
 		worker.Process(pubnub)
-		Workers[i] = worker
+		workers[i] = worker
 	}
 	go p.ReadQueue(pubnub)
 }
 
+// ReadQueue reads the queue and passes on the job to the workers
 func (p *RequestWorkers) ReadQueue(pubnub *PubNub) {
 	for job := range pubnub.jobQueue {
 		pubnub.Config.Log.Println("ReadQueue: Got job for channel ", job.Req)
@@ -96,9 +99,10 @@ func (p *RequestWorkers) ReadQueue(pubnub *PubNub) {
 	pubnub.Config.Log.Println("ReadQueue: Exit")
 }
 
+// Close closes the workers
 func (p *RequestWorkers) Close() {
 
-	for _, w := range Workers {
+	for _, w := range workers {
 		close(w.JobChannel)
 		w.ctx.Done()
 	}
