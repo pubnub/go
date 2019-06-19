@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.2.3"
+	Version = "4.2.4"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -338,22 +338,17 @@ func (pn *PubNub) DeleteMessagesWithContext(ctx Context) *historyDeleteBuilder {
 }
 
 func (pn *PubNub) Destroy() {
+	pn.requestWorkers.Close()
+
 	close(pn.jobQueue)
 	pn.Config.Log.Println("Calling Destroy")
 	pn.cancel()
+
 	if pn.subscriptionManager != nil {
 		pn.subscriptionManager.Destroy()
 		pn.Config.Log.Println("after subscription manager Destroy")
 	}
 
-	pn.telemetryManager.RLock()
-	telManagerRunning := pn.telemetryManager.IsRunning
-	pn.telemetryManager.RUnlock()
-	if (pn.telemetryManager.ExitTelemetryManager != nil) && (telManagerRunning) {
-		pn.Config.Log.Println("calling exitTelemetryManager")
-		pn.telemetryManager.ExitTelemetryManager <- true
-		pn.Config.Log.Println("after exitTelemetryManager")
-	}
 	pn.Config.Log.Println("calling subscriptionManager Destroy")
 	if pn.heartbeatManager != nil {
 		pn.heartbeatManager.Destroy()
@@ -399,12 +394,12 @@ func NewPubNub(pnconf *Config) *PubNub {
 	pn.heartbeatManager = newHeartbeatManager(pn, ctx)
 	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge, ctx)
 	pn.jobQueue = make(chan *JobQItem)
-	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers)
+	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers, ctx)
 
 	return pn
 }
 
-func (pn *PubNub) newNonSubQueueProcessor(maxWorkers int) *RequestWorkers {
+func (pn *PubNub) newNonSubQueueProcessor(maxWorkers int, ctx Context) *RequestWorkers {
 	workers := make(chan chan *JobQItem, maxWorkers)
 
 	pn.Config.Log.Printf("Init RequestWorkers: workers %d", maxWorkers)
@@ -413,7 +408,7 @@ func (pn *PubNub) newNonSubQueueProcessor(maxWorkers int) *RequestWorkers {
 		Workers:    workers,
 		MaxWorkers: maxWorkers,
 	}
-	p.Start(pn)
+	p.Start(pn, ctx)
 	return p
 }
 

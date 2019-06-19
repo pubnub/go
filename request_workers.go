@@ -29,38 +29,58 @@ type RequestWorkers struct {
 type Worker struct {
 	Workers    chan chan *JobQItem
 	JobChannel chan *JobQItem
+	ctx        Context
 	id         int
 }
 
-func NewRequestWorkers(workers chan chan *JobQItem, id int) Worker {
+var Workers []Worker
+
+func NewRequestWorkers(workers chan chan *JobQItem, id int, ctx Context) Worker {
 	return Worker{
 		Workers:    workers,
 		JobChannel: make(chan *JobQItem),
+		ctx:        ctx,
 		id:         id,
 	}
 }
 
 func (pw Worker) Process(pubnub *PubNub) {
 	go func() {
+	B:
 		for {
-			pw.Workers <- pw.JobChannel
-			job := <-pw.JobChannel
-			res, err := job.Client.Do(job.Req)
-			jqr := &JobQResponse{
-				Error: err,
-				Resp:  res,
+			select {
+			case pw.Workers <- pw.JobChannel:
+				job := <-pw.JobChannel
+
+				if job != nil {
+
+					res, err := job.Client.Do(job.Req)
+					jqr := &JobQResponse{
+						Error: err,
+						Resp:  res,
+					}
+					job.JobResponse <- jqr
+					pubnub.Config.Log.Println("Request sent using worker id ", pw.id)
+				}
+			case <-pw.ctx.Done():
+				pubnub.Config.Log.Println("Exiting Worker Process id ", pw.id)
+				break B
+			case <-pubnub.ctx.Done():
+				pubnub.Config.Log.Println("2 Exiting Worker Process id ", pw.id)
+				break B
 			}
-			job.JobResponse <- jqr
 		}
 	}()
 }
 
-func (p *RequestWorkers) Start(pubnub *PubNub) {
+func (p *RequestWorkers) Start(pubnub *PubNub, ctx Context) {
 	pubnub.Config.Log.Println("Start: Running with workers ", p.MaxWorkers)
+	Workers = make([]Worker, p.MaxWorkers)
 	for i := 0; i < p.MaxWorkers; i++ {
 		pubnub.Config.Log.Println("Start: StartNonSubWorker ", i)
-		worker := NewRequestWorkers(p.Workers, i)
+		worker := NewRequestWorkers(p.Workers, i, ctx)
 		worker.Process(pubnub)
+		Workers[i] = worker
 	}
 	go p.ReadQueue(pubnub)
 }
@@ -77,5 +97,9 @@ func (p *RequestWorkers) ReadQueue(pubnub *PubNub) {
 }
 
 func (p *RequestWorkers) Close() {
-	close(p.Workers)
+
+	for _, w := range Workers {
+		close(w.JobChannel)
+		w.ctx.Done()
+	}
 }

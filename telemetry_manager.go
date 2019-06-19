@@ -32,17 +32,15 @@ type TelemetryManager struct {
 
 	cleanUpTimer *time.Ticker
 
-	maxLatencyDataAge    int
-	ExitTelemetryManager chan bool
-	IsRunning            bool
+	maxLatencyDataAge int
+	IsRunning         bool
 }
 
 func newTelemetryManager(maxLatencyDataAge int, ctx Context) *TelemetryManager {
 	manager := &TelemetryManager{
-		maxLatencyDataAge:    maxLatencyDataAge,
-		operations:           make(map[string][]LatencyEntry),
-		ctx:                  ctx,
-		ExitTelemetryManager: make(chan bool),
+		maxLatencyDataAge: maxLatencyDataAge,
+		operations:        make(map[string][]LatencyEntry),
+		ctx:               ctx,
 	}
 
 	go manager.startCleanUpTimer()
@@ -109,6 +107,7 @@ func (m *TelemetryManager) CleanUpTelemetryData() {
 			delete(m.operations, endpoint)
 		}
 	}
+	m.ctx.Done()
 	m.Unlock()
 }
 
@@ -118,27 +117,17 @@ func (m *TelemetryManager) startCleanUpTimer() {
 			cleanUpInterval*cleanUpIntervalMultiplier) * time.Millisecond)
 
 	go func() {
+	B:
+
 		for {
-			m.Lock()
-			m.IsRunning = true
-			m.Unlock()
 			timerCh := m.cleanUpTimer.C
 
 			select {
 			case <-timerCh:
 				m.CleanUpTelemetryData()
 			case <-m.ctx.Done():
-				m.Lock()
-				m.IsRunning = false
-				m.Unlock()
 				m.cleanUpTimer.Stop()
-				break
-			case <-m.ExitTelemetryManager:
-				m.Lock()
-				m.IsRunning = false
-				m.Unlock()
-				m.cleanUpTimer.Stop()
-				break
+				break B
 			}
 		}
 	}()
