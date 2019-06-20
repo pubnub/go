@@ -62,11 +62,12 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 	go func() {
 		m.RLock()
 		m.pubnub.Config.Log.Println("announceStatus lock")
+	AnnounceStatusLabel:
 		for l := range m.listeners {
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceStatus exitListener")
-				break
+				break AnnounceStatusLabel
 			case l.Status <- status:
 			}
 		}
@@ -79,11 +80,12 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 func (m *ListenerManager) announceMessage(message *PNMessage) {
 	go func() {
 		m.RLock()
+	AnnounceMessageLabel:
 		for l := range m.listeners {
 			select {
 			case <-m.exitListenerAnnounce:
 				m.pubnub.Config.Log.Println("announceMessage exitListenerAnnounce")
-				break
+				break AnnounceMessageLabel
 			case l.Message <- message:
 			}
 		}
