@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "Destroy now cleans up all goroutines opened by the SDK"
+        type: bug
+    date: Jun 20, 19  
+    version: v4.2.4  
+  - 
+    changes: 
+      - 
         text: "Fix deadlock on destroy"
         type: bug
       - 
@@ -356,4 +363,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.2.3
+version: v4.2.4
