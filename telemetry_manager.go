@@ -117,8 +117,7 @@ func (m *TelemetryManager) startCleanUpTimer() {
 			cleanUpInterval*cleanUpIntervalMultiplier) * time.Millisecond)
 
 	go func() {
-	B:
-
+	CleanUpTimerLabel:
 		for {
 			timerCh := m.cleanUpTimer.C
 
@@ -127,7 +126,7 @@ func (m *TelemetryManager) startCleanUpTimer() {
 				m.CleanUpTelemetryData()
 			case <-m.ctx.Done():
 				m.cleanUpTimer.Stop()
-				break B
+				break CleanUpTimerLabel
 			}
 		}
 	}()

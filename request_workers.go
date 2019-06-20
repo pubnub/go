@@ -47,14 +47,12 @@ func newRequestWorkers(workers chan chan *JobQItem, id int, ctx Context) Worker 
 // Process runs a goroutine for the worker
 func (pw Worker) Process(pubnub *PubNub) {
 	go func() {
-	B:
+	ProcessLabel:
 		for {
 			select {
 			case pw.Workers <- pw.JobChannel:
 				job := <-pw.JobChannel
-
 				if job != nil {
-
 					res, err := job.Client.Do(job.Req)
 					jqr := &JobQResponse{
 						Error: err,
@@ -64,11 +62,11 @@ func (pw Worker) Process(pubnub *PubNub) {
 					pubnub.Config.Log.Println("Request sent using worker id ", pw.id)
 				}
 			case <-pw.ctx.Done():
-				pubnub.Config.Log.Println("Exiting Worker Process id ", pw.id)
-				break B
+				pubnub.Config.Log.Println("Exiting Worker Process by worker ctx, id ", pw.id)
+				break ProcessLabel
 			case <-pubnub.ctx.Done():
-				pubnub.Config.Log.Println("2 Exiting Worker Process id ", pw.id)
-				break B
+				pubnub.Config.Log.Println("Exiting Worker Process by PN ctx, id ", pw.id)
+				break ProcessLabel
 			}
 		}
 	}()
