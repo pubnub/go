@@ -108,6 +108,8 @@ const (
 	PNDeleteMessagesOperation
 	// PNMessageCountsOperation is the enum used for History with messages operation.
 	PNMessageCountsOperation
+	// PNSignalOperation is the enum used for Signal opertaion.
+	PNSignalOperation
 )
 
 const (

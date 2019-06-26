@@ -106,6 +106,14 @@ func (pn *PubNub) MessageCountsWithContext(ctx Context) *messageCountsBuilder {
 	return newMessageCountsBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) Signal() *signalBuilder {
+	return newSignalBuilder(pn)
+}
+
+func (pn *PubNub) SignalWithContext(ctx Context) *signalBuilder {
+	return newSignalBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) SetState() *setStateBuilder {
 	return newSetStateBuilder(pn)
 }

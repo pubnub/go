@@ -1,0 +1,185 @@
+package pubnub
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+
+	"github.com/pubnub/go/pnerr"
+	"strconv"
+
+	"net/http"
+	"net/url"
+)
+
+var emptySignalResponse *SignalResponse
+
+const signalPath = "/v1/signal/%s/%s/%s"
+
+type signalBuilder struct {
+	opts *signalOpts
+}
+
+func newSignalBuilder(pubnub *PubNub) *signalBuilder {
+	builder := signalBuilder{
+		opts: &signalOpts{
+			pubnub: pubnub,
+		},
+	}
+
+	return &builder
+}
+
+func newSignalBuilderWithContext(pubnub *PubNub,
+	context Context) *signalBuilder {
+	builder := signalBuilder{
+		opts: &signalOpts{
+			pubnub: pubnub,
+			ctx:    context,
+		},
+	}
+
+	return &builder
+}
+
+// Channels sets the Channels for the Signal request.
+func (b *signalBuilder) Channel(channel string) *signalBuilder {
+	b.opts.Channel = channel
+	return b
+}
+
+// Message sets the Payload for the Signal request.
+func (b *signalBuilder) Message(msg interface{}) *signalBuilder {
+	b.opts.Message = msg
+
+	return b
+}
+
+// Execute runs the Signal request.
+func (b *signalBuilder) Execute() (*SignalResponse, StatusResponse, error) {
+	rawJSON, status, err := executeRequest(b.opts)
+	if err != nil {
+		return emptySignalResponse, status, err
+	}
+
+	return newSignalResponse(rawJSON, b.opts, status)
+}
+
+type signalOpts struct {
+	pubnub     *PubNub
+	Message    interface{}
+	Channel    string
+	QueryParam map[string]string
+	Transport  http.RoundTripper
+	ctx        Context
+}
+
+func (o *signalOpts) config() Config {
+	return *o.pubnub.Config
+}
+
+func (o *signalOpts) client() *http.Client {
+	return o.pubnub.GetClient()
+}
+
+func (o *signalOpts) context() Context {
+	return o.ctx
+}
+
+func (o *signalOpts) validate() error {
+	if o.config().SubscribeKey == "" {
+		return newValidationError(o, StrMissingSubKey)
+	}
+
+	if o.config().PublishKey == "" {
+		return newValidationError(o, StrMissingPubKey)
+	}
+
+	return nil
+}
+
+func (o *signalOpts) buildPath() (string, error) {
+	return fmt.Sprintf(signalPath,
+		o.pubnub.Config.PublishKey,
+		o.pubnub.Config.SubscribeKey,
+		o.Channel), nil
+}
+
+func (o *signalOpts) buildQuery() (*url.Values, error) {
+	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
+
+	SetQueryParam(q, o.QueryParam)
+
+	return q, nil
+}
+
+func (o *signalOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
+func (o *signalOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *signalOpts) httpMethod() string {
+	return "POST"
+}
+
+func (o *signalOpts) isAuthRequired() bool {
+	return true
+}
+
+func (o *signalOpts) requestTimeout() int {
+	return o.pubnub.Config.NonSubscribeRequestTimeout
+}
+
+func (o *signalOpts) connectTimeout() int {
+	return o.pubnub.Config.ConnectTimeout
+}
+
+func (o *signalOpts) operationType() OperationType {
+	return PNSignalOperation
+}
+
+func (o *signalOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
+}
+
+// SignalResponse is the response to Signal request. It contains a map of type SignalResponseItem
+type SignalResponse struct {
+	Timestamp int64
+}
+
+func newSignalResponse(jsonBytes []byte, o *signalOpts,
+	status StatusResponse) (*SignalResponse, StatusResponse, error) {
+
+	resp := &SignalResponse{}
+
+	var value []interface{}
+
+	err := json.Unmarshal(jsonBytes, &value)
+	if err != nil {
+		e := pnerr.NewResponseParsingError("Error unmarshalling response",
+			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+
+		return emptySignalResponse, status, e
+	}
+
+	if len(value) > 1 {
+		timeString, ok := value[2].(string)
+		if !ok {
+			return emptySignalResponse, status, pnerr.NewResponseParsingError(fmt.Sprintf("Error unmarshalling response, %s %v", value[2], value), nil, nil)
+		}
+		timestamp, err := strconv.ParseInt(timeString, 10, 64)
+		if err != nil {
+			return emptySignalResponse, status, err
+		}
+
+		return &SignalResponse{
+			Timestamp: timestamp,
+		}, status, nil
+	}
+
+	return resp, status, nil
+}
