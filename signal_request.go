@@ -57,6 +57,12 @@ func (b *signalBuilder) Message(msg interface{}) *signalBuilder {
 	return b
 }
 
+// Transport sets the Transport for the objectAPICreateUsers request.
+func (b *signalBuilder) Transport(tr http.RoundTripper) *signalBuilder {
+	b.opts.Transport = tr
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *signalBuilder) QueryParam(queryParam map[string]string) *signalBuilder {
 	b.opts.QueryParam = queryParam
