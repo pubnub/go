@@ -7,10 +7,11 @@ import (
 	"io/ioutil"
 
 	"github.com/pubnub/go/pnerr"
-	"strconv"
+	"github.com/pubnub/go/utils"
 
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 var emptySignalResponse *SignalResponse
@@ -43,7 +44,7 @@ func newSignalBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-// Channels sets the Channels for the Signal request.
+// Channel sets the Channel for the Signal request.
 func (b *signalBuilder) Channel(channel string) *signalBuilder {
 	b.opts.Channel = channel
 	return b
@@ -52,6 +53,13 @@ func (b *signalBuilder) Channel(channel string) *signalBuilder {
 // Message sets the Payload for the Signal request.
 func (b *signalBuilder) Message(msg interface{}) *signalBuilder {
 	b.opts.Message = msg
+
+	return b
+}
+
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *signalBuilder) QueryParam(queryParam map[string]string) *signalBuilder {
+	b.opts.QueryParam = queryParam
 
 	return b
 }
@@ -103,7 +111,7 @@ func (o *signalOpts) buildPath() (string, error) {
 	return fmt.Sprintf(signalPath,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,
-		o.Channel), nil
+		utils.URLEncode(o.Channel)), nil
 }
 
 func (o *signalOpts) buildQuery() (*url.Values, error) {
@@ -119,7 +127,13 @@ func (o *signalOpts) jobQueue() chan *JobQItem {
 }
 
 func (o *signalOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
+	jsonEncBytes, errEnc := json.Marshal(o.Message)
+	if errEnc != nil {
+		o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
+		return []byte{}, errEnc
+	}
+	return jsonEncBytes, nil
+
 }
 
 func (o *signalOpts) httpMethod() string {
@@ -146,7 +160,7 @@ func (o *signalOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-// SignalResponse is the response to Signal request. It contains a map of type SignalResponseItem
+// SignalResponse is the response to Signal request.
 type SignalResponse struct {
 	Timestamp int64
 }
@@ -169,7 +183,7 @@ func newSignalResponse(jsonBytes []byte, o *signalOpts,
 	if len(value) > 1 {
 		timeString, ok := value[2].(string)
 		if !ok {
-			return emptySignalResponse, status, pnerr.NewResponseParsingError(fmt.Sprintf("Error unmarshalling response, %s %v", value[2], value), nil, nil)
+			return emptySignalResponse, status, pnerr.NewResponseParsingError(fmt.Sprintf("Error unmarshalling response 2, %s %v", value[2], value), nil, nil)
 		}
 		timestamp, err := strconv.ParseInt(timeString, 10, 64)
 		if err != nil {
