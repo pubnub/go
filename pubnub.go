@@ -106,6 +106,14 @@ func (pn *PubNub) MessageCountsWithContext(ctx Context) *messageCountsBuilder {
 	return newMessageCountsBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) CreateUser() *objectAPICreateUserBuilder {
+	return newObjectAPICreateUserBuilder(pn)
+}
+
+func (pn *PubNub) CreateUserWithContext(ctx Context) *objectAPICreateUserBuilder {
+	return newObjectAPICreateUserBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) Signal() *signalBuilder {
 	return newSignalBuilder(pn)
 }

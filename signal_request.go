@@ -57,7 +57,7 @@ func (b *signalBuilder) Message(msg interface{}) *signalBuilder {
 	return b
 }
 
-// Transport sets the Transport for the objectAPICreateUsers request.
+// Transport sets the Transport for the Signal request.
 func (b *signalBuilder) Transport(tr http.RoundTripper) *signalBuilder {
 	b.opts.Transport = tr
 	return b

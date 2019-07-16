@@ -243,7 +243,6 @@ func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusRespon
 	}
 
 	opts.config().Log.Println("200 OK: resp.StatusCode, resp.Status, resp.Body, resp.Request.URL, string(body)", resp.StatusCode, resp.Status, resp.Body, resp.Request.URL, string(body))
-
 	return body, status, nil
 }
 

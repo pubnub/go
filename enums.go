@@ -110,6 +110,10 @@ const (
 	PNMessageCountsOperation
 	// PNSignalOperation is the enum used for Signal opertaion.
 	PNSignalOperation
+	// PNCreateUserOperation is the enum used to create users in the Object API.
+	PNCreateUserOperation
+	// PNGetUserOperation is the enum used to get users in the Object API.
+	PNGetUserOperation
 )
 
 const (
@@ -279,6 +283,12 @@ func (t OperationType) String() string {
 
 	case PNDeleteMessagesOperation:
 		return "Delete messages"
+
+	case PNSignalOperation:
+		return "Signal"
+
+	case PNCreateUserOperation:
+		return "Create User"
 
 	default:
 		return "No Category Matched"

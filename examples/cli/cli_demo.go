@@ -58,7 +58,7 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	config.SecretKey = "demo"
-	config.Origin = "localhost:8000"
+	//config.Origin = "localhost:8000"
 
 	config.Secure = false
 
@@ -164,6 +164,7 @@ func showHelp() {
 	showPresenceTimeoutHelp()
 	showPresenceHelp()
 	showMessageCountsHelp()
+	showCreateUserHelp()
 	fmt.Println("")
 	fmt.Println("================")
 	fmt.Println(" ||  COMMANDS  ||")
@@ -175,8 +176,14 @@ func showHelp() {
 
 func showMessageCountsHelp() {
 	fmt.Println(" MessageCounts EXAMPLE: ")
-	fmt.Println("	messageCounts Channel(s) timetoken1,timetoken2")
-	fmt.Println("	messageCounts my-channel,my-channel1 15210190573608384,15211140747622125")
+	fmt.Println("	messagecounts Channel(s) timetoken1,timetoken2")
+	fmt.Println("	messagecounts my-channel,my-channel1 15210190573608384,15211140747622125")
+}
+
+func showCreateUserHelp() {
+	fmt.Println(" CreateUser EXAMPLE: ")
+	fmt.Println("	createuser ")
+	fmt.Println("	createuser my-channel,my-channel1 15210190573608384,15211140747622125")
 }
 
 func showSignalHelp() {
@@ -354,10 +361,12 @@ func readCommand(cmd string) {
 		setPresenceTimeout(command[1:])
 	case "presence":
 		runPresenceRequest(command[1:])
-	case "messageCounts":
+	case "messagecounts":
 		messageCounts(command[1:])
 	case "signal":
 		signal(command[1:])
+	case "createuser":
+		CreateUser(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -365,6 +374,21 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func CreateUser(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	custom := make(map[string]interface{})
+	custom["a"] = "b"
+	custom["c"] = "d"
+
+	res, status, err := pn.CreateUser().Auth("auth").Include([]string{"inc"}).Id("id").Name("name").ExternalId("extid").ProfileUrl("purl").Email("emnail").Custom(custom).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
 }
 
 func signal(args []string) {
@@ -379,9 +403,9 @@ func signal(args []string) {
 	message := args[1]
 
 	res, status, err := pn.Signal().Channel(channel).Message(message).Execute()
-	fmt.Println(status)
+	fmt.Println("status", status)
 	fmt.Println(err)
-	fmt.Println(res)
+	fmt.Println("res", res)
 
 }
 
