@@ -14,6 +14,8 @@ type ReconnectionPolicy int
 // PNPushType is used as an enum to catgorize the available Push Types
 type PNPushType int
 
+type PNMessageType int
+
 const (
 	// PNNonePolicy is to be used when selecting the no Reconnection Policy
 	// ReconnectionPolicy is set in the config.
@@ -24,6 +26,12 @@ const (
 	// PNExponentialPolicy is to be used when selecting the Exponential Reconnection Policy
 	// ReconnectionPolicy is set in the config.
 	PNExponentialPolicy
+)
+
+const (
+	PNMessageTypeSignal PNMessageType = 1 + iota
+	PNMessageTypeObjects
+	PNMessageTypeActions
 )
 
 const (

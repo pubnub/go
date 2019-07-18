@@ -58,7 +58,7 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	config.SecretKey = "demo"
-	config.Origin = "localhost:8000"
+	//config.Origin = "ingress.bronze.aws-pdx-1.ps.pn:81"
 
 	config.Secure = false
 
@@ -87,6 +87,15 @@ func connect() {
 			case msg := <-listener.Message:
 				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
 				fmt.Println(" --- MESSAGE: ")
+				fmt.Println(fmt.Sprintf("%s msg.Channel: %s", outputPrefix, msg.Channel))
+				fmt.Println(fmt.Sprintf("%s msg.Message: %s", outputPrefix, msg.Message))
+				fmt.Println(fmt.Sprintf("%s msg.SubscribedChannel: %s", outputPrefix, msg.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("%s msg.Timetoken: %d", outputPrefix, msg.Timetoken))
+				fmt.Println("")
+				fmt.Println(fmt.Sprintf("%s", outputSuffix))
+			case msg := <-listener.Signal:
+				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
+				fmt.Println(" --- SIGNAL: ")
 				fmt.Println(fmt.Sprintf("%s msg.Channel: %s", outputPrefix, msg.Channel))
 				fmt.Println(fmt.Sprintf("%s msg.Message: %s", outputPrefix, msg.Message))
 				fmt.Println(fmt.Sprintf("%s msg.SubscribedChannel: %s", outputPrefix, msg.SubscribedChannel))

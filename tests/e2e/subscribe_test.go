@@ -1548,12 +1548,86 @@ func TestSubscribe403Error(t *testing.T) {
 	assert.Zero(len(pn2.GetSubscribedGroups()))
 }
 
+func TestSubscribeSignal(t *testing.T) {
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
+		Query:              "",
+		ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","e":1,"f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","d":"Signal"}]}`,
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid", "tt"},
+		ResponseStatusCode: 200,
+	})
+
+	assert := assert.New(t)
+	doneMeta := make(chan bool)
+	errChan := make(chan string)
+
+	pn := pubnub.NewPubNub(configCopy())
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	pn.SetSubscribeClient(interceptor.GetClient())
+	listener := pubnub.NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				// ignore status messages
+				if status.Error {
+					errChan <- fmt.Sprintf("Status Error: %s", status.Category)
+					break
+				} else {
+					//fmt.Println("status", status)
+					//doneMeta <- true
+					break
+				}
+			case message := <-listener.Signal:
+				meta, ok := message.Message.(string)
+				if !ok {
+					errChan <- "Invalid message type"
+				}
+				//fmt.Println("signal", message)
+				assert.Equal(meta, "Signal")
+
+				doneMeta <- true
+				break
+			case message := <-listener.Message:
+				meta, ok := message.UserMetadata.(string)
+				if !ok {
+					errChan <- "Invalid message type"
+				}
+				fmt.Println("message", message)
+				assert.Equal(meta, "my-data")
+				doneMeta <- true
+				break
+			case <-listener.Presence:
+				fmt.Println("Presence")
+				errChan <- "Got presence while awaiting for a status event"
+				break
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe().
+		Channels([]string{"ch"}).
+		Execute()
+
+	select {
+	case <-doneMeta:
+	case err := <-errChan:
+		assert.Fail(err)
+	}
+}
+
 func TestSubscribeParseUserMeta(t *testing.T) {
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
-		Query:              "heartbeat=300",
+		Query:              "",
 		ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","u":"my-data","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
@@ -1577,7 +1651,7 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 					errChan <- fmt.Sprintf("Status Error: %s", status.Category)
 					break
 				} else {
-					//fmt.Println(status)
+					fmt.Println(status)
 					doneMeta <- true
 					break
 				}

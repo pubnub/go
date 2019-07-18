@@ -472,14 +472,15 @@ type subscribeEnvelope struct {
 }
 
 type subscribeMessage struct {
-	Shard             string      `json:"a"`
-	SubscriptionMatch string      `json:"b"`
-	Channel           string      `json:"c"`
-	IssuingClientID   string      `json:"i"`
-	SubscribeKey      string      `json:"k"`
-	Flags             int         `json:"f"`
-	Payload           interface{} `json:"d"`
-	UserMetadata      interface{} `json:"u"`
+	Shard             string        `json:"a"`
+	SubscriptionMatch string        `json:"b"`
+	Channel           string        `json:"c"`
+	IssuingClientID   string        `json:"i"`
+	SubscribeKey      string        `json:"k"`
+	Flags             int           `json:"f"`
+	Payload           interface{}   `json:"d"`
+	UserMetadata      interface{}   `json:"u"`
+	MessageType       PNMessageType `json:"e"`
 
 	PublishMetaData publishMetadata `json:"p"`
 }
@@ -658,8 +659,15 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			Publisher:         payload.IssuingClientID,
 			UserMetadata:      payload.UserMetadata,
 		}
-		m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
-		m.listenerManager.announceMessage(pnMessageResult)
+
+		if payload.MessageType == PNMessageTypeSignal {
+			m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
+			m.listenerManager.announceSignal(pnMessageResult)
+
+		} else {
+			m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
+			m.listenerManager.announceMessage(pnMessageResult)
+		}
 		m.pubnub.Config.Log.Println("after announceMessage")
 	}
 }
