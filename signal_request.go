@@ -57,6 +57,13 @@ func (b *signalBuilder) Message(msg interface{}) *signalBuilder {
 	return b
 }
 
+// UsePost sends the Signal request using HTTP POST.
+func (b *signalBuilder) UsePost(post bool) *signalBuilder {
+	b.opts.UsePost = post
+
+	return b
+}
+
 // Transport sets the Transport for the objectAPICreateUsers request.
 func (b *signalBuilder) Transport(tr http.RoundTripper) *signalBuilder {
 	b.opts.Transport = tr
@@ -84,6 +91,7 @@ type signalOpts struct {
 	pubnub     *PubNub
 	Message    interface{}
 	Channel    string
+	UsePost    bool
 	QueryParam map[string]string
 	Transport  http.RoundTripper
 	ctx        Context
@@ -114,10 +122,21 @@ func (o *signalOpts) validate() error {
 }
 
 func (o *signalOpts) buildPath() (string, error) {
+
+	var msg string
+	jsonEncBytes, errEnc := json.Marshal(o.Message)
+	if errEnc != nil {
+		o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
+		return "", errEnc
+	}
+	msg = string(jsonEncBytes)
 	return fmt.Sprintf(signalPath,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,
-		utils.URLEncode(o.Channel)), nil
+		utils.URLEncode(o.Channel),
+		"0",
+		utils.URLEncode(msg),
+	), nil
 }
 
 func (o *signalOpts) buildQuery() (*url.Values, error) {
@@ -133,17 +152,22 @@ func (o *signalOpts) jobQueue() chan *JobQItem {
 }
 
 func (o *signalOpts) buildBody() ([]byte, error) {
-	jsonEncBytes, errEnc := json.Marshal(o.Message)
-	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
-		return []byte{}, errEnc
+	if o.UsePost {
+		jsonEncBytes, errEnc := json.Marshal(o.Message)
+		if errEnc != nil {
+			o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
+			return []byte{}, errEnc
+		}
+		return jsonEncBytes, nil
 	}
-	return jsonEncBytes, nil
-
+	return []byte{}, nil
 }
 
 func (o *signalOpts) httpMethod() string {
-	return "POST"
+	if o.UsePost {
+		return "POST"
+	}
+	return "GET"
 }
 
 func (o *signalOpts) isAuthRequired() bool {
