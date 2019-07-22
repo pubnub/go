@@ -21,7 +21,6 @@ func AssertSuccessSignalGet(t *testing.T, channel string, checkQueryParam bool) 
 	}
 
 	msgMap["one"] = "hey1"
-	expectedBody := "{\"one\":\"hey1\"}"
 
 	opts := &signalOpts{
 		Channel:    channel,
@@ -34,13 +33,13 @@ func AssertSuccessSignalGet(t *testing.T, channel string, checkQueryParam bool) 
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/signal/%s/%s/%s", pubnub.Config.PublishKey, pubnub.Config.SubscribeKey, channel),
+		fmt.Sprintf("/signal/%s/%s/0/%s/0/%s", pubnub.Config.PublishKey, pubnub.Config.SubscribeKey, channel, "%7B%22one%22%3A%22hey1%22%7D"),
 		path, []int{})
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
 
-	assert.Equal(expectedBody, string(body))
+	assert.Empty(body)
 
 	if checkQueryParam {
 		u, _ := opts.buildQuery()
@@ -81,6 +80,7 @@ func AssertNewSignalBuilder(t *testing.T, checkQueryParam bool, testContext bool
 	}
 	o.Channel(channel)
 	o.Message(msgMap)
+	o.UsePost(true)
 	if checkQueryParam {
 		o.QueryParam(queryParam)
 	}
@@ -89,7 +89,7 @@ func AssertNewSignalBuilder(t *testing.T, checkQueryParam bool, testContext bool
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/signal/%s/%s/%s", pubnub.Config.PublishKey, pubnub.Config.SubscribeKey, channel),
+		fmt.Sprintf("/signal/%s/%s/0/%s/0", pubnub.Config.PublishKey, pubnub.Config.SubscribeKey, channel),
 		path, []int{})
 
 	body, err := o.opts.buildBody()

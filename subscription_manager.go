@@ -635,18 +635,24 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			actualCh = channel
 			subscribedCh = subscriptionMatch
 		}
-		messagePayload, err := parseCipherInterface(payload.Payload, m.pubnub.Config)
+		var messagePayload interface{}
 
-		if err != nil {
-			pnStatus := &PNStatus{
-				Category:         PNBadRequestCategory,
-				ErrorData:        err,
-				Error:            true,
-				Operation:        PNSubscribeOperation,
-				AffectedChannels: []string{channel},
+		if payload.MessageType == PNMessageTypeSignal {
+			messagePayload = payload.Payload
+		} else {
+			var err error
+			messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
+			if err != nil {
+				pnStatus := &PNStatus{
+					Category:         PNBadRequestCategory,
+					ErrorData:        err,
+					Error:            true,
+					Operation:        PNSubscribeOperation,
+					AffectedChannels: []string{channel},
+				}
+				m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
+				m.listenerManager.announceStatus(pnStatus)
 			}
-			m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
-			m.listenerManager.announceStatus(pnStatus)
 		}
 
 		pnMessageResult := &PNMessage{

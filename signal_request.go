@@ -16,7 +16,8 @@ import (
 
 var emptySignalResponse *SignalResponse
 
-const signalPath = "/v1/signal/%s/%s/%s"
+const signalGetPath = "/signal/%s/%s/0/%s/%s/%s"
+const signalPostPath = "/signal/%s/%s/0/%s/%s"
 
 type signalBuilder struct {
 	opts *signalOpts
@@ -122,6 +123,13 @@ func (o *signalOpts) validate() error {
 }
 
 func (o *signalOpts) buildPath() (string, error) {
+	if o.UsePost == true {
+		return fmt.Sprintf(signalPostPath,
+			o.pubnub.Config.PublishKey,
+			o.pubnub.Config.SubscribeKey,
+			utils.URLEncode(o.Channel),
+			"0"), nil
+	}
 
 	var msg string
 	jsonEncBytes, errEnc := json.Marshal(o.Message)
@@ -130,7 +138,7 @@ func (o *signalOpts) buildPath() (string, error) {
 		return "", errEnc
 	}
 	msg = string(jsonEncBytes)
-	return fmt.Sprintf(signalPath,
+	return fmt.Sprintf(signalGetPath,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,
 		utils.URLEncode(o.Channel),
@@ -155,7 +163,7 @@ func (o *signalOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		jsonEncBytes, errEnc := json.Marshal(o.Message)
 		if errEnc != nil {
-			o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
+			o.pubnub.Config.Log.Printf("ERROR: Signal error: %s\n", errEnc.Error())
 			return []byte{}, errEnc
 		}
 		return jsonEncBytes, nil
