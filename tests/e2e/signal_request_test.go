@@ -67,7 +67,6 @@ func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher s
 	ch := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Origin = "ingress.bronze.aws-pdx-1.ps.pn:81"
 	pn.Config.SubscribeKey = "demo"
 	pn.Config.PublishKey = "demo"
 	pn.Config.Secure = false
