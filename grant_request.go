@@ -142,7 +142,7 @@ func (b *grantBuilder) Users(users []string) *grantBuilder {
 
 // Patterns sets the Patterns for the Grant request.
 func (b *grantBuilder) Patterns(pattern string, resourceTypes patterns) *grantBuilder {
-	b.opts.Patterns = patterns
+	// b.opts.Patterns = patterns
 
 	return b
 }
