@@ -176,6 +176,9 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 	case PNAccessManagerGrant:
 		endpoint = "pam"
 		break
+	case PNSignalOperation:
+		endpoint = "sig"
+		break
 	default:
 		endpoint = "time"
 		break

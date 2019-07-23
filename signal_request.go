@@ -29,6 +29,7 @@ func newSignalBuilder(pubnub *PubNub) *signalBuilder {
 			pubnub: pubnub,
 		},
 	}
+	builder.opts.UsePost = false
 
 	return &builder
 }
@@ -58,8 +59,8 @@ func (b *signalBuilder) Message(msg interface{}) *signalBuilder {
 	return b
 }
 
-// UsePost sends the Signal request using HTTP POST.
-func (b *signalBuilder) UsePost(post bool) *signalBuilder {
+// usePost sends the Signal request using HTTP POST.
+func (b *signalBuilder) usePost(post bool) *signalBuilder {
 	b.opts.UsePost = post
 
 	return b

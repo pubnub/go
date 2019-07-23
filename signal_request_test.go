@@ -80,7 +80,7 @@ func AssertNewSignalBuilder(t *testing.T, checkQueryParam bool, testContext bool
 	}
 	o.Channel(channel)
 	o.Message(msgMap)
-	o.UsePost(true)
+	o.usePost(true)
 	if checkQueryParam {
 		o.QueryParam(queryParam)
 	}

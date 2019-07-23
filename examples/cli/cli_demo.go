@@ -58,6 +58,7 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	config.SecretKey = "demo"
+	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn:81"
 
 	config.Secure = false
 
@@ -386,7 +387,8 @@ func signal(args []string) {
 
 	message := args[1]
 
-	res, status, err := pn.Signal().Channel(channel).Message(message).UsePost(true).Execute()
+	res, status, err := pn.Signal().Channel(channel).Message(message).Execute()
+	//res, status, err := pn.Signal().Channel(channel).Message(message).UsePost(true).Execute()
 	fmt.Println(status)
 	fmt.Println(err)
 	fmt.Println(res)
