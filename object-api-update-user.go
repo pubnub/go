@@ -14,17 +14,17 @@ import (
 	"net/url"
 )
 
-var emptyPNCreateUserResponse *PNCreateUserResponse
+var emptyPNUpdateUserResponse *PNUpdateUserResponse
 
-const createUserPath = "/v1/objects/%s/users"
+const updateUserPath = "/v1/objects/%s/users/%s"
 
-type createUserBuilder struct {
-	opts *createUserOpts
+type updateUserBuilder struct {
+	opts *updateUserOpts
 }
 
-func newCreateUserBuilder(pubnub *PubNub) *createUserBuilder {
-	builder := createUserBuilder{
-		opts: &createUserOpts{
+func newUpdateUserBuilder(pubnub *PubNub) *updateUserBuilder {
+	builder := updateUserBuilder{
+		opts: &updateUserOpts{
 			pubnub: pubnub,
 		},
 	}
@@ -32,10 +32,10 @@ func newCreateUserBuilder(pubnub *PubNub) *createUserBuilder {
 	return &builder
 }
 
-func newCreateUserBuilderWithContext(pubnub *PubNub,
-	context Context) *createUserBuilder {
-	builder := createUserBuilder{
-		opts: &createUserOpts{
+func newUpdateUserBuilderWithContext(pubnub *PubNub,
+	context Context) *updateUserBuilder {
+	builder := updateUserBuilder{
+		opts: &updateUserOpts{
 			pubnub: pubnub,
 			ctx:    context,
 		},
@@ -44,7 +44,7 @@ func newCreateUserBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-type createUserBody struct {
+type UpdateUserBody struct {
 	Id         string                 `json:"id"`
 	Name       string                 `json:"name"`
 	ExternalId string                 `json:"externalId"`
@@ -54,84 +54,82 @@ type createUserBody struct {
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-// func (b *createUserBuilder) Auth(auth string) *createUserBuilder {
+// func (b *updateUserBuilder) Auth(auth string) *updateUserBuilder {
 // 	b.opts.Auth = auth
 
 // 	return b
 // }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *createUserBuilder) Include(include []string) *createUserBuilder {
+func (b *updateUserBuilder) Include(include []string) *updateUserBuilder {
 	b.opts.Include = include
 
 	return b
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *createUserBuilder) Id(id string) *createUserBuilder {
+func (b *updateUserBuilder) Id(id string) *updateUserBuilder {
 	b.opts.Id = id
 
 	return b
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *createUserBuilder) Name(name string) *createUserBuilder {
+func (b *updateUserBuilder) Name(name string) *updateUserBuilder {
 	b.opts.Name = name
 
 	return b
 }
 
-func (b *createUserBuilder) ExternalId(externalId string) *createUserBuilder {
+func (b *updateUserBuilder) ExternalId(externalId string) *updateUserBuilder {
 	b.opts.ExternalId = externalId
 
 	return b
 }
 
-func (b *createUserBuilder) ProfileUrl(profileUrl string) *createUserBuilder {
+func (b *updateUserBuilder) ProfileUrl(profileUrl string) *updateUserBuilder {
 	b.opts.ProfileUrl = profileUrl
 
 	return b
 }
 
-func (b *createUserBuilder) Email(email string) *createUserBuilder {
+func (b *updateUserBuilder) Email(email string) *updateUserBuilder {
 	b.opts.Email = email
 
 	return b
 }
 
-func (b *createUserBuilder) Custom(custom map[string]interface{}) *createUserBuilder {
+func (b *updateUserBuilder) Custom(custom map[string]interface{}) *updateUserBuilder {
 	b.opts.Custom = custom
 
 	return b
 }
 
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
-func (b *createUserBuilder) QueryParam(queryParam map[string]string) *createUserBuilder {
+func (b *updateUserBuilder) QueryParam(queryParam map[string]string) *updateUserBuilder {
 	b.opts.QueryParam = queryParam
 
 	return b
 }
 
-// Transport sets the Transport for the createUser request.
-func (b *createUserBuilder) Transport(tr http.RoundTripper) *createUserBuilder {
+// Transport sets the Transport for the updateUser request.
+func (b *updateUserBuilder) Transport(tr http.RoundTripper) *updateUserBuilder {
 	b.opts.Transport = tr
 	return b
 }
 
-// Execute runs the createUser request.
-func (b *createUserBuilder) Execute() (*PNCreateUserResponse, StatusResponse, error) {
+// Execute runs the updateUser request.
+func (b *updateUserBuilder) Execute() (*PNUpdateUserResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyPNCreateUserResponse, status, err
+		return emptyPNUpdateUserResponse, status, err
 	}
 
-	return newPNUser(rawJSON, b.opts, status)
+	return newUpdatePNUser(rawJSON, b.opts, status)
 }
 
-type createUserOpts struct {
-	pubnub *PubNub
-
-	Auth       string
+type updateUserOpts struct {
+	pubnub     *PubNub
 	Include    []string
 	Id         string
 	Name       string
@@ -146,19 +144,19 @@ type createUserOpts struct {
 	ctx Context
 }
 
-func (o *createUserOpts) config() Config {
+func (o *updateUserOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *createUserOpts) client() *http.Client {
+func (o *updateUserOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *createUserOpts) context() Context {
+func (o *updateUserOpts) context() Context {
 	return o.ctx
 }
 
-func (o *createUserOpts) validate() error {
+func (o *updateUserOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)
 	}
@@ -166,12 +164,12 @@ func (o *createUserOpts) validate() error {
 	return nil
 }
 
-func (o *createUserOpts) buildPath() (string, error) {
-	return fmt.Sprintf(createUserPath,
-		o.pubnub.Config.SubscribeKey), nil
+func (o *updateUserOpts) buildPath() (string, error) {
+	return fmt.Sprintf(updateUserPath,
+		o.pubnub.Config.SubscribeKey, o.Id), nil
 }
 
-func (o *createUserOpts) buildQuery() (*url.Values, error) {
+func (o *updateUserOpts) buildQuery() (*url.Values, error) {
 
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
@@ -179,21 +177,21 @@ func (o *createUserOpts) buildQuery() (*url.Values, error) {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
 
-	if o.Auth != "" {
-		q.Set("auth", o.Auth)
-	}
+	// if o.Auth != "" {
+	// 	q.Set("auth", o.Auth)
+	// }
 
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
 }
 
-func (o *createUserOpts) jobQueue() chan *JobQItem {
+func (o *updateUserOpts) jobQueue() chan *JobQItem {
 	return o.pubnub.jobQueue
 }
 
-func (o *createUserOpts) buildBody() ([]byte, error) {
-	b := &createUserBody{
+func (o *updateUserOpts) buildBody() ([]byte, error) {
+	b := &UpdateUserBody{
 		Id:         o.Id,
 		Name:       o.Name,
 		ExternalId: o.ExternalId,
@@ -213,39 +211,39 @@ func (o *createUserOpts) buildBody() ([]byte, error) {
 
 }
 
-func (o *createUserOpts) httpMethod() string {
-	return "POST"
+func (o *updateUserOpts) httpMethod() string {
+	return "PATCH"
 }
 
-func (o *createUserOpts) isAuthRequired() bool {
+func (o *updateUserOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *createUserOpts) requestTimeout() int {
+func (o *updateUserOpts) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *createUserOpts) connectTimeout() int {
+func (o *updateUserOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *createUserOpts) operationType() OperationType {
-	return PNCreateUserOperation
+func (o *updateUserOpts) operationType() OperationType {
+	return PNUpdateUserOperation
 }
 
-func (o *createUserOpts) telemetryManager() *TelemetryManager {
+func (o *updateUserOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-type PNCreateUserResponse struct {
+type PNUpdateUserResponse struct {
 	Status int    `json:"status"`
 	Data   PNUser `json:"data"`
 }
 
-func newPNUser(jsonBytes []byte, o *createUserOpts,
-	status StatusResponse) (*PNCreateUserResponse, StatusResponse, error) {
+func newUpdatePNUser(jsonBytes []byte, o *updateUserOpts,
+	status StatusResponse) (*PNUpdateUserResponse, StatusResponse, error) {
 
-	resp := &PNCreateUserResponse{}
+	resp := &PNUpdateUserResponse{}
 
 	fmt.Println(string(jsonBytes))
 
@@ -255,7 +253,7 @@ func newPNUser(jsonBytes []byte, o *createUserOpts,
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyPNCreateUserResponse, status, e
+		return emptyPNUpdateUserResponse, status, e
 	}
 
 	return resp, status, nil

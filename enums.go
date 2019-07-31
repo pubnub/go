@@ -112,8 +112,16 @@ const (
 	PNSignalOperation
 	// PNCreateUserOperation is the enum used to create users in the Object API.
 	PNCreateUserOperation
-	// PNGetUserOperation is the enum used to get users in the Object API.
-	PNGetUserOperation
+	// PNGetUsersOperation is the enum used to get users in the Object API.
+	PNGetUsersOperation
+	// PNFetchUserOperation
+	PNFetchUserOperation
+	// PNUpdateUserOperation
+	PNUpdateUserOperation
+	// PNDeleteUserOperation
+	PNDeleteUserOperation
+	// PNGetSpacesOperation
+	PNGetSpacesOperation
 )
 
 const (
@@ -167,6 +175,13 @@ var operations = [...]string{
 	"Grant",
 	"Revoke",
 	"Delete messages",
+	"Signal",
+	"Create User",
+	"Get Users",
+	"Fetch User",
+	"Update User",
+	"Delete User",
+	"Get Spaces",
 }
 
 func (c StatusCategory) String() string {
@@ -289,7 +304,16 @@ func (t OperationType) String() string {
 
 	case PNCreateUserOperation:
 		return "Create User"
-
+	case PNGetUsersOperation:
+		return "Get Users"
+	case PNFetchUserOperation:
+		return "Fetch Users"
+	case PNUpdateUserOperation:
+		return "Update User"
+	case PNDeleteUserOperation:
+		return "Delete User"
+	case PNGetSpacesOperation:
+		return "Get Spaces"
 	default:
 		return "No Category Matched"
 	}

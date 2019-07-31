@@ -367,6 +367,16 @@ func readCommand(cmd string) {
 		signal(command[1:])
 	case "createuser":
 		CreateUser(command[1:])
+	case "getusers":
+		GetUsers(command[1:])
+	case "fetchuser":
+		FetchUsers(command[1:])
+	case "updateuser":
+		UpdateUser(command[1:])
+	case "deleteuser":
+		DeleteUser(command[1:])
+	case "getspaces":
+		GetSpaces(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -374,6 +384,69 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func GetSpaces(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	res, status, err := pn.GetSpaces().Include([]string{"custom"}).Limit(100).Count(true).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func DeleteUser(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	custom := make(map[string]interface{})
+	custom["a"] = "b"
+	custom["c"] = "d"
+
+	res, status, err := pn.DeleteUser().Id("id7").Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func UpdateUser(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	custom := make(map[string]interface{})
+	custom["a"] = "b"
+	custom["c"] = "d"
+
+	res, status, err := pn.UpdateUser().Include([]string{"custom"}).Id("id9").Name("name").ExternalId("extid").ProfileUrl("purl").Email("email1").Custom(custom).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func FetchUsers(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	res, status, err := pn.FetchUser().Include([]string{"custom"}).Id("id7").Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func GetUsers(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	res, status, err := pn.GetUsers().Include([]string{"custom"}).Start("MjAw").Limit(100).Count(true).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
 }
 
 func CreateUser(args []string) {
@@ -385,7 +458,7 @@ func CreateUser(args []string) {
 	custom["a"] = "b"
 	custom["c"] = "d"
 
-	res, status, err := pn.CreateUser().Auth("auth").Include([]string{"inc"}).Id("id").Name("name").ExternalId("extid").ProfileUrl("purl").Email("emnail").Custom(custom).Execute()
+	res, status, err := pn.CreateUser().Include([]string{"custom"}).Id("id7").Name("name").ExternalId("extid").ProfileUrl("purl").Email("emnail").Custom(custom).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)

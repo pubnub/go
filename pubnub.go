@@ -106,12 +106,52 @@ func (pn *PubNub) MessageCountsWithContext(ctx Context) *messageCountsBuilder {
 	return newMessageCountsBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) CreateUser() *objectAPICreateUserBuilder {
-	return newObjectAPICreateUserBuilder(pn)
+func (pn *PubNub) CreateUser() *createUserBuilder {
+	return newCreateUserBuilder(pn)
 }
 
-func (pn *PubNub) CreateUserWithContext(ctx Context) *objectAPICreateUserBuilder {
-	return newObjectAPICreateUserBuilderWithContext(pn, ctx)
+func (pn *PubNub) CreateUserWithContext(ctx Context) *createUserBuilder {
+	return newCreateUserBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetUsers() *getUsersBuilder {
+	return newGetUsersBuilder(pn)
+}
+
+func (pn *PubNub) GetUsersWithContext(ctx Context) *getUsersBuilder {
+	return newGetUsersBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) FetchUser() *fetchUserBuilder {
+	return newFetchUserBuilder(pn)
+}
+
+func (pn *PubNub) FetchUserWithContext(ctx Context) *fetchUserBuilder {
+	return newFetchUserBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) UpdateUser() *updateUserBuilder {
+	return newUpdateUserBuilder(pn)
+}
+
+func (pn *PubNub) UpdateUserWithContext(ctx Context) *updateUserBuilder {
+	return newUpdateUserBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) DeleteUser() *deleteUserBuilder {
+	return newDeleteUserBuilder(pn)
+}
+
+func (pn *PubNub) DeleteUserWithContext(ctx Context) *deleteUserBuilder {
+	return newDeleteUserBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetSpaces() *getSpacesBuilder {
+	return newGetSpacesBuilder(pn)
+}
+
+func (pn *PubNub) GetSpacesWithContext(ctx Context) *getSpacesBuilder {
+	return newGetSpacesBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) Signal() *signalBuilder {
