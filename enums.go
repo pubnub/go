@@ -120,8 +120,16 @@ const (
 	PNUpdateUserOperation
 	// PNDeleteUserOperation
 	PNDeleteUserOperation
+	// PNGetSpaceOperation
+	PNGetSpaceOperation
 	// PNGetSpacesOperation
 	PNGetSpacesOperation
+	// PNCreateSpaceOperation
+	PNCreateSpaceOperation
+	// PNDeleteSpaceOperation
+	PNDeleteSpaceOperation
+	// PNUpdateSpaceOperation
+	PNUpdateSpaceOperation
 )
 
 const (
@@ -181,7 +189,11 @@ var operations = [...]string{
 	"Fetch User",
 	"Update User",
 	"Delete User",
+	"Get Space",
 	"Get Spaces",
+	"Create Space",
+	"Delete Space",
+	"Update Space",
 }
 
 func (c StatusCategory) String() string {
@@ -312,8 +324,16 @@ func (t OperationType) String() string {
 		return "Update User"
 	case PNDeleteUserOperation:
 		return "Delete User"
+	case PNGetSpaceOperation:
+		return "Get Space"
 	case PNGetSpacesOperation:
 		return "Get Spaces"
+	case PNCreateSpaceOperation:
+		return "Create Space"
+	case PNDeleteSpaceOperation:
+		return "Delete Space"
+	case PNUpdateSpaceOperation:
+		return "Update Space"
 	default:
 		return "No Category Matched"
 	}

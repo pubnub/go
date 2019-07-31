@@ -125,7 +125,7 @@ func (b *updateUserBuilder) Execute() (*PNUpdateUserResponse, StatusResponse, er
 		return emptyPNUpdateUserResponse, status, err
 	}
 
-	return newUpdatePNUser(rawJSON, b.opts, status)
+	return newPNUpdateUserResponse(rawJSON, b.opts, status)
 }
 
 type updateUserOpts struct {
@@ -240,7 +240,7 @@ type PNUpdateUserResponse struct {
 	Data   PNUser `json:"data"`
 }
 
-func newUpdatePNUser(jsonBytes []byte, o *updateUserOpts,
+func newPNUpdateUserResponse(jsonBytes []byte, o *updateUserOpts,
 	status StatusResponse) (*PNUpdateUserResponse, StatusResponse, error) {
 
 	resp := &PNUpdateUserResponse{}

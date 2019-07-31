@@ -74,7 +74,7 @@ func (b *deleteUserBuilder) Execute() (*PNDeleteUserResponse, StatusResponse, er
 		return emptyPNDeleteUserResponse, status, err
 	}
 
-	return newDeletePNUser(rawJSON, b.opts, status)
+	return newPNDeleteUserResponse(rawJSON, b.opts, status)
 }
 
 type deleteUserOpts struct {
@@ -163,7 +163,7 @@ type PNDeleteUserResponse struct {
 	Data   PNUser `json:"data"`
 }
 
-func newDeletePNUser(jsonBytes []byte, o *deleteUserOpts,
+func newPNDeleteUserResponse(jsonBytes []byte, o *deleteUserOpts,
 	status StatusResponse) (*PNDeleteUserResponse, StatusResponse, error) {
 
 	resp := &PNDeleteUserResponse{}

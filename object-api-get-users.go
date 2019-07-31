@@ -107,7 +107,7 @@ func (b *getUsersBuilder) Execute() (*PNGetUsersResponse, StatusResponse, error)
 		return emptyPNGetUsersResponse, status, err
 	}
 
-	return newGetUsersResponse(rawJSON, b.opts, status)
+	return newPNGetUsersResponse(rawJSON, b.opts, status)
 }
 
 type getUsersOpts struct {
@@ -223,7 +223,7 @@ type PNGetUsersResponse struct {
 	Prev       string   `json:"prev"`
 }
 
-func newGetUsersResponse(jsonBytes []byte, o *getUsersOpts,
+func newPNGetUsersResponse(jsonBytes []byte, o *getUsersOpts,
 	status StatusResponse) (*PNGetUsersResponse, StatusResponse, error) {
 
 	resp := &PNGetUsersResponse{}

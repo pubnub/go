@@ -146,12 +146,44 @@ func (pn *PubNub) DeleteUserWithContext(ctx Context) *deleteUserBuilder {
 	return newDeleteUserBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) CreateSpace() *createSpaceBuilder {
+	return newCreateSpaceBuilder(pn)
+}
+
+func (pn *PubNub) CreateSpaceWithContext(ctx Context) *createSpaceBuilder {
+	return newCreateSpaceBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) GetSpaces() *getSpacesBuilder {
 	return newGetSpacesBuilder(pn)
 }
 
 func (pn *PubNub) GetSpacesWithContext(ctx Context) *getSpacesBuilder {
 	return newGetSpacesBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetSpace() *getSpaceBuilder {
+	return newGetSpaceBuilder(pn)
+}
+
+func (pn *PubNub) GetSpaceWithContext(ctx Context) *getSpaceBuilder {
+	return newGetSpaceBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) UpdateSpace() *updateSpaceBuilder {
+	return newUpdateSpaceBuilder(pn)
+}
+
+func (pn *PubNub) UpdateSpaceWithContext(ctx Context) *updateSpaceBuilder {
+	return newUpdateSpaceBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) DeleteSpace() *deleteSpaceBuilder {
+	return newDeleteSpaceBuilder(pn)
+}
+
+func (pn *PubNub) DeleteSpaceWithContext(ctx Context) *deleteSpaceBuilder {
+	return newDeleteSpaceBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) Signal() *signalBuilder {

@@ -125,7 +125,7 @@ func (b *createUserBuilder) Execute() (*PNCreateUserResponse, StatusResponse, er
 		return emptyPNCreateUserResponse, status, err
 	}
 
-	return newPNUser(rawJSON, b.opts, status)
+	return newPNCreateUserResponse(rawJSON, b.opts, status)
 }
 
 type createUserOpts struct {
@@ -242,7 +242,7 @@ type PNCreateUserResponse struct {
 	Data   PNUser `json:"data"`
 }
 
-func newPNUser(jsonBytes []byte, o *createUserOpts,
+func newPNCreateUserResponse(jsonBytes []byte, o *createUserOpts,
 	status StatusResponse) (*PNCreateUserResponse, StatusResponse, error) {
 
 	resp := &PNCreateUserResponse{}

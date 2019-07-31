@@ -76,7 +76,7 @@ func (b *fetchUserBuilder) Execute() (*PNFetchUserResponse, StatusResponse, erro
 		return emptyPNFetchUserResponse, status, err
 	}
 
-	return newFetchPNUser(rawJSON, b.opts, status)
+	return newPNFetchUserResponse(rawJSON, b.opts, status)
 }
 
 type fetchUserOpts struct {
@@ -165,7 +165,7 @@ type PNFetchUserResponse struct {
 	Data   PNUser `json:"data"`
 }
 
-func newFetchPNUser(jsonBytes []byte, o *fetchUserOpts,
+func newPNFetchUserResponse(jsonBytes []byte, o *fetchUserOpts,
 	status StatusResponse) (*PNFetchUserResponse, StatusResponse, error) {
 
 	resp := &PNFetchUserResponse{}

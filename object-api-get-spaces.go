@@ -16,7 +16,7 @@ import (
 
 var emptyGetSpacesResponse *PNGetSpacesResponse
 
-const getSpacesPath = "/v1/objects/%s/users"
+const getSpacesPath = "/v1/objects/%s/spaces"
 
 const spaceLimit = 100
 
@@ -107,7 +107,7 @@ func (b *getSpacesBuilder) Execute() (*PNGetSpacesResponse, StatusResponse, erro
 		return emptyGetSpacesResponse, status, err
 	}
 
-	return newGetSpacesResponse(rawJSON, b.opts, status)
+	return newPNGetSpacesResponse(rawJSON, b.opts, status)
 }
 
 type getSpacesOpts struct {
@@ -223,7 +223,7 @@ type PNGetSpacesResponse struct {
 	Prev       string    `json:"prev"`
 }
 
-func newGetSpacesResponse(jsonBytes []byte, o *getSpacesOpts,
+func newPNGetSpacesResponse(jsonBytes []byte, o *getSpacesOpts,
 	status StatusResponse) (*PNGetSpacesResponse, StatusResponse, error) {
 
 	resp := &PNGetSpacesResponse{}

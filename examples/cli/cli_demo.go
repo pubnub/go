@@ -377,6 +377,14 @@ func readCommand(cmd string) {
 		DeleteUser(command[1:])
 	case "getspaces":
 		GetSpaces(command[1:])
+	case "createspace":
+		CreateSpace(command[1:])
+	case "delspace":
+		DeleteSpace(command[1:])
+	case "updatespace":
+		UpdateSpace(command[1:])
+	case "getspace":
+		GetSpace(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -392,6 +400,57 @@ func GetSpaces(args []string) {
 		return
 	}
 	res, status, err := pn.GetSpaces().Include([]string{"custom"}).Limit(100).Count(true).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func UpdateSpace(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	custom := make(map[string]interface{})
+	custom["a"] = "b"
+	custom["c"] = "d"
+
+	res, status, err := pn.UpdateSpace().Id("id0").Name("nameupdated").Description("descupdated").Include([]string{"custom"}).Custom(custom).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func DeleteSpace(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	res, status, err := pn.DeleteSpace().Id("id0").Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func CreateSpace(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	custom := make(map[string]interface{})
+	custom["a"] = "b"
+
+	res, status, err := pn.CreateSpace().Id("id0").Name("name").Description("desc").Include([]string{"custom"}).Custom(custom).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func GetSpace(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	res, status, err := pn.GetSpace().Id("id0").Include([]string{"custom"}).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
@@ -421,7 +480,7 @@ func UpdateUser(args []string) {
 	custom["a"] = "b"
 	custom["c"] = "d"
 
-	res, status, err := pn.UpdateUser().Include([]string{"custom"}).Id("id9").Name("name").ExternalId("extid").ProfileUrl("purl").Email("email1").Custom(custom).Execute()
+	res, status, err := pn.UpdateUser().Include([]string{"custom"}).Id("id7").Name("name").ExternalId("extid").ProfileUrl("purl").Email("email1").Custom(custom).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
