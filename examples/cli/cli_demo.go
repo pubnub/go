@@ -615,7 +615,7 @@ func setStateRequest(args []string) {
 		}
 	}
 
-	res, status, err := pn.SetState().Channels([]string{channel}).State(state).Execute()
+	res, status, err := pn.SetState().Channels([]string{channel}).State(state).UUID("nuuid").Execute()
 
 	fmt.Println("status===>", status)
 	if err != nil {
@@ -638,7 +638,7 @@ func getStateRequest(args []string) {
 		channel = args[0]
 	}
 
-	res, status, err := pn.GetState().Channels([]string{channel}).Execute()
+	res, status, err := pn.GetState().Channels([]string{channel}).UUID("").Execute()
 
 	fmt.Println("status===>", status)
 	if err != nil {
