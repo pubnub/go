@@ -385,6 +385,10 @@ func readCommand(cmd string) {
 		UpdateSpace(command[1:])
 	case "getspace":
 		GetSpace(command[1:])
+	case "getspacemem":
+		GetSpaceMemberships(command[1:])
+	case "getmem":
+		GetMembers(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -392,6 +396,28 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func GetSpaceMemberships(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	res, status, err := pn.GetSpaceMemberships().UserId("id0").Include([]string{"custom"}).Limit(100).Count(true).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func GetMembers(args []string) {
+	if len(args) < 2 {
+		showCreateUserHelp()
+		return
+	}
+	res, status, err := pn.GetMembers().SpaceId("id0").Include([]string{"custom"}).Limit(100).Count(true).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
 }
 
 func GetSpaces(args []string) {

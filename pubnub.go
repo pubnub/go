@@ -186,6 +186,22 @@ func (pn *PubNub) DeleteSpaceWithContext(ctx Context) *deleteSpaceBuilder {
 	return newDeleteSpaceBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) GetSpaceMemberships() *getSpaceMembershipsBuilder {
+	return newGetSpaceMembershipsBuilder(pn)
+}
+
+func (pn *PubNub) GetSpaceMembershipsWithContext(ctx Context) *getSpaceMembershipsBuilder {
+	return newGetSpaceMembershipsBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetMembers() *getMembersBuilder {
+	return newGetMembersBuilder(pn)
+}
+
+func (pn *PubNub) GetMembersWithContext(ctx Context) *getMembersBuilder {
+	return newGetMembersBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) Signal() *signalBuilder {
 	return newSignalBuilder(pn)
 }
