@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "UUID param in Set and Get State"
+        type: improvement
+    date: Aug 1, 19  
+    version: v4.2.5  
+  - 
+    changes: 
+      - 
         text: "Destroy now cleans up all goroutines opened by the SDK"
         type: bug
     date: Jun 20, 19  
@@ -363,4 +370,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.2.4
+version: v4.2.5

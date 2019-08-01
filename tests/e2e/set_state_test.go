@@ -42,6 +42,42 @@ func TestSetStateSucessNotStubbed(t *testing.T) {
 	}
 }
 
+func TestSetStateSucessNotStubbedWithUUID(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+	uuid := "nuuid"
+
+	state := make(map[string]interface{})
+	state["age"] = "20"
+
+	setStateRes, _, err := pn.SetState().State(state).UUID(uuid).Channels([]string{"ch"}).
+		ChannelGroups([]string{"cg"}).Execute()
+
+	assert.Nil(err)
+	if s, ok := setStateRes.State.(map[string]interface{}); ok {
+		assert.Equal("20", s["age"])
+	} else {
+		assert.Fail(fmt.Sprintf("!map[string]interface{} %v %v", reflect.TypeOf(setStateRes.State).Kind(), reflect.TypeOf(setStateRes.State)))
+	}
+
+	assert.Equal("OK", setStateRes.Message)
+
+	getStateRes, _, err := pn.GetState().
+		Channels([]string{"ch"}).
+		ChannelGroups([]string{"cg"}).
+		UUID(uuid).
+		Execute()
+
+	assert.Nil(err)
+	if s, ok := getStateRes.State["ch"].(map[string]interface{}); ok {
+		assert.Equal("20", s["age"])
+	} else {
+		assert.Fail(fmt.Sprintf("!map[string]interface{} %v %v", reflect.TypeOf(getStateRes.State["ch"]).Kind(), reflect.TypeOf(setStateRes.State)))
+	}
+	assert.Equal(uuid, getStateRes.UUID)
+}
+
 func TestSetStateSucessNotStubbedContext(t *testing.T) {
 	assert := assert.New(t)
 

@@ -66,6 +66,13 @@ func (b *setStateBuilder) QueryParam(queryParam map[string]string) *setStateBuil
 	return b
 }
 
+// UUID sets the UUID for the Get State request.
+func (b *setStateBuilder) UUID(uuid string) *setStateBuilder {
+	b.opts.UUID = uuid
+
+	return b
+}
+
 // Execute runs the the Set State request and returns the SetStateResponse
 func (b *setStateBuilder) Execute() (*SetStateResponse, StatusResponse, error) {
 	stateOperation := StateOperation{}
@@ -87,6 +94,7 @@ type setStateOpts struct {
 	State         map[string]interface{}
 	Channels      []string
 	ChannelGroups []string
+	UUID          string
 	QueryParam    map[string]string
 	pubnub        *PubNub
 	stringState   string
@@ -129,11 +137,15 @@ func (o *setStateOpts) validate() error {
 
 func (o *setStateOpts) buildPath() (string, error) {
 	channels := string(utils.JoinChannels(o.Channels))
+	uuid := o.UUID
+	if uuid == "" {
+		uuid = o.pubnub.Config.UUID
+	}
 
 	return fmt.Sprintf(setStatePath,
 		o.pubnub.Config.SubscribeKey,
 		channels,
-		utils.URLEncode(o.pubnub.Config.UUID),
+		utils.URLEncode(uuid),
 	), nil
 }
 

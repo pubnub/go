@@ -135,10 +135,15 @@ func (o *getStateOpts) buildPath() (string, error) {
 		channels = append(channels, utils.PamEncode(channel))
 	}
 
+	uuid := o.UUID
+	if uuid == "" {
+		uuid = o.pubnub.Config.UUID
+	}
+
 	return fmt.Sprintf(getStatePath,
 		o.pubnub.Config.SubscribeKey,
 		strings.Join(channels, ","),
-		utils.URLEncode(o.pubnub.Config.UUID)), nil
+		utils.URLEncode(uuid)), nil
 }
 
 func (o *getStateOpts) buildQuery() (*url.Values, error) {
@@ -191,6 +196,7 @@ func (o *getStateOpts) telemetryManager() *TelemetryManager {
 // GetStateResponse is the struct returned when the Execute function of GetState is called.
 type GetStateResponse struct {
 	State map[string]interface{}
+	UUID  string
 }
 
 func newGetStateResponse(jsonBytes []byte, status StatusResponse) (
@@ -222,6 +228,9 @@ func newGetStateResponse(jsonBytes []byte, status StatusResponse) (
 		return emptyGetStateResp, status, errors.New(message)
 	}
 
+	if v["uuid"] != nil {
+		resp.UUID = v["uuid"].(string)
+	}
 	m := make(map[string]interface{})
 	if v["channel"] != nil {
 		if channel, ok2 := v["channel"].(string); ok2 {
