@@ -66,7 +66,7 @@ func (b *setStateBuilder) QueryParam(queryParam map[string]string) *setStateBuil
 	return b
 }
 
-// UUID sets the UUID for the Get State request.
+// UUID sets the UUID for the Set State request.
 func (b *setStateBuilder) UUID(uuid string) *setStateBuilder {
 	b.opts.UUID = uuid
 
