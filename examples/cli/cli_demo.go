@@ -369,8 +369,8 @@ func readCommand(cmd string) {
 		CreateUser(command[1:])
 	case "getusers":
 		GetUsers(command[1:])
-	case "fetchuser":
-		FetchUsers(command[1:])
+	case "getuser":
+		GetUser(command[1:])
 	case "updateuser":
 		UpdateUser(command[1:])
 	case "deleteuser":
@@ -512,12 +512,12 @@ func UpdateUser(args []string) {
 	fmt.Println("res", res)
 }
 
-func FetchUsers(args []string) {
+func GetUser(args []string) {
 	if len(args) < 2 {
 		showCreateUserHelp()
 		return
 	}
-	res, status, err := pn.FetchUser().Include([]string{"custom"}).Id("id7").Execute()
+	res, status, err := pn.GetUser().Include([]string{"custom"}).Id("id7").Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)

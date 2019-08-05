@@ -134,6 +134,10 @@ const (
 	PNGetSpaceMembershipsOperation
 	// PNGetMembersOperation
 	PNGetMembersOperation
+	// PNUpdateSpaceMembershipsOperation
+	PNUpdateSpaceMembershipsOperation
+	// PNUpdateUserSpaceMembershipsOperation
+	PNUpdateUserSpaceMembershipsOperation
 )
 
 const (

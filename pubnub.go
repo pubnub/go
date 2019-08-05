@@ -122,12 +122,12 @@ func (pn *PubNub) GetUsersWithContext(ctx Context) *getUsersBuilder {
 	return newGetUsersBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) FetchUser() *fetchUserBuilder {
-	return newFetchUserBuilder(pn)
+func (pn *PubNub) GetUser() *getUserBuilder {
+	return newGetUserBuilder(pn)
 }
 
-func (pn *PubNub) FetchUserWithContext(ctx Context) *fetchUserBuilder {
-	return newFetchUserBuilderWithContext(pn, ctx)
+func (pn *PubNub) GetUserWithContext(ctx Context) *getUserBuilder {
+	return newGetUserBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) UpdateUser() *updateUserBuilder {

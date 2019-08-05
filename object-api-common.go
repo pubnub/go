@@ -42,3 +42,21 @@ type PNSpaceMembership struct {
 	ETag    string                 `json:"eTag"`
 	Custom  map[string]interface{} `json:"custom"`
 }
+
+type PNUserMembershipInput struct {
+	Id     string                 `json:"id"`
+	Custom map[string]interface{} `json:"custom"`
+}
+
+type PNUserMembershipRemove struct {
+	Id string `json:"id"`
+}
+
+type PNSpaceMembershipInput struct {
+	Id     string                 `json:"id"`
+	Custom map[string]interface{} `json:"custom"`
+}
+
+type PNSpaceMembershipRemove struct {
+	Id string `json:"id"`
+}
