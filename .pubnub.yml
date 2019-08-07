@@ -350,6 +350,7 @@ features:
     - SUBSCRIBE-PUBLISHER-UUID
     - SUBSCRIBE-WITH-USERSTATE
     - SUBSCRIBE-PUBSUB-V2
+    - SUBSCRIBE-SIGNAL-LISTENER
   time: 
     - TIME-TIME
   unsubscribe: 
@@ -361,6 +362,8 @@ features:
     - QUERY-PARAM
   notify:
     - REQUEST-MESSAGE-COUNT-EXCEEDED  
+  signal:
+    - SIGNAL-SEND  
 name: go
 schema: 1
 scm: github.com/pubnub/go
