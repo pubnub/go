@@ -59,7 +59,7 @@ func (b *signalBuilder) Message(msg interface{}) *signalBuilder {
 	return b
 }
 
-// usePost sends the Signal request using HTTP POST.
+// usePost sends the Signal request using HTTP POST. Not implemented
 func (b *signalBuilder) usePost(post bool) *signalBuilder {
 	b.opts.UsePost = post
 
