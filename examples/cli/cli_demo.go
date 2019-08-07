@@ -58,7 +58,7 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	config.SecretKey = "demo"
-	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn:81"
+	//config.Origin = "ingress.bronze.aws-pdx-1.ps.pn:81"
 
 	config.Secure = false
 
