@@ -14,6 +14,7 @@ type ReconnectionPolicy int
 // PNPushType is used as an enum to catgorize the available Push Types
 type PNPushType int
 
+// PNMessageType is used as an enum to catgorize the Subscribe response.
 type PNMessageType int
 
 const (
@@ -29,8 +30,11 @@ const (
 )
 
 const (
+	// PNMessageTypeSignal is to identify Signal the Subscribe response
 	PNMessageTypeSignal PNMessageType = 1 + iota
+	// PNMessageTypeObjects is to identify Objects the Subscribe response
 	PNMessageTypeObjects
+	// PNMessageTypeActions is to identify Actions the Subscribe response
 	PNMessageTypeActions
 )
 
