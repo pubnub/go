@@ -3,6 +3,7 @@ package e2e
 import (
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"testing"
 	"time"
@@ -15,8 +16,15 @@ func TestSignal(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(config)
+	ips, err1 := net.LookupIP(pn.Config.Origin)
+	if err1 != nil {
+		fmt.Fprintf(os.Stderr, "Could not get IPs: %v\n", err1)
+		os.Exit(1)
+	}
+	for _, ip := range ips {
+		fmt.Printf("%s IN A %s\n", pn.Config.Origin, ip.String())
+	}
 	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-	pn.Config.Secure = false
 	pn.Config.SubscribeKey = "demo"
 	pn.Config.PublishKey = "demo"
 
@@ -57,6 +65,7 @@ func TestSubscribeSignalUnsubscribeInt(t *testing.T) {
 
 func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher string, sigMessage chan interface{}, disablePNOtherProcessing bool, usePost bool) {
 	assert := assert.New(t)
+
 	doneSubscribe := make(chan bool)
 	doneUnsubscribe := make(chan bool)
 	donePublish := make(chan bool)
@@ -71,9 +80,9 @@ func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher s
 	ch := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 
 	pn := pubnub.NewPubNub(configCopy())
+
 	pn.Config.SubscribeKey = "demo"
 	pn.Config.PublishKey = "demo"
-	pn.Config.Secure = false
 
 	pn.Config.CipherKey = cipher
 	pn.Config.DisablePNOtherProcessing = disablePNOtherProcessing

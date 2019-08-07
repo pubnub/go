@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"net"
 	"os"
 	"sync"
 	"testing"
@@ -627,6 +628,14 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	ch := "testChannel_sub_96112" //fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 
 	pn := pubnub.NewPubNub(configCopy())
+	ips, err1 := net.LookupIP(pn.Config.Origin)
+	if err1 != nil {
+		fmt.Fprintf(os.Stderr, "Could not get IPs: %v\n", err1)
+		os.Exit(1)
+	}
+	for _, ip := range ips {
+		fmt.Printf("%s IN A %s\n", pn.Config.Origin, ip.String())
+	}
 
 	pn.Config.CipherKey = cipher
 	pn.Config.DisablePNOtherProcessing = disablePNOtherProcessing
@@ -637,6 +646,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 
 	go func() {
+	CloseLoop:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -666,10 +676,10 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 				assert.Fail("timeout")
 				errChan <- "timeout"
 
-				return
+				break CloseLoop
 			case <-exit:
 				tic.Stop()
-				return
+				break CloseLoop
 			}
 		}
 		//fmt.Println("SubscribePublishUnsubscribeMultiCommon exiting loop")
@@ -712,6 +722,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
 	fmt.Println("SubscribePublishUnsubscribeMultiCommon after zero")
+
 }
 
 /*func TestSubscribePublishUnsubscribePNOther(t *testing.T) {
