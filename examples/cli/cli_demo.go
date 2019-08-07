@@ -387,7 +387,6 @@ func signal(args []string) {
 	message := args[1]
 
 	res, status, err := pn.Signal().Channel(channel).Message(message).Execute()
-	//res, status, err := pn.Signal().Channel(channel).Message(message).UsePost(true).Execute()
 	fmt.Println(status)
 	fmt.Println(err)
 	fmt.Println(res)
