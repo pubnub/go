@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -83,6 +84,39 @@ func TestGetStateBasicRequest(t *testing.T) {
 	}
 	h.AssertPathsEqual(t,
 		"/v2/presence/sub-key/sub_key/channel/ch/uuid/my-custom-uuid",
+		u.EscapedPath(), []int{})
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("channel-group", "cg")
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+
+	body, err := opts.buildBody()
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
+func TestGetStateBasicRequestWithUUID(t *testing.T) {
+	assert := assert.New(t)
+
+	uuid := "customuuid"
+
+	opts := &getStateOpts{
+		Channels:      []string{"ch"},
+		ChannelGroups: []string{"cg"},
+		UUID:          uuid,
+		pubnub:        pubnub,
+	}
+
+	path, err := opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/presence/sub-key/sub_key/channel/ch/uuid/%s", uuid),
 		u.EscapedPath(), []int{})
 
 	query, err := opts.buildQuery()

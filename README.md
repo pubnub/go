@@ -1,4 +1,3 @@
-
 # PubNub 4.2.6 client for Go
 * Go (1.9+)
 
