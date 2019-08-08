@@ -9,6 +9,7 @@ type Listener struct {
 	Status   chan *PNStatus
 	Message  chan *PNMessage
 	Presence chan *PNPresence
+	Signal   chan *PNMessage
 }
 
 func NewListener() *Listener {
@@ -16,6 +17,7 @@ func NewListener() *Listener {
 		Status:   make(chan *PNStatus),
 		Message:  make(chan *PNMessage),
 		Presence: make(chan *PNPresence),
+		Signal:   make(chan *PNMessage),
 	}
 }
 
@@ -93,15 +95,38 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 	}()
 }
 
-func (m *ListenerManager) announcePresence(presence *PNPresence) {
-	m.RLock()
+func (m *ListenerManager) announceSignal(message *PNMessage) {
+	go func() {
+		m.RLock()
+	AnnounceSignalLabel:
+		for l := range m.listeners {
+			select {
+			case <-m.exitListener:
+				m.pubnub.Config.Log.Println("announceSignal exitListener")
+				break AnnounceSignalLabel
 
-	for l := range m.listeners {
-		select {
-		case l.Presence <- presence:
+			case l.Signal <- message:
+			}
 		}
-	}
-	m.RUnlock()
+		m.RUnlock()
+	}()
+}
+
+func (m *ListenerManager) announcePresence(presence *PNPresence) {
+	go func() {
+		m.RLock()
+	AnnouncePresenceLabel:
+		for l := range m.listeners {
+			select {
+			case <-m.exitListener:
+				m.pubnub.Config.Log.Println("announcePresence exitListener")
+				break AnnouncePresenceLabel
+
+			case l.Presence <- presence:
+			}
+		}
+		m.RUnlock()
+	}()
 }
 
 //

@@ -59,8 +59,6 @@ func connect() {
 	config.SubscribeKey = "demo"
 	config.SecretKey = "demo"
 
-	//config.Secure = false
-
 	config.AuthKey = "akey"
 
 	config.CipherKey = "enigma"
@@ -86,6 +84,15 @@ func connect() {
 			case msg := <-listener.Message:
 				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
 				fmt.Println(" --- MESSAGE: ")
+				fmt.Println(fmt.Sprintf("%s msg.Channel: %s", outputPrefix, msg.Channel))
+				fmt.Println(fmt.Sprintf("%s msg.Message: %s", outputPrefix, msg.Message))
+				fmt.Println(fmt.Sprintf("%s msg.SubscribedChannel: %s", outputPrefix, msg.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("%s msg.Timetoken: %d", outputPrefix, msg.Timetoken))
+				fmt.Println("")
+				fmt.Println(fmt.Sprintf("%s", outputSuffix))
+			case msg := <-listener.Signal:
+				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
+				fmt.Println(" --- SIGNAL: ")
 				fmt.Println(fmt.Sprintf("%s msg.Channel: %s", outputPrefix, msg.Channel))
 				fmt.Println(fmt.Sprintf("%s msg.Message: %s", outputPrefix, msg.Message))
 				fmt.Println(fmt.Sprintf("%s msg.SubscribedChannel: %s", outputPrefix, msg.SubscribedChannel))
@@ -176,6 +183,13 @@ func showMessageCountsHelp() {
 	fmt.Println(" MessageCounts EXAMPLE: ")
 	fmt.Println("	messageCounts Channel(s) timetoken1,timetoken2")
 	fmt.Println("	messageCounts my-channel,my-channel1 15210190573608384,15211140747622125")
+}
+
+func showSignalHelp() {
+	fmt.Println(" Signal EXAMPLE: ")
+	fmt.Println("	signal Channel Message")
+	fmt.Println("	signal my-channel \"my-signal\"")
+
 }
 
 func showGetStateHelp() {
@@ -348,6 +362,8 @@ func readCommand(cmd string) {
 		runPresenceRequest(command[1:])
 	case "messageCounts":
 		messageCounts(command[1:])
+	case "signal":
+		signal(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -357,9 +373,28 @@ func readCommand(cmd string) {
 	}
 }
 
+func signal(args []string) {
+	if len(args) < 2 {
+		showSignalHelp()
+		return
+	}
+
+	var channel string
+	channel = args[0]
+
+	message := args[1]
+
+	res, status, err := pn.Signal().Channel(channel).Message(message).Execute()
+	fmt.Println(status)
+	fmt.Println(err)
+	fmt.Println(res)
+
+}
+
 func messageCounts(args []string) {
 	if len(args) < 2 {
 		showMessageCountsHelp()
+		return
 	}
 
 	var channels []string

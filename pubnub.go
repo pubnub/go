@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.2.5"
+	Version = "4.2.6"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -104,6 +104,14 @@ func (pn *PubNub) MessageCounts() *messageCountsBuilder {
 
 func (pn *PubNub) MessageCountsWithContext(ctx Context) *messageCountsBuilder {
 	return newMessageCountsBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) Signal() *signalBuilder {
+	return newSignalBuilder(pn)
+}
+
+func (pn *PubNub) SignalWithContext(ctx Context) *signalBuilder {
+	return newSignalBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) SetState() *setStateBuilder {
