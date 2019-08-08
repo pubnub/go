@@ -472,14 +472,15 @@ type subscribeEnvelope struct {
 }
 
 type subscribeMessage struct {
-	Shard             string      `json:"a"`
-	SubscriptionMatch string      `json:"b"`
-	Channel           string      `json:"c"`
-	IssuingClientID   string      `json:"i"`
-	SubscribeKey      string      `json:"k"`
-	Flags             int         `json:"f"`
-	Payload           interface{} `json:"d"`
-	UserMetadata      interface{} `json:"u"`
+	Shard             string        `json:"a"`
+	SubscriptionMatch string        `json:"b"`
+	Channel           string        `json:"c"`
+	IssuingClientID   string        `json:"i"`
+	SubscribeKey      string        `json:"k"`
+	Flags             int           `json:"f"`
+	Payload           interface{}   `json:"d"`
+	UserMetadata      interface{}   `json:"u"`
+	MessageType       PNMessageType `json:"e"`
 
 	PublishMetaData publishMetadata `json:"p"`
 }
@@ -634,18 +635,24 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			actualCh = channel
 			subscribedCh = subscriptionMatch
 		}
-		messagePayload, err := parseCipherInterface(payload.Payload, m.pubnub.Config)
+		var messagePayload interface{}
 
-		if err != nil {
-			pnStatus := &PNStatus{
-				Category:         PNBadRequestCategory,
-				ErrorData:        err,
-				Error:            true,
-				Operation:        PNSubscribeOperation,
-				AffectedChannels: []string{channel},
+		if payload.MessageType == PNMessageTypeSignal {
+			messagePayload = payload.Payload
+		} else {
+			var err error
+			messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
+			if err != nil {
+				pnStatus := &PNStatus{
+					Category:         PNBadRequestCategory,
+					ErrorData:        err,
+					Error:            true,
+					Operation:        PNSubscribeOperation,
+					AffectedChannels: []string{channel},
+				}
+				m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
+				m.listenerManager.announceStatus(pnStatus)
 			}
-			m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
-			m.listenerManager.announceStatus(pnStatus)
 		}
 
 		pnMessageResult := &PNMessage{
@@ -658,8 +665,15 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			Publisher:         payload.IssuingClientID,
 			UserMetadata:      payload.UserMetadata,
 		}
-		m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
-		m.listenerManager.announceMessage(pnMessageResult)
+
+		if payload.MessageType == PNMessageTypeSignal {
+			m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
+			m.listenerManager.announceSignal(pnMessageResult)
+
+		} else {
+			m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
+			m.listenerManager.announceMessage(pnMessageResult)
+		}
 		m.pubnub.Config.Log.Println("after announceMessage")
 	}
 }
