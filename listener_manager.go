@@ -6,10 +6,13 @@ import (
 
 //
 type Listener struct {
-	Status   chan *PNStatus
-	Message  chan *PNMessage
-	Presence chan *PNPresence
-	Signal   chan *PNMessage
+	Status          chan *PNStatus
+	Message         chan *PNMessage
+	Presence        chan *PNPresence
+	Signal          chan *PNMessage
+	UserEvent       chan *PNMessage
+	SpaceEvent      chan *PNMessage
+	MembershipEvent chan *PNMessage
 }
 
 func NewListener() *Listener {
