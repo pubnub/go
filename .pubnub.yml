@@ -3,6 +3,20 @@ changelog:
   - 
     changes: 
       - 
+        text: "Signals"
+        type: improvement
+    date: Aug 8, 19  
+    version: v4.2.6  
+  - 
+    changes: 
+      - 
+        text: "UUID param in Set and Get State"
+        type: improvement
+    date: Aug 1, 19  
+    version: v4.2.5  
+  - 
+    changes: 
+      - 
         text: "Destroy now cleans up all goroutines opened by the SDK"
         type: bug
     date: Jun 20, 19  
@@ -336,6 +350,7 @@ features:
     - SUBSCRIBE-PUBLISHER-UUID
     - SUBSCRIBE-WITH-USERSTATE
     - SUBSCRIBE-PUBSUB-V2
+    - SUBSCRIBE-SIGNAL-LISTENER
   time: 
     - TIME-TIME
   unsubscribe: 
@@ -347,6 +362,8 @@ features:
     - QUERY-PARAM
   notify:
     - REQUEST-MESSAGE-COUNT-EXCEEDED  
+  signal:
+    - SIGNAL-SEND  
 name: go
 schema: 1
 scm: github.com/pubnub/go
@@ -363,4 +380,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.2.4
+version: v4.2.6

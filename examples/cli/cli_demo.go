@@ -93,6 +93,15 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s msg.Timetoken: %d", outputPrefix, msg.Timetoken))
 				fmt.Println("")
 				fmt.Println(fmt.Sprintf("%s", outputSuffix))
+			case msg := <-listener.Signal:
+				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
+				fmt.Println(" --- SIGNAL: ")
+				fmt.Println(fmt.Sprintf("%s msg.Channel: %s", outputPrefix, msg.Channel))
+				fmt.Println(fmt.Sprintf("%s msg.Message: %s", outputPrefix, msg.Message))
+				fmt.Println(fmt.Sprintf("%s msg.SubscribedChannel: %s", outputPrefix, msg.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("%s msg.Timetoken: %d", outputPrefix, msg.Timetoken))
+				fmt.Println("")
+				fmt.Println(fmt.Sprintf("%s", outputSuffix))
 			case presence := <-listener.Presence:
 				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
 				fmt.Println(" --- PRESENCE: ")
@@ -832,7 +841,7 @@ func setStateRequest(args []string) {
 		}
 	}
 
-	res, status, err := pn.SetState().Channels([]string{channel}).State(state).Execute()
+	res, status, err := pn.SetState().Channels([]string{channel}).State(state).UUID("nuuid").Execute()
 
 	fmt.Println("status===>", status)
 	if err != nil {
@@ -855,7 +864,7 @@ func getStateRequest(args []string) {
 		channel = args[0]
 	}
 
-	res, status, err := pn.GetState().Channels([]string{channel}).Execute()
+	res, status, err := pn.GetState().Channels([]string{channel}).UUID("").Execute()
 
 	fmt.Println("status===>", status)
 	if err != nil {

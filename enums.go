@@ -46,6 +46,9 @@ func (s PNMembersInclude) String() string {
 	return [...]string{"custom", "user", "user.custom"}[s-1]
 }
 
+// PNMessageType is used as an enum to catgorize the Subscribe response.
+type PNMessageType int
+
 const (
 	// PNNonePolicy is to be used when selecting the no Reconnection Policy
 	// ReconnectionPolicy is set in the config.
@@ -56,6 +59,15 @@ const (
 	// PNExponentialPolicy is to be used when selecting the Exponential Reconnection Policy
 	// ReconnectionPolicy is set in the config.
 	PNExponentialPolicy
+)
+
+const (
+	// PNMessageTypeSignal is to identify Signal the Subscribe response
+	PNMessageTypeSignal PNMessageType = 1 + iota
+	// PNMessageTypeObjects is to identify Objects the Subscribe response
+	PNMessageTypeObjects
+	// PNMessageTypeActions is to identify Actions the Subscribe response
+	PNMessageTypeActions
 )
 
 const (
