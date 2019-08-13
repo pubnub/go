@@ -14,6 +14,13 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+func EnumArrayToStringArray(include string) []string {
+	f := strings.Fields(include)
+	j := strings.Join(f, ",")
+	t := strings.Trim(j, "[]")
+	return strings.Fields(t)
+}
+
 // JoinChannels
 func JoinChannels(channels []string) []byte {
 	if len(channels) == 0 {

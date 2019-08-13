@@ -5,13 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
 	//"reflect"
-
-	"net/http"
-	"net/url"
 )
 
 var emptyPNCreateSpaceResponse *PNCreateSpaceResponse
@@ -59,8 +58,8 @@ type createSpaceBody struct {
 // }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *createSpaceBuilder) Include(include []string) *createSpaceBuilder {
-	b.opts.Include = include
+func (b *createSpaceBuilder) Include(include []PNUserSpaceInclude) *createSpaceBuilder {
+	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
 
 	return b
 }

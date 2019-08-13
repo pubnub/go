@@ -14,6 +14,38 @@ type ReconnectionPolicy int
 // PNPushType is used as an enum to catgorize the available Push Types
 type PNPushType int
 
+type PNUserSpaceInclude int
+type PNSpaceMembershipsIncude int
+type PNMembersInclude int
+
+const (
+	PNUserSpaceCustom PNUserSpaceInclude = 1 + iota
+)
+
+func (s PNUserSpaceInclude) String() string {
+	return [...]string{"custom"}[s-1]
+}
+
+const (
+	PNSpaceMembershipsCustom PNSpaceMembershipsIncude = 1 + iota
+	PNSpaceMembershipsSpace
+	PNSpaceMembershipsSpaceCustom
+)
+
+func (s PNSpaceMembershipsIncude) String() string {
+	return [...]string{"custom", "space", "space.custom"}[s-1]
+}
+
+const (
+	PNMembersCustom PNMembersInclude = 1 + iota
+	PNMembersUser
+	PNMembersUserCustom
+)
+
+func (s PNMembersInclude) String() string {
+	return [...]string{"custom", "user", "user.custom"}[s-1]
+}
+
 const (
 	// PNNonePolicy is to be used when selecting the no Reconnection Policy
 	// ReconnectionPolicy is set in the config.

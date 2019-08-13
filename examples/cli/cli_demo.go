@@ -465,7 +465,13 @@ func CreateSpace(args []string) {
 	custom := make(map[string]interface{})
 	custom["a"] = "b"
 
-	res, status, err := pn.CreateSpace().Id("id0").Name("name").Description("desc").Include([]string{"custom"}).Custom(custom).Execute()
+	incl := []pubnub.PNUserSpaceInclude{
+		pubnub.PNUserSpaceCustom,
+		pubnub.PNUserSpaceCustom,
+	}
+
+	//res, status, err := pn.CreateSpace().Id("id0").Name("name").Description("desc").Include([]string{"custom"}).Custom(custom).Execute()
+	res, status, err := pn.CreateSpace().Id("id0").Name("name").Description("desc").Include(incl).Custom(custom).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
