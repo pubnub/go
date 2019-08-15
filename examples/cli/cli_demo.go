@@ -197,43 +197,75 @@ func showHelp() {
 }
 
 func showUpdateSpaceMembershipsHelp() {
+	fmt.Println(" UpdateSpaceMemberships EXAMPLE: ")
+	fmt.Println("	updatespacemem spaceid id a/u/r limit count")
+	fmt.Println("	updatespacemem id0 id1 a 100 true")
 
 }
 func showUpdateMembersHelp() {
-
+	fmt.Println(" UpdateMembers EXAMPLE: ")
+	fmt.Println("	updatemem memebers id a/u/r limit count")
+	fmt.Println("	updatemem id0 id0 a 100 true")
 }
+
 func showGetSpaceMembershipsHelp() {
+	fmt.Println(" GetSpaceMemberships EXAMPLE: ")
+	fmt.Println("	getspacemem spaceid limit count start")
+	fmt.Println("	getspacemem id0 100 true Mymx")
 
 }
 func showGetMembersHelp() {
+	fmt.Println(" GetMembers EXAMPLE: ")
+	fmt.Println("	getmem userid limit count start")
+	fmt.Println("	getmem id0 100 true Mymx")
 
 }
 func showGetSpacesHelp() {
+	fmt.Println(" GetSpaces EXAMPLE: ")
+	fmt.Println("	getspaces limit count start")
+	fmt.Println("	getspaces 100 true MjWn")
 
 }
 func showUpdateSpaceHelp() {
+	fmt.Println(" UpdateSpace EXAMPLE: ")
+	fmt.Println("	updateSpace id name desc")
+	fmt.Println("	updateSpace id0 name desc")
 
 }
 func showDeleteSpaceHelp() {
+	fmt.Println(" DeleteSpace EXAMPLE: ")
+	fmt.Println("	deleteSpace id")
+	fmt.Println("	deleteSpace id0")
 
 }
 func showCreateSpaceHelp() {
+	fmt.Println(" CreateSpace EXAMPLE: ")
+	fmt.Println("	createSpace id name desc")
+	fmt.Println("	createSpace id0 name desc")
 
 }
 func showGetSpaceHelp() {
+	fmt.Println(" GetSpace EXAMPLE: ")
+	fmt.Println("	getSpace id")
+	fmt.Println("	getSpace id0")
 
 }
 func showDeleteUserHelp() {
-
+	fmt.Println(" DeleteUser EXAMPLE: ")
+	fmt.Println("	deleteUser id")
+	fmt.Println("	deleteUser id0")
 }
+
 func showUpdateUserHelp() {
 	fmt.Println(" UpdateUser EXAMPLE: ")
 	fmt.Println("	updateuser id name extid url email")
-	fmt.Println("	updateuser \"id0\" \"name\" \"extid\" \"purl\" \"email\"")
-
+	fmt.Println("	updateuser id0 name extid purl email")
 }
-func showGetUserHelp() {
 
+func showGetUserHelp() {
+	fmt.Println(" GetUser EXAMPLE: ")
+	fmt.Println("	getUser id")
+	fmt.Println("	getUser id0")
 }
 
 func showMessageCountsHelp() {
@@ -245,13 +277,13 @@ func showMessageCountsHelp() {
 func showGetUsersHelp() {
 	fmt.Println(" GetUsers EXAMPLE: ")
 	fmt.Println("	getusers limit count start")
-	fmt.Println("	getusers 100 true \"MjWn\"")
+	fmt.Println("	getusers 100 true MjWn")
 }
 
 func showCreateUserHelp() {
 	fmt.Println(" CreateUser EXAMPLE: ")
 	fmt.Println("	createuser id name extid url email")
-	fmt.Println("	createuser \"id0\" \"name\" \"extid\" \"purl\" \"email\"")
+	fmt.Println("	createuser id0 name extid purl email")
 }
 
 func showSignalHelp() {
@@ -471,24 +503,25 @@ func readCommand(cmd string) {
 }
 
 func UpdateSpaceMemberships(args []string) {
-	if len(args) < 6 {
+	if len(args) < 5 {
 		showUpdateSpaceMembershipsHelp()
 		return
 	}
 	spaceId := args[0]
 	id0 := args[1]
-	id1 := args[2]
-	id2 := args[3]
+	//id1 := args[2]
+	//id2 := args[3]
+	action := args[2]
 	var limit int
 
-	n, err := strconv.ParseInt(args[4], 10, 64)
+	n, err := strconv.ParseInt(args[3], 10, 64)
 	if err == nil {
 		limit = int(n)
 	}
-	count, _ := strconv.ParseBool(args[5])
+	count, _ := strconv.ParseBool(args[4])
 	var start string
-	if len(args) > 6 {
-		start = args[6]
+	if len(args) > 5 {
+		start = args[5]
 	}
 
 	incl := []pubnub.PNSpaceMembershipsIncude{
@@ -515,7 +548,7 @@ func UpdateSpaceMemberships(args []string) {
 	custom2["c2"] = "d2"
 
 	up := pubnub.PNSpaceMembershipInput{
-		Id:     id1,
+		Id:     id0,
 		Custom: custom2,
 	}
 
@@ -523,17 +556,24 @@ func UpdateSpaceMemberships(args []string) {
 		up,
 	}
 
-	upArr = []pubnub.PNSpaceMembershipInput{}
-
 	re := pubnub.PNSpaceMembershipRemove{
-		Id: id2,
+		Id: id0,
 	}
 
 	reArr := []pubnub.PNSpaceMembershipRemove{
 		re,
 	}
 
-	reArr = []pubnub.PNSpaceMembershipRemove{}
+	if action == "a" {
+		reArr = []pubnub.PNSpaceMembershipRemove{}
+		upArr = []pubnub.PNSpaceMembershipInput{}
+	} else if action == "u" {
+		reArr = []pubnub.PNSpaceMembershipRemove{}
+		inArr = []pubnub.PNSpaceMembershipInput{}
+	} else if action == "r" {
+		upArr = []pubnub.PNSpaceMembershipInput{}
+		inArr = []pubnub.PNSpaceMembershipInput{}
+	}
 
 	if start != "" {
 		res, status, err := pn.UpdateSpaceMemberships().SpaceId(spaceId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
@@ -550,24 +590,25 @@ func UpdateSpaceMemberships(args []string) {
 }
 
 func UpdateMembers(args []string) {
-	if len(args) < 6 {
+	if len(args) < 5 {
 		showUpdateMembersHelp()
 		return
 	}
 	userId := args[0]
 	id0 := args[1]
-	id1 := args[2]
-	id2 := args[3]
+	//id1 := args[2]
+	//id2 := args[3]
+	action := args[2]
 	var limit int
 
-	n, err := strconv.ParseInt(args[4], 10, 64)
+	n, err := strconv.ParseInt(args[3], 10, 64)
 	if err == nil {
 		limit = int(n)
 	}
-	count, _ := strconv.ParseBool(args[5])
+	count, _ := strconv.ParseBool(args[4])
 	var start string
-	if len(args) > 6 {
-		start = args[6]
+	if len(args) > 5 {
+		start = args[5]
 	}
 
 	incl := []pubnub.PNMembersInclude{
@@ -594,7 +635,7 @@ func UpdateMembers(args []string) {
 	custom4["c4"] = "d4"
 
 	up := pubnub.PNUserMembershipInput{
-		Id:     id1,
+		Id:     id0,
 		Custom: custom4,
 	}
 
@@ -602,17 +643,24 @@ func UpdateMembers(args []string) {
 		up,
 	}
 
-	upArr = []pubnub.PNUserMembershipInput{}
-
 	re := pubnub.PNUserMembershipRemove{
-		Id: id2,
+		Id: id0,
 	}
 
 	reArr := []pubnub.PNUserMembershipRemove{
 		re,
 	}
 
-	reArr = []pubnub.PNUserMembershipRemove{}
+	if action == "a" {
+		reArr = []pubnub.PNUserMembershipRemove{}
+		upArr = []pubnub.PNUserMembershipInput{}
+	} else if action == "u" {
+		reArr = []pubnub.PNUserMembershipRemove{}
+		inArr = []pubnub.PNUserMembershipInput{}
+	} else if action == "r" {
+		upArr = []pubnub.PNUserMembershipInput{}
+		inArr = []pubnub.PNUserMembershipInput{}
+	}
 
 	if start != "" {
 		res, status, err := pn.UpdateMembers().Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
