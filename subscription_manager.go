@@ -503,6 +503,15 @@ type originationMetadata struct {
 	Region    int   `json:"r"`
 }
 
+type objectsEnvelope struct {
+	ActionType  PNObjectsActionType // enum value, see below
+	EventType   PNObjectsEventType  // enum value, see below
+	UserId      string              // the user id if user related
+	SpaceId     string              // the space id if space related
+	Description string              // the description of what happened
+	Timestamp   string              // the timetoken of the event
+}
+
 func subscribeMessageWorker(m *SubscriptionManager) {
 	m.Lock()
 	if m.ctx == nil && m.subscribeCancel == nil {

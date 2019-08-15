@@ -61,8 +61,8 @@ func (b *getMembersBuilder) SpaceId(id string) *getMembersBuilder {
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *getMembersBuilder) Include(include []string) *getMembersBuilder {
-	b.opts.Include = include
+func (b *getMembersBuilder) Include(include []PNMembersInclude) *getMembersBuilder {
+	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
 
 	return b
 }

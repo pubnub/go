@@ -16,7 +16,7 @@ import (
 
 var emptyUpdateSpaceMembershipsResponse *PNUpdateSpaceMembershipsResponse
 
-const updateSpaceMembershipsPath = "/v1/objects/%s/spaces"
+const updateSpaceMembershipsPath = "/v1/objects/%s/spaces/%s/users"
 
 const updateSpaceMembershipsLimit = 100
 
@@ -55,8 +55,15 @@ func newUpdateSpaceMembershipsBuilderWithContext(pubnub *PubNub,
 // }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *updateSpaceMembershipsBuilder) Include(include []string) *updateSpaceMembershipsBuilder {
-	b.opts.Include = include
+func (b *updateSpaceMembershipsBuilder) Include(include []PNSpaceMembershipsIncude) *updateSpaceMembershipsBuilder {
+	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
+
+	return b
+}
+
+// Auth sets the Authorization key with permissions to perform the request.
+func (b *updateSpaceMembershipsBuilder) SpaceId(id string) *updateSpaceMembershipsBuilder {
+	b.opts.SpaceId = id
 
 	return b
 }
@@ -129,8 +136,8 @@ func (b *updateSpaceMembershipsBuilder) Execute() (*PNUpdateSpaceMembershipsResp
 }
 
 type updateSpaceMembershipsOpts struct {
-	pubnub *PubNub
-
+	pubnub                *PubNub
+	SpaceId               string
 	Limit                 int
 	Include               []string
 	Start                 string
@@ -167,7 +174,7 @@ func (o *updateSpaceMembershipsOpts) validate() error {
 
 func (o *updateSpaceMembershipsOpts) buildPath() (string, error) {
 	return fmt.Sprintf(updateSpaceMembershipsPath,
-		o.pubnub.Config.SubscribeKey), nil
+		o.pubnub.Config.SubscribeKey, o.SpaceId), nil
 }
 
 func (o *updateSpaceMembershipsOpts) buildQuery() (*url.Values, error) {
@@ -226,7 +233,7 @@ func (o *updateSpaceMembershipsOpts) buildBody() ([]byte, error) {
 		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
 		return []byte{}, errEnc
 	}
-	fmt.Println(fmt.Sprintf("%v %s", b, string(jsonEncBytes)))
+	fmt.Println(fmt.Sprintf("buildBody %v %s", b, string(jsonEncBytes)))
 	return jsonEncBytes, nil
 
 }

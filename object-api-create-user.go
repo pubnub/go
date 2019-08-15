@@ -61,8 +61,8 @@ type createUserBody struct {
 // }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *createUserBuilder) Include(include []string) *createUserBuilder {
-	b.opts.Include = include
+func (b *createUserBuilder) Include(include []PNUserSpaceInclude) *createUserBuilder {
+	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
 
 	return b
 }

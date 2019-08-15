@@ -202,6 +202,22 @@ func (pn *PubNub) GetMembersWithContext(ctx Context) *getMembersBuilder {
 	return newGetMembersBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) UpdateSpaceMemberships() *updateSpaceMembershipsBuilder {
+	return newUpdateSpaceMembershipsBuilder(pn)
+}
+
+func (pn *PubNub) UpdateSpaceMembershipsWithContext(ctx Context) *updateSpaceMembershipsBuilder {
+	return newUpdateSpaceMembershipsBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) UpdateMembers() *updateUserSpaceMembershipsBuilder {
+	return newUpdateUserSpaceMembershipsBuilder(pn)
+}
+
+func (pn *PubNub) UpdateMembersWithContext(ctx Context) *updateUserSpaceMembershipsBuilder {
+	return newUpdateUserSpaceMembershipsBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) Signal() *signalBuilder {
 	return newSignalBuilder(pn)
 }

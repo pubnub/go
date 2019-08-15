@@ -55,8 +55,8 @@ func newGetSpacesBuilderWithContext(pubnub *PubNub,
 // }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *getSpacesBuilder) Include(include []string) *getSpacesBuilder {
-	b.opts.Include = include
+func (b *getSpacesBuilder) Include(include []PNUserSpaceInclude) *getSpacesBuilder {
+	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
 
 	return b
 }

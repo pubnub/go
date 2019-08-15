@@ -59,8 +59,8 @@ type UpdateSpaceBody struct {
 // }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *updateSpaceBuilder) Include(include []string) *updateSpaceBuilder {
-	b.opts.Include = include
+func (b *updateSpaceBuilder) Include(include []PNUserSpaceInclude) *updateSpaceBuilder {
+	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
 
 	return b
 }

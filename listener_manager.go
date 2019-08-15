@@ -10,9 +10,9 @@ type Listener struct {
 	Message         chan *PNMessage
 	Presence        chan *PNPresence
 	Signal          chan *PNMessage
-	UserEvent       chan *PNMessage
-	SpaceEvent      chan *PNMessage
-	MembershipEvent chan *PNMessage
+	UserEvent       chan *PNUserEventResponse
+	SpaceEvent      chan *PNSpaceEventResponse
+	MembershipEvent chan *PNMembershipEventResponse
 }
 
 func NewListener() *Listener {
@@ -175,4 +175,26 @@ type PNPresence struct {
 	Leave             []string
 	Timeout           []string
 	HereNowRefresh    bool
+}
+
+type PNUserEventResponse struct {
+	Action      PNObjectsActionType
+	UserId      string
+	Description string
+	Timestamp   string
+}
+
+type PNSpaceEventResponse struct {
+	Action      PNObjectsActionType
+	SpaceId     string
+	Description string
+	Timestamp   string
+}
+
+type PNMembershipEventResponse struct {
+	Action      PNObjectsActionType
+	UserId      string
+	Spaceid     string
+	Description string
+	Timestamp   string
 }

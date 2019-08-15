@@ -17,6 +17,28 @@ type PNPushType int
 type PNUserSpaceInclude int
 type PNSpaceMembershipsIncude int
 type PNMembersInclude int
+type PNObjectsActionType int
+type PNObjectsEventType int
+
+const (
+	PNObjectsEventCreate PNObjectsEventType = 1 + iota
+	PNObjectsEventUpdate
+	PNObjectsEventDelete
+)
+
+func (s PNObjectsEventType) String() string {
+	return [...]string{"user", "space", "membership"}[s-1]
+}
+
+const (
+	PNObjectsActionCreate PNObjectsActionType = 1 + iota
+	PNObjectsActionUpdate
+	PNObjectsActionDelete
+)
+
+func (s PNObjectsActionType) String() string {
+	return [...]string{"create", "update", "delete"}[s-1]
+}
 
 const (
 	PNUserSpaceCustom PNUserSpaceInclude = 1 + iota
@@ -181,7 +203,7 @@ const (
 	// PNUpdateSpaceMembershipsOperation
 	PNUpdateSpaceMembershipsOperation
 	// PNUpdateUserSpaceMembershipsOperation
-	PNUpdateUserSpaceMembershipsOperation
+	PNUpdateMembersOperation
 )
 
 const (
@@ -248,6 +270,8 @@ var operations = [...]string{
 	"Update Space",
 	"PNGetSpaceMembershipsOperation",
 	"PNGetMembersOperation",
+	"PNUpdateSpaceMembershipsOperation",
+	"PNupdateMembersOperation",
 }
 
 func (c StatusCategory) String() string {
@@ -392,6 +416,10 @@ func (t OperationType) String() string {
 		return "Get Space Memberships"
 	case PNGetMembersOperation:
 		return "Get Members"
+	case PNUpdateSpaceMembershipsOperation:
+		return "Update Space Memberships"
+	case PNUpdateMembersOperation:
+		return "Update Members"
 	default:
 		return "No Category Matched"
 	}

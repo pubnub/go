@@ -16,7 +16,7 @@ import (
 
 var emptyUpdateUserSpaceMembershipsResponse *PNUpdateUserSpaceMembershipsResponse
 
-const updateUserSpaceMembershipsPath = "/v1/objects/%s/spaces"
+const updateUserSpaceMembershipsPath = "/v1/objects/%s/users/%s/spaces"
 
 const userSpaceMembershipsLimit = 100
 
@@ -55,8 +55,15 @@ func newUpdateUserSpaceMembershipsBuilderWithContext(pubnub *PubNub,
 // }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *updateUserSpaceMembershipsBuilder) Include(include []string) *updateUserSpaceMembershipsBuilder {
-	b.opts.Include = include
+func (b *updateUserSpaceMembershipsBuilder) Include(include []PNMembersInclude) *updateUserSpaceMembershipsBuilder {
+	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
+
+	return b
+}
+
+// Auth sets the Authorization key with permissions to perform the request.
+func (b *updateUserSpaceMembershipsBuilder) UserId(id string) *updateUserSpaceMembershipsBuilder {
+	b.opts.UserId = id
 
 	return b
 }
@@ -129,8 +136,8 @@ func (b *updateUserSpaceMembershipsBuilder) Execute() (*PNUpdateUserSpaceMembers
 }
 
 type updateUserSpaceMembershipsOpts struct {
-	pubnub *PubNub
-
+	pubnub               *PubNub
+	UserId               string
 	Limit                int
 	Include              []string
 	Start                string
@@ -167,7 +174,7 @@ func (o *updateUserSpaceMembershipsOpts) validate() error {
 
 func (o *updateUserSpaceMembershipsOpts) buildPath() (string, error) {
 	return fmt.Sprintf(updateUserSpaceMembershipsPath,
-		o.pubnub.Config.SubscribeKey), nil
+		o.pubnub.Config.SubscribeKey, o.UserId), nil
 }
 
 func (o *updateUserSpaceMembershipsOpts) buildQuery() (*url.Values, error) {
@@ -247,7 +254,7 @@ func (o *updateUserSpaceMembershipsOpts) connectTimeout() int {
 }
 
 func (o *updateUserSpaceMembershipsOpts) operationType() OperationType {
-	return PNUpdateUserSpaceMembershipsOperation
+	return PNUpdateMembersOperation
 }
 
 func (o *updateUserSpaceMembershipsOpts) telemetryManager() *TelemetryManager {

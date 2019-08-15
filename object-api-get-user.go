@@ -43,8 +43,8 @@ func newGetUserBuilderWithContext(pubnub *PubNub,
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *getUserBuilder) Include(include []string) *getUserBuilder {
-	b.opts.Include = include
+func (b *getUserBuilder) Include(include []PNUserSpaceInclude) *getUserBuilder {
+	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
 
 	return b
 }
