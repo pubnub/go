@@ -131,7 +131,6 @@ func (b *createUserBuilder) Execute() (*PNCreateUserResponse, StatusResponse, er
 type createUserOpts struct {
 	pubnub *PubNub
 
-	Auth       string
 	Include    []string
 	Id         string
 	Name       string
@@ -179,9 +178,9 @@ func (o *createUserOpts) buildQuery() (*url.Values, error) {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
 
-	if o.Auth != "" {
-		q.Set("auth", o.Auth)
-	}
+	// if o.Auth != "" {
+	// 	q.Set("auth", o.Auth)
+	// }
 
 	SetQueryParam(q, o.QueryParam)
 

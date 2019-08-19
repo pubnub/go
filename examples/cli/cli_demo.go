@@ -55,9 +55,14 @@ func connect() {
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
-	config.PublishKey = "demo"
-	config.SubscribeKey = "sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
-	config.SecretKey = "demo"
+	config.PublishKey = "pam"   //"demo"
+	config.SubscribeKey = "pam" //"sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
+	config.SecretKey = "pam"    //"demo"
+
+	config.PublishKey = "pub-c-2dea72e4-e0aa-4c85-9411-d75baf7568b7"
+	config.SubscribeKey = "sub-c-490a8ac8-7e0e-11e9-84e9-eed29b7b36d8"
+	config.SecretKey = "sec-c-MDU3OGY1ZjMtMDUwZS00NTc4LWFhM2ItN2E3NzhmMDVkZmQx"
+
 	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn:81"
 
 	config.Secure = false
