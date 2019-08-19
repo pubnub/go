@@ -56,7 +56,7 @@ func connect() {
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
-	config.SubscribeKey = "demo" //"sub-c-8d06a312-b368-11e9-a263-9678fa0c1c24"
+	config.SubscribeKey = "sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
 	config.SecretKey = "demo"
 	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn:81"
 
@@ -108,6 +108,13 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, presence))
 				fmt.Println("")
 				fmt.Println(fmt.Sprintf("%s", outputSuffix))
+			case userEvent := <-listener.UserEvent:
+				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, userEvent))
+			case spaceEvent := <-listener.SpaceEvent:
+				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, spaceEvent))
+			case membershipEvent := <-listener.MembershipEvent:
+				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, membershipEvent))
+
 			}
 		}
 	}()
@@ -173,6 +180,7 @@ func showHelp() {
 	showPresenceTimeoutHelp()
 	showPresenceHelp()
 	showMessageCountsHelp()
+	showSignalHelp()
 	showCreateUserHelp()
 	showGetUsersHelp()
 	showUpdateSpaceMembershipsHelp()
@@ -228,32 +236,32 @@ func showGetSpacesHelp() {
 }
 func showUpdateSpaceHelp() {
 	fmt.Println(" UpdateSpace EXAMPLE: ")
-	fmt.Println("	updateSpace id name desc")
-	fmt.Println("	updateSpace id0 name desc")
+	fmt.Println("	updatespace id name desc")
+	fmt.Println("	updatespace id0 name desc")
 
 }
 func showDeleteSpaceHelp() {
 	fmt.Println(" DeleteSpace EXAMPLE: ")
-	fmt.Println("	deleteSpace id")
-	fmt.Println("	deleteSpace id0")
+	fmt.Println("	deletespace id")
+	fmt.Println("	deletespace id0")
 
 }
 func showCreateSpaceHelp() {
 	fmt.Println(" CreateSpace EXAMPLE: ")
-	fmt.Println("	createSpace id name desc")
-	fmt.Println("	createSpace id0 name desc")
+	fmt.Println("	createspace id name desc")
+	fmt.Println("	createspace id0 name desc")
 
 }
 func showGetSpaceHelp() {
 	fmt.Println(" GetSpace EXAMPLE: ")
-	fmt.Println("	getSpace id")
-	fmt.Println("	getSpace id0")
+	fmt.Println("	getspace id")
+	fmt.Println("	getspace id0")
 
 }
 func showDeleteUserHelp() {
 	fmt.Println(" DeleteUser EXAMPLE: ")
-	fmt.Println("	deleteUser id")
-	fmt.Println("	deleteUser id0")
+	fmt.Println("	deleteuser id")
+	fmt.Println("	deleteuser id0")
 }
 
 func showUpdateUserHelp() {

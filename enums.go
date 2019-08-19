@@ -17,28 +17,28 @@ type PNPushType int
 type PNUserSpaceInclude int
 type PNSpaceMembershipsIncude int
 type PNMembersInclude int
-type PNObjectsActionType int
-type PNObjectsEventType int
+type PNObjectsActionType string
+type PNObjectsEventType string
 
 const (
-	PNObjectsEventCreate PNObjectsEventType = 1 + iota
-	PNObjectsEventUpdate
-	PNObjectsEventDelete
+	PNObjectsUserEvent       PNObjectsEventType = "user"
+	PNObjectsSpaceEvent                         = "space"
+	PNObjectsMembershipEvent                    = "membership"
 )
 
-func (s PNObjectsEventType) String() string {
-	return [...]string{"user", "space", "membership"}[s-1]
-}
+// func (s PNObjectsEventType) String() string {
+// 	return [...]string{"user", "space", "membership"}[s-1]
+// }
 
 const (
-	PNObjectsActionCreate PNObjectsActionType = 1 + iota
-	PNObjectsActionUpdate
-	PNObjectsActionDelete
+	PNObjectsActionCreate PNObjectsActionType = "create"
+	PNObjectsActionUpdate                     = "update"
+	PNObjectsActionDelete                     = "delete"
 )
 
-func (s PNObjectsActionType) String() string {
-	return [...]string{"create", "update", "delete"}[s-1]
-}
+// func (s PNObjectsActionType) String() string {
+// 	return [...]string{"create", "update", "delete"}[s-1]
+// }
 
 const (
 	PNUserSpaceCustom PNUserSpaceInclude = 1 + iota

@@ -10,9 +10,9 @@ type Listener struct {
 	Message         chan *PNMessage
 	Presence        chan *PNPresence
 	Signal          chan *PNMessage
-	UserEvent       chan *PNUserEventResponse
-	SpaceEvent      chan *PNSpaceEventResponse
-	MembershipEvent chan *PNMembershipEventResponse
+	UserEvent       chan *PNUserEvent
+	SpaceEvent      chan *PNSpaceEvent
+	MembershipEvent chan *PNMembershipEvent
 }
 
 func NewListener() *Listener {
@@ -115,6 +115,57 @@ func (m *ListenerManager) announceSignal(message *PNMessage) {
 	}()
 }
 
+func (m *ListenerManager) announceUserEvent(message *PNUserEvent) {
+	go func() {
+		m.RLock()
+	AnnounceUserEventLabel:
+		for l := range m.listeners {
+			select {
+			case <-m.exitListener:
+				m.pubnub.Config.Log.Println("announceUserEvent exitListener")
+				break AnnounceUserEventLabel
+
+			case l.UserEvent <- message:
+			}
+		}
+		m.RUnlock()
+	}()
+}
+
+func (m *ListenerManager) announceSpaceEvent(message *PNSpaceEvent) {
+	go func() {
+		m.RLock()
+	AnnounceSpaceEventLabel:
+		for l := range m.listeners {
+			select {
+			case <-m.exitListener:
+				m.pubnub.Config.Log.Println("announceSpaceEvent exitListener")
+				break AnnounceSpaceEventLabel
+
+			case l.SpaceEvent <- message:
+			}
+		}
+		m.RUnlock()
+	}()
+}
+
+func (m *ListenerManager) announceMembershipEvent(message *PNMembershipEvent) {
+	go func() {
+		m.RLock()
+	AnnounceMembershipEvent:
+		for l := range m.listeners {
+			select {
+			case <-m.exitListener:
+				m.pubnub.Config.Log.Println("announceMembershipEvent exitListener")
+				break AnnounceMembershipEvent
+
+			case l.MembershipEvent <- message:
+			}
+		}
+		m.RUnlock()
+	}()
+}
+
 func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	go func() {
 		m.RLock()
@@ -177,24 +228,24 @@ type PNPresence struct {
 	HereNowRefresh    bool
 }
 
-type PNUserEventResponse struct {
+type PNUserEvent struct {
 	Action      PNObjectsActionType
 	UserId      string
 	Description string
 	Timestamp   string
 }
 
-type PNSpaceEventResponse struct {
+type PNSpaceEvent struct {
 	Action      PNObjectsActionType
 	SpaceId     string
 	Description string
 	Timestamp   string
 }
 
-type PNMembershipEventResponse struct {
+type PNMembershipEvent struct {
 	Action      PNObjectsActionType
 	UserId      string
-	Spaceid     string
+	SpaceId     string
 	Description string
 	Timestamp   string
 }

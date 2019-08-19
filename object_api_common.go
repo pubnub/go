@@ -60,3 +60,17 @@ type PNSpaceMembershipInput struct {
 type PNSpaceMembershipRemove struct {
 	Id string `json:"id"`
 }
+
+type PNObjectsResponse struct {
+	ActionType  PNObjectsActionType    `json:"event"`       // enum value
+	EventType   PNObjectsEventType     `json:"type"`        // enum value
+	UserId      string                 `json:"userId"`      // the user id if user related
+	SpaceId     string                 `json:"spaceId"`     // the space id if space related
+	Description string                 `json:"description"` // the description of what happened
+	Timestamp   string                 `json:"timestamp"`   // the timetoken of the event
+	Created     string                 `json:"created"`
+	Updated     string                 `json:"updated"`
+	ETag        string                 `json:"eTag"`
+	Custom      map[string]interface{} `json:"custom"`
+	Data        map[string]interface{} `json:"data"`
+}
