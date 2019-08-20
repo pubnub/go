@@ -159,8 +159,8 @@ func (o *deleteSpaceOpts) telemetryManager() *TelemetryManager {
 }
 
 type PNDeleteSpaceResponse struct {
-	Status int     `json:"status"`
-	Data   PNSpace `json:"data"`
+	Status int         `json:"status"`
+	Data   interface{} `json:"data"`
 }
 
 func newPNDeleteSpaceResponse(jsonBytes []byte, o *deleteSpaceOpts,

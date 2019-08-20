@@ -180,8 +180,8 @@ const (
 	PNCreateUserOperation
 	// PNGetUsersOperation is the enum used to get users in the Object API.
 	PNGetUsersOperation
-	// PNFetchUserOperation
-	PNFetchUserOperation
+	// PNGetUserOperation
+	PNGetUserOperation
 	// PNUpdateUserOperation
 	PNUpdateUserOperation
 	// PNDeleteUserOperation
@@ -396,7 +396,7 @@ func (t OperationType) String() string {
 		return "Create User"
 	case PNGetUsersOperation:
 		return "Get Users"
-	case PNFetchUserOperation:
+	case PNGetUserOperation:
 		return "Fetch Users"
 	case PNUpdateUserOperation:
 		return "Update User"

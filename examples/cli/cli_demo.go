@@ -247,8 +247,8 @@ func showUpdateSpaceHelp() {
 }
 func showDeleteSpaceHelp() {
 	fmt.Println(" DeleteSpace EXAMPLE: ")
-	fmt.Println("	deletespace id")
-	fmt.Println("	deletespace id0")
+	fmt.Println("	delspace id")
+	fmt.Println("	delspace id0")
 
 }
 func showCreateSpaceHelp() {

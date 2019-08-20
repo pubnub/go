@@ -159,8 +159,8 @@ func (o *deleteUserOpts) telemetryManager() *TelemetryManager {
 }
 
 type PNDeleteUserResponse struct {
-	Status int    `json:"status"`
-	Data   PNUser `json:"data"`
+	Status int         `json:"status"`
+	Data   interface{} `json:"data"`
 }
 
 func newPNDeleteUserResponse(jsonBytes []byte, o *deleteUserOpts,
