@@ -60,7 +60,7 @@ func connect() {
 	//config.SecretKey = //"pam"    //"demo"
 
 	//config.PublishKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
-	//config.SubscribeKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
+	//config.SubscribeKey = "sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306"
 	//config.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
 
 	//config.AuthKey = "akey"
@@ -110,11 +110,11 @@ func connect() {
 				fmt.Println("")
 				fmt.Println(fmt.Sprintf("%s", outputSuffix))
 			case userEvent := <-listener.UserEvent:
-				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, userEvent))
+				fmt.Println(fmt.Sprintf("UserEvent --> %s %s", outputPrefix, userEvent))
 			case spaceEvent := <-listener.SpaceEvent:
-				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, spaceEvent))
+				fmt.Println(fmt.Sprintf("SpaceEvent --> %s %s", outputPrefix, spaceEvent))
 			case membershipEvent := <-listener.MembershipEvent:
-				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, membershipEvent))
+				fmt.Println(fmt.Sprintf("MembershipEvent --> %s %s", outputPrefix, membershipEvent))
 
 			}
 		}
