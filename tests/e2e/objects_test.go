@@ -1,1 +1,1 @@
-package pubnub
+package e2e
