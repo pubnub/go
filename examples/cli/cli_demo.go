@@ -55,19 +55,15 @@ func connect() {
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
-	config.PublishKey = "pam"   //"demo"
-	config.SubscribeKey = "pam" //"sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
-	config.SecretKey = "pam"    //"demo"
+	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"   //"demo"   //"demo"
+	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3" //"demo" //"sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
+	//config.SecretKey = //"pam"    //"demo"
 
-	config.PublishKey = "pub-c-2dea72e4-e0aa-4c85-9411-d75baf7568b7"
-	config.SubscribeKey = "sub-c-490a8ac8-7e0e-11e9-84e9-eed29b7b36d8"
-	config.SecretKey = "sec-c-MDU3OGY1ZjMtMDUwZS00NTc4LWFhM2ItN2E3NzhmMDVkZmQx"
+	//config.PublishKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
+	//config.SubscribeKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
+	//config.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
 
-	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn:81"
-
-	config.Secure = false
-
-	config.AuthKey = "akey"
+	//config.AuthKey = "akey"
 
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
@@ -277,8 +273,8 @@ func showUpdateUserHelp() {
 
 func showGetUserHelp() {
 	fmt.Println(" GetUser EXAMPLE: ")
-	fmt.Println("	getUser id")
-	fmt.Println("	getUser id0")
+	fmt.Println("	getuser id")
+	fmt.Println("	getuser id0")
 }
 
 func showMessageCountsHelp() {

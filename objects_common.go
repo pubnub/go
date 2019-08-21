@@ -26,7 +26,7 @@ type PNSpace struct {
 type PNUserMembership struct {
 	Id string `json:"id"`
 	//Name    string                 `json:"name"`
-	Space   PNSpace                `json:"space"`
+	User    PNUser                 `json:"user"`
 	Created string                 `json:"created"`
 	Updated string                 `json:"updated"`
 	ETag    string                 `json:"eTag"`
@@ -36,7 +36,7 @@ type PNUserMembership struct {
 type PNSpaceMembership struct {
 	Id string `json:"id"`
 	//Name    string                 `json:"name"`
-	User    PNUser                 `json:"user"`
+	Space   PNSpace                `json:"space"`
 	Created string                 `json:"created"`
 	Updated string                 `json:"updated"`
 	ETag    string                 `json:"eTag"`

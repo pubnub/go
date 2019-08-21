@@ -222,11 +222,11 @@ func (o *getMembersOpts) telemetryManager() *TelemetryManager {
 }
 
 type PNGetMembersResponse struct {
-	Status     int                 `json:"status"`
-	Data       []PNSpaceMembership `json:"data"`
-	TotalCount int                 `json:"totalCount"`
-	Next       string              `json:"next"`
-	Prev       string              `json:"prev"`
+	Status     int                `json:"status"`
+	Data       []PNUserMembership `json:"data"`
+	TotalCount int                `json:"totalCount"`
+	Next       string             `json:"next"`
+	Prev       string             `json:"prev"`
 }
 
 func newPNGetMembersResponse(jsonBytes []byte, o *getMembersOpts,

@@ -17,7 +17,7 @@ import (
 // PNGrantType grant types
 type PNGrantType int
 
-const grantPath = "/v1/auth/grant/sub-key/%s"
+const grantPath = "/v2/auth/grant/sub-key/%s"
 const grantV3Path = "/v3/auth/grant/sub-key/%s"
 const (
 	// PNReadEnabled Read Enabled. Applies to Subscribe, History, Presence, Objects
