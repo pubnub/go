@@ -15,7 +15,7 @@ type ReconnectionPolicy int
 type PNPushType int
 
 type PNUserSpaceInclude int
-type PNSpaceMembershipsIncude int
+type PNMembershipsInclude int
 type PNMembersInclude int
 type PNObjectsActionType string
 type PNObjectsEventType string
@@ -49,12 +49,12 @@ func (s PNUserSpaceInclude) String() string {
 }
 
 const (
-	PNSpaceMembershipsCustom PNSpaceMembershipsIncude = 1 + iota
-	PNSpaceMembershipsSpace
-	PNSpaceMembershipsSpaceCustom
+	PNMembershipsCustom PNMembershipsInclude = 1 + iota
+	PNMembershipsSpace
+	PNMembershipsSpaceCustom
 )
 
-func (s PNSpaceMembershipsIncude) String() string {
+func (s PNMembershipsInclude) String() string {
 	return [...]string{"custom", "space", "space.custom"}[s-1]
 }
 

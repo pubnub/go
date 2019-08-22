@@ -94,20 +94,20 @@ func (b *manageMembershipsBuilder) Count(count bool) *manageMembershipsBuilder {
 	return b
 }
 
-func (b *manageMembershipsBuilder) Add(userMembershipInput []PNUserMembershipInput) *manageMembershipsBuilder {
-	b.opts.UserMembershipAdd = userMembershipInput
+func (b *manageMembershipsBuilder) Add(userMembershipInput []PNMembershipsInput) *manageMembershipsBuilder {
+	b.opts.MembershipsAdd = userMembershipInput
 
 	return b
 }
 
-func (b *manageMembershipsBuilder) Update(userMembershipInput []PNUserMembershipInput) *manageMembershipsBuilder {
-	b.opts.UserMembershipUpdate = userMembershipInput
+func (b *manageMembershipsBuilder) Update(userMembershipInput []PNMembershipsInput) *manageMembershipsBuilder {
+	b.opts.MembershipsUpdate = userMembershipInput
 
 	return b
 }
 
-func (b *manageMembershipsBuilder) Remove(userMembershipRemove []PNUserMembershipRemove) *manageMembershipsBuilder {
-	b.opts.UserMembershipRemove = userMembershipRemove
+func (b *manageMembershipsBuilder) Remove(userMembershipRemove []PNMembershipsRemove) *manageMembershipsBuilder {
+	b.opts.MembershipsRemove = userMembershipRemove
 
 	return b
 }
@@ -136,18 +136,18 @@ func (b *manageMembershipsBuilder) Execute() (*PNManageMembershipsResponse, Stat
 }
 
 type manageMembershipsOpts struct {
-	pubnub               *PubNub
-	UserId               string
-	Limit                int
-	Include              []string
-	Start                string
-	End                  string
-	Count                bool
-	QueryParam           map[string]string
-	UserMembershipRemove []PNUserMembershipRemove
-	UserMembershipAdd    []PNUserMembershipInput
-	UserMembershipUpdate []PNUserMembershipInput
-	Transport            http.RoundTripper
+	pubnub            *PubNub
+	UserId            string
+	Limit             int
+	Include           []string
+	Start             string
+	End               string
+	Count             bool
+	QueryParam        map[string]string
+	MembershipsRemove []PNMembershipsRemove
+	MembershipsAdd    []PNMembershipsInput
+	MembershipsUpdate []PNMembershipsInput
+	Transport         http.RoundTripper
 
 	ctx Context
 }
@@ -214,17 +214,17 @@ func (o *manageMembershipsOpts) jobQueue() chan *JobQItem {
 	return o.pubnub.jobQueue
 }
 
-type PNUserMembershipInputChangeSet struct {
-	Add    []PNUserMembershipInput  `json:"add"`
-	Update []PNUserMembershipInput  `json:"update"`
-	Remove []PNUserMembershipRemove `json:"remove"`
+type PNMembershipsInputChangeSet struct {
+	Add    []PNMembershipsInput  `json:"add"`
+	Update []PNMembershipsInput  `json:"update"`
+	Remove []PNMembershipsRemove `json:"remove"`
 }
 
 func (o *manageMembershipsOpts) buildBody() ([]byte, error) {
-	b := &PNUserMembershipInputChangeSet{
-		Add:    o.UserMembershipAdd,
-		Update: o.UserMembershipUpdate,
-		Remove: o.UserMembershipRemove,
+	b := &PNMembershipsInputChangeSet{
+		Add:    o.MembershipsAdd,
+		Update: o.MembershipsUpdate,
+		Remove: o.MembershipsRemove,
 	}
 
 	jsonEncBytes, errEnc := json.Marshal(b)
@@ -262,11 +262,11 @@ func (o *manageMembershipsOpts) telemetryManager() *TelemetryManager {
 }
 
 type PNManageMembershipsResponse struct {
-	Status     int                `json:"status"`
-	Data       []PNUserMembership `json:"data"`
-	TotalCount int                `json:"totalCount"`
-	Next       string             `json:"next"`
-	Prev       string             `json:"prev"`
+	Status     int             `json:"status"`
+	Data       []PNMemberships `json:"data"`
+	TotalCount int             `json:"totalCount"`
+	Next       string          `json:"next"`
+	Prev       string          `json:"prev"`
 }
 
 func newPNManageMembershipsResponse(jsonBytes []byte, o *manageMembershipsOpts,

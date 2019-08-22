@@ -61,7 +61,7 @@ func (b *getMembershipsBuilder) UserId(id string) *getMembershipsBuilder {
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *getMembershipsBuilder) Include(include []PNSpaceMembershipsIncude) *getMembershipsBuilder {
+func (b *getMembershipsBuilder) Include(include []PNMembershipsInclude) *getMembershipsBuilder {
 	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
 
 	return b
@@ -222,11 +222,11 @@ func (o *getMembershipsOpts) telemetryManager() *TelemetryManager {
 }
 
 type PNGetMembershipsResponse struct {
-	Status     int                 `json:"status"`
-	Data       []PNSpaceMembership `json:"data"`
-	TotalCount int                 `json:"totalCount"`
-	Next       string              `json:"next"`
-	Prev       string              `json:"prev"`
+	Status     int             `json:"status"`
+	Data       []PNMemberships `json:"data"`
+	TotalCount int             `json:"totalCount"`
+	Next       string          `json:"next"`
+	Prev       string          `json:"prev"`
 }
 
 func newPNGetMembershipsResponse(jsonBytes []byte, o *getMembershipsOpts,

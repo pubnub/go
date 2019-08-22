@@ -23,7 +23,7 @@ type PNSpace struct {
 	Custom      map[string]interface{} `json:"custom"`
 }
 
-type PNUserMembership struct {
+type PNMembers struct {
 	Id string `json:"id"`
 	//Name    string                 `json:"name"`
 	User    PNUser                 `json:"user"`
@@ -33,7 +33,7 @@ type PNUserMembership struct {
 	Custom  map[string]interface{} `json:"custom"`
 }
 
-type PNSpaceMembership struct {
+type PNMemberships struct {
 	Id string `json:"id"`
 	//Name    string                 `json:"name"`
 	Space   PNSpace                `json:"space"`
@@ -43,21 +43,21 @@ type PNSpaceMembership struct {
 	Custom  map[string]interface{} `json:"custom"`
 }
 
-type PNUserMembershipInput struct {
+type PNMembersInput struct {
 	Id     string                 `json:"id"`
 	Custom map[string]interface{} `json:"custom"`
 }
 
-type PNUserMembershipRemove struct {
+type PNMembersRemove struct {
 	Id string `json:"id"`
 }
 
-type PNSpaceMembershipInput struct {
+type PNMembershipsInput struct {
 	Id     string                 `json:"id"`
 	Custom map[string]interface{} `json:"custom"`
 }
 
-type PNSpaceMembershipRemove struct {
+type PNMembershipsRemove struct {
 	Id string `json:"id"`
 }
 

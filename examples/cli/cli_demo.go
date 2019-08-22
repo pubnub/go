@@ -533,22 +533,22 @@ func ManageMembers(args []string) {
 		start = args[5]
 	}
 
-	incl := []pubnub.PNSpaceMembershipsIncude{
-		pubnub.PNSpaceMembershipsCustom,
-		pubnub.PNSpaceMembershipsSpace,
-		pubnub.PNSpaceMembershipsSpaceCustom,
+	incl := []pubnub.PNMembersInclude{
+		pubnub.PNMembersCustom,
+		pubnub.PNMembersUser,
+		pubnub.PNMembersUserCustom,
 	}
 
 	custom := make(map[string]interface{})
 	custom["a1"] = "b1"
 	custom["c1"] = "d1"
 
-	in := pubnub.PNSpaceMembershipInput{
+	in := pubnub.PNMembersInput{
 		Id:     id0,
 		Custom: custom,
 	}
 
-	inArr := []pubnub.PNSpaceMembershipInput{
+	inArr := []pubnub.PNMembersInput{
 		in,
 	}
 
@@ -556,32 +556,32 @@ func ManageMembers(args []string) {
 	custom2["a2"] = "b2"
 	custom2["c2"] = "d2"
 
-	up := pubnub.PNSpaceMembershipInput{
+	up := pubnub.PNMembersInput{
 		Id:     id0,
 		Custom: custom2,
 	}
 
-	upArr := []pubnub.PNSpaceMembershipInput{
+	upArr := []pubnub.PNMembersInput{
 		up,
 	}
 
-	re := pubnub.PNSpaceMembershipRemove{
+	re := pubnub.PNMembersRemove{
 		Id: id0,
 	}
 
-	reArr := []pubnub.PNSpaceMembershipRemove{
+	reArr := []pubnub.PNMembersRemove{
 		re,
 	}
 
 	if action == "a" {
-		reArr = []pubnub.PNSpaceMembershipRemove{}
-		upArr = []pubnub.PNSpaceMembershipInput{}
+		reArr = []pubnub.PNMembersRemove{}
+		upArr = []pubnub.PNMembersInput{}
 	} else if action == "u" {
-		reArr = []pubnub.PNSpaceMembershipRemove{}
-		inArr = []pubnub.PNSpaceMembershipInput{}
+		reArr = []pubnub.PNMembersRemove{}
+		inArr = []pubnub.PNMembersInput{}
 	} else if action == "r" {
-		upArr = []pubnub.PNSpaceMembershipInput{}
-		inArr = []pubnub.PNSpaceMembershipInput{}
+		upArr = []pubnub.PNMembersInput{}
+		inArr = []pubnub.PNMembersInput{}
 	}
 
 	if start != "" {
@@ -630,12 +630,12 @@ func ManageMemberships(args []string) {
 	custom3["a3"] = "b3"
 	custom3["c3"] = "d3"
 
-	in := pubnub.PNUserMembershipInput{
+	in := pubnub.PNMembershipsInput{
 		Id:     id0,
 		Custom: custom3,
 	}
 
-	inArr := []pubnub.PNUserMembershipInput{
+	inArr := []pubnub.PNMembershipsInput{
 		in,
 	}
 
@@ -643,32 +643,32 @@ func ManageMemberships(args []string) {
 	custom4["a4"] = "b4"
 	custom4["c4"] = "d4"
 
-	up := pubnub.PNUserMembershipInput{
+	up := pubnub.PNMembershipsInput{
 		Id:     id0,
 		Custom: custom4,
 	}
 
-	upArr := []pubnub.PNUserMembershipInput{
+	upArr := []pubnub.PNMembershipsInput{
 		up,
 	}
 
-	re := pubnub.PNUserMembershipRemove{
+	re := pubnub.PNMembershipsRemove{
 		Id: id0,
 	}
 
-	reArr := []pubnub.PNUserMembershipRemove{
+	reArr := []pubnub.PNMembershipsRemove{
 		re,
 	}
 
 	if action == "a" {
-		reArr = []pubnub.PNUserMembershipRemove{}
-		upArr = []pubnub.PNUserMembershipInput{}
+		reArr = []pubnub.PNMembershipsRemove{}
+		upArr = []pubnub.PNMembershipsInput{}
 	} else if action == "u" {
-		reArr = []pubnub.PNUserMembershipRemove{}
-		inArr = []pubnub.PNUserMembershipInput{}
+		reArr = []pubnub.PNMembershipsRemove{}
+		inArr = []pubnub.PNMembershipsInput{}
 	} else if action == "r" {
-		upArr = []pubnub.PNUserMembershipInput{}
-		inArr = []pubnub.PNUserMembershipInput{}
+		upArr = []pubnub.PNMembershipsInput{}
+		inArr = []pubnub.PNMembershipsInput{}
 	}
 
 	if start != "" {
@@ -706,10 +706,10 @@ func GetSpaceMemberships(args []string) {
 		start = args[3]
 	}
 
-	incl := []pubnub.PNSpaceMembershipsIncude{
-		pubnub.PNSpaceMembershipsCustom,
-		pubnub.PNSpaceMembershipsSpace,
-		pubnub.PNSpaceMembershipsSpaceCustom,
+	incl := []pubnub.PNMembershipsInclude{
+		pubnub.PNMembershipsCustom,
+		pubnub.PNMembershipsSpace,
+		pubnub.PNMembershipsSpaceCustom,
 	}
 	if start != "" {
 		res, status, err := pn.GetMemberships().UserId(id).Include(incl).Limit(limit).Count(count).Start(start).Execute()

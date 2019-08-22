@@ -269,28 +269,28 @@ func TestObjectsMemberships(t *testing.T) {
 	assert.Nil(err4)
 	assert.Equal(200, res4.Status)
 
-	inclSm := []pubnub.PNSpaceMembershipsIncude{
-		pubnub.PNSpaceMembershipsCustom,
-		pubnub.PNSpaceMembershipsSpace,
-		pubnub.PNSpaceMembershipsSpaceCustom,
+	inclSm := []pubnub.PNMembersInclude{
+		pubnub.PNMembersCustom,
+		pubnub.PNMembersUser,
+		pubnub.PNMembersUserCustom,
 	}
 
 	custom3 := make(map[string]interface{})
 	custom3["a3"] = "b3"
 	custom3["c3"] = "d3"
 
-	in := pubnub.PNSpaceMembershipInput{
+	in := pubnub.PNMembersInput{
 		Id:     userid,
 		Custom: custom3,
 	}
 
-	inArr := []pubnub.PNSpaceMembershipInput{
+	inArr := []pubnub.PNMembersInput{
 		in,
 	}
 
 	//Add Space Memberships
 
-	resAdd, _, errAdd := pn.ManageMembers().SpaceId(spaceid).Add(inArr).Update([]pubnub.PNSpaceMembershipInput{}).Remove([]pubnub.PNSpaceMembershipRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+	resAdd, _, errAdd := pn.ManageMembers().SpaceId(spaceid).Add(inArr).Update([]pubnub.PNMembersInput{}).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errAdd)
 	assert.Equal(200, resAdd.Status)
 	assert.True(resAdd.TotalCount > 0)
@@ -310,16 +310,16 @@ func TestObjectsMemberships(t *testing.T) {
 	custom4["a2"] = "b2"
 	custom4["c2"] = "d2"
 
-	up := pubnub.PNSpaceMembershipInput{
+	up := pubnub.PNMembersInput{
 		Id:     userid,
 		Custom: custom4,
 	}
 
-	upArr := []pubnub.PNSpaceMembershipInput{
+	upArr := []pubnub.PNMembersInput{
 		up,
 	}
 
-	resUp, _, errUp := pn.ManageMembers().SpaceId(spaceid).Add([]pubnub.PNSpaceMembershipInput{}).Update(upArr).Remove([]pubnub.PNSpaceMembershipRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+	resUp, _, errUp := pn.ManageMembers().SpaceId(spaceid).Add([]pubnub.PNMembersInput{}).Update(upArr).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errUp)
 	assert.Equal(200, resUp.Status)
 	assert.True(resUp.TotalCount > 0)
@@ -334,7 +334,14 @@ func TestObjectsMemberships(t *testing.T) {
 	assert.True(foundUp)
 
 	//Get Space Memberships
-	resGetMem, _, errGetMem := pn.GetMemberships().UserId(userid).Include(inclSm).Limit(limit).Count(count).Execute()
+
+	inclMemberships := []pubnub.PNMembershipsInclude{
+		pubnub.PNMembershipsCustom,
+		pubnub.PNMembershipsSpace,
+		pubnub.PNMembershipsSpaceCustom,
+	}
+
+	resGetMem, _, errGetMem := pn.GetMemberships().UserId(userid).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	foundGetMem := false
 	assert.Nil(errGetMem)
 	for i := range resGetMem.Data {
@@ -352,14 +359,14 @@ func TestObjectsMemberships(t *testing.T) {
 	assert.True(foundGetMem)
 
 	//Remove Space Memberships
-	re := pubnub.PNSpaceMembershipRemove{
+	re := pubnub.PNMembersRemove{
 		Id: userid,
 	}
 
-	reArr := []pubnub.PNSpaceMembershipRemove{
+	reArr := []pubnub.PNMembersRemove{
 		re,
 	}
-	resRem, _, errRem := pn.ManageMembers().SpaceId(spaceid).Add([]pubnub.PNSpaceMembershipInput{}).Update([]pubnub.PNSpaceMembershipInput{}).Remove(reArr).Include(inclSm).Limit(limit).Count(count).Execute()
+	resRem, _, errRem := pn.ManageMembers().SpaceId(spaceid).Add([]pubnub.PNMembersInput{}).Update([]pubnub.PNMembersInput{}).Remove(reArr).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errRem)
 	assert.Equal(200, resRem.Status)
 	foundRem := false
@@ -371,14 +378,14 @@ func TestObjectsMemberships(t *testing.T) {
 	assert.False(foundRem)
 
 	// //Add user memberships
-	// res, status, err := pn.EditMembers().Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+	// res, status, err := pn.ManageMemberships().UserId(userId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
 	// //Update user memberships
-	// res, status, err := pn.EditMembers().Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+	// res, status, err := pn.ManageMemberships().UserId(userId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
 	// //Get members
 	// res, status, err := pn.GetMembers().SpaceId(id).Include(incl).Limit(limit).Count(count).Execute()
 
 	// //Remove user memberships
-	// res, status, err := pn.EditMembers().Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+	// res, status, err := pn.ManageMemberships().UserId(userId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
 
 	//delete
 	res5, _, err5 := pn.DeleteUser().Id(userid).Execute()

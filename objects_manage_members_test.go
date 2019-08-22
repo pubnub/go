@@ -14,8 +14,8 @@ func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	incl := []PNSpaceMembershipsIncude{
-		PNSpaceMembershipsCustom,
+	incl := []PNMembersInclude{
+		PNMembersCustom,
 	}
 
 	queryParam := map[string]string{
@@ -53,12 +53,12 @@ func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
 	custom["a1"] = "b1"
 	custom["c1"] = "d1"
 
-	in := PNSpaceMembershipInput{
+	in := PNMembersInput{
 		Id:     id0,
 		Custom: custom,
 	}
 
-	inArr := []PNSpaceMembershipInput{
+	inArr := []PNMembersInput{
 		in,
 	}
 
@@ -66,20 +66,20 @@ func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
 	custom2["a2"] = "b2"
 	custom2["c2"] = "d2"
 
-	up := PNSpaceMembershipInput{
+	up := PNMembersInput{
 		Id:     id0,
 		Custom: custom2,
 	}
 
-	upArr := []PNSpaceMembershipInput{
+	upArr := []PNMembersInput{
 		up,
 	}
 
-	re := PNSpaceMembershipRemove{
+	re := PNMembersRemove{
 		Id: id0,
 	}
 
-	reArr := []PNSpaceMembershipRemove{
+	reArr := []PNMembersRemove{
 		re,
 	}
 	o.Add(inArr)

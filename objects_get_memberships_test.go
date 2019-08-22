@@ -14,8 +14,8 @@ func AssertGetMemberships(t *testing.T, checkQueryParam, testContext bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	incl := []PNSpaceMembershipsIncude{
-		PNSpaceMembershipsCustom,
+	incl := []PNMembershipsIncude{
+		PNMembershipsCustom,
 	}
 
 	queryParam := map[string]string{

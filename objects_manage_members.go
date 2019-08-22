@@ -55,7 +55,7 @@ func newManageMembersBuilderWithContext(pubnub *PubNub,
 // }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *manageMembersBuilder) Include(include []PNSpaceMembershipsIncude) *manageMembersBuilder {
+func (b *manageMembersBuilder) Include(include []PNMembersInclude) *manageMembersBuilder {
 	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
 
 	return b
@@ -94,20 +94,20 @@ func (b *manageMembersBuilder) Count(count bool) *manageMembersBuilder {
 	return b
 }
 
-func (b *manageMembersBuilder) Add(spaceMembershipInput []PNSpaceMembershipInput) *manageMembersBuilder {
-	b.opts.SpaceMembershipAdd = spaceMembershipInput
+func (b *manageMembersBuilder) Add(membershipInput []PNMembersInput) *manageMembersBuilder {
+	b.opts.MembershipAdd = membershipInput
 
 	return b
 }
 
-func (b *manageMembersBuilder) Update(spaceMembershipInput []PNSpaceMembershipInput) *manageMembersBuilder {
-	b.opts.SpaceMembershipUpdate = spaceMembershipInput
+func (b *manageMembersBuilder) Update(membershipInput []PNMembersInput) *manageMembersBuilder {
+	b.opts.MembershipUpdate = membershipInput
 
 	return b
 }
 
-func (b *manageMembersBuilder) Remove(spaceMembershipRemove []PNSpaceMembershipRemove) *manageMembersBuilder {
-	b.opts.SpaceMembershipRemove = spaceMembershipRemove
+func (b *manageMembersBuilder) Remove(membershipRemove []PNMembersRemove) *manageMembersBuilder {
+	b.opts.MembershipRemove = membershipRemove
 
 	return b
 }
@@ -136,18 +136,18 @@ func (b *manageMembersBuilder) Execute() (*PNManageMembersResponse, StatusRespon
 }
 
 type manageMembersOpts struct {
-	pubnub                *PubNub
-	SpaceId               string
-	Limit                 int
-	Include               []string
-	Start                 string
-	End                   string
-	Count                 bool
-	QueryParam            map[string]string
-	SpaceMembershipRemove []PNSpaceMembershipRemove
-	SpaceMembershipAdd    []PNSpaceMembershipInput
-	SpaceMembershipUpdate []PNSpaceMembershipInput
-	Transport             http.RoundTripper
+	pubnub           *PubNub
+	SpaceId          string
+	Limit            int
+	Include          []string
+	Start            string
+	End              string
+	Count            bool
+	QueryParam       map[string]string
+	MembershipRemove []PNMembersRemove
+	MembershipAdd    []PNMembersInput
+	MembershipUpdate []PNMembersInput
+	Transport        http.RoundTripper
 
 	ctx Context
 }
@@ -214,17 +214,17 @@ func (o *manageMembersOpts) jobQueue() chan *JobQItem {
 	return o.pubnub.jobQueue
 }
 
-type PNSpaceMembershipInputChangeSet struct {
-	Add    []PNSpaceMembershipInput  `json:"add"`
-	Update []PNSpaceMembershipInput  `json:"update"`
-	Remove []PNSpaceMembershipRemove `json:"remove"`
+type PNMembersInputChangeSet struct {
+	Add    []PNMembersInput  `json:"add"`
+	Update []PNMembersInput  `json:"update"`
+	Remove []PNMembersRemove `json:"remove"`
 }
 
 func (o *manageMembersOpts) buildBody() ([]byte, error) {
-	b := &PNSpaceMembershipInputChangeSet{
-		Add:    o.SpaceMembershipAdd,
-		Update: o.SpaceMembershipUpdate,
-		Remove: o.SpaceMembershipRemove,
+	b := &PNMembersInputChangeSet{
+		Add:    o.MembershipAdd,
+		Update: o.MembershipUpdate,
+		Remove: o.MembershipRemove,
 	}
 
 	jsonEncBytes, errEnc := json.Marshal(b)

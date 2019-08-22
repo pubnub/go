@@ -53,12 +53,12 @@ func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool) {
 	custom3["a3"] = "b3"
 	custom3["c3"] = "d3"
 
-	in := PNUserMembershipInput{
+	in := PNMembershipsInput{
 		Id:     id0,
 		Custom: custom3,
 	}
 
-	inArr := []PNUserMembershipInput{
+	inArr := []PNMembershipsInput{
 		in,
 	}
 
@@ -66,20 +66,20 @@ func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool) {
 	custom4["a4"] = "b4"
 	custom4["c4"] = "d4"
 
-	up := PNUserMembershipInput{
+	up := PNMembershipsInput{
 		Id:     id0,
 		Custom: custom4,
 	}
 
-	upArr := []PNUserMembershipInput{
+	upArr := []PNMembershipsInput{
 		up,
 	}
 
-	re := PNUserMembershipRemove{
+	re := PNMembershipsRemove{
 		Id: id0,
 	}
 
-	reArr := []PNUserMembershipRemove{
+	reArr := []PNMembershipsRemove{
 		re,
 	}
 
