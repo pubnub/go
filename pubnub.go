@@ -186,12 +186,12 @@ func (pn *PubNub) DeleteSpaceWithContext(ctx Context) *deleteSpaceBuilder {
 	return newDeleteSpaceBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) GetSpaceMemberships() *getSpaceMembershipsBuilder {
-	return newGetSpaceMembershipsBuilder(pn)
+func (pn *PubNub) GetMemberships() *getMembershipsBuilder {
+	return newGetMembershipsBuilder(pn)
 }
 
-func (pn *PubNub) GetSpaceMembershipsWithContext(ctx Context) *getSpaceMembershipsBuilder {
-	return newGetSpaceMembershipsBuilderWithContext(pn, ctx)
+func (pn *PubNub) GetMembershipsWithContext(ctx Context) *getMembershipsBuilder {
+	return newGetMembershipsBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) GetMembers() *getMembersBuilder {
@@ -202,20 +202,20 @@ func (pn *PubNub) GetMembersWithContext(ctx Context) *getMembersBuilder {
 	return newGetMembersBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) UpdateSpaceMemberships() *updateSpaceMembershipsBuilder {
-	return newUpdateSpaceMembershipsBuilder(pn)
+func (pn *PubNub) ManageMembers() *manageMembersBuilder {
+	return newManageMembersBuilder(pn)
 }
 
-func (pn *PubNub) UpdateSpaceMembershipsWithContext(ctx Context) *updateSpaceMembershipsBuilder {
-	return newUpdateSpaceMembershipsBuilderWithContext(pn, ctx)
+func (pn *PubNub) ManageMembersWithContext(ctx Context) *manageMembersBuilder {
+	return newManageMembersBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) UpdateMembers() *updateUserSpaceMembershipsBuilder {
-	return newUpdateUserSpaceMembershipsBuilder(pn)
+func (pn *PubNub) ManageMemberships() *manageMembershipsBuilder {
+	return newManageMembershipsBuilder(pn)
 }
 
-func (pn *PubNub) UpdateMembersWithContext(ctx Context) *updateUserSpaceMembershipsBuilder {
-	return newUpdateUserSpaceMembershipsBuilderWithContext(pn, ctx)
+func (pn *PubNub) ManageMembershipsWithContext(ctx Context) *manageMembershipsBuilder {
+	return newManageMembershipsBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) Signal() *signalBuilder {

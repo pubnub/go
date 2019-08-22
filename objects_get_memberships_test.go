@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertGetSpaceMemberships(t *testing.T, checkQueryParam, testContext bool) {
+func AssertGetMemberships(t *testing.T, checkQueryParam, testContext bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -29,9 +29,9 @@ func AssertGetSpaceMemberships(t *testing.T, checkQueryParam, testContext bool) 
 
 	inclStr := utils.EnumArrayToStringArray(fmt.Sprint(incl))
 
-	o := newGetSpaceMembershipsBuilder(pn)
+	o := newGetMembershipsBuilder(pn)
 	if testContext {
-		o = newGetSpaceMembershipsBuilderWithContext(pn, backgroundContext)
+		o = newGetMembershipsBuilderWithContext(pn, backgroundContext)
 	}
 
 	userId := "id0"
@@ -71,36 +71,36 @@ func AssertGetSpaceMemberships(t *testing.T, checkQueryParam, testContext bool) 
 
 }
 
-func TestGetSpaceMemberships(t *testing.T) {
-	AssertGetSpaceMemberships(t, true, false)
+func TestGetMemberships(t *testing.T) {
+	AssertGetMemberships(t, true, false)
 }
 
-func TestGetSpaceMembershipsContext(t *testing.T) {
-	AssertGetSpaceMemberships(t, true, true)
+func TestGetMembershipsContext(t *testing.T) {
+	AssertGetMemberships(t, true, true)
 }
 
-func TestGetSpaceMembershipsResponseValueError(t *testing.T) {
+func TestGetMembershipsResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getSpaceMembershipsOpts{
+	opts := &getMembershipsOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`s`)
 
-	_, _, err := newPNGetSpaceMembershipsResponse(jsonBytes, opts, StatusResponse{})
+	_, _, err := newPNGetMembershipsResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
 //{"status":200,"data":[{"id":"id0","custom":{"a3":"b3","c3":"d3"},"space":{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"},"created":"2019-08-20T13:26:24.07832Z","updated":"2019-08-20T13:26:24.07832Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ"}
-func TestGetSpaceMembershipsResponseValuePass(t *testing.T) {
+func TestGetMembershipsResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getSpaceMembershipsOpts{
+	opts := &getMembershipsOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`{"status":200,"data":[{"id":"id0","custom":{"a3":"b3","c3":"d3"},"space":{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"},"created":"2019-08-20T13:26:24.07832Z","updated":"2019-08-20T13:26:24.07832Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ", "prev":"NQ"}`)
 
-	r, _, err := newPNGetSpaceMembershipsResponse(jsonBytes, opts, StatusResponse{})
+	r, _, err := newPNGetMembershipsResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(200, r.Status)
 	assert.Equal(1, r.TotalCount)
 	assert.Equal("MQ", r.Next)

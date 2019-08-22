@@ -196,14 +196,14 @@ const (
 	PNDeleteSpaceOperation
 	// PNUpdateSpaceOperation
 	PNUpdateSpaceOperation
-	// PNGetSpaceMembershipsOperation
-	PNGetSpaceMembershipsOperation
+	// PNGetMembershipsOperation
+	PNGetMembershipsOperation
 	// PNGetMembersOperation
 	PNGetMembersOperation
-	// PNUpdateSpaceMembershipsOperation
-	PNUpdateSpaceMembershipsOperation
-	// PNUpdateUserSpaceMembershipsOperation
-	PNUpdateMembersOperation
+	// PNManageMembershipsOperation
+	PNManageMembershipsOperation
+	// PNManageMembersOperation
+	PNManageMembersOperation
 )
 
 const (
@@ -268,10 +268,10 @@ var operations = [...]string{
 	"Create Space",
 	"Delete Space",
 	"Update Space",
-	"PNGetSpaceMembershipsOperation",
+	"PNGetMembershipsOperation",
 	"PNGetMembersOperation",
-	"PNUpdateSpaceMembershipsOperation",
-	"PNupdateMembersOperation",
+	"PNManageMembershipsOperation",
+	"PNManageMembersOperation",
 }
 
 func (c StatusCategory) String() string {
@@ -412,14 +412,14 @@ func (t OperationType) String() string {
 		return "Delete Space"
 	case PNUpdateSpaceOperation:
 		return "Update Space"
-	case PNGetSpaceMembershipsOperation:
-		return "Get Space Memberships"
+	case PNGetMembershipsOperation:
+		return "Get Memberships"
 	case PNGetMembersOperation:
 		return "Get Members"
-	case PNUpdateSpaceMembershipsOperation:
-		return "Update Space Memberships"
-	case PNUpdateMembersOperation:
-		return "Update Members"
+	case PNManageMembershipsOperation:
+		return "Manage Memberships"
+	case PNManageMembersOperation:
+		return "Manage Members"
 	default:
 		return "No Category Matched"
 	}

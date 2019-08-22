@@ -14,19 +14,19 @@ import (
 	//"reflect"
 )
 
-var emptyUpdateUserSpaceMembershipsResponse *PNUpdateUserSpaceMembershipsResponse
+var emptyManageMembershipsResponse *PNManageMembershipsResponse
 
-const updateUserSpaceMembershipsPath = "/v1/objects/%s/users/%s/spaces"
+const manageMembershipsPath = "/v1/objects/%s/users/%s/spaces"
 
 const userSpaceMembershipsLimit = 100
 
-type updateUserSpaceMembershipsBuilder struct {
-	opts *updateUserSpaceMembershipsOpts
+type manageMembershipsBuilder struct {
+	opts *manageMembershipsOpts
 }
 
-func newUpdateUserSpaceMembershipsBuilder(pubnub *PubNub) *updateUserSpaceMembershipsBuilder {
-	builder := updateUserSpaceMembershipsBuilder{
-		opts: &updateUserSpaceMembershipsOpts{
+func newManageMembershipsBuilder(pubnub *PubNub) *manageMembershipsBuilder {
+	builder := manageMembershipsBuilder{
+		opts: &manageMembershipsOpts{
 			pubnub: pubnub,
 		},
 	}
@@ -35,10 +35,10 @@ func newUpdateUserSpaceMembershipsBuilder(pubnub *PubNub) *updateUserSpaceMember
 	return &builder
 }
 
-func newUpdateUserSpaceMembershipsBuilderWithContext(pubnub *PubNub,
-	context Context) *updateUserSpaceMembershipsBuilder {
-	builder := updateUserSpaceMembershipsBuilder{
-		opts: &updateUserSpaceMembershipsOpts{
+func newManageMembershipsBuilderWithContext(pubnub *PubNub,
+	context Context) *manageMembershipsBuilder {
+	builder := manageMembershipsBuilder{
+		opts: &manageMembershipsOpts{
 			pubnub: pubnub,
 			ctx:    context,
 		},
@@ -48,94 +48,94 @@ func newUpdateUserSpaceMembershipsBuilderWithContext(pubnub *PubNub,
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-// func (b *updateUserSpaceMembershipsBuilder) Auth(auth string) *updateUserSpaceMembershipsBuilder {
+// func (b *manageMembershipsBuilder) Auth(auth string) *manageMembershipsBuilder {
 // 	//b.opts.Auth = auth
 
 // 	return b
 // }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *updateUserSpaceMembershipsBuilder) Include(include []PNMembersInclude) *updateUserSpaceMembershipsBuilder {
+func (b *manageMembershipsBuilder) Include(include []PNMembersInclude) *manageMembershipsBuilder {
 	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
 
 	return b
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *updateUserSpaceMembershipsBuilder) UserId(id string) *updateUserSpaceMembershipsBuilder {
+func (b *manageMembershipsBuilder) UserId(id string) *manageMembershipsBuilder {
 	b.opts.UserId = id
 
 	return b
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *updateUserSpaceMembershipsBuilder) Limit(limit int) *updateUserSpaceMembershipsBuilder {
+func (b *manageMembershipsBuilder) Limit(limit int) *manageMembershipsBuilder {
 	b.opts.Limit = limit
 
 	return b
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *updateUserSpaceMembershipsBuilder) Start(start string) *updateUserSpaceMembershipsBuilder {
+func (b *manageMembershipsBuilder) Start(start string) *manageMembershipsBuilder {
 	b.opts.Start = start
 
 	return b
 }
 
-func (b *updateUserSpaceMembershipsBuilder) End(end string) *updateUserSpaceMembershipsBuilder {
+func (b *manageMembershipsBuilder) End(end string) *manageMembershipsBuilder {
 	b.opts.End = end
 
 	return b
 }
 
-func (b *updateUserSpaceMembershipsBuilder) Count(count bool) *updateUserSpaceMembershipsBuilder {
+func (b *manageMembershipsBuilder) Count(count bool) *manageMembershipsBuilder {
 	b.opts.Count = count
 
 	return b
 }
 
-func (b *updateUserSpaceMembershipsBuilder) Add(userMembershipInput []PNUserMembershipInput) *updateUserSpaceMembershipsBuilder {
+func (b *manageMembershipsBuilder) Add(userMembershipInput []PNUserMembershipInput) *manageMembershipsBuilder {
 	b.opts.UserMembershipAdd = userMembershipInput
 
 	return b
 }
 
-func (b *updateUserSpaceMembershipsBuilder) Update(userMembershipInput []PNUserMembershipInput) *updateUserSpaceMembershipsBuilder {
+func (b *manageMembershipsBuilder) Update(userMembershipInput []PNUserMembershipInput) *manageMembershipsBuilder {
 	b.opts.UserMembershipUpdate = userMembershipInput
 
 	return b
 }
 
-func (b *updateUserSpaceMembershipsBuilder) Remove(userMembershipRemove []PNUserMembershipRemove) *updateUserSpaceMembershipsBuilder {
+func (b *manageMembershipsBuilder) Remove(userMembershipRemove []PNUserMembershipRemove) *manageMembershipsBuilder {
 	b.opts.UserMembershipRemove = userMembershipRemove
 
 	return b
 }
 
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
-func (b *updateUserSpaceMembershipsBuilder) QueryParam(queryParam map[string]string) *updateUserSpaceMembershipsBuilder {
+func (b *manageMembershipsBuilder) QueryParam(queryParam map[string]string) *manageMembershipsBuilder {
 	b.opts.QueryParam = queryParam
 
 	return b
 }
 
-// Transport sets the Transport for the updateUserSpaceMemberships request.
-func (b *updateUserSpaceMembershipsBuilder) Transport(tr http.RoundTripper) *updateUserSpaceMembershipsBuilder {
+// Transport sets the Transport for the manageMemberships request.
+func (b *manageMembershipsBuilder) Transport(tr http.RoundTripper) *manageMembershipsBuilder {
 	b.opts.Transport = tr
 	return b
 }
 
-// Execute runs the updateUserSpaceMemberships request.
-func (b *updateUserSpaceMembershipsBuilder) Execute() (*PNUpdateUserSpaceMembershipsResponse, StatusResponse, error) {
+// Execute runs the manageMemberships request.
+func (b *manageMembershipsBuilder) Execute() (*PNManageMembershipsResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyUpdateUserSpaceMembershipsResponse, status, err
+		return emptyManageMembershipsResponse, status, err
 	}
 
-	return newPNUpdateUserSpaceMembershipsResponse(rawJSON, b.opts, status)
+	return newPNManageMembershipsResponse(rawJSON, b.opts, status)
 }
 
-type updateUserSpaceMembershipsOpts struct {
+type manageMembershipsOpts struct {
 	pubnub               *PubNub
 	UserId               string
 	Limit                int
@@ -152,19 +152,19 @@ type updateUserSpaceMembershipsOpts struct {
 	ctx Context
 }
 
-func (o *updateUserSpaceMembershipsOpts) config() Config {
+func (o *manageMembershipsOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *updateUserSpaceMembershipsOpts) client() *http.Client {
+func (o *manageMembershipsOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *updateUserSpaceMembershipsOpts) context() Context {
+func (o *manageMembershipsOpts) context() Context {
 	return o.ctx
 }
 
-func (o *updateUserSpaceMembershipsOpts) validate() error {
+func (o *manageMembershipsOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)
 	}
@@ -172,12 +172,12 @@ func (o *updateUserSpaceMembershipsOpts) validate() error {
 	return nil
 }
 
-func (o *updateUserSpaceMembershipsOpts) buildPath() (string, error) {
-	return fmt.Sprintf(updateUserSpaceMembershipsPath,
+func (o *manageMembershipsOpts) buildPath() (string, error) {
+	return fmt.Sprintf(manageMembershipsPath,
 		o.pubnub.Config.SubscribeKey, o.UserId), nil
 }
 
-func (o *updateUserSpaceMembershipsOpts) buildQuery() (*url.Values, error) {
+func (o *manageMembershipsOpts) buildQuery() (*url.Values, error) {
 
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
@@ -210,7 +210,7 @@ func (o *updateUserSpaceMembershipsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *updateUserSpaceMembershipsOpts) jobQueue() chan *JobQItem {
+func (o *manageMembershipsOpts) jobQueue() chan *JobQItem {
 	return o.pubnub.jobQueue
 }
 
@@ -220,7 +220,7 @@ type PNUserMembershipInputChangeSet struct {
 	Remove []PNUserMembershipRemove `json:"remove"`
 }
 
-func (o *updateUserSpaceMembershipsOpts) buildBody() ([]byte, error) {
+func (o *manageMembershipsOpts) buildBody() ([]byte, error) {
 	b := &PNUserMembershipInputChangeSet{
 		Add:    o.UserMembershipAdd,
 		Update: o.UserMembershipUpdate,
@@ -237,31 +237,31 @@ func (o *updateUserSpaceMembershipsOpts) buildBody() ([]byte, error) {
 	return jsonEncBytes, nil
 }
 
-func (o *updateUserSpaceMembershipsOpts) httpMethod() string {
+func (o *manageMembershipsOpts) httpMethod() string {
 	return "PATCH"
 }
 
-func (o *updateUserSpaceMembershipsOpts) isAuthRequired() bool {
+func (o *manageMembershipsOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *updateUserSpaceMembershipsOpts) requestTimeout() int {
+func (o *manageMembershipsOpts) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *updateUserSpaceMembershipsOpts) connectTimeout() int {
+func (o *manageMembershipsOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *updateUserSpaceMembershipsOpts) operationType() OperationType {
-	return PNUpdateMembersOperation
+func (o *manageMembershipsOpts) operationType() OperationType {
+	return PNManageMembershipsOperation
 }
 
-func (o *updateUserSpaceMembershipsOpts) telemetryManager() *TelemetryManager {
+func (o *manageMembershipsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-type PNUpdateUserSpaceMembershipsResponse struct {
+type PNManageMembershipsResponse struct {
 	Status     int                `json:"status"`
 	Data       []PNUserMembership `json:"data"`
 	TotalCount int                `json:"totalCount"`
@@ -269,10 +269,10 @@ type PNUpdateUserSpaceMembershipsResponse struct {
 	Prev       string             `json:"prev"`
 }
 
-func newPNUpdateUserSpaceMembershipsResponse(jsonBytes []byte, o *updateUserSpaceMembershipsOpts,
-	status StatusResponse) (*PNUpdateUserSpaceMembershipsResponse, StatusResponse, error) {
+func newPNManageMembershipsResponse(jsonBytes []byte, o *manageMembershipsOpts,
+	status StatusResponse) (*PNManageMembershipsResponse, StatusResponse, error) {
 
-	resp := &PNUpdateUserSpaceMembershipsResponse{}
+	resp := &PNManageMembershipsResponse{}
 
 	fmt.Println(string(jsonBytes))
 
@@ -282,7 +282,7 @@ func newPNUpdateUserSpaceMembershipsResponse(jsonBytes []byte, o *updateUserSpac
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyUpdateUserSpaceMembershipsResponse, status, e
+		return emptyManageMembershipsResponse, status, e
 	}
 
 	return resp, status, nil

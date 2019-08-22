@@ -184,7 +184,7 @@ func showHelp() {
 	showSignalHelp()
 	showCreateUserHelp()
 	showGetUsersHelp()
-	showUpdateSpaceMembershipsHelp()
+	showEditMembershipsHelp()
 	showUpdateMembersHelp()
 	showGetSpaceMembershipsHelp()
 	showGetMembersHelp()
@@ -205,8 +205,8 @@ func showHelp() {
 	fmt.Println(" QUIT \n\tctrl+c ")
 }
 
-func showUpdateSpaceMembershipsHelp() {
-	fmt.Println(" UpdateSpaceMemberships EXAMPLE: ")
+func showEditMembershipsHelp() {
+	fmt.Println(" EditMemberships EXAMPLE: ")
 	fmt.Println("	updatespacemem spaceid id a/u/r limit count")
 	fmt.Println("	updatespacemem id0 id1 a 100 true")
 
@@ -499,9 +499,9 @@ func readCommand(cmd string) {
 	case "getmem":
 		GetMembers(command[1:])
 	case "updatespacemem":
-		UpdateSpaceMemberships(command[1:])
+		ManageMemberships(command[1:])
 	case "updatemem":
-		UpdateMembers(command[1:])
+		ManageMembers(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -511,9 +511,9 @@ func readCommand(cmd string) {
 	}
 }
 
-func UpdateSpaceMemberships(args []string) {
+func ManageMembers(args []string) {
 	if len(args) < 5 {
-		showUpdateSpaceMembershipsHelp()
+		showEditMembershipsHelp()
 		return
 	}
 	spaceId := args[0]
@@ -585,20 +585,20 @@ func UpdateSpaceMemberships(args []string) {
 	}
 
 	if start != "" {
-		res, status, err := pn.UpdateSpaceMemberships().SpaceId(spaceId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+		res, status, err := pn.ManageMembers().SpaceId(spaceId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 
 	} else {
-		res, status, err := pn.UpdateSpaceMemberships().SpaceId(spaceId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
+		res, status, err := pn.ManageMembers().SpaceId(spaceId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 	}
 }
 
-func UpdateMembers(args []string) {
+func ManageMemberships(args []string) {
 	if len(args) < 5 {
 		showUpdateMembersHelp()
 		return
@@ -672,7 +672,7 @@ func UpdateMembers(args []string) {
 	}
 
 	if start != "" {
-		res, status, err := pn.UpdateMembers().Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+		res, status, err := pn.ManageMemberships().Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
 		//res, status, err := pn.UpdateMembers().UserId(userId).Add(inArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
@@ -680,7 +680,7 @@ func UpdateMembers(args []string) {
 
 	} else {
 
-		res, status, err := pn.UpdateMembers().UserId(userId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
+		res, status, err := pn.ManageMemberships().UserId(userId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
@@ -712,12 +712,12 @@ func GetSpaceMemberships(args []string) {
 		pubnub.PNSpaceMembershipsSpaceCustom,
 	}
 	if start != "" {
-		res, status, err := pn.GetSpaceMemberships().UserId(id).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+		res, status, err := pn.GetMemberships().UserId(id).Include(incl).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 	} else {
-		res, status, err := pn.GetSpaceMemberships().UserId(id).Include(incl).Limit(limit).Count(count).Execute()
+		res, status, err := pn.GetMemberships().UserId(id).Include(incl).Limit(limit).Count(count).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
