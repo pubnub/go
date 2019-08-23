@@ -17,7 +17,7 @@ type PNPushType int
 type PNUserSpaceInclude int
 type PNMembershipsInclude int
 type PNMembersInclude int
-type PNObjectsActionType string
+type PNObjectsEvent string
 type PNObjectsEventType string
 
 const (
@@ -31,9 +31,9 @@ const (
 // }
 
 const (
-	PNObjectsActionCreate PNObjectsActionType = "create"
-	PNObjectsActionUpdate                     = "update"
-	PNObjectsActionDelete                     = "delete"
+	PNObjectsEventCreate PNObjectsEvent = "create"
+	PNObjectsEventUpdate                = "update"
+	PNObjectsEventDelete                = "delete"
 )
 
 // func (s PNObjectsActionType) String() string {

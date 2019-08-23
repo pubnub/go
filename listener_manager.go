@@ -17,10 +17,13 @@ type Listener struct {
 
 func NewListener() *Listener {
 	return &Listener{
-		Status:   make(chan *PNStatus),
-		Message:  make(chan *PNMessage),
-		Presence: make(chan *PNPresence),
-		Signal:   make(chan *PNMessage),
+		Status:          make(chan *PNStatus),
+		Message:         make(chan *PNMessage),
+		Presence:        make(chan *PNPresence),
+		Signal:          make(chan *PNMessage),
+		UserEvent:       make(chan *PNUserEvent),
+		SpaceEvent:      make(chan *PNSpaceEvent),
+		MembershipEvent: make(chan *PNMembershipEvent),
 	}
 }
 
@@ -229,23 +232,49 @@ type PNPresence struct {
 }
 
 type PNUserEvent struct {
-	Action      PNObjectsActionType
-	UserId      string
-	Description string
-	Timestamp   string
+	Event             PNObjectsEvent
+	UserId            string
+	Description       string
+	Timestamp         string
+	Name              string
+	ExternalId        string
+	ProfileUrl        string
+	Email             string
+	Created           string
+	Updated           string
+	ETag              string
+	Custom            map[string]interface{}
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
 }
 
 type PNSpaceEvent struct {
-	Action      PNObjectsActionType
-	SpaceId     string
-	Description string
-	Timestamp   string
+	Event             PNObjectsEvent
+	SpaceId           string
+	Description       string
+	Timestamp         string
+	Name              string
+	Created           string
+	Updated           string
+	ETag              string
+	Custom            map[string]interface{}
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
 }
 
 type PNMembershipEvent struct {
-	Action      PNObjectsActionType
-	UserId      string
-	SpaceId     string
-	Description string
-	Timestamp   string
+	Event             PNObjectsEvent
+	UserId            string
+	SpaceId           string
+	Description       string
+	Timestamp         string
+	Custom            map[string]interface{}
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
 }

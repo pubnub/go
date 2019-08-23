@@ -377,15 +377,50 @@ func TestObjectsMemberships(t *testing.T) {
 	}
 	assert.False(foundRem)
 
+	inMem := pubnub.PNMembershipsInput{
+		Id:     spaceid2,
+		Custom: custom3,
+	}
+
+	inArrMem := []pubnub.PNMembershipsInput{
+		inMem,
+	}
+
 	// //Add user memberships
-	// res, status, err := pn.ManageMemberships().UserId(userId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
+	res, _, err := pn.ManageMemberships().UserId(userid2).Add(inArrMem).Update([]pubnub.PNMembersInclude{}).Remove([]pubnub.PNMembershipsRemove).Include(incl).Limit(limit).Count(count).Execute()
 	// //Update user memberships
 	// res, status, err := pn.ManageMemberships().UserId(userId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
 	// //Get members
-	// res, status, err := pn.GetMembers().SpaceId(id).Include(incl).Limit(limit).Count(count).Execute()
+	resGetMembers, _, errGetMembers := pn.GetMembers().SpaceId(spaceid).Include(inclSm).Limit(limit).Count(count).Execute()
+	fmt.Println(resGetMembers)
+	assert.Nil(errGetMembers)
+	assert.Equal(200, resGetMembers.Status)
+	foundGetMembers := false
+	for i := range resGetMembers.Data {
+		if resGetMembers.Data[i].Id == userid {
+			foundGetMembers = true
+			assert.Equal(name, resGetMembers.Data[i].User.Name)
+			assert.Equal(extid, resGetMembers.Data[i].User.ExternalId)
+			assert.Equal(purl, resGetMembers.Data[i].User.ProfileUrl)
+			assert.Equal(email, resGetMembers.Data[i].User.Email)
+			assert.Equal("b1", resGetMembers.Data[i].User.Custom["a1"])
+			assert.Equal("d1", resGetMembers.Data[i].User.Custom["c1"])
+			assert.Equal("b2", resGetMembers.Data[i].Custom["a2"])
+			assert.Equal("d2", resGetMembers.Data[i].Custom["c2"])
+		}
+	}
+	assert.True(foundGetMembers)
 
 	// //Remove user memberships
-	// res, status, err := pn.ManageMemberships().UserId(userId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
+
+	reMem := pubnub.PNMembershipsRemove{
+		Id: spaceid2,
+	}
+
+	reArrMem := []pubnub.PNMembershipsRemove{
+		reMem,
+	}
+	res, _, err := pn.ManageMemberships().UserId(userid2).Add([]pubnub.PNMembersInclude{}).Update([]pubnub.PNMembersInclude{}).Remove(reArrMem).Include(incl).Limit(limit).Count(count).Execute()
 
 	//delete
 	res5, _, err5 := pn.DeleteUser().Id(userid).Execute()

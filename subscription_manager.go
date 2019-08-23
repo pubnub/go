@@ -643,7 +643,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
 			m.listenerManager.announceSignal(pnMessageResult)
 		case PNMessageTypeObjects:
-			pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType := CreatePNObjectsResult(payload.Payload, m, channel)
+			pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType := CreatePNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
 			m.pubnub.Config.Log.Println("announceObjects,", pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType)
 			switch eventType {
 			case PNObjectsUserEvent:
@@ -706,7 +706,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 	}
 }
 
-func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, channel string) (*PNUserEvent, *PNSpaceEvent, *PNMembershipEvent, PNObjectsEventType) {
+func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) (*PNUserEvent, *PNSpaceEvent, *PNMembershipEvent, PNObjectsEventType) {
 	var objectsPayload map[string]interface{}
 	var ok bool
 	if objectsPayload, ok = objPayload.(map[string]interface{}); !ok {
@@ -719,38 +719,55 @@ func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, chann
 		})
 	}
 	eventType := PNObjectsEventType(objectsPayload["type"].(string))
-	actionType := PNObjectsActionType(objectsPayload["event"].(string))
-	var userId, spaceId, description, timestamp, created, updated, eTag string
+	event := PNObjectsEvent(objectsPayload["event"].(string))
+	var id, userId, spaceId, description, timestamp, created, updated, eTag, name, externalId, profileUrl, email string
 	var custom, data map[string]interface{}
-	if objectsPayload["userId"] != nil {
-		userId = objectsPayload["userId"].(string)
-	}
-	if objectsPayload["spaceId"] != nil {
-		spaceId = objectsPayload["spaceId"].(string)
-	}
-	if objectsPayload["description"] != nil {
-		description = objectsPayload["description"].(string)
-	}
-	if objectsPayload["timestamp"] != nil {
-		timestamp = objectsPayload["timestamp"].(string)
-	}
-	if objectsPayload["created"] != nil {
-		created = objectsPayload["created"].(string)
-	}
-	if objectsPayload["updated"] != nil {
-		updated = objectsPayload["updated"].(string)
-	}
-	if objectsPayload["eTag"] != nil {
-		eTag = objectsPayload["eTag"].(string)
-	}
-	if objectsPayload["custom"] != nil {
-		custom = objectsPayload["custom"].(map[string]interface{})
-	}
 	if objectsPayload["data"] != nil {
 		data = objectsPayload["data"].(map[string]interface{})
+		if data["userId"] != nil {
+			userId = data["userId"].(string)
+		}
+		if data["id"] != nil {
+			id = data["id"].(string)
+		}
+		if data["spaceId"] != nil {
+			spaceId = data["spaceId"].(string)
+		}
+		if data["name"] != nil {
+			name = data["name"].(string)
+		}
+		if data["externalId"] != nil {
+			externalId = data["externalId"].(string)
+		}
+		if data["profileUrl"] != nil {
+			profileUrl = data["profileUrl"].(string)
+		}
+		if data["email"] != nil {
+			email = data["email"].(string)
+		}
+		if data["description"] != nil {
+			description = data["description"].(string)
+		}
+		if data["timestamp"] != nil {
+			timestamp = data["timestamp"].(string)
+		}
+		if data["created"] != nil {
+			created = data["created"].(string)
+		}
+		if data["updated"] != nil {
+			updated = data["updated"].(string)
+		}
+		if data["eTag"] != nil {
+			eTag = data["eTag"].(string)
+		}
+		if data["custom"] != nil {
+			custom = data["custom"].(map[string]interface{})
+		}
+
 	}
+
 	pnObjectsResult := &PNObjectsResponse{
-		ActionType:  actionType,
+		Event:       event,
 		EventType:   eventType,
 		UserId:      userId,
 		SpaceId:     spaceId,
@@ -761,26 +778,57 @@ func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, chann
 		ETag:        eTag,
 		Custom:      custom,
 		Data:        data,
+		Name:        name,
+		ExternalId:  externalId,
+		ProfileUrl:  profileUrl,
+		Email:       email,
 	}
 
 	pnSpaceEvent := &PNSpaceEvent{
-		Action:      pnObjectsResult.ActionType,
-		SpaceId:     pnObjectsResult.SpaceId,
-		Description: pnObjectsResult.Description,
-		Timestamp:   pnObjectsResult.Timestamp,
+		Event:             pnObjectsResult.Event,
+		SpaceId:           id,
+		Description:       pnObjectsResult.Description,
+		Timestamp:         pnObjectsResult.Timestamp,
+		Name:              pnObjectsResult.Name,
+		Created:           pnObjectsResult.Created,
+		Updated:           pnObjectsResult.Updated,
+		ETag:              pnObjectsResult.ETag,
+		Custom:            pnObjectsResult.Custom,
+		ActualChannel:     actualCh,
+		SubscribedChannel: subscribedCh,
+		Channel:           channel,
+		Subscription:      subscriptionMatch,
 	}
+
 	pnUserEvent := &PNUserEvent{
-		Action:      pnObjectsResult.ActionType,
-		UserId:      pnObjectsResult.UserId,
-		Description: pnObjectsResult.Description,
-		Timestamp:   pnObjectsResult.Timestamp,
+		Event:             pnObjectsResult.Event,
+		UserId:            id,
+		Timestamp:         pnObjectsResult.Timestamp,
+		Created:           pnObjectsResult.Created,
+		Updated:           pnObjectsResult.Updated,
+		ETag:              pnObjectsResult.ETag,
+		Custom:            pnObjectsResult.Custom,
+		Name:              pnObjectsResult.Name,
+		ExternalId:        pnObjectsResult.ExternalId,
+		ProfileUrl:        pnObjectsResult.ProfileUrl,
+		Email:             pnObjectsResult.Email,
+		ActualChannel:     actualCh,
+		SubscribedChannel: subscribedCh,
+		Channel:           channel,
+		Subscription:      subscriptionMatch,
 	}
+
 	pnMembershipEvent := &PNMembershipEvent{
-		Action:      pnObjectsResult.ActionType,
-		UserId:      pnObjectsResult.UserId,
-		SpaceId:     pnObjectsResult.SpaceId,
-		Description: pnObjectsResult.Description,
-		Timestamp:   pnObjectsResult.Timestamp,
+		Event:             pnObjectsResult.Event,
+		UserId:            pnObjectsResult.UserId,
+		SpaceId:           pnObjectsResult.SpaceId,
+		Description:       pnObjectsResult.Description,
+		Timestamp:         pnObjectsResult.Timestamp,
+		Custom:            pnObjectsResult.Custom,
+		ActualChannel:     actualCh,
+		SubscribedChannel: subscribedCh,
+		Channel:           channel,
+		Subscription:      subscriptionMatch,
 	}
 
 	return pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType

@@ -62,12 +62,16 @@ type PNMembershipsRemove struct {
 }
 
 type PNObjectsResponse struct {
-	ActionType  PNObjectsActionType    `json:"event"`       // enum value
-	EventType   PNObjectsEventType     `json:"type"`        // enum value
+	Event       PNObjectsEvent         `json:"event"` // enum value
+	EventType   PNObjectsEventType     `json:"type"`  // enum value
+	Name        string                 `json:"name"`
 	UserId      string                 `json:"userId"`      // the user id if user related
 	SpaceId     string                 `json:"spaceId"`     // the space id if space related
 	Description string                 `json:"description"` // the description of what happened
 	Timestamp   string                 `json:"timestamp"`   // the timetoken of the event
+	ExternalId  string                 `json:"externalId"`
+	ProfileUrl  string                 `json:"profileUrl"`
+	Email       string                 `json:"email"`
 	Created     string                 `json:"created"`
 	Updated     string                 `json:"updated"`
 	ETag        string                 `json:"eTag"`

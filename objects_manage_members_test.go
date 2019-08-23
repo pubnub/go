@@ -135,6 +135,7 @@ func TestManageMembersResponseValueError(t *testing.T) {
 //add: {"status":200,"data":[{"id":"userid2","custom":{"a1":"b1","c1":"d1"},"created":"2019-08-21T11:43:35.889327Z","updated":"2019-08-21T11:43:35.889327Z","eTag":"AZK3l4nQsrWG9gE"}],"totalCount":1,"next":"MQ"}
 
 //update: {"status":200,"data":[{"id":"userid0","custom":{"a2":"b2","c2":"d2"},"created":"2019-08-21T09:08:22.49193Z","updated":"2019-08-21T11:41:43.613345Z","eTag":"AdCFwIrDze6g/AE"}],"totalCount":1,"next":"MQ"}
+//{"status":200,"data":[{"id":"spaceid2","custom":{"a1":"b1","c1":"d1"},"created":"2019-08-21T11:43:35.889327Z","updated":"2019-08-21T11:43:35.889327Z","eTag":"AZK3l4nQsrWG9gE"},{"id":"spaceid0","custom":{"a3":"b3","c3":"d3"},"created":"2019-08-21T11:44:30.893128Z","updated":"2019-08-21T11:44:30.893128Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":2,"next":"Mg"}
 func TestManageMembersResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
