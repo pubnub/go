@@ -263,11 +263,11 @@ func (o *manageMembersOpts) telemetryManager() *TelemetryManager {
 }
 
 type PNManageMembersResponse struct {
-	Status     int       `json:"status"`
-	Data       []PNSpace `json:"data"`
-	TotalCount int       `json:"totalCount"`
-	Next       string    `json:"next"`
-	Prev       string    `json:"prev"`
+	Status     int         `json:"status"`
+	Data       []PNMembers `json:"data"`
+	TotalCount int         `json:"totalCount"`
+	Next       string      `json:"next"`
+	Prev       string      `json:"prev"`
 }
 
 func newPNManageMembersResponse(jsonBytes []byte, o *manageMembersOpts,

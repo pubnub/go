@@ -132,28 +132,35 @@ func TestManageMembersResponseValueError(t *testing.T) {
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-//add: {"status":200,"data":[{"id":"userid2","custom":{"a1":"b1","c1":"d1"},"created":"2019-08-21T11:43:35.889327Z","updated":"2019-08-21T11:43:35.889327Z","eTag":"AZK3l4nQsrWG9gE"}],"totalCount":1,"next":"MQ"}
-
-//update: {"status":200,"data":[{"id":"userid0","custom":{"a2":"b2","c2":"d2"},"created":"2019-08-21T09:08:22.49193Z","updated":"2019-08-21T11:41:43.613345Z","eTag":"AdCFwIrDze6g/AE"}],"totalCount":1,"next":"MQ"}
-//{"status":200,"data":[{"id":"spaceid2","custom":{"a1":"b1","c1":"d1"},"created":"2019-08-21T11:43:35.889327Z","updated":"2019-08-21T11:43:35.889327Z","eTag":"AZK3l4nQsrWG9gE"},{"id":"spaceid0","custom":{"a3":"b3","c3":"d3"},"created":"2019-08-21T11:44:30.893128Z","updated":"2019-08-21T11:44:30.893128Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":2,"next":"Mg"}
+//{"status":200,"data":[{"id":"userid4","custom":{"a1":"b1","c1":"d1"},"user":{"id":"userid4","name":"userid4name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-23T10:36:27.083453Z","updated":"2019-08-23T10:36:27.083453Z","eTag":"AbuLvdnC9JnYEA"},"created":"2019-08-23T10:41:35.503214Z","updated":"2019-08-23T10:41:35.503214Z","eTag":"AZK3l4nQsrWG9gE"}],"totalCount":1,"next":"MQ"}
 func TestManageMembersResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := &manageMembersOpts{
 		pubnub: pn,
 	}
-	jsonBytes := []byte(`{"status":200,"data":[{"id":"userid2","custom":{"a1":"b1","c1":"d1"},"created":"2019-08-21T11:43:35.889327Z","updated":"2019-08-21T11:43:35.889327Z","eTag":"AZK3l4nQsrWG9gE"}],"totalCount":1,"next":"MQ"}`)
+	jsonBytes := []byte(`{"status":200,"data":[{"id":"userid4","custom":{"a1":"b1","c1":"d1"},"user":{"id":"userid4","name":"userid4name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-23T10:36:27.083453Z","updated":"2019-08-23T10:36:27.083453Z","eTag":"AbuLvdnC9JnYEA"},"created":"2019-08-23T10:41:35.503214Z","updated":"2019-08-23T10:41:35.503214Z","eTag":"AZK3l4nQsrWG9gE"}],"totalCount":1,"next":"MQ"}`)
 
 	r, _, err := newPNManageMembersResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(200, r.Status)
 	assert.Equal(1, r.TotalCount)
 	assert.Equal("MQ", r.Next)
-	assert.Equal("userid2", r.Data[0].Id)
-	assert.Equal("2019-08-21T11:43:35.889327Z", r.Data[0].Created)
-	assert.Equal("2019-08-21T11:43:35.889327Z", r.Data[0].Updated)
+	assert.Equal("userid4", r.Data[0].Id)
+	assert.Equal("2019-08-23T10:41:35.503214Z", r.Data[0].Created)
+	assert.Equal("2019-08-23T10:41:35.503214Z", r.Data[0].Updated)
 	assert.Equal("AZK3l4nQsrWG9gE", r.Data[0].ETag)
 	assert.Equal("b1", r.Data[0].Custom["a1"])
 	assert.Equal("d1", r.Data[0].Custom["c1"])
+	assert.Equal("userid4", r.Data[0].User.Id)
+	assert.Equal("userid4name", r.Data[0].User.Name)
+	assert.Equal("extid", r.Data[0].User.ExternalId)
+	assert.Equal("purl", r.Data[0].User.ProfileUrl)
+	assert.Equal("email", r.Data[0].User.Email)
+	assert.Equal("2019-08-23T10:36:27.083453Z", r.Data[0].User.Created)
+	assert.Equal("2019-08-23T10:36:27.083453Z", r.Data[0].User.Updated)
+	assert.Equal("AbuLvdnC9JnYEA", r.Data[0].User.ETag)
+	assert.Equal("b", r.Data[0].User.Custom["a"])
+	assert.Equal("d", r.Data[0].User.Custom["c"])
 
 	assert.Nil(err)
 }

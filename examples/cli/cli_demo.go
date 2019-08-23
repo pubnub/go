@@ -659,10 +659,10 @@ func ManageMemberships(args []string) {
 		start = args[5]
 	}
 
-	incl := []pubnub.PNMembersInclude{
-		pubnub.PNMembersCustom,
-		pubnub.PNMembersUser,
-		pubnub.PNMembersUserCustom,
+	incl := []pubnub.PNMembershipsInclude{
+		pubnub.PNMembershipsCustom,
+		pubnub.PNMembershipsSpace,
+		pubnub.PNMembershipsSpaceCustom,
 	}
 
 	custom3 := make(map[string]interface{})

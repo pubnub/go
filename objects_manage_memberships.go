@@ -55,7 +55,7 @@ func newManageMembershipsBuilderWithContext(pubnub *PubNub,
 // }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *manageMembershipsBuilder) Include(include []PNMembersInclude) *manageMembershipsBuilder {
+func (b *manageMembershipsBuilder) Include(include []PNMembershipsInclude) *manageMembershipsBuilder {
 	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
 
 	return b
