@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Objects API"
+        type: improvement
+      - 
+        text: "Grant Optimizations"
+        type: improvement
+    date: Aug 28, 19  
+    version: v4.2.7  
+  - 
+    changes: 
+      - 
         text: "Signals"
         type: improvement
     date: Aug 8, 19  
@@ -380,4 +390,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.2.6
+version: v4.2.7
