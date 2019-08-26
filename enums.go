@@ -14,6 +14,74 @@ type ReconnectionPolicy int
 // PNPushType is used as an enum to catgorize the available Push Types
 type PNPushType int
 
+// PNUserSpaceInclude  is used as an enum to catgorize the available User and Space include types
+type PNUserSpaceInclude int
+
+// PNMembershipsInclude  is used as an enum to catgorize the available Memberships include types
+type PNMembershipsInclude int
+
+// PNMembersInclude  is used as an enum to catgorize the available Members include types
+type PNMembersInclude int
+
+// PNObjectsEvent  is used as an enum to catgorize the available Object Events
+type PNObjectsEvent string
+
+// PNObjectsEventType  is used as an enum to catgorize the available Object Event types
+type PNObjectsEventType string
+
+const (
+	// PNObjectsUserEvent is the enum when the event of type `user` occurs
+	PNObjectsUserEvent PNObjectsEventType = "user"
+	// PNObjectsSpaceEvent is the enum when the event of type `space` occurs
+	PNObjectsSpaceEvent = "space"
+	// PNObjectsMembershipEvent is the enum when the event of type `membership` occurs
+	PNObjectsMembershipEvent = "membership"
+)
+
+const (
+	// PNObjectsEventCreate is the enum when the event `create` occurs
+	PNObjectsEventCreate PNObjectsEvent = "create"
+	// PNObjectsEventUpdate is the enum when the event `update` occurs
+	PNObjectsEventUpdate = "update"
+	// PNObjectsEventDelete is the enum when the event `delete` occurs
+	PNObjectsEventDelete = "delete"
+)
+
+const (
+	// PNUserSpaceCustom is the enum equivalent to the value `custom` available User and Space include types
+	PNUserSpaceCustom PNUserSpaceInclude = 1 + iota
+)
+
+func (s PNUserSpaceInclude) String() string {
+	return [...]string{"custom"}[s-1]
+}
+
+const (
+	// PNMembershipsCustom is the enum equivalent to the value `custom` available Memberships include types
+	PNMembershipsCustom PNMembershipsInclude = 1 + iota
+	// PNMembershipsSpace is the enum equivalent to the value `space` available Memberships include types
+	PNMembershipsSpace
+	// PNMembershipsSpaceCustom is the enum equivalent to the value `space.custom` available Memberships include types
+	PNMembershipsSpaceCustom
+)
+
+func (s PNMembershipsInclude) String() string {
+	return [...]string{"custom", "space", "space.custom"}[s-1]
+}
+
+const (
+	// PNMembersCustom is the enum equivalent to the value `custom` available Members include types
+	PNMembersCustom PNMembersInclude = 1 + iota
+	// PNMembersUser is the enum equivalent to the value `user` available Members include types
+	PNMembersUser
+	// PNMembersUserCustom is the enum equivalent to the value `user.custom` available Members include types
+	PNMembersUserCustom
+)
+
+func (s PNMembersInclude) String() string {
+	return [...]string{"custom", "user", "user.custom"}[s-1]
+}
+
 // PNMessageType is used as an enum to catgorize the Subscribe response.
 type PNMessageType int
 
@@ -122,6 +190,34 @@ const (
 	PNMessageCountsOperation
 	// PNSignalOperation is the enum used for Signal opertaion.
 	PNSignalOperation
+	// PNCreateUserOperation is the enum used to create users in the Object API.
+	PNCreateUserOperation
+	// PNGetUsersOperation is the enum used to get users in the Object API.
+	PNGetUsersOperation
+	// PNGetUserOperation is the enum used to get user in the Object API.
+	PNGetUserOperation
+	// PNUpdateUserOperation is the enum used to update users in the Object API.
+	PNUpdateUserOperation
+	// PNDeleteUserOperation is the enum used to delete users in the Object API.
+	PNDeleteUserOperation
+	// PNGetSpaceOperation is the enum used to get space in the Object API.
+	PNGetSpaceOperation
+	// PNGetSpacesOperation is the enum used to get spaces in the Object API.
+	PNGetSpacesOperation
+	// PNCreateSpaceOperation is the enum used to create space in the Object API.
+	PNCreateSpaceOperation
+	// PNDeleteSpaceOperation is the enum used to delete space in the Object API.
+	PNDeleteSpaceOperation
+	// PNUpdateSpaceOperation is the enum used to update space in the Object API.
+	PNUpdateSpaceOperation
+	// PNGetMembershipsOperation is the enum used to get memberships in the Object API.
+	PNGetMembershipsOperation
+	// PNGetMembersOperation is the enum used to get members in the Object API.
+	PNGetMembersOperation
+	// PNManageMembershipsOperation is the enum used to manage memberships in the Object API.
+	PNManageMembershipsOperation
+	// PNManageMembersOperation is the enum used to manage members in the Object API.
+	PNManageMembersOperation
 )
 
 const (
@@ -175,6 +271,21 @@ var operations = [...]string{
 	"Grant",
 	"Revoke",
 	"Delete messages",
+	"Signal",
+	"Create User",
+	"Get Users",
+	"Fetch User",
+	"Update User",
+	"Delete User",
+	"Get Space",
+	"Get Spaces",
+	"Create Space",
+	"Delete Space",
+	"Update Space",
+	"PNGetMembershipsOperation",
+	"PNGetMembersOperation",
+	"PNManageMembershipsOperation",
+	"PNManageMembersOperation",
 }
 
 func (c StatusCategory) String() string {
@@ -292,6 +403,37 @@ func (t OperationType) String() string {
 	case PNDeleteMessagesOperation:
 		return "Delete messages"
 
+	case PNSignalOperation:
+		return "Signal"
+
+	case PNCreateUserOperation:
+		return "Create User"
+	case PNGetUsersOperation:
+		return "Get Users"
+	case PNGetUserOperation:
+		return "Fetch Users"
+	case PNUpdateUserOperation:
+		return "Update User"
+	case PNDeleteUserOperation:
+		return "Delete User"
+	case PNGetSpaceOperation:
+		return "Get Space"
+	case PNGetSpacesOperation:
+		return "Get Spaces"
+	case PNCreateSpaceOperation:
+		return "Create Space"
+	case PNDeleteSpaceOperation:
+		return "Delete Space"
+	case PNUpdateSpaceOperation:
+		return "Update Space"
+	case PNGetMembershipsOperation:
+		return "Get Memberships"
+	case PNGetMembersOperation:
+		return "Get Members"
+	case PNManageMembershipsOperation:
+		return "Manage Memberships"
+	case PNManageMembersOperation:
+		return "Manage Members"
 	default:
 		return "No Category Matched"
 	}

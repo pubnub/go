@@ -2,7 +2,7 @@ package e2e
 
 import (
 	"fmt"
-	"log"
+	//"log"
 	"net"
 	"os"
 	"testing"
@@ -24,7 +24,7 @@ func TestSignal(t *testing.T) {
 	for _, ip := range ips {
 		fmt.Printf("%s IN A %s\n", pn.Config.Origin, ip.String())
 	}
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	pn.Config.SubscribeKey = "demo"
 	pn.Config.PublishKey = "demo"
 

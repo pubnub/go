@@ -1,3 +1,8 @@
+## [v4.2.7](https://github.com/pubnub/go/tree/v4.2.7)
+  August-28-2019
+
+- Add Objects method features
+
 ## [v4.0.0-beta.5](https://github.com/pubnub/go/tree/v4.0.0-beta.5)
   January-9-2018
 

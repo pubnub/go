@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Objects API"
+        type: improvement
+      - 
+        text: "Grant Optimizations"
+        type: improvement
+    date: Aug 28, 19  
+    version: v4.2.7  
+  - 
+    changes: 
+      - 
         text: "Signals"
         type: improvement
     date: Aug 8, 19  
@@ -351,6 +361,24 @@ features:
     - SUBSCRIBE-WITH-USERSTATE
     - SUBSCRIBE-PUBSUB-V2
     - SUBSCRIBE-SIGNAL-LISTENER
+    - SUBSCRIBE-MEMBERSHIP-LISTENER
+    - SUBSCRIBE-SPACE-LISTENER
+    - SUBSCRIBE-USER-LISTENER
+  objects:
+    - OBJECTS-GET-USERS
+    - OBJECTS-GET-USER
+    - OBJECTS-CREATE-USER
+    - OBJECTS-UPDATE-USER
+    - OBJECTS-DELETE-USER
+    - OBJECTS-GET-SPACES
+    - OBJECTS-CREATE-SPACE
+    - OBJECTS-GET-SPACE
+    - OBJECTS-UPDATE-SPACE
+    - OBJECTS-DELETE-SPACE
+    - OBJECTS-GET-MEMBERSHIPS
+    - OBJECTS-MANAGE-MEMBERSHIPS
+    - OBJECTS-GET-MEMBERS
+    - OBJECTS-MANAGE-MEMBERS
   time: 
     - TIME-TIME
   unsubscribe: 
@@ -380,4 +408,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.2.6
+version: v4.2.7

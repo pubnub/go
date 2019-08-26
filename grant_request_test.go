@@ -31,7 +31,7 @@ func TestGrantRequestBasic(t *testing.T) {
 	}
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/auth/grant/sub-key/%s", opts.pubnub.Config.SubscribeKey),
+		fmt.Sprintf("/v2/auth/grant/sub-key/%s", opts.pubnub.Config.SubscribeKey),
 		u.EscapedPath(), []int{})
 
 	query, err := opts.buildQuery()
@@ -121,7 +121,7 @@ func TestNewGrantBuilder(t *testing.T) {
 	}
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/auth/grant/sub-key/%s", o.opts.pubnub.Config.SubscribeKey),
+		fmt.Sprintf("/v2/auth/grant/sub-key/%s", o.opts.pubnub.Config.SubscribeKey),
 		u.EscapedPath(), []int{})
 
 	query, err := o.opts.buildQuery()
@@ -164,7 +164,7 @@ func TestNewGrantBuilderDelFalse(t *testing.T) {
 	}
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/auth/grant/sub-key/%s", o.opts.pubnub.Config.SubscribeKey),
+		fmt.Sprintf("/v2/auth/grant/sub-key/%s", o.opts.pubnub.Config.SubscribeKey),
 		u.EscapedPath(), []int{})
 
 	query, err := o.opts.buildQuery()
@@ -211,7 +211,7 @@ func TestNewGrantBuilderContext(t *testing.T) {
 	}
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/auth/grant/sub-key/%s", o.opts.pubnub.Config.SubscribeKey),
+		fmt.Sprintf("/v2/auth/grant/sub-key/%s", o.opts.pubnub.Config.SubscribeKey),
 		u.EscapedPath(), []int{})
 
 	query, err := o.opts.buildQuery()

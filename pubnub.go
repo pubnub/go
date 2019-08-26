@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.2.6"
+	Version = "4.2.7"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -104,6 +104,118 @@ func (pn *PubNub) MessageCounts() *messageCountsBuilder {
 
 func (pn *PubNub) MessageCountsWithContext(ctx Context) *messageCountsBuilder {
 	return newMessageCountsBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) CreateUser() *createUserBuilder {
+	return newCreateUserBuilder(pn)
+}
+
+func (pn *PubNub) CreateUserWithContext(ctx Context) *createUserBuilder {
+	return newCreateUserBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetUsers() *getUsersBuilder {
+	return newGetUsersBuilder(pn)
+}
+
+func (pn *PubNub) GetUsersWithContext(ctx Context) *getUsersBuilder {
+	return newGetUsersBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetUser() *getUserBuilder {
+	return newGetUserBuilder(pn)
+}
+
+func (pn *PubNub) GetUserWithContext(ctx Context) *getUserBuilder {
+	return newGetUserBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) UpdateUser() *updateUserBuilder {
+	return newUpdateUserBuilder(pn)
+}
+
+func (pn *PubNub) UpdateUserWithContext(ctx Context) *updateUserBuilder {
+	return newUpdateUserBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) DeleteUser() *deleteUserBuilder {
+	return newDeleteUserBuilder(pn)
+}
+
+func (pn *PubNub) DeleteUserWithContext(ctx Context) *deleteUserBuilder {
+	return newDeleteUserBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) CreateSpace() *createSpaceBuilder {
+	return newCreateSpaceBuilder(pn)
+}
+
+func (pn *PubNub) CreateSpaceWithContext(ctx Context) *createSpaceBuilder {
+	return newCreateSpaceBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetSpaces() *getSpacesBuilder {
+	return newGetSpacesBuilder(pn)
+}
+
+func (pn *PubNub) GetSpacesWithContext(ctx Context) *getSpacesBuilder {
+	return newGetSpacesBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetSpace() *getSpaceBuilder {
+	return newGetSpaceBuilder(pn)
+}
+
+func (pn *PubNub) GetSpaceWithContext(ctx Context) *getSpaceBuilder {
+	return newGetSpaceBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) UpdateSpace() *updateSpaceBuilder {
+	return newUpdateSpaceBuilder(pn)
+}
+
+func (pn *PubNub) UpdateSpaceWithContext(ctx Context) *updateSpaceBuilder {
+	return newUpdateSpaceBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) DeleteSpace() *deleteSpaceBuilder {
+	return newDeleteSpaceBuilder(pn)
+}
+
+func (pn *PubNub) DeleteSpaceWithContext(ctx Context) *deleteSpaceBuilder {
+	return newDeleteSpaceBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetMemberships() *getMembershipsBuilder {
+	return newGetMembershipsBuilder(pn)
+}
+
+func (pn *PubNub) GetMembershipsWithContext(ctx Context) *getMembershipsBuilder {
+	return newGetMembershipsBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetMembers() *getMembersBuilder {
+	return newGetMembersBuilder(pn)
+}
+
+func (pn *PubNub) GetMembersWithContext(ctx Context) *getMembersBuilder {
+	return newGetMembersBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) ManageMembers() *manageMembersBuilder {
+	return newManageMembersBuilder(pn)
+}
+
+func (pn *PubNub) ManageMembersWithContext(ctx Context) *manageMembersBuilder {
+	return newManageMembersBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) ManageMemberships() *manageMembershipsBuilder {
+	return newManageMembershipsBuilder(pn)
+}
+
+func (pn *PubNub) ManageMembershipsWithContext(ctx Context) *manageMembershipsBuilder {
+	return newManageMembershipsBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) Signal() *signalBuilder {

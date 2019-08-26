@@ -6,18 +6,24 @@ import (
 
 //
 type Listener struct {
-	Status   chan *PNStatus
-	Message  chan *PNMessage
-	Presence chan *PNPresence
-	Signal   chan *PNMessage
+	Status          chan *PNStatus
+	Message         chan *PNMessage
+	Presence        chan *PNPresence
+	Signal          chan *PNMessage
+	UserEvent       chan *PNUserEvent
+	SpaceEvent      chan *PNSpaceEvent
+	MembershipEvent chan *PNMembershipEvent
 }
 
 func NewListener() *Listener {
 	return &Listener{
-		Status:   make(chan *PNStatus),
-		Message:  make(chan *PNMessage),
-		Presence: make(chan *PNPresence),
-		Signal:   make(chan *PNMessage),
+		Status:          make(chan *PNStatus),
+		Message:         make(chan *PNMessage),
+		Presence:        make(chan *PNPresence),
+		Signal:          make(chan *PNMessage),
+		UserEvent:       make(chan *PNUserEvent),
+		SpaceEvent:      make(chan *PNSpaceEvent),
+		MembershipEvent: make(chan *PNMembershipEvent),
 	}
 }
 
@@ -112,6 +118,61 @@ func (m *ListenerManager) announceSignal(message *PNMessage) {
 	}()
 }
 
+func (m *ListenerManager) announceUserEvent(message *PNUserEvent) {
+	go func() {
+		m.RLock()
+	AnnounceUserEventLabel:
+		for l := range m.listeners {
+			select {
+			case <-m.exitListener:
+				m.pubnub.Config.Log.Println("announceUserEvent exitListener")
+				break AnnounceUserEventLabel
+
+			case l.UserEvent <- message:
+				m.pubnub.Config.Log.Println("l.UserEvent", message)
+			}
+		}
+		m.RUnlock()
+	}()
+}
+
+func (m *ListenerManager) announceSpaceEvent(message *PNSpaceEvent) {
+	go func() {
+		m.RLock()
+	AnnounceSpaceEventLabel:
+		for l := range m.listeners {
+			m.pubnub.Config.Log.Println("l.SpaceEvent", l)
+			select {
+			case <-m.exitListener:
+				m.pubnub.Config.Log.Println("announceSpaceEvent exitListener")
+				break AnnounceSpaceEventLabel
+
+			case l.SpaceEvent <- message:
+				m.pubnub.Config.Log.Println("l.SpaceEvent", message)
+			}
+		}
+		m.RUnlock()
+	}()
+}
+
+func (m *ListenerManager) announceMembershipEvent(message *PNMembershipEvent) {
+	go func() {
+		m.RLock()
+	AnnounceMembershipEvent:
+		for l := range m.listeners {
+			select {
+			case <-m.exitListener:
+				m.pubnub.Config.Log.Println("announceMembershipEvent exitListener")
+				break AnnounceMembershipEvent
+
+			case l.MembershipEvent <- message:
+				m.pubnub.Config.Log.Println("l.MembershipEvent", message)
+			}
+		}
+		m.RUnlock()
+	}()
+}
+
 func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	go func() {
 		m.RLock()
@@ -129,7 +190,7 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	}()
 }
 
-//
+// PNStatus is the status struct
 type PNStatus struct {
 	Category              StatusCategory
 	Operation             OperationType
@@ -145,6 +206,7 @@ type PNStatus struct {
 	AffectedChannelGroups []string
 }
 
+// PNMessage is the Message Response for Subscribe
 type PNMessage struct {
 	Message           interface{}
 	UserMetadata      interface{}
@@ -156,6 +218,7 @@ type PNMessage struct {
 	Timetoken         int64
 }
 
+// PNPresence is the Message Response for Presence
 type PNPresence struct {
 	Event             string
 	UUID              string
@@ -172,4 +235,55 @@ type PNPresence struct {
 	Leave             []string
 	Timeout           []string
 	HereNowRefresh    bool
+}
+
+// PNUserEvent is the Response for an User Event
+type PNUserEvent struct {
+	Event             PNObjectsEvent
+	UserID            string
+	Description       string
+	Timestamp         string
+	Name              string
+	ExternalID        string
+	ProfileURL        string
+	Email             string
+	Created           string
+	Updated           string
+	ETag              string
+	Custom            map[string]interface{}
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
+}
+
+// PNSpaceEvent is the Response for a Space Event
+type PNSpaceEvent struct {
+	Event             PNObjectsEvent
+	SpaceID           string
+	Description       string
+	Timestamp         string
+	Name              string
+	Created           string
+	Updated           string
+	ETag              string
+	Custom            map[string]interface{}
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
+}
+
+// PNMembershipEvent is the Response for a Membership Event
+type PNMembershipEvent struct {
+	Event             PNObjectsEvent
+	UserID            string
+	SpaceID           string
+	Description       string
+	Timestamp         string
+	Custom            map[string]interface{}
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
 }
