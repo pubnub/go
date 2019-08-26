@@ -203,6 +203,7 @@ func (o *getSpacesOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNGetSpacesResponse is the Objects API Response for Get Spaces
 type PNGetSpacesResponse struct {
 	Status     int       `json:"status"`
 	Data       []PNSpace `json:"data"`

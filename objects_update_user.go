@@ -72,14 +72,14 @@ func (b *updateUserBuilder) Name(name string) *updateUserBuilder {
 	return b
 }
 
-func (b *updateUserBuilder) ExternalID(externalId string) *updateUserBuilder {
-	b.opts.ExternalID = externalId
+func (b *updateUserBuilder) ExternalID(externalID string) *updateUserBuilder {
+	b.opts.ExternalID = externalID
 
 	return b
 }
 
-func (b *updateUserBuilder) ProfileURL(profileUrl string) *updateUserBuilder {
-	b.opts.ProfileURL = profileUrl
+func (b *updateUserBuilder) ProfileURL(profileURL string) *updateUserBuilder {
+	b.opts.ProfileURL = profileURL
 
 	return b
 }
@@ -220,6 +220,7 @@ func (o *updateUserOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNUpdateUserResponse is the Objects API Response for Update user
 type PNUpdateUserResponse struct {
 	Status int    `json:"status"`
 	Data   PNUser `json:"data"`

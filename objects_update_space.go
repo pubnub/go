@@ -41,6 +41,7 @@ func newUpdateSpaceBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+// UpdateSpaceBody is the input to update space
 type UpdateSpaceBody struct {
 	ID          string                 `json:"id"`
 	Name        string                 `json:"name"`
@@ -202,6 +203,7 @@ func (o *updateSpaceOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNUpdateSpaceResponse is the Objects API Response for Update Space
 type PNUpdateSpaceResponse struct {
 	Status int     `json:"status"`
 	Data   PNSpace `json:"data"`

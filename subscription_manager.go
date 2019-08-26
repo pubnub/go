@@ -725,7 +725,7 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	}
 	eventType := PNObjectsEventType(objectsPayload["type"].(string))
 	event := PNObjectsEvent(objectsPayload["event"].(string))
-	var id, userID, spaceID, description, timestamp, created, updated, eTag, name, externalId, profileUrl, email string
+	var id, userID, spaceID, description, timestamp, created, updated, eTag, name, externalID, profileURL, email string
 	var custom, data map[string]interface{}
 	if objectsPayload["data"] != nil {
 		data = objectsPayload["data"].(map[string]interface{})
@@ -742,10 +742,10 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 			name = data["name"].(string)
 		}
 		if data["externalId"] != nil {
-			externalId = data["externalId"].(string)
+			externalID = data["externalId"].(string)
 		}
 		if data["profileUrl"] != nil {
-			profileUrl = data["profileUrl"].(string)
+			profileURL = data["profileUrl"].(string)
 		}
 		if data["email"] != nil {
 			email = data["email"].(string)
@@ -784,8 +784,8 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		Custom:      custom,
 		Data:        data,
 		Name:        name,
-		ExternalID:  externalId,
-		ProfileURL:  profileUrl,
+		ExternalID:  externalID,
+		ProfileURL:  profileURL,
 		Email:       email,
 	}
 

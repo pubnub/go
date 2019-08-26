@@ -147,6 +147,7 @@ func (o *deleteUserOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNDeleteUserResponse is the Objects API Response for delete user
 type PNDeleteUserResponse struct {
 	Status int         `json:"status"`
 	Data   interface{} `json:"data"`

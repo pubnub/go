@@ -72,14 +72,14 @@ func (b *createUserBuilder) Name(name string) *createUserBuilder {
 	return b
 }
 
-func (b *createUserBuilder) ExternalID(externalId string) *createUserBuilder {
-	b.opts.ExternalID = externalId
+func (b *createUserBuilder) ExternalID(externalID string) *createUserBuilder {
+	b.opts.ExternalID = externalID
 
 	return b
 }
 
-func (b *createUserBuilder) ProfileURL(profileUrl string) *createUserBuilder {
-	b.opts.ProfileURL = profileUrl
+func (b *createUserBuilder) ProfileURL(profileURL string) *createUserBuilder {
+	b.opts.ProfileURL = profileURL
 
 	return b
 }
@@ -222,6 +222,7 @@ func (o *createUserOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNCreateUserResponse is the Objects API Response for create user
 type PNCreateUserResponse struct {
 	Status int    `json:"status"`
 	Data   PNUser `json:"data"`

@@ -202,6 +202,7 @@ func (o *manageMembersOpts) jobQueue() chan *JobQItem {
 	return o.pubnub.jobQueue
 }
 
+// PNMembersInputChangeSet is the Objects API input to add, remove or update members
 type PNMembersInputChangeSet struct {
 	Add    []PNMembersInput  `json:"add"`
 	Update []PNMembersInput  `json:"update"`
@@ -249,6 +250,7 @@ func (o *manageMembersOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNManageMembersResponse is the Objects API Response for ManageMembers
 type PNManageMembersResponse struct {
 	Status     int         `json:"status"`
 	Data       []PNMembers `json:"data"`

@@ -209,6 +209,7 @@ func (o *getMembersOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNGetMembersResponse is the Objects API Response for Get Members
 type PNGetMembersResponse struct {
 	Status     int         `json:"status"`
 	Data       []PNMembers `json:"data"`

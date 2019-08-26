@@ -190,7 +190,7 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	}()
 }
 
-//
+// PNStatus is the status struct
 type PNStatus struct {
 	Category              StatusCategory
 	Operation             OperationType
@@ -206,6 +206,7 @@ type PNStatus struct {
 	AffectedChannelGroups []string
 }
 
+// PNMessage is the Message Response for Subscribe
 type PNMessage struct {
 	Message           interface{}
 	UserMetadata      interface{}
@@ -217,6 +218,7 @@ type PNMessage struct {
 	Timetoken         int64
 }
 
+// PNPresence is the Message Response for Presence
 type PNPresence struct {
 	Event             string
 	UUID              string
@@ -235,6 +237,7 @@ type PNPresence struct {
 	HereNowRefresh    bool
 }
 
+// PNUserEvent is the Response for an User Event
 type PNUserEvent struct {
 	Event             PNObjectsEvent
 	UserID            string
@@ -254,6 +257,7 @@ type PNUserEvent struct {
 	Subscription      string
 }
 
+// PNSpaceEvent is the Response for a Space Event
 type PNSpaceEvent struct {
 	Event             PNObjectsEvent
 	SpaceID           string
@@ -270,6 +274,7 @@ type PNSpaceEvent struct {
 	Subscription      string
 }
 
+// PNMembershipEvent is the Response for a Membership Event
 type PNMembershipEvent struct {
 	Event             PNObjectsEvent
 	UserID            string

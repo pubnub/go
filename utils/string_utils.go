@@ -14,6 +14,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// EnumArrayToStringArray converts a string enum to an array
 func EnumArrayToStringArray(include string) []string {
 	f := strings.Fields(include)
 	j := strings.Join(f, ",")
@@ -21,7 +22,7 @@ func EnumArrayToStringArray(include string) []string {
 	return strings.Fields(t)
 }
 
-// JoinChannels
+// JoinChannels encodes and joins channels
 func JoinChannels(channels []string) []byte {
 	if len(channels) == 0 {
 		return []byte(",")

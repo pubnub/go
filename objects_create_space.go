@@ -203,6 +203,7 @@ func (o *createSpaceOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNCreateSpaceResponse is the Objects API Response for create space
 type PNCreateSpaceResponse struct {
 	Status int     `json:"status"`
 	Data   PNSpace `json:"data"`

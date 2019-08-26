@@ -201,6 +201,7 @@ func (o *manageMembershipsOpts) jobQueue() chan *JobQItem {
 	return o.pubnub.jobQueue
 }
 
+// PNMembershipsInputChangeSet is the Objects API input to add, remove or update membership
 type PNMembershipsInputChangeSet struct {
 	Add    []PNMembershipsInput  `json:"add"`
 	Update []PNMembershipsInput  `json:"update"`
@@ -247,6 +248,7 @@ func (o *manageMembershipsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNManageMembershipsResponse is the Objects API Response for ManageMemberships
 type PNManageMembershipsResponse struct {
 	Status     int             `json:"status"`
 	Data       []PNMemberships `json:"data"`

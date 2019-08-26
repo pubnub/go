@@ -146,6 +146,7 @@ func (o *deleteSpaceOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNDeleteSpaceResponse is the Objects API Response for delete space
 type PNDeleteSpaceResponse struct {
 	Status int         `json:"status"`
 	Data   interface{} `json:"data"`
