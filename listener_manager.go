@@ -129,6 +129,7 @@ func (m *ListenerManager) announceUserEvent(message *PNUserEvent) {
 				break AnnounceUserEventLabel
 
 			case l.UserEvent <- message:
+				m.pubnub.Config.Log.Println("l.UserEvent", message)
 			}
 		}
 		m.RUnlock()
@@ -140,12 +141,14 @@ func (m *ListenerManager) announceSpaceEvent(message *PNSpaceEvent) {
 		m.RLock()
 	AnnounceSpaceEventLabel:
 		for l := range m.listeners {
+			m.pubnub.Config.Log.Println("l.SpaceEvent", l)
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceSpaceEvent exitListener")
 				break AnnounceSpaceEventLabel
 
 			case l.SpaceEvent <- message:
+				m.pubnub.Config.Log.Println("l.SpaceEvent", message)
 			}
 		}
 		m.RUnlock()
@@ -163,6 +166,7 @@ func (m *ListenerManager) announceMembershipEvent(message *PNMembershipEvent) {
 				break AnnounceMembershipEvent
 
 			case l.MembershipEvent <- message:
+				m.pubnub.Config.Log.Println("l.MembershipEvent", message)
 			}
 		}
 		m.RUnlock()

@@ -10,7 +10,6 @@ import (
 
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
-	//"reflect"
 )
 
 var emptyPNGetSpaceResponse *PNGetSpaceResponse
@@ -170,11 +169,8 @@ func newPNGetSpaceResponse(jsonBytes []byte, o *getSpaceOpts,
 
 	resp := &PNGetSpaceResponse{}
 
-	fmt.Println(string(jsonBytes))
-
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
-		fmt.Println("error", err)
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 

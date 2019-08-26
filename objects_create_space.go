@@ -10,7 +10,6 @@ import (
 
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
-	//"reflect"
 )
 
 var emptyPNCreateSpaceResponse *PNCreateSpaceResponse
@@ -49,13 +48,6 @@ type createSpaceBody struct {
 	Description string                 `json:"description"`
 	Custom      map[string]interface{} `json:"custom"`
 }
-
-// Auth sets the Authorization key with permissions to perform the request.
-// func (b *createSpaceBuilder) Auth(auth string) *createSpaceBuilder {
-// 	b.opts.Auth = auth
-
-// 	return b
-// }
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *createSpaceBuilder) Include(include []PNUserSpaceInclude) *createSpaceBuilder {
@@ -116,7 +108,6 @@ func (b *createSpaceBuilder) Execute() (*PNCreateSpaceResponse, StatusResponse, 
 type createSpaceOpts struct {
 	pubnub *PubNub
 
-	Auth        string
 	Include     []string
 	Id          string
 	Name        string
@@ -161,11 +152,6 @@ func (o *createSpaceOpts) buildQuery() (*url.Values, error) {
 	if o.Include != nil {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
-
-	if o.Auth != "" {
-		q.Set("auth", o.Auth)
-	}
-
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -189,7 +175,6 @@ func (o *createSpaceOpts) buildBody() ([]byte, error) {
 		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
 		return []byte{}, errEnc
 	}
-	fmt.Println(fmt.Sprintf("%v %s", b, string(jsonEncBytes)))
 	return jsonEncBytes, nil
 
 }
@@ -228,11 +213,8 @@ func newPNCreateSpaceResponse(jsonBytes []byte, o *createSpaceOpts,
 
 	resp := &PNCreateSpaceResponse{}
 
-	fmt.Println(string(jsonBytes))
-
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
-		fmt.Println("error", err)
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 

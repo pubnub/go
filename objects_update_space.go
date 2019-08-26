@@ -4,12 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
-	//"reflect"
-
+	"io/ioutil"
 	"net/http"
 	"net/url"
 )
@@ -50,13 +47,6 @@ type UpdateSpaceBody struct {
 	Description string                 `json:"description"`
 	Custom      map[string]interface{} `json:"custom"`
 }
-
-// Auth sets the Authorization key with permissions to perform the request.
-// func (b *updateSpaceBuilder) Auth(auth string) *updateSpaceBuilder {
-// 	b.opts.Auth = auth
-
-// 	return b
-// }
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *updateSpaceBuilder) Include(include []PNUserSpaceInclude) *updateSpaceBuilder {
@@ -161,10 +151,6 @@ func (o *updateSpaceOpts) buildQuery() (*url.Values, error) {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
 
-	// if o.Auth != "" {
-	// 	q.Set("auth", o.Auth)
-	// }
-
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -188,7 +174,6 @@ func (o *updateSpaceOpts) buildBody() ([]byte, error) {
 		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
 		return []byte{}, errEnc
 	}
-	fmt.Println(fmt.Sprintf("%v %s", b, string(jsonEncBytes)))
 	return jsonEncBytes, nil
 
 }
@@ -227,11 +212,8 @@ func newPNUpdateSpaceResponse(jsonBytes []byte, o *updateSpaceOpts,
 
 	resp := &PNUpdateSpaceResponse{}
 
-	fmt.Println(string(jsonBytes))
-
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
-		fmt.Println("error", err)
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 

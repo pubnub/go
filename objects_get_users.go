@@ -11,7 +11,6 @@ import (
 
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
-	//"reflect"
 )
 
 var emptyPNGetUsersResponse *PNGetUsersResponse
@@ -46,13 +45,6 @@ func newGetUsersBuilderWithContext(pubnub *PubNub,
 
 	return &builder
 }
-
-// Auth sets the Authorization key with permissions to perform the request.
-// func (b *getUsersBuilder) Auth(auth string) *getUsersBuilder {
-// 	//b.opts.Auth = auth
-
-// 	return b
-// }
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *getUsersBuilder) Include(include []PNUserSpaceInclude) *getUsersBuilder {
@@ -158,10 +150,6 @@ func (o *getUsersOpts) buildQuery() (*url.Values, error) {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
 
-	// if o.Auth != "" {
-	// 	q.Set("auth", o.Auth)
-	// }
-
 	q.Set("limit", strconv.Itoa(o.Limit))
 
 	if o.Start != "" {
@@ -228,11 +216,8 @@ func newPNGetUsersResponse(jsonBytes []byte, o *getUsersOpts,
 
 	resp := &PNGetUsersResponse{}
 
-	fmt.Println(string(jsonBytes))
-
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
-		fmt.Println("error", err)
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 

@@ -5,13 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
-	//"reflect"
-
-	"net/http"
-	"net/url"
 )
 
 var emptyPNUpdateUserResponse *PNUpdateUserResponse
@@ -52,13 +50,6 @@ type UpdateUserBody struct {
 	Email      string                 `json:"email"`
 	Custom     map[string]interface{} `json:"custom"`
 }
-
-// Auth sets the Authorization key with permissions to perform the request.
-// func (b *updateUserBuilder) Auth(auth string) *updateUserBuilder {
-// 	b.opts.Auth = auth
-
-// 	return b
-// }
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *updateUserBuilder) Include(include []PNUserSpaceInclude) *updateUserBuilder {
@@ -176,11 +167,6 @@ func (o *updateUserOpts) buildQuery() (*url.Values, error) {
 	if o.Include != nil {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
-
-	// if o.Auth != "" {
-	// 	q.Set("auth", o.Auth)
-	// }
-
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -206,7 +192,6 @@ func (o *updateUserOpts) buildBody() ([]byte, error) {
 		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
 		return []byte{}, errEnc
 	}
-	fmt.Println(fmt.Sprintf("%v %s", b, string(jsonEncBytes)))
 	return jsonEncBytes, nil
 
 }
@@ -245,11 +230,8 @@ func newPNUpdateUserResponse(jsonBytes []byte, o *updateUserOpts,
 
 	resp := &PNUpdateUserResponse{}
 
-	fmt.Println(string(jsonBytes))
-
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
-		fmt.Println("error", err)
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 

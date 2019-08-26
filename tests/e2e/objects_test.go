@@ -1,10 +1,11 @@
 package e2e
 
 import (
-	//"log"
-	//"os"
 	"fmt"
+	"log"
+	"os"
 	"testing"
+	"time"
 
 	pubnub "github.com/pubnub/go"
 	"github.com/stretchr/testify/assert"
@@ -412,7 +413,7 @@ func TestObjectsMemberships(t *testing.T) {
 		inMem,
 	}
 
-	// //Add user memberships
+	//Add user memberships
 	resManageMemAdd, _, errManageMemAdd := pn.ManageMemberships().UserId(userid2).Add(inArrMem).Update([]pubnub.PNMembershipsInput{}).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	fmt.Println("resManageMemAdd -->", resManageMemAdd)
 	assert.Nil(errManageMemAdd)
@@ -532,4 +533,354 @@ func TestObjectsMemberships(t *testing.T) {
 	assert.Equal(200, res62.Status)
 	assert.Nil(res62.Data)
 
+}
+
+func TestObjectsListeners(t *testing.T) {
+	//Create channel names for Space and User
+	eventWaitTime := 2
+	assert := assert.New(t)
+
+	limit := 100
+	count := true
+
+	pn := pubnub.NewPubNub(configCopy())
+	pnSub := pubnub.NewPubNub(configCopy())
+
+	r := GenRandom()
+
+	userid := fmt.Sprintf("testlistuser_%d", r.Intn(99999))
+	spaceid := fmt.Sprintf("testlistspace_%d", r.Intn(99999))
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	pnSub.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	//Subscribe to the channel names
+
+	listener := pubnub.NewListener()
+
+	doneConnected := make(chan bool)
+	doneUpdateUser := make(chan bool)
+	doneUpdateSpace := make(chan bool)
+	doneAddUserToSpace := make(chan bool)
+	doneAddUserToSpace2 := make(chan bool)
+	doneUpdateUserMem := make(chan bool)
+	doneRemoveUserFromSpace := make(chan bool)
+	doneDeleteUser := make(chan bool)
+	doneDeleteSpace := make(chan bool)
+
+	go func() {
+		for {
+			fmt.Println("Running =--->")
+			select {
+
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.PNConnectedCategory:
+					doneConnected <- true
+				default:
+					fmt.Println(" --- status: ", status)
+				}
+
+			case userEvent := <-listener.UserEvent:
+
+				fmt.Println(" --- UserEvent: ")
+				fmt.Println(fmt.Sprintf("%s", userEvent))
+				fmt.Println(fmt.Sprintf("userEvent.Channel: %s", userEvent.Channel))
+				fmt.Println(fmt.Sprintf("userEvent.SubscribedChannel: %s", userEvent.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("userEvent.Event: %s", userEvent.Event))
+				fmt.Println(fmt.Sprintf("userEvent.UserId: %s", userEvent.UserId))
+				fmt.Println(fmt.Sprintf("userEvent.Description: %s", userEvent.Description))
+				fmt.Println(fmt.Sprintf("userEvent.Timestamp: %s", userEvent.Timestamp))
+				fmt.Println(fmt.Sprintf("userEvent.Name: %s", userEvent.Name))
+				fmt.Println(fmt.Sprintf("userEvent.ExternalId: %s", userEvent.ExternalId))
+				fmt.Println(fmt.Sprintf("userEvent.ProfileUrl: %s", userEvent.ProfileUrl))
+				fmt.Println(fmt.Sprintf("userEvent.Email: %s", userEvent.Email))
+				fmt.Println(fmt.Sprintf("userEvent.Created: %s", userEvent.Created))
+				fmt.Println(fmt.Sprintf("userEvent.Updated: %s", userEvent.Updated))
+				fmt.Println(fmt.Sprintf("userEvent.ETag: %s", userEvent.ETag))
+				fmt.Println(fmt.Sprintf("userEvent.Custom: %v", userEvent.Custom))
+
+				if (userEvent.Event == pubnub.PNObjectsEventDelete) && (userEvent.UserId == userid) {
+					doneDeleteUser <- true
+				}
+				if (userEvent.Event == pubnub.PNObjectsEventUpdate) && (userEvent.UserId == userid) {
+					doneUpdateUser <- true
+				}
+			case spaceEvent := <-listener.SpaceEvent:
+
+				fmt.Println(" --- SpaceEvent: ")
+				fmt.Println(fmt.Sprintf("%s", spaceEvent))
+				fmt.Println(fmt.Sprintf("spaceEvent.Channel: %s", spaceEvent.Channel))
+				fmt.Println(fmt.Sprintf("spaceEvent.SubscribedChannel: %s", spaceEvent.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("spaceEvent.Event: %s", spaceEvent.Event))
+				fmt.Println(fmt.Sprintf("spaceEvent.SpaceId: %s", spaceEvent.SpaceId))
+				fmt.Println(fmt.Sprintf("spaceEvent.Description: %s", spaceEvent.Description))
+				fmt.Println(fmt.Sprintf("spaceEvent.Timestamp: %s", spaceEvent.Timestamp))
+				fmt.Println(fmt.Sprintf("spaceEvent.Created: %s", spaceEvent.Created))
+				fmt.Println(fmt.Sprintf("spaceEvent.Updated: %s", spaceEvent.Updated))
+				fmt.Println(fmt.Sprintf("spaceEvent.ETag: %s", spaceEvent.ETag))
+				fmt.Println(fmt.Sprintf("spaceEvent.Custom: %v", spaceEvent.Custom))
+				if (spaceEvent.Event == pubnub.PNObjectsEventDelete) && (spaceEvent.SpaceId == spaceid) {
+					doneDeleteSpace <- true
+				}
+				if (spaceEvent.Event == pubnub.PNObjectsEventUpdate) && (spaceEvent.SpaceId == spaceid) {
+					doneUpdateSpace <- true
+				}
+
+			case membershipEvent := <-listener.MembershipEvent:
+
+				fmt.Println(" --- MembershipEvent: ")
+				fmt.Println(fmt.Sprintf("%s", membershipEvent))
+				fmt.Println(fmt.Sprintf("membershipEvent.Channel: %s", membershipEvent.Channel))
+				fmt.Println(fmt.Sprintf("membershipEvent.SubscribedChannel: %s", membershipEvent.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("membershipEvent.Event: %s", membershipEvent.Event))
+				fmt.Println(fmt.Sprintf("membershipEvent.SpaceId: %s", membershipEvent.SpaceId))
+				fmt.Println(fmt.Sprintf("membershipEvent.UserId: %s", membershipEvent.UserId))
+				fmt.Println(fmt.Sprintf("membershipEvent.Description: %s", membershipEvent.Description))
+				fmt.Println(fmt.Sprintf("membershipEvent.Timestamp: %s", membershipEvent.Timestamp))
+				fmt.Println(fmt.Sprintf("membershipEvent.Custom: %v", membershipEvent.Custom))
+				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceId == spaceid) && (membershipEvent.UserId == userid) && (membershipEvent.Channel == spaceid) {
+					doneAddUserToSpace <- true
+				}
+				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceId == spaceid) && (membershipEvent.UserId == userid) && ((membershipEvent.Channel == userid) || (membershipEvent.Channel == fmt.Sprintf("pnuser-%s", userid))) {
+					doneAddUserToSpace2 <- true
+				}
+				if (membershipEvent.Event == pubnub.PNObjectsEventUpdate) && (membershipEvent.SpaceId == spaceid) && (membershipEvent.UserId == userid) && (membershipEvent.Channel == spaceid) {
+					doneUpdateUserMem <- true
+				}
+				if (membershipEvent.Event == pubnub.PNObjectsEventDelete) && (membershipEvent.SpaceId == spaceid) && (membershipEvent.UserId == userid) && (membershipEvent.Channel == spaceid) {
+					doneRemoveUserFromSpace <- true
+				}
+
+			}
+		}
+
+	}()
+
+	pnSub.AddListener(listener)
+
+	pnSub.Subscribe().Channels([]string{fmt.Sprintf("pnuser-%s", userid), userid, spaceid}).Execute()
+	tic := time.NewTicker(time.Duration(eventWaitTime) * time.Second)
+	select {
+	case <-doneConnected:
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+	}
+
+	name := "name"
+	extid := "extid"
+	purl := "profileurl"
+	email := "email"
+	desc := "desc"
+
+	customUser := make(map[string]interface{})
+	customUser["au"] = "bu"
+	customUser["cu"] = "du"
+
+	incl := []pubnub.PNUserSpaceInclude{
+		pubnub.PNUserSpaceCustom,
+	}
+
+	//Create User
+	res, _, err := pn.CreateUser().Include(incl).Id(userid).Name(name).ExternalId(extid).ProfileUrl(purl).Email(email).Custom(customUser).Execute()
+	assert.Nil(err)
+	assert.Equal(200, res.Status)
+
+	//Create Space
+	customSpace := make(map[string]interface{})
+	customSpace["as"] = "bs"
+	customSpace["cs"] = "ds"
+
+	res4, _, err4 := pn.CreateSpace().Include(incl).Id(spaceid).Name(name).Description(desc).Custom(customSpace).Execute()
+	assert.Nil(err4)
+	assert.Equal(200, res4.Status)
+
+	time.Sleep(1 * time.Second)
+
+	//Update User
+	email = "email2"
+
+	res2, _, err2 := pn.UpdateUser().Include(incl).Id(userid).Name(name).ExternalId(extid).ProfileUrl(purl).Email(email).Custom(customUser).Execute()
+	assert.Nil(err2)
+	assert.Equal(200, res2.Status)
+
+	//Read event
+	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
+	select {
+	case <-doneUpdateUser:
+		assert.True(true)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+	}
+
+	time.Sleep(1 * time.Second)
+
+	desc = "desc2"
+
+	//Update Space
+	res3, _, err3 := pn.UpdateSpace().Include(incl).Id(spaceid).Name(name).Description(desc).Custom(customSpace).Execute()
+	assert.Nil(err3)
+	assert.Equal(200, res3.Status)
+
+	//Read event
+	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
+	select {
+	case <-doneUpdateSpace:
+		assert.True(true)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+	}
+
+	//Add user to space
+	inclSm := []pubnub.PNMembersInclude{
+		pubnub.PNMembersCustom,
+		pubnub.PNMembersUser,
+		pubnub.PNMembersUserCustom,
+	}
+
+	custom3 := make(map[string]interface{})
+	custom3["a3"] = "b3"
+	custom3["c3"] = "d3"
+
+	in := pubnub.PNMembersInput{
+		Id:     userid,
+		Custom: custom3,
+	}
+
+	inArr := []pubnub.PNMembersInput{
+		in,
+	}
+	time.Sleep(1 * time.Second)
+
+	resAdd, _, errAdd := pn.ManageMembers().SpaceId(spaceid).Add(inArr).Update([]pubnub.PNMembersInput{}).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+	assert.Nil(errAdd)
+	assert.Equal(200, resAdd.Status)
+
+	//Read event
+	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
+	addUserToSpace := false
+	addUserToSpace2 := false
+
+	runfor := true
+LabelBreak:
+	for runfor {
+
+		select {
+		case <-doneAddUserToSpace:
+			addUserToSpace = true
+			if addUserToSpace2 {
+				runfor = false
+				fmt.Println("break 1")
+				break LabelBreak
+			}
+		case <-doneAddUserToSpace2:
+			addUserToSpace2 = true
+			if addUserToSpace {
+				runfor = false
+				fmt.Println("break 2")
+				break LabelBreak
+			}
+		case <-tic.C:
+			tic.Stop()
+			assert.Fail("timeout")
+			break
+		}
+
+	}
+
+	assert.True(addUserToSpace && addUserToSpace2)
+
+	//Update user membership
+
+	custom5 := make(map[string]interface{})
+	custom5["a5"] = "b5"
+	custom5["c5"] = "d5"
+
+	upMem := pubnub.PNMembershipsInput{
+		Id:     spaceid,
+		Custom: custom5,
+	}
+
+	upArrMem := []pubnub.PNMembershipsInput{
+		upMem,
+	}
+
+	inclMemberships := []pubnub.PNMembershipsInclude{
+		pubnub.PNMembershipsCustom,
+		pubnub.PNMembershipsSpace,
+		pubnub.PNMembershipsSpaceCustom,
+	}
+
+	resManageMemUp, _, errManageMemUp := pn.ManageMemberships().UserId(userid).Add([]pubnub.PNMembershipsInput{}).Update(upArrMem).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
+	fmt.Println("resManageMemUp -->", resManageMemUp)
+	assert.Nil(errManageMemUp)
+	assert.Equal(200, resManageMemUp.Status)
+
+	//Read event
+	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
+	select {
+	case <-doneUpdateUserMem:
+		assert.True(true)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+	}
+
+	//Remove user from space
+	reMem := pubnub.PNMembershipsRemove{
+		Id: spaceid,
+	}
+
+	reArrMem := []pubnub.PNMembershipsRemove{
+		reMem,
+	}
+	resManageMemRem, _, errManageMemRem := pn.ManageMemberships().UserId(userid).Add([]pubnub.PNMembershipsInput{}).Update([]pubnub.PNMembershipsInput{}).Remove(reArrMem).Include(inclMemberships).Limit(limit).Count(count).Execute()
+	assert.Nil(errManageMemRem)
+	assert.Equal(200, resManageMemRem.Status)
+
+	//Read event
+	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
+	select {
+	case <-doneRemoveUserFromSpace:
+		assert.True(true)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+	}
+
+	//Delete user
+	res52, _, err52 := pn.DeleteUser().Id(userid).Execute()
+	assert.Nil(err52)
+	assert.Equal(200, res52.Status)
+	assert.Nil(res52.Data)
+
+	//Read event
+
+	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
+	select {
+	case <-doneDeleteUser:
+		assert.True(true)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+	}
+
+	//Delete Space
+	res62, _, err62 := pn.DeleteSpace().Id(spaceid).Execute()
+	assert.Nil(err62)
+	assert.Equal(200, res62.Status)
+	assert.Nil(res62.Data)
+
+	//Read event
+
+	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
+	select {
+	case <-doneDeleteSpace:
+		assert.True(true)
+	case <-tic.C:
+		tic.Stop()
+		assert.Fail("timeout")
+	}
 }

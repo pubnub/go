@@ -41,13 +41,6 @@ func newDeleteSpaceBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
-// func (b *deleteSpaceBuilder) Auth(auth string) *deleteSpaceBuilder {
-// 	b.opts.Auth = auth
-
-// 	return b
-// }
-
 func (b *deleteSpaceBuilder) Id(id string) *deleteSpaceBuilder {
 	b.opts.Id = id
 
@@ -116,10 +109,6 @@ func (o *deleteSpaceOpts) buildQuery() (*url.Values, error) {
 
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
-	// if o.Auth != "" {
-	// 	q.Set("auth", o.Auth)
-	// }
-
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -168,11 +157,8 @@ func newPNDeleteSpaceResponse(jsonBytes []byte, o *deleteSpaceOpts,
 
 	resp := &PNDeleteSpaceResponse{}
 
-	fmt.Println(string(jsonBytes))
-
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
-		fmt.Println("error", err)
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 

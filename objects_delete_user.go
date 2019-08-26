@@ -41,13 +41,6 @@ func newDeleteUserBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
-// func (b *deleteUserBuilder) Auth(auth string) *deleteUserBuilder {
-// 	b.opts.Auth = auth
-
-// 	return b
-// }
-
 func (b *deleteUserBuilder) Id(id string) *deleteUserBuilder {
 	b.opts.Id = id
 
@@ -116,10 +109,6 @@ func (o *deleteUserOpts) buildQuery() (*url.Values, error) {
 
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
-	// if o.Auth != "" {
-	// 	q.Set("auth", o.Auth)
-	// }
-
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -168,11 +157,8 @@ func newPNDeleteUserResponse(jsonBytes []byte, o *deleteUserOpts,
 
 	resp := &PNDeleteUserResponse{}
 
-	fmt.Println(string(jsonBytes))
-
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
-		fmt.Println("error", err)
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 

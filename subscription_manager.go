@@ -645,14 +645,19 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		case PNMessageTypeObjects:
 			pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType := CreatePNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
 			m.pubnub.Config.Log.Println("announceObjects,", pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType)
+			//go func() {
 			switch eventType {
 			case PNObjectsUserEvent:
+				m.pubnub.Config.Log.Println("pnUserEvent:", pnUserEvent)
 				m.listenerManager.announceUserEvent(pnUserEvent)
 			case PNObjectsSpaceEvent:
+				m.pubnub.Config.Log.Println("pnSpaceEvent:", pnSpaceEvent)
 				m.listenerManager.announceSpaceEvent(pnSpaceEvent)
 			case PNObjectsMembershipEvent:
+				m.pubnub.Config.Log.Println("pnMembershipEvent:", pnMembershipEvent)
 				m.listenerManager.announceMembershipEvent(pnMembershipEvent)
 			}
+			//}()
 
 		default:
 			var err error

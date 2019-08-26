@@ -11,7 +11,6 @@ import (
 
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
-	//"reflect"
 )
 
 var emptyManageMembershipsResponse *PNManageMembershipsResponse
@@ -46,13 +45,6 @@ func newManageMembershipsBuilderWithContext(pubnub *PubNub,
 
 	return &builder
 }
-
-// Auth sets the Authorization key with permissions to perform the request.
-// func (b *manageMembershipsBuilder) Auth(auth string) *manageMembershipsBuilder {
-// 	//b.opts.Auth = auth
-
-// 	return b
-// }
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *manageMembershipsBuilder) Include(include []PNMembershipsInclude) *manageMembershipsBuilder {
@@ -184,11 +176,6 @@ func (o *manageMembershipsOpts) buildQuery() (*url.Values, error) {
 	if o.Include != nil {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
-
-	// if o.Auth != "" {
-	// 	q.Set("auth", o.Auth)
-	// }
-
 	q.Set("limit", strconv.Itoa(o.Limit))
 
 	if o.Start != "" {
@@ -233,7 +220,6 @@ func (o *manageMembershipsOpts) buildBody() ([]byte, error) {
 		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
 		return []byte{}, errEnc
 	}
-	fmt.Println(fmt.Sprintf("%v %s", b, string(jsonEncBytes)))
 	return jsonEncBytes, nil
 }
 
@@ -274,11 +260,8 @@ func newPNManageMembershipsResponse(jsonBytes []byte, o *manageMembershipsOpts,
 
 	resp := &PNManageMembershipsResponse{}
 
-	fmt.Println(string(jsonBytes))
-
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
-		fmt.Println("error", err)
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 

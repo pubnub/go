@@ -11,7 +11,6 @@ import (
 
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
-	//"reflect"
 )
 
 var emptyGetSpacesResponse *PNGetSpacesResponse
@@ -46,13 +45,6 @@ func newGetSpacesBuilderWithContext(pubnub *PubNub,
 
 	return &builder
 }
-
-// Auth sets the Authorization key with permissions to perform the request.
-// func (b *getSpacesBuilder) Auth(auth string) *getSpacesBuilder {
-// 	//b.opts.Auth = auth
-
-// 	return b
-// }
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *getSpacesBuilder) Include(include []PNUserSpaceInclude) *getSpacesBuilder {
@@ -158,10 +150,6 @@ func (o *getSpacesOpts) buildQuery() (*url.Values, error) {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
 
-	// if o.Auth != "" {
-	// 	q.Set("auth", o.Auth)
-	// }
-
 	q.Set("limit", strconv.Itoa(o.Limit))
 
 	if o.Start != "" {
@@ -228,11 +216,8 @@ func newPNGetSpacesResponse(jsonBytes []byte, o *getSpacesOpts,
 
 	resp := &PNGetSpacesResponse{}
 
-	fmt.Println(string(jsonBytes))
-
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
-		fmt.Println("error", err)
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
