@@ -565,7 +565,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		if presencePayload, ok = payload.Payload.(map[string]interface{}); !ok {
 			m.listenerManager.announceStatus(&PNStatus{
 				Category:         PNUnknownCategory,
-				ErrorData:        errors.New("Response presence parsing error"),
+				ErrorData:        errors.New("Presence response parsing error"),
 				Error:            true,
 				Operation:        PNSubscribeOperation,
 				AffectedChannels: []string{channel},
@@ -637,9 +637,29 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		}
 		var messagePayload interface{}
 
-		if payload.MessageType == PNMessageTypeSignal {
-			messagePayload = payload.Payload
-		} else {
+		switch payload.MessageType {
+		case PNMessageTypeSignal:
+			pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+			m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
+			m.listenerManager.announceSignal(pnMessageResult)
+		case PNMessageTypeObjects:
+			pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
+			m.pubnub.Config.Log.Println("announceObjects,", pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType)
+			//go func() {
+			switch eventType {
+			case PNObjectsUserEvent:
+				m.pubnub.Config.Log.Println("pnUserEvent:", pnUserEvent)
+				m.listenerManager.announceUserEvent(pnUserEvent)
+			case PNObjectsSpaceEvent:
+				m.pubnub.Config.Log.Println("pnSpaceEvent:", pnSpaceEvent)
+				m.listenerManager.announceSpaceEvent(pnSpaceEvent)
+			case PNObjectsMembershipEvent:
+				m.pubnub.Config.Log.Println("pnMembershipEvent:", pnMembershipEvent)
+				m.listenerManager.announceMembershipEvent(pnMembershipEvent)
+			}
+			//}()
+
+		default:
 			var err error
 			messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
 			if err != nil {
@@ -652,30 +672,188 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 				}
 				m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
 				m.listenerManager.announceStatus(pnStatus)
+
 			}
-		}
-
-		pnMessageResult := &PNMessage{
-			Message:           messagePayload,
-			ActualChannel:     actualCh,
-			SubscribedChannel: subscribedCh,
-			Channel:           channel,
-			Subscription:      subscriptionMatch,
-			Timetoken:         timetoken,
-			Publisher:         payload.IssuingClientID,
-			UserMetadata:      payload.UserMetadata,
-		}
-
-		if payload.MessageType == PNMessageTypeSignal {
-			m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
-			m.listenerManager.announceSignal(pnMessageResult)
-
-		} else {
+			pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
 			m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
 			m.listenerManager.announceMessage(pnMessageResult)
 		}
+
+		// if payload.MessageType == PNMessageTypeSignal {
+		// 	messagePayload = payload.Payload
+		// } else if payload.MessageType == PNMessageTypeObjects {
+		// 	messagePayload = payload.Payload
+		// } else {
+		// 	var err error
+		// 	messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
+		// 	if err != nil {
+		// 		pnStatus := &PNStatus{
+		// 			Category:         PNBadRequestCategory,
+		// 			ErrorData:        err,
+		// 			Error:            true,
+		// 			Operation:        PNSubscribeOperation,
+		// 			AffectedChannels: []string{channel},
+		// 		}
+		// 		m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
+		// 		m.listenerManager.announceStatus(pnStatus)
+		// 	}
+		// }
+
+		// if payload.MessageType == PNMessageTypeSignal {
+		// 	m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
+		// 	m.listenerManager.announceSignal(pnMessageResult)
+
+		// } else {
+		// 	m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
+		// 	m.listenerManager.announceMessage(pnMessageResult)
+		// }
 		m.pubnub.Config.Log.Println("after announceMessage")
 	}
+}
+
+func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) (*PNUserEvent, *PNSpaceEvent, *PNMembershipEvent, PNObjectsEventType) {
+	var objectsPayload map[string]interface{}
+	var ok bool
+	if objectsPayload, ok = objPayload.(map[string]interface{}); !ok {
+		m.listenerManager.announceStatus(&PNStatus{
+			Category:         PNUnknownCategory,
+			ErrorData:        errors.New("Objects response parsing error"),
+			Error:            true,
+			Operation:        PNSubscribeOperation,
+			AffectedChannels: []string{channel},
+		})
+	}
+	eventType := PNObjectsEventType(objectsPayload["type"].(string))
+	event := PNObjectsEvent(objectsPayload["event"].(string))
+	var id, userID, spaceID, description, timestamp, created, updated, eTag, name, externalID, profileURL, email string
+	var custom, data map[string]interface{}
+	if objectsPayload["data"] != nil {
+		data = objectsPayload["data"].(map[string]interface{})
+		if data["userId"] != nil {
+			userID = data["userId"].(string)
+		}
+		if data["id"] != nil {
+			id = data["id"].(string)
+		}
+		if data["spaceId"] != nil {
+			spaceID = data["spaceId"].(string)
+		}
+		if data["name"] != nil {
+			name = data["name"].(string)
+		}
+		if data["externalId"] != nil {
+			externalID = data["externalId"].(string)
+		}
+		if data["profileUrl"] != nil {
+			profileURL = data["profileUrl"].(string)
+		}
+		if data["email"] != nil {
+			email = data["email"].(string)
+		}
+		if data["description"] != nil {
+			description = data["description"].(string)
+		}
+		if data["timestamp"] != nil {
+			timestamp = data["timestamp"].(string)
+		}
+		if data["created"] != nil {
+			created = data["created"].(string)
+		}
+		if data["updated"] != nil {
+			updated = data["updated"].(string)
+		}
+		if data["eTag"] != nil {
+			eTag = data["eTag"].(string)
+		}
+		if data["custom"] != nil {
+			custom = data["custom"].(map[string]interface{})
+		}
+
+	}
+
+	pnObjectsResult := &PNObjectsResponse{
+		Event:       event,
+		EventType:   eventType,
+		UserID:      userID,
+		SpaceID:     spaceID,
+		Description: description,
+		Timestamp:   timestamp,
+		Created:     created,
+		Updated:     updated,
+		ETag:        eTag,
+		Custom:      custom,
+		Data:        data,
+		Name:        name,
+		ExternalID:  externalID,
+		ProfileURL:  profileURL,
+		Email:       email,
+	}
+
+	pnSpaceEvent := &PNSpaceEvent{
+		Event:             pnObjectsResult.Event,
+		SpaceID:           id,
+		Description:       pnObjectsResult.Description,
+		Timestamp:         pnObjectsResult.Timestamp,
+		Name:              pnObjectsResult.Name,
+		Created:           pnObjectsResult.Created,
+		Updated:           pnObjectsResult.Updated,
+		ETag:              pnObjectsResult.ETag,
+		Custom:            pnObjectsResult.Custom,
+		ActualChannel:     actualCh,
+		SubscribedChannel: subscribedCh,
+		Channel:           channel,
+		Subscription:      subscriptionMatch,
+	}
+
+	pnUserEvent := &PNUserEvent{
+		Event:             pnObjectsResult.Event,
+		UserID:            id,
+		Timestamp:         pnObjectsResult.Timestamp,
+		Created:           pnObjectsResult.Created,
+		Updated:           pnObjectsResult.Updated,
+		ETag:              pnObjectsResult.ETag,
+		Custom:            pnObjectsResult.Custom,
+		Name:              pnObjectsResult.Name,
+		ExternalID:        pnObjectsResult.ExternalID,
+		ProfileURL:        pnObjectsResult.ProfileURL,
+		Email:             pnObjectsResult.Email,
+		ActualChannel:     actualCh,
+		SubscribedChannel: subscribedCh,
+		Channel:           channel,
+		Subscription:      subscriptionMatch,
+	}
+
+	pnMembershipEvent := &PNMembershipEvent{
+		Event:             pnObjectsResult.Event,
+		UserID:            pnObjectsResult.UserID,
+		SpaceID:           pnObjectsResult.SpaceID,
+		Description:       pnObjectsResult.Description,
+		Timestamp:         pnObjectsResult.Timestamp,
+		Custom:            pnObjectsResult.Custom,
+		ActualChannel:     actualCh,
+		SubscribedChannel: subscribedCh,
+		Channel:           channel,
+		Subscription:      subscriptionMatch,
+	}
+
+	return pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType
+}
+
+func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64) *PNMessage {
+
+	pnMessageResult := &PNMessage{
+		Message:           messagePayload,
+		ActualChannel:     actualCh,
+		SubscribedChannel: subscribedCh,
+		Channel:           channel,
+		Subscription:      subscriptionMatch,
+		Timetoken:         timetoken,
+		Publisher:         issuingClientID,
+		UserMetadata:      userMetadata,
+	}
+
+	return pnMessageResult
+
 }
 
 // parseCipherInterface handles the decryption in case a cipher key is used

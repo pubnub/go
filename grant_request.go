@@ -17,22 +17,34 @@ import (
 // PNGrantType grant types
 type PNGrantType int
 
-const grantPath = "/v1/auth/grant/sub-key/%s"
+const grantPath = "/v2/auth/grant/sub-key/%s"
+const grantV3Path = "/v3/auth/grant/sub-key/%s"
 const (
-	// PNReadEnabled Read Enabled
+	// PNReadEnabled Read Enabled. Applies to Subscribe, History, Presence, Objects
 	PNReadEnabled PNGrantType = 1 + iota
-	// PNWriteEnabled Write Enabled
+	// PNWriteEnabled Write Enabled. Applies to Publish, Objects
 	PNWriteEnabled
-	// PNManageEnabled Manage Enabled
+	// PNManageEnabled Manage Enabled. Applies to Channel-Groups, Objects
 	PNManageEnabled
-	// PNDeleteEnabled Delete Enabled
+	// PNDeleteEnabled Delete Enabled. Applies to History, Objects
 	PNDeleteEnabled
+	// PNCreateEnabled Create Enabled. Applies to Objects
+	PNCreateEnabled
 )
 
 var emptyGrantResponse *GrantResponse
 
 type grantBuilder struct {
 	opts *grantOpts
+}
+
+type patternPermissions struct {
+}
+type patterns struct {
+	ChannelsPattern      string
+	ChannelGroupsPattern string
+	SpacesPattern        string
+	UsersPattern         string
 }
 
 func newGrantBuilder(pubnub *PubNub) *grantBuilder {
@@ -80,6 +92,12 @@ func (b *grantBuilder) Delete(del bool) *grantBuilder {
 	return b
 }
 
+func (b *grantBuilder) Create(create bool) *grantBuilder {
+	b.opts.Create = create
+
+	return b
+}
+
 // TTL in minutes for which granted permissions are valid.
 //
 // Min: 1
@@ -115,6 +133,34 @@ func (b *grantBuilder) ChannelGroups(groups []string) *grantBuilder {
 	return b
 }
 
+// Users sets the Users for the Grant request.
+func (b *grantBuilder) Users(users []string) *grantBuilder {
+	b.opts.Users = users
+
+	return b
+}
+
+// Patterns sets the Patterns for the Grant request.
+func (b *grantBuilder) Patterns(pattern string, resourceTypes patterns) *grantBuilder {
+	// b.opts.Patterns = patterns
+
+	return b
+}
+
+// Spaces sets the Spaces for the Grant request.
+func (b *grantBuilder) Spaces(spaces []string) *grantBuilder {
+	b.opts.Spaces = spaces
+
+	return b
+}
+
+// Meta sets the Meta for the Grant request.
+func (b *grantBuilder) Meta(meta map[string]interface{}) *grantBuilder {
+	b.opts.Meta = meta
+
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *grantBuilder) QueryParam(queryParam map[string]string) *grantBuilder {
 	b.opts.QueryParam = queryParam
@@ -140,6 +186,9 @@ type grantOpts struct {
 	Channels      []string
 	ChannelGroups []string
 	QueryParam    map[string]string
+	Meta          map[string]interface{}
+	Spaces        []string
+	Users         []string
 
 	// Stringified permissions
 	// Setting 'true' or 'false' will apply permissions to level
@@ -147,6 +196,7 @@ type grantOpts struct {
 	Write  bool
 	Manage bool
 	Delete bool
+	Create bool
 	// Max: 525600
 	// Min: 1
 	// Default: 1440

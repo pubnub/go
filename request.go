@@ -47,6 +47,17 @@ func addToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan
 	opts.jobQueue() <- jqi
 }
 
+func buildBody(opts endpointOpts, url *url.URL) (io.Reader, error) {
+	b, err := opts.buildBody()
+	if err != nil {
+		opts.config().Log.Println("PNUnknownCategory", err, url)
+		return nil, err
+	}
+	opts.config().Log.Println("BODY", string(b))
+
+	return bytes.NewReader(b), nil
+}
+
 func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	err := opts.validate()
 
@@ -71,18 +82,21 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	var req *http.Request
 
 	if opts.httpMethod() == "POST" {
-		b, err := opts.buildBody()
+		body, err := buildBody(opts, url)
 		if err != nil {
-			opts.config().Log.Println("PNUnknownCategory", err, url)
-			return nil,
-				createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
-				err
+			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
 		}
 
-		body := bytes.NewReader(b)
 		req, err = newRequest("POST", url, body, opts.config().UseHTTP2)
 	} else if opts.httpMethod() == "DELETE" {
 		req, err = newRequest("DELETE", url, nil, opts.config().UseHTTP2)
+	} else if opts.httpMethod() == "PATCH" {
+		body, err := buildBody(opts, url)
+		if err != nil {
+			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
+		}
+
+		req, err = newRequest("PATCH", url, body, opts.config().UseHTTP2)
 	} else {
 		req, err = newRequest("GET", url, nil, opts.config().UseHTTP2)
 	}
@@ -243,7 +257,6 @@ func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusRespon
 	}
 
 	opts.config().Log.Println("200 OK: resp.StatusCode, resp.Status, resp.Body, resp.Request.URL, string(body)", resp.StatusCode, resp.Status, resp.Body, resp.Request.URL, string(body))
-
 	return body, status, nil
 }
 

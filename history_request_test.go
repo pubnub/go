@@ -313,7 +313,7 @@ func TestHistoryPNOtherYay(t *testing.T) {
 
 		break
 	default:
-		fmt.Println(reflect.TypeOf(v).Kind(), reflect.TypeOf(data).Kind(), v, data)
+		//fmt.Println(reflect.TypeOf(v).Kind(), reflect.TypeOf(data).Kind(), v, data)
 		assert.Fail("failed")
 
 		break

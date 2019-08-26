@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"log"
+	//"net/url"
 	"os"
 	"testing"
 	"unicode/utf16"
@@ -21,6 +22,44 @@ func TestSignSha256(t *testing.T) {
 
 	assert.Equal("Dq92jnwRTCikdeP2nUs1__gyJthF8NChwbs5aYy2r_I=", res)
 }
+
+// func TestSignSha256New2(t *testing.T) {
+// 	assert := assert.New(t)
+// 	v := &url.Values{}
+// 	v.Set("PoundsSterling=", "%C2%A313.37")
+// 	v.Set("auth=", "joker")
+// 	v.Set("r=", "1")
+// 	v.Set("timestamp=", "123456789")
+// 	v.Set("ttl=", "60")
+// 	v.Set("w=", "1")
+
+// 	d := PreparePamParams(v)
+
+// 	signInput := fmt.Sprintf("%s\n%s\n%s\n%s\n", "demo", "demo", "/v2/auth/grant/sub-key/demo", d)
+
+// 	res := GetHmacSha256("wMfbo9G0xVUG8yfTfYw5qIdfJkTd7A", signInput)
+
+// 	assert.Equal("v2rgQQ1eFzk8omugFV9V1_eKRUvvMv9jyC9Z-L1ogdw=", res)
+// }
+
+// func TestSignSha256New(t *testing.T) {
+// 	assert := assert.New(t)
+// 	v := &url.Values{}
+// 	v.Set("store=", "1")
+// 	v.Set("seqn=", "1")
+// 	v.Set("auth=", "myAuth")
+// 	v.Set("timestamp=", "1535125017")
+// 	v.Set("pnsdk=", "PubNub-Go/4.1.2")
+// 	v.Set("uuid=", "myUuid")
+
+// 	d := PreparePamParams(v)
+
+// 	signInput := fmt.Sprintf("%s\n%s\n%s\n%s\n", "demoSubscribeKey", "demoPublishKey", "/publish/demoPublishKey/demoSubscribeKey/0/my-channel/0/%22my-message%22", d)
+
+// 	res := GetHmacSha256("secretKey", signInput)
+
+// 	assert.Equal("Dq92jnwRTCikdeP2nUs1__gyJthF8NChwbs5aYy2r_I=", res)
+// }
 
 func TestPad(t *testing.T) {
 	assert := assert.New(t)
