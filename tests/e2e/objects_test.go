@@ -764,31 +764,41 @@ func TestObjectsListeners(t *testing.T) {
 	addUserToSpace2 := false
 
 	runfor := true
-LabelBreak:
-	for runfor {
+	waitforfunc := make(chan bool)
 
-		select {
-		case <-doneAddUserToSpace:
-			addUserToSpace = true
-			if addUserToSpace2 {
-				runfor = false
-				fmt.Println("break 1")
+	go func() {
+	LabelBreak:
+		for runfor {
+
+			select {
+			case <-doneAddUserToSpace:
+				addUserToSpace = true
+				if addUserToSpace2 {
+					runfor = false
+					fmt.Println("break 1")
+					waitforfunc <- true
+					break LabelBreak
+				}
+			case <-doneAddUserToSpace2:
+				addUserToSpace2 = true
+				if addUserToSpace {
+					runfor = false
+					fmt.Println("break 2")
+					waitforfunc <- true
+					break LabelBreak
+				}
+			case <-tic.C:
+				tic.Stop()
+				assert.Fail("timeout")
+				waitforfunc <- true
 				break LabelBreak
 			}
-		case <-doneAddUserToSpace2:
-			addUserToSpace2 = true
-			if addUserToSpace {
-				runfor = false
-				fmt.Println("break 2")
-				break LabelBreak
-			}
-		case <-tic.C:
-			tic.Stop()
-			assert.Fail("timeout")
-			break
+
 		}
 
-	}
+	}()
+
+	<-waitforfunc
 
 	assert.True(addUserToSpace && addUserToSpace2)
 
