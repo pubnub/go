@@ -75,12 +75,7 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 
 		signedInput := o.config().SubscribeKey + "\n" + o.config().PublishKey + "\n"
 
-		// if o.operationType() == PNAccessManagerGrant ||
-		// 	o.operationType() == PNAccessManagerRevoke {
-		// 	signedInput += "grant\n"
-		// } else {
 		signedInput += fmt.Sprintf("%s\n", path)
-		//}
 
 		signedInput += utils.PreparePamParams(query)
 		o.config().Log.Println("signedInput:", signedInput)

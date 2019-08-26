@@ -179,6 +179,35 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 	case PNSignalOperation:
 		endpoint = "sig"
 		break
+	case PNCreateUserOperation:
+		fallthrough
+	case PNGetUsersOperation:
+		fallthrough
+	case PNGetUserOperation:
+		fallthrough
+	case PNUpdateUserOperation:
+		fallthrough
+	case PNDeleteUserOperation:
+		fallthrough
+	case PNGetSpaceOperation:
+		fallthrough
+	case PNGetSpacesOperation:
+		fallthrough
+	case PNCreateSpaceOperation:
+		fallthrough
+	case PNDeleteSpaceOperation:
+		fallthrough
+	case PNUpdateSpaceOperation:
+		fallthrough
+	case PNGetMembershipsOperation:
+		fallthrough
+	case PNGetMembersOperation:
+		fallthrough
+	case PNManageMembershipsOperation:
+		fallthrough
+	case PNManageMembersOperation:
+		endpoint = "obj"
+		break
 	default:
 		endpoint = "time"
 		break

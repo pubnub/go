@@ -14,10 +14,19 @@ type ReconnectionPolicy int
 // PNPushType is used as an enum to catgorize the available Push Types
 type PNPushType int
 
+// PNUserSpaceInclude  is used as an enum to catgorize the available User and Space include types
 type PNUserSpaceInclude int
+
+// PNMembershipsInclude  is used as an enum to catgorize the available Memberships include types
 type PNMembershipsInclude int
+
+// PNMembersInclude  is used as an enum to catgorize the available Members include types
 type PNMembersInclude int
+
+// PNObjectsEvent  is used as an enum to catgorize the available Object Events
 type PNObjectsEvent string
+
+// PNObjectsEventType  is used as an enum to catgorize the available Object Event types
 type PNObjectsEventType string
 
 const (
