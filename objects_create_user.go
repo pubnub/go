@@ -43,10 +43,10 @@ func newCreateUserBuilderWithContext(pubnub *PubNub,
 }
 
 type createUserBody struct {
-	Id         string                 `json:"id"`
+	ID         string                 `json:"id"`
 	Name       string                 `json:"name"`
-	ExternalId string                 `json:"externalId"`
-	ProfileUrl string                 `json:"profileUrl"`
+	ExternalID string                 `json:"externalId"`
+	ProfileURL string                 `json:"profileUrl"`
 	Email      string                 `json:"email"`
 	Custom     map[string]interface{} `json:"custom"`
 }
@@ -59,8 +59,8 @@ func (b *createUserBuilder) Include(include []PNUserSpaceInclude) *createUserBui
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *createUserBuilder) Id(id string) *createUserBuilder {
-	b.opts.Id = id
+func (b *createUserBuilder) ID(id string) *createUserBuilder {
+	b.opts.ID = id
 
 	return b
 }
@@ -72,14 +72,14 @@ func (b *createUserBuilder) Name(name string) *createUserBuilder {
 	return b
 }
 
-func (b *createUserBuilder) ExternalId(externalId string) *createUserBuilder {
-	b.opts.ExternalId = externalId
+func (b *createUserBuilder) ExternalID(externalId string) *createUserBuilder {
+	b.opts.ExternalID = externalId
 
 	return b
 }
 
-func (b *createUserBuilder) ProfileUrl(profileUrl string) *createUserBuilder {
-	b.opts.ProfileUrl = profileUrl
+func (b *createUserBuilder) ProfileURL(profileUrl string) *createUserBuilder {
+	b.opts.ProfileURL = profileUrl
 
 	return b
 }
@@ -123,10 +123,10 @@ type createUserOpts struct {
 	pubnub *PubNub
 
 	Include    []string
-	Id         string
+	ID         string
 	Name       string
-	ExternalId string
-	ProfileUrl string
+	ExternalID string
+	ProfileURL string
 	Email      string
 	Custom     map[string]interface{}
 	QueryParam map[string]string
@@ -180,10 +180,10 @@ func (o *createUserOpts) jobQueue() chan *JobQItem {
 
 func (o *createUserOpts) buildBody() ([]byte, error) {
 	b := &createUserBody{
-		Id:         o.Id,
+		ID:         o.ID,
 		Name:       o.Name,
-		ExternalId: o.ExternalId,
-		ProfileUrl: o.ProfileUrl,
+		ExternalID: o.ExternalID,
+		ProfileURL: o.ProfileURL,
 		Email:      o.Email,
 		Custom:     o.Custom,
 	}

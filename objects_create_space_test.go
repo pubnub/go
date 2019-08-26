@@ -36,7 +36,7 @@ func AssertCreateSpace(t *testing.T, checkQueryParam, testContext bool) {
 	}
 
 	o.Include(incl)
-	o.Id("id0")
+	o.ID("id0")
 	o.Name("name")
 	o.Description("exturl")
 	o.Custom(custom)
@@ -96,7 +96,7 @@ func TestCreateSpaceResponseValuePass(t *testing.T) {
 
 	r, _, err := newPNCreateSpaceResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(200, r.Status)
-	assert.Equal("id2", r.Data.Id)
+	assert.Equal("id2", r.Data.ID)
 	assert.Equal("name", r.Data.Name)
 	assert.Equal("desc", r.Data.Description)
 	assert.Equal("2019-08-19T15:05:51.493894Z", r.Data.Created)

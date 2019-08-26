@@ -32,13 +32,13 @@ func TestObjectsCreateUpdateGetDeleteUser(t *testing.T) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	res, _, err := pn.CreateUser().Include(incl).Id(id).Name(name).ExternalId(extid).ProfileUrl(purl).Email(email).Custom(custom).Execute()
+	res, _, err := pn.CreateUser().Include(incl).ID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(err)
 	assert.Equal(200, res.Status)
-	assert.Equal(id, res.Data.Id)
+	assert.Equal(id, res.Data.ID)
 	assert.Equal(name, res.Data.Name)
-	assert.Equal(extid, res.Data.ExternalId)
-	assert.Equal(purl, res.Data.ProfileUrl)
+	assert.Equal(extid, res.Data.ExternalID)
+	assert.Equal(purl, res.Data.ProfileURL)
 	assert.Equal(email, res.Data.Email)
 	assert.NotNil(res.Data.Created)
 	assert.NotNil(res.Data.Updated)
@@ -48,13 +48,13 @@ func TestObjectsCreateUpdateGetDeleteUser(t *testing.T) {
 
 	email = "email2"
 
-	res2, _, err2 := pn.UpdateUser().Include(incl).Id(id).Name(name).ExternalId(extid).ProfileUrl(purl).Email(email).Custom(custom).Execute()
+	res2, _, err2 := pn.UpdateUser().Include(incl).ID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(err2)
 	assert.Equal(200, res2.Status)
-	assert.Equal(id, res2.Data.Id)
+	assert.Equal(id, res2.Data.ID)
 	assert.Equal(name, res2.Data.Name)
-	assert.Equal(extid, res2.Data.ExternalId)
-	assert.Equal(purl, res2.Data.ProfileUrl)
+	assert.Equal(extid, res2.Data.ExternalID)
+	assert.Equal(purl, res2.Data.ProfileURL)
 	assert.Equal(email, res2.Data.Email)
 	assert.Equal(res.Data.Created, res2.Data.Created)
 	assert.NotNil(res2.Data.Updated)
@@ -62,13 +62,13 @@ func TestObjectsCreateUpdateGetDeleteUser(t *testing.T) {
 	assert.Equal("b", res2.Data.Custom["a"])
 	assert.Equal("d", res2.Data.Custom["c"])
 
-	res3, _, err3 := pn.GetUser().Include(incl).Id(id).Execute()
+	res3, _, err3 := pn.GetUser().Include(incl).ID(id).Execute()
 	assert.Nil(err3)
 	assert.Equal(200, res3.Status)
-	assert.Equal(id, res3.Data.Id)
+	assert.Equal(id, res3.Data.ID)
 	assert.Equal(name, res3.Data.Name)
-	assert.Equal(extid, res3.Data.ExternalId)
-	assert.Equal(purl, res3.Data.ProfileUrl)
+	assert.Equal(extid, res3.Data.ExternalID)
+	assert.Equal(purl, res3.Data.ProfileURL)
 	assert.Equal(email, res3.Data.Email)
 	assert.Equal(res.Data.Created, res3.Data.Created)
 	assert.Equal(res2.Data.Updated, res3.Data.Updated)
@@ -83,10 +83,10 @@ func TestObjectsCreateUpdateGetDeleteUser(t *testing.T) {
 	assert.True(res6.TotalCount > 0)
 	found := false
 	for i := range res6.Data {
-		if res6.Data[i].Id == id {
+		if res6.Data[i].ID == id {
 			assert.Equal(name, res6.Data[i].Name)
-			assert.Equal(extid, res6.Data[i].ExternalId)
-			assert.Equal(purl, res6.Data[i].ProfileUrl)
+			assert.Equal(extid, res6.Data[i].ExternalID)
+			assert.Equal(purl, res6.Data[i].ProfileURL)
 			assert.Equal(email, res6.Data[i].Email)
 			assert.Equal(res.Data.Created, res6.Data[i].Created)
 			assert.Equal(res2.Data.Updated, res6.Data[i].Updated)
@@ -99,13 +99,13 @@ func TestObjectsCreateUpdateGetDeleteUser(t *testing.T) {
 	assert.True(found)
 
 	//delete
-	res5, _, err5 := pn.DeleteUser().Id(id).Execute()
+	res5, _, err5 := pn.DeleteUser().ID(id).Execute()
 	assert.Nil(err5)
 	assert.Equal(200, res5.Status)
 	assert.Nil(res5.Data)
 
 	//getuser
-	res4, _, err4 := pn.GetUser().Include(incl).Id(id).Execute()
+	res4, _, err4 := pn.GetUser().Include(incl).ID(id).Execute()
 	assert.NotNil(err4)
 	assert.Nil(res4)
 
@@ -130,10 +130,10 @@ func TestObjectsCreateUpdateGetDeleteSpace(t *testing.T) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	res, _, err := pn.CreateSpace().Include(incl).Id(id).Name(name).Description(desc).Custom(custom).Execute()
+	res, _, err := pn.CreateSpace().Include(incl).ID(id).Name(name).Description(desc).Custom(custom).Execute()
 	assert.Nil(err)
 	assert.Equal(200, res.Status)
-	assert.Equal(id, res.Data.Id)
+	assert.Equal(id, res.Data.ID)
 	assert.Equal(name, res.Data.Name)
 	assert.Equal(desc, res.Data.Description)
 	assert.NotNil(res.Data.Created)
@@ -144,10 +144,10 @@ func TestObjectsCreateUpdateGetDeleteSpace(t *testing.T) {
 
 	desc = "desc2"
 
-	res2, _, err2 := pn.UpdateSpace().Include(incl).Id(id).Name(name).Description(desc).Custom(custom).Execute()
+	res2, _, err2 := pn.UpdateSpace().Include(incl).ID(id).Name(name).Description(desc).Custom(custom).Execute()
 	assert.Nil(err2)
 	assert.Equal(200, res2.Status)
-	assert.Equal(id, res2.Data.Id)
+	assert.Equal(id, res2.Data.ID)
 	assert.Equal(name, res2.Data.Name)
 	assert.Equal(desc, res2.Data.Description)
 	assert.Equal(res.Data.Created, res2.Data.Created)
@@ -156,10 +156,10 @@ func TestObjectsCreateUpdateGetDeleteSpace(t *testing.T) {
 	assert.Equal("b", res2.Data.Custom["a"])
 	assert.Equal("d", res2.Data.Custom["c"])
 
-	res3, _, err3 := pn.GetSpace().Include(incl).Id(id).Execute()
+	res3, _, err3 := pn.GetSpace().Include(incl).ID(id).Execute()
 	assert.Nil(err3)
 	assert.Equal(200, res3.Status)
-	assert.Equal(id, res3.Data.Id)
+	assert.Equal(id, res3.Data.ID)
 	assert.Equal(name, res3.Data.Name)
 	assert.Equal(desc, res3.Data.Description)
 	assert.Equal(res.Data.Created, res3.Data.Created)
@@ -175,7 +175,7 @@ func TestObjectsCreateUpdateGetDeleteSpace(t *testing.T) {
 	assert.True(res6.TotalCount > 0)
 	found := false
 	for i := range res6.Data {
-		if res6.Data[i].Id == id {
+		if res6.Data[i].ID == id {
 			assert.Equal(name, res6.Data[i].Name)
 			assert.Equal(desc, res6.Data[i].Description)
 			assert.Equal(res.Data.Created, res6.Data[i].Created)
@@ -189,13 +189,13 @@ func TestObjectsCreateUpdateGetDeleteSpace(t *testing.T) {
 	assert.True(found)
 
 	//delete
-	res5, _, err5 := pn.DeleteSpace().Id(id).Execute()
+	res5, _, err5 := pn.DeleteSpace().ID(id).Execute()
 	assert.Nil(err5)
 	assert.Equal(200, res5.Status)
 	assert.Nil(res5.Data)
 
 	//getuser
-	res4, _, err4 := pn.GetSpace().Include(incl).Id(id).Execute()
+	res4, _, err4 := pn.GetSpace().Include(incl).ID(id).Execute()
 	assert.NotNil(err4)
 	assert.Nil(res4)
 
@@ -226,13 +226,13 @@ func TestObjectsMemberships(t *testing.T) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	res, _, err := pn.CreateUser().Include(incl).Id(userid).Name(name).ExternalId(extid).ProfileUrl(purl).Email(email).Custom(custom).Execute()
+	res, _, err := pn.CreateUser().Include(incl).ID(userid).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(err)
 	assert.Equal(200, res.Status)
-	assert.Equal(userid, res.Data.Id)
+	assert.Equal(userid, res.Data.ID)
 	assert.Equal(name, res.Data.Name)
-	assert.Equal(extid, res.Data.ExternalId)
-	assert.Equal(purl, res.Data.ProfileUrl)
+	assert.Equal(extid, res.Data.ExternalID)
+	assert.Equal(purl, res.Data.ProfileURL)
 	assert.Equal(email, res.Data.Email)
 	assert.NotNil(res.Data.Created)
 	assert.NotNil(res.Data.Updated)
@@ -246,10 +246,10 @@ func TestObjectsMemberships(t *testing.T) {
 	custom2["a1"] = "b1"
 	custom2["c1"] = "d1"
 
-	res2, _, err2 := pn.CreateSpace().Include(incl).Id(spaceid).Name(name).Description(desc).Custom(custom2).Execute()
+	res2, _, err2 := pn.CreateSpace().Include(incl).ID(spaceid).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(err2)
 	assert.Equal(200, res2.Status)
-	assert.Equal(spaceid, res2.Data.Id)
+	assert.Equal(spaceid, res2.Data.ID)
 	assert.Equal(name, res2.Data.Name)
 	assert.Equal(desc, res2.Data.Description)
 	assert.NotNil(res2.Data.Created)
@@ -260,13 +260,13 @@ func TestObjectsMemberships(t *testing.T) {
 
 	userid2 := fmt.Sprintf("testuser_%d", r.Intn(99999))
 
-	res3, _, err3 := pn.CreateUser().Include(incl).Id(userid2).Name(name).ExternalId(extid).ProfileUrl(purl).Email(email).Custom(custom).Execute()
+	res3, _, err3 := pn.CreateUser().Include(incl).ID(userid2).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(err3)
 	assert.Equal(200, res3.Status)
 
 	spaceid2 := fmt.Sprintf("testspace_%d", r.Intn(99999))
 
-	res4, _, err4 := pn.CreateSpace().Include(incl).Id(spaceid2).Name(name).Description(desc).Custom(custom2).Execute()
+	res4, _, err4 := pn.CreateSpace().Include(incl).ID(spaceid2).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(err4)
 	assert.Equal(200, res4.Status)
 
@@ -281,7 +281,7 @@ func TestObjectsMemberships(t *testing.T) {
 	custom3["c3"] = "d3"
 
 	in := pubnub.PNMembersInput{
-		Id:     userid,
+		ID:     userid,
 		Custom: custom3,
 	}
 
@@ -291,21 +291,21 @@ func TestObjectsMemberships(t *testing.T) {
 
 	//Add Space Memberships
 
-	resAdd, _, errAdd := pn.ManageMembers().SpaceId(spaceid).Add(inArr).Update([]pubnub.PNMembersInput{}).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+	resAdd, _, errAdd := pn.ManageMembers().SpaceID(spaceid).Add(inArr).Update([]pubnub.PNMembersInput{}).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errAdd)
 	assert.Equal(200, resAdd.Status)
 	assert.True(resAdd.TotalCount > 0)
 	fmt.Println("resAdd-->", resAdd)
 	found := false
 	for i := range resAdd.Data {
-		if resAdd.Data[i].Id == userid {
+		if resAdd.Data[i].ID == userid {
 			found = true
 			assert.Equal(custom3["a3"], resAdd.Data[i].Custom["a3"])
 			assert.Equal(custom3["c3"], resAdd.Data[i].Custom["c3"])
-			assert.Equal(userid, resAdd.Data[0].User.Id)
+			assert.Equal(userid, resAdd.Data[0].User.ID)
 			assert.Equal(name, resAdd.Data[0].User.Name)
-			assert.Equal(extid, resAdd.Data[0].User.ExternalId)
-			assert.Equal(purl, resAdd.Data[0].User.ProfileUrl)
+			assert.Equal(extid, resAdd.Data[0].User.ExternalID)
+			assert.Equal(purl, resAdd.Data[0].User.ProfileURL)
 			assert.Equal(email, resAdd.Data[0].User.Email)
 			assert.Equal(custom["a"], resAdd.Data[0].User.Custom["a"])
 			assert.Equal(custom["c"], resAdd.Data[0].User.Custom["c"])
@@ -320,7 +320,7 @@ func TestObjectsMemberships(t *testing.T) {
 	custom4["c2"] = "d2"
 
 	up := pubnub.PNMembersInput{
-		Id:     userid,
+		ID:     userid,
 		Custom: custom4,
 	}
 
@@ -328,20 +328,20 @@ func TestObjectsMemberships(t *testing.T) {
 		up,
 	}
 
-	resUp, _, errUp := pn.ManageMembers().SpaceId(spaceid).Add([]pubnub.PNMembersInput{}).Update(upArr).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+	resUp, _, errUp := pn.ManageMembers().SpaceID(spaceid).Add([]pubnub.PNMembersInput{}).Update(upArr).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errUp)
 	assert.Equal(200, resUp.Status)
 	assert.True(resUp.TotalCount > 0)
 	foundUp := false
 	for i := range resUp.Data {
-		if resUp.Data[i].Id == userid {
+		if resUp.Data[i].ID == userid {
 			foundUp = true
 			assert.Equal("b2", resUp.Data[i].Custom["a2"])
 			assert.Equal("d2", resUp.Data[i].Custom["c2"])
-			assert.Equal(userid, resAdd.Data[0].User.Id)
+			assert.Equal(userid, resAdd.Data[0].User.ID)
 			assert.Equal(name, resAdd.Data[0].User.Name)
-			assert.Equal(extid, resAdd.Data[0].User.ExternalId)
-			assert.Equal(purl, resAdd.Data[0].User.ProfileUrl)
+			assert.Equal(extid, resAdd.Data[0].User.ExternalID)
+			assert.Equal(purl, resAdd.Data[0].User.ProfileURL)
 			assert.Equal(email, resAdd.Data[0].User.Email)
 			assert.Equal(custom["a"], resAdd.Data[0].User.Custom["a"])
 			assert.Equal(custom["c"], resAdd.Data[0].User.Custom["c"])
@@ -358,11 +358,11 @@ func TestObjectsMemberships(t *testing.T) {
 		pubnub.PNMembershipsSpaceCustom,
 	}
 
-	resGetMem, _, errGetMem := pn.GetMemberships().UserId(userid).Include(inclMemberships).Limit(limit).Count(count).Execute()
+	resGetMem, _, errGetMem := pn.GetMemberships().UserID(userid).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	foundGetMem := false
 	assert.Nil(errGetMem)
 	for i := range resGetMem.Data {
-		if resGetMem.Data[i].Id == spaceid {
+		if resGetMem.Data[i].ID == spaceid {
 			foundGetMem = true
 			assert.Equal(name, resGetMem.Data[i].Space.Name)
 			assert.Equal(desc, resGetMem.Data[i].Space.Description)
@@ -377,25 +377,25 @@ func TestObjectsMemberships(t *testing.T) {
 
 	//Remove Space Memberships
 	re := pubnub.PNMembersRemove{
-		Id: userid,
+		ID: userid,
 	}
 
 	reArr := []pubnub.PNMembersRemove{
 		re,
 	}
-	resRem, _, errRem := pn.ManageMembers().SpaceId(spaceid).Add([]pubnub.PNMembersInput{}).Update([]pubnub.PNMembersInput{}).Remove(reArr).Include(inclSm).Limit(limit).Count(count).Execute()
+	resRem, _, errRem := pn.ManageMembers().SpaceID(spaceid).Add([]pubnub.PNMembersInput{}).Update([]pubnub.PNMembersInput{}).Remove(reArr).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errRem)
 	assert.Equal(200, resRem.Status)
 	foundRem := false
 	for i := range resRem.Data {
-		if resRem.Data[i].Id == userid {
+		if resRem.Data[i].ID == userid {
 			foundRem = true
 			assert.Equal("b2", resUp.Data[i].Custom["a2"])
 			assert.Equal("d2", resUp.Data[i].Custom["c2"])
-			assert.Equal(userid, resUp.Data[0].User.Id)
+			assert.Equal(userid, resUp.Data[0].User.ID)
 			assert.Equal(name, resUp.Data[0].User.Name)
-			assert.Equal(extid, resUp.Data[0].User.ExternalId)
-			assert.Equal(purl, resUp.Data[0].User.ProfileUrl)
+			assert.Equal(extid, resUp.Data[0].User.ExternalID)
+			assert.Equal(purl, resUp.Data[0].User.ProfileURL)
 			assert.Equal(email, resUp.Data[0].User.Email)
 			assert.Equal(custom["a"], resUp.Data[0].User.Custom["a"])
 			assert.Equal(custom["c"], resUp.Data[0].User.Custom["c"])
@@ -405,7 +405,7 @@ func TestObjectsMemberships(t *testing.T) {
 	assert.False(foundRem)
 
 	inMem := pubnub.PNMembershipsInput{
-		Id:     spaceid2,
+		ID:     spaceid2,
 		Custom: custom3,
 	}
 
@@ -414,14 +414,14 @@ func TestObjectsMemberships(t *testing.T) {
 	}
 
 	//Add user memberships
-	resManageMemAdd, _, errManageMemAdd := pn.ManageMemberships().UserId(userid2).Add(inArrMem).Update([]pubnub.PNMembershipsInput{}).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
+	resManageMemAdd, _, errManageMemAdd := pn.ManageMemberships().UserID(userid2).Add(inArrMem).Update([]pubnub.PNMembershipsInput{}).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	fmt.Println("resManageMemAdd -->", resManageMemAdd)
 	assert.Nil(errManageMemAdd)
 	assert.Equal(200, resManageMemAdd.Status)
 	foundManageMembers := false
 	for i := range resManageMemAdd.Data {
-		if resManageMemAdd.Data[i].Id == spaceid2 {
-			assert.Equal(spaceid2, resManageMemAdd.Data[i].Space.Id)
+		if resManageMemAdd.Data[i].ID == spaceid2 {
+			assert.Equal(spaceid2, resManageMemAdd.Data[i].Space.ID)
 			assert.Equal(name, resManageMemAdd.Data[i].Space.Name)
 			assert.Equal(desc, resManageMemAdd.Data[i].Space.Description)
 			assert.Equal(custom2["a1"], resManageMemAdd.Data[i].Space.Custom["a1"])
@@ -440,7 +440,7 @@ func TestObjectsMemberships(t *testing.T) {
 	custom5["c5"] = "d5"
 
 	upMem := pubnub.PNMembershipsInput{
-		Id:     spaceid2,
+		ID:     spaceid2,
 		Custom: custom5,
 	}
 
@@ -448,14 +448,14 @@ func TestObjectsMemberships(t *testing.T) {
 		upMem,
 	}
 
-	resManageMemUp, _, errManageMemUp := pn.ManageMemberships().UserId(userid2).Add([]pubnub.PNMembershipsInput{}).Update(upArrMem).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
+	resManageMemUp, _, errManageMemUp := pn.ManageMemberships().UserID(userid2).Add([]pubnub.PNMembershipsInput{}).Update(upArrMem).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	fmt.Println("resManageMemUp -->", resManageMemUp)
 	assert.Nil(errManageMemUp)
 	assert.Equal(200, resManageMemUp.Status)
 	foundManageMembersUp := false
 	for i := range resManageMemUp.Data {
-		if resManageMemUp.Data[i].Id == spaceid2 {
-			assert.Equal(spaceid2, resManageMemUp.Data[i].Space.Id)
+		if resManageMemUp.Data[i].ID == spaceid2 {
+			assert.Equal(spaceid2, resManageMemUp.Data[i].Space.ID)
 			assert.Equal(name, resManageMemUp.Data[i].Space.Name)
 			assert.Equal(desc, resManageMemUp.Data[i].Space.Description)
 			assert.Equal(custom2["a1"], resManageMemAdd.Data[i].Space.Custom["a1"])
@@ -468,17 +468,17 @@ func TestObjectsMemberships(t *testing.T) {
 	assert.True(foundManageMembersUp)
 
 	// //Get members
-	resGetMembers, _, errGetMembers := pn.GetMembers().SpaceId(spaceid2).Include(inclSm).Limit(limit).Count(count).Execute()
+	resGetMembers, _, errGetMembers := pn.GetMembers().SpaceID(spaceid2).Include(inclSm).Limit(limit).Count(count).Execute()
 	fmt.Println("resGetMembers -->", resGetMembers)
 	assert.Nil(errGetMembers)
 	assert.Equal(200, resGetMembers.Status)
 	foundGetMembers := false
 	for i := range resGetMembers.Data {
-		if resGetMembers.Data[i].Id == userid2 {
+		if resGetMembers.Data[i].ID == userid2 {
 			foundGetMembers = true
 			assert.Equal(name, resGetMembers.Data[i].User.Name)
-			assert.Equal(extid, resGetMembers.Data[i].User.ExternalId)
-			assert.Equal(purl, resGetMembers.Data[i].User.ProfileUrl)
+			assert.Equal(extid, resGetMembers.Data[i].User.ExternalID)
+			assert.Equal(purl, resGetMembers.Data[i].User.ProfileURL)
 			assert.Equal(email, resGetMembers.Data[i].User.Email)
 			assert.Equal(custom["a"], resGetMembers.Data[i].User.Custom["a"])
 			assert.Equal(custom["c"], resGetMembers.Data[i].User.Custom["c"])
@@ -491,44 +491,44 @@ func TestObjectsMemberships(t *testing.T) {
 	// //Remove user memberships
 
 	reMem := pubnub.PNMembershipsRemove{
-		Id: spaceid2,
+		ID: spaceid2,
 	}
 
 	reArrMem := []pubnub.PNMembershipsRemove{
 		reMem,
 	}
-	resManageMemRem, _, errManageMemRem := pn.ManageMemberships().UserId(userid2).Add([]pubnub.PNMembershipsInput{}).Update([]pubnub.PNMembershipsInput{}).Remove(reArrMem).Include(inclMemberships).Limit(limit).Count(count).Execute()
+	resManageMemRem, _, errManageMemRem := pn.ManageMemberships().UserID(userid2).Add([]pubnub.PNMembershipsInput{}).Update([]pubnub.PNMembershipsInput{}).Remove(reArrMem).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	assert.Nil(errManageMemRem)
 	assert.Equal(200, resManageMemRem.Status)
 
 	foundManageMemRem := false
 	for i := range resManageMemRem.Data {
-		if resManageMemRem.Data[i].Id == spaceid2 {
+		if resManageMemRem.Data[i].ID == spaceid2 {
 			foundManageMemRem = true
 		}
 	}
 	assert.False(foundManageMemRem)
 
 	//delete
-	res5, _, err5 := pn.DeleteUser().Id(userid).Execute()
+	res5, _, err5 := pn.DeleteUser().ID(userid).Execute()
 	assert.Nil(err5)
 	assert.Equal(200, res5.Status)
 	assert.Nil(res5.Data)
 
 	//delete
-	res6, _, err6 := pn.DeleteSpace().Id(spaceid).Execute()
+	res6, _, err6 := pn.DeleteSpace().ID(spaceid).Execute()
 	assert.Nil(err6)
 	assert.Equal(200, res6.Status)
 	assert.Nil(res6.Data)
 
 	//delete
-	res52, _, err52 := pn.DeleteUser().Id(userid2).Execute()
+	res52, _, err52 := pn.DeleteUser().ID(userid2).Execute()
 	assert.Nil(err52)
 	assert.Equal(200, res52.Status)
 	assert.Nil(res52.Data)
 
 	//delete
-	res62, _, err62 := pn.DeleteSpace().Id(spaceid2).Execute()
+	res62, _, err62 := pn.DeleteSpace().ID(spaceid2).Execute()
 	assert.Nil(err62)
 	assert.Equal(200, res62.Status)
 	assert.Nil(res62.Data)
@@ -587,22 +587,22 @@ func TestObjectsListeners(t *testing.T) {
 				fmt.Println(fmt.Sprintf("userEvent.Channel: %s", userEvent.Channel))
 				fmt.Println(fmt.Sprintf("userEvent.SubscribedChannel: %s", userEvent.SubscribedChannel))
 				fmt.Println(fmt.Sprintf("userEvent.Event: %s", userEvent.Event))
-				fmt.Println(fmt.Sprintf("userEvent.UserId: %s", userEvent.UserId))
+				fmt.Println(fmt.Sprintf("userEvent.UserID: %s", userEvent.UserID))
 				fmt.Println(fmt.Sprintf("userEvent.Description: %s", userEvent.Description))
 				fmt.Println(fmt.Sprintf("userEvent.Timestamp: %s", userEvent.Timestamp))
 				fmt.Println(fmt.Sprintf("userEvent.Name: %s", userEvent.Name))
-				fmt.Println(fmt.Sprintf("userEvent.ExternalId: %s", userEvent.ExternalId))
-				fmt.Println(fmt.Sprintf("userEvent.ProfileUrl: %s", userEvent.ProfileUrl))
+				fmt.Println(fmt.Sprintf("userEvent.ExternalID: %s", userEvent.ExternalID))
+				fmt.Println(fmt.Sprintf("userEvent.ProfileURL: %s", userEvent.ProfileURL))
 				fmt.Println(fmt.Sprintf("userEvent.Email: %s", userEvent.Email))
 				fmt.Println(fmt.Sprintf("userEvent.Created: %s", userEvent.Created))
 				fmt.Println(fmt.Sprintf("userEvent.Updated: %s", userEvent.Updated))
 				fmt.Println(fmt.Sprintf("userEvent.ETag: %s", userEvent.ETag))
 				fmt.Println(fmt.Sprintf("userEvent.Custom: %v", userEvent.Custom))
 
-				if (userEvent.Event == pubnub.PNObjectsEventDelete) && (userEvent.UserId == userid) {
+				if (userEvent.Event == pubnub.PNObjectsEventDelete) && (userEvent.UserID == userid) {
 					doneDeleteUser <- true
 				}
-				if (userEvent.Event == pubnub.PNObjectsEventUpdate) && (userEvent.UserId == userid) {
+				if (userEvent.Event == pubnub.PNObjectsEventUpdate) && (userEvent.UserID == userid) {
 					doneUpdateUser <- true
 				}
 			case spaceEvent := <-listener.SpaceEvent:
@@ -612,17 +612,17 @@ func TestObjectsListeners(t *testing.T) {
 				fmt.Println(fmt.Sprintf("spaceEvent.Channel: %s", spaceEvent.Channel))
 				fmt.Println(fmt.Sprintf("spaceEvent.SubscribedChannel: %s", spaceEvent.SubscribedChannel))
 				fmt.Println(fmt.Sprintf("spaceEvent.Event: %s", spaceEvent.Event))
-				fmt.Println(fmt.Sprintf("spaceEvent.SpaceId: %s", spaceEvent.SpaceId))
+				fmt.Println(fmt.Sprintf("spaceEvent.SpaceID: %s", spaceEvent.SpaceID))
 				fmt.Println(fmt.Sprintf("spaceEvent.Description: %s", spaceEvent.Description))
 				fmt.Println(fmt.Sprintf("spaceEvent.Timestamp: %s", spaceEvent.Timestamp))
 				fmt.Println(fmt.Sprintf("spaceEvent.Created: %s", spaceEvent.Created))
 				fmt.Println(fmt.Sprintf("spaceEvent.Updated: %s", spaceEvent.Updated))
 				fmt.Println(fmt.Sprintf("spaceEvent.ETag: %s", spaceEvent.ETag))
 				fmt.Println(fmt.Sprintf("spaceEvent.Custom: %v", spaceEvent.Custom))
-				if (spaceEvent.Event == pubnub.PNObjectsEventDelete) && (spaceEvent.SpaceId == spaceid) {
+				if (spaceEvent.Event == pubnub.PNObjectsEventDelete) && (spaceEvent.SpaceID == spaceid) {
 					doneDeleteSpace <- true
 				}
-				if (spaceEvent.Event == pubnub.PNObjectsEventUpdate) && (spaceEvent.SpaceId == spaceid) {
+				if (spaceEvent.Event == pubnub.PNObjectsEventUpdate) && (spaceEvent.SpaceID == spaceid) {
 					doneUpdateSpace <- true
 				}
 
@@ -633,21 +633,21 @@ func TestObjectsListeners(t *testing.T) {
 				fmt.Println(fmt.Sprintf("membershipEvent.Channel: %s", membershipEvent.Channel))
 				fmt.Println(fmt.Sprintf("membershipEvent.SubscribedChannel: %s", membershipEvent.SubscribedChannel))
 				fmt.Println(fmt.Sprintf("membershipEvent.Event: %s", membershipEvent.Event))
-				fmt.Println(fmt.Sprintf("membershipEvent.SpaceId: %s", membershipEvent.SpaceId))
-				fmt.Println(fmt.Sprintf("membershipEvent.UserId: %s", membershipEvent.UserId))
+				fmt.Println(fmt.Sprintf("membershipEvent.SpaceID: %s", membershipEvent.SpaceID))
+				fmt.Println(fmt.Sprintf("membershipEvent.UserID: %s", membershipEvent.UserID))
 				fmt.Println(fmt.Sprintf("membershipEvent.Description: %s", membershipEvent.Description))
 				fmt.Println(fmt.Sprintf("membershipEvent.Timestamp: %s", membershipEvent.Timestamp))
 				fmt.Println(fmt.Sprintf("membershipEvent.Custom: %v", membershipEvent.Custom))
-				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceId == spaceid) && (membershipEvent.UserId == userid) && (membershipEvent.Channel == spaceid) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && (membershipEvent.Channel == spaceid) {
 					doneAddUserToSpace <- true
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceId == spaceid) && (membershipEvent.UserId == userid) && ((membershipEvent.Channel == userid) || (membershipEvent.Channel == fmt.Sprintf("pnuser-%s", userid))) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == userid) || (membershipEvent.Channel == fmt.Sprintf("pnuser-%s", userid))) {
 					doneAddUserToSpace2 <- true
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventUpdate) && (membershipEvent.SpaceId == spaceid) && (membershipEvent.UserId == userid) && (membershipEvent.Channel == spaceid) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventUpdate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && (membershipEvent.Channel == spaceid) {
 					doneUpdateUserMem <- true
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventDelete) && (membershipEvent.SpaceId == spaceid) && (membershipEvent.UserId == userid) && (membershipEvent.Channel == spaceid) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventDelete) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && (membershipEvent.Channel == spaceid) {
 					doneRemoveUserFromSpace <- true
 				}
 
@@ -682,7 +682,7 @@ func TestObjectsListeners(t *testing.T) {
 	}
 
 	//Create User
-	res, _, err := pn.CreateUser().Include(incl).Id(userid).Name(name).ExternalId(extid).ProfileUrl(purl).Email(email).Custom(customUser).Execute()
+	res, _, err := pn.CreateUser().Include(incl).ID(userid).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(customUser).Execute()
 	assert.Nil(err)
 	assert.Equal(200, res.Status)
 
@@ -691,7 +691,7 @@ func TestObjectsListeners(t *testing.T) {
 	customSpace["as"] = "bs"
 	customSpace["cs"] = "ds"
 
-	res4, _, err4 := pn.CreateSpace().Include(incl).Id(spaceid).Name(name).Description(desc).Custom(customSpace).Execute()
+	res4, _, err4 := pn.CreateSpace().Include(incl).ID(spaceid).Name(name).Description(desc).Custom(customSpace).Execute()
 	assert.Nil(err4)
 	assert.Equal(200, res4.Status)
 
@@ -700,7 +700,7 @@ func TestObjectsListeners(t *testing.T) {
 	//Update User
 	email = "email2"
 
-	res2, _, err2 := pn.UpdateUser().Include(incl).Id(userid).Name(name).ExternalId(extid).ProfileUrl(purl).Email(email).Custom(customUser).Execute()
+	res2, _, err2 := pn.UpdateUser().Include(incl).ID(userid).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(customUser).Execute()
 	assert.Nil(err2)
 	assert.Equal(200, res2.Status)
 
@@ -719,7 +719,7 @@ func TestObjectsListeners(t *testing.T) {
 	desc = "desc2"
 
 	//Update Space
-	res3, _, err3 := pn.UpdateSpace().Include(incl).Id(spaceid).Name(name).Description(desc).Custom(customSpace).Execute()
+	res3, _, err3 := pn.UpdateSpace().Include(incl).ID(spaceid).Name(name).Description(desc).Custom(customSpace).Execute()
 	assert.Nil(err3)
 	assert.Equal(200, res3.Status)
 
@@ -745,7 +745,7 @@ func TestObjectsListeners(t *testing.T) {
 	custom3["c3"] = "d3"
 
 	in := pubnub.PNMembersInput{
-		Id:     userid,
+		ID:     userid,
 		Custom: custom3,
 	}
 
@@ -754,7 +754,7 @@ func TestObjectsListeners(t *testing.T) {
 	}
 	time.Sleep(1 * time.Second)
 
-	resAdd, _, errAdd := pn.ManageMembers().SpaceId(spaceid).Add(inArr).Update([]pubnub.PNMembersInput{}).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+	resAdd, _, errAdd := pn.ManageMembers().SpaceID(spaceid).Add(inArr).Update([]pubnub.PNMembersInput{}).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errAdd)
 	assert.Equal(200, resAdd.Status)
 
@@ -809,7 +809,7 @@ func TestObjectsListeners(t *testing.T) {
 	custom5["c5"] = "d5"
 
 	upMem := pubnub.PNMembershipsInput{
-		Id:     spaceid,
+		ID:     spaceid,
 		Custom: custom5,
 	}
 
@@ -823,7 +823,7 @@ func TestObjectsListeners(t *testing.T) {
 		pubnub.PNMembershipsSpaceCustom,
 	}
 
-	resManageMemUp, _, errManageMemUp := pn.ManageMemberships().UserId(userid).Add([]pubnub.PNMembershipsInput{}).Update(upArrMem).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
+	resManageMemUp, _, errManageMemUp := pn.ManageMemberships().UserID(userid).Add([]pubnub.PNMembershipsInput{}).Update(upArrMem).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	fmt.Println("resManageMemUp -->", resManageMemUp)
 	assert.Nil(errManageMemUp)
 	assert.Equal(200, resManageMemUp.Status)
@@ -840,13 +840,13 @@ func TestObjectsListeners(t *testing.T) {
 
 	//Remove user from space
 	reMem := pubnub.PNMembershipsRemove{
-		Id: spaceid,
+		ID: spaceid,
 	}
 
 	reArrMem := []pubnub.PNMembershipsRemove{
 		reMem,
 	}
-	resManageMemRem, _, errManageMemRem := pn.ManageMemberships().UserId(userid).Add([]pubnub.PNMembershipsInput{}).Update([]pubnub.PNMembershipsInput{}).Remove(reArrMem).Include(inclMemberships).Limit(limit).Count(count).Execute()
+	resManageMemRem, _, errManageMemRem := pn.ManageMemberships().UserID(userid).Add([]pubnub.PNMembershipsInput{}).Update([]pubnub.PNMembershipsInput{}).Remove(reArrMem).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	assert.Nil(errManageMemRem)
 	assert.Equal(200, resManageMemRem.Status)
 
@@ -861,7 +861,7 @@ func TestObjectsListeners(t *testing.T) {
 	}
 
 	//Delete user
-	res52, _, err52 := pn.DeleteUser().Id(userid).Execute()
+	res52, _, err52 := pn.DeleteUser().ID(userid).Execute()
 	assert.Nil(err52)
 	assert.Equal(200, res52.Status)
 	assert.Nil(res52.Data)
@@ -878,7 +878,7 @@ func TestObjectsListeners(t *testing.T) {
 	}
 
 	//Delete Space
-	res62, _, err62 := pn.DeleteSpace().Id(spaceid).Execute()
+	res62, _, err62 := pn.DeleteSpace().ID(spaceid).Execute()
 	assert.Nil(err62)
 	assert.Equal(200, res62.Status)
 	assert.Nil(res62.Data)

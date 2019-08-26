@@ -1554,9 +1554,6 @@ func TestSubscribe403Error(t *testing.T) {
 		assert.Fail("timeout")
 
 	}
-
-	assert.Zero(len(pn2.GetSubscribedChannels()))
-	assert.Zero(len(pn2.GetSubscribedGroups()))
 }
 
 func TestSubscribeSignal(t *testing.T) {

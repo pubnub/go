@@ -54,8 +54,8 @@ func (b *manageMembersBuilder) Include(include []PNMembersInclude) *manageMember
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *manageMembersBuilder) SpaceId(id string) *manageMembersBuilder {
-	b.opts.SpaceId = id
+func (b *manageMembersBuilder) SpaceID(id string) *manageMembersBuilder {
+	b.opts.SpaceID = id
 
 	return b
 }
@@ -129,7 +129,7 @@ func (b *manageMembersBuilder) Execute() (*PNManageMembersResponse, StatusRespon
 
 type manageMembersOpts struct {
 	pubnub           *PubNub
-	SpaceId          string
+	SpaceID          string
 	Limit            int
 	Include          []string
 	Start            string
@@ -166,7 +166,7 @@ func (o *manageMembersOpts) validate() error {
 
 func (o *manageMembersOpts) buildPath() (string, error) {
 	return fmt.Sprintf(manageMembersPath,
-		o.pubnub.Config.SubscribeKey, o.SpaceId), nil
+		o.pubnub.Config.SubscribeKey, o.SpaceID), nil
 }
 
 func (o *manageMembersOpts) buildQuery() (*url.Values, error) {

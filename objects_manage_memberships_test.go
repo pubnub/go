@@ -34,12 +34,12 @@ func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool) {
 		o = newManageMembershipsBuilderWithContext(pn, backgroundContext)
 	}
 
-	userId := "id0"
+	userID := "id0"
 	limit := 90
 	start := "Mxmy"
 	end := "Nxny"
 
-	o.UserId(userId)
+	o.UserID(userID)
 	o.Include(incl)
 	o.Limit(limit)
 	o.Start(start)
@@ -54,7 +54,7 @@ func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool) {
 	custom3["c3"] = "d3"
 
 	in := PNMembershipsInput{
-		Id:     id0,
+		ID:     id0,
 		Custom: custom3,
 	}
 
@@ -67,7 +67,7 @@ func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool) {
 	custom4["c4"] = "d4"
 
 	up := PNMembershipsInput{
-		Id:     id0,
+		ID:     id0,
 		Custom: custom4,
 	}
 
@@ -76,7 +76,7 @@ func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool) {
 	}
 
 	re := PNMembershipsRemove{
-		Id: id0,
+		ID: id0,
 	}
 
 	reArr := []PNMembershipsRemove{
@@ -91,7 +91,7 @@ func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool) {
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/objects/%s/users/%s/spaces", pn.Config.SubscribeKey, userId),
+		fmt.Sprintf("/v1/objects/%s/users/%s/spaces", pn.Config.SubscribeKey, userID),
 		path, []int{})
 
 	body, err := o.opts.buildBody()
@@ -146,8 +146,8 @@ func TestManageMembershipsResponseValuePass(t *testing.T) {
 	assert.Equal(200, r.Status)
 	assert.Equal(1, r.TotalCount)
 	assert.Equal("MQ", r.Next)
-	assert.Equal("spaceid3", r.Data[0].Id)
-	assert.Equal("spaceid3", r.Data[0].Space.Id)
+	assert.Equal("spaceid3", r.Data[0].ID)
+	assert.Equal("spaceid3", r.Data[0].Space.ID)
 	assert.Equal("spaceid3name", r.Data[0].Space.Name)
 	assert.Equal("spaceid3desc", r.Data[0].Space.Description)
 	assert.Equal("2019-08-23T10:34:43.985248Z", r.Data[0].Space.Created)

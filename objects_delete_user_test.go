@@ -26,7 +26,7 @@ func AssertDeleteUser(t *testing.T, checkQueryParam, testContext bool) {
 		o = newDeleteUserBuilderWithContext(pn, backgroundContext)
 	}
 
-	o.Id("id0")
+	o.ID("id0")
 	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()

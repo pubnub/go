@@ -41,8 +41,8 @@ func newDeleteUserBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-func (b *deleteUserBuilder) Id(id string) *deleteUserBuilder {
-	b.opts.Id = id
+func (b *deleteUserBuilder) ID(id string) *deleteUserBuilder {
+	b.opts.ID = id
 
 	return b
 }
@@ -72,7 +72,7 @@ func (b *deleteUserBuilder) Execute() (*PNDeleteUserResponse, StatusResponse, er
 
 type deleteUserOpts struct {
 	pubnub     *PubNub
-	Id         string
+	ID         string
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
@@ -102,7 +102,7 @@ func (o *deleteUserOpts) validate() error {
 
 func (o *deleteUserOpts) buildPath() (string, error) {
 	return fmt.Sprintf(deleteUserPath,
-		o.pubnub.Config.SubscribeKey, o.Id), nil
+		o.pubnub.Config.SubscribeKey, o.ID), nil
 }
 
 func (o *deleteUserOpts) buildQuery() (*url.Values, error) {

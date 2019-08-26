@@ -26,7 +26,7 @@ func AssertDeleteSpace(t *testing.T, checkQueryParam, testContext bool) {
 		o = newDeleteSpaceBuilderWithContext(pn, backgroundContext)
 	}
 
-	o.Id("id0")
+	o.ID("id0")
 	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()

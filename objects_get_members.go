@@ -46,8 +46,8 @@ func newGetMembersBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-func (b *getMembersBuilder) SpaceId(id string) *getMembersBuilder {
-	b.opts.Id = id
+func (b *getMembersBuilder) SpaceID(id string) *getMembersBuilder {
+	b.opts.ID = id
 
 	return b
 }
@@ -110,7 +110,7 @@ func (b *getMembersBuilder) Execute() (*PNGetMembersResponse, StatusResponse, er
 
 type getMembersOpts struct {
 	pubnub     *PubNub
-	Id         string
+	ID         string
 	Limit      int
 	Include    []string
 	Start      string
@@ -145,7 +145,7 @@ func (o *getMembersOpts) validate() error {
 
 func (o *getMembersOpts) buildPath() (string, error) {
 	return fmt.Sprintf(getMembersPath,
-		o.pubnub.Config.SubscribeKey, o.Id), nil
+		o.pubnub.Config.SubscribeKey, o.ID), nil
 }
 
 func (o *getMembersOpts) buildQuery() (*url.Values, error) {

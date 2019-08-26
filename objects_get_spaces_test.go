@@ -103,7 +103,7 @@ func TestGetSpacesResponseValuePass(t *testing.T) {
 	assert.Equal(2, r.TotalCount)
 	assert.Equal("Mg", r.Next)
 	assert.Equal("Nd", r.Prev)
-	assert.Equal("id0", r.Data[0].Id)
+	assert.Equal("id0", r.Data[0].ID)
 	assert.Equal("name", r.Data[0].Name)
 	assert.Equal("desc", r.Data[0].Description)
 	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data[0].Created)

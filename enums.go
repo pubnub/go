@@ -30,26 +30,25 @@ type PNObjectsEvent string
 type PNObjectsEventType string
 
 const (
-	PNObjectsUserEvent       PNObjectsEventType = "user"
-	PNObjectsSpaceEvent                         = "space"
-	PNObjectsMembershipEvent                    = "membership"
+	// PNObjectsUserEvent is the enum when the event of type `user` occurs
+	PNObjectsUserEvent PNObjectsEventType = "user"
+	// PNObjectsSpaceEvent is the enum when the event of type `space` occurs
+	PNObjectsSpaceEvent = "space"
+	// PNObjectsMembershipEvent is the enum when the event of type `membership` occurs
+	PNObjectsMembershipEvent = "membership"
 )
 
-// func (s PNObjectsEventType) String() string {
-// 	return [...]string{"user", "space", "membership"}[s-1]
-// }
-
 const (
+	// PNObjectsEventCreate is the enum when the event `create` occurs
 	PNObjectsEventCreate PNObjectsEvent = "create"
-	PNObjectsEventUpdate                = "update"
-	PNObjectsEventDelete                = "delete"
+	// PNObjectsEventUpdate is the enum when the event `update` occurs
+	PNObjectsEventUpdate = "update"
+	// PNObjectsEventDelete is the enum when the event `delete` occurs
+	PNObjectsEventDelete = "delete"
 )
 
-// func (s PNObjectsActionType) String() string {
-// 	return [...]string{"create", "update", "delete"}[s-1]
-// }
-
 const (
+	// PNUserSpaceCustom is the enum equivalent to the value `custom` available User and Space include types
 	PNUserSpaceCustom PNUserSpaceInclude = 1 + iota
 )
 
@@ -58,8 +57,11 @@ func (s PNUserSpaceInclude) String() string {
 }
 
 const (
+	// PNMembershipsCustom is the enum equivalent to the value `custom` available Memberships include types
 	PNMembershipsCustom PNMembershipsInclude = 1 + iota
+	// PNMembershipsSpace is the enum equivalent to the value `space` available Memberships include types
 	PNMembershipsSpace
+	// PNMembershipsSpaceCustom is the enum equivalent to the value `space.custom` available Memberships include types
 	PNMembershipsSpaceCustom
 )
 
@@ -68,8 +70,11 @@ func (s PNMembershipsInclude) String() string {
 }
 
 const (
+	// PNMembersCustom is the enum equivalent to the value `custom` available Members include types
 	PNMembersCustom PNMembersInclude = 1 + iota
+	// PNMembersUser is the enum equivalent to the value `user` available Members include types
 	PNMembersUser
+	// PNMembersUserCustom is the enum equivalent to the value `user.custom` available Members include types
 	PNMembersUserCustom
 )
 
@@ -189,29 +194,29 @@ const (
 	PNCreateUserOperation
 	// PNGetUsersOperation is the enum used to get users in the Object API.
 	PNGetUsersOperation
-	// PNGetUserOperation
+	// PNGetUserOperation is the enum used to get user in the Object API.
 	PNGetUserOperation
-	// PNUpdateUserOperation
+	// PNUpdateUserOperation is the enum used to update users in the Object API.
 	PNUpdateUserOperation
-	// PNDeleteUserOperation
+	// PNDeleteUserOperation is the enum used to delete users in the Object API.
 	PNDeleteUserOperation
-	// PNGetSpaceOperation
+	// PNGetSpaceOperation is the enum used to get space in the Object API.
 	PNGetSpaceOperation
-	// PNGetSpacesOperation
+	// PNGetSpacesOperation is the enum used to get spaces in the Object API.
 	PNGetSpacesOperation
-	// PNCreateSpaceOperation
+	// PNCreateSpaceOperation is the enum used to create space in the Object API.
 	PNCreateSpaceOperation
-	// PNDeleteSpaceOperation
+	// PNDeleteSpaceOperation is the enum used to delete space in the Object API.
 	PNDeleteSpaceOperation
-	// PNUpdateSpaceOperation
+	// PNUpdateSpaceOperation is the enum used to update space in the Object API.
 	PNUpdateSpaceOperation
-	// PNGetMembershipsOperation
+	// PNGetMembershipsOperation is the enum used to get memberships in the Object API.
 	PNGetMembershipsOperation
-	// PNGetMembersOperation
+	// PNGetMembersOperation is the enum used to get members in the Object API.
 	PNGetMembersOperation
-	// PNManageMembershipsOperation
+	// PNManageMembershipsOperation is the enum used to manage memberships in the Object API.
 	PNManageMembershipsOperation
-	// PNManageMembersOperation
+	// PNManageMembersOperation is the enum used to manage members in the Object API.
 	PNManageMembersOperation
 )
 

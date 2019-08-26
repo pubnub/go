@@ -41,8 +41,8 @@ func newDeleteSpaceBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-func (b *deleteSpaceBuilder) Id(id string) *deleteSpaceBuilder {
-	b.opts.Id = id
+func (b *deleteSpaceBuilder) ID(id string) *deleteSpaceBuilder {
+	b.opts.ID = id
 
 	return b
 }
@@ -72,10 +72,9 @@ func (b *deleteSpaceBuilder) Execute() (*PNDeleteSpaceResponse, StatusResponse, 
 
 type deleteSpaceOpts struct {
 	pubnub     *PubNub
-	Id         string
+	ID         string
 	QueryParam map[string]string
-
-	Transport http.RoundTripper
+	Transport  http.RoundTripper
 
 	ctx Context
 }
@@ -102,7 +101,7 @@ func (o *deleteSpaceOpts) validate() error {
 
 func (o *deleteSpaceOpts) buildPath() (string, error) {
 	return fmt.Sprintf(deleteSpacePath,
-		o.pubnub.Config.SubscribeKey, o.Id), nil
+		o.pubnub.Config.SubscribeKey, o.ID), nil
 }
 
 func (o *deleteSpaceOpts) buildQuery() (*url.Values, error) {

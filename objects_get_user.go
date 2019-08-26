@@ -49,8 +49,8 @@ func (b *getUserBuilder) Include(include []PNUserSpaceInclude) *getUserBuilder {
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *getUserBuilder) Id(id string) *getUserBuilder {
-	b.opts.Id = id
+func (b *getUserBuilder) ID(id string) *getUserBuilder {
+	b.opts.ID = id
 
 	return b
 }
@@ -80,7 +80,7 @@ func (b *getUserBuilder) Execute() (*PNGetUserResponse, StatusResponse, error) {
 
 type getUserOpts struct {
 	pubnub     *PubNub
-	Id         string
+	ID         string
 	Include    []string
 	QueryParam map[string]string
 
@@ -111,7 +111,7 @@ func (o *getUserOpts) validate() error {
 
 func (o *getUserOpts) buildPath() (string, error) {
 	return fmt.Sprintf(getUserPath,
-		o.pubnub.Config.SubscribeKey, o.Id), nil
+		o.pubnub.Config.SubscribeKey, o.ID), nil
 }
 
 func (o *getUserOpts) buildQuery() (*url.Values, error) {

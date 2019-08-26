@@ -36,10 +36,10 @@ func AssertUpdateUser(t *testing.T, checkQueryParam, testContext bool) {
 	}
 
 	o.Include(incl)
-	o.Id("id0")
+	o.ID("id0")
 	o.Name("name")
-	o.ExternalId("exturl")
-	o.ProfileUrl("prourl")
+	o.ExternalID("exturl")
+	o.ProfileURL("prourl")
 	o.Email("email")
 	o.Custom(custom)
 	o.QueryParam(queryParam)
@@ -98,10 +98,10 @@ func TestUpdateUserResponseValuePass(t *testing.T) {
 
 	r, _, err := newPNUpdateUserResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(200, r.Status)
-	assert.Equal("id0", r.Data.Id)
+	assert.Equal("id0", r.Data.ID)
 	assert.Equal("name", r.Data.Name)
-	assert.Equal("extid", r.Data.ExternalId)
-	assert.Equal("purl", r.Data.ProfileUrl)
+	assert.Equal("extid", r.Data.ExternalID)
+	assert.Equal("purl", r.Data.ProfileURL)
 	assert.Equal("email", r.Data.Email)
 	assert.Equal("2019-08-20T13:26:19.140324Z", r.Data.Created)
 	assert.Equal("2019-08-20T13:26:19.140324Z", r.Data.Updated)

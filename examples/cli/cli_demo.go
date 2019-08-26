@@ -116,12 +116,12 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s userEvent.Channel: %s", outputPrefix, userEvent.Channel))
 				fmt.Println(fmt.Sprintf("%s userEvent.SubscribedChannel: %s", outputPrefix, userEvent.SubscribedChannel))
 				fmt.Println(fmt.Sprintf("%s userEvent.Event: %s", outputPrefix, userEvent.Event))
-				fmt.Println(fmt.Sprintf("%s userEvent.UserId: %s", outputPrefix, userEvent.UserId))
+				fmt.Println(fmt.Sprintf("%s userEvent.UserID: %s", outputPrefix, userEvent.UserID))
 				fmt.Println(fmt.Sprintf("%s userEvent.Description: %s", outputPrefix, userEvent.Description))
 				fmt.Println(fmt.Sprintf("%s userEvent.Timestamp: %s", outputPrefix, userEvent.Timestamp))
 				fmt.Println(fmt.Sprintf("%s userEvent.Name: %s", outputPrefix, userEvent.Name))
-				fmt.Println(fmt.Sprintf("%s userEvent.ExternalId: %s", outputPrefix, userEvent.ExternalId))
-				fmt.Println(fmt.Sprintf("%s userEvent.ProfileUrl: %s", outputPrefix, userEvent.ProfileUrl))
+				fmt.Println(fmt.Sprintf("%s userEvent.ExternalID: %s", outputPrefix, userEvent.ExternalID))
+				fmt.Println(fmt.Sprintf("%s userEvent.ProfileURL: %s", outputPrefix, userEvent.ProfileURL))
 				fmt.Println(fmt.Sprintf("%s userEvent.Email: %s", outputPrefix, userEvent.Email))
 				fmt.Println(fmt.Sprintf("%s userEvent.Created: %s", outputPrefix, userEvent.Created))
 				fmt.Println(fmt.Sprintf("%s userEvent.Updated: %s", outputPrefix, userEvent.Updated))
@@ -135,7 +135,7 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s spaceEvent.Channel: %s", outputPrefix, spaceEvent.Channel))
 				fmt.Println(fmt.Sprintf("%s spaceEvent.SubscribedChannel: %s", outputPrefix, spaceEvent.SubscribedChannel))
 				fmt.Println(fmt.Sprintf("%s spaceEvent.Event: %s", outputPrefix, spaceEvent.Event))
-				fmt.Println(fmt.Sprintf("%s spaceEvent.SpaceId: %s", outputPrefix, spaceEvent.SpaceId))
+				fmt.Println(fmt.Sprintf("%s spaceEvent.SpaceID: %s", outputPrefix, spaceEvent.SpaceID))
 				fmt.Println(fmt.Sprintf("%s spaceEvent.Description: %s", outputPrefix, spaceEvent.Description))
 				fmt.Println(fmt.Sprintf("%s spaceEvent.Timestamp: %s", outputPrefix, spaceEvent.Timestamp))
 				fmt.Println(fmt.Sprintf("%s spaceEvent.Created: %s", outputPrefix, spaceEvent.Created))
@@ -150,8 +150,8 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Channel: %s", outputPrefix, membershipEvent.Channel))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.SubscribedChannel: %s", outputPrefix, membershipEvent.SubscribedChannel))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Event: %s", outputPrefix, membershipEvent.Event))
-				fmt.Println(fmt.Sprintf("%s membershipEvent.SpaceId: %s", outputPrefix, membershipEvent.SpaceId))
-				fmt.Println(fmt.Sprintf("%s membershipEvent.UserId: %s", outputPrefix, membershipEvent.UserId))
+				fmt.Println(fmt.Sprintf("%s membershipEvent.SpaceID: %s", outputPrefix, membershipEvent.SpaceID))
+				fmt.Println(fmt.Sprintf("%s membershipEvent.UserID: %s", outputPrefix, membershipEvent.UserID))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Description: %s", outputPrefix, membershipEvent.Description))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Timestamp: %s", outputPrefix, membershipEvent.Timestamp))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Custom: %v", outputPrefix, membershipEvent.Custom))
@@ -514,33 +514,33 @@ func readCommand(cmd string) {
 	case "signal":
 		signal(command[1:])
 	case "createuser":
-		CreateUser(command[1:])
+		createUser(command[1:])
 	case "getusers":
-		GetUsers(command[1:])
+		getUsers(command[1:])
 	case "getuser":
-		GetUser(command[1:])
+		getUser(command[1:])
 	case "updateuser":
-		UpdateUser(command[1:])
+		updateUser(command[1:])
 	case "deleteuser":
-		DeleteUser(command[1:])
+		deleteUser(command[1:])
 	case "getspaces":
-		GetSpaces(command[1:])
+		getSpaces(command[1:])
 	case "createspace":
-		CreateSpace(command[1:])
+		createSpace(command[1:])
 	case "delspace":
-		DeleteSpace(command[1:])
+		deleteSpace(command[1:])
 	case "updatespace":
-		UpdateSpace(command[1:])
+		updateSpace(command[1:])
 	case "getspace":
-		GetSpace(command[1:])
+		getSpace(command[1:])
 	case "getspacemem":
-		GetSpaceMemberships(command[1:])
+		getSpaceMemberships(command[1:])
 	case "getmem":
-		GetMembers(command[1:])
+		getMembers(command[1:])
 	case "updatespacemem":
-		ManageMemberships(command[1:])
+		manageMemberships(command[1:])
 	case "updatemem":
-		ManageMembers(command[1:])
+		manageMembers(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -550,12 +550,12 @@ func readCommand(cmd string) {
 	}
 }
 
-func ManageMembers(args []string) {
+func manageMembers(args []string) {
 	if len(args) < 5 {
 		showEditMembershipsHelp()
 		return
 	}
-	spaceId := args[0]
+	spaceID := args[0]
 	id0 := args[1]
 	//id1 := args[2]
 	//id2 := args[3]
@@ -583,7 +583,7 @@ func ManageMembers(args []string) {
 	custom["c1"] = "d1"
 
 	in := pubnub.PNMembersInput{
-		Id:     id0,
+		ID:     id0,
 		Custom: custom,
 	}
 
@@ -596,7 +596,7 @@ func ManageMembers(args []string) {
 	custom2["c2"] = "d2"
 
 	up := pubnub.PNMembersInput{
-		Id:     id0,
+		ID:     id0,
 		Custom: custom2,
 	}
 
@@ -605,7 +605,7 @@ func ManageMembers(args []string) {
 	}
 
 	re := pubnub.PNMembersRemove{
-		Id: id0,
+		ID: id0,
 	}
 
 	reArr := []pubnub.PNMembersRemove{
@@ -624,25 +624,25 @@ func ManageMembers(args []string) {
 	}
 
 	if start != "" {
-		res, status, err := pn.ManageMembers().SpaceId(spaceId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+		res, status, err := pn.ManageMembers().SpaceID(spaceID).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 
 	} else {
-		res, status, err := pn.ManageMembers().SpaceId(spaceId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
+		res, status, err := pn.ManageMembers().SpaceID(spaceID).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 	}
 }
 
-func ManageMemberships(args []string) {
+func manageMemberships(args []string) {
 	if len(args) < 5 {
 		showUpdateMembersHelp()
 		return
 	}
-	userId := args[0]
+	userID := args[0]
 	id0 := args[1]
 	//id1 := args[2]
 	//id2 := args[3]
@@ -670,7 +670,7 @@ func ManageMemberships(args []string) {
 	custom3["c3"] = "d3"
 
 	in := pubnub.PNMembershipsInput{
-		Id:     id0,
+		ID:     id0,
 		Custom: custom3,
 	}
 
@@ -683,7 +683,7 @@ func ManageMemberships(args []string) {
 	custom4["c4"] = "d4"
 
 	up := pubnub.PNMembershipsInput{
-		Id:     id0,
+		ID:     id0,
 		Custom: custom4,
 	}
 
@@ -692,7 +692,7 @@ func ManageMemberships(args []string) {
 	}
 
 	re := pubnub.PNMembershipsRemove{
-		Id: id0,
+		ID: id0,
 	}
 
 	reArr := []pubnub.PNMembershipsRemove{
@@ -712,21 +712,21 @@ func ManageMemberships(args []string) {
 
 	if start != "" {
 		res, status, err := pn.ManageMemberships().Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
-		//res, status, err := pn.UpdateMembers().UserId(userId).Add(inArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+		//res, status, err := pn.UpdateMembers().UserID(userID).Add(inArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 
 	} else {
 
-		res, status, err := pn.ManageMemberships().UserId(userId).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
+		res, status, err := pn.ManageMemberships().UserID(userID).Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 	}
 }
 
-func GetSpaceMemberships(args []string) {
+func getSpaceMemberships(args []string) {
 	if len(args) < 3 {
 		showGetSpaceMembershipsHelp()
 		return
@@ -751,19 +751,19 @@ func GetSpaceMemberships(args []string) {
 		pubnub.PNMembershipsSpaceCustom,
 	}
 	if start != "" {
-		res, status, err := pn.GetMemberships().UserId(id).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+		res, status, err := pn.GetMemberships().UserID(id).Include(incl).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 	} else {
-		res, status, err := pn.GetMemberships().UserId(id).Include(incl).Limit(limit).Count(count).Execute()
+		res, status, err := pn.GetMemberships().UserID(id).Include(incl).Limit(limit).Count(count).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 	}
 }
 
-func GetMembers(args []string) {
+func getMembers(args []string) {
 	if len(args) < 3 {
 		showGetMembersHelp()
 		return
@@ -788,19 +788,19 @@ func GetMembers(args []string) {
 		pubnub.PNMembersUserCustom,
 	}
 	if start != "" {
-		res, status, err := pn.GetMembers().SpaceId(id).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+		res, status, err := pn.GetMembers().SpaceID(id).Include(incl).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 	} else {
-		res, status, err := pn.GetMembers().SpaceId(id).Include(incl).Limit(limit).Count(count).Execute()
+		res, status, err := pn.GetMembers().SpaceID(id).Include(incl).Limit(limit).Count(count).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 	}
 }
 
-func GetSpaces(args []string) {
+func getSpaces(args []string) {
 	if len(args) < 2 {
 		showGetSpacesHelp()
 		return
@@ -834,7 +834,7 @@ func GetSpaces(args []string) {
 	}
 }
 
-func UpdateSpace(args []string) {
+func updateSpace(args []string) {
 	if len(args) < 2 {
 		showUpdateSpaceHelp()
 		return
@@ -851,26 +851,26 @@ func UpdateSpace(args []string) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	res, status, err := pn.UpdateSpace().Id(id).Name(name).Description(desc).Include(incl).Custom(custom).Execute()
+	res, status, err := pn.UpdateSpace().ID(id).Name(name).Description(desc).Include(incl).Custom(custom).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
 }
 
-func DeleteSpace(args []string) {
+func deleteSpace(args []string) {
 	if len(args) < 1 {
 		showDeleteSpaceHelp()
 		return
 	}
 	id := args[0]
 
-	res, status, err := pn.DeleteSpace().Id(id).Execute()
+	res, status, err := pn.DeleteSpace().ID(id).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
 }
 
-func CreateSpace(args []string) {
+func createSpace(args []string) {
 	if len(args) < 3 {
 		showCreateSpaceHelp()
 		return
@@ -887,14 +887,14 @@ func CreateSpace(args []string) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	//res, status, err := pn.CreateSpace().Id("id0").Name("name").Description("desc").Include([]string{"custom"}).Custom(custom).Execute()
-	res, status, err := pn.CreateSpace().Id(id).Name(name).Description(desc).Include(incl).Custom(custom).Execute()
+	//res, status, err := pn.CreateSpace().ID("id0").Name("name").Description("desc").Include([]string{"custom"}).Custom(custom).Execute()
+	res, status, err := pn.CreateSpace().ID(id).Name(name).Description(desc).Include(incl).Custom(custom).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
 }
 
-func GetSpace(args []string) {
+func getSpace(args []string) {
 	if len(args) < 1 {
 		showGetSpaceHelp()
 		return
@@ -905,13 +905,13 @@ func GetSpace(args []string) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	res, status, err := pn.GetSpace().Id(id).Include(incl).Execute()
+	res, status, err := pn.GetSpace().ID(id).Include(incl).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
 }
 
-func DeleteUser(args []string) {
+func deleteUser(args []string) {
 	if len(args) < 1 {
 		showDeleteUserHelp()
 		return
@@ -922,13 +922,13 @@ func DeleteUser(args []string) {
 	custom["a"] = "b"
 	custom["c"] = "d"
 
-	res, status, err := pn.DeleteUser().Id(id).Execute()
+	res, status, err := pn.DeleteUser().ID(id).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
 }
 
-func UpdateUser(args []string) {
+func updateUser(args []string) {
 	if len(args) < 5 {
 		showUpdateUserHelp()
 		return
@@ -946,13 +946,13 @@ func UpdateUser(args []string) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	res, status, err := pn.UpdateUser().Include(incl).Id(id).Name(name).ExternalId(extid).ProfileUrl(purl).Email(email).Custom(custom).Execute()
+	res, status, err := pn.UpdateUser().Include(incl).ID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
 }
 
-func GetUser(args []string) {
+func getUser(args []string) {
 	if len(args) < 1 {
 		showGetUserHelp()
 		return
@@ -963,13 +963,13 @@ func GetUser(args []string) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	res, status, err := pn.GetUser().Include(incl).Id(id).Execute()
+	res, status, err := pn.GetUser().Include(incl).ID(id).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
 }
 
-func GetUsers(args []string) {
+func getUsers(args []string) {
 	if len(args) < 2 {
 		showGetUsersHelp()
 		return
@@ -1005,7 +1005,7 @@ func GetUsers(args []string) {
 
 }
 
-func CreateUser(args []string) {
+func createUser(args []string) {
 	if len(args) < 5 {
 		showCreateUserHelp()
 		return
@@ -1024,7 +1024,7 @@ func CreateUser(args []string) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	res, status, err := pn.CreateUser().Include(incl).Id(id).Name(name).ExternalId(extid).ProfileUrl(purl).Email(email).Custom(custom).Execute()
+	res, status, err := pn.CreateUser().Include(incl).ID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)

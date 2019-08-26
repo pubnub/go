@@ -43,10 +43,10 @@ func newUpdateUserBuilderWithContext(pubnub *PubNub,
 }
 
 type UpdateUserBody struct {
-	Id         string                 `json:"id"`
+	ID         string                 `json:"id"`
 	Name       string                 `json:"name"`
-	ExternalId string                 `json:"externalId"`
-	ProfileUrl string                 `json:"profileUrl"`
+	ExternalID string                 `json:"externalId"`
+	ProfileURL string                 `json:"profileUrl"`
 	Email      string                 `json:"email"`
 	Custom     map[string]interface{} `json:"custom"`
 }
@@ -59,8 +59,8 @@ func (b *updateUserBuilder) Include(include []PNUserSpaceInclude) *updateUserBui
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *updateUserBuilder) Id(id string) *updateUserBuilder {
-	b.opts.Id = id
+func (b *updateUserBuilder) ID(id string) *updateUserBuilder {
+	b.opts.ID = id
 
 	return b
 }
@@ -72,14 +72,14 @@ func (b *updateUserBuilder) Name(name string) *updateUserBuilder {
 	return b
 }
 
-func (b *updateUserBuilder) ExternalId(externalId string) *updateUserBuilder {
-	b.opts.ExternalId = externalId
+func (b *updateUserBuilder) ExternalID(externalId string) *updateUserBuilder {
+	b.opts.ExternalID = externalId
 
 	return b
 }
 
-func (b *updateUserBuilder) ProfileUrl(profileUrl string) *updateUserBuilder {
-	b.opts.ProfileUrl = profileUrl
+func (b *updateUserBuilder) ProfileURL(profileUrl string) *updateUserBuilder {
+	b.opts.ProfileURL = profileUrl
 
 	return b
 }
@@ -122,10 +122,10 @@ func (b *updateUserBuilder) Execute() (*PNUpdateUserResponse, StatusResponse, er
 type updateUserOpts struct {
 	pubnub     *PubNub
 	Include    []string
-	Id         string
+	ID         string
 	Name       string
-	ExternalId string
-	ProfileUrl string
+	ExternalID string
+	ProfileURL string
 	Email      string
 	Custom     map[string]interface{}
 	QueryParam map[string]string
@@ -157,7 +157,7 @@ func (o *updateUserOpts) validate() error {
 
 func (o *updateUserOpts) buildPath() (string, error) {
 	return fmt.Sprintf(updateUserPath,
-		o.pubnub.Config.SubscribeKey, o.Id), nil
+		o.pubnub.Config.SubscribeKey, o.ID), nil
 }
 
 func (o *updateUserOpts) buildQuery() (*url.Values, error) {
@@ -178,10 +178,10 @@ func (o *updateUserOpts) jobQueue() chan *JobQItem {
 
 func (o *updateUserOpts) buildBody() ([]byte, error) {
 	b := &UpdateUserBody{
-		Id:         o.Id,
+		ID:         o.ID,
 		Name:       o.Name,
-		ExternalId: o.ExternalId,
-		ProfileUrl: o.ProfileUrl,
+		ExternalID: o.ExternalID,
+		ProfileURL: o.ProfileURL,
 		Email:      o.Email,
 		Custom:     o.Custom,
 	}

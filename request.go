@@ -52,9 +52,8 @@ func buildBody(opts endpointOpts, url *url.URL) (io.Reader, error) {
 	if err != nil {
 		opts.config().Log.Println("PNUnknownCategory", err, url)
 		return nil, err
-	} else {
-		opts.config().Log.Println("BODY", string(b))
 	}
+	opts.config().Log.Println("BODY", string(b))
 
 	return bytes.NewReader(b), nil
 }

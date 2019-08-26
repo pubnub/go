@@ -36,7 +36,7 @@ func AssertGetSpace(t *testing.T, checkQueryParam, testContext bool) {
 	}
 
 	o.Include(incl)
-	o.Id("id0")
+	o.ID("id0")
 	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()
@@ -91,7 +91,7 @@ func TestGetSpaceResponseValuePass(t *testing.T) {
 
 	r, _, err := newPNGetSpaceResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(200, r.Status)
-	assert.Equal("id0", r.Data.Id)
+	assert.Equal("id0", r.Data.ID)
 	assert.Equal("name", r.Data.Name)
 	assert.Equal("desc", r.Data.Description)
 	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data.Created)

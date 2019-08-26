@@ -237,12 +237,12 @@ type PNPresence struct {
 
 type PNUserEvent struct {
 	Event             PNObjectsEvent
-	UserId            string
+	UserID            string
 	Description       string
 	Timestamp         string
 	Name              string
-	ExternalId        string
-	ProfileUrl        string
+	ExternalID        string
+	ProfileURL        string
 	Email             string
 	Created           string
 	Updated           string
@@ -256,7 +256,7 @@ type PNUserEvent struct {
 
 type PNSpaceEvent struct {
 	Event             PNObjectsEvent
-	SpaceId           string
+	SpaceID           string
 	Description       string
 	Timestamp         string
 	Name              string
@@ -272,8 +272,8 @@ type PNSpaceEvent struct {
 
 type PNMembershipEvent struct {
 	Event             PNObjectsEvent
-	UserId            string
-	SpaceId           string
+	UserID            string
+	SpaceID           string
 	Description       string
 	Timestamp         string
 	Custom            map[string]interface{}

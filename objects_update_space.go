@@ -42,7 +42,7 @@ func newUpdateSpaceBuilderWithContext(pubnub *PubNub,
 }
 
 type UpdateSpaceBody struct {
-	Id          string                 `json:"id"`
+	ID          string                 `json:"id"`
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
 	Custom      map[string]interface{} `json:"custom"`
@@ -56,8 +56,8 @@ func (b *updateSpaceBuilder) Include(include []PNUserSpaceInclude) *updateSpaceB
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *updateSpaceBuilder) Id(id string) *updateSpaceBuilder {
-	b.opts.Id = id
+func (b *updateSpaceBuilder) ID(id string) *updateSpaceBuilder {
+	b.opts.ID = id
 
 	return b
 }
@@ -107,7 +107,7 @@ func (b *updateSpaceBuilder) Execute() (*PNUpdateSpaceResponse, StatusResponse, 
 type updateSpaceOpts struct {
 	pubnub      *PubNub
 	Include     []string
-	Id          string
+	ID          string
 	Name        string
 	Description string
 	Custom      map[string]interface{}
@@ -140,7 +140,7 @@ func (o *updateSpaceOpts) validate() error {
 
 func (o *updateSpaceOpts) buildPath() (string, error) {
 	return fmt.Sprintf(updateSpacePath,
-		o.pubnub.Config.SubscribeKey, o.Id), nil
+		o.pubnub.Config.SubscribeKey, o.ID), nil
 }
 
 func (o *updateSpaceOpts) buildQuery() (*url.Values, error) {
@@ -162,7 +162,7 @@ func (o *updateSpaceOpts) jobQueue() chan *JobQItem {
 
 func (o *updateSpaceOpts) buildBody() ([]byte, error) {
 	b := &UpdateSpaceBody{
-		Id:          o.Id,
+		ID:          o.ID,
 		Name:        o.Name,
 		Description: o.Description,
 		Custom:      o.Custom,

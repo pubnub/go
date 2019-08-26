@@ -34,12 +34,12 @@ func AssertGetMemberships(t *testing.T, checkQueryParam, testContext bool) {
 		o = newGetMembershipsBuilderWithContext(pn, backgroundContext)
 	}
 
-	userId := "id0"
+	userID := "id0"
 	limit := 90
 	start := "Mxmy"
 	end := "Nxny"
 
-	o.UserId(userId)
+	o.UserID(userID)
 	o.Include(incl)
 	o.Limit(limit)
 	o.Start(start)
@@ -105,7 +105,7 @@ func TestGetMembershipsResponseValuePass(t *testing.T) {
 	assert.Equal(1, r.TotalCount)
 	assert.Equal("MQ", r.Next)
 	assert.Equal("NQ", r.Prev)
-	assert.Equal("id0", r.Data[0].Id)
+	assert.Equal("id0", r.Data[0].ID)
 	assert.Equal("name", r.Data[0].Space.Name)
 	assert.Equal("desc", r.Data[0].Space.Description)
 	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data[0].Space.Created)

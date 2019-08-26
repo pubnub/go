@@ -43,7 +43,7 @@ func newCreateSpaceBuilderWithContext(pubnub *PubNub,
 }
 
 type createSpaceBody struct {
-	Id          string                 `json:"id"`
+	ID          string                 `json:"id"`
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
 	Custom      map[string]interface{} `json:"custom"`
@@ -57,8 +57,8 @@ func (b *createSpaceBuilder) Include(include []PNUserSpaceInclude) *createSpaceB
 }
 
 // Auth sets the Authorization key with permissions to perform the request.
-func (b *createSpaceBuilder) Id(id string) *createSpaceBuilder {
-	b.opts.Id = id
+func (b *createSpaceBuilder) ID(id string) *createSpaceBuilder {
+	b.opts.ID = id
 
 	return b
 }
@@ -109,7 +109,7 @@ type createSpaceOpts struct {
 	pubnub *PubNub
 
 	Include     []string
-	Id          string
+	ID          string
 	Name        string
 	Description string
 	Custom      map[string]interface{}
@@ -163,7 +163,7 @@ func (o *createSpaceOpts) jobQueue() chan *JobQItem {
 
 func (o *createSpaceOpts) buildBody() ([]byte, error) {
 	b := &createSpaceBody{
-		Id:          o.Id,
+		ID:          o.ID,
 		Name:        o.Name,
 		Description: o.Description,
 		Custom:      o.Custom,

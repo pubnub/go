@@ -34,12 +34,12 @@ func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
 		o = newManageMembersBuilderWithContext(pn, backgroundContext)
 	}
 
-	spaceId := "id0"
+	spaceID := "id0"
 	limit := 90
 	start := "Mxmy"
 	end := "Nxny"
 
-	o.SpaceId(spaceId)
+	o.SpaceID(spaceID)
 	o.Include(incl)
 	o.Limit(limit)
 	o.Start(start)
@@ -54,7 +54,7 @@ func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
 	custom["c1"] = "d1"
 
 	in := PNMembersInput{
-		Id:     id0,
+		ID:     id0,
 		Custom: custom,
 	}
 
@@ -67,7 +67,7 @@ func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
 	custom2["c2"] = "d2"
 
 	up := PNMembersInput{
-		Id:     id0,
+		ID:     id0,
 		Custom: custom2,
 	}
 
@@ -76,7 +76,7 @@ func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
 	}
 
 	re := PNMembersRemove{
-		Id: id0,
+		ID: id0,
 	}
 
 	reArr := []PNMembersRemove{
@@ -90,7 +90,7 @@ func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/objects/%s/spaces/%s/users", pn.Config.SubscribeKey, spaceId),
+		fmt.Sprintf("/v1/objects/%s/spaces/%s/users", pn.Config.SubscribeKey, spaceID),
 		path, []int{})
 
 	body, err := o.opts.buildBody()
@@ -145,16 +145,16 @@ func TestManageMembersResponseValuePass(t *testing.T) {
 	assert.Equal(200, r.Status)
 	assert.Equal(1, r.TotalCount)
 	assert.Equal("MQ", r.Next)
-	assert.Equal("userid4", r.Data[0].Id)
+	assert.Equal("userid4", r.Data[0].ID)
 	assert.Equal("2019-08-23T10:41:35.503214Z", r.Data[0].Created)
 	assert.Equal("2019-08-23T10:41:35.503214Z", r.Data[0].Updated)
 	assert.Equal("AZK3l4nQsrWG9gE", r.Data[0].ETag)
 	assert.Equal("b1", r.Data[0].Custom["a1"])
 	assert.Equal("d1", r.Data[0].Custom["c1"])
-	assert.Equal("userid4", r.Data[0].User.Id)
+	assert.Equal("userid4", r.Data[0].User.ID)
 	assert.Equal("userid4name", r.Data[0].User.Name)
-	assert.Equal("extid", r.Data[0].User.ExternalId)
-	assert.Equal("purl", r.Data[0].User.ProfileUrl)
+	assert.Equal("extid", r.Data[0].User.ExternalID)
+	assert.Equal("purl", r.Data[0].User.ProfileURL)
 	assert.Equal("email", r.Data[0].User.Email)
 	assert.Equal("2019-08-23T10:36:27.083453Z", r.Data[0].User.Created)
 	assert.Equal("2019-08-23T10:36:27.083453Z", r.Data[0].User.Updated)

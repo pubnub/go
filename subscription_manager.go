@@ -639,11 +639,11 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 
 		switch payload.MessageType {
 		case PNMessageTypeSignal:
-			pnMessageResult := CreatePNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+			pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
 			m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
 			m.listenerManager.announceSignal(pnMessageResult)
 		case PNMessageTypeObjects:
-			pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType := CreatePNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
+			pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
 			m.pubnub.Config.Log.Println("announceObjects,", pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType)
 			//go func() {
 			switch eventType {
@@ -674,7 +674,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 				m.listenerManager.announceStatus(pnStatus)
 
 			}
-			pnMessageResult := CreatePNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+			pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
 			m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
 			m.listenerManager.announceMessage(pnMessageResult)
 		}
@@ -711,7 +711,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 	}
 }
 
-func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) (*PNUserEvent, *PNSpaceEvent, *PNMembershipEvent, PNObjectsEventType) {
+func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) (*PNUserEvent, *PNSpaceEvent, *PNMembershipEvent, PNObjectsEventType) {
 	var objectsPayload map[string]interface{}
 	var ok bool
 	if objectsPayload, ok = objPayload.(map[string]interface{}); !ok {
@@ -725,18 +725,18 @@ func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	}
 	eventType := PNObjectsEventType(objectsPayload["type"].(string))
 	event := PNObjectsEvent(objectsPayload["event"].(string))
-	var id, userId, spaceId, description, timestamp, created, updated, eTag, name, externalId, profileUrl, email string
+	var id, userID, spaceID, description, timestamp, created, updated, eTag, name, externalId, profileUrl, email string
 	var custom, data map[string]interface{}
 	if objectsPayload["data"] != nil {
 		data = objectsPayload["data"].(map[string]interface{})
 		if data["userId"] != nil {
-			userId = data["userId"].(string)
+			userID = data["userId"].(string)
 		}
 		if data["id"] != nil {
 			id = data["id"].(string)
 		}
 		if data["spaceId"] != nil {
-			spaceId = data["spaceId"].(string)
+			spaceID = data["spaceId"].(string)
 		}
 		if data["name"] != nil {
 			name = data["name"].(string)
@@ -774,8 +774,8 @@ func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	pnObjectsResult := &PNObjectsResponse{
 		Event:       event,
 		EventType:   eventType,
-		UserId:      userId,
-		SpaceId:     spaceId,
+		UserID:      userID,
+		SpaceID:     spaceID,
 		Description: description,
 		Timestamp:   timestamp,
 		Created:     created,
@@ -784,14 +784,14 @@ func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		Custom:      custom,
 		Data:        data,
 		Name:        name,
-		ExternalId:  externalId,
-		ProfileUrl:  profileUrl,
+		ExternalID:  externalId,
+		ProfileURL:  profileUrl,
 		Email:       email,
 	}
 
 	pnSpaceEvent := &PNSpaceEvent{
 		Event:             pnObjectsResult.Event,
-		SpaceId:           id,
+		SpaceID:           id,
 		Description:       pnObjectsResult.Description,
 		Timestamp:         pnObjectsResult.Timestamp,
 		Name:              pnObjectsResult.Name,
@@ -807,15 +807,15 @@ func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 
 	pnUserEvent := &PNUserEvent{
 		Event:             pnObjectsResult.Event,
-		UserId:            id,
+		UserID:            id,
 		Timestamp:         pnObjectsResult.Timestamp,
 		Created:           pnObjectsResult.Created,
 		Updated:           pnObjectsResult.Updated,
 		ETag:              pnObjectsResult.ETag,
 		Custom:            pnObjectsResult.Custom,
 		Name:              pnObjectsResult.Name,
-		ExternalId:        pnObjectsResult.ExternalId,
-		ProfileUrl:        pnObjectsResult.ProfileUrl,
+		ExternalID:        pnObjectsResult.ExternalID,
+		ProfileURL:        pnObjectsResult.ProfileURL,
 		Email:             pnObjectsResult.Email,
 		ActualChannel:     actualCh,
 		SubscribedChannel: subscribedCh,
@@ -825,8 +825,8 @@ func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 
 	pnMembershipEvent := &PNMembershipEvent{
 		Event:             pnObjectsResult.Event,
-		UserId:            pnObjectsResult.UserId,
-		SpaceId:           pnObjectsResult.SpaceId,
+		UserID:            pnObjectsResult.UserID,
+		SpaceID:           pnObjectsResult.SpaceID,
 		Description:       pnObjectsResult.Description,
 		Timestamp:         pnObjectsResult.Timestamp,
 		Custom:            pnObjectsResult.Custom,
@@ -839,7 +839,7 @@ func CreatePNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	return pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType
 }
 
-func CreatePNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64) *PNMessage {
+func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64) *PNMessage {
 
 	pnMessageResult := &PNMessage{
 		Message:           messagePayload,

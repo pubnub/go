@@ -34,12 +34,12 @@ func AssertGetMembers(t *testing.T, checkQueryParam, testContext bool) {
 		o = newGetMembersBuilderWithContext(pn, backgroundContext)
 	}
 
-	spaceId := "id0"
+	spaceID := "id0"
 	limit := 90
 	start := "Mxmy"
 	end := "Nxny"
 
-	o.SpaceId(spaceId)
+	o.SpaceID(spaceID)
 	o.Include(incl)
 	o.Limit(limit)
 	o.Start(start)
@@ -105,10 +105,10 @@ func TestGetMembersResponseValuePass(t *testing.T) {
 	assert.Equal(1, r.TotalCount)
 	assert.Equal("MQ", r.Next)
 	assert.Equal("NQ", r.Prev)
-	assert.Equal("id0", r.Data[0].Id)
+	assert.Equal("id0", r.Data[0].ID)
 	assert.Equal("name", r.Data[0].User.Name)
-	assert.Equal("extid", r.Data[0].User.ExternalId)
-	assert.Equal("purl", r.Data[0].User.ProfileUrl)
+	assert.Equal("extid", r.Data[0].User.ExternalID)
+	assert.Equal("purl", r.Data[0].User.ProfileURL)
 	assert.Equal("email", r.Data[0].User.Email)
 	assert.Equal("2019-08-20T13:26:19.140324Z", r.Data[0].User.Created)
 	assert.Equal("2019-08-20T13:26:19.140324Z", r.Data[0].User.Updated)
