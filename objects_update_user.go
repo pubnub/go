@@ -42,6 +42,7 @@ func newUpdateUserBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+// UpdateUserBody is the input to update user
 type UpdateUserBody struct {
 	ID         string                 `json:"id"`
 	Name       string                 `json:"name"`

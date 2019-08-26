@@ -61,7 +61,7 @@ type PNMembershipsInput struct {
 	Custom map[string]interface{} `json:"custom"`
 }
 
-// PNMembersRemove is the Objects API Memberships struct used to remove members
+// PNMembershipsRemove is the Objects API Memberships struct used to remove members
 type PNMembershipsRemove struct {
 	ID string `json:"id"`
 }
