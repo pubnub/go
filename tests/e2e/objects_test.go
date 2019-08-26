@@ -2,8 +2,8 @@ package e2e
 
 import (
 	"fmt"
-	"log"
-	"os"
+	//"log"
+	//"os"
 	"testing"
 	"time"
 
@@ -550,8 +550,8 @@ func TestObjectsListeners(t *testing.T) {
 
 	userid := fmt.Sprintf("testlistuser_%d", r.Intn(99999))
 	spaceid := fmt.Sprintf("testlistspace_%d", r.Intn(99999))
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-	pnSub.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pnSub.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	//Subscribe to the channel names
 
