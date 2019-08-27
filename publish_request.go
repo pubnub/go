@@ -36,7 +36,8 @@ type publishOpts struct {
 
 	Transport http.RoundTripper
 
-	ctx Context
+	ctx       Context
+	cipherKey string
 
 	// nil hacks
 	setTTL         bool
@@ -96,6 +97,19 @@ func newPublishBuilderWithContext(pubnub *PubNub, context Context) *publishBuild
 			pubnub:    pubnub,
 			ctx:       context,
 			Serialize: true,
+		},
+	}
+
+	return &builder
+}
+
+func newPublishBuilderWithCipherKey(pubnub *PubNub, context Context, cipherKey string) *publishBuilder {
+	builder := publishBuilder{
+		opts: &publishOpts{
+			pubnub:    pubnub,
+			ctx:       context,
+			Serialize: true,
+			cipherKey: cipherKey,
 		},
 	}
 
@@ -284,7 +298,11 @@ func (o *publishOpts) buildPath() (string, error) {
 	var msg string
 	var errJSONMarshal error
 
-	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
+	cipherKey := o.cipherKey
+	if cipherKey == "" {
+		cipherKey = o.pubnub.Config.CipherKey
+	}
+	if cipherKey != "" {
 		if msg, errJSONMarshal = o.encryptProcessing(cipherKey); errJSONMarshal != nil {
 			return "", errJSONMarshal
 		}
@@ -361,7 +379,11 @@ func (o *publishOpts) jobQueue() chan *JobQItem {
 
 func (o *publishOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
-		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
+		cipherKey := o.cipherKey
+		if cipherKey == "" {
+			cipherKey = o.pubnub.Config.CipherKey
+		}
+		if cipherKey != "" {
 			msg, errJSONMarshal := o.encryptProcessing(cipherKey)
 			if errJSONMarshal != nil {
 				return []byte{}, errJSONMarshal

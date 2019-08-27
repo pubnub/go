@@ -21,6 +21,7 @@ type JobQItem struct {
 }
 
 type RequestWorkers struct {
+	workers    []Worker
 	Workers    chan chan *JobQItem
 	MaxWorkers int
 	Sem        chan bool
@@ -32,8 +33,6 @@ type Worker struct {
 	ctx        Context
 	id         int
 }
-
-var workers []Worker
 
 func newRequestWorkers(workers chan chan *JobQItem, id int, ctx Context) Worker {
 	return Worker{
@@ -75,12 +74,12 @@ func (pw Worker) Process(pubnub *PubNub) {
 // Start starts the workers
 func (p *RequestWorkers) Start(pubnub *PubNub, ctx Context) {
 	pubnub.Config.Log.Println("Start: Running with workers ", p.MaxWorkers)
-	workers = make([]Worker, p.MaxWorkers)
+	p.workers = make([]Worker, p.MaxWorkers)
 	for i := 0; i < p.MaxWorkers; i++ {
 		pubnub.Config.Log.Println("Start: StartNonSubWorker ", i)
 		worker := newRequestWorkers(p.Workers, i, ctx)
 		worker.Process(pubnub)
-		workers[i] = worker
+		p.workers[i] = worker
 	}
 	go p.ReadQueue(pubnub)
 }
@@ -99,8 +98,7 @@ func (p *RequestWorkers) ReadQueue(pubnub *PubNub) {
 
 // Close closes the workers
 func (p *RequestWorkers) Close() {
-
-	for _, w := range workers {
+	for _, w := range p.workers {
 		close(w.JobChannel)
 		w.ctx.Done()
 	}
