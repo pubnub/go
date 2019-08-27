@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	pubnub "github.com/pubnub/go"
+	pubnub "github.com/sprucehealth/pubnub-go"
 	"github.com/stretchr/testify/assert"
 )
 

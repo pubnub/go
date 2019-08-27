@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
+	"github.com/sprucehealth/pubnub-go/pnerr"
+	"github.com/sprucehealth/pubnub-go/utils"
 
 	"net/http"
 	"net/url"

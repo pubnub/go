@@ -2,7 +2,7 @@ package pubnub
 
 import (
 	"fmt"
-	"github.com/pubnub/go/utils"
+	"github.com/sprucehealth/pubnub-go/utils"
 	"log"
 )
 

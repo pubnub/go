@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/pnerr"
+	"github.com/sprucehealth/pubnub-go/pnerr"
 )
 
 var emptyPNDeleteSpaceResponse *PNDeleteSpaceResponse

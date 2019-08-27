@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/utils"
+	"github.com/sprucehealth/pubnub-go/utils"
 )
 
 const leavePath = "/v2/presence/sub-key/%s/channel/%s/leave"

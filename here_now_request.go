@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/pnerr"
+	"github.com/sprucehealth/pubnub-go/pnerr"
 )
 
 var hereNowPath = "/v2/presence/sub_key/%s/channel/%s"

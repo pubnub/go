@@ -2,8 +2,8 @@ package e2e
 
 import (
 	"fmt"
-	pubnub "github.com/pubnub/go"
-	"github.com/pubnub/go/tests/stubs"
+	pubnub "github.com/sprucehealth/pubnub-go"
+	"github.com/sprucehealth/pubnub-go/tests/stubs"
 	"github.com/stretchr/testify/assert"
 
 	"testing"

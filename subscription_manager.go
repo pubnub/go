@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	//"fmt"
-	"github.com/pubnub/go/utils"
+	"github.com/sprucehealth/pubnub-go/utils"
 	"net/http"
 	"reflect"
 	"strconv"
