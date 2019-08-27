@@ -70,6 +70,10 @@ func (pn *PubNub) PublishWithContext(ctx Context) *publishBuilder {
 	return newPublishBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) PublishWithCipherKey(ctx Context, key string) *publishBuilder {
+	return newPublishBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) Fire() *fireBuilder {
 	return newFireBuilder(pn)
 }
