@@ -2,9 +2,11 @@ package pubnub
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pubnub/go/pnerr"
@@ -70,17 +72,21 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 	}
 
 	if o.config().SecretKey != "" {
-		timestamp := time.Now().Unix()
-		query.Set("timestamp", strconv.Itoa(int(timestamp)))
+		if (o.operationType() == PNPublishOperation) && (o.httpMethod() == "POST") {
+			timestamp := time.Now().Unix()
+			query.Set("timestamp", strconv.Itoa(int(timestamp)))
 
-		signedInput := o.config().SubscribeKey + "\n" + o.config().PublishKey + "\n"
+			signedInput := o.config().SubscribeKey + "\n" + o.config().PublishKey + "\n"
 
-		signedInput += fmt.Sprintf("%s\n", path)
+			signedInput += fmt.Sprintf("%s\n", path)
 
-		signedInput += utils.PreparePamParams(query)
-		o.config().Log.Println("signedInput:", signedInput)
+			signedInput += utils.PreparePamParams(query)
+			o.config().Log.Println("signedInput:", signedInput)
 
-		signature = utils.GetHmacSha256(o.config().SecretKey, signedInput)
+			signature = utils.GetHmacSha256(o.config().SecretKey, signedInput)
+		} else {
+			signature = createSignatureV2(o, path, query)
+		}
 	}
 
 	if o.operationType() == PNPublishOperation {
@@ -129,6 +135,43 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 	}
 
 	return retURL, nil
+}
+
+func createSignatureV2(o endpointOpts, path string, query *url.Values) string {
+	bodyString := ""
+	b, err := o.buildBody()
+	if err == nil {
+		bodyString = string(b)
+	}
+
+	sig := createSignatureV2FromStrings(
+		o.httpMethod(),
+		o.config().PublishKey,
+		o.config().SecretKey,
+		fmt.Sprintf("%s", path),
+		utils.PreparePamParams(query),
+		bodyString,
+		o.config().Log,
+	)
+
+	o.config().Log.Println("signaturev2:", sig)
+	return sig
+}
+
+func createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body string, l *log.Logger) string {
+	signedInputV2 := httpMethod + "\n"
+	signedInputV2 += pubKey + "\n"
+	signedInputV2 += path + "\n"
+	signedInputV2 += query + "\n"
+	signedInputV2 += body
+	if l != nil {
+		l.Println("signedInputV2:", signedInputV2)
+	}
+
+	encoded := utils.GetHmacSha256(secKey, signedInputV2)
+	encoded = strings.TrimRight(encoded, "=")
+	signatureV2 := "v2." + encoded
+	return signatureV2
 }
 
 func newValidationError(o endpointOpts, msg string) error {
