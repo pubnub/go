@@ -59,6 +59,7 @@ type PubNub struct {
 	jobQueue             chan *JobQItem
 	ctx                  Context
 	cancel               func()
+	tokenManager         *TokenManager
 }
 
 //
@@ -234,12 +235,12 @@ func (pn *PubNub) SetStateWithContext(ctx Context) *setStateBuilder {
 	return newSetStateBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) Grant() *grantBuilder {
-	return newGrantBuilder(pn)
+func (pn *PubNub) GrantV2() *grantV2Builder {
+	return newGrantV2Builder(pn)
 }
 
-func (pn *PubNub) GrantWithContext(ctx Context) *grantBuilder {
-	return newGrantBuilderWithContext(pn, ctx)
+func (pn *PubNub) GrantV2WithContext(ctx Context) *grantV2Builder {
+	return newGrantV2BuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) Unsubscribe() *unsubscribeBuilder {
@@ -515,6 +516,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge, ctx)
 	pn.jobQueue = make(chan *JobQItem)
 	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers, ctx)
+	pn.tokenManager = newTokenManager(pn, ctx)
 
 	return pn
 }

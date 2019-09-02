@@ -161,7 +161,7 @@ func (o *getSpaceOpts) telemetryManager() *TelemetryManager {
 
 // PNGetSpaceResponse is the Objects API Response for Get Space
 type PNGetSpaceResponse struct {
-	Status int     `json:"status"`
+	status int     `json:"status"`
 	Data   PNSpace `json:"data"`
 }
 

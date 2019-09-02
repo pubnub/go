@@ -223,7 +223,7 @@ func (o *updateUserOpts) telemetryManager() *TelemetryManager {
 
 // PNUpdateUserResponse is the Objects API Response for Update user
 type PNUpdateUserResponse struct {
-	Status int    `json:"status"`
+	status int    `json:"status"`
 	Data   PNUser `json:"data"`
 }
 

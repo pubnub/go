@@ -149,7 +149,7 @@ func (o *deleteUserOpts) telemetryManager() *TelemetryManager {
 
 // PNDeleteUserResponse is the Objects API Response for delete user
 type PNDeleteUserResponse struct {
-	Status int         `json:"status"`
+	status int         `json:"status"`
 	Data   interface{} `json:"data"`
 }
 

@@ -1528,7 +1528,7 @@ func TestSubscribe403Error(t *testing.T) {
 
 	pn2.AddListener(listener)
 
-	pn.Grant().
+	pn.GrantV2().
 		Read(false).
 		Write(false).
 		Manage(false).

@@ -67,15 +67,18 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 		query.Set("filter-expr", o.config().FilterExpression)
 	}
 
+	//insert token manager here
+	//Choose signature here
+
 	if v := o.config().AuthKey; v != "" && query.Get("auth") == "" {
 		query.Set("auth", v)
 	}
 
 	if o.config().SecretKey != "" {
-		if (o.operationType() == PNPublishOperation) && (o.httpMethod() == "POST") {
-			timestamp := time.Now().Unix()
-			query.Set("timestamp", strconv.Itoa(int(timestamp)))
+		timestamp := time.Now().Unix()
+		query.Set("timestamp", strconv.Itoa(int(timestamp)))
 
+		if (!o.config().UsePAMV3) || ((o.operationType() == PNPublishOperation) && (o.httpMethod() == "POST")) {
 			signedInput := o.config().SubscribeKey + "\n" + o.config().PublishKey + "\n"
 
 			signedInput += fmt.Sprintf("%s\n", path)

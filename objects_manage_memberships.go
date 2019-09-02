@@ -250,7 +250,7 @@ func (o *manageMembershipsOpts) telemetryManager() *TelemetryManager {
 
 // PNManageMembershipsResponse is the Objects API Response for ManageMemberships
 type PNManageMembershipsResponse struct {
-	Status     int             `json:"status"`
+	status     int             `json:"status"`
 	Data       []PNMemberships `json:"data"`
 	TotalCount int             `json:"totalCount"`
 	Next       string          `json:"next"`

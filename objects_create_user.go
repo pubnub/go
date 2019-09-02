@@ -224,7 +224,7 @@ func (o *createUserOpts) telemetryManager() *TelemetryManager {
 
 // PNCreateUserResponse is the Objects API Response for create user
 type PNCreateUserResponse struct {
-	Status int    `json:"status"`
+	status int    `json:"status"`
 	Data   PNUser `json:"data"`
 }
 

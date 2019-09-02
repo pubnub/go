@@ -67,8 +67,11 @@ func connect() {
 	config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
 	config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
 
+	config.PublishKey = "demo"
+	config.SubscribeKey = "demo"
+
 	//config.AuthKey = "akey"
-	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
+	//config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
 	config.Secure = false
 
 	config.CipherKey = "enigma"
@@ -1178,7 +1181,7 @@ func grant(args []string) {
 		}
 	}
 
-	res, _, err := pn.Grant().
+	res, _, err := pn.GrantV2().
 		ChannelGroups(groups).
 		Channels(channels).
 		Manage(manage).

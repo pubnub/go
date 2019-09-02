@@ -161,7 +161,7 @@ func (o *getUserOpts) telemetryManager() *TelemetryManager {
 
 // PNGetUserResponse is the Objects API Response for Get User
 type PNGetUserResponse struct {
-	Status int    `json:"status"`
+	status int    `json:"status"`
 	Data   PNUser `json:"data"`
 }
 

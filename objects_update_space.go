@@ -205,7 +205,7 @@ func (o *updateSpaceOpts) telemetryManager() *TelemetryManager {
 
 // PNUpdateSpaceResponse is the Objects API Response for Update Space
 type PNUpdateSpaceResponse struct {
-	Status int     `json:"status"`
+	status int     `json:"status"`
 	Data   PNSpace `json:"data"`
 }
 

@@ -205,7 +205,7 @@ func (o *getSpacesOpts) telemetryManager() *TelemetryManager {
 
 // PNGetSpacesResponse is the Objects API Response for Get Spaces
 type PNGetSpacesResponse struct {
-	Status     int       `json:"status"`
+	status     int       `json:"status"`
 	Data       []PNSpace `json:"data"`
 	TotalCount int       `json:"totalCount"`
 	Next       string    `json:"next"`
