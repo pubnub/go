@@ -243,6 +243,14 @@ func (pn *PubNub) GrantV2WithContext(ctx Context) *grantV2Builder {
 	return newGrantV2BuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) Grant() *grantBuilder {
+	return newGrantBuilder(pn)
+}
+
+func (pn *PubNub) GrantWithContext(ctx Context) *grantBuilder {
+	return newGrantBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) Unsubscribe() *unsubscribeBuilder {
 	return newUnsubscribeBuilder(pn)
 }

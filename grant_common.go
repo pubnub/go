@@ -16,7 +16,12 @@ const (
 	PNCreateEnabled
 )
 
-type patternPermissions struct {
+type ResourcePermissions struct {
+	Create bool
+	Read   bool
+	Write  bool
+	Manage bool
+	Delete bool
 }
 
 type patterns struct {

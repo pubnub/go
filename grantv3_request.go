@@ -1,21 +1,18 @@
 package pubnub
 
 import (
-	// "bytes"
-	// "encoding/json"
+	"bytes"
+	"encoding/json"
 	"fmt"
-	// "io/ioutil"
+	"github.com/pubnub/go/pnerr"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
-	"strings"
-	"time"
-	// "github.com/pubnub/go/pnerr"
 )
 
 const grantPath = "/v3/auth/grant/sub-key/%s"
 
-var emptyGrantResponse *GrantResponse
+var emptyPNGrantResponse *PNGrantResponse
 
 type grantBuilder struct {
 	opts *grantOpts
@@ -42,36 +39,6 @@ func newGrantBuilderWithContext(pubnub *PubNub, context Context) *grantBuilder {
 	return &builder
 }
 
-// func (b *grantBuilder) Read(read bool) *grantBuilder {
-// 	b.opts.Read = read
-
-// 	return b
-// }
-
-// func (b *grantBuilder) Write(write bool) *grantBuilder {
-// 	b.opts.Write = write
-
-// 	return b
-// }
-
-// func (b *grantBuilder) Manage(manage bool) *grantBuilder {
-// 	b.opts.Manage = manage
-
-// 	return b
-// }
-
-// func (b *grantBuilder) Delete(del bool) *grantBuilder {
-// 	b.opts.Delete = del
-
-// 	return b
-// }
-
-// func (b *grantBuilder) Create(create bool) *grantBuilder {
-// 	b.opts.Create = create
-
-// 	return b
-// }
-
 // TTL in minutes for which granted permissions are valid.
 //
 // Min: 1
@@ -94,21 +61,21 @@ func (b *grantBuilder) AuthKeys(authKeys []string) *grantBuilder {
 }
 
 // Channels sets the Channels for the Grant request.
-func (b *grantBuilder) Channels(channels map[string]PNGrantType) *grantBuilder {
+func (b *grantBuilder) Channels(channels map[string]ResourcePermissions) *grantBuilder {
 	b.opts.Channels = channels
 
 	return b
 }
 
 // ChannelGroups sets the ChannelGroups for the Grant request.
-func (b *grantBuilder) ChannelGroups(groups map[string]PNGrantType) *grantBuilder {
+func (b *grantBuilder) ChannelGroups(groups map[string]ResourcePermissions) *grantBuilder {
 	b.opts.ChannelGroups = groups
 
 	return b
 }
 
 // Users sets the Users for the Grant request.
-func (b *grantBuilder) Users(users map[string]PNGrantType) *grantBuilder {
+func (b *grantBuilder) Users(users map[string]ResourcePermissions) *grantBuilder {
 	b.opts.Users = users
 
 	return b
@@ -122,7 +89,7 @@ func (b *grantBuilder) Users(users map[string]PNGrantType) *grantBuilder {
 // }
 
 // Spaces sets the Spaces for the Grant request.
-func (b *grantBuilder) Spaces(spaces map[string]PNGrantType) *grantBuilder {
+func (b *grantBuilder) Spaces(spaces map[string]ResourcePermissions) *grantBuilder {
 	b.opts.Spaces = spaces
 
 	return b
@@ -142,27 +109,27 @@ func (b *grantBuilder) QueryParam(queryParam map[string]string) *grantBuilder {
 	return b
 }
 
-// // Execute runs the Grant request.
-// func (b *grantBuilder) Execute() (*GrantResponse, StatusResponse, error) {
-// 	rawJSON, status, err := executeRequest(b.opts)
-// 	if err != nil {
-// 		return emptyGrantResponse, status, err
-// 	}
+// Execute runs the Grant request.
+func (b *grantBuilder) Execute() (*PNGrantResponse, StatusResponse, error) {
+	rawJSON, status, err := executeRequest(b.opts)
+	if err != nil {
+		return emptyPNGrantResponse, status, err
+	}
 
-// 	return newGrantResponse(rawJSON, status)
-// }
+	return newGrantResponse(rawJSON, status)
+}
 
 type grantOpts struct {
 	pubnub *PubNub
 	ctx    Context
 
 	AuthKeys      []string
-	Channels      map[string]PNGrantType
-	ChannelGroups map[string]PNGrantType
+	Channels      map[string]ResourcePermissions
+	ChannelGroups map[string]ResourcePermissions
 	QueryParam    map[string]string
 	Meta          map[string]interface{}
-	Spaces        map[string]PNGrantType
-	Users         map[string]PNGrantType
+	Spaces        map[string]ResourcePermissions
+	Users         map[string]ResourcePermissions
 	// Max: 525600
 	// Min: 1
 	// Default: 1440
@@ -205,53 +172,52 @@ func (o *grantOpts) buildPath() (string, error) {
 	return fmt.Sprintf(grantPath, o.pubnub.Config.SubscribeKey), nil
 }
 
+type resourcesBody struct {
+	Channels map[string]int64 `json:"channels"`
+	Groups   map[string]int64 `json:"groups"`
+	Users    map[string]int64 `json:"users"`
+	Spaces   map[string]int64 `json:"spaces"`
+}
+
+type permissionsBody struct {
+	Resources resourcesBody          `json:"resources"`
+	Patterns  resourcesBody          `json:"patterns"`
+	Meta      map[string]interface{} `json:"meta"`
+}
+
+type grantBody struct {
+	TTL         int             `json:"ttl"`
+	Permissions permissionsBody `json:"permissions"`
+}
+
+func parseResourcePermissions(resource map[string]ResourcePermissions) map[string]int64 {
+	r := make(map[string]int64, len(resource))
+
+	for k, v := range resource {
+		bm := int64(0)
+		if r := v.Read; r {
+			bm |= 1
+		}
+		if w := v.Write; w {
+			bm |= 2
+		}
+		if m := v.Manage; m {
+			bm |= 4
+		}
+		if c := v.Delete; c {
+			bm |= 8
+		}
+		if d := v.Create; d {
+			bm |= 16
+		}
+		r[k] = bm
+	}
+	return r
+}
+
 func (o *grantOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
-	// if o.Read {
-	// 	q.Set("r", "1")
-	// } else {
-	// 	q.Set("r", "0")
-	// }
-
-	// if o.Write {
-	// 	q.Set("w", "1")
-	// } else {
-	// 	q.Set("w", "0")
-	// }
-
-	// if o.Manage {
-	// 	q.Set("m", "1")
-	// } else {
-	// 	q.Set("m", "0")
-	// }
-
-	// if o.Delete {
-	// 	q.Set("d", "1")
-	// } else {
-	// 	q.Set("d", "0")
-	// }
-
-	if len(o.AuthKeys) > 0 {
-		q.Set("auth", strings.Join(o.AuthKeys, ","))
-	}
-
-	if len(o.Channels) > 0 {
-		//q.Set("channel", strings.Join(o.Channels, ","))
-	}
-
-	if len(o.ChannelGroups) > 0 {
-		//q.Set("channel-group", strings.Join(o.ChannelGroups, ","))
-	}
-
-	if o.setTTL {
-		if o.TTL >= -1 {
-			q.Set("ttl", fmt.Sprintf("%d", o.TTL))
-		}
-	}
-
-	timestamp := time.Now().Unix()
-	q.Set("timestamp", strconv.Itoa(int(timestamp)))
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -262,11 +228,64 @@ func (o *grantOpts) jobQueue() chan *JobQItem {
 }
 
 func (o *grantOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
+
+	var channels map[string]int64
+	var groups map[string]int64
+	var users map[string]int64
+	var spaces map[string]int64
+
+	if len(o.Channels) > 0 {
+		channels = parseResourcePermissions(o.Channels)
+	}
+
+	if len(o.ChannelGroups) > 0 {
+		groups = parseResourcePermissions(o.ChannelGroups)
+	}
+
+	if len(o.Users) > 0 {
+		users = parseResourcePermissions(o.Users)
+	}
+
+	if len(o.Spaces) > 0 {
+		spaces = parseResourcePermissions(o.Spaces)
+	}
+
+	rb := resourcesBody{
+		Channels: channels,
+		Users:    users,
+		Groups:   groups,
+		Spaces:   spaces,
+	}
+
+	permissions := permissionsBody{
+		Resources: rb,
+		Patterns:  resourcesBody{},
+		Meta:      o.Meta,
+	}
+
+	ttl := -1
+	if o.setTTL {
+		if o.TTL >= -1 {
+			ttl = o.TTL
+		}
+	}
+
+	b := &grantBody{
+		TTL:         ttl,
+		Permissions: permissions,
+	}
+
+	jsonEncBytes, errEnc := json.Marshal(b)
+
+	if errEnc != nil {
+		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
+		return []byte{}, errEnc
+	}
+	return jsonEncBytes, nil
 }
 
 func (o *grantOpts) httpMethod() string {
-	return "GET"
+	return "POST"
 }
 
 func (o *grantOpts) isAuthRequired() bool {
@@ -289,253 +308,28 @@ func (o *grantOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-// GrantResponse is the struct returned when the Execute function of Grant is called.
-type GrantResponse struct {
-	Level        string
-	SubscribeKey string
-
-	TTL int
-
-	Channels      map[string]*PNPAMEntityData
-	ChannelGroups map[string]*PNPAMEntityData
-
-	ReadEnabled   bool
-	WriteEnabled  bool
-	ManageEnabled bool
-	DeleteEnabled bool
+type GrantV3Response struct {
+	Message string `json:"message"`
+	Token   string `json:"token"`
 }
 
-// func newGrantResponse(jsonBytes []byte, status StatusResponse) (
-// 	*GrantResponse, StatusResponse, error) {
-// 	resp := &GrantResponse{}
-// 	var value interface{}
+// GrantResponse is the struct returned when the Execute function of Grant is called.
+type PNGrantResponse struct {
+	status  int             `json:"status"`
+	Data    GrantV3Response `json:"data"`
+	service string          `json:"service"`
+}
 
-// 	err := json.Unmarshal(jsonBytes, &value)
-// 	if err != nil {
-// 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-// 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+func newGrantResponse(jsonBytes []byte, status StatusResponse) (*PNGrantResponse, StatusResponse, error) {
+	resp := &PNGrantResponse{}
 
-// 		return emptyGrantResponse, status, e
-// 	}
+	err := json.Unmarshal(jsonBytes, &resp)
+	if err != nil {
+		e := pnerr.NewResponseParsingError("Error unmarshalling response",
+			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-// 	constructedChannels := make(map[string]*PNPAMEntityData)
-// 	constructedGroups := make(map[string]*PNPAMEntityData)
+		return emptyPNGrantResponse, status, e
+	}
 
-// 	grantData, _ := value.(map[string]interface{})
-// 	payload := grantData["payload"]
-// 	parsedPayload := payload.(map[string]interface{})
-// 	auths, _ := parsedPayload["auths"].(map[string]interface{})
-// 	ttl, _ := parsedPayload["ttl"].(float64)
-
-// 	if val, ok := parsedPayload["channel"]; ok {
-// 		channelName := val.(string)
-// 		auths := make(map[string]*PNAccessManagerKeyData)
-// 		channelMap, _ := parsedPayload["auths"].(map[string]interface{})
-// 		entityData := &PNPAMEntityData{
-// 			Name: channelName,
-// 		}
-
-// 		for key, value := range channelMap {
-// 			auths[key] = createPNAccessManagerKeyData(value, entityData, false)
-// 		}
-
-// 		entityData.AuthKeys = auths
-// 		entityData.TTL = int(ttl)
-// 		constructedChannels[channelName] = entityData
-// 	}
-
-// 	if val, ok := parsedPayload["channel-groups"]; ok {
-// 		groupName, _ := val.(string)
-// 		constructedAuthKey := make(map[string]*PNAccessManagerKeyData)
-// 		entityData := &PNPAMEntityData{
-// 			Name: groupName,
-// 		}
-
-// 		if _, ok := val.(string); ok {
-// 			for authKeyName, value := range auths {
-// 				constructedAuthKey[authKeyName] = createPNAccessManagerKeyData(value, entityData, false)
-// 			}
-
-// 			entityData.AuthKeys = constructedAuthKey
-// 			constructedGroups[groupName] = entityData
-// 		}
-
-// 		if groupMap, ok := val.(map[string]interface{}); ok {
-// 			groupName, _ := val.(string)
-// 			constructedAuthKey := make(map[string]*PNAccessManagerKeyData)
-// 			entityData := &PNPAMEntityData{
-// 				Name: groupName,
-// 			}
-
-// 			for groupName, value := range groupMap {
-// 				valueMap := value.(map[string]interface{})
-
-// 				if keys, ok := valueMap["auths"]; ok {
-// 					parsedKeys, _ := keys.(map[string]interface{})
-
-// 					for keyName, value := range parsedKeys {
-// 						constructedAuthKey[keyName] = createPNAccessManagerKeyData(value, entityData, false)
-// 					}
-// 				}
-
-// 				createPNAccessManagerKeyData(valueMap, entityData, true)
-
-// 				if val, ok := parsedPayload["ttl"]; ok {
-// 					parsedVal, _ := val.(float64)
-// 					entityData.TTL = int(parsedVal)
-// 				}
-
-// 				entityData.AuthKeys = constructedAuthKey
-// 				constructedGroups[groupName] = entityData
-// 			}
-// 		}
-// 	}
-
-// 	if val, ok := parsedPayload["channels"]; ok {
-// 		channelMap, _ := val.(map[string]interface{})
-
-// 		for channelName, value := range channelMap {
-// 			constructedChannels[channelName] = fetchChannel(channelName,
-// 				value, parsedPayload)
-// 		}
-// 	}
-
-// 	level, _ := parsedPayload["level"].(string)
-// 	subKey, _ := parsedPayload["subscribe_key"].(string)
-
-// 	resp.Level = level
-// 	resp.SubscribeKey = subKey
-// 	resp.Channels = constructedChannels
-// 	resp.ChannelGroups = constructedGroups
-
-// 	if r, ok := parsedPayload["r"]; ok {
-// 		parsedValue, _ := r.(float64)
-// 		if parsedValue == float64(1) {
-// 			resp.ReadEnabled = true
-// 		} else {
-// 			resp.ReadEnabled = false
-// 		}
-// 	}
-
-// 	if r, ok := parsedPayload["w"]; ok {
-// 		parsedValue, _ := r.(float64)
-// 		if parsedValue == float64(1) {
-// 			resp.WriteEnabled = true
-// 		} else {
-// 			resp.WriteEnabled = false
-// 		}
-// 	}
-
-// 	if r, ok := parsedPayload["m"]; ok {
-// 		parsedValue, _ := r.(float64)
-// 		if parsedValue == float64(1) {
-// 			resp.ManageEnabled = true
-// 		} else {
-// 			resp.ManageEnabled = false
-// 		}
-// 	}
-
-// 	if r, ok := parsedPayload["d"]; ok {
-// 		parsedValue, _ := r.(float64)
-// 		if parsedValue == float64(1) {
-// 			resp.DeleteEnabled = true
-// 		} else {
-// 			resp.DeleteEnabled = false
-// 		}
-// 	}
-
-// 	if r, ok := parsedPayload["ttl"]; ok {
-// 		parsedValue, _ := r.(float64)
-// 		resp.TTL = int(parsedValue)
-// 	}
-
-// 	return resp, status, nil
-// }
-
-// func fetchChannel(channelName string,
-// 	value interface{}, parsedPayload map[string]interface{}) *PNPAMEntityData {
-
-// 	auths := make(map[string]*PNAccessManagerKeyData)
-// 	entityData := &PNPAMEntityData{
-// 		Name: channelName,
-// 	}
-
-// 	valueMap, _ := value.(map[string]interface{})
-
-// 	if val, ok := valueMap["auths"]; ok {
-// 		parsedValue := val.(map[string]interface{})
-
-// 		for key, value := range parsedValue {
-// 			auths[key] = createPNAccessManagerKeyData(value, entityData, false)
-// 		}
-// 	}
-
-// 	createPNAccessManagerKeyData(value, entityData, true)
-
-// 	if val, ok := parsedPayload["ttl"]; ok {
-// 		parsedVal, _ := val.(float64)
-// 		entityData.TTL = int(parsedVal)
-// 	}
-
-// 	entityData.AuthKeys = auths
-
-// 	return entityData
-// }
-
-// func readKeyData(val interface{}, keyData *PNAccessManagerKeyData, entityData *PNPAMEntityData, writeToEntityData bool, grantType PNGrantType) {
-// 	parsedValue, _ := val.(float64)
-// 	readValue := false
-// 	if parsedValue == float64(1) {
-// 		readValue = true
-// 	}
-// 	if writeToEntityData {
-// 		switch grantType {
-// 		case PNReadEnabled:
-// 			entityData.ReadEnabled = readValue
-// 		case PNWriteEnabled:
-// 			entityData.WriteEnabled = readValue
-// 		case PNManageEnabled:
-// 			entityData.ManageEnabled = readValue
-// 		case PNDeleteEnabled:
-// 			entityData.DeleteEnabled = readValue
-// 		}
-// 	} else {
-// 		switch grantType {
-// 		case PNReadEnabled:
-// 			keyData.ReadEnabled = readValue
-// 		case PNWriteEnabled:
-// 			keyData.WriteEnabled = readValue
-// 		case PNManageEnabled:
-// 			keyData.ManageEnabled = readValue
-// 		case PNDeleteEnabled:
-// 			keyData.DeleteEnabled = readValue
-// 		}
-// 	}
-// }
-
-// func createPNAccessManagerKeyData(value interface{}, entityData *PNPAMEntityData, writeToEntityData bool) *PNAccessManagerKeyData {
-// 	valueMap := value.(map[string]interface{})
-// 	keyData := &PNAccessManagerKeyData{}
-
-// 	if val, ok := valueMap["r"]; ok {
-// 		readKeyData(val, keyData, entityData, writeToEntityData, PNReadEnabled)
-// 	}
-
-// 	if val, ok := valueMap["w"]; ok {
-// 		readKeyData(val, keyData, entityData, writeToEntityData, PNWriteEnabled)
-// 	}
-
-// 	if val, ok := valueMap["m"]; ok {
-// 		readKeyData(val, keyData, entityData, writeToEntityData, PNManageEnabled)
-// 	}
-
-// 	if val, ok := valueMap["d"]; ok {
-// 		readKeyData(val, keyData, entityData, writeToEntityData, PNDeleteEnabled)
-// 	}
-
-// 	if val, ok := valueMap["ttl"]; ok {
-// 		parsedVal, _ := val.(int)
-// 		entityData.TTL = parsedVal
-// 	}
-// 	return keyData
-// }
+	return resp, status, nil
+}
