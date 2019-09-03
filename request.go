@@ -88,6 +88,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 		}
 
 		req, err = newRequest("POST", url, body, opts.config().UseHTTP2)
+		req.Header.Set("Content-Type", "application/json")
 	} else if opts.httpMethod() == "DELETE" {
 		req, err = newRequest("DELETE", url, nil, opts.config().UseHTTP2)
 	} else if opts.httpMethod() == "PATCH" {

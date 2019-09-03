@@ -10,7 +10,7 @@ import (
 	"net/url"
 )
 
-const grantPath = "/v3/auth/grant/sub-key/%s"
+const grantPath = "/v3/pam/%s/grant"
 
 var emptyPNGrantResponse *PNGrantResponse
 
@@ -172,16 +172,9 @@ func (o *grantOpts) buildPath() (string, error) {
 	return fmt.Sprintf(grantPath, o.pubnub.Config.SubscribeKey), nil
 }
 
-type resourcesBody struct {
-	Channels map[string]int64 `json:"channels"`
-	Groups   map[string]int64 `json:"groups"`
-	Users    map[string]int64 `json:"users"`
-	Spaces   map[string]int64 `json:"spaces"`
-}
-
 type permissionsBody struct {
-	Resources resourcesBody          `json:"resources"`
-	Patterns  resourcesBody          `json:"patterns"`
+	Resources GrantResources         `json:"resources"`
+	Patterns  GrantResources         `json:"patterns"`
 	Meta      map[string]interface{} `json:"meta"`
 }
 
@@ -236,31 +229,50 @@ func (o *grantOpts) buildBody() ([]byte, error) {
 
 	if len(o.Channels) > 0 {
 		channels = parseResourcePermissions(o.Channels)
+	} else {
+		channels = make(map[string]int64)
 	}
 
 	if len(o.ChannelGroups) > 0 {
 		groups = parseResourcePermissions(o.ChannelGroups)
+	} else {
+		groups = make(map[string]int64)
 	}
 
 	if len(o.Users) > 0 {
 		users = parseResourcePermissions(o.Users)
+	} else {
+		users = make(map[string]int64)
 	}
 
 	if len(o.Spaces) > 0 {
 		spaces = parseResourcePermissions(o.Spaces)
+	} else {
+		spaces = make(map[string]int64)
 	}
 
-	rb := resourcesBody{
+	rb := GrantResources{
 		Channels: channels,
 		Users:    users,
 		Groups:   groups,
 		Spaces:   spaces,
 	}
 
+	meta := o.Meta
+
+	if meta == nil {
+		meta = make(map[string]interface{})
+	}
+
 	permissions := permissionsBody{
 		Resources: rb,
-		Patterns:  resourcesBody{},
-		Meta:      o.Meta,
+		Patterns: GrantResources{
+			Channels: make(map[string]int64),
+			Users:    make(map[string]int64),
+			Groups:   make(map[string]int64),
+			Spaces:   make(map[string]int64),
+		},
+		Meta: meta,
 	}
 
 	ttl := -1
@@ -308,16 +320,16 @@ func (o *grantOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-type GrantV3Response struct {
+type PNGrantData struct {
 	Message string `json:"message"`
 	Token   string `json:"token"`
 }
 
 // GrantResponse is the struct returned when the Execute function of Grant is called.
 type PNGrantResponse struct {
-	status  int             `json:"status"`
-	Data    GrantV3Response `json:"data"`
-	service string          `json:"service"`
+	status  int         `json:"status"`
+	Data    PNGrantData `json:"data"`
+	service string      `json:"service"`
 }
 
 func newGrantResponse(jsonBytes []byte, status StatusResponse) (*PNGrantResponse, StatusResponse, error) {
@@ -330,6 +342,8 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (*PNGrantResponse
 
 		return emptyPNGrantResponse, status, e
 	}
+
+	fmt.Println("resp.Data.Token--->", resp.Data.Token)
 
 	return resp, status, nil
 }
