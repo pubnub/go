@@ -172,15 +172,9 @@ func (o *grantOpts) buildPath() (string, error) {
 	return fmt.Sprintf(grantPath, o.pubnub.Config.SubscribeKey), nil
 }
 
-type permissionsBody struct {
-	Resources GrantResources         `json:"resources"`
-	Patterns  GrantResources         `json:"patterns"`
-	Meta      map[string]interface{} `json:"meta"`
-}
-
 type grantBody struct {
 	TTL         int             `json:"ttl"`
-	Permissions permissionsBody `json:"permissions"`
+	Permissions PermissionsBody `json:"permissions"`
 }
 
 func parseResourcePermissions(resource map[string]ResourcePermissions) map[string]int64 {
@@ -264,7 +258,7 @@ func (o *grantOpts) buildBody() ([]byte, error) {
 		meta = make(map[string]interface{})
 	}
 
-	permissions := permissionsBody{
+	permissions := PermissionsBody{
 		Resources: rb,
 		Patterns: GrantResources{
 			Channels: make(map[string]int64),
