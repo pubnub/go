@@ -116,7 +116,7 @@ func (b *grantBuilder) Execute() (*PNGrantResponse, StatusResponse, error) {
 		return emptyPNGrantResponse, status, err
 	}
 
-	return newGrantResponse(rawJSON, status)
+	return newGrantResponse(b, rawJSON, status)
 }
 
 type grantOpts struct {
@@ -326,7 +326,7 @@ type PNGrantResponse struct {
 	service string      `json:"service"`
 }
 
-func newGrantResponse(jsonBytes []byte, status StatusResponse) (*PNGrantResponse, StatusResponse, error) {
+func newGrantResponse(b *grantBuilder, jsonBytes []byte, status StatusResponse) (*PNGrantResponse, StatusResponse, error) {
 	resp := &PNGrantResponse{}
 
 	err := json.Unmarshal(jsonBytes, &resp)
@@ -337,7 +337,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (*PNGrantResponse
 		return emptyPNGrantResponse, status, e
 	}
 
-	fmt.Println("resp.Data.Token--->", resp.Data.Token)
+	b.opts.pubnub.tokenManager.StoreToken(resp.Data.Token)
 
 	return resp, status, nil
 }

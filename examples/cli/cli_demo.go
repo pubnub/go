@@ -55,8 +55,8 @@ func connect() {
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
-	//config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"   //"demo"   //"demo"
-	//config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3" //"demo" //"sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
+	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"   //"demo"   //"demo"
+	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3" //"demo" //"sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
 	//config.SecretKey = //"pam"    //"demo"
 
 	// config.PublishKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
@@ -67,11 +67,11 @@ func connect() {
 	config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
 	config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
 
-	config.PublishKey = "demo"
-	config.SubscribeKey = "demo"
+	//config.PublishKey = "demo"
+	//config.SubscribeKey = "demo"
 
 	//config.AuthKey = "akey"
-	//config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
+	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
 	config.Secure = false
 
 	config.CipherKey = "enigma"
