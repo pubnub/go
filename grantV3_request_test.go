@@ -11,8 +11,8 @@ import (
 func TestGrantV3ParseResourcePermissions(t *testing.T) {
 	assert := assert.New(t)
 
-	m := map[string]ResourcePermissions{
-		"channel": ResourcePermissions{
+	m := map[string]UserSpacePermissions{
+		"channel": UserSpacePermissions{
 			Create: true,
 			Read:   true,
 			Write:  true,
@@ -21,7 +21,7 @@ func TestGrantV3ParseResourcePermissions(t *testing.T) {
 		},
 	}
 
-	r := parseResourcePermissions(m)
+	r := parseResourcePermissions(m, PNUsers)
 	for _, v := range r {
 		assert.Equal(int64(31), v)
 	}
@@ -30,8 +30,8 @@ func TestGrantV3ParseResourcePermissions(t *testing.T) {
 func TestGrantV3ParseResourcePermissions2(t *testing.T) {
 	assert := assert.New(t)
 
-	m := map[string]ResourcePermissions{
-		"channel": ResourcePermissions{
+	m := map[string]UserSpacePermissions{
+		"channel": UserSpacePermissions{
 			Create: false,
 			Read:   true,
 			Write:  true,
@@ -40,7 +40,7 @@ func TestGrantV3ParseResourcePermissions2(t *testing.T) {
 		},
 	}
 
-	r := parseResourcePermissions(m)
+	r := parseResourcePermissions(m, PNUsers)
 	for _, v := range r {
 		assert.Equal(int64(15), v)
 	}
@@ -49,8 +49,8 @@ func TestGrantV3ParseResourcePermissions2(t *testing.T) {
 func TestGrantV3ParseResourcePermissions3(t *testing.T) {
 	assert := assert.New(t)
 
-	m := map[string]ResourcePermissions{
-		"channel": ResourcePermissions{
+	m := map[string]UserSpacePermissions{
+		"channel": UserSpacePermissions{
 			Create: false,
 			Read:   true,
 			Write:  true,
@@ -59,7 +59,7 @@ func TestGrantV3ParseResourcePermissions3(t *testing.T) {
 		},
 	}
 
-	r := parseResourcePermissions(m)
+	r := parseResourcePermissions(m, PNUsers)
 	for _, v := range r {
 		assert.Equal(int64(7), v)
 	}
@@ -68,15 +68,15 @@ func TestGrantV3ParseResourcePermissions3(t *testing.T) {
 func TestGrantV3ParseResourcePermissions4(t *testing.T) {
 	assert := assert.New(t)
 
-	m := map[string]ResourcePermissions{
-		"channel": ResourcePermissions{
+	m := map[string]UserSpacePermissions{
+		"channel": UserSpacePermissions{
 			Create: false,
 			Read:   true,
 			Write:  true,
 			Manage: true,
 			Delete: false,
 		},
-		"channel2": ResourcePermissions{
+		"channel2": UserSpacePermissions{
 			Create: false,
 			Read:   true,
 			Write:  false,
@@ -85,7 +85,7 @@ func TestGrantV3ParseResourcePermissions4(t *testing.T) {
 		},
 	}
 
-	r := parseResourcePermissions(m)
+	r := parseResourcePermissions(m, PNUsers)
 	assert.Equal(int64(7), r["channel"])
 	assert.Equal(int64(5), r["channel2"])
 }
@@ -112,18 +112,16 @@ func AssertTestGrantV3(t *testing.T, checkQueryParam, testContext bool) {
 		queryParam = nil
 	}
 
-	ch := map[string]ResourcePermissions{
-		"channel": ResourcePermissions{
-			Create: false,
+	ch := map[string]ChannelPermissions{
+		"channel": ChannelPermissions{
+			Write:  false,
 			Read:   true,
-			Write:  true,
-			Manage: true,
 			Delete: false,
 		},
 	}
 
-	u := map[string]ResourcePermissions{
-		"users": ResourcePermissions{
+	u := map[string]UserSpacePermissions{
+		"users": UserSpacePermissions{
 			Create: false,
 			Read:   true,
 			Write:  true,
@@ -132,8 +130,8 @@ func AssertTestGrantV3(t *testing.T, checkQueryParam, testContext bool) {
 		},
 	}
 
-	s := map[string]ResourcePermissions{
-		"spaces": ResourcePermissions{
+	s := map[string]UserSpacePermissions{
+		"spaces": UserSpacePermissions{
 			Create: true,
 			Read:   true,
 			Write:  true,
@@ -142,20 +140,14 @@ func AssertTestGrantV3(t *testing.T, checkQueryParam, testContext bool) {
 		},
 	}
 
-	cg := map[string]ResourcePermissions{
-		"cg": ResourcePermissions{
-			Create: true,
+	cg := map[string]GroupPermissions{
+		"cg": GroupPermissions{
 			Read:   true,
-			Write:  true,
 			Manage: true,
-			Delete: false,
 		},
-		"cg2": ResourcePermissions{
-			Create: true,
+		"cg2": GroupPermissions{
 			Read:   true,
-			Write:  true,
 			Manage: false,
-			Delete: false,
 		},
 	}
 
@@ -176,7 +168,7 @@ func AssertTestGrantV3(t *testing.T, checkQueryParam, testContext bool) {
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
 
-	expectedBody := "{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{\"channel\":7},\"groups\":{\"cg\":23,\"cg2\":19},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":null,\"groups\":null,\"users\":null,\"spaces\":null},\"meta\":null}}"
+	expectedBody := "{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{\"channel\":1},\"groups\":{\"cg\":5,\"cg2\":1},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":{},\"groups\":{},\"users\":{},\"spaces\":{}},\"meta\":{}}}" //{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{\"channel\":7},\"groups\":{\"cg\":23,\"cg2\":19},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":null,\"groups\":null,\"users\":null,\"spaces\":null},\"meta\":null}}"
 
 	assert.Equal(expectedBody, string(body))
 

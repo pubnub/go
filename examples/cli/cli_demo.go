@@ -59,9 +59,9 @@ func connect() {
 	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3" //"demo" //"sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
 	//config.SecretKey = //"pam"    //"demo"
 
-	// config.PublishKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
-	// config.SubscribeKey = "sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306"
-	// config.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
+	config.PublishKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
+	config.SubscribeKey = "sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306"
+	config.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
 
 	config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
 	config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
@@ -225,6 +225,7 @@ func showHelp() {
 	showListAllChOfCgHelp()
 	showDelCgHelp()
 	showGrantHelp()
+	showGrant2Help()
 	showSubscribeWithStateHelp()
 	showPresenceTimeoutHelp()
 	showPresenceHelp()
@@ -454,8 +455,14 @@ func showDelCgHelp() {
 
 func showGrantHelp() {
 	fmt.Println(" GRANT EXAMPLE: ")
-	fmt.Println("	grant Channels ChannelGroups manage read write ttl ")
-	fmt.Println("	grant my-channel cg false false false 10")
+	fmt.Println("	grant Channels ChannelGroups Users Spaces ttl ")
+	fmt.Println("	grant ch1,ch2 cg1,cg2 u1,u2 s1,s2 10")
+}
+
+func showGrant2Help() {
+	fmt.Println(" GRANT2 EXAMPLE: ")
+	fmt.Println("	grant2 Channels ChannelGroups manage read write ttl ")
+	fmt.Println("	grant2 my-channel cg false false false 10")
 }
 
 func showPresenceTimeoutHelp() {
@@ -508,6 +515,8 @@ func readCommand(cmd string) {
 		listChannelsOfChannelGroup(command[1:])
 	case "delcg":
 		delChannelGroup(command[1:])
+	case "grant2":
+		grant2(command[1:])
 	case "grant":
 		grant(command[1:])
 	case "help":
@@ -1145,9 +1154,147 @@ func setPresenceTimeout(args []string) {
 }
 
 func grant(args []string) {
+	if len(args) < 5 {
+		fmt.Println(len(args))
+		showGrantHelp()
+		return
+	}
+
+	var channels []string
+	if len(args) > 0 {
+		channels = strings.Split(args[0], ",")
+	}
+	var groups []string
+	if len(args) > 1 {
+		groups = strings.Split(args[1], ",")
+	}
+	var users []string
+	if len(args) > 2 {
+		users = strings.Split(args[2], ",")
+	}
+	var spaces []string
+	if len(args) > 3 {
+		spaces = strings.Split(args[3], ",")
+	}
+	// var manage bool
+	// if len(args) > 2 {
+	// 	manage, _ = strconv.ParseBool(args[2])
+	// }
+	// var read bool
+	// if len(args) > 3 {
+	// 	read, _ = strconv.ParseBool(args[3])
+	// }
+	// var write bool
+	// if len(args) > 4 {
+	// 	write, _ = strconv.ParseBool(args[4])
+	// }
+	var ttl int
+	if len(args) > 4 {
+		i, err := strconv.ParseInt(args[4], 10, 64)
+		if err != nil {
+			ttl = 1440
+		} else {
+			ttl = int(i)
+		}
+	}
+
+	// ch1 := randomnized("ch1")
+	// cg1 := "cg"
+	// cg2 := "cg1"
+	// u1 := "u"
+	// s1 := "s"
+
+	ch := make(map[string]pubnub.ChannelPermissions, len(channels))
+	for _, k := range channels {
+		ch[k] = pubnub.ChannelPermissions{
+			Read:   true,
+			Write:  true,
+			Delete: false,
+		}
+	}
+
+	s := make(map[string]pubnub.UserSpacePermissions, len(spaces))
+	for _, k := range spaces {
+		s[k] = pubnub.UserSpacePermissions{
+			Read:   true,
+			Write:  true,
+			Manage: true,
+			Delete: true,
+			Create: true,
+		}
+	}
+
+	u := make(map[string]pubnub.UserSpacePermissions, len(users))
+	for _, k := range users {
+		u[k] = pubnub.UserSpacePermissions{
+			Read:   true,
+			Write:  true,
+			Manage: true,
+			Delete: false,
+			Create: false,
+		}
+	}
+
+	cg := make(map[string]pubnub.GroupPermissions, len(groups))
+	for _, k := range groups {
+		cg[k] = pubnub.GroupPermissions{
+			Read:   true,
+			Manage: false,
+		}
+	}
+
+	// u := map[string]pubnub.ResourcePermissions{
+	// 	u1: pubnub.ResourcePermissions{
+	// 		Read:   true,
+	// 		Write:  true,
+	// 		Manage: true,
+	// 		Delete: true,
+	// 		Create: false,
+	// 	},
+	// }
+
+	// s := map[string]pubnub.ResourcePermissions{
+	// 	s1: pubnub.ResourcePermissions{
+	// 		Read:   true,
+	// 		Write:  true,
+	// 		Manage: true,
+	// 		Delete: true,
+	// 		Create: true,
+	// 	},
+	// }
+
+	// cg := map[string]pubnub.ResourcePermissions{
+	// 	cg1: pubnub.ResourcePermissions{
+	// 		Read:   true,
+	// 		Write:  true,
+	// 		Manage: true,
+	// 		Delete: false,
+	// 		Create: true,
+	// 	},
+	// 	cg2: pubnub.ResourcePermissions{
+	// 		Read:   true,
+	// 		Write:  true,
+	// 		Manage: false,
+	// 		Delete: false,
+	// 		Create: true,
+	// 	},
+	// }
+
+	res, _, err := pn.Grant().TTL(ttl).
+		Channels(ch).
+		ChannelGroups(cg).
+		Users(u).
+		Spaces(s).
+		Execute()
+
+	fmt.Println(res)
+	fmt.Println(err)
+}
+
+func grant2(args []string) {
 	if len(args) < 6 {
 		fmt.Println(len(args))
-		showAddToCgHelp()
+		showGrant2Help()
 		return
 	}
 

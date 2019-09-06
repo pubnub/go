@@ -61,27 +61,27 @@ func (b *grantBuilder) AuthKeys(authKeys []string) *grantBuilder {
 }
 
 // Channels sets the Channels for the Grant request.
-func (b *grantBuilder) Channels(channels map[string]ResourcePermissions) *grantBuilder {
+func (b *grantBuilder) Channels(channels map[string]ChannelPermissions) *grantBuilder {
 	b.opts.Channels = channels
 
 	return b
 }
 
 // ChannelGroups sets the ChannelGroups for the Grant request.
-func (b *grantBuilder) ChannelGroups(groups map[string]ResourcePermissions) *grantBuilder {
+func (b *grantBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantBuilder {
 	b.opts.ChannelGroups = groups
 
 	return b
 }
 
 // Users sets the Users for the Grant request.
-func (b *grantBuilder) Users(users map[string]ResourcePermissions) *grantBuilder {
+func (b *grantBuilder) Users(users map[string]UserSpacePermissions) *grantBuilder {
 	b.opts.Users = users
 
 	return b
 }
 
-// Patterns sets the Patterns for the Grant request.
+//Patterns sets the Patterns for the Grant request.
 // func (b *grantBuilder) Patterns(pattern string, resourceTypes patterns) *grantBuilder {
 // 	// b.opts.Patterns = patterns
 
@@ -89,7 +89,7 @@ func (b *grantBuilder) Users(users map[string]ResourcePermissions) *grantBuilder
 // }
 
 // Spaces sets the Spaces for the Grant request.
-func (b *grantBuilder) Spaces(spaces map[string]ResourcePermissions) *grantBuilder {
+func (b *grantBuilder) Spaces(spaces map[string]UserSpacePermissions) *grantBuilder {
 	b.opts.Spaces = spaces
 
 	return b
@@ -124,12 +124,12 @@ type grantOpts struct {
 	ctx    Context
 
 	AuthKeys      []string
-	Channels      map[string]ResourcePermissions
-	ChannelGroups map[string]ResourcePermissions
+	Channels      map[string]ChannelPermissions
+	ChannelGroups map[string]GroupPermissions
 	QueryParam    map[string]string
 	Meta          map[string]interface{}
-	Spaces        map[string]ResourcePermissions
-	Users         map[string]ResourcePermissions
+	Spaces        map[string]UserSpacePermissions
+	Users         map[string]UserSpacePermissions
 	// Max: 525600
 	// Min: 1
 	// Default: 1440
@@ -177,29 +177,63 @@ type grantBody struct {
 	Permissions PermissionsBody `json:"permissions"`
 }
 
-func parseResourcePermissions(resource map[string]ResourcePermissions) map[string]int64 {
-	r := make(map[string]int64, len(resource))
-
-	for k, v := range resource {
-		bm := int64(0)
-		if r := v.Read; r {
-			bm |= 1
-		}
-		if w := v.Write; w {
-			bm |= 2
-		}
-		if m := v.Manage; m {
-			bm |= 4
-		}
-		if c := v.Delete; c {
-			bm |= 8
-		}
-		if d := v.Create; d {
-			bm |= 16
-		}
-		r[k] = bm
+func setBitmask(value bool, bitmask PNGrantBitMask, bm int64) int64 {
+	if value {
+		bm |= int64(bitmask)
 	}
-	return r
+	//fmt.Println("====>", bm)
+	return bm
+}
+
+func parseResourcePermissions(resource interface{}, resourceType PNResourceType) map[string]int64 {
+	bmVal := int64(0)
+	switch resourceType {
+	case PNChannels:
+		c := resource.(map[string]ChannelPermissions)
+		//fmt.Println(c)
+		r := make(map[string]int64, len(c))
+		for k, v := range c {
+			bmVal = int64(0)
+			bmVal = setBitmask(v.Read, PNRead, bmVal)
+			bmVal = setBitmask(v.Write, PNWrite, bmVal)
+			bmVal = setBitmask(v.Delete, PNDelete, bmVal)
+			//fmt.Println("bmVal====>", bmVal)
+			r[k] = bmVal
+		}
+		return r
+
+	case PNGroups:
+		c := resource.(map[string]GroupPermissions)
+		//fmt.Println(c)
+		r := make(map[string]int64, len(c))
+		for k, v := range c {
+			bmVal = int64(0)
+			bmVal = setBitmask(v.Read, PNRead, bmVal)
+			bmVal = setBitmask(v.Manage, PNManage, bmVal)
+			//fmt.Println("bmVal====>", bmVal)
+			r[k] = bmVal
+		}
+		return r
+
+	default:
+		//case PNUsers:
+		//case PNSpaces:
+		c := resource.(map[string]UserSpacePermissions)
+		r := make(map[string]int64, len(c))
+		//fmt.Println(c)
+		for k, v := range c {
+			bmVal = int64(0)
+			bmVal = setBitmask(v.Read, PNRead, bmVal)
+			bmVal = setBitmask(v.Write, PNWrite, bmVal)
+			bmVal = setBitmask(v.Manage, PNManage, bmVal)
+			bmVal = setBitmask(v.Delete, PNDelete, bmVal)
+			bmVal = setBitmask(v.Create, PNCreate, bmVal)
+			//fmt.Println("bmVal====>", bmVal)
+			r[k] = bmVal
+		}
+		return r
+	}
+
 }
 
 func (o *grantOpts) buildQuery() (*url.Values, error) {
@@ -222,25 +256,25 @@ func (o *grantOpts) buildBody() ([]byte, error) {
 	var spaces map[string]int64
 
 	if len(o.Channels) > 0 {
-		channels = parseResourcePermissions(o.Channels)
+		channels = parseResourcePermissions(o.Channels, PNChannels)
 	} else {
 		channels = make(map[string]int64)
 	}
 
 	if len(o.ChannelGroups) > 0 {
-		groups = parseResourcePermissions(o.ChannelGroups)
+		groups = parseResourcePermissions(o.ChannelGroups, PNGroups)
 	} else {
 		groups = make(map[string]int64)
 	}
 
 	if len(o.Users) > 0 {
-		users = parseResourcePermissions(o.Users)
+		users = parseResourcePermissions(o.Users, PNUsers)
 	} else {
 		users = make(map[string]int64)
 	}
 
 	if len(o.Spaces) > 0 {
-		spaces = parseResourcePermissions(o.Spaces)
+		spaces = parseResourcePermissions(o.Spaces, PNSpaces)
 	} else {
 		spaces = make(map[string]int64)
 	}

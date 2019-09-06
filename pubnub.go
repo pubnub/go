@@ -291,6 +291,10 @@ func (pn *PubNub) heartbeatWithContext(ctx Context) *heartbeatBuilder {
 	return newHeartbeatBuilderWithContext(pn, ctx)
 }
 
+// func (pn *PubNub) GetTokens(channels, groups, users, spaces []string) *presenceBuilder {
+// 	return newPresenceBuilderWithContext(pn, ctx)
+// }
+
 // SetClient Set a client for transactional requests
 func (pn *PubNub) SetClient(c *http.Client) {
 	pn.Lock()
