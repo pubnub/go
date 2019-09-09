@@ -456,7 +456,7 @@ func showDelCgHelp() {
 func showGrantHelp() {
 	fmt.Println(" GRANT EXAMPLE: ")
 	fmt.Println("	grant Channels ChannelGroups Users Spaces ttl ")
-	fmt.Println("	grant ch1,ch2 cg1,cg2 u1,u2 s1,s2 10")
+	fmt.Println("	grant ch1,ch2 cg1,cg2 u1,u2 s1,s2 ^ch-[0-9a-f]*$ ^:cg-[0-9a-f]*$ ^u-[0-9a-f]*$ ^s-[0-9a-f]*$ 10")
 }
 
 func showGrant2Help() {
@@ -1154,7 +1154,7 @@ func setPresenceTimeout(args []string) {
 }
 
 func grant(args []string) {
-	if len(args) < 5 {
+	if len(args) < 9 {
 		fmt.Println(len(args))
 		showGrantHelp()
 		return
@@ -1176,21 +1176,25 @@ func grant(args []string) {
 	if len(args) > 3 {
 		spaces = strings.Split(args[3], ",")
 	}
-	// var manage bool
-	// if len(args) > 2 {
-	// 	manage, _ = strconv.ParseBool(args[2])
-	// }
-	// var read bool
-	// if len(args) > 3 {
-	// 	read, _ = strconv.ParseBool(args[3])
-	// }
-	// var write bool
-	// if len(args) > 4 {
-	// 	write, _ = strconv.ParseBool(args[4])
-	// }
+	var channelsPat []string
+	if len(args) > 0 {
+		channelsPat = strings.Split(args[4], ",")
+	}
+	var groupsPat []string
+	if len(args) > 1 {
+		groupsPat = strings.Split(args[5], ",")
+	}
+	var usersPat []string
+	if len(args) > 2 {
+		usersPat = strings.Split(args[6], ",")
+	}
+	var spacesPat []string
+	if len(args) > 3 {
+		spacesPat = strings.Split(args[7], ",")
+	}
 	var ttl int
 	if len(args) > 4 {
-		i, err := strconv.ParseInt(args[4], 10, 64)
+		i, err := strconv.ParseInt(args[8], 10, 64)
 		if err != nil {
 			ttl = 1440
 		} else {
@@ -1243,6 +1247,45 @@ func grant(args []string) {
 		}
 	}
 
+	chPat := make(map[string]pubnub.ChannelPermissions, len(channelsPat))
+	for _, k := range channelsPat {
+		chPat[k] = pubnub.ChannelPermissions{
+			Read:   true,
+			Write:  true,
+			Delete: true,
+		}
+	}
+
+	sPat := make(map[string]pubnub.UserSpacePermissions, len(spacesPat))
+	for _, k := range spacesPat {
+		sPat[k] = pubnub.UserSpacePermissions{
+			Read:   true,
+			Write:  true,
+			Manage: false,
+			Delete: true,
+			Create: true,
+		}
+	}
+
+	uPat := make(map[string]pubnub.UserSpacePermissions, len(usersPat))
+	for _, k := range usersPat {
+		uPat[k] = pubnub.UserSpacePermissions{
+			Read:   true,
+			Write:  true,
+			Manage: true,
+			Delete: true,
+			Create: false,
+		}
+	}
+
+	cgPat := make(map[string]pubnub.GroupPermissions, len(groupsPat))
+	for _, k := range groupsPat {
+		cgPat[k] = pubnub.GroupPermissions{
+			Read:   true,
+			Manage: true,
+		}
+	}
+
 	// u := map[string]pubnub.ResourcePermissions{
 	// 	u1: pubnub.ResourcePermissions{
 	// 		Read:   true,
@@ -1285,6 +1328,10 @@ func grant(args []string) {
 		ChannelGroups(cg).
 		Users(u).
 		Spaces(s).
+		ChannelsPattern(chPat).
+		ChannelGroupsPattern(cgPat).
+		UsersPattern(uPat).
+		SpacesPattern(sPat).
 		Execute()
 
 	fmt.Println(res)

@@ -86,12 +86,12 @@ func TestGrantV3(t *testing.T) {
 		fmt.Println("")
 		fmt.Println("Sig: ", string(cborObject.Signature))
 		fmt.Println("Version: ", cborObject.Version)
-		fmt.Println("Timetoken: ", cborObject.Timetoken)
+		fmt.Println("Timestamp: ", cborObject.Timestamp)
 		fmt.Println("TTL: ", cborObject.TTL)
 		fmt.Println(fmt.Sprintf("Meta: %#v", cborObject.Meta))
 		fmt.Println("")
 		fmt.Println(" --- Resources")
-		chResources := pubnub.ParseGrantResources(cborObject.Resources, token, cborObject.Timetoken)
+		chResources := pubnub.ParseGrantResources(cborObject.Resources, token, cborObject.Timestamp)
 
 		fmt.Println(chResources)
 
@@ -128,7 +128,7 @@ func TestGrantV3(t *testing.T) {
 		//assert.Equal(cg[cg2].Create, chResources.Groups[cg2].Permissions.Create)
 
 		fmt.Println(" --- Patterns")
-		pubnub.ParseGrantResources(cborObject.Patterns, token, cborObject.Timetoken)
+		pubnub.ParseGrantResources(cborObject.Patterns, token, cborObject.Timestamp)
 	}
 
 	// t2 := pn.TokenManager.GetTokens([]string{ch1}, nil, nil, nil)

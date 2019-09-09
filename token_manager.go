@@ -17,10 +17,14 @@ type TokenManager struct {
 func newTokenManager(pubnub *PubNub, ctx Context) *TokenManager {
 
 	g := GrantResourcesWithPermissons{
-		Channels: make(map[string]ChannelPermissonsWithToken),
-		Groups:   make(map[string]GroupPermissonsWithToken),
-		Users:    make(map[string]UserSpacePermissonsWithToken),
-		Spaces:   make(map[string]UserSpacePermissonsWithToken),
+		Channels:        make(map[string]ChannelPermissonsWithToken),
+		Groups:          make(map[string]GroupPermissonsWithToken),
+		Users:           make(map[string]UserSpacePermissonsWithToken),
+		Spaces:          make(map[string]UserSpacePermissonsWithToken),
+		ChannelsPattern: make(map[string]ChannelPermissonsWithToken),
+		GroupsPattern:   make(map[string]GroupPermissonsWithToken),
+		UsersPattern:    make(map[string]UserSpacePermissonsWithToken),
+		SpacesPattern:   make(map[string]UserSpacePermissonsWithToken),
 	}
 
 	manager := &TokenManager{
@@ -37,12 +41,20 @@ func (m *TokenManager) GetTokens(channels, groups, users, spaces []string) *Gran
 		Groups:   make(map[string]GroupPermissonsWithToken),
 		Users:    make(map[string]UserSpacePermissonsWithToken),
 		Spaces:   make(map[string]UserSpacePermissonsWithToken),
+		// ChannelsPattern: make(map[string]ChannelPermissonsWithToken),
+		// GroupsPattern:   make(map[string]GroupPermissonsWithToken),
+		// UsersPattern:    make(map[string]UserSpacePermissonsWithToken),
+		// SpacesPattern:   make(map[string]UserSpacePermissonsWithToken),
 	}
-	findTokenInTokens(channels, g.Channels, m.Tokens.Channels, PNChannels)
 	//findTokenInTokensChannels(channels, g.Channels, m.Tokens.Channels)
-	findTokenInTokensGroups(groups, g.Groups, m.Tokens.Groups)
-	findTokenInTokensUserSpace(users, g.Users, m.Tokens.Users)
-	findTokenInTokensUserSpace(spaces, g.Spaces, m.Tokens.Spaces)
+	findTokenInTokens(channels, g.Channels, m.Tokens.Channels, PNChannels)
+	findTokenInTokens(groups, g.Groups, m.Tokens.Groups, PNGroups)
+	findTokenInTokens(users, g.Users, m.Tokens.Users, PNUsers)
+	findTokenInTokens(spaces, g.Spaces, m.Tokens.Spaces, PNSpaces)
+	// findTokenInTokens(channels, g.Channels, m.Tokens.Channels, PNChannels)
+	// findTokenInTokens(groups, g.Groups, m.Tokens.Groups, PNGroups)
+	// findTokenInTokens(users, g.Users, m.Tokens.Users, PNUsers)
+	// findTokenInTokens(spaces, g.Spaces, m.Tokens.Spaces, PNSpaces)
 
 	return &g
 }
@@ -83,29 +95,29 @@ func findTokenInTokens(r []string, resource, merge interface{}, resourceType PNR
 
 }
 
-func findTokenInTokensChannels(r []string, a, m map[string]ChannelPermissonsWithToken) {
-	for _, k := range r {
-		if d, ok := m[k]; ok {
-			a[k] = d
-		}
-	}
-}
+// func findTokenInTokensChannels(r []string, a, m map[string]ChannelPermissonsWithToken) {
+// 	for _, k := range r {
+// 		if d, ok := m[k]; ok {
+// 			a[k] = d
+// 		}
+// 	}
+// }
 
-func findTokenInTokensGroups(r []string, a, m map[string]GroupPermissonsWithToken) {
-	for _, k := range r {
-		if d, ok := m[k]; ok {
-			a[k] = d
-		}
-	}
-}
+// func findTokenInTokensGroups(r []string, a, m map[string]GroupPermissonsWithToken) {
+// 	for _, k := range r {
+// 		if d, ok := m[k]; ok {
+// 			a[k] = d
+// 		}
+// 	}
+// }
 
-func findTokenInTokensUserSpace(r []string, a, m map[string]UserSpacePermissonsWithToken) {
-	for _, k := range r {
-		if d, ok := m[k]; ok {
-			a[k] = d
-		}
-	}
-}
+// func findTokenInTokensUserSpace(r []string, a, m map[string]UserSpacePermissonsWithToken) {
+// 	for _, k := range r {
+// 		if d, ok := m[k]; ok {
+// 			a[k] = d
+// 		}
+// 	}
+// }
 
 // func mergeTokensByChannels(m map[string]ChannelPermissonsWithToken, r map[string]ChannelPermissonsWithToken) {
 // 	for k, v := range r {
@@ -160,28 +172,35 @@ func (m *TokenManager) StoreToken(token string) {
 			fmt.Println("")
 			fmt.Println("Sig: ", string(cborObject.Signature))
 			fmt.Println("Version: ", cborObject.Version)
-			fmt.Println("Timetoken: ", cborObject.Timetoken)
+			fmt.Println("Timetoken: ", cborObject.Timestamp)
 			fmt.Println("TTL: ", cborObject.TTL)
 			fmt.Println(fmt.Sprintf("Meta: %#v", cborObject.Meta))
 			fmt.Println("")
 			fmt.Println(" --- Resources")
-			g := ParseGrantResources(cborObject.Resources, token, cborObject.Timetoken)
+			res := ParseGrantResources(cborObject.Resources, token, cborObject.Timestamp)
 			m.Lock()
-			mergeTokensByResource(m.Tokens.Channels, g.Channels, PNChannels)
-			mergeTokensByResource(m.Tokens.Users, g.Users, PNUsers)
-			mergeTokensByResource(m.Tokens.Groups, g.Groups, PNGroups)
-			mergeTokensByResource(m.Tokens.Spaces, g.Spaces, PNSpaces)
+			mergeTokensByResource(m.Tokens.Channels, res.Channels, PNChannels)
+			mergeTokensByResource(m.Tokens.Users, res.Users, PNUsers)
+			mergeTokensByResource(m.Tokens.Groups, res.Groups, PNGroups)
+			mergeTokensByResource(m.Tokens.Spaces, res.Spaces, PNSpaces)
 
 			// mergeTokensByChannels(m.Tokens.Channels, g.Channels)
 			// mergeTokensByUserSpace(m.Tokens.Users, g.Users)
 			// mergeTokensByGroups(m.Tokens.Groups, g.Groups)
 			// mergeTokensByUserSpace(m.Tokens.Spaces, g.Spaces)
-			m.Unlock()
 
 			fmt.Println(" --- Tokens ---- ", m.Tokens)
 
 			fmt.Println(" --- Patterns")
-			ParseGrantResources(cborObject.Patterns, token, cborObject.Timetoken)
+			pat := ParseGrantResources(cborObject.Patterns, token, cborObject.Timestamp)
+			mergeTokensByResource(m.Tokens.ChannelsPattern, pat.Channels, PNChannels)
+			mergeTokensByResource(m.Tokens.UsersPattern, pat.Users, PNUsers)
+			mergeTokensByResource(m.Tokens.GroupsPattern, pat.Groups, PNGroups)
+			mergeTokensByResource(m.Tokens.SpacesPattern, pat.Spaces, PNSpaces)
+
+			fmt.Println(" --- Tokens ---- ", m.Tokens)
+
+			m.Unlock()
 		}
 	}
 }

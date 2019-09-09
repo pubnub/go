@@ -299,10 +299,14 @@ type UserSpacePermissonsWithToken struct {
 }
 
 type GrantResourcesWithPermissons struct {
-	Channels map[string]ChannelPermissonsWithToken
-	Groups   map[string]GroupPermissonsWithToken
-	Users    map[string]UserSpacePermissonsWithToken
-	Spaces   map[string]UserSpacePermissonsWithToken
+	Channels        map[string]ChannelPermissonsWithToken
+	Groups          map[string]GroupPermissonsWithToken
+	Users           map[string]UserSpacePermissonsWithToken
+	Spaces          map[string]UserSpacePermissonsWithToken
+	ChannelsPattern map[string]ChannelPermissonsWithToken
+	GroupsPattern   map[string]GroupPermissonsWithToken
+	UsersPattern    map[string]UserSpacePermissonsWithToken
+	SpacesPattern   map[string]UserSpacePermissonsWithToken
 }
 
 type PermissionsBody struct {
@@ -324,6 +328,6 @@ type PNGrantTokenDecoded struct {
 	Meta      map[string]interface{} `cbor:"meta"`
 	Signature []byte                 `cbor:"sig"`
 	Version   int                    `cbor:"v"`
-	Timetoken int64                  `cbor:"t"`
+	Timestamp int64                  `cbor:"t"`
 	TTL       int                    `cbor:"ttl"`
 }
