@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestGrantV3(t *testing.T) {
+func TestGrantToken(t *testing.T) {
 
 	assert := assert.New(t)
 
@@ -67,7 +67,7 @@ func TestGrantV3(t *testing.T) {
 		},
 	}
 
-	res, _, err := pn.Grant().TTL(10).
+	res, _, err := pn.GrantToken().TTL(10).
 		Channels(ch).
 		ChannelGroups(cg).
 		Users(u).

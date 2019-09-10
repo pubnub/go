@@ -7,7 +7,7 @@ import (
 
 type TokenManager struct {
 	sync.RWMutex
-	Tokens GrantResourcesWithPermissons
+	Tokens GrantResourcesWithPermissions
 	pubnub *PubNub
 }
 
@@ -16,15 +16,15 @@ type TokenManager struct {
 
 func newTokenManager(pubnub *PubNub, ctx Context) *TokenManager {
 
-	g := GrantResourcesWithPermissons{
-		Channels:        make(map[string]ChannelPermissonsWithToken),
-		Groups:          make(map[string]GroupPermissonsWithToken),
-		Users:           make(map[string]UserSpacePermissonsWithToken),
-		Spaces:          make(map[string]UserSpacePermissonsWithToken),
-		ChannelsPattern: make(map[string]ChannelPermissonsWithToken),
-		GroupsPattern:   make(map[string]GroupPermissonsWithToken),
-		UsersPattern:    make(map[string]UserSpacePermissonsWithToken),
-		SpacesPattern:   make(map[string]UserSpacePermissonsWithToken),
+	g := GrantResourcesWithPermissions{
+		Channels:        make(map[string]ChannelPermissionsWithToken),
+		Groups:          make(map[string]GroupPermissionsWithToken),
+		Users:           make(map[string]UserSpacePermissionsWithToken),
+		Spaces:          make(map[string]UserSpacePermissionsWithToken),
+		ChannelsPattern: make(map[string]ChannelPermissionsWithToken),
+		GroupsPattern:   make(map[string]GroupPermissionsWithToken),
+		UsersPattern:    make(map[string]UserSpacePermissionsWithToken),
+		SpacesPattern:   make(map[string]UserSpacePermissionsWithToken),
 	}
 
 	manager := &TokenManager{
@@ -35,16 +35,16 @@ func newTokenManager(pubnub *PubNub, ctx Context) *TokenManager {
 	return manager
 }
 
-func (m *TokenManager) GetTokens(channels, groups, users, spaces []string) *GrantResourcesWithPermissons {
-	g := GrantResourcesWithPermissons{
-		Channels: make(map[string]ChannelPermissonsWithToken),
-		Groups:   make(map[string]GroupPermissonsWithToken),
-		Users:    make(map[string]UserSpacePermissonsWithToken),
-		Spaces:   make(map[string]UserSpacePermissonsWithToken),
-		// ChannelsPattern: make(map[string]ChannelPermissonsWithToken),
-		// GroupsPattern:   make(map[string]GroupPermissonsWithToken),
-		// UsersPattern:    make(map[string]UserSpacePermissonsWithToken),
-		// SpacesPattern:   make(map[string]UserSpacePermissonsWithToken),
+func (m *TokenManager) GetTokens(channels, groups, users, spaces []string) *GrantResourcesWithPermissions {
+	g := GrantResourcesWithPermissions{
+		Channels: make(map[string]ChannelPermissionsWithToken),
+		Groups:   make(map[string]GroupPermissionsWithToken),
+		Users:    make(map[string]UserSpacePermissionsWithToken),
+		Spaces:   make(map[string]UserSpacePermissionsWithToken),
+		// ChannelsPattern: make(map[string]ChannelPermissionsWithToken),
+		// GroupsPattern:   make(map[string]GroupPermissionsWithToken),
+		// UsersPattern:    make(map[string]UserSpacePermissionsWithToken),
+		// SpacesPattern:   make(map[string]UserSpacePermissionsWithToken),
 	}
 	//findTokenInTokensChannels(channels, g.Channels, m.Tokens.Channels)
 	findTokenInTokens(channels, g.Channels, m.Tokens.Channels, PNChannels)
@@ -59,23 +59,23 @@ func (m *TokenManager) GetTokens(channels, groups, users, spaces []string) *Gran
 	return &g
 }
 
-func matchTokensForSubscribe(g *GrantResourcesWithPermissons) {
+func matchTokensForSubscribe(g *GrantResourcesWithPermissions) {
 
 }
 
 func findTokenInTokens(r []string, resource, merge interface{}, resourceType PNResourceType) {
 	switch resourceType {
 	case PNChannels:
-		a := resource.(map[string]ChannelPermissions)
-		e := merge.(map[string]ChannelPermissions)
+		a := resource.(map[string]ChannelPermissionsWithToken)
+		e := merge.(map[string]ChannelPermissionsWithToken)
 		for _, k := range r {
 			if d, ok := e[k]; ok {
 				a[k] = d
 			}
 		}
 	case PNGroups:
-		a := resource.(map[string]GroupPermissions)
-		e := merge.(map[string]GroupPermissions)
+		a := resource.(map[string]GroupPermissionsWithToken)
+		e := merge.(map[string]GroupPermissionsWithToken)
 		for _, k := range r {
 			if d, ok := e[k]; ok {
 				a[k] = d
@@ -84,8 +84,8 @@ func findTokenInTokens(r []string, resource, merge interface{}, resourceType PNR
 	default:
 		//case PNUsers:
 		//case PNSpaces:
-		a := resource.(map[string]UserSpacePermissions)
-		e := merge.(map[string]UserSpacePermissions)
+		a := resource.(map[string]UserSpacePermissionsWithToken)
+		e := merge.(map[string]UserSpacePermissionsWithToken)
 		for _, k := range r {
 			if d, ok := e[k]; ok {
 				a[k] = d
@@ -95,7 +95,7 @@ func findTokenInTokens(r []string, resource, merge interface{}, resourceType PNR
 
 }
 
-// func findTokenInTokensChannels(r []string, a, m map[string]ChannelPermissonsWithToken) {
+// func findTokenInTokensChannels(r []string, a, m map[string]ChannelPermissionsWithToken) {
 // 	for _, k := range r {
 // 		if d, ok := m[k]; ok {
 // 			a[k] = d
@@ -103,7 +103,7 @@ func findTokenInTokens(r []string, resource, merge interface{}, resourceType PNR
 // 	}
 // }
 
-// func findTokenInTokensGroups(r []string, a, m map[string]GroupPermissonsWithToken) {
+// func findTokenInTokensGroups(r []string, a, m map[string]GroupPermissionsWithToken) {
 // 	for _, k := range r {
 // 		if d, ok := m[k]; ok {
 // 			a[k] = d
@@ -111,7 +111,7 @@ func findTokenInTokens(r []string, resource, merge interface{}, resourceType PNR
 // 	}
 // }
 
-// func findTokenInTokensUserSpace(r []string, a, m map[string]UserSpacePermissonsWithToken) {
+// func findTokenInTokensUserSpace(r []string, a, m map[string]UserSpacePermissionsWithToken) {
 // 	for _, k := range r {
 // 		if d, ok := m[k]; ok {
 // 			a[k] = d
@@ -119,19 +119,19 @@ func findTokenInTokens(r []string, resource, merge interface{}, resourceType PNR
 // 	}
 // }
 
-// func mergeTokensByChannels(m map[string]ChannelPermissonsWithToken, r map[string]ChannelPermissonsWithToken) {
+// func mergeTokensByChannels(m map[string]ChannelPermissionsWithToken, r map[string]ChannelPermissionsWithToken) {
 // 	for k, v := range r {
 // 		m[k] = v
 // 	}
 
 // }
-// func mergeTokensByGroups(m map[string]GroupPermissonsWithToken, r map[string]GroupPermissonsWithToken) {
+// func mergeTokensByGroups(m map[string]GroupPermissionsWithToken, r map[string]GroupPermissionsWithToken) {
 // 	for k, v := range r {
 // 		m[k] = v
 // 	}
 
 // }
-// func mergeTokensByUserSpace(m map[string]UserSpacePermissonsWithToken, r map[string]UserSpacePermissonsWithToken) {
+// func mergeTokensByUserSpace(m map[string]UserSpacePermissionsWithToken, r map[string]UserSpacePermissionsWithToken) {
 // 	for k, v := range r {
 // 		m[k] = v
 // 	}
@@ -141,22 +141,22 @@ func findTokenInTokens(r []string, resource, merge interface{}, resourceType PNR
 func mergeTokensByResource(m interface{}, resource interface{}, resourceType PNResourceType) {
 	switch resourceType {
 	case PNChannels:
-		c := resource.(map[string]ChannelPermissonsWithToken)
-		d := m.(map[string]ChannelPermissonsWithToken)
+		c := resource.(map[string]ChannelPermissionsWithToken)
+		d := m.(map[string]ChannelPermissionsWithToken)
 		for k, v := range c {
 			d[k] = v
 		}
 	case PNGroups:
-		c := resource.(map[string]GroupPermissonsWithToken)
-		d := m.(map[string]GroupPermissonsWithToken)
+		c := resource.(map[string]GroupPermissionsWithToken)
+		d := m.(map[string]GroupPermissionsWithToken)
 		for k, v := range c {
 			d[k] = v
 		}
 	default:
 		//case PNUsers:
 		//case PNSpaces:
-		c := resource.(map[string]UserSpacePermissonsWithToken)
-		d := m.(map[string]UserSpacePermissonsWithToken)
+		c := resource.(map[string]UserSpacePermissionsWithToken)
+		d := m.(map[string]UserSpacePermissionsWithToken)
 		for k, v := range c {
 			d[k] = v
 		}
@@ -235,7 +235,7 @@ func (m *TokenManager) StoreToken(token string) {
 // 	}
 // }
 
-// func mergeTokensByResources(m map[string]PermissonsWithToken, r map[string]PermissonsWithToken) map[string]PermissonsWithToken {
+// func mergeTokensByResources(m map[string]PermissionsWithToken, r map[string]PermissionsWithToken) map[string]PermissionsWithToken {
 // 	for k, v := range r {
 // 		m[k] = v
 // 	}

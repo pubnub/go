@@ -11,17 +11,17 @@ import (
 	//	"regexp"
 )
 
-const grantPath = "/v3/pam/%s/grant"
+const grantTokenPath = "/v3/pam/%s/grant"
 
-var emptyPNGrantResponse *PNGrantResponse
+var emptyPNGrantTokenResponse *PNGrantTokenResponse
 
-type grantBuilder struct {
-	opts *grantOpts
+type grantTokenBuilder struct {
+	opts *grantTokenOpts
 }
 
-func newGrantBuilder(pubnub *PubNub) *grantBuilder {
-	builder := grantBuilder{
-		opts: &grantOpts{
+func newGrantTokenBuilder(pubnub *PubNub) *grantTokenBuilder {
+	builder := grantTokenBuilder{
+		opts: &grantTokenOpts{
 			pubnub: pubnub,
 		},
 	}
@@ -29,9 +29,9 @@ func newGrantBuilder(pubnub *PubNub) *grantBuilder {
 	return &builder
 }
 
-func newGrantBuilderWithContext(pubnub *PubNub, context Context) *grantBuilder {
-	builder := grantBuilder{
-		opts: &grantOpts{
+func newGrantTokenBuilderWithContext(pubnub *PubNub, context Context) *grantTokenBuilder {
+	builder := grantTokenBuilder{
+		opts: &grantTokenOpts{
 			pubnub: pubnub,
 			ctx:    context,
 		},
@@ -47,7 +47,7 @@ func newGrantBuilderWithContext(pubnub *PubNub, context Context) *grantBuilder {
 // Default: 1440
 //
 // Setting value to 0 will apply the grant indefinitely (forever grant).
-func (b *grantBuilder) TTL(ttl int) *grantBuilder {
+func (b *grantTokenBuilder) TTL(ttl int) *grantTokenBuilder {
 	b.opts.TTL = ttl
 	b.opts.setTTL = true
 
@@ -55,100 +55,100 @@ func (b *grantBuilder) TTL(ttl int) *grantBuilder {
 }
 
 // AuthKeys sets the AuthKeys for the Grant request.
-func (b *grantBuilder) AuthKeys(authKeys []string) *grantBuilder {
+func (b *grantTokenBuilder) AuthKeys(authKeys []string) *grantTokenBuilder {
 	b.opts.AuthKeys = authKeys
 
 	return b
 }
 
 // Channels sets the Channels for the Grant request.
-func (b *grantBuilder) Channels(channels map[string]ChannelPermissions) *grantBuilder {
+func (b *grantTokenBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenBuilder {
 	b.opts.Channels = channels
 
 	return b
 }
 
 // ChannelGroups sets the ChannelGroups for the Grant request.
-func (b *grantBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantBuilder {
+func (b *grantTokenBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantTokenBuilder {
 	b.opts.ChannelGroups = groups
 
 	return b
 }
 
 // Users sets the Users for the Grant request.
-func (b *grantBuilder) Users(users map[string]UserSpacePermissions) *grantBuilder {
+func (b *grantTokenBuilder) Users(users map[string]UserSpacePermissions) *grantTokenBuilder {
 	b.opts.Users = users
 
 	return b
 }
 
 // Spaces sets the Spaces for the Grant request.
-func (b *grantBuilder) Spaces(spaces map[string]UserSpacePermissions) *grantBuilder {
+func (b *grantTokenBuilder) Spaces(spaces map[string]UserSpacePermissions) *grantTokenBuilder {
 	b.opts.Spaces = spaces
 
 	return b
 }
 
 // Channels sets the Channels for the Grant request.
-func (b *grantBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantBuilder {
+func (b *grantTokenBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenBuilder {
 	b.opts.ChannelsPattern = channels
 
 	return b
 }
 
 // ChannelGroups sets the ChannelGroups for the Grant request.
-func (b *grantBuilder) ChannelGroupsPattern(groups map[string]GroupPermissions) *grantBuilder {
+func (b *grantTokenBuilder) ChannelGroupsPattern(groups map[string]GroupPermissions) *grantTokenBuilder {
 	b.opts.ChannelGroupsPattern = groups
 
 	return b
 }
 
 // Users sets the Users for the Grant request.
-func (b *grantBuilder) UsersPattern(users map[string]UserSpacePermissions) *grantBuilder {
+func (b *grantTokenBuilder) UsersPattern(users map[string]UserSpacePermissions) *grantTokenBuilder {
 	b.opts.UsersPattern = users
 
 	return b
 }
 
 // Spaces sets the Spaces for the Grant request.
-func (b *grantBuilder) SpacesPattern(spaces map[string]UserSpacePermissions) *grantBuilder {
+func (b *grantTokenBuilder) SpacesPattern(spaces map[string]UserSpacePermissions) *grantTokenBuilder {
 	b.opts.SpacesPattern = spaces
 
 	return b
 }
 
 //Patterns sets the Patterns for the Grant request.
-// func (b *grantBuilder) Patterns(pattern string, resourceTypes patterns) *grantBuilder {
+// func (b *grantTokenBuilder) Patterns(pattern string, resourceTypes patterns) *grantTokenBuilder {
 // 	// b.opts.Patterns = patterns
 
 // 	return b
 // }
 
 // Meta sets the Meta for the Grant request.
-func (b *grantBuilder) Meta(meta map[string]interface{}) *grantBuilder {
+func (b *grantTokenBuilder) Meta(meta map[string]interface{}) *grantTokenBuilder {
 	b.opts.Meta = meta
 
 	return b
 }
 
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
-func (b *grantBuilder) QueryParam(queryParam map[string]string) *grantBuilder {
+func (b *grantTokenBuilder) QueryParam(queryParam map[string]string) *grantTokenBuilder {
 	b.opts.QueryParam = queryParam
 
 	return b
 }
 
 // Execute runs the Grant request.
-func (b *grantBuilder) Execute() (*PNGrantResponse, StatusResponse, error) {
+func (b *grantTokenBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyPNGrantResponse, status, err
+		return emptyPNGrantTokenResponse, status, err
 	}
 
-	return newGrantResponse(b, rawJSON, status)
+	return newGrantTokenResponse(b, rawJSON, status)
 }
 
-type grantOpts struct {
+type grantTokenOpts struct {
 	pubnub *PubNub
 	ctx    Context
 
@@ -174,19 +174,19 @@ type grantOpts struct {
 	setTTL bool
 }
 
-func (o *grantOpts) config() Config {
+func (o *grantTokenOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *grantOpts) client() *http.Client {
+func (o *grantTokenOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *grantOpts) context() Context {
+func (o *grantTokenOpts) context() Context {
 	return o.ctx
 }
 
-func (o *grantOpts) validate() error {
+func (o *grantTokenOpts) validate() error {
 	if o.config().PublishKey == "" {
 		return newValidationError(o, StrMissingPubKey)
 	}
@@ -202,8 +202,8 @@ func (o *grantOpts) validate() error {
 	return nil
 }
 
-func (o *grantOpts) buildPath() (string, error) {
-	return fmt.Sprintf(grantPath, o.pubnub.Config.SubscribeKey), nil
+func (o *grantTokenOpts) buildPath() (string, error) {
+	return fmt.Sprintf(grantTokenPath, o.pubnub.Config.SubscribeKey), nil
 }
 
 type grantBody struct {
@@ -287,7 +287,7 @@ func parseResourcePermissions(resource interface{}, resourceType PNResourceType)
 
 }
 
-func (o *grantOpts) buildQuery() (*url.Values, error) {
+func (o *grantTokenOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	SetQueryParam(q, o.QueryParam)
@@ -295,11 +295,11 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *grantOpts) jobQueue() chan *JobQItem {
+func (o *grantTokenOpts) jobQueue() chan *JobQItem {
 	return o.pubnub.jobQueue
 }
 
-func (o *grantOpts) buildBody() ([]byte, error) {
+func (o *grantTokenOpts) buildBody() ([]byte, error) {
 
 	meta := o.Meta
 
@@ -346,51 +346,51 @@ func (o *grantOpts) buildBody() ([]byte, error) {
 	return jsonEncBytes, nil
 }
 
-func (o *grantOpts) httpMethod() string {
+func (o *grantTokenOpts) httpMethod() string {
 	return "POST"
 }
 
-func (o *grantOpts) isAuthRequired() bool {
+func (o *grantTokenOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *grantOpts) requestTimeout() int {
+func (o *grantTokenOpts) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *grantOpts) connectTimeout() int {
+func (o *grantTokenOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *grantOpts) operationType() OperationType {
+func (o *grantTokenOpts) operationType() OperationType {
 	return PNAccessManagerGrant
 }
 
-func (o *grantOpts) telemetryManager() *TelemetryManager {
+func (o *grantTokenOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-type PNGrantData struct {
+type PNGrantTokenData struct {
 	Message string `json:"message"`
 	Token   string `json:"token"`
 }
 
 // GrantResponse is the struct returned when the Execute function of Grant is called.
-type PNGrantResponse struct {
-	status  int         `json:"status"`
-	Data    PNGrantData `json:"data"`
-	service string      `json:"service"`
+type PNGrantTokenResponse struct {
+	status  int              `json:"status"`
+	Data    PNGrantTokenData `json:"data"`
+	service string           `json:"service"`
 }
 
-func newGrantResponse(b *grantBuilder, jsonBytes []byte, status StatusResponse) (*PNGrantResponse, StatusResponse, error) {
-	resp := &PNGrantResponse{}
+func newGrantTokenResponse(b *grantTokenBuilder, jsonBytes []byte, status StatusResponse) (*PNGrantTokenResponse, StatusResponse, error) {
+	resp := &PNGrantTokenResponse{}
 
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyPNGrantResponse, status, e
+		return emptyPNGrantTokenResponse, status, e
 	}
 
 	b.opts.pubnub.tokenManager.StoreToken(resp.Data.Token)

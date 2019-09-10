@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGrantV2ParseLogsForAuthKey(t *testing.T) {
+func TestGrantParseLogsForAuthKey(t *testing.T) {
 
 	assert := assert.New(t)
 	rescueStdout := os.Stdout
@@ -26,7 +26,7 @@ func TestGrantV2ParseLogsForAuthKey(t *testing.T) {
 
 	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-	pn.GrantV2().
+	pn.Grant().
 		Read(true).Write(true).Manage(true).
 		Channels([]string{"ch1", "ch2"}).
 		Execute()
@@ -60,7 +60,7 @@ func TestGrantV2ParseLogsForAuthKey(t *testing.T) {
 
 }
 
-func TestGrantV2ParseLogsForMultipleAuthKeys(t *testing.T) {
+func TestGrantParseLogsForMultipleAuthKeys(t *testing.T) {
 
 	assert := assert.New(t)
 	rescueStdout := os.Stdout
@@ -73,7 +73,7 @@ func TestGrantV2ParseLogsForMultipleAuthKeys(t *testing.T) {
 
 	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-	pn.GrantV2().
+	pn.Grant().
 		Read(true).Write(true).Manage(true).
 		AuthKeys([]string{"authkey1", "authkey2"}).
 		Channels([]string{"ch1", "ch2"}).
@@ -97,14 +97,14 @@ func TestGrantV2ParseLogsForMultipleAuthKeys(t *testing.T) {
 	assert.Contains(s, "auth=authkey1,authkey2")
 }
 
-func TestGrantV2SucccessNotStubbed(t *testing.T) {
+func TestGrantSucccessNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
 	pn.Config.UUID = "asd,|//&aqwe"
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
 		AuthKeys([]string{"pam-key"}).Channels([]string{"ch1", "ch2"}).
 		Execute()
@@ -120,14 +120,14 @@ func TestGrantV2SucccessNotStubbed(t *testing.T) {
 
 }
 
-func TestGrantV2SucccessAppLevelFalse(t *testing.T) {
+func TestGrantSucccessAppLevelFalse(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
 	pn.Config.UUID = "asd,|//&aqwe"
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(false).Write(false).Manage(false).Delete(false).
 		Execute()
 
@@ -142,14 +142,14 @@ func TestGrantV2SucccessAppLevelFalse(t *testing.T) {
 
 }
 
-func TestGrantV2SucccessAppLevelMixed(t *testing.T) {
+func TestGrantSucccessAppLevelMixed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
 	pn.Config.UUID = "asd,|//&aqwe"
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(false).Write(true).Manage(false).Delete(true).
 		Execute()
 
@@ -164,14 +164,14 @@ func TestGrantV2SucccessAppLevelMixed(t *testing.T) {
 
 }
 
-func TestGrantV2SucccessAppLevelMixed2(t *testing.T) {
+func TestGrantSucccessAppLevelMixed2(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
 	pn.Config.UUID = "asd,|//&aqwe"
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(true).Write(false).Manage(true).Delete(false).
 		Execute()
 
@@ -186,14 +186,14 @@ func TestGrantV2SucccessAppLevelMixed2(t *testing.T) {
 
 }
 
-func TestGrantV2SucccessNotStubbedContext(t *testing.T) {
+func TestGrantSucccessNotStubbedContext(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
 	pn.Config.UUID = "asd,|//&aqwe"
 
-	res, _, err := pn.GrantV2WithContext(backgroundContext).
+	res, _, err := pn.GrantWithContext(backgroundContext).
 		Read(true).Write(true).Manage(true).
 		AuthKeys([]string{"pam-key"}).Channels([]string{"ch1", "ch2"}).
 		Execute()
@@ -202,7 +202,7 @@ func TestGrantV2SucccessNotStubbedContext(t *testing.T) {
 	assert.NotNil(res)
 }
 
-func TestGrantV2MultipleMixed(t *testing.T) {
+func TestGrantMultipleMixed(t *testing.T) {
 	assert := assert.New(t)
 
 	interceptor := stubs.NewInterceptor()
@@ -219,7 +219,7 @@ func TestGrantV2MultipleMixed(t *testing.T) {
 	pn.SetClient(interceptor.GetClient())
 	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
 		AuthKeys([]string{"my-auth-key-1", "my-auth-key-2"}).
 		Channels([]string{"ch1", "ch2", "ch3"}).
@@ -230,7 +230,7 @@ func TestGrantV2MultipleMixed(t *testing.T) {
 	assert.NotNil(res)
 }
 
-func TestGrantV2SingleChannel(t *testing.T) {
+func TestGrantSingleChannel(t *testing.T) {
 	assert := assert.New(t)
 
 	interceptor := stubs.NewInterceptor()
@@ -247,7 +247,7 @@ func TestGrantV2SingleChannel(t *testing.T) {
 	pn.SetClient(interceptor.GetClient())
 	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		Channels([]string{"ch1"}).
 		Execute()
@@ -259,7 +259,7 @@ func TestGrantV2SingleChannel(t *testing.T) {
 	assert.False(res.Channels["ch1"].ManageEnabled)
 }
 
-func TestGrantV2SingleChannelWithAuth(t *testing.T) {
+func TestGrantSingleChannelWithAuth(t *testing.T) {
 	assert := assert.New(t)
 
 	interceptor := stubs.NewInterceptor()
@@ -275,7 +275,7 @@ func TestGrantV2SingleChannelWithAuth(t *testing.T) {
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(false).
 		AuthKeys([]string{"my-pam-key"}).
 		Channels([]string{"ch1"}).
@@ -288,7 +288,7 @@ func TestGrantV2SingleChannelWithAuth(t *testing.T) {
 	assert.False(res.Channels["ch1"].AuthKeys["my-pam-key"].ManageEnabled)
 }
 
-func TestGrantV2MultipleChannels(t *testing.T) {
+func TestGrantMultipleChannels(t *testing.T) {
 	assert := assert.New(t)
 
 	interceptor := stubs.NewInterceptor()
@@ -304,7 +304,7 @@ func TestGrantV2MultipleChannels(t *testing.T) {
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		Channels([]string{"ch1", "ch2"}).
 		Execute()
@@ -321,7 +321,7 @@ func TestGrantV2MultipleChannels(t *testing.T) {
 	assert.False(res.Channels["ch2"].ManageEnabled)
 }
 
-func TestGrantV2MultipleChannelsWithAuth(t *testing.T) {
+func TestGrantMultipleChannelsWithAuth(t *testing.T) {
 	assert := assert.New(t)
 
 	interceptor := stubs.NewInterceptor()
@@ -337,7 +337,7 @@ func TestGrantV2MultipleChannelsWithAuth(t *testing.T) {
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		AuthKeys([]string{"my-pam-key"}).
 		Channels([]string{"ch1", "ch2"}).
@@ -355,7 +355,7 @@ func TestGrantV2MultipleChannelsWithAuth(t *testing.T) {
 	assert.False(res.Channels["ch2"].AuthKeys["my-pam-key"].ManageEnabled)
 }
 
-func TestGrantV2SingleGroup(t *testing.T) {
+func TestGrantSingleGroup(t *testing.T) {
 	assert := assert.New(t)
 
 	interceptor := stubs.NewInterceptor()
@@ -371,7 +371,7 @@ func TestGrantV2SingleGroup(t *testing.T) {
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		ChannelGroups([]string{"cg1"}).
 		Execute()
@@ -384,7 +384,7 @@ func TestGrantV2SingleGroup(t *testing.T) {
 	assert.False(res.ChannelGroups["cg1"].ManageEnabled)
 }
 
-func TestGrantV2SingleGroupWithAuth(t *testing.T) {
+func TestGrantSingleGroupWithAuth(t *testing.T) {
 	assert := assert.New(t)
 
 	interceptor := stubs.NewInterceptor()
@@ -400,7 +400,7 @@ func TestGrantV2SingleGroupWithAuth(t *testing.T) {
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		ChannelGroups([]string{"cg1"}).
 		AuthKeys([]string{"my-pam-key"}).
 		Write(true).
@@ -415,7 +415,7 @@ func TestGrantV2SingleGroupWithAuth(t *testing.T) {
 	assert.False(res.ChannelGroups["cg1"].AuthKeys["my-pam-key"].ManageEnabled)
 }
 
-func TestGrantV2MultipleGroups(t *testing.T) {
+func TestGrantMultipleGroups(t *testing.T) {
 	assert := assert.New(t)
 
 	interceptor := stubs.NewInterceptor()
@@ -431,7 +431,7 @@ func TestGrantV2MultipleGroups(t *testing.T) {
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		ChannelGroups([]string{"cg1", "cg2"}).
 		Execute()
@@ -448,7 +448,7 @@ func TestGrantV2MultipleGroups(t *testing.T) {
 	assert.False(res.ChannelGroups["cg2"].ManageEnabled)
 }
 
-func TestGrantV2MultipleGroupsWithAuth(t *testing.T) {
+func TestGrantMultipleGroupsWithAuth(t *testing.T) {
 	assert := assert.New(t)
 
 	interceptor := stubs.NewInterceptor()
@@ -464,7 +464,7 @@ func TestGrantV2MultipleGroupsWithAuth(t *testing.T) {
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		Read(true).Write(true).
 		AuthKeys([]string{"my-pam-key"}).
 		ChannelGroups([]string{"cg1", "cg2"}).

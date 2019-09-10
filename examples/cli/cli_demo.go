@@ -63,16 +63,16 @@ func connect() {
 	config.SubscribeKey = "sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306"
 	config.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
 
-	config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
-	config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
-	config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
+	// config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
+	// config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
+	// config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
 
 	//config.PublishKey = "demo"
 	//config.SubscribeKey = "demo"
 
 	//config.AuthKey = "akey"
-	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
-	config.Secure = false
+	// config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
+	// config.Secure = false
 
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
@@ -225,7 +225,7 @@ func showHelp() {
 	showListAllChOfCgHelp()
 	showDelCgHelp()
 	showGrantHelp()
-	showGrant2Help()
+	showGrantTokenHelp()
 	showSubscribeWithStateHelp()
 	showPresenceTimeoutHelp()
 	showPresenceHelp()
@@ -453,16 +453,16 @@ func showDelCgHelp() {
 	fmt.Println("	delcg cg ")
 }
 
-func showGrantHelp() {
-	fmt.Println(" GRANT EXAMPLE: ")
-	fmt.Println("	grant Channels ChannelGroups Users Spaces ttl ")
-	fmt.Println("	grant ch1,ch2 cg1,cg2 u1,u2 s1,s2 ^ch-[0-9a-f]*$ ^:cg-[0-9a-f]*$ ^u-[0-9a-f]*$ ^s-[0-9a-f]*$ 10")
+func showGrantTokenHelp() {
+	fmt.Println(" GRANTTOKEN EXAMPLE: ")
+	fmt.Println("	granttoken Channels ChannelGroups Users Spaces ttl ")
+	fmt.Println("	granttoken ch1,ch2 cg1,cg2 u1,u2 s1,s2 ^ch-[0-9a-f]*$ ^:cg-[0-9a-f]*$ ^u-[0-9a-f]*$ ^s-[0-9a-f]*$ 10")
 }
 
-func showGrant2Help() {
+func showGrantHelp() {
 	fmt.Println(" GRANT2 EXAMPLE: ")
-	fmt.Println("	grant2 Channels ChannelGroups manage read write ttl ")
-	fmt.Println("	grant2 my-channel cg false false false 10")
+	fmt.Println("	grant Channels ChannelGroups manage read write ttl ")
+	fmt.Println("	grant my-channel cg false false false 10")
 }
 
 func showPresenceTimeoutHelp() {
@@ -515,10 +515,10 @@ func readCommand(cmd string) {
 		listChannelsOfChannelGroup(command[1:])
 	case "delcg":
 		delChannelGroup(command[1:])
-	case "grant2":
-		grant2(command[1:])
 	case "grant":
 		grant(command[1:])
+	case "granttoken":
+		granttoken(command[1:])
 	case "help":
 		showHelp()
 	case "pt":
@@ -1153,7 +1153,7 @@ func setPresenceTimeout(args []string) {
 	}
 }
 
-func grant(args []string) {
+func granttoken(args []string) {
 	if len(args) < 9 {
 		fmt.Println(len(args))
 		showGrantHelp()
@@ -1323,7 +1323,7 @@ func grant(args []string) {
 	// 	},
 	// }
 
-	res, _, err := pn.Grant().TTL(ttl).
+	res, _, err := pn.GrantToken().TTL(ttl).
 		Channels(ch).
 		ChannelGroups(cg).
 		Users(u).
@@ -1338,10 +1338,10 @@ func grant(args []string) {
 	fmt.Println(err)
 }
 
-func grant2(args []string) {
+func grant(args []string) {
 	if len(args) < 6 {
 		fmt.Println(len(args))
-		showGrant2Help()
+		showGrantHelp()
 		return
 	}
 
@@ -1375,7 +1375,7 @@ func grant2(args []string) {
 		}
 	}
 
-	res, _, err := pn.GrantV2().
+	res, _, err := pn.Grant().
 		ChannelGroups(groups).
 		Channels(channels).
 		Manage(manage).

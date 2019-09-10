@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	//"io/ioutil"
+	//"log"
+	//"encoding/json"
 	"math/bits"
 	"strconv"
 	"strings"
@@ -110,14 +113,21 @@ func GetPermissions(token string) (PNGrantTokenDecoded, error) {
 		token += strings.Repeat("=", 4-i)
 	}
 	fmt.Println("Padded Token--->", token)
+
 	var cborObject PNGrantTokenDecoded
 	value, decodeErr := base64.StdEncoding.DecodeString(token)
 	if decodeErr != nil {
 		fmt.Println("\nDecoding Error--->", decodeErr)
 	} else {
-		fmt.Println("\nDecoded Token--->", string(value))
-		//var resp interface{}
+		fmt.Println("\nDecoded Token--->", string(value), value)
+
 		c := cbor.NewDecoder(bytes.NewReader(value))
+		// var res map[string]interface{}
+		// c.Decode(&res)
+		// //fmt.Println(res)
+		// jsonSerialized, e := json.Marshal(res)
+		// fmt.Println(e)
+		// fmt.Println("jsonSerialized--->", string(jsonSerialized), res)
 
 		err1 := c.Decode(&cborObject)
 		if err1 != nil {
@@ -125,6 +135,9 @@ func GetPermissions(token string) (PNGrantTokenDecoded, error) {
 			//log.Println("Write file:", ioutil.WriteFile("data.json", value, 0600))
 			return cborObject, err1
 		}
+		//log.Println("Write file:", ioutil.WriteFile("data.json", value, 0600))
+		//log.Println("Write file:", ioutil.WriteFile("data.json", []byte(string(cborObject)), 0600))
+
 		return cborObject, nil
 	}
 	return cborObject, decodeErr
@@ -215,12 +228,12 @@ func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
 // 	return &g
 // }
 
-func ParseGrantResources(res GrantResources, token string, timetoken int64) *GrantResourcesWithPermissons {
-	channels := make(map[string]ChannelPermissonsWithToken, len(res.Channels))
+func ParseGrantResources(res GrantResources, token string, timetoken int64) *GrantResourcesWithPermissions {
+	channels := make(map[string]ChannelPermissionsWithToken, len(res.Channels))
 
 	for k, v := range res.Channels {
 		fmt.Println("", k, v)
-		channels[k] = ChannelPermissonsWithToken{
+		channels[k] = ChannelPermissionsWithToken{
 			Permissions:  parseGrantPerms(v, PNChannels).(ChannelPermissions),
 			BitMaskPerms: v,
 			Token:        token,
@@ -228,10 +241,10 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64) *Gra
 		}
 	}
 
-	groups := make(map[string]GroupPermissonsWithToken, len(res.Groups))
+	groups := make(map[string]GroupPermissionsWithToken, len(res.Groups))
 	for k, v := range res.Groups {
 		fmt.Println("", k, v)
-		groups[k] = GroupPermissonsWithToken{
+		groups[k] = GroupPermissionsWithToken{
 			Permissions:  parseGrantPerms(v, PNGroups).(GroupPermissions),
 			BitMaskPerms: v,
 			Token:        token,
@@ -239,10 +252,10 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64) *Gra
 		}
 	}
 
-	spaces := make(map[string]UserSpacePermissonsWithToken, len(res.Spaces))
+	spaces := make(map[string]UserSpacePermissionsWithToken, len(res.Spaces))
 	for k, v := range res.Spaces {
 		fmt.Println("", k, v)
-		spaces[k] = UserSpacePermissonsWithToken{
+		spaces[k] = UserSpacePermissionsWithToken{
 			Permissions:  parseGrantPerms(v, PNSpaces).(UserSpacePermissions),
 			BitMaskPerms: v,
 			Token:        token,
@@ -250,10 +263,10 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64) *Gra
 		}
 	}
 
-	users := make(map[string]UserSpacePermissonsWithToken, len(res.Users))
+	users := make(map[string]UserSpacePermissionsWithToken, len(res.Users))
 	for k, v := range res.Users {
 		fmt.Println("", k, v)
-		users[k] = UserSpacePermissonsWithToken{
+		users[k] = UserSpacePermissionsWithToken{
 			Permissions:  parseGrantPerms(v, PNUsers).(UserSpacePermissions),
 			BitMaskPerms: v,
 			Token:        token,
@@ -261,7 +274,7 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64) *Gra
 		}
 	}
 
-	g := GrantResourcesWithPermissons{
+	g := GrantResourcesWithPermissions{
 		Channels: channels,
 		Users:    users,
 		Groups:   groups,
@@ -277,36 +290,36 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64) *Gra
 // 	Spaces   map[string]ResourcePermissions
 // }
 
-type ChannelPermissonsWithToken struct {
+type ChannelPermissionsWithToken struct {
 	Permissions  ChannelPermissions
 	BitMaskPerms int64
 	Token        string
 	Timestamp    int64
 }
 
-type GroupPermissonsWithToken struct {
+type GroupPermissionsWithToken struct {
 	Permissions  GroupPermissions
 	BitMaskPerms int64
 	Token        string
 	Timestamp    int64
 }
 
-type UserSpacePermissonsWithToken struct {
+type UserSpacePermissionsWithToken struct {
 	Permissions  UserSpacePermissions
 	BitMaskPerms int64
 	Token        string
 	Timestamp    int64
 }
 
-type GrantResourcesWithPermissons struct {
-	Channels        map[string]ChannelPermissonsWithToken
-	Groups          map[string]GroupPermissonsWithToken
-	Users           map[string]UserSpacePermissonsWithToken
-	Spaces          map[string]UserSpacePermissonsWithToken
-	ChannelsPattern map[string]ChannelPermissonsWithToken
-	GroupsPattern   map[string]GroupPermissonsWithToken
-	UsersPattern    map[string]UserSpacePermissonsWithToken
-	SpacesPattern   map[string]UserSpacePermissonsWithToken
+type GrantResourcesWithPermissions struct {
+	Channels        map[string]ChannelPermissionsWithToken
+	Groups          map[string]GroupPermissionsWithToken
+	Users           map[string]UserSpacePermissionsWithToken
+	Spaces          map[string]UserSpacePermissionsWithToken
+	ChannelsPattern map[string]ChannelPermissionsWithToken
+	GroupsPattern   map[string]GroupPermissionsWithToken
+	UsersPattern    map[string]UserSpacePermissionsWithToken
+	SpacesPattern   map[string]UserSpacePermissionsWithToken
 }
 
 type PermissionsBody struct {

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGrantV3ParseResourcePermissions(t *testing.T) {
+func TestGrantTokenParseResourcePermissions(t *testing.T) {
 	assert := assert.New(t)
 
 	m := map[string]UserSpacePermissions{
@@ -27,7 +27,7 @@ func TestGrantV3ParseResourcePermissions(t *testing.T) {
 	}
 }
 
-func TestGrantV3ParseResourcePermissions2(t *testing.T) {
+func TestGrantTokenParseResourcePermissions2(t *testing.T) {
 	assert := assert.New(t)
 
 	m := map[string]UserSpacePermissions{
@@ -46,7 +46,7 @@ func TestGrantV3ParseResourcePermissions2(t *testing.T) {
 	}
 }
 
-func TestGrantV3ParseResourcePermissions3(t *testing.T) {
+func TestGrantTokenParseResourcePermissions3(t *testing.T) {
 	assert := assert.New(t)
 
 	m := map[string]UserSpacePermissions{
@@ -65,7 +65,7 @@ func TestGrantV3ParseResourcePermissions3(t *testing.T) {
 	}
 }
 
-func TestGrantV3ParseResourcePermissions4(t *testing.T) {
+func TestGrantTokenParseResourcePermissions4(t *testing.T) {
 	assert := assert.New(t)
 
 	m := map[string]UserSpacePermissions{
@@ -90,17 +90,17 @@ func TestGrantV3ParseResourcePermissions4(t *testing.T) {
 	assert.Equal(int64(5), r["channel2"])
 }
 
-func TestGrantV3(t *testing.T) {
-	AssertTestGrantV3(t, true, false)
+func TestGrantToken(t *testing.T) {
+	AssertTestGrantToken(t, true, false)
 }
 
-func AssertTestGrantV3(t *testing.T, checkQueryParam, testContext bool) {
+func AssertTestGrantToken(t *testing.T, checkQueryParam, testContext bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	o := newGrantBuilder(pn)
+	o := newGrantTokenBuilder(pn)
 	if testContext {
-		o = newGrantBuilderWithContext(pn, backgroundContext)
+		o = newGrantTokenBuilderWithContext(pn, backgroundContext)
 	}
 
 	queryParam := map[string]string{
@@ -162,7 +162,7 @@ func AssertTestGrantV3(t *testing.T, checkQueryParam, testContext bool) {
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf(grantPath, pn.Config.SubscribeKey),
+		fmt.Sprintf(grantTokenPath, pn.Config.SubscribeKey),
 		path, []int{})
 
 	body, err := o.opts.buildBody()

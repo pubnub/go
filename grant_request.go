@@ -14,17 +14,17 @@ import (
 	"github.com/pubnub/go/pnerr"
 )
 
-const grantV2Path = "/v2/auth/grant/sub-key/%s"
+const grantPath = "/v2/auth/grant/sub-key/%s"
 
-var emptyGrantV2Response *GrantV2Response
+var emptyGrantResponse *GrantResponse
 
-type grantV2Builder struct {
-	opts *grantV2Opts
+type grantBuilder struct {
+	opts *grantOpts
 }
 
-func newGrantV2Builder(pubnub *PubNub) *grantV2Builder {
-	builder := grantV2Builder{
-		opts: &grantV2Opts{
+func newGrantBuilder(pubnub *PubNub) *grantBuilder {
+	builder := grantBuilder{
+		opts: &grantOpts{
 			pubnub: pubnub,
 		},
 	}
@@ -32,9 +32,9 @@ func newGrantV2Builder(pubnub *PubNub) *grantV2Builder {
 	return &builder
 }
 
-func newGrantV2BuilderWithContext(pubnub *PubNub, context Context) *grantV2Builder {
-	builder := grantV2Builder{
-		opts: &grantV2Opts{
+func newGrantBuilderWithContext(pubnub *PubNub, context Context) *grantBuilder {
+	builder := grantBuilder{
+		opts: &grantOpts{
 			pubnub: pubnub,
 			ctx:    context,
 		},
@@ -43,25 +43,25 @@ func newGrantV2BuilderWithContext(pubnub *PubNub, context Context) *grantV2Build
 	return &builder
 }
 
-func (b *grantV2Builder) Read(read bool) *grantV2Builder {
+func (b *grantBuilder) Read(read bool) *grantBuilder {
 	b.opts.Read = read
 
 	return b
 }
 
-func (b *grantV2Builder) Write(write bool) *grantV2Builder {
+func (b *grantBuilder) Write(write bool) *grantBuilder {
 	b.opts.Write = write
 
 	return b
 }
 
-func (b *grantV2Builder) Manage(manage bool) *grantV2Builder {
+func (b *grantBuilder) Manage(manage bool) *grantBuilder {
 	b.opts.Manage = manage
 
 	return b
 }
 
-func (b *grantV2Builder) Delete(del bool) *grantV2Builder {
+func (b *grantBuilder) Delete(del bool) *grantBuilder {
 	b.opts.Delete = del
 
 	return b
@@ -74,7 +74,7 @@ func (b *grantV2Builder) Delete(del bool) *grantV2Builder {
 // Default: 1440
 //
 // Setting value to 0 will apply the grant indefinitely (forever grant).
-func (b *grantV2Builder) TTL(ttl int) *grantV2Builder {
+func (b *grantBuilder) TTL(ttl int) *grantBuilder {
 	b.opts.TTL = ttl
 	b.opts.setTTL = true
 
@@ -82,51 +82,51 @@ func (b *grantV2Builder) TTL(ttl int) *grantV2Builder {
 }
 
 // AuthKeys sets the AuthKeys for the Grant request.
-func (b *grantV2Builder) AuthKeys(authKeys []string) *grantV2Builder {
+func (b *grantBuilder) AuthKeys(authKeys []string) *grantBuilder {
 	b.opts.AuthKeys = authKeys
 
 	return b
 }
 
 // Channels sets the Channels for the Grant request.
-func (b *grantV2Builder) Channels(channels []string) *grantV2Builder {
+func (b *grantBuilder) Channels(channels []string) *grantBuilder {
 	b.opts.Channels = channels
 
 	return b
 }
 
 // ChannelGroups sets the ChannelGroups for the Grant request.
-func (b *grantV2Builder) ChannelGroups(groups []string) *grantV2Builder {
+func (b *grantBuilder) ChannelGroups(groups []string) *grantBuilder {
 	b.opts.ChannelGroups = groups
 
 	return b
 }
 
 // Meta sets the Meta for the Grant request.
-func (b *grantV2Builder) Meta(meta map[string]interface{}) *grantV2Builder {
+func (b *grantBuilder) Meta(meta map[string]interface{}) *grantBuilder {
 	b.opts.Meta = meta
 
 	return b
 }
 
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
-func (b *grantV2Builder) QueryParam(queryParam map[string]string) *grantV2Builder {
+func (b *grantBuilder) QueryParam(queryParam map[string]string) *grantBuilder {
 	b.opts.QueryParam = queryParam
 
 	return b
 }
 
 // Execute runs the Grant request.
-func (b *grantV2Builder) Execute() (*GrantV2Response, StatusResponse, error) {
+func (b *grantBuilder) Execute() (*GrantResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyGrantV2Response, status, err
+		return emptyGrantResponse, status, err
 	}
 
-	return newGrantV2Response(rawJSON, status)
+	return newGrantResponse(rawJSON, status)
 }
 
-type grantV2Opts struct {
+type grantOpts struct {
 	pubnub *PubNub
 	ctx    Context
 
@@ -152,19 +152,19 @@ type grantV2Opts struct {
 	setTTL bool
 }
 
-func (o *grantV2Opts) config() Config {
+func (o *grantOpts) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *grantV2Opts) client() *http.Client {
+func (o *grantOpts) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *grantV2Opts) context() Context {
+func (o *grantOpts) context() Context {
 	return o.ctx
 }
 
-func (o *grantV2Opts) validate() error {
+func (o *grantOpts) validate() error {
 	if o.config().PublishKey == "" {
 		return newValidationError(o, StrMissingPubKey)
 	}
@@ -180,11 +180,11 @@ func (o *grantV2Opts) validate() error {
 	return nil
 }
 
-func (o *grantV2Opts) buildPath() (string, error) {
-	return fmt.Sprintf(grantV2Path, o.pubnub.Config.SubscribeKey), nil
+func (o *grantOpts) buildPath() (string, error) {
+	return fmt.Sprintf(grantPath, o.pubnub.Config.SubscribeKey), nil
 }
 
-func (o *grantV2Opts) buildQuery() (*url.Values, error) {
+func (o *grantOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Read {
@@ -236,40 +236,40 @@ func (o *grantV2Opts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *grantV2Opts) jobQueue() chan *JobQItem {
+func (o *grantOpts) jobQueue() chan *JobQItem {
 	return o.pubnub.jobQueue
 }
 
-func (o *grantV2Opts) buildBody() ([]byte, error) {
+func (o *grantOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *grantV2Opts) httpMethod() string {
+func (o *grantOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *grantV2Opts) isAuthRequired() bool {
+func (o *grantOpts) isAuthRequired() bool {
 	return true
 }
 
-func (o *grantV2Opts) requestTimeout() int {
+func (o *grantOpts) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *grantV2Opts) connectTimeout() int {
+func (o *grantOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *grantV2Opts) operationType() OperationType {
+func (o *grantOpts) operationType() OperationType {
 	return PNAccessManagerGrant
 }
 
-func (o *grantV2Opts) telemetryManager() *TelemetryManager {
+func (o *grantOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-// GrantV2Response is the struct returned when the Execute function of Grant is called.
-type GrantV2Response struct {
+// GrantResponse is the struct returned when the Execute function of Grant is called.
+type GrantResponse struct {
 	Level        string
 	SubscribeKey string
 
@@ -284,9 +284,9 @@ type GrantV2Response struct {
 	DeleteEnabled bool
 }
 
-func newGrantV2Response(jsonBytes []byte, status StatusResponse) (
-	*GrantV2Response, StatusResponse, error) {
-	resp := &GrantV2Response{}
+func newGrantResponse(jsonBytes []byte, status StatusResponse) (
+	*GrantResponse, StatusResponse, error) {
+	resp := &GrantResponse{}
 	var value interface{}
 
 	err := json.Unmarshal(jsonBytes, &value)
@@ -294,7 +294,7 @@ func newGrantV2Response(jsonBytes []byte, status StatusResponse) (
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		return emptyGrantV2Response, status, e
+		return emptyGrantResponse, status, e
 	}
 
 	constructedChannels := make(map[string]*PNPAMEntityData)

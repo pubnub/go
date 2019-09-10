@@ -12,7 +12,7 @@ import (
 func TestGrantRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &grantV2Opts{
+	opts := &grantOpts{
 		AuthKeys:      []string{"my-auth-key"},
 		Channels:      []string{"ch"},
 		ChannelGroups: []string{"cg"},
@@ -58,7 +58,7 @@ func TestGrantRequestBasic(t *testing.T) {
 func TestGrantRequestBasicQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &grantV2Opts{
+	opts := &grantOpts{
 		AuthKeys:      []string{"my-auth-key"},
 		Channels:      []string{"ch"},
 		ChannelGroups: []string{"cg"},
@@ -102,9 +102,9 @@ func TestGrantRequestBasicQueryParam(t *testing.T) {
 
 }
 
-func TestNewGrantV2Builder(t *testing.T) {
+func TestNewGrantBuilder(t *testing.T) {
 	assert := assert.New(t)
-	o := newGrantV2Builder(pubnub)
+	o := newGrantBuilder(pubnub)
 	o.AuthKeys([]string{"my-auth-key"})
 	o.Channels([]string{"ch"})
 	o.ChannelGroups([]string{"cg"})
@@ -145,9 +145,9 @@ func TestNewGrantV2Builder(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
-func TestNewGrantV2BuilderDelFalse(t *testing.T) {
+func TestNewGrantBuilderDelFalse(t *testing.T) {
 	assert := assert.New(t)
-	o := newGrantV2Builder(pubnub)
+	o := newGrantBuilder(pubnub)
 	o.AuthKeys([]string{"my-auth-key"})
 	o.Channels([]string{"ch"})
 	o.ChannelGroups([]string{"cg"})
@@ -188,9 +188,9 @@ func TestNewGrantV2BuilderDelFalse(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
-func TestNewGrantV2BuilderContext(t *testing.T) {
+func TestNewGrantBuilderContext(t *testing.T) {
 	assert := assert.New(t)
-	o := newGrantV2BuilderWithContext(pubnub, backgroundContext)
+	o := newGrantBuilderWithContext(pubnub, backgroundContext)
 	o.AuthKeys([]string{"my-auth-key"})
 	o.Channels([]string{"ch"})
 	o.ChannelGroups([]string{"cg"})
@@ -237,11 +237,11 @@ func TestNewGrantV2BuilderContext(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
-func TestGrantOptsValidateSub(t *testing.T) {
+func TestGrantTokenOptsValidateSub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &grantV2Opts{
+	opts := &grantOpts{
 		AuthKeys:      []string{"my-auth-key"},
 		Channels:      []string{"ch"},
 		ChannelGroups: []string{"cg"},
@@ -256,11 +256,11 @@ func TestGrantOptsValidateSub(t *testing.T) {
 	assert.Equal("pubnub/validation: pubnub: \x15: Missing Subscribe Key", opts.validate().Error())
 }
 
-func TestGrantOptsValidateSec(t *testing.T) {
+func TestGrantTokenOptsValidateSec(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SecretKey = ""
-	opts := &grantV2Opts{
+	opts := &grantOpts{
 		AuthKeys:      []string{"my-auth-key"},
 		Channels:      []string{"ch"},
 		ChannelGroups: []string{"cg"},
@@ -275,11 +275,11 @@ func TestGrantOptsValidateSec(t *testing.T) {
 	assert.Equal("pubnub/validation: pubnub: \x15: Missing Secret Key", opts.validate().Error())
 }
 
-func TestGrantOptsValidatePub(t *testing.T) {
+func TestGrantTokenOptsValidatePub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.PublishKey = ""
-	opts := &grantV2Opts{
+	opts := &grantOpts{
 		AuthKeys:      []string{"my-auth-key"},
 		Channels:      []string{"ch"},
 		ChannelGroups: []string{"cg"},
@@ -294,19 +294,19 @@ func TestGrantOptsValidatePub(t *testing.T) {
 	assert.Equal("pubnub/validation: pubnub: \x15: Missing Publish Key", opts.validate().Error())
 }
 
-func TestNewGrantV2ResponseErrorUnmarshalling(t *testing.T) {
+func TestNewGrantResponseErrorUnmarshalling(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`s`)
 
-	_, _, err := newGrantV2Response(jsonBytes, StatusResponse{})
+	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-func TestNewGrantV2ResponseManageEnabled(t *testing.T) {
+func TestNewGrantResponseManageEnabled(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"r":1,"m":1,"w":1,"channels":{"ch1":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"ch2":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"ch3":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}}},"channel-groups":{"cg1":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"cg2":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0,"ttl":1},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}},"cg3":{"auths":{"my-auth-key-1":{"r":1,"w":1,"m":1,"d":0},"my-auth-key-2":{"r":1,"w":1,"m":1,"d":0}}}}},"service":"Access Manager","status":200}`)
 
-	e, _, err := newGrantV2Response(jsonBytes, StatusResponse{})
+	e, _, err := newGrantResponse(jsonBytes, StatusResponse{})
 
 	assert.Nil(err)
 	assert.Equal(true, e.ManageEnabled)
@@ -326,11 +326,11 @@ func TestNewGrantV2ResponseManageEnabled(t *testing.T) {
 
 }
 
-func TestNewGrantV2ResponseManageEnabledInv(t *testing.T) {
+func TestNewGrantResponseManageEnabledInv(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`{"message":"Success","payload":{"level":"channel-group+auth","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":0,"r":0,"m":0,"w":0,"channels":{"ch1":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"ch2":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"ch3":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}}},"channel-groups":{"cg1":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1,"ttl":4},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"cg2":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1,"ttl":6},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}},"cg3":{"auths":{"my-auth-key-1":{"r":0,"w":0,"m":0,"d":1},"my-auth-key-2":{"r":0,"w":0,"m":0,"d":1}}}}},"service":"Access Manager","status":200}`)
 
-	e, _, err := newGrantV2Response(jsonBytes, StatusResponse{})
+	e, _, err := newGrantResponse(jsonBytes, StatusResponse{})
 
 	assert.Nil(err)
 	assert.Equal(false, e.ManageEnabled)
@@ -351,20 +351,20 @@ func TestNewGrantV2ResponseManageEnabledInv(t *testing.T) {
 	assert.Equal(false, e.Channels["ch1"].AuthKeys["my-auth-key-1"].WriteEnabled)
 }
 
-func TestNewGrantV2ResponseManageEnabledCH(t *testing.T) {
+func TestNewGrantResponseManageEnabledCH(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`{"message":"Success","payload":{"level":"user","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channel":"ch1","auths":{"my-pam-key":{"r":1,"w":1,"m":0,"d":0}}},"service":"Access Manager","status":200}`)
 
-	_, _, err := newGrantV2Response(jsonBytes, StatusResponse{})
+	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
 
 	assert.Nil(err)
 }
 
-func TestNewGrantV2ResponseManageEnabledCHM(t *testing.T) {
+func TestNewGrantResponseManageEnabledCHM(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`{"message":"Success","payload":{"level":"user","subscribe_key":"sub-c-b9ab9508-43cf-11e8-9967-869954283fb4","ttl":1440,"channel":"ch1","auths":{"my-pam-key":{"r":1,"w":1,"m":1,"d":0}}},"service":"Access Manager","status":200}`)
 
-	_, _, err := newGrantV2Response(jsonBytes, StatusResponse{})
+	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
 
 	assert.Nil(err)
 }
@@ -372,7 +372,7 @@ func TestNewGrantV2ResponseManageEnabledCHM(t *testing.T) {
 func TestGrantTTL(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	gb := newGrantV2Builder(pn)
+	gb := newGrantBuilder(pn)
 	gb.TTL(10)
 	assert.Equal(10, gb.opts.TTL)
 }

@@ -104,7 +104,7 @@ func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher s
 				case pubnub.PNAcknowledgmentCategory:
 					doneUnsubscribe <- true
 				default:
-					fmt.Println("SubscribePublishUnsubscribeMultiCommon status", status)
+					fmt.Println("SubscribeSignalUnsubscribeMultiCommon status", status)
 					doneUnsubscribe <- true
 				}
 			case message := <-listener.Signal:
@@ -118,7 +118,7 @@ func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher s
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 			case <-tic.C:
-				fmt.Println("SubscribePublishUnsubscribeMultiCommon timeout")
+				fmt.Println("SubscribeSignalUnsubscribeMultiCommon timeout")
 				assert.Fail("timeout")
 				errChan <- "timeout"
 
@@ -156,17 +156,17 @@ func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher s
 		Channels([]string{ch}).
 		Execute()
 
-	fmt.Println("SubscribePublishUnsubscribeMultiCommon before doneUnsubscribe")
+	fmt.Println("SubscribeSignalUnsubscribeMultiCommon before doneUnsubscribe")
 	select {
 	case <-doneUnsubscribe:
 	case err := <-errChan:
 		assert.Fail(err)
 	}
-	fmt.Println("SubscribePublishUnsubscribeMultiCommon after doneUnsubscribe")
+	fmt.Println("SubscribeSignalUnsubscribeMultiCommon after doneUnsubscribe")
 	exit <- true
-	fmt.Println("SubscribePublishUnsubscribeMultiCommon after exit")
+	fmt.Println("SubscribeSignalUnsubscribeMultiCommon after exit")
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
-	fmt.Println("SubscribePublishUnsubscribeMultiCommon after zero")
+	fmt.Println("SubscribeSignalUnsubscribeMultiCommon after zero")
 }

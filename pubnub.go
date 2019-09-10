@@ -235,20 +235,20 @@ func (pn *PubNub) SetStateWithContext(ctx Context) *setStateBuilder {
 	return newSetStateBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) GrantV2() *grantV2Builder {
-	return newGrantV2Builder(pn)
-}
-
-func (pn *PubNub) GrantV2WithContext(ctx Context) *grantV2Builder {
-	return newGrantV2BuilderWithContext(pn, ctx)
-}
-
 func (pn *PubNub) Grant() *grantBuilder {
 	return newGrantBuilder(pn)
 }
 
 func (pn *PubNub) GrantWithContext(ctx Context) *grantBuilder {
 	return newGrantBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GrantToken() *grantTokenBuilder {
+	return newGrantTokenBuilder(pn)
+}
+
+func (pn *PubNub) GrantTokenWithContext(ctx Context) *grantTokenBuilder {
+	return newGrantTokenBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) Unsubscribe() *unsubscribeBuilder {
