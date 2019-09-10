@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "PAM v3 and TMS for Objects"
+        type: improvement
+    date: Sep 19, 19  
+    version: v4.2.8
+  - 
+    changes: 
+      - 
         text: "Objects API"
         type: improvement
       - 
@@ -408,4 +415,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.2.7
+version: v4.2.8
