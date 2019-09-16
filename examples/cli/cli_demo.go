@@ -1324,12 +1324,12 @@ func granttoken(args []string) {
 	// }
 
 	res, _, err := pn.GrantToken().TTL(ttl).
-		Channels(ch).
-		ChannelGroups(cg).
+		//Channels(ch).
+		//ChannelGroups(cg).
 		Users(u).
 		Spaces(s).
-		ChannelsPattern(chPat).
-		ChannelGroupsPattern(cgPat).
+		//ChannelsPattern(chPat).
+		//ChannelGroupsPattern(cgPat).
 		UsersPattern(uPat).
 		SpacesPattern(sPat).
 		Execute()

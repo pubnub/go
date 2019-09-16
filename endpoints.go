@@ -67,12 +67,17 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 		query.Set("filter-expr", o.config().FilterExpression)
 	}
 
-	//insert token manager here
-	//Choose signature here
-
 	if v := o.config().AuthKey; v != "" && query.Get("auth") == "" {
 		query.Set("auth", v)
 	}
+
+	// if (o.operationType() >= PNCreateUserOperation) && (o.operationType() <= PNManageMembersOperation) {
+	// 	o.config().Log.Println(fmt.Sprintf("Using token from TMS, %s", o.operationType()))
+	//t2 := o.pubnub.tokenManager.GetTokens(o.Channels, nil, nil, nil)
+	// q.Set("auth", t2.Channels[o.Channels[0]].Token)
+
+	//query.Set("auth", v)
+	//}
 
 	if o.config().SecretKey != "" {
 		timestamp := time.Now().Unix()

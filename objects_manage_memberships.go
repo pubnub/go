@@ -191,6 +191,7 @@ func (o *manageMembershipsOpts) buildQuery() (*url.Values, error) {
 	if o.End != "" {
 		q.Set("end", o.End)
 	}
+	o.pubnub.tokenManager.SetAuthParan(q, o.UserID, PNUsers)
 
 	SetQueryParam(q, o.QueryParam)
 

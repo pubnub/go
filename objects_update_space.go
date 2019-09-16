@@ -151,7 +151,7 @@ func (o *updateSpaceOpts) buildQuery() (*url.Values, error) {
 	if o.Include != nil {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
-
+	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil

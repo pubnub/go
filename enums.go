@@ -191,6 +191,7 @@ const (
 	// PNSignalOperation is the enum used for Signal opertaion.
 	PNSignalOperation
 	// PNCreateUserOperation is the enum used to create users in the Object API.
+	// ENUM ORDER needs to be maintained for Objects AIP
 	PNCreateUserOperation
 	// PNGetUsersOperation is the enum used to get users in the Object API.
 	PNGetUsersOperation
@@ -217,7 +218,10 @@ const (
 	// PNManageMembershipsOperation is the enum used to manage memberships in the Object API.
 	PNManageMembershipsOperation
 	// PNManageMembersOperation is the enum used to manage members in the Object API.
+	// ENUM ORDER needs to be maintained for Objects API
 	PNManageMembersOperation
+	// PNAccessManagerGrantToken
+	PNAccessManagerGrantToken
 )
 
 const (
@@ -286,6 +290,7 @@ var operations = [...]string{
 	"PNGetMembersOperation",
 	"PNManageMembershipsOperation",
 	"PNManageMembersOperation",
+	"GrantToken",
 }
 
 func (c StatusCategory) String() string {
@@ -434,6 +439,8 @@ func (t OperationType) String() string {
 		return "Manage Memberships"
 	case PNManageMembersOperation:
 		return "Manage Members"
+	case PNAccessManagerGrantToken:
+		return "Grant Token"
 	default:
 		return "No Category Matched"
 	}

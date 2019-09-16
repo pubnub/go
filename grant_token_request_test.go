@@ -112,13 +112,13 @@ func AssertTestGrantToken(t *testing.T, checkQueryParam, testContext bool) {
 		queryParam = nil
 	}
 
-	ch := map[string]ChannelPermissions{
-		"channel": ChannelPermissions{
-			Write:  false,
-			Read:   true,
-			Delete: false,
-		},
-	}
+	// ch := map[string]ChannelPermissions{
+	// 	"channel": ChannelPermissions{
+	// 		Write:  false,
+	// 		Read:   true,
+	// 		Delete: false,
+	// 	},
+	// }
 
 	u := map[string]UserSpacePermissions{
 		"users": UserSpacePermissions{
@@ -140,22 +140,22 @@ func AssertTestGrantToken(t *testing.T, checkQueryParam, testContext bool) {
 		},
 	}
 
-	cg := map[string]GroupPermissions{
-		"cg": GroupPermissions{
-			Read:   true,
-			Manage: true,
-		},
-		"cg2": GroupPermissions{
-			Read:   true,
-			Manage: false,
-		},
-	}
+	// cg := map[string]GroupPermissions{
+	// 	"cg": GroupPermissions{
+	// 		Read:   true,
+	// 		Manage: true,
+	// 	},
+	// 	"cg2": GroupPermissions{
+	// 		Read:   true,
+	// 		Manage: false,
+	// 	},
+	// }
 
 	o.TTL(100)
-	o.Channels(ch)
+	//o.Channels(ch)
 	o.Users(u)
 	o.Spaces(s)
-	o.ChannelGroups(cg)
+	//o.ChannelGroups(cg)
 	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()
@@ -168,8 +168,8 @@ func AssertTestGrantToken(t *testing.T, checkQueryParam, testContext bool) {
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
 
-	expectedBody := "{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{\"channel\":1},\"groups\":{\"cg\":5,\"cg2\":1},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":{},\"groups\":{},\"users\":{},\"spaces\":{}},\"meta\":{}}}" //{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{\"channel\":7},\"groups\":{\"cg\":23,\"cg2\":19},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":null,\"groups\":null,\"users\":null,\"spaces\":null},\"meta\":null}}"
-
+	//expectedBody := "{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{\"channel\":1},\"groups\":{\"cg\":5,\"cg2\":1},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":{},\"groups\":{},\"users\":{},\"spaces\":{}},\"meta\":{}}}" //{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{\"channel\":7},\"groups\":{\"cg\":23,\"cg2\":19},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":null,\"groups\":null,\"users\":null,\"spaces\":null},\"meta\":null}}"
+	expectedBody := "{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{},\"groups\":{},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":{},\"groups\":{},\"users\":{},\"spaces\":{}},\"meta\":{}}}"
 	assert.Equal(expectedBody, string(body))
 
 	if checkQueryParam {

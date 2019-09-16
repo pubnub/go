@@ -172,9 +172,6 @@ func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 		q.Set("state", o.stringState)
 	}
 
-	// t2 := o.pubnub.tokenManager.GetTokens(o.Channels, nil, nil, nil)
-	// q.Set("auth", t2.Channels[o.Channels[0]].Token)
-
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil

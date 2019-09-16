@@ -168,6 +168,7 @@ func (o *createUserOpts) buildQuery() (*url.Values, error) {
 	if o.Include != nil {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
+	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNUsers)
 
 	SetQueryParam(q, o.QueryParam)
 

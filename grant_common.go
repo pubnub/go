@@ -131,7 +131,7 @@ func GetPermissions(token string) (PNGrantTokenDecoded, error) {
 
 		err1 := c.Decode(&cborObject)
 		if err1 != nil {
-			fmt.Printf("\nCBOR decode Error---> %#v", err1)
+			//fmt.Printf("\nCBOR decode Error---> %#v", err1)
 			//log.Println("Write file:", ioutil.WriteFile("data.json", value, 0600))
 			return cborObject, err1
 		}
@@ -228,7 +228,7 @@ func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
 // 	return &g
 // }
 
-func ParseGrantResources(res GrantResources, token string, timetoken int64) *GrantResourcesWithPermissions {
+func ParseGrantResources(res GrantResources, token string, timetoken int64, ttl int) *GrantResourcesWithPermissions {
 	channels := make(map[string]ChannelPermissionsWithToken, len(res.Channels))
 
 	for k, v := range res.Channels {
@@ -238,6 +238,7 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64) *Gra
 			BitMaskPerms: v,
 			Token:        token,
 			Timestamp:    timetoken,
+			TTL:          ttl,
 		}
 	}
 
@@ -249,6 +250,7 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64) *Gra
 			BitMaskPerms: v,
 			Token:        token,
 			Timestamp:    timetoken,
+			TTL:          ttl,
 		}
 	}
 
@@ -260,6 +262,7 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64) *Gra
 			BitMaskPerms: v,
 			Token:        token,
 			Timestamp:    timetoken,
+			TTL:          ttl,
 		}
 	}
 
@@ -271,6 +274,7 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64) *Gra
 			BitMaskPerms: v,
 			Token:        token,
 			Timestamp:    timetoken,
+			TTL:          ttl,
 		}
 	}
 
@@ -295,6 +299,7 @@ type ChannelPermissionsWithToken struct {
 	BitMaskPerms int64
 	Token        string
 	Timestamp    int64
+	TTL          int
 }
 
 type GroupPermissionsWithToken struct {
@@ -302,6 +307,7 @@ type GroupPermissionsWithToken struct {
 	BitMaskPerms int64
 	Token        string
 	Timestamp    int64
+	TTL          int
 }
 
 type UserSpacePermissionsWithToken struct {
@@ -309,6 +315,23 @@ type UserSpacePermissionsWithToken struct {
 	BitMaskPerms int64
 	Token        string
 	Timestamp    int64
+	TTL          int
+}
+
+// type GrantResourcesWithPermissions struct {
+// 	Channels        map[string]ChannelPermissionsWithToken
+// 	Groups          map[string]GroupPermissionsWithToken
+// 	Users           map[string]UserSpacePermissionsWithToken
+// 	Spaces          map[string]UserSpacePermissionsWithToken
+// 	ChannelsPattern map[string]ChannelPermissionsWithToken
+// 	GroupsPattern   map[string]GroupPermissionsWithToken
+// 	UsersPattern    map[string]UserSpacePermissionsWithToken
+// 	SpacesPattern   map[string]UserSpacePermissionsWithToken
+// }
+
+type PatternsGrantResources struct {
+	pattern string
+	perms   ChannelPermissionsWithToken
 }
 
 type GrantResourcesWithPermissions struct {
