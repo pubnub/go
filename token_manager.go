@@ -55,6 +55,62 @@ func (m *TokenManager) SetAuthParan(q *url.Values, resourceId string, resourceTy
 	}
 }
 
+func (m *TokenManager) GetAllTokens() GrantResourcesWithPermissions {
+	return m.Tokens
+}
+
+func (m *TokenManager) GetTokensByResource(resourceType PNResourceType) GrantResourcesWithPermissions {
+	g := GrantResourcesWithPermissions{
+		Channels: make(map[string]ChannelPermissionsWithToken),
+		Groups:   make(map[string]GroupPermissionsWithToken),
+		Users:    make(map[string]UserSpacePermissionsWithToken),
+		Spaces:   make(map[string]UserSpacePermissionsWithToken),
+	}
+	switch resourceType {
+	case PNChannels:
+		for k, v := range m.Tokens.Channels {
+			g.Channels[k] = v
+			return g
+		}
+
+		for k, v := range m.Tokens.ChannelsPattern {
+			g.Channels[k] = v
+			return g
+		}
+	case PNGroups:
+		for k, v := range m.Tokens.Groups {
+			g.Groups[k] = v
+			return g
+		}
+
+		for k, v := range m.Tokens.GroupsPattern {
+			g.Groups[k] = v
+			return g
+		}
+	case PNUsers:
+		for k, v := range m.Tokens.Users {
+			g.Users[k] = v
+			return g
+		}
+
+		for k, v := range m.Tokens.UsersPattern {
+			g.Users[k] = v
+			return g
+		}
+	case PNSpaces:
+		for k, v := range m.Tokens.Spaces {
+			g.Spaces[k] = v
+			return g
+		}
+
+		for k, v := range m.Tokens.SpacesPattern {
+			g.Spaces[k] = v
+			return g
+		}
+	}
+	return g
+}
+
 // GetToken, first match for direct ids, if no match found use the first token from pattern match ignoring the regex.
 func (m *TokenManager) GetToken(resourceId string, resourceType PNResourceType) string {
 	switch resourceType {
@@ -71,7 +127,7 @@ func (m *TokenManager) GetToken(resourceId string, resourceType PNResourceType) 
 			return d.Token
 		}
 
-		for _, v := range m.Tokens.ChannelsPattern {
+		for _, v := range m.Tokens.GroupsPattern {
 			return v.Token
 		}
 	case PNUsers:
@@ -118,8 +174,8 @@ func (m *TokenManager) GetTokensWithPerms(resourceId string, resourceType PNReso
 			return &g
 		}
 
-		for _, v := range m.Tokens.ChannelsPattern {
-			g.Channels[resourceId] = v
+		for _, v := range m.Tokens.GroupsPattern {
+			g.Groups[resourceId] = v
 			return &g
 		}
 	case PNUsers:
@@ -274,7 +330,16 @@ func mergeTokensByResource(m interface{}, resource interface{}, resourceType PNR
 	}
 }
 
+// StoreTokens Aceepts PAMv3 token format
+func (m *TokenManager) StoreTokens(token []string) {
+	for _, k := range token {
+		m.StoreToken(k)
+	}
+}
+
+// StoreToken Aceepts PAMv3 token format
 func (m *TokenManager) StoreToken(token string) {
+
 	if m.pubnub.Config.StoreTokensOnGrant {
 		fmt.Println("--->", token)
 		cborObject, err := GetPermissions(token)
@@ -312,7 +377,11 @@ func (m *TokenManager) StoreToken(token string) {
 			// fmt.Println(" --- Tokens ---- ", m.Tokens)
 
 			m.Unlock()
+		} else {
+
 		}
+	} else {
+
 	}
 }
 

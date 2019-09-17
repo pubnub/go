@@ -251,6 +251,26 @@ func (pn *PubNub) GrantTokenWithContext(ctx Context) *grantTokenBuilder {
 	return newGrantTokenBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) SetToken(token string) {
+	pn.tokenManager.StoreToken(token)
+}
+
+func (pn *PubNub) SetTokens(tokens []string) {
+	pn.tokenManager.StoreTokens(tokens)
+}
+
+func (pn *PubNub) GetTokens() GrantResourcesWithPermissions {
+	return pn.tokenManager.GetAllTokens()
+}
+
+func (pn *PubNub) GetTokensByResource(resourceType PNResourceType) GrantResourcesWithPermissions {
+	return pn.tokenManager.GetTokensByResource(resourceType)
+}
+
+func (pn *PubNub) GetToken(resourceId string, resourceType PNResourceType) string {
+	return pn.tokenManager.GetToken(resourceId, resourceType)
+}
+
 func (pn *PubNub) Unsubscribe() *unsubscribeBuilder {
 	return newUnsubscribeBuilder(pn)
 }
@@ -290,10 +310,6 @@ func (pn *PubNub) heartbeat() *heartbeatBuilder {
 func (pn *PubNub) heartbeatWithContext(ctx Context) *heartbeatBuilder {
 	return newHeartbeatBuilderWithContext(pn, ctx)
 }
-
-// func (pn *PubNub) GetTokens(channels, groups, users, spaces []string) *presenceBuilder {
-// 	return newPresenceBuilderWithContext(pn, ctx)
-// }
 
 // SetClient Set a client for transactional requests
 func (pn *PubNub) SetClient(c *http.Client) {

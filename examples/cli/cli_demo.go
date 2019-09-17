@@ -559,6 +559,16 @@ func readCommand(cmd string) {
 		manageMemberships(command[1:])
 	case "updatemem":
 		manageMembers(command[1:])
+	case "settoken":
+		setToken(command[1:])
+	case "settokens":
+		setTokens(command[1:])
+	case "gettoken":
+		getToken(command[1:])
+	case "gettokens":
+		getTokens(command[1:])
+	case "gettokenres":
+		getTokenRes(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -566,6 +576,35 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func setToken(args []string) {
+	pn.SetToken(args[0])
+}
+
+//p0F2AkF0Gl2AX-JDdHRsCkNyZXOkRGNoYW6gQ2dycKBDdXNyoWl1LTMzNTIwNTUPQ3NwY6Fpcy0xNzA3OTgzGB9DcGF0pERjaGFuoENncnCgQ3VzcqBDc3BjoERtZXRhoENzaWdYINqGs2EyEMHPZrp6znVqTBzXNBAD_31hUH3JuUSWE2A6
+//p0F2AkF0Gl2AaMlDdHRsCkNyZXOkRGNoYW6gQ2dycKBDdXNyoWl1LTE5NzQxMDcPQ3NwY6Fpcy0yMzExMDExGB9DcGF0pERjaGFuoENncnCgQ3VzcqBDc3BjoERtZXRhoENzaWdYIO1ti19DLbEKK-s_COJPlM1xtZCpP8K4sV51nvRPTIxf
+func setTokens(args []string) {
+	var tokens []string
+	tokens = strings.Split(args[0], ",")
+
+	pn.SetTokens(tokens)
+}
+
+func getToken(args []string) {
+	res := pn.GetAllTokens()
+	fmt.Println(res)
+}
+
+func getTokens(args []string) {
+	res := pn.GetTokens()
+	fmt.Println(res)
+}
+
+func getTokenRes(args []string) {
+	res := pn.GetAllTokens()
+	fmt.Println(res)
+
 }
 
 func manageMembers(args []string) {
