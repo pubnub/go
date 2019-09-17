@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	//"log"
+	"crypto/rand"
 
 	//"errors"
 	"fmt"
@@ -11,7 +12,6 @@ import (
 	"strings"
 
 	pnerr "github.com/pubnub/go/pnerr"
-	uuid "github.com/satori/go.uuid"
 )
 
 // EnumArrayToStringArray converts a string enum to an array
@@ -112,12 +112,12 @@ func ValueAsString(value interface{}) ([]byte, error) {
 
 // Generate a random uuid string
 func UUID() string {
-	id, err := uuid.NewV4()
+	b := make([]byte, 15)
+	_, err := rand.Read(b)
 	if err != nil {
 		panic(err)
 	}
-
-	return id.String()
+	return fmt.Sprintf("PN-Go-%x", b)
 }
 
 func sortQueries(params *url.Values) []string {
