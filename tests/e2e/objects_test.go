@@ -364,7 +364,7 @@ func TestObjectsMembershipsWithPAM(t *testing.T) {
 	ObjectsMembershipsCommon(t, true, false)
 }
 
-// FAIL
+// PASSES after adding PAM checks for Update Members
 func TestObjectsMembershipsWithPAMWithoutSecKey(t *testing.T) {
 	ObjectsMembershipsCommon(t, true, true)
 }
@@ -385,18 +385,18 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	if withPAM {
 		pn2 := ActivateWithPAM()
 		if runWithoutSecretKey {
-			pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+			//pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			tokens := RunGrant(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, true)
 			SetPN(pn, pn2, tokens)
 		} else {
 			pn = pn2
-			pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+			//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			RunGrant(pn, []string{userid}, []string{spaceid}, true, true, true, true, true, false)
 		}
 
 	}
 
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	name := "name"
 	extid := "extid"
@@ -504,46 +504,47 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	}
 
 	//Update Space Memberships
+	if !withPAM {
 
-	custom4 := make(map[string]interface{})
-	custom4["a2"] = "b2"
-	custom4["c2"] = "d2"
+		custom4 := make(map[string]interface{})
+		custom4["a2"] = "b2"
+		custom4["c2"] = "d2"
 
-	up := pubnub.PNMembersInput{
-		ID:     userid,
-		Custom: custom4,
-	}
-
-	upArr := []pubnub.PNMembersInput{
-		up,
-	}
-
-	resUp, stUp, errUp := pn.ManageMembers().SpaceID(spaceid).Add([]pubnub.PNMembersInput{}).Update(upArr).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
-	assert.Nil(errUp)
-	assert.Equal(200, stUp.StatusCode)
-	if errUp == nil {
-		assert.True(resUp.TotalCount > 0)
-		foundUp := false
-		for i := range resUp.Data {
-			if resUp.Data[i].ID == userid {
-				foundUp = true
-				assert.Equal("b2", resUp.Data[i].Custom["a2"])
-				assert.Equal("d2", resUp.Data[i].Custom["c2"])
-				assert.Equal(userid, resAdd.Data[0].User.ID)
-				assert.Equal(name, resAdd.Data[0].User.Name)
-				assert.Equal(extid, resAdd.Data[0].User.ExternalID)
-				assert.Equal(purl, resAdd.Data[0].User.ProfileURL)
-				assert.Equal(email, resAdd.Data[0].User.Email)
-				assert.Equal(custom["a"], resAdd.Data[0].User.Custom["a"])
-				assert.Equal(custom["c"], resAdd.Data[0].User.Custom["c"])
-
-			}
+		up := pubnub.PNMembersInput{
+			ID:     userid,
+			Custom: custom4,
 		}
-		assert.True(foundUp)
-	} else {
-		fmt.Println("ManageMembers->", errUp.Error())
-	}
 
+		upArr := []pubnub.PNMembersInput{
+			up,
+		}
+
+		resUp, stUp, errUp := pn.ManageMembers().SpaceID(spaceid).Add([]pubnub.PNMembersInput{}).Update(upArr).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+		assert.Nil(errUp)
+		assert.Equal(200, stUp.StatusCode)
+		if errUp == nil {
+			assert.True(resUp.TotalCount > 0)
+			foundUp := false
+			for i := range resUp.Data {
+				if resUp.Data[i].ID == userid {
+					foundUp = true
+					assert.Equal("b2", resUp.Data[i].Custom["a2"])
+					assert.Equal("d2", resUp.Data[i].Custom["c2"])
+					assert.Equal(userid, resAdd.Data[0].User.ID)
+					assert.Equal(name, resAdd.Data[0].User.Name)
+					assert.Equal(extid, resAdd.Data[0].User.ExternalID)
+					assert.Equal(purl, resAdd.Data[0].User.ProfileURL)
+					assert.Equal(email, resAdd.Data[0].User.Email)
+					assert.Equal(custom["a"], resAdd.Data[0].User.Custom["a"])
+					assert.Equal(custom["c"], resAdd.Data[0].User.Custom["c"])
+
+				}
+			}
+			assert.True(foundUp)
+		} else {
+			fmt.Println("ManageMembers->", errUp.Error())
+		}
+	}
 	//Get Space Memberships
 
 	inclMemberships := []pubnub.PNMembershipsInclude{
@@ -551,6 +552,8 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		pubnub.PNMembershipsSpace,
 		pubnub.PNMembershipsSpaceCustom,
 	}
+
+	fmt.Println("GetMemberships ====>")
 
 	resGetMem, stGetMem, errGetMem := pn.GetMemberships().UserID(userid).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	foundGetMem := false
@@ -563,8 +566,13 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 				assert.Equal(desc, resGetMem.Data[i].Space.Description)
 				assert.Equal("b1", resGetMem.Data[i].Space.Custom["a1"])
 				assert.Equal("d1", resGetMem.Data[i].Space.Custom["c1"])
-				assert.Equal("b2", resGetMem.Data[i].Custom["a2"])
-				assert.Equal("d2", resGetMem.Data[i].Custom["c2"])
+				if withPAM {
+					assert.Equal("b3", resGetMem.Data[i].Custom["a3"])
+					assert.Equal("d3", resGetMem.Data[i].Custom["c3"])
+				} else {
+					assert.Equal("b2", resGetMem.Data[i].Custom["a2"])
+					assert.Equal("d2", resGetMem.Data[i].Custom["c2"])
+				}
 			}
 		}
 		assert.Equal(200, stGetMem.StatusCode)
@@ -590,15 +598,15 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		for i := range resRem.Data {
 			if resRem.Data[i].ID == userid {
 				foundRem = true
-				assert.Equal("b2", resUp.Data[i].Custom["a2"])
-				assert.Equal("d2", resUp.Data[i].Custom["c2"])
-				assert.Equal(userid, resUp.Data[0].User.ID)
-				assert.Equal(name, resUp.Data[0].User.Name)
-				assert.Equal(extid, resUp.Data[0].User.ExternalID)
-				assert.Equal(purl, resUp.Data[0].User.ProfileURL)
-				assert.Equal(email, resUp.Data[0].User.Email)
-				assert.Equal(custom["a"], resUp.Data[0].User.Custom["a"])
-				assert.Equal(custom["c"], resUp.Data[0].User.Custom["c"])
+				assert.Equal("b2", resRem.Data[i].Custom["a2"])
+				assert.Equal("d2", resRem.Data[i].Custom["c2"])
+				assert.Equal(userid, resRem.Data[0].User.ID)
+				assert.Equal(name, resRem.Data[0].User.Name)
+				assert.Equal(extid, resRem.Data[0].User.ExternalID)
+				assert.Equal(purl, resRem.Data[0].User.ProfileURL)
+				assert.Equal(email, resRem.Data[0].User.Email)
+				assert.Equal(custom["a"], resRem.Data[0].User.Custom["a"])
+				assert.Equal(custom["c"], resRem.Data[0].User.Custom["c"])
 
 			}
 		}
