@@ -54,7 +54,7 @@ type UpdateUserBody struct {
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *updateUserBuilder) Include(include []PNUserSpaceInclude) *updateUserBuilder {
-	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
+	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }

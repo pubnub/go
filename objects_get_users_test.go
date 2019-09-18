@@ -27,7 +27,7 @@ func AssertGetUsers(t *testing.T, checkQueryParam, testContext bool) {
 		queryParam = nil
 	}
 
-	inclStr := utils.EnumArrayToStringArray(fmt.Sprint(incl))
+	inclStr := EnumArrayToStringArray(incl)
 
 	o := newGetUsersBuilder(pn)
 	if testContext {

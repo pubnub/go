@@ -3,7 +3,6 @@ package utils
 import (
 	"encoding/json"
 	//"log"
-
 	//"errors"
 	"fmt"
 	"net/url"
@@ -13,14 +12,6 @@ import (
 	pnerr "github.com/pubnub/go/pnerr"
 	uuid "github.com/satori/go.uuid"
 )
-
-// EnumArrayToStringArray converts a string enum to an array
-func EnumArrayToStringArray(include string) []string {
-	f := strings.Fields(include)
-	j := strings.Join(f, ",")
-	t := strings.Trim(j, "[]")
-	return strings.Fields(t)
-}
 
 // JoinChannels encodes and joins channels
 func JoinChannels(channels []string) []byte {

@@ -592,7 +592,7 @@ func setTokens(args []string) {
 }
 
 func getToken(args []string) {
-	res := pn.GetAllTokens()
+	res := pn.GetTokens()
 	fmt.Println(res)
 }
 
@@ -602,7 +602,7 @@ func getTokens(args []string) {
 }
 
 func getTokenRes(args []string) {
-	res := pn.GetAllTokens()
+	res := pn.GetTokens()
 	fmt.Println(res)
 
 }

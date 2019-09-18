@@ -54,7 +54,7 @@ func (b *getMembershipsBuilder) UserID(id string) *getMembershipsBuilder {
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *getMembershipsBuilder) Include(include []PNMembershipsInclude) *getMembershipsBuilder {
-	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
+	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }

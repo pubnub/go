@@ -340,7 +340,7 @@ func (m *TokenManager) StoreTokens(token []string) {
 // StoreToken Aceepts PAMv3 token format
 func (m *TokenManager) StoreToken(token string) {
 
-	if m.pubnub.Config.StoreTokensOnGrant {
+	if m.pubnub.Config.StoreTokensOnGrant && m.pubnub.Config.SecretKey == "" {
 		fmt.Println("--->", token)
 		cborObject, err := GetPermissions(token)
 		if err == nil {
@@ -368,7 +368,18 @@ func (m *TokenManager) StoreToken(token string) {
 			// fmt.Println(" --- Tokens ---- ", m.Tokens)
 
 			// fmt.Println(" --- Patterns")
+
+			//clear all Users/Spaces pattern maps
 			pat := ParseGrantResources(cborObject.Patterns, token, cborObject.Timestamp, cborObject.TTL)
+			if len(pat.Users) > 0 {
+				m.Tokens.UsersPattern = make(map[string]UserSpacePermissionsWithToken)
+				m.pubnub.Config.Log.Println("Clearing UsersPattern from Token Manager")
+			}
+			if len(pat.Spaces) > 0 {
+				m.Tokens.SpacesPattern = make(map[string]UserSpacePermissionsWithToken)
+				m.pubnub.Config.Log.Println("Clearing SpacesPattern from Token Manager")
+			}
+
 			mergeTokensByResource(m.Tokens.ChannelsPattern, pat.Channels, PNChannels)
 			mergeTokensByResource(m.Tokens.UsersPattern, pat.Users, PNUsers)
 			mergeTokensByResource(m.Tokens.GroupsPattern, pat.Groups, PNGroups)
@@ -378,7 +389,7 @@ func (m *TokenManager) StoreToken(token string) {
 
 			m.Unlock()
 		} else {
-
+			m.pubnub.Config.Log.Println("Not storing tokens as StoreTokensOnGrant is false and SecretKey is set ")
 		}
 	} else {
 

@@ -28,7 +28,7 @@ func AssertUpdateSpace(t *testing.T, checkQueryParam, testContext bool) {
 		queryParam = nil
 	}
 
-	inclStr := utils.EnumArrayToStringArray(fmt.Sprint(incl))
+	inclStr := EnumArrayToStringArray(incl)
 
 	o := newUpdateSpaceBuilder(pn)
 	if testContext {

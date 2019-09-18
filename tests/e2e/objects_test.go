@@ -364,6 +364,7 @@ func TestObjectsMembershipsWithPAM(t *testing.T) {
 	ObjectsMembershipsCommon(t, true, false)
 }
 
+// FAIL
 func TestObjectsMembershipsWithPAMWithoutSecKey(t *testing.T) {
 	ObjectsMembershipsCommon(t, true, true)
 }
@@ -385,7 +386,7 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		pn2 := ActivateWithPAM()
 		if runWithoutSecretKey {
 			pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-			tokens := RunGrant(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, false)
+			tokens := RunGrant(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, true)
 			SetPN(pn, pn2, tokens)
 		} else {
 			pn = pn2
@@ -395,7 +396,7 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	}
 
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	name := "name"
 	extid := "extid"
@@ -745,24 +746,31 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	res52, st52, err52 := pn.DeleteUser().ID(userid2).Execute()
 	assert.Nil(err52)
 	assert.Equal(200, st52.StatusCode)
-	assert.Nil(res52.Data)
+	if res52 != nil {
+		assert.Nil(res52.Data)
+	}
 
 	//delete
 	res62, st62, err62 := pn.DeleteSpace().ID(spaceid2).Execute()
 	assert.Nil(err62)
 	assert.Equal(200, st62.StatusCode)
-	assert.Nil(res62.Data)
+	if res62 != nil {
+		assert.Nil(res62.Data)
+	}
 
 }
 
+// Fail
 func TestObjectsListeners(t *testing.T) {
 	ObjectsListenersCommon(t, false, false)
 }
 
+// Fail
 func TestObjectsListenersWithPAM(t *testing.T) {
 	ObjectsListenersCommon(t, true, false)
 }
 
+// Fail
 func TestObjectsListenersWithPAMWithoutSecKey(t *testing.T) {
 	ObjectsListenersCommon(t, true, true)
 }
@@ -788,7 +796,7 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		pn2 := ActivateWithPAM()
 		if runWithoutSecretKey {
 			pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-			tokens := RunGrant(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, false)
+			tokens := RunGrant(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, true)
 			SetPN(pn, pn2, tokens)
 		} else {
 			pn = pn2
@@ -985,6 +993,11 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		pubnub.PNMembersCustom,
 		pubnub.PNMembersUser,
 		pubnub.PNMembersUserCustom,
+	}
+
+	fmt.Println("inclSm===>", inclSm)
+	for k, value := range inclSm {
+		fmt.Println("inclSm===>", k, value)
 	}
 
 	custom3 := make(map[string]interface{})

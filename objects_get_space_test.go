@@ -28,7 +28,7 @@ func AssertGetSpace(t *testing.T, checkQueryParam, testContext bool) {
 		queryParam = nil
 	}
 
-	inclStr := utils.EnumArrayToStringArray(fmt.Sprint(incl))
+	inclStr := EnumArrayToStringArray(incl)
 
 	o := newGetSpaceBuilder(pn)
 	if testContext {

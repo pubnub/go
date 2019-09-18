@@ -1,5 +1,10 @@
 package pubnub
 
+import (
+	"fmt"
+	"reflect"
+)
+
 // StatusCategory is used as an enum to catgorize the various status events
 // in the APIs lifecycle
 type StatusCategory int
@@ -444,4 +449,24 @@ func (t OperationType) String() string {
 	default:
 		return "No Category Matched"
 	}
+}
+
+// EnumArrayToStringArray converts a string enum to an array
+func EnumArrayToStringArray(include interface{}) []string {
+	s := []string{}
+	switch fmt.Sprintf("%s", reflect.TypeOf(include)) {
+	case "[]pubnub.PNMembersInclude":
+		for _, v := range include.([]PNMembersInclude) {
+			s = append(s, fmt.Sprintf("%s", v))
+		}
+	case "[]pubnub.PNMembershipsInclude":
+		for _, v := range include.([]PNMembershipsInclude) {
+			s = append(s, fmt.Sprintf("%s", v))
+		}
+	case "[]pubnub.PNUserSpaceInclude":
+		for _, v := range include.([]PNUserSpaceInclude) {
+			s = append(s, fmt.Sprintf("%s", v))
+		}
+	}
+	return s
 }

@@ -108,11 +108,11 @@ type PNAccessManagerKeyData struct {
 func GetPermissions(token string) (PNGrantTokenDecoded, error) {
 	token = strings.Replace(token, "-", "+", -1)
 	token = strings.Replace(token, "_", "/", -1)
-	fmt.Println("\nStrings `-`, `_` replaced Token--->", token)
+	//fmt.Println("\nStrings `-`, `_` replaced Token--->", token)
 	if i := len(token) % 4; i != 0 {
 		token += strings.Repeat("=", 4-i)
 	}
-	fmt.Println("Padded Token--->", token)
+	//fmt.Println("Padded Token--->", token)
 
 	var cborObject PNGrantTokenDecoded
 	value, decodeErr := base64.StdEncoding.DecodeString(token)

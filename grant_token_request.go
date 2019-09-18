@@ -325,7 +325,7 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 		Meta: meta,
 	}
 
-	fmt.Println("permissions", permissions)
+	//fmt.Println("permissions", permissions)
 
 	ttl := -1
 	if o.setTTL {
