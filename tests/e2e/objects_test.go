@@ -790,20 +790,22 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	userid := fmt.Sprintf("testlistuser_%d", r.Intn(99999))
 	spaceid := fmt.Sprintf("testlistspace_%d", r.Intn(99999))
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-	//pnSub.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	if withPAM {
 		pn2 := ActivateWithPAM()
 		if runWithoutSecretKey {
 			pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			tokens := RunGrant(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, true)
 			SetPN(pn, pn2, tokens)
+			SetPN(pnSub, pn2, tokens)
 		} else {
 			pn = pn2
+			pnSub = pn2
 			pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			RunGrant(pn, []string{userid}, []string{spaceid}, true, true, true, true, true, false)
 		}
 	}
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	pnSub.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	//Subscribe to the channel names
 
@@ -896,13 +898,13 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == userid) || (membershipEvent.Channel == fmt.Sprintf("pnuser-%s", userid))) {
 					doneAddUserToSpace2 <- true
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventUpdate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && (membershipEvent.Channel == spaceid) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventUpdate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
 					doneUpdateUserMem <- true
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventUpdate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && (membershipEvent.Channel == userid) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventUpdate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
 					doneUpdateUserMem <- true
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventDelete) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && (membershipEvent.Channel == spaceid) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventDelete) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
 					doneRemoveUserFromSpace <- true
 				}
 

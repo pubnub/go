@@ -1,7 +1,7 @@
 package pubnub
 
 import (
-	"fmt"
+	//"fmt"
 	"net/url"
 	"sync"
 )
@@ -61,51 +61,47 @@ func (m *TokenManager) GetAllTokens() GrantResourcesWithPermissions {
 
 func (m *TokenManager) GetTokensByResource(resourceType PNResourceType) GrantResourcesWithPermissions {
 	g := GrantResourcesWithPermissions{
-		Channels: make(map[string]ChannelPermissionsWithToken),
-		Groups:   make(map[string]GroupPermissionsWithToken),
-		Users:    make(map[string]UserSpacePermissionsWithToken),
-		Spaces:   make(map[string]UserSpacePermissionsWithToken),
+		Channels:        make(map[string]ChannelPermissionsWithToken),
+		Groups:          make(map[string]GroupPermissionsWithToken),
+		Users:           make(map[string]UserSpacePermissionsWithToken),
+		Spaces:          make(map[string]UserSpacePermissionsWithToken),
+		ChannelsPattern: make(map[string]ChannelPermissionsWithToken),
+		GroupsPattern:   make(map[string]GroupPermissionsWithToken),
+		UsersPattern:    make(map[string]UserSpacePermissionsWithToken),
+		SpacesPattern:   make(map[string]UserSpacePermissionsWithToken),
 	}
 	switch resourceType {
 	case PNChannels:
 		for k, v := range m.Tokens.Channels {
 			g.Channels[k] = v
-			return g
 		}
 
 		for k, v := range m.Tokens.ChannelsPattern {
-			g.Channels[k] = v
-			return g
+			g.ChannelsPattern[k] = v
 		}
 	case PNGroups:
 		for k, v := range m.Tokens.Groups {
 			g.Groups[k] = v
-			return g
 		}
 
 		for k, v := range m.Tokens.GroupsPattern {
-			g.Groups[k] = v
-			return g
+			g.GroupsPattern[k] = v
 		}
 	case PNUsers:
 		for k, v := range m.Tokens.Users {
 			g.Users[k] = v
-			return g
 		}
 
 		for k, v := range m.Tokens.UsersPattern {
-			g.Users[k] = v
-			return g
+			g.UsersPattern[k] = v
 		}
 	case PNSpaces:
 		for k, v := range m.Tokens.Spaces {
 			g.Spaces[k] = v
-			return g
 		}
 
 		for k, v := range m.Tokens.SpacesPattern {
-			g.Spaces[k] = v
-			return g
+			g.SpacesPattern[k] = v
 		}
 	}
 	return g
@@ -150,85 +146,85 @@ func (m *TokenManager) GetToken(resourceId string, resourceType PNResourceType) 
 	return ""
 }
 
-func (m *TokenManager) GetTokensWithPerms(resourceId string, resourceType PNResourceType) *GrantResourcesWithPermissions {
-	g := GrantResourcesWithPermissions{
-		Channels: make(map[string]ChannelPermissionsWithToken),
-		Groups:   make(map[string]GroupPermissionsWithToken),
-		Users:    make(map[string]UserSpacePermissionsWithToken),
-		Spaces:   make(map[string]UserSpacePermissionsWithToken),
-	}
-	switch resourceType {
-	case PNChannels:
-		if d, ok := m.Tokens.Channels[resourceId]; ok {
-			g.Channels[resourceId] = d
-			return &g
-		}
+// func (m *TokenManager) GetTokensWithPerms(resourceId string, resourceType PNResourceType) *GrantResourcesWithPermissions {
+// 	g := GrantResourcesWithPermissions{
+// 		Channels: make(map[string]ChannelPermissionsWithToken),
+// 		Groups:   make(map[string]GroupPermissionsWithToken),
+// 		Users:    make(map[string]UserSpacePermissionsWithToken),
+// 		Spaces:   make(map[string]UserSpacePermissionsWithToken),
+// 	}
+// 	switch resourceType {
+// 	case PNChannels:
+// 		if d, ok := m.Tokens.Channels[resourceId]; ok {
+// 			g.Channels[resourceId] = d
+// 			return &g
+// 		}
 
-		for _, v := range m.Tokens.ChannelsPattern {
-			g.Channels[resourceId] = v
-			return &g
-		}
-	case PNGroups:
-		if d, ok := m.Tokens.Groups[resourceId]; ok {
-			g.Groups[resourceId] = d
-			return &g
-		}
+// 		for _, v := range m.Tokens.ChannelsPattern {
+// 			g.Channels[resourceId] = v
+// 			return &g
+// 		}
+// 	case PNGroups:
+// 		if d, ok := m.Tokens.Groups[resourceId]; ok {
+// 			g.Groups[resourceId] = d
+// 			return &g
+// 		}
 
-		for _, v := range m.Tokens.GroupsPattern {
-			g.Groups[resourceId] = v
-			return &g
-		}
-	case PNUsers:
-		if d, ok := m.Tokens.Users[resourceId]; ok {
-			g.Users[resourceId] = d
-			return &g
-		}
+// 		for _, v := range m.Tokens.GroupsPattern {
+// 			g.Groups[resourceId] = v
+// 			return &g
+// 		}
+// 	case PNUsers:
+// 		if d, ok := m.Tokens.Users[resourceId]; ok {
+// 			g.Users[resourceId] = d
+// 			return &g
+// 		}
 
-		for _, v := range m.Tokens.UsersPattern {
-			g.Users[resourceId] = v
-			return &g
-		}
-	case PNSpaces:
-		if d, ok := m.Tokens.Spaces[resourceId]; ok {
-			g.Spaces[resourceId] = d
-			return &g
-		}
+// 		for _, v := range m.Tokens.UsersPattern {
+// 			g.Users[resourceId] = v
+// 			return &g
+// 		}
+// 	case PNSpaces:
+// 		if d, ok := m.Tokens.Spaces[resourceId]; ok {
+// 			g.Spaces[resourceId] = d
+// 			return &g
+// 		}
 
-		for _, v := range m.Tokens.SpacesPattern {
-			g.Spaces[resourceId] = v
-			return &g
-		}
-	}
-	return nil
-}
+// 		for _, v := range m.Tokens.SpacesPattern {
+// 			g.Spaces[resourceId] = v
+// 			return &g
+// 		}
+// 	}
+// 	return nil
+// }
 
-func (m *TokenManager) GetTokens(channels, groups, users, spaces []string) *GrantResourcesWithPermissions {
-	g := GrantResourcesWithPermissions{
-		Channels: make(map[string]ChannelPermissionsWithToken),
-		Groups:   make(map[string]GroupPermissionsWithToken),
-		Users:    make(map[string]UserSpacePermissionsWithToken),
-		Spaces:   make(map[string]UserSpacePermissionsWithToken),
-		// ChannelsPattern: make(map[string]ChannelPermissionsWithToken),
-		// GroupsPattern:   make(map[string]GroupPermissionsWithToken),
-		// UsersPattern:    make(map[string]UserSpacePermissionsWithToken),
-		// SpacesPattern:   make(map[string]UserSpacePermissionsWithToken),
-	}
-	//findTokenInTokensChannels(channels, g.Channels, m.Tokens.Channels)
-	// findTokenInTokens(channels, g.Channels, m.Tokens.Channels, PNChannels)
-	// findTokenInTokens(groups, g.Groups, m.Tokens.Groups, PNGroups)
-	// findTokenInTokens(users, g.Users, m.Tokens.Users, PNUsers)
-	// findTokenInTokens(spaces, g.Spaces, m.Tokens.Spaces, PNSpaces)
-	// findTokenInTokens(channels, g.Channels, m.Tokens.Channels, PNChannels)
-	// findTokenInTokens(groups, g.Groups, m.Tokens.Groups, PNGroups)
-	// findTokenInTokens(users, g.Users, m.Tokens.Users, PNUsers)
-	// findTokenInTokens(spaces, g.Spaces, m.Tokens.Spaces, PNSpaces)
+// func (m *TokenManager) GetTokens(channels, groups, users, spaces []string) *GrantResourcesWithPermissions {
+// 	g := GrantResourcesWithPermissions{
+// 		Channels: make(map[string]ChannelPermissionsWithToken),
+// 		Groups:   make(map[string]GroupPermissionsWithToken),
+// 		Users:    make(map[string]UserSpacePermissionsWithToken),
+// 		Spaces:   make(map[string]UserSpacePermissionsWithToken),
+// 		// ChannelsPattern: make(map[string]ChannelPermissionsWithToken),
+// 		// GroupsPattern:   make(map[string]GroupPermissionsWithToken),
+// 		// UsersPattern:    make(map[string]UserSpacePermissionsWithToken),
+// 		// SpacesPattern:   make(map[string]UserSpacePermissionsWithToken),
+// 	}
+// 	//findTokenInTokensChannels(channels, g.Channels, m.Tokens.Channels)
+// 	// findTokenInTokens(channels, g.Channels, m.Tokens.Channels, PNChannels)
+// 	// findTokenInTokens(groups, g.Groups, m.Tokens.Groups, PNGroups)
+// 	// findTokenInTokens(users, g.Users, m.Tokens.Users, PNUsers)
+// 	// findTokenInTokens(spaces, g.Spaces, m.Tokens.Spaces, PNSpaces)
+// 	// findTokenInTokens(channels, g.Channels, m.Tokens.Channels, PNChannels)
+// 	// findTokenInTokens(groups, g.Groups, m.Tokens.Groups, PNGroups)
+// 	// findTokenInTokens(users, g.Users, m.Tokens.Users, PNUsers)
+// 	// findTokenInTokens(spaces, g.Spaces, m.Tokens.Spaces, PNSpaces)
 
-	return &g
-}
+// 	return &g
+// }
 
-func matchTokensForSubscribe(g *GrantResourcesWithPermissions) {
+// func matchTokensForSubscribe(g *GrantResourcesWithPermissions) {
 
-}
+// }
 
 // func findTokenInTokens(r []string, resource, merge interface{}, resourceType PNResourceType) {
 // 	switch resourceType {
@@ -341,7 +337,7 @@ func (m *TokenManager) StoreTokens(token []string) {
 func (m *TokenManager) StoreToken(token string) {
 
 	if m.pubnub.Config.StoreTokensOnGrant && m.pubnub.Config.SecretKey == "" {
-		fmt.Println("--->", token)
+		//fmt.Println("--->", token)
 		cborObject, err := GetPermissions(token)
 		if err == nil {
 			// fmt.Printf("\nCBOR decode Token---> %#v", cborObject)

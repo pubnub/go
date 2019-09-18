@@ -119,7 +119,7 @@ func GetPermissions(token string) (PNGrantTokenDecoded, error) {
 	if decodeErr != nil {
 		fmt.Println("\nDecoding Error--->", decodeErr)
 	} else {
-		fmt.Println("\nDecoded Token--->", string(value), value)
+		//fmt.Println("\nDecoded Token--->", string(value), value)
 
 		c := cbor.NewDecoder(bytes.NewReader(value))
 		// var res map[string]interface{}
@@ -153,7 +153,7 @@ func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
 		Create: false,
 	}
 	for k, v := range b {
-		fmt.Println(k, string(v))
+		//fmt.Println(k, string(v))
 		i, _ := strconv.Atoi(string(v))
 		switch k {
 		case 0:
@@ -168,7 +168,7 @@ func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
 			r.Create = (i == 1)
 		}
 	}
-	fmt.Println(r)
+	//fmt.Println(r)
 	switch resourceType {
 	case PNChannels:
 		return ChannelPermissions{
@@ -232,7 +232,7 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64, ttl 
 	channels := make(map[string]ChannelPermissionsWithToken, len(res.Channels))
 
 	for k, v := range res.Channels {
-		fmt.Println("", k, v)
+		//fmt.Println("", k, v)
 		channels[k] = ChannelPermissionsWithToken{
 			Permissions:  parseGrantPerms(v, PNChannels).(ChannelPermissions),
 			BitMaskPerms: v,
@@ -244,7 +244,7 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64, ttl 
 
 	groups := make(map[string]GroupPermissionsWithToken, len(res.Groups))
 	for k, v := range res.Groups {
-		fmt.Println("", k, v)
+		//fmt.Println("", k, v)
 		groups[k] = GroupPermissionsWithToken{
 			Permissions:  parseGrantPerms(v, PNGroups).(GroupPermissions),
 			BitMaskPerms: v,
@@ -256,7 +256,7 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64, ttl 
 
 	spaces := make(map[string]UserSpacePermissionsWithToken, len(res.Spaces))
 	for k, v := range res.Spaces {
-		fmt.Println("", k, v)
+		//fmt.Println("", k, v)
 		spaces[k] = UserSpacePermissionsWithToken{
 			Permissions:  parseGrantPerms(v, PNSpaces).(UserSpacePermissions),
 			BitMaskPerms: v,
@@ -268,7 +268,7 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64, ttl 
 
 	users := make(map[string]UserSpacePermissionsWithToken, len(res.Users))
 	for k, v := range res.Users {
-		fmt.Println("", k, v)
+		//fmt.Println("", k, v)
 		users[k] = UserSpacePermissionsWithToken{
 			Permissions:  parseGrantPerms(v, PNUsers).(UserSpacePermissions),
 			BitMaskPerms: v,
