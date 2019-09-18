@@ -2,15 +2,13 @@ package utils
 
 import (
 	"encoding/json"
-	//"log"
-	"crypto/rand"
-
 	//"errors"
 	"fmt"
 	"net/url"
 	"sort"
 	"strings"
 
+	uuid "github.com/google/uuid"
 	pnerr "github.com/pubnub/go/pnerr"
 )
 
@@ -112,12 +110,7 @@ func ValueAsString(value interface{}) ([]byte, error) {
 
 // Generate a random uuid string
 func UUID() string {
-	b := make([]byte, 15)
-	_, err := rand.Read(b)
-	if err != nil {
-		panic(err)
-	}
-	return fmt.Sprintf("PN-Go-%x", b)
+	return uuid.New().String()
 }
 
 func sortQueries(params *url.Values) []string {
