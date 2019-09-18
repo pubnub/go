@@ -678,7 +678,9 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 
 				break CloseLoop
 			case <-exit:
-				tic.Stop()
+				if tic != nil {
+					tic.Stop()
+				}
 				break CloseLoop
 			}
 		}

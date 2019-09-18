@@ -63,16 +63,16 @@ func connect() {
 	config.SubscribeKey = "sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306"
 	config.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
 
-	config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
-	config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
-	config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
+	// config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
+	// config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
+	// config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
 
 	//config.PublishKey = "demo"
 	//config.SubscribeKey = "demo"
 
 	//config.AuthKey = "akey"
-	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
-	config.Secure = false
+	// config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
+	// config.Secure = false
 
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
