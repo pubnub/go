@@ -5,6 +5,9 @@ changelog:
       - 
         text: "PAM v3 and TMS for Objects"
         type: improvement
+      - 
+        text: "UUID improvements"
+        type: improvement
     date: Sep 19, 19  
     version: v4.2.8
   - 
@@ -320,6 +323,8 @@ features:
     - ACCESS-GRANT-MANAGE
     - ACCESS-GRANT-DELETE
     - ACCESS-SECRET-KEY-ALL-ACCESS
+    - ACCESS-GRANT-V3
+    - ACCESS-TOKEN-MANAGEMENT
   channel-groups: 
     - CHANNEL-GROUPS-ADD-CHANNELS
     - CHANNEL-GROUPS-REMOVE-CHANNELS
@@ -406,9 +411,10 @@ supported-platforms:
   - 
     editors: 
       - "1.9.7"
-      - "1.10.3"
-      - "1.11.11"
-      - "1.12.6"
+      - "1.10.8"
+      - "1.11.13"
+      - "1.12.9"
+      - "1.13"
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."

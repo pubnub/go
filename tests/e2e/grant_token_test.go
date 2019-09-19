@@ -16,18 +16,10 @@ func TestGrantToken(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-	// pn.Config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
-	// pn.Config.Secure = false
-	// pn.Config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
-	// pn.Config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
-	// pn.Config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
-
-	// ch1 := randomized("channel")
-	// cg1 := randomized("cg")
-	// cg2 := randomized("cg")
 	u1 := randomized("u")
 	s1 := randomized("s")
 
+	// Kept for later
 	// ch := map[string]pubnub.ChannelPermissions{
 	// 	ch1: pubnub.ChannelPermissions{
 	// 		Read:   true,
@@ -56,6 +48,7 @@ func TestGrantToken(t *testing.T) {
 		},
 	}
 
+	// Kept for later
 	// cg := map[string]pubnub.GroupPermissions{
 	// 	cg1: pubnub.GroupPermissions{
 	// 		Read:   true,
@@ -84,15 +77,6 @@ func TestGrantToken(t *testing.T) {
 		//map[pat:map[usr:map[] spc:map[] chan:map[] grp:map[]] meta:map[] sig:[205 161 131 38 100 38 57 220 2 234 208 130 204 167 117 48 224 91 132 70 12 192 211 34 47 43 64 188 207 118 55 110] v:2 t:1567502256 ttl:10 res:map[grp:map[cg-1623328:23 cg-6488712:19] usr:map[u-3244801:15] spc:map[s-8225817:31] chan:map[channel-7076766:7]]]
 		cborObject, err := pubnub.GetPermissions(token)
 		if err == nil {
-			// fmt.Printf("\nCBOR decode Token---> %#v", cborObject)
-			// fmt.Println("")
-			// fmt.Println("Sig: ", string(cborObject.Signature))
-			// fmt.Println("Version: ", cborObject.Version)
-			// fmt.Println("Timestamp: ", cborObject.Timestamp)
-			// fmt.Println("TTL: ", cborObject.TTL)
-			// fmt.Println(fmt.Sprintf("Meta: %#v", cborObject.Meta))
-			// fmt.Println("")
-			// fmt.Println(" --- Resources")
 			chResources := pubnub.ParseGrantResources(cborObject.Resources, token, cborObject.Timestamp, cborObject.TTL)
 
 			fmt.Println(chResources)
@@ -132,18 +116,6 @@ func TestGrantToken(t *testing.T) {
 			//fmt.Println(" --- Patterns")
 			pubnub.ParseGrantResources(cborObject.Patterns, token, cborObject.Timestamp, cborObject.TTL)
 		}
-
-		// t2 := pn.TokenManager.GetTokens([]string{ch1}, nil, nil, nil)
-		// fmt.Println(t2.Channels[ch1].Token)
-
-		// err := json.Unmarshal(value, &resp)
-		// if err != nil {
-		// 	fmt.Printf("\nUnmarshal Error---> %#v", err)
-		// 	//log.Println("Write file:", ioutil.WriteFile("data.json", value, 0600))
-		// } else {
-		// 	fmt.Println("\nUnmarshalled Token--->", resp)
-		// }
-		//}
 
 	}
 

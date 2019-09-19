@@ -119,13 +119,6 @@ func (b *grantTokenBuilder) SpacesPattern(spaces map[string]UserSpacePermissions
 	return b
 }
 
-//Patterns sets the Patterns for the Grant request.
-// func (b *grantTokenBuilder) Patterns(pattern string, resourceTypes patterns) *grantTokenBuilder {
-// 	// b.opts.Patterns = patterns
-
-// 	return b
-// }
-
 // Meta sets the Meta for the Grant request.
 func (b *grantTokenBuilder) Meta(meta map[string]interface{}) *grantTokenBuilder {
 	b.opts.Meta = meta
@@ -213,35 +206,28 @@ type grantBody struct {
 	Permissions PermissionsBody `json:"permissions"`
 }
 
-func setBitmask(value bool, bitmask PNGrantBitMask, bm int64) int64 {
+func (o *grantTokenOpts) setBitmask(value bool, bitmask PNGrantBitMask, bm int64) int64 {
 	if value {
 		bm |= int64(bitmask)
 	}
-	//fmt.Println("====>", bm)
+	o.pubnub.Config.Log.Println(fmt.Sprintf("bmVal: %t %d %d", value, bitmask, bm))
 	return bm
 }
 
-func parseResourcePermissions(resource interface{}, resourceType PNResourceType) map[string]int64 {
+func (o *grantTokenOpts) parseResourcePermissions(resource interface{}, resourceType PNResourceType) map[string]int64 {
 	bmVal := int64(0)
 	switch resourceType {
 	case PNChannels:
 		resourceWithPerms := resource.(map[string]ChannelPermissions)
 		resourceWithPermsLen := len(resourceWithPerms)
 		if resourceWithPermsLen > 0 {
-			//fmt.Println(c)
 			r := make(map[string]int64, resourceWithPermsLen)
 			for k, v := range resourceWithPerms {
-				// _, err := regexp.Compile(k)
-				// if err != nil {
-				// 	fmt.Println(err.Error())
-				// } else {
-				// 	fmt.Println("Regex compiled", k)
-				// }
 				bmVal = int64(0)
-				bmVal = setBitmask(v.Read, PNRead, bmVal)
-				bmVal = setBitmask(v.Write, PNWrite, bmVal)
-				bmVal = setBitmask(v.Delete, PNDelete, bmVal)
-				//fmt.Println("bmVal====>", bmVal)
+				bmVal = o.setBitmask(v.Read, PNRead, bmVal)
+				bmVal = o.setBitmask(v.Write, PNWrite, bmVal)
+				bmVal = o.setBitmask(v.Delete, PNDelete, bmVal)
+				o.pubnub.Config.Log.Println("bmVal ChannelPermissions:", bmVal)
 				r[k] = bmVal
 			}
 			return r
@@ -255,9 +241,9 @@ func parseResourcePermissions(resource interface{}, resourceType PNResourceType)
 			r := make(map[string]int64, resourceWithPermsLen)
 			for k, v := range resourceWithPerms {
 				bmVal = int64(0)
-				bmVal = setBitmask(v.Read, PNRead, bmVal)
-				bmVal = setBitmask(v.Manage, PNManage, bmVal)
-				//fmt.Println("bmVal====>", bmVal)
+				bmVal = o.setBitmask(v.Read, PNRead, bmVal)
+				bmVal = o.setBitmask(v.Manage, PNManage, bmVal)
+				o.pubnub.Config.Log.Println("bmVal GroupPermissions:", bmVal)
 				r[k] = bmVal
 			}
 			return r
@@ -271,15 +257,14 @@ func parseResourcePermissions(resource interface{}, resourceType PNResourceType)
 		resourceWithPermsLen := len(resourceWithPerms)
 		if resourceWithPermsLen > 0 {
 			r := make(map[string]int64, resourceWithPermsLen)
-			//fmt.Println(c)
 			for k, v := range resourceWithPerms {
 				bmVal = int64(0)
-				bmVal = setBitmask(v.Read, PNRead, bmVal)
-				bmVal = setBitmask(v.Write, PNWrite, bmVal)
-				bmVal = setBitmask(v.Manage, PNManage, bmVal)
-				bmVal = setBitmask(v.Delete, PNDelete, bmVal)
-				bmVal = setBitmask(v.Create, PNCreate, bmVal)
-				//fmt.Println("bmVal====>", bmVal)
+				bmVal = o.setBitmask(v.Read, PNRead, bmVal)
+				bmVal = o.setBitmask(v.Write, PNWrite, bmVal)
+				bmVal = o.setBitmask(v.Manage, PNManage, bmVal)
+				bmVal = o.setBitmask(v.Delete, PNDelete, bmVal)
+				bmVal = o.setBitmask(v.Create, PNCreate, bmVal)
+				o.pubnub.Config.Log.Println("bmVal UserSpacePermissions:", bmVal)
 				r[k] = bmVal
 			}
 			return r
@@ -311,21 +296,21 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 
 	permissions := PermissionsBody{
 		Resources: GrantResources{
-			Channels: parseResourcePermissions(o.Channels, PNChannels),
-			Groups:   parseResourcePermissions(o.ChannelGroups, PNGroups),
-			Users:    parseResourcePermissions(o.Users, PNUsers),
-			Spaces:   parseResourcePermissions(o.Spaces, PNSpaces),
+			Channels: o.parseResourcePermissions(o.Channels, PNChannels),
+			Groups:   o.parseResourcePermissions(o.ChannelGroups, PNGroups),
+			Users:    o.parseResourcePermissions(o.Users, PNUsers),
+			Spaces:   o.parseResourcePermissions(o.Spaces, PNSpaces),
 		},
 		Patterns: GrantResources{
-			Channels: parseResourcePermissions(o.ChannelsPattern, PNChannels),
-			Groups:   parseResourcePermissions(o.ChannelGroupsPattern, PNGroups),
-			Users:    parseResourcePermissions(o.UsersPattern, PNUsers),
-			Spaces:   parseResourcePermissions(o.SpacesPattern, PNSpaces),
+			Channels: o.parseResourcePermissions(o.ChannelsPattern, PNChannels),
+			Groups:   o.parseResourcePermissions(o.ChannelGroupsPattern, PNGroups),
+			Users:    o.parseResourcePermissions(o.UsersPattern, PNUsers),
+			Spaces:   o.parseResourcePermissions(o.SpacesPattern, PNSpaces),
 		},
 		Meta: meta,
 	}
 
-	//fmt.Println("permissions", permissions)
+	o.pubnub.Config.Log.Println("permissions: ", permissions)
 
 	ttl := -1
 	if o.setTTL {

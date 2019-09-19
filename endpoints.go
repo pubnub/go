@@ -71,14 +71,6 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 		query.Set("auth", v)
 	}
 
-	// if (o.operationType() >= PNCreateUserOperation) && (o.operationType() <= PNManageMembersOperation) {
-	// 	o.config().Log.Println(fmt.Sprintf("Using token from TMS, %s", o.operationType()))
-	//t2 := o.pubnub.tokenManager.GetTokens(o.Channels, nil, nil, nil)
-	// q.Set("auth", t2.Channels[o.Channels[0]].Token)
-
-	//query.Set("auth", v)
-	//}
-
 	if o.config().SecretKey != "" {
 		timestamp := time.Now().Unix()
 		query.Set("timestamp", strconv.Itoa(int(timestamp)))

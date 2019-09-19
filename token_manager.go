@@ -40,6 +40,7 @@ func newTokenManager(pubnub *PubNub, ctx Context) *TokenManager {
 
 func (m *TokenManager) SetAuthParan(q *url.Values, resourceId string, resourceType PNResourceType) {
 	authParam := "auth"
+	m.RLock()
 	token := m.GetToken(resourceId, resourceType)
 	if token != "" {
 		switch resourceType {
@@ -53,10 +54,14 @@ func (m *TokenManager) SetAuthParan(q *url.Values, resourceId string, resourceTy
 			q.Set(authParam, token)
 		}
 	}
+	m.RUnlock()
 }
 
 func (m *TokenManager) GetAllTokens() GrantResourcesWithPermissions {
-	return m.Tokens
+	m.RLock()
+	t := m.Tokens
+	m.RUnlock()
+	return t
 }
 
 func (m *TokenManager) GetTokensByResource(resourceType PNResourceType) GrantResourcesWithPermissions {
@@ -70,6 +75,7 @@ func (m *TokenManager) GetTokensByResource(resourceType PNResourceType) GrantRes
 		UsersPattern:    make(map[string]UserSpacePermissionsWithToken),
 		SpacesPattern:   make(map[string]UserSpacePermissionsWithToken),
 	}
+	m.RLock()
 	switch resourceType {
 	case PNChannels:
 		for k, v := range m.Tokens.Channels {
@@ -104,11 +110,13 @@ func (m *TokenManager) GetTokensByResource(resourceType PNResourceType) GrantRes
 			g.SpacesPattern[k] = v
 		}
 	}
+	m.RUnlock()
 	return g
 }
 
 // GetToken, first match for direct ids, if no match found use the first token from pattern match ignoring the regex.
 func (m *TokenManager) GetToken(resourceId string, resourceType PNResourceType) string {
+	m.RLock()
 	switch resourceType {
 	case PNChannels:
 		if d, ok := m.Tokens.Channels[resourceId]; ok {
@@ -143,163 +151,9 @@ func (m *TokenManager) GetToken(resourceId string, resourceType PNResourceType) 
 			return v.Token
 		}
 	}
+	m.RUnlock()
 	return ""
 }
-
-// func (m *TokenManager) GetTokensWithPerms(resourceId string, resourceType PNResourceType) *GrantResourcesWithPermissions {
-// 	g := GrantResourcesWithPermissions{
-// 		Channels: make(map[string]ChannelPermissionsWithToken),
-// 		Groups:   make(map[string]GroupPermissionsWithToken),
-// 		Users:    make(map[string]UserSpacePermissionsWithToken),
-// 		Spaces:   make(map[string]UserSpacePermissionsWithToken),
-// 	}
-// 	switch resourceType {
-// 	case PNChannels:
-// 		if d, ok := m.Tokens.Channels[resourceId]; ok {
-// 			g.Channels[resourceId] = d
-// 			return &g
-// 		}
-
-// 		for _, v := range m.Tokens.ChannelsPattern {
-// 			g.Channels[resourceId] = v
-// 			return &g
-// 		}
-// 	case PNGroups:
-// 		if d, ok := m.Tokens.Groups[resourceId]; ok {
-// 			g.Groups[resourceId] = d
-// 			return &g
-// 		}
-
-// 		for _, v := range m.Tokens.GroupsPattern {
-// 			g.Groups[resourceId] = v
-// 			return &g
-// 		}
-// 	case PNUsers:
-// 		if d, ok := m.Tokens.Users[resourceId]; ok {
-// 			g.Users[resourceId] = d
-// 			return &g
-// 		}
-
-// 		for _, v := range m.Tokens.UsersPattern {
-// 			g.Users[resourceId] = v
-// 			return &g
-// 		}
-// 	case PNSpaces:
-// 		if d, ok := m.Tokens.Spaces[resourceId]; ok {
-// 			g.Spaces[resourceId] = d
-// 			return &g
-// 		}
-
-// 		for _, v := range m.Tokens.SpacesPattern {
-// 			g.Spaces[resourceId] = v
-// 			return &g
-// 		}
-// 	}
-// 	return nil
-// }
-
-// func (m *TokenManager) GetTokens(channels, groups, users, spaces []string) *GrantResourcesWithPermissions {
-// 	g := GrantResourcesWithPermissions{
-// 		Channels: make(map[string]ChannelPermissionsWithToken),
-// 		Groups:   make(map[string]GroupPermissionsWithToken),
-// 		Users:    make(map[string]UserSpacePermissionsWithToken),
-// 		Spaces:   make(map[string]UserSpacePermissionsWithToken),
-// 		// ChannelsPattern: make(map[string]ChannelPermissionsWithToken),
-// 		// GroupsPattern:   make(map[string]GroupPermissionsWithToken),
-// 		// UsersPattern:    make(map[string]UserSpacePermissionsWithToken),
-// 		// SpacesPattern:   make(map[string]UserSpacePermissionsWithToken),
-// 	}
-// 	//findTokenInTokensChannels(channels, g.Channels, m.Tokens.Channels)
-// 	// findTokenInTokens(channels, g.Channels, m.Tokens.Channels, PNChannels)
-// 	// findTokenInTokens(groups, g.Groups, m.Tokens.Groups, PNGroups)
-// 	// findTokenInTokens(users, g.Users, m.Tokens.Users, PNUsers)
-// 	// findTokenInTokens(spaces, g.Spaces, m.Tokens.Spaces, PNSpaces)
-// 	// findTokenInTokens(channels, g.Channels, m.Tokens.Channels, PNChannels)
-// 	// findTokenInTokens(groups, g.Groups, m.Tokens.Groups, PNGroups)
-// 	// findTokenInTokens(users, g.Users, m.Tokens.Users, PNUsers)
-// 	// findTokenInTokens(spaces, g.Spaces, m.Tokens.Spaces, PNSpaces)
-
-// 	return &g
-// }
-
-// func matchTokensForSubscribe(g *GrantResourcesWithPermissions) {
-
-// }
-
-// func findTokenInTokens(r []string, resource, merge interface{}, resourceType PNResourceType) {
-// 	switch resourceType {
-// 	case PNChannels:
-// 		a := resource.(map[string]ChannelPermissionsWithToken)
-// 		e := merge.(map[string]ChannelPermissionsWithToken)
-// 		for v, k := range r {
-// 			if d, ok := e[k]; ok {
-// 				a[k] = d
-// 			}
-// 		}
-// 	case PNGroups:
-// 		a := resource.(map[string]GroupPermissionsWithToken)
-// 		e := merge.(map[string]GroupPermissionsWithToken)
-// 		for v, k := range r {
-// 			if d, ok := e[k]; ok {
-// 				a[k] = d
-// 			}
-// 		}
-// 	default:
-// 		//case PNUsers:
-// 		//case PNSpaces:
-// 		a := resource.(map[string]UserSpacePermissionsWithToken)
-// 		e := merge.(map[string]UserSpacePermissionsWithToken)
-// 		for v, k := range r {
-// 			if d, ok := e[k]; ok {
-// 				a[k] = d
-// 			}
-// 		}
-// 	}
-
-// }
-
-// func findTokenInTokensChannels(r []string, a, m map[string]ChannelPermissionsWithToken) {
-// 	for _, k := range r {
-// 		if d, ok := m[k]; ok {
-// 			a[k] = d
-// 		}
-// 	}
-// }
-
-// func findTokenInTokensGroups(r []string, a, m map[string]GroupPermissionsWithToken) {
-// 	for _, k := range r {
-// 		if d, ok := m[k]; ok {
-// 			a[k] = d
-// 		}
-// 	}
-// }
-
-// func findTokenInTokensUserSpace(r []string, a, m map[string]UserSpacePermissionsWithToken) {
-// 	for _, k := range r {
-// 		if d, ok := m[k]; ok {
-// 			a[k] = d
-// 		}
-// 	}
-// }
-
-// func mergeTokensByChannels(m map[string]ChannelPermissionsWithToken, r map[string]ChannelPermissionsWithToken) {
-// 	for k, v := range r {
-// 		m[k] = v
-// 	}
-
-// }
-// func mergeTokensByGroups(m map[string]GroupPermissionsWithToken, r map[string]GroupPermissionsWithToken) {
-// 	for k, v := range r {
-// 		m[k] = v
-// 	}
-
-// }
-// func mergeTokensByUserSpace(m map[string]UserSpacePermissionsWithToken, r map[string]UserSpacePermissionsWithToken) {
-// 	for k, v := range r {
-// 		m[k] = v
-// 	}
-
-// }
 
 func mergeTokensByResource(m interface{}, resource interface{}, resourceType PNResourceType) {
 	switch resourceType {
@@ -337,33 +191,16 @@ func (m *TokenManager) StoreTokens(token []string) {
 func (m *TokenManager) StoreToken(token string) {
 
 	if m.pubnub.Config.StoreTokensOnGrant && m.pubnub.Config.SecretKey == "" {
-		//fmt.Println("--->", token)
+		m.pubnub.Config.Log.Println("token: ", token)
 		cborObject, err := GetPermissions(token)
 		if err == nil {
-			// fmt.Printf("\nCBOR decode Token---> %#v", cborObject)
-			// fmt.Println("")
-			// fmt.Println("Sig: ", string(cborObject.Signature))
-			// fmt.Println("Version: ", cborObject.Version)
-			// fmt.Println("Timestamp: ", cborObject.Timestamp)
-			// fmt.Println("TTL: ", cborObject.TTL)
-			// fmt.Println(fmt.Sprintf("Meta: %#v", cborObject.Meta))
-			// fmt.Println("")
-			// fmt.Println(" --- Resources")
+
 			res := ParseGrantResources(cborObject.Resources, token, cborObject.Timestamp, cborObject.TTL)
 			m.Lock()
 			mergeTokensByResource(m.Tokens.Channels, res.Channels, PNChannels)
 			mergeTokensByResource(m.Tokens.Users, res.Users, PNUsers)
 			mergeTokensByResource(m.Tokens.Groups, res.Groups, PNGroups)
 			mergeTokensByResource(m.Tokens.Spaces, res.Spaces, PNSpaces)
-
-			// mergeTokensByChannels(m.Tokens.Channels, g.Channels)
-			// mergeTokensByUserSpace(m.Tokens.Users, g.Users)
-			// mergeTokensByGroups(m.Tokens.Groups, g.Groups)
-			// mergeTokensByUserSpace(m.Tokens.Spaces, g.Spaces)
-
-			// fmt.Println(" --- Tokens ---- ", m.Tokens)
-
-			// fmt.Println(" --- Patterns")
 
 			//clear all Users/Spaces pattern maps
 			pat := ParseGrantResources(cborObject.Patterns, token, cborObject.Timestamp, cborObject.TTL)
@@ -381,7 +218,7 @@ func (m *TokenManager) StoreToken(token string) {
 			mergeTokensByResource(m.Tokens.GroupsPattern, pat.Groups, PNGroups)
 			mergeTokensByResource(m.Tokens.SpacesPattern, pat.Spaces, PNSpaces)
 
-			// fmt.Println(" --- Tokens ---- ", m.Tokens)
+			m.pubnub.Config.Log.Println("Tokens: ", m.Tokens)
 
 			m.Unlock()
 		} else {
@@ -391,40 +228,3 @@ func (m *TokenManager) StoreToken(token string) {
 
 	}
 }
-
-// func (m *TokenManager) StoreToken(token string) {
-// 	if m.pubnub.Config.StoreTokensOnGrant {
-// 		fmt.Println("--->", token)
-// 		cborObject, err := GetPermissions(token)
-// 		if err == nil {
-// 			fmt.Printf("\nCBOR decode Token---> %#v", cborObject)
-// 			fmt.Println("")
-// 			fmt.Println("Sig: ", string(cborObject.Signature))
-// 			fmt.Println("Version: ", cborObject.Version)
-// 			fmt.Println("Timetoken: ", cborObject.Timetoken)
-// 			fmt.Println("TTL: ", cborObject.TTL)
-// 			fmt.Println(fmt.Sprintf("Meta: %#v", cborObject.Meta))
-// 			fmt.Println("")
-// 			fmt.Println(" --- Resources")
-// 			g := ParseGrantResources(cborObject.Resources, token)
-// 			m.Lock()
-// 			m.Tokens.Channels = mergeTokensByResources(m.Tokens.Channels, g.Channels)
-// 			m.Tokens.Users = mergeTokensByResources(m.Tokens.Users, g.Users)
-// 			m.Tokens.Groups = mergeTokensByResources(m.Tokens.Groups, g.Groups)
-// 			m.Tokens.Spaces = mergeTokensByResources(m.Tokens.Spaces, g.Spaces)
-// 			m.Unlock()
-
-// 			fmt.Println(" --- Tokens ---- ", m.Tokens)
-
-// 			fmt.Println(" --- Patterns")
-// 			ParseGrantResources(cborObject.Patterns, token)
-// 		}
-// 	}
-// }
-
-// func mergeTokensByResources(m map[string]PermissionsWithToken, r map[string]PermissionsWithToken) map[string]PermissionsWithToken {
-// 	for k, v := range r {
-// 		m[k] = v
-// 	}
-// 	return m
-// }

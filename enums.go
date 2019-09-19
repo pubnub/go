@@ -225,7 +225,7 @@ const (
 	// PNManageMembersOperation is the enum used to manage members in the Object API.
 	// ENUM ORDER needs to be maintained for Objects API
 	PNManageMembersOperation
-	// PNAccessManagerGrantToken
+	// PNAccessManagerGrantToken is the enum used from Grant v3 requests
 	PNAccessManagerGrantToken
 )
 

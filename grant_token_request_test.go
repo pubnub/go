@@ -10,6 +10,8 @@ import (
 
 func TestGrantTokenParseResourcePermissions(t *testing.T) {
 	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	o := newGrantTokenBuilder(pn)
 
 	m := map[string]UserSpacePermissions{
 		"channel": UserSpacePermissions{
@@ -21,7 +23,7 @@ func TestGrantTokenParseResourcePermissions(t *testing.T) {
 		},
 	}
 
-	r := parseResourcePermissions(m, PNUsers)
+	r := o.opts.parseResourcePermissions(m, PNUsers)
 	for _, v := range r {
 		assert.Equal(int64(31), v)
 	}
@@ -29,6 +31,9 @@ func TestGrantTokenParseResourcePermissions(t *testing.T) {
 
 func TestGrantTokenParseResourcePermissions2(t *testing.T) {
 	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
+	o := newGrantTokenBuilder(pn)
 
 	m := map[string]UserSpacePermissions{
 		"channel": UserSpacePermissions{
@@ -40,7 +45,7 @@ func TestGrantTokenParseResourcePermissions2(t *testing.T) {
 		},
 	}
 
-	r := parseResourcePermissions(m, PNUsers)
+	r := o.opts.parseResourcePermissions(m, PNUsers)
 	for _, v := range r {
 		assert.Equal(int64(15), v)
 	}
@@ -48,6 +53,9 @@ func TestGrantTokenParseResourcePermissions2(t *testing.T) {
 
 func TestGrantTokenParseResourcePermissions3(t *testing.T) {
 	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
+	o := newGrantTokenBuilder(pn)
 
 	m := map[string]UserSpacePermissions{
 		"channel": UserSpacePermissions{
@@ -59,7 +67,7 @@ func TestGrantTokenParseResourcePermissions3(t *testing.T) {
 		},
 	}
 
-	r := parseResourcePermissions(m, PNUsers)
+	r := o.opts.parseResourcePermissions(m, PNUsers)
 	for _, v := range r {
 		assert.Equal(int64(7), v)
 	}
@@ -67,6 +75,9 @@ func TestGrantTokenParseResourcePermissions3(t *testing.T) {
 
 func TestGrantTokenParseResourcePermissions4(t *testing.T) {
 	assert := assert.New(t)
+
+	pn := NewPubNub(NewDemoConfig())
+	o := newGrantTokenBuilder(pn)
 
 	m := map[string]UserSpacePermissions{
 		"channel": UserSpacePermissions{
@@ -85,7 +96,7 @@ func TestGrantTokenParseResourcePermissions4(t *testing.T) {
 		},
 	}
 
-	r := parseResourcePermissions(m, PNUsers)
+	r := o.opts.parseResourcePermissions(m, PNUsers)
 	assert.Equal(int64(7), r["channel"])
 	assert.Equal(int64(5), r["channel2"])
 }
