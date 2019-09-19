@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	//	"regexp"
 )
 
 const grantTokenPath = "/v3/pam/%s/grant"
@@ -357,12 +356,13 @@ func (o *grantTokenOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+// PNGrantTokenData is the struct used to decode the server response
 type PNGrantTokenData struct {
 	Message string `json:"message"`
 	Token   string `json:"token"`
 }
 
-// GrantResponse is the struct returned when the Execute function of Grant is called.
+// PNGrantTokenResponse is the struct returned when the Execute function of Grant Token is called.
 type PNGrantTokenResponse struct {
 	status  int              `json:"status"`
 	Data    PNGrantTokenData `json:"data"`

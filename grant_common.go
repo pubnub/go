@@ -15,11 +15,16 @@ import (
 type PNGrantBitMask int64
 
 const (
-	PNRead   PNGrantBitMask = 1
-	PNWrite                 = 2
-	PNManage                = 4
-	PNDelete                = 8
-	PNCreate                = 16
+	// PNRead Read Perms
+	PNRead PNGrantBitMask = 1
+	// PNWrite Write Perms
+	PNWrite = 2
+	// PNManage Manage Perms
+	PNManage = 4
+	// PNDelete Delete Perms
+	PNDelete = 8
+	// PNCreate Create Perms
+	PNCreate = 16
 )
 
 // PNGrantType grant types
@@ -42,23 +47,30 @@ const (
 type PNResourceType int
 
 const (
+	// PNChannels for channels
 	PNChannels PNResourceType = 1 + iota
+	// PNGroups for groups
 	PNGroups
+	// PNUsers for users
 	PNUsers
+	// PNSpaces for spaces
 	PNSpaces
 )
 
+// ChannelPermissions contains all the acceptable perms for channels
 type ChannelPermissions struct {
 	Read   bool
 	Write  bool
 	Delete bool
 }
 
+// GroupPermissions contains all the acceptable perms for groups
 type GroupPermissions struct {
 	Read   bool
 	Manage bool
 }
 
+// UserSpacePermissions contains all the acceptable perms for Users and Spaces
 type UserSpacePermissions struct {
 	Read   bool
 	Write  bool
@@ -67,6 +79,7 @@ type UserSpacePermissions struct {
 	Create bool
 }
 
+// ResourcePermissions contains all the applicable perms for bitmask translations.
 type ResourcePermissions struct {
 	Read   bool
 	Write  bool
@@ -95,7 +108,7 @@ type PNAccessManagerKeyData struct {
 	TTL           int
 }
 
-// DecodeCBORToken
+// GetPermissions decodes the CBORToken
 func GetPermissions(token string) (PNGrantTokenDecoded, error) {
 	token = strings.Replace(token, "-", "+", -1)
 	token = strings.Replace(token, "_", "/", -1)
@@ -170,6 +183,7 @@ func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
 	}
 }
 
+// ParseGrantResources parses the token for permissions and adds them along the other values to the GrantResourcesWithPermissions struct
 func ParseGrantResources(res GrantResources, token string, timetoken int64, ttl int) *GrantResourcesWithPermissions {
 	channels := make(map[string]ChannelPermissionsWithToken, len(res.Channels))
 
@@ -225,6 +239,7 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64, ttl 
 	return &g
 }
 
+// ChannelPermissionsWithToken is used for channels resource type permissions
 type ChannelPermissionsWithToken struct {
 	Permissions  ChannelPermissions
 	BitMaskPerms int64
@@ -233,6 +248,7 @@ type ChannelPermissionsWithToken struct {
 	TTL          int
 }
 
+// GroupPermissionsWithToken is used for groups resource type permissions
 type GroupPermissionsWithToken struct {
 	Permissions  GroupPermissions
 	BitMaskPerms int64
@@ -241,6 +257,7 @@ type GroupPermissionsWithToken struct {
 	TTL          int
 }
 
+// UserSpacePermissionsWithToken is used for users/spaces resource type permissions
 type UserSpacePermissionsWithToken struct {
 	Permissions  UserSpacePermissions
 	BitMaskPerms int64
@@ -249,11 +266,7 @@ type UserSpacePermissionsWithToken struct {
 	TTL          int
 }
 
-type PatternsGrantResources struct {
-	pattern string
-	perms   ChannelPermissionsWithToken
-}
-
+// GrantResourcesWithPermissions is used as a common struct to store all resource type permissions
 type GrantResourcesWithPermissions struct {
 	Channels        map[string]ChannelPermissionsWithToken
 	Groups          map[string]GroupPermissionsWithToken
@@ -265,12 +278,14 @@ type GrantResourcesWithPermissions struct {
 	SpacesPattern   map[string]UserSpacePermissionsWithToken
 }
 
+// PermissionsBody is the struct used to decode the server response
 type PermissionsBody struct {
 	Resources GrantResources         `json:"resources"`
 	Patterns  GrantResources         `json:"patterns"`
 	Meta      map[string]interface{} `json:"meta"`
 }
 
+// GrantResources is the struct used to decode the server response
 type GrantResources struct {
 	Channels map[string]int64 `json:"channels" cbor:"chan"`
 	Groups   map[string]int64 `json:"groups" cbor:"grp"`
@@ -278,6 +293,7 @@ type GrantResources struct {
 	Spaces   map[string]int64 `json:"spaces" cbor:"spc"`
 }
 
+// PNGrantTokenDecoded is the struct used to decode the server response
 type PNGrantTokenDecoded struct {
 	Resources GrantResources         `cbor:"res"`
 	Patterns  GrantResources         `cbor:"pat"`

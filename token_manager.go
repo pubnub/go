@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// TokenManager struct is used to for token manager operations
 type TokenManager struct {
 	sync.RWMutex
 	Tokens              GrantResourcesWithPermissions
@@ -13,9 +14,6 @@ type TokenManager struct {
 	lastUpdateTimestamp int
 	lastQueryTimestamp  int
 }
-
-// Match tokens for subscribe or other calls
-// Check ttl expiration
 
 func newTokenManager(pubnub *PubNub, ctx Context) *TokenManager {
 
@@ -38,10 +36,11 @@ func newTokenManager(pubnub *PubNub, ctx Context) *TokenManager {
 	return manager
 }
 
-func (m *TokenManager) SetAuthParan(q *url.Values, resourceId string, resourceType PNResourceType) {
+// SetAuthParan sets the auth param in the requests by retrieving the corresponding tokens from the token manager
+func (m *TokenManager) SetAuthParan(q *url.Values, resourceID string, resourceType PNResourceType) {
 	authParam := "auth"
 	m.RLock()
-	token := m.GetToken(resourceId, resourceType)
+	token := m.GetToken(resourceID, resourceType)
 	if token != "" {
 		switch resourceType {
 		case PNChannels:
@@ -57,6 +56,7 @@ func (m *TokenManager) SetAuthParan(q *url.Values, resourceId string, resourceTy
 	m.RUnlock()
 }
 
+// GetAllTokens retrieves all the tokens from the token manager
 func (m *TokenManager) GetAllTokens() GrantResourcesWithPermissions {
 	m.RLock()
 	t := m.Tokens
@@ -64,6 +64,7 @@ func (m *TokenManager) GetAllTokens() GrantResourcesWithPermissions {
 	return t
 }
 
+// GetTokensByResource retrieves the tokens by PNResourceType from the token manager
 func (m *TokenManager) GetTokensByResource(resourceType PNResourceType) GrantResourcesWithPermissions {
 	g := GrantResourcesWithPermissions{
 		Channels:        make(map[string]ChannelPermissionsWithToken),
@@ -114,12 +115,12 @@ func (m *TokenManager) GetTokensByResource(resourceType PNResourceType) GrantRes
 	return g
 }
 
-// GetToken, first match for direct ids, if no match found use the first token from pattern match ignoring the regex.
-func (m *TokenManager) GetToken(resourceId string, resourceType PNResourceType) string {
+// GetToken, first match for direct ids, if no match found use the first token from pattern match ignoring the regex (by design).
+func (m *TokenManager) GetToken(resourceID string, resourceType PNResourceType) string {
 	m.RLock()
 	switch resourceType {
 	case PNChannels:
-		if d, ok := m.Tokens.Channels[resourceId]; ok {
+		if d, ok := m.Tokens.Channels[resourceID]; ok {
 			return d.Token
 		}
 
@@ -127,7 +128,7 @@ func (m *TokenManager) GetToken(resourceId string, resourceType PNResourceType) 
 			return v.Token
 		}
 	case PNGroups:
-		if d, ok := m.Tokens.Groups[resourceId]; ok {
+		if d, ok := m.Tokens.Groups[resourceID]; ok {
 			return d.Token
 		}
 
@@ -135,7 +136,7 @@ func (m *TokenManager) GetToken(resourceId string, resourceType PNResourceType) 
 			return v.Token
 		}
 	case PNUsers:
-		if d, ok := m.Tokens.Users[resourceId]; ok {
+		if d, ok := m.Tokens.Users[resourceID]; ok {
 			return d.Token
 		}
 
@@ -143,7 +144,7 @@ func (m *TokenManager) GetToken(resourceId string, resourceType PNResourceType) 
 			return v.Token
 		}
 	case PNSpaces:
-		if d, ok := m.Tokens.Spaces[resourceId]; ok {
+		if d, ok := m.Tokens.Spaces[resourceID]; ok {
 			return d.Token
 		}
 
@@ -180,14 +181,14 @@ func mergeTokensByResource(m interface{}, resource interface{}, resourceType PNR
 	}
 }
 
-// StoreTokens Aceepts PAMv3 token format
+// StoreTokens Aceepts PAMv3 token format tokens to store in the token manager
 func (m *TokenManager) StoreTokens(token []string) {
 	for _, k := range token {
 		m.StoreToken(k)
 	}
 }
 
-// StoreToken Aceepts PAMv3 token format
+// StoreToken Aceepts PAMv3 token format token to store in the token manager
 func (m *TokenManager) StoreToken(token string) {
 
 	if m.pubnub.Config.StoreTokensOnGrant && m.pubnub.Config.SecretKey == "" {
@@ -202,7 +203,7 @@ func (m *TokenManager) StoreToken(token string) {
 			mergeTokensByResource(m.Tokens.Groups, res.Groups, PNGroups)
 			mergeTokensByResource(m.Tokens.Spaces, res.Spaces, PNSpaces)
 
-			//clear all Users/Spaces pattern maps
+			//clear all Users/Spaces pattern maps (by design, store last token only for patterns)
 			pat := ParseGrantResources(cborObject.Patterns, token, cborObject.Timestamp, cborObject.TTL)
 			if len(pat.Users) > 0 {
 				m.Tokens.UsersPattern = make(map[string]UserSpacePermissionsWithToken)
