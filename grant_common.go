@@ -11,7 +11,7 @@ import (
 	cbor "github.com/brianolson/cbor_go"
 )
 
-// PNGrantBitMask
+// PNGrantBitMask is the type for perms BitMask
 type PNGrantBitMask int64
 
 const (
@@ -120,17 +120,15 @@ func GetPermissions(token string) (PNGrantTokenDecoded, error) {
 	value, decodeErr := base64.StdEncoding.DecodeString(token)
 	if decodeErr != nil {
 		return cborObject, decodeErr
-	} else {
-
-		c := cbor.NewDecoder(bytes.NewReader(value))
-		err1 := c.Decode(&cborObject)
-		if err1 != nil {
-			return cborObject, err1
-		}
-
-		return cborObject, nil
 	}
-	return cborObject, decodeErr
+
+	c := cbor.NewDecoder(bytes.NewReader(value))
+	err1 := c.Decode(&cborObject)
+	if err1 != nil {
+		return cborObject, err1
+	}
+
+	return cborObject, nil
 }
 
 func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {

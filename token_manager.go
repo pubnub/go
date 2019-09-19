@@ -115,7 +115,7 @@ func (m *TokenManager) GetTokensByResource(resourceType PNResourceType) GrantRes
 	return g
 }
 
-// GetToken, first match for direct ids, if no match found use the first token from pattern match ignoring the regex (by design).
+// GetToken first match for direct ids, if no match found use the first token from pattern match ignoring the regex (by design).
 func (m *TokenManager) GetToken(resourceID string, resourceType PNResourceType) string {
 	m.RLock()
 	switch resourceType {
