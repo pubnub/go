@@ -2,15 +2,14 @@ package utils
 
 import (
 	"encoding/json"
-	//"log"
 	//"errors"
 	"fmt"
 	"net/url"
 	"sort"
 	"strings"
 
+	uuid "github.com/google/uuid"
 	pnerr "github.com/pubnub/go/pnerr"
-	uuid "github.com/satori/go.uuid"
 )
 
 // JoinChannels encodes and joins channels
@@ -103,12 +102,7 @@ func ValueAsString(value interface{}) ([]byte, error) {
 
 // Generate a random uuid string
 func UUID() string {
-	id, err := uuid.NewV4()
-	if err != nil {
-		panic(err)
-	}
-
-	return id.String()
+	return uuid.New().String()
 }
 
 func sortQueries(params *url.Values) []string {

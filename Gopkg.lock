@@ -2,11 +2,27 @@
 
 
 [[projects]]
+  digest = "1:0696b94869aea598f6cea2a01f46a2a85c522fd4ba5a84162bf6466e401fc2b1"
+  name = "github.com/brianolson/cbor_go"
+  packages = ["."]
+  pruneopts = ""
+  revision = "2772dbcae00c28da2b8917cc03dcce84d9e95a79"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:0deddd908b6b4b768cfc272c16ee61e7088a60f7fe2f06c547bd3d8e1f8b8e77"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   pruneopts = ""
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:ad92aa49f34cbc3546063c7eb2cabb55ee2278b72842eda80e2a20a8a06a8d73"
+  name = "github.com/google/uuid"
+  packages = ["."]
+  pruneopts = ""
+  revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
   version = "v1.1.1"
 
 [[projects]]
@@ -16,14 +32,6 @@
   pruneopts = ""
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:47081c00d00c1dfc9a530c2556e78be391a5c24db1043efe6d406af882a169a1"
-  name = "github.com/satori/go.uuid"
-  packages = ["."]
-  pruneopts = ""
-  revision = "b2ce2384e17bbe0c6d34077efa39dbab3e09123b"
 
 [[projects]]
   digest = "1:c587772fb8ad29ad4db67575dad25ba17a51f072ff18a22b4f0257a4d9c24f75"
@@ -75,7 +83,8 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/satori/go.uuid",
+    "github.com/brianolson/cbor_go",
+    "github.com/google/uuid",
     "github.com/stretchr/testify/assert",
     "golang.org/x/net/http2",
   ]
