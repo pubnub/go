@@ -6,7 +6,7 @@ go:
   - 1.11.13  
   - 1.12.9
   - 1.13
- # - master
+  - master
   - tip
 
 env:
@@ -15,6 +15,7 @@ env:
 matrix:
   allow_failures:
     - go: tip
+    - go: master
   fast_finish: true
 go_import_path: github.com/pubnub/go  
 
