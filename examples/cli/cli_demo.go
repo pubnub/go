@@ -55,16 +55,8 @@ func connect() {
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
-	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"   //"demo"   //"demo"
-	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3" //"demo" //"sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
-	//config.SecretKey = //"pam"    //"demo"
-
-	//config.PublishKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
-	//config.SubscribeKey = "sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306"
-	//config.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
-
-	//config.AuthKey = "akey"
-
+	config.PublishKey = "demo"
+	config.SubscribeKey = "demo"
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
 
@@ -162,19 +154,6 @@ func connect() {
 	pn.AddListener(listener)
 	showHelp()
 
-	/*config2 := pubnub.NewConfig()
-	config2.SubscribeRequestTimeout = 59
-	config2.UUID = "GlobalSubscriber"
-	config2.PNReconnectionPolicy = pubnub.PNLinearPolicy
-	config2.Log = infoLogger
-	config2.Log.SetPrefix("PubNub2:")
-
-	pn2 := pubnub.NewPubNub(config2)
-	pn2.AddListener(listener)
-	channel := "ch1"
-
-	pn2.Subscribe().Channels([]string{channel}).Execute()*/
-
 	for {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print(fmt.Sprintf("%s ", outputPrefix))
@@ -216,6 +195,7 @@ func showHelp() {
 	showListAllChOfCgHelp()
 	showDelCgHelp()
 	showGrantHelp()
+	showGrantTokenHelp()
 	showSubscribeWithStateHelp()
 	showPresenceTimeoutHelp()
 	showPresenceHelp()
@@ -443,8 +423,14 @@ func showDelCgHelp() {
 	fmt.Println("	delcg cg ")
 }
 
+func showGrantTokenHelp() {
+	fmt.Println(" GRANTTOKEN EXAMPLE: ")
+	fmt.Println("	granttoken Channels ChannelGroups Users Spaces ttl ")
+	fmt.Println("	granttoken ch1,ch2 cg1,cg2 u1,u2 s1,s2 ^ch-[0-9a-f]*$ ^:cg-[0-9a-f]*$ ^u-[0-9a-f]*$ ^s-[0-9a-f]*$ 10")
+}
+
 func showGrantHelp() {
-	fmt.Println(" GRANT EXAMPLE: ")
+	fmt.Println(" GRANT2 EXAMPLE: ")
 	fmt.Println("	grant Channels ChannelGroups manage read write ttl ")
 	fmt.Println("	grant my-channel cg false false false 10")
 }
@@ -501,6 +487,8 @@ func readCommand(cmd string) {
 		delChannelGroup(command[1:])
 	case "grant":
 		grant(command[1:])
+	case "granttoken":
+		granttoken(command[1:])
 	case "help":
 		showHelp()
 	case "pt":
@@ -541,6 +529,16 @@ func readCommand(cmd string) {
 		manageMemberships(command[1:])
 	case "updatemem":
 		manageMembers(command[1:])
+	case "settoken":
+		setToken(command[1:])
+	case "settokens":
+		setTokens(command[1:])
+	case "gettoken":
+		getToken(command[1:])
+	case "gettokens":
+		getTokens(command[1:])
+	case "gettokenres":
+		getTokenRes(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -548,6 +546,33 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func setToken(args []string) {
+	pn.SetToken(args[0])
+}
+
+func setTokens(args []string) {
+	var tokens []string
+	tokens = strings.Split(args[0], ",")
+
+	pn.SetTokens(tokens)
+}
+
+func getToken(args []string) {
+	res := pn.GetTokens()
+	fmt.Println(res)
+}
+
+func getTokens(args []string) {
+	res := pn.GetTokens()
+	fmt.Println(res)
+}
+
+func getTokenRes(args []string) {
+	res := pn.GetTokens()
+	fmt.Println(res)
+
 }
 
 func manageMembers(args []string) {
@@ -712,7 +737,6 @@ func manageMemberships(args []string) {
 
 	if start != "" {
 		res, status, err := pn.ManageMemberships().Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
-		//res, status, err := pn.UpdateMembers().UserID(userID).Add(inArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
@@ -887,7 +911,6 @@ func createSpace(args []string) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	//res, status, err := pn.CreateSpace().ID("id0").Name("name").Description("desc").Include([]string{"custom"}).Custom(custom).Execute()
 	res, status, err := pn.CreateSpace().ID(id).Name(name).Description(desc).Include(incl).Custom(custom).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
@@ -1135,10 +1158,195 @@ func setPresenceTimeout(args []string) {
 	}
 }
 
+func granttoken(args []string) {
+	if len(args) < 9 {
+		fmt.Println(len(args))
+		showGrantHelp()
+		return
+	}
+
+	var channels []string
+	if len(args) > 0 {
+		channels = strings.Split(args[0], ",")
+	}
+	var groups []string
+	if len(args) > 1 {
+		groups = strings.Split(args[1], ",")
+	}
+	var users []string
+	if len(args) > 2 {
+		users = strings.Split(args[2], ",")
+	}
+	var spaces []string
+	if len(args) > 3 {
+		spaces = strings.Split(args[3], ",")
+	}
+	var channelsPat []string
+	if len(args) > 0 {
+		channelsPat = strings.Split(args[4], ",")
+	}
+	var groupsPat []string
+	if len(args) > 1 {
+		groupsPat = strings.Split(args[5], ",")
+	}
+	var usersPat []string
+	if len(args) > 2 {
+		usersPat = strings.Split(args[6], ",")
+	}
+	var spacesPat []string
+	if len(args) > 3 {
+		spacesPat = strings.Split(args[7], ",")
+	}
+	var ttl int
+	if len(args) > 4 {
+		i, err := strconv.ParseInt(args[8], 10, 64)
+		if err != nil {
+			ttl = 1440
+		} else {
+			ttl = int(i)
+		}
+	}
+
+	// ch1 := randomnized("ch1")
+	// cg1 := "cg"
+	// cg2 := "cg1"
+	// u1 := "u"
+	// s1 := "s"
+
+	ch := make(map[string]pubnub.ChannelPermissions, len(channels))
+	for _, k := range channels {
+		ch[k] = pubnub.ChannelPermissions{
+			Read:   true,
+			Write:  true,
+			Delete: false,
+		}
+	}
+
+	s := make(map[string]pubnub.UserSpacePermissions, len(spaces))
+	for _, k := range spaces {
+		s[k] = pubnub.UserSpacePermissions{
+			Read:   true,
+			Write:  true,
+			Manage: true,
+			Delete: true,
+			Create: true,
+		}
+	}
+
+	u := make(map[string]pubnub.UserSpacePermissions, len(users))
+	for _, k := range users {
+		u[k] = pubnub.UserSpacePermissions{
+			Read:   true,
+			Write:  true,
+			Manage: true,
+			Delete: false,
+			Create: false,
+		}
+	}
+
+	cg := make(map[string]pubnub.GroupPermissions, len(groups))
+	for _, k := range groups {
+		cg[k] = pubnub.GroupPermissions{
+			Read:   true,
+			Manage: false,
+		}
+	}
+
+	chPat := make(map[string]pubnub.ChannelPermissions, len(channelsPat))
+	for _, k := range channelsPat {
+		chPat[k] = pubnub.ChannelPermissions{
+			Read:   true,
+			Write:  true,
+			Delete: true,
+		}
+	}
+
+	sPat := make(map[string]pubnub.UserSpacePermissions, len(spacesPat))
+	for _, k := range spacesPat {
+		sPat[k] = pubnub.UserSpacePermissions{
+			Read:   true,
+			Write:  true,
+			Manage: false,
+			Delete: true,
+			Create: true,
+		}
+	}
+
+	uPat := make(map[string]pubnub.UserSpacePermissions, len(usersPat))
+	for _, k := range usersPat {
+		uPat[k] = pubnub.UserSpacePermissions{
+			Read:   true,
+			Write:  true,
+			Manage: true,
+			Delete: true,
+			Create: false,
+		}
+	}
+
+	cgPat := make(map[string]pubnub.GroupPermissions, len(groupsPat))
+	for _, k := range groupsPat {
+		cgPat[k] = pubnub.GroupPermissions{
+			Read:   true,
+			Manage: true,
+		}
+	}
+
+	// u := map[string]pubnub.ResourcePermissions{
+	// 	u1: pubnub.ResourcePermissions{
+	// 		Read:   true,
+	// 		Write:  true,
+	// 		Manage: true,
+	// 		Delete: true,
+	// 		Create: false,
+	// 	},
+	// }
+
+	// s := map[string]pubnub.ResourcePermissions{
+	// 	s1: pubnub.ResourcePermissions{
+	// 		Read:   true,
+	// 		Write:  true,
+	// 		Manage: true,
+	// 		Delete: true,
+	// 		Create: true,
+	// 	},
+	// }
+
+	// cg := map[string]pubnub.ResourcePermissions{
+	// 	cg1: pubnub.ResourcePermissions{
+	// 		Read:   true,
+	// 		Write:  true,
+	// 		Manage: true,
+	// 		Delete: false,
+	// 		Create: true,
+	// 	},
+	// 	cg2: pubnub.ResourcePermissions{
+	// 		Read:   true,
+	// 		Write:  true,
+	// 		Manage: false,
+	// 		Delete: false,
+	// 		Create: true,
+	// 	},
+	// }
+
+	res, _, err := pn.GrantToken().TTL(ttl).
+		//Channels(ch).
+		//ChannelGroups(cg).
+		Users(u).
+		Spaces(s).
+		//ChannelsPattern(chPat).
+		//ChannelGroupsPattern(cgPat).
+		UsersPattern(uPat).
+		SpacesPattern(sPat).
+		Execute()
+
+	fmt.Println(res)
+	fmt.Println(err)
+}
+
 func grant(args []string) {
 	if len(args) < 6 {
 		fmt.Println(len(args))
-		showAddToCgHelp()
+		showGrantHelp()
 		return
 	}
 

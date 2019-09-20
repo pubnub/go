@@ -2,8 +2,6 @@ package e2e
 
 import (
 	"fmt"
-	//"log"
-	//"os"
 	"strings"
 	"testing"
 	"time"
@@ -36,18 +34,7 @@ func TestPublishSuccessNotStubbed(t *testing.T) {
 
 func TestPublishSuccess(t *testing.T) {
 	assert := assert.New(t)
-	/*interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               "/publish/pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/0/ch/0/%22hey%22",
-		Query:              "seqn=1&store=0",
-		ResponseBody:       respSuccess,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
-		ResponseStatusCode: 200,
-	})*/
-
 	pn := pubnub.NewPubNub(config)
-	//pn.SetClient(interceptor.GetClient())
 
 	_, _, err := pn.Publish().
 		Channel("ch").
@@ -60,19 +47,7 @@ func TestPublishSuccess(t *testing.T) {
 
 func TestPublishSuccessSlice(t *testing.T) {
 	assert := assert.New(t)
-	/*interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               "/publish/pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb/sub-c-b9ab9508-43cf-11e8-9967-869954283fb4/0/ch/0/%5B%22hey1%22%2C%22hey2%22%2C%22hey3%22%5D",
-		Query:              "seqn=1&store=0",
-		ResponseBody:       respSuccess,
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
-		ResponseStatusCode: 200,
-	})*/
-
 	pn := pubnub.NewPubNub(config)
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-	//pn.SetClient(interceptor.GetClient())
 
 	_, _, err := pn.Publish().
 		Channel("ch").
@@ -140,8 +115,6 @@ func TestPublishContextCancel(t *testing.T) {
 }
 
 func XTestPublishTimeout(t *testing.T) {
-	// assert := assert.New(t)
-
 	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.Publish().
@@ -150,11 +123,8 @@ func XTestPublishTimeout(t *testing.T) {
 		UsePost(false).
 		Execute()
 
-	//log.Println(err)
 	assert.Contains(t, err.Error(), "Failed to execute request")
 
-	// assert.Contains(err.(*pnerr.ConnectionError).OrigError.Error(),
-	// 	"exceeded while awaiting headers")
 }
 
 func TestPublishMissingPublishKey(t *testing.T) {
@@ -247,7 +217,6 @@ func TestPublishSigned(t *testing.T) {
 
 	config := pamConfigCopy()
 	config.UUID = validCharacters
-	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 
@@ -265,7 +234,6 @@ func TestPublishSuperCall(t *testing.T) {
 
 	config := pamConfigCopy()
 	config.UUID = validCharacters
-	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 

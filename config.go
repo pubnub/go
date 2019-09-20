@@ -38,6 +38,8 @@ type Config struct {
 	MessageQueueOverflowCount  int                // When the limit is exceeded by the number of messages received in a single subscribe request, a status event PNRequestMessageCountExceededCategory is fired.
 	MaxIdleConnsPerHost        int                // Used to set the value of HTTP Transport's MaxIdleConnsPerHost.
 	MaxWorkers                 int                // Number of max workers for Publish and Grant requests
+	UsePAMV3                   bool               // Use PAM version 2, Objects requets would still use PAM v3
+	StoreTokensOnGrant         bool               // Will store grant v3 tokens in token manager for further use.
 }
 
 // NewDemoConfig initiates the config with demo keys, for tests only.
@@ -68,6 +70,8 @@ func NewConfig() *Config {
 		MessageQueueOverflowCount:  100,
 		MaxIdleConnsPerHost:        30,
 		MaxWorkers:                 20,
+		UsePAMV3:                   true,
+		StoreTokensOnGrant:         true,
 	}
 
 	c.UUID = fmt.Sprintf("pn-%s", utils.UUID())

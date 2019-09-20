@@ -2,9 +2,7 @@ package pubnub
 
 import (
 	"fmt"
-	//"log"
 	"net/url"
-	//"os"
 	"reflect"
 	"testing"
 
@@ -17,7 +15,6 @@ var (
 )
 
 func initHistoryOpts() *historyOpts {
-	//pubnub.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	return &historyOpts{
 		Channel:          "ch",
 		Start:            int64(100000),
@@ -313,7 +310,6 @@ func TestHistoryPNOtherYay(t *testing.T) {
 
 		break
 	default:
-		//fmt.Println(reflect.TypeOf(v).Kind(), reflect.TypeOf(data).Kind(), v, data)
 		assert.Fail("failed")
 
 		break
@@ -440,7 +436,6 @@ func TestHistoryResponseStartTTError(t *testing.T) {
 	assert.Equal(int64(0), resp.EndTimetoken)
 	assert.Nil(err)
 
-	//assert.Equal("pubnub/parsing: Error parsing response: {[[{\"message\":[1,2,3,[\"one\",\"two\",\"three\"]],\"timetoken\":1111}],\"s\",\"a\"]}", err.Error())
 }
 
 func TestHistoryResponseEndTTError(t *testing.T) {
@@ -453,5 +448,4 @@ func TestHistoryResponseEndTTError(t *testing.T) {
 	assert.Equal(int64(0), resp.EndTimetoken)
 	assert.Nil(err)
 
-	//assert.Equal("pubnub/parsing: Error parsing response: {[[{\"message\":[1,2,3,[\"one\",\"two\",\"three\"]],\"timetoken\":1111}],121324,\"a\"]}", err.Error())
 }

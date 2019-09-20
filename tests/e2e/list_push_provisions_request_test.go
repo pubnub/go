@@ -1,8 +1,6 @@
 package e2e
 
 import (
-	//"log"
-	//"os"
 	"fmt"
 	pubnub "github.com/pubnub/go"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +11,6 @@ func TestListPushProvisionsNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	r := GenRandom()
 	ch1 := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
 	cg1 := fmt.Sprintf("testCG_sub_%d", r.Intn(99999))
@@ -38,7 +35,6 @@ func TestListPushProvisionsNotStubbedContext(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	_, _, err := pn.AddPushNotificationsOnChannelsWithContext(backgroundContext).
 		Channels([]string{"ch2"}).

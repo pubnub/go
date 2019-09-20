@@ -107,7 +107,7 @@ func (o *deleteSpaceOpts) buildPath() (string, error) {
 func (o *deleteSpaceOpts) buildQuery() (*url.Values, error) {
 
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
-
+	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -148,7 +148,7 @@ func (o *deleteSpaceOpts) telemetryManager() *TelemetryManager {
 
 // PNDeleteSpaceResponse is the Objects API Response for delete space
 type PNDeleteSpaceResponse struct {
-	Status int         `json:"status"`
+	status int         `json:"status"`
 	Data   interface{} `json:"data"`
 }
 

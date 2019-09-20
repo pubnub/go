@@ -41,18 +41,7 @@ func TestGrantParseLogsForAuthKey(t *testing.T) {
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout
 
-	//fmt.Printf("Captured: %s", out)
-
 	s := fmt.Sprintf("%s", out)
-	// //https://ps.pndsn.com/v2/auth/grant/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64?w=1&m=1&channel=ch1,ch2&timestamp=1535719943&auth=myAuthKey&pnsdk=PubNub-Go/4.1.3&uuid=pn-621c7b2a-f87c-4362-bd1e-6c6762dfc667&r=1&signature=PntTQe-zBfJa6AvN4bu4u0txG_TOoksHGod7OnijmwM=
-	// expected := fmt.Sprintf("https://%s/v2/auth/grant/sub-key/%s?&uuid=%sw=1&m=1&channel=ch1,ch2",
-	// 	pn.Config.Origin,
-	// 	pn.Config.SubscribeKey,
-	// )
-
-	// assert.Contains(s, expected)
-
-	//auth=myAuthKey&pnsdk=PubNub-Go/4.1.3
 	expected2 := fmt.Sprintf("auth=%s",
 		pn.Config.AuthKey)
 
@@ -89,11 +78,8 @@ func TestGrantParseLogsForMultipleAuthKeys(t *testing.T) {
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout
 
-	//fmt.Printf("Captured: %s", out)
-
 	s := fmt.Sprintf("%s", out)
 
-	//https://ps.pndsn.com/v2/auth/grant/sub-key/sub-c-e41d50d4-43ce-11e8-a433-9e6b275e7b64?m=1&auth=authkey1,authkey2&channel=ch1,ch2&timestamp=1535719219&pnsdk=PubNub-Go/4.1.3&uuid=pn-a83164fe-7ecf-42ab-ba14-d2d8e6eabd7a&r=1&w=1&signature=0SkyfvohAq8_0phVi0YhCL4c2ZRSPBVwCwQ9fANvPmM=
 	assert.Contains(s, "auth=authkey1,authkey2")
 }
 

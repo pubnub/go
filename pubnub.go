@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.2.7"
+	Version = "4.2.8"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -59,6 +59,7 @@ type PubNub struct {
 	jobQueue             chan *JobQItem
 	ctx                  Context
 	cancel               func()
+	tokenManager         *TokenManager
 }
 
 //
@@ -240,6 +241,34 @@ func (pn *PubNub) Grant() *grantBuilder {
 
 func (pn *PubNub) GrantWithContext(ctx Context) *grantBuilder {
 	return newGrantBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GrantToken() *grantTokenBuilder {
+	return newGrantTokenBuilder(pn)
+}
+
+func (pn *PubNub) GrantTokenWithContext(ctx Context) *grantTokenBuilder {
+	return newGrantTokenBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) SetToken(token string) {
+	pn.tokenManager.StoreToken(token)
+}
+
+func (pn *PubNub) SetTokens(tokens []string) {
+	pn.tokenManager.StoreTokens(tokens)
+}
+
+func (pn *PubNub) GetTokens() GrantResourcesWithPermissions {
+	return pn.tokenManager.GetAllTokens()
+}
+
+func (pn *PubNub) GetTokensByResource(resourceType PNResourceType) GrantResourcesWithPermissions {
+	return pn.tokenManager.GetTokensByResource(resourceType)
+}
+
+func (pn *PubNub) GetToken(resourceId string, resourceType PNResourceType) string {
+	return pn.tokenManager.GetToken(resourceId, resourceType)
 }
 
 func (pn *PubNub) Unsubscribe() *unsubscribeBuilder {
@@ -515,6 +544,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge, ctx)
 	pn.jobQueue = make(chan *JobQItem)
 	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers, ctx)
+	pn.tokenManager = newTokenManager(pn, ctx)
 
 	return pn
 }

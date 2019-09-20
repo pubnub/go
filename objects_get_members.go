@@ -54,7 +54,7 @@ func (b *getMembersBuilder) SpaceID(id string) *getMembersBuilder {
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *getMembersBuilder) Include(include []PNMembersInclude) *getMembersBuilder {
-	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
+	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
@@ -171,6 +171,7 @@ func (o *getMembersOpts) buildQuery() (*url.Values, error) {
 	if o.End != "" {
 		q.Set("end", o.End)
 	}
+	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)
 
 	SetQueryParam(q, o.QueryParam)
 
@@ -211,7 +212,7 @@ func (o *getMembersOpts) telemetryManager() *TelemetryManager {
 
 // PNGetMembersResponse is the Objects API Response for Get Members
 type PNGetMembersResponse struct {
-	Status     int         `json:"status"`
+	status     int         `json:"status"`
 	Data       []PNMembers `json:"data"`
 	TotalCount int         `json:"totalCount"`
 	Next       string      `json:"next"`

@@ -237,7 +237,7 @@ func TestNewGrantBuilderContext(t *testing.T) {
 	assert.Equal([]byte{}, body)
 }
 
-func TestGrantOptsValidateSub(t *testing.T) {
+func TestGrantTokenOptsValidateSub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
@@ -256,7 +256,7 @@ func TestGrantOptsValidateSub(t *testing.T) {
 	assert.Equal("pubnub/validation: pubnub: \x15: Missing Subscribe Key", opts.validate().Error())
 }
 
-func TestGrantOptsValidateSec(t *testing.T) {
+func TestGrantTokenOptsValidateSec(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SecretKey = ""
@@ -275,7 +275,7 @@ func TestGrantOptsValidateSec(t *testing.T) {
 	assert.Equal("pubnub/validation: pubnub: \x15: Missing Secret Key", opts.validate().Error())
 }
 
-func TestGrantOptsValidatePub(t *testing.T) {
+func TestGrantTokenOptsValidatePub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.PublishKey = ""

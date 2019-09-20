@@ -53,7 +53,7 @@ type createUserBody struct {
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *createUserBuilder) Include(include []PNUserSpaceInclude) *createUserBuilder {
-	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
+	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
@@ -168,6 +168,7 @@ func (o *createUserOpts) buildQuery() (*url.Values, error) {
 	if o.Include != nil {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
+	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNUsers)
 
 	SetQueryParam(q, o.QueryParam)
 
@@ -224,7 +225,7 @@ func (o *createUserOpts) telemetryManager() *TelemetryManager {
 
 // PNCreateUserResponse is the Objects API Response for create user
 type PNCreateUserResponse struct {
-	Status int    `json:"status"`
+	status int    `json:"status"`
 	Data   PNUser `json:"data"`
 }
 

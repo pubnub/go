@@ -68,7 +68,6 @@ func TestDeleteSpaceResponseValueError(t *testing.T) {
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-//{"status":200,"data":null}
 func TestDeleteSpaceResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
@@ -78,7 +77,6 @@ func TestDeleteSpaceResponseValuePass(t *testing.T) {
 	jsonBytes := []byte(`{"status":200,"data":null}`)
 
 	r, _, err := newPNDeleteSpaceResponse(jsonBytes, opts, StatusResponse{})
-	assert.Equal(200, r.Status)
 	assert.Equal(nil, r.Data)
 
 	assert.Nil(err)

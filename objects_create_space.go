@@ -51,7 +51,8 @@ type createSpaceBody struct {
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *createSpaceBuilder) Include(include []PNUserSpaceInclude) *createSpaceBuilder {
-	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
+
+	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
@@ -152,6 +153,7 @@ func (o *createSpaceOpts) buildQuery() (*url.Values, error) {
 	if o.Include != nil {
 		q.Set("include", string(utils.JoinChannels(o.Include)))
 	}
+	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -205,7 +207,7 @@ func (o *createSpaceOpts) telemetryManager() *TelemetryManager {
 
 // PNCreateSpaceResponse is the Objects API Response for create space
 type PNCreateSpaceResponse struct {
-	Status int     `json:"status"`
+	status int     `json:"status"`
 	Data   PNSpace `json:"data"`
 }
 

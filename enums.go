@@ -1,5 +1,10 @@
 package pubnub
 
+import (
+	"fmt"
+	"reflect"
+)
+
 // StatusCategory is used as an enum to catgorize the various status events
 // in the APIs lifecycle
 type StatusCategory int
@@ -191,6 +196,7 @@ const (
 	// PNSignalOperation is the enum used for Signal opertaion.
 	PNSignalOperation
 	// PNCreateUserOperation is the enum used to create users in the Object API.
+	// ENUM ORDER needs to be maintained for Objects AIP
 	PNCreateUserOperation
 	// PNGetUsersOperation is the enum used to get users in the Object API.
 	PNGetUsersOperation
@@ -217,7 +223,10 @@ const (
 	// PNManageMembershipsOperation is the enum used to manage memberships in the Object API.
 	PNManageMembershipsOperation
 	// PNManageMembersOperation is the enum used to manage members in the Object API.
+	// ENUM ORDER needs to be maintained for Objects API
 	PNManageMembersOperation
+	// PNAccessManagerGrantToken is the enum used from Grant v3 requests
+	PNAccessManagerGrantToken
 )
 
 const (
@@ -286,6 +295,7 @@ var operations = [...]string{
 	"PNGetMembersOperation",
 	"PNManageMembershipsOperation",
 	"PNManageMembersOperation",
+	"GrantToken",
 }
 
 func (c StatusCategory) String() string {
@@ -434,7 +444,29 @@ func (t OperationType) String() string {
 		return "Manage Memberships"
 	case PNManageMembersOperation:
 		return "Manage Members"
+	case PNAccessManagerGrantToken:
+		return "Grant Token"
 	default:
 		return "No Category Matched"
 	}
+}
+
+// EnumArrayToStringArray converts a string enum to an array
+func EnumArrayToStringArray(include interface{}) []string {
+	s := []string{}
+	switch fmt.Sprintf("%s", reflect.TypeOf(include)) {
+	case "[]pubnub.PNMembersInclude":
+		for _, v := range include.([]PNMembersInclude) {
+			s = append(s, fmt.Sprintf("%s", v))
+		}
+	case "[]pubnub.PNMembershipsInclude":
+		for _, v := range include.([]PNMembershipsInclude) {
+			s = append(s, fmt.Sprintf("%s", v))
+		}
+	case "[]pubnub.PNUserSpaceInclude":
+		for _, v := range include.([]PNUserSpaceInclude) {
+			s = append(s, fmt.Sprintf("%s", v))
+		}
+	}
+	return s
 }

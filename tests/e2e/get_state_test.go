@@ -99,7 +99,6 @@ func TestGetStateSucess(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
-	//fmt.Println(res.State)
 	if s, ok := res.State["ch"].(map[string]interface{}); ok {
 		assert.Equal("20", s["age"])
 		assert.Equal("John Doe", s["name"])
@@ -156,7 +155,6 @@ func TestGetStateSucessQueryParam(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
-	//fmt.Println(res.State)
 	if s, ok := res.State["ch"].(map[string]interface{}); ok {
 		assert.Equal("20", s["age"])
 		assert.Equal("John Doe", s["name"])

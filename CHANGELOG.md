@@ -1,3 +1,6 @@
+## [v4.2.8](https://github.com/pubnub/go/tree/v4.2.8)
+  Septempber-19-2019
+
 ## [v4.2.7](https://github.com/pubnub/go/tree/v4.2.7)
   August-28-2019
 

@@ -54,7 +54,7 @@ func (b *getMembershipsBuilder) UserID(id string) *getMembershipsBuilder {
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *getMembershipsBuilder) Include(include []PNMembershipsInclude) *getMembershipsBuilder {
-	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
+	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
@@ -171,7 +171,7 @@ func (o *getMembershipsOpts) buildQuery() (*url.Values, error) {
 	if o.End != "" {
 		q.Set("end", o.End)
 	}
-
+	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNUsers)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -211,7 +211,7 @@ func (o *getMembershipsOpts) telemetryManager() *TelemetryManager {
 
 // PNGetMembershipsResponse is the Objects API Response for Get Memberships
 type PNGetMembershipsResponse struct {
-	Status     int             `json:"status"`
+	status     int             `json:"status"`
 	Data       []PNMemberships `json:"data"`
 	TotalCount int             `json:"totalCount"`
 	Next       string          `json:"next"`
