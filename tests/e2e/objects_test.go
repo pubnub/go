@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -121,19 +122,16 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	r := GenRandom()
 
 	id := fmt.Sprintf("testuser_%d", r.Intn(99999))
 	if withPAM {
 		pn2 := ActivateWithPAM()
 		if runWithoutSecretKey {
-			pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			tokens := RunGrant(pn2, []string{id}, []string{}, true, true, true, true, true, true)
 			SetPN(pn, pn2, tokens)
 		} else {
 			pn = pn2
-			pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			RunGrant(pn, []string{id}, []string{}, true, true, false, true, true, false)
 		}
 
@@ -256,18 +254,14 @@ func ObjectsCreateUpdateGetDeleteSpaceCommon(t *testing.T, withPAM, runWithoutSe
 	if withPAM {
 		pn2 := ActivateWithPAM()
 		if runWithoutSecretKey {
-			pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			tokens := RunGrant(pn2, []string{}, []string{id}, true, true, false, true, true, true)
 			SetPN(pn, pn2, tokens)
 		} else {
 			pn = pn2
-			pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			RunGrant(pn, []string{}, []string{id}, true, true, false, true, true, false)
 		}
 
 	}
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-
 	name := "name"
 	desc := "desc"
 
@@ -380,18 +374,14 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	if withPAM {
 		pn2 := ActivateWithPAM()
 		if runWithoutSecretKey {
-			//pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			tokens := RunGrant(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, true)
 			SetPN(pn, pn2, tokens)
 		} else {
 			pn = pn2
-			//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			RunGrant(pn, []string{userid}, []string{spaceid}, true, true, true, true, true, false)
 		}
 
 	}
-
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	name := "name"
 	extid := "extid"
@@ -818,15 +808,18 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	listener := pubnub.NewListener()
 
+	var mut sync.RWMutex
+
+	addUserToSpace := false
+	addUserToSpace2 := false
+	updateUserMem := false
+	updateUser := false
+	updateSpace := false
+	removeUserFromSpace := false
+	deleteUser := false
+	deleteSpace := false
+
 	doneConnected := make(chan bool)
-	doneUpdateUser := make(chan bool)
-	doneUpdateSpace := make(chan bool)
-	doneAddUserToSpace := make(chan bool)
-	doneAddUserToSpace2 := make(chan bool)
-	doneUpdateUserMem := make(chan bool)
-	doneRemoveUserFromSpace := make(chan bool)
-	doneDeleteUser := make(chan bool)
-	doneDeleteSpace := make(chan bool)
 
 	go func() {
 		for {
@@ -861,10 +854,14 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 				fmt.Println(fmt.Sprintf("userEvent.Custom: %v", userEvent.Custom))
 
 				if (userEvent.Event == pubnub.PNObjectsEventDelete) && (userEvent.UserID == userid) {
-					doneDeleteUser <- true
+					mut.Lock()
+					deleteUser = true
+					mut.Unlock()
 				}
 				if (userEvent.Event == pubnub.PNObjectsEventUpdate) && (userEvent.UserID == userid) {
-					doneUpdateUser <- true
+					mut.Lock()
+					updateUser = true
+					mut.Unlock()
 				}
 			case spaceEvent := <-listener.SpaceEvent:
 
@@ -881,10 +878,14 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 				fmt.Println(fmt.Sprintf("spaceEvent.ETag: %s", spaceEvent.ETag))
 				fmt.Println(fmt.Sprintf("spaceEvent.Custom: %v", spaceEvent.Custom))
 				if (spaceEvent.Event == pubnub.PNObjectsEventDelete) && (spaceEvent.SpaceID == spaceid) {
-					doneDeleteSpace <- true
+					mut.Lock()
+					deleteSpace = true
+					mut.Unlock()
 				}
 				if (spaceEvent.Event == pubnub.PNObjectsEventUpdate) && (spaceEvent.SpaceID == spaceid) {
-					doneUpdateSpace <- true
+					mut.Lock()
+					updateSpace = true
+					mut.Unlock()
 				}
 
 			case membershipEvent := <-listener.MembershipEvent:
@@ -899,24 +900,36 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 				fmt.Println(fmt.Sprintf("membershipEvent.Description: %s", membershipEvent.Description))
 				fmt.Println(fmt.Sprintf("membershipEvent.Timestamp: %s", membershipEvent.Timestamp))
 				fmt.Println(fmt.Sprintf("membershipEvent.Custom: %v", membershipEvent.Custom))
-				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && (membershipEvent.Channel == spaceid) {
-					doneAddUserToSpace <- true
+				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
+					mut.Lock()
+					addUserToSpace = true
+					mut.Unlock()
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == userid) || (membershipEvent.Channel == fmt.Sprintf("pnuser-%s", userid))) {
-					doneAddUserToSpace2 <- true
+				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
+					mut.Lock()
+					addUserToSpace2 = true
+					mut.Unlock()
 				}
 				if (membershipEvent.Event == pubnub.PNObjectsEventUpdate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
-					doneUpdateUserMem <- true
+					mut.Lock()
+					updateUserMem = true
+					mut.Unlock()
 				}
 				if (membershipEvent.Event == pubnub.PNObjectsEventUpdate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
-					doneUpdateUserMem <- true
+					mut.Lock()
+					updateUserMem = true
+					mut.Unlock()
 				}
 				if (membershipEvent.Event == pubnub.PNObjectsEventDelete) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
-					doneRemoveUserFromSpace <- true
+					mut.Lock()
+					removeUserFromSpace = true
+					mut.Unlock()
 				}
 
 			}
+			fmt.Println("=>>>>>>>>>>>>> restart")
 		}
+		fmt.Println("=>>>>>>>>>>>>> exit")
 
 	}()
 
@@ -968,17 +981,10 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert.Nil(err2)
 	assert.Equal(200, st2.StatusCode)
 
-	//Read event
-	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
-	select {
-	case <-doneUpdateUser:
-		assert.True(true)
-	case <-tic.C:
-		tic.Stop()
-		assert.Fail("timeout")
-	}
-
 	time.Sleep(1 * time.Second)
+	mut.Lock()
+	assert.True(updateUser)
+	mut.Unlock()
 
 	desc = "desc2"
 
@@ -987,55 +993,10 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert.Nil(err3)
 	assert.Equal(200, st3.StatusCode)
 
-	//Read event
-	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
-	select {
-	case <-doneUpdateSpace:
-		assert.True(true)
-	case <-tic.C:
-		tic.Stop()
-		assert.Fail("timeout")
-	}
-
-	//Read event
-	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
-	addUserToSpace := false
-	addUserToSpace2 := false
-
-	runfor := true
-	waitforfunc := make(chan bool)
-
-	go func() {
-	LabelBreak:
-		for runfor {
-
-			select {
-			case <-doneAddUserToSpace:
-				addUserToSpace = true
-				if addUserToSpace2 {
-					runfor = false
-					fmt.Println("break 1")
-					waitforfunc <- true
-					break LabelBreak
-				}
-			case <-doneAddUserToSpace2:
-				addUserToSpace2 = true
-				if addUserToSpace {
-					runfor = false
-					fmt.Println("break 2")
-					waitforfunc <- true
-					break LabelBreak
-				}
-			case <-tic.C:
-				tic.Stop()
-				assert.Fail("timeout")
-				waitforfunc <- true
-				break LabelBreak
-			}
-
-		}
-
-	}()
+	time.Sleep(1 * time.Second)
+	mut.Lock()
+	assert.True(updateSpace)
+	mut.Unlock()
 
 	//Add user to space
 	inclSm := []pubnub.PNMembersInclude{
@@ -1061,7 +1022,6 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	inArr := []pubnub.PNMembersInput{
 		in,
 	}
-	time.Sleep(1 * time.Second)
 
 	_, stAdd, errAdd := pn.ManageMembers().SpaceID(spaceid).Add(inArr).Update([]pubnub.PNMembersInput{}).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errAdd)
@@ -1070,11 +1030,14 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	}
 	assert.Equal(200, stAdd.StatusCode)
 
-	<-waitforfunc
-
+	time.Sleep(1 * time.Second)
+	mut.Lock()
 	assert.True(addUserToSpace && addUserToSpace2)
+	mut.Unlock()
 
 	//Update user membership
+
+	//Read event
 
 	custom5 := make(map[string]interface{})
 	custom5["a5"] = "b5"
@@ -1104,15 +1067,10 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	assert.Equal(200, stManageMemUp.StatusCode)
 
-	//Read event
-	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
-	select {
-	case <-doneUpdateUserMem:
-		assert.True(true)
-	case <-tic.C:
-		tic.Stop()
-		assert.Fail("timeout")
-	}
+	time.Sleep(1 * time.Second)
+	mut.Lock()
+	assert.True(updateUserMem)
+	mut.Unlock()
 
 	//Remove user from space
 	reMem := pubnub.PNMembershipsRemove{
@@ -1130,14 +1088,10 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	assert.Equal(200, stManageMemRem.StatusCode)
 
-	//Read event
-	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
-	select {
-	case <-doneRemoveUserFromSpace:
-		assert.True(true)
-	case <-tic.C:
-		tic.Stop()
-	}
+	time.Sleep(1 * time.Second)
+	mut.Lock()
+	assert.True(removeUserFromSpace)
+	mut.Unlock()
 
 	//Delete user
 	res52, st52, err52 := pn.DeleteUser().ID(userid).Execute()
@@ -1145,15 +1099,10 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert.Equal(200, st52.StatusCode)
 	assert.Nil(res52.Data)
 
-	//Read event
-
-	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
-	select {
-	case <-doneDeleteUser:
-		assert.True(true)
-	case <-tic.C:
-		tic.Stop()
-	}
+	time.Sleep(1 * time.Second)
+	mut.Lock()
+	assert.True(deleteUser)
+	mut.Unlock()
 
 	//Delete Space
 	res62, st62, err62 := pn.DeleteSpace().ID(spaceid).Execute()
@@ -1161,13 +1110,8 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert.Equal(200, st62.StatusCode)
 	assert.Nil(res62.Data)
 
-	//Read event
-
-	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
-	select {
-	case <-doneDeleteSpace:
-		assert.True(true)
-	case <-tic.C:
-		tic.Stop()
-	}
+	time.Sleep(1 * time.Second)
+	mut.Lock()
+	assert.True(deleteSpace)
+	mut.Unlock()
 }
