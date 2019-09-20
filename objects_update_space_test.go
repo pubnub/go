@@ -85,7 +85,6 @@ func TestUpdateSpaceResponseValueError(t *testing.T) {
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-//{"status":200,"data":{"id":"id0","name":"name","description":"desc","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T14:48:11.675743Z","eTag":"AYKH2s7ZlYKoJA"}}
 func TestUpdateSpaceResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
@@ -95,7 +94,6 @@ func TestUpdateSpaceResponseValuePass(t *testing.T) {
 	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","description":"desc","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T14:48:11.675743Z","eTag":"AYKH2s7ZlYKoJA"}}`)
 
 	r, _, err := newPNUpdateSpaceResponse(jsonBytes, opts, StatusResponse{})
-	//assert.Equal(200, r.status)
 	assert.Equal("id0", r.Data.ID)
 	assert.Equal("name", r.Data.Name)
 	assert.Equal("desc", r.Data.Description)

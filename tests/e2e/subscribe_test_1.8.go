@@ -23,7 +23,6 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	cg := randomized("sub-sug-cg")
 
 	pn := pubnub.NewPubNub(configCopy())
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	listener := pubnub.NewListener()
 
@@ -111,13 +110,8 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 }
 
 func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
-	// go func() {
-	// 	log.Println(http.ListenAndServe("localhost:6061", nil))
-	// }()
-
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	listener := pubnub.NewListener()
 	doneSubscribe := make(chan bool)
 	donePublish := make(chan bool)

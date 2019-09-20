@@ -91,7 +91,6 @@ func TestGetMembershipsResponseValueError(t *testing.T) {
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-//{"status":200,"data":[{"id":"id0","custom":{"a3":"b3","c3":"d3"},"space":{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"},"created":"2019-08-20T13:26:24.07832Z","updated":"2019-08-20T13:26:24.07832Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ"}
 func TestGetMembershipsResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
@@ -101,7 +100,6 @@ func TestGetMembershipsResponseValuePass(t *testing.T) {
 	jsonBytes := []byte(`{"status":200,"data":[{"id":"id0","custom":{"a3":"b3","c3":"d3"},"space":{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"},"created":"2019-08-20T13:26:24.07832Z","updated":"2019-08-20T13:26:24.07832Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ", "prev":"NQ"}`)
 
 	r, _, err := newPNGetMembershipsResponse(jsonBytes, opts, StatusResponse{})
-	//assert.Equal(200, r.status)
 	assert.Equal(1, r.TotalCount)
 	assert.Equal("MQ", r.Next)
 	assert.Equal("NQ", r.Prev)

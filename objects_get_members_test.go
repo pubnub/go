@@ -91,7 +91,6 @@ func TestGetMembersResponseValueError(t *testing.T) {
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-//{"status":200,"data":[{"id":"id0","custom":{"a3":"b3","c3":"d3"},"user":{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:19.140324Z","updated":"2019-08-20T13:26:19.140324Z","eTag":"AbyT4v2p6K7fpQE"},"created":"2019-08-20T13:26:24.07832Z","updated":"2019-08-20T13:26:24.07832Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ","prev":"NQ"}
 func TestGetMembersResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
@@ -101,7 +100,6 @@ func TestGetMembersResponseValuePass(t *testing.T) {
 	jsonBytes := []byte(`{"status":200,"data":[{"id":"id0","custom":{"a3":"b3","c3":"d3"},"user":{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:19.140324Z","updated":"2019-08-20T13:26:19.140324Z","eTag":"AbyT4v2p6K7fpQE"},"created":"2019-08-20T13:26:24.07832Z","updated":"2019-08-20T13:26:24.07832Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ","prev":"NQ"}`)
 
 	r, _, err := newPNGetMembersResponse(jsonBytes, opts, StatusResponse{})
-	//assert.Equal(200, r.status)
 	assert.Equal(1, r.TotalCount)
 	assert.Equal("MQ", r.Next)
 	assert.Equal("NQ", r.Prev)

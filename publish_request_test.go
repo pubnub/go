@@ -2,7 +2,6 @@ package pubnub
 
 import (
 	"fmt"
-	//"log"
 	"net/url"
 	"testing"
 

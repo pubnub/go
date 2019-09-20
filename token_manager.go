@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	//"fmt"
 	"net/url"
 	"sync"
 )

@@ -2,8 +2,6 @@ package e2e
 
 import (
 	"fmt"
-	//"log"
-	//"os"
 	"testing"
 
 	pubnub "github.com/pubnub/go"
@@ -15,13 +13,11 @@ func TestAddChannelToChannelGroupNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{"ch"}).
 		ChannelGroup("cg").
 		Execute()
-	//fmt.Println(err.Error())
 	assert.Nil(err)
 }
 
@@ -65,7 +61,6 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 	assert := assert.New(t)
 
 	config := pamConfigCopy()
-	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// Not allowed characters:
 	// .,:*#`[]&
@@ -74,7 +69,6 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 	channelCharacters := "-_~"
 
 	config.UUID = validCharacters
-	//config.AuthKey = validCharacters
 
 	pn := pubnub.NewPubNub(config)
 
@@ -88,14 +82,12 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 		ChannelGroup(validCharacters).
 		QueryParam(queryParam).
 		Execute()
-	//fmt.Println(err.Error())
 	assert.Nil(err)
 }
 
 func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {
 	assert := assert.New(t)
 	pn := pubnub.NewPubNub(configCopy())
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	interceptor := stubs.NewInterceptor()
 	interceptor.AddStub(&stubs.Stub{

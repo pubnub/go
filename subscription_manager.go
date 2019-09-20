@@ -3,7 +3,6 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
-	//"fmt"
 	"github.com/pubnub/go/utils"
 	"net/http"
 	"reflect"

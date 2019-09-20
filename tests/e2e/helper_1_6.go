@@ -4,7 +4,6 @@ package e2e
 
 import (
 	"time"
-	//"golang.org/x/net/context"
 )
 
 const (

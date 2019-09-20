@@ -103,6 +103,5 @@ func (b *presenceBuilder) Execute() {
 		b.opts.pubnub.heartbeatManager.queryParam = nil
 
 		b.opts.pubnub.heartbeatManager.Unlock()
-		// b.opts.pubnub.heartbeatManager.stopHeartbeat(true, true)
 	}
 }

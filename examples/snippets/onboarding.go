@@ -9,8 +9,8 @@ func main() {
 
 	// Config
 	config := pubnub.NewConfig()
-	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"   //"demo"   //"demo"
-	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3" //"demo" //"sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
+	config.PublishKey = "demo"
+	config.SubscribeKey = "demo"
 	// End Config
 
 	// Init

@@ -87,7 +87,6 @@ func TestCreateUserResponseValueError(t *testing.T) {
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-//{"status":200,"data":{"id":"id2","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-19T14:44:54.837392Z","updated":"2019-08-19T14:44:54.837392Z","eTag":"AbyT4v2p6K7fpQE"}}
 func TestCreateUserResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
@@ -97,7 +96,6 @@ func TestCreateUserResponseValuePass(t *testing.T) {
 	jsonBytes := []byte(`{"status":200,"data":{"id":"id2","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-19T14:44:54.837392Z","updated":"2019-08-19T14:44:54.837392Z","eTag":"AbyT4v2p6K7fpQE"}}`)
 
 	r, _, err := newPNCreateUserResponse(jsonBytes, opts, StatusResponse{})
-	//assert.Equal(200, r.status)
 	assert.Equal("id2", r.Data.ID)
 	assert.Equal("name", r.Data.Name)
 	assert.Equal("extid", r.Data.ExternalID)

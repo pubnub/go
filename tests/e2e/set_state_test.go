@@ -123,8 +123,6 @@ func TestSetStateSuperCall(t *testing.T) {
 	// Not allowed characters: /
 	config.UUID = validCharacters
 
-	//config.AuthKey = validCharacters
-
 	pn := pubnub.NewPubNub(config)
 	state := make(map[string]interface{})
 	state["qwerty"] = validCharacters

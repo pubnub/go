@@ -24,7 +24,6 @@ func TestSignal(t *testing.T) {
 	for _, ip := range ips {
 		fmt.Printf("%s IN A %s\n", pn.Config.Origin, ip.String())
 	}
-	//	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	pn.Config.SubscribeKey = "demo"
 	pn.Config.PublishKey = "demo"
 
@@ -36,21 +35,6 @@ func TestSignal(t *testing.T) {
 	assert.Nil(err)
 
 }
-
-// func TestSignalPOST(t *testing.T) {
-// 	assert := assert.New(t)
-
-// 	pn := pubnub.NewPubNub(config)
-
-// 	_, _, err := pn.Signal().
-// 		Channel("ch").
-// 		Message("hey").
-// 		UsePost(true).
-// 		Execute()
-
-// 	assert.Nil(err)
-
-// }
 
 func TestSubscribeSignalUnsubscribeInt(t *testing.T) {
 	assert := assert.New(t)
@@ -71,10 +55,6 @@ func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher s
 	donePublish := make(chan bool)
 	exit := make(chan bool)
 	errChan := make(chan string)
-	// go func() {
-	// 	log.Println(http.ListenAndServe("localhost:6062", nil))
-	// }()
-
 	r := GenRandom()
 
 	ch := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
@@ -86,7 +66,6 @@ func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher s
 
 	pn.Config.CipherKey = cipher
 	pn.Config.DisablePNOtherProcessing = disablePNOtherProcessing
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	listener := pubnub.NewListener()
 
@@ -104,21 +83,17 @@ func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher s
 				case pubnub.PNAcknowledgmentCategory:
 					doneUnsubscribe <- true
 				default:
-					//fmt.Println("SubscribeSignalUnsubscribeMultiCommon status", status)
 					doneUnsubscribe <- true
 				}
 			case message := <-listener.Signal:
 				donePublish <- true
 				if sigMessage != nil {
 					sigMessage <- message.Message
-				} else {
-					//fmt.Println("pubMessage nil")
 				}
 
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 			case <-tic.C:
-				//fmt.Println("SubscribeSignalUnsubscribeMultiCommon timeout")
 				assert.Fail("timeout")
 				errChan <- "timeout"
 
@@ -128,7 +103,6 @@ func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher s
 				return
 			}
 		}
-		//fmt.Println("SubscribePublishUnsubscribeMultiCommon exiting loop")
 	}()
 
 	pn.AddListener(listener)
@@ -139,34 +113,27 @@ func SubscribeSignalUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher s
 	case <-doneSubscribe:
 	case err := <-errChan:
 		assert.Fail(err)
-		//return
 	}
 
-	//pn.Signal().Channel(ch).Message(s).UsePost(usePost).Execute()
 	pn.Signal().Channel(ch).Message(s).Execute()
 
 	select {
 	case <-donePublish:
 	case err := <-errChan:
 		assert.Fail(err)
-		//return
 	}
 
 	pn.Unsubscribe().
 		Channels([]string{ch}).
 		Execute()
 
-	//fmt.Println("SubscribeSignalUnsubscribeMultiCommon before doneUnsubscribe")
 	select {
 	case <-doneUnsubscribe:
 	case err := <-errChan:
 		assert.Fail(err)
 	}
-	//fmt.Println("SubscribeSignalUnsubscribeMultiCommon after doneUnsubscribe")
 	exit <- true
-	// /fmt.Println("SubscribeSignalUnsubscribeMultiCommon after exit")
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
-	//fmt.Println("SubscribeSignalUnsubscribeMultiCommon after zero")
 }

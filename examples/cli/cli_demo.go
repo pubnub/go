@@ -55,14 +55,8 @@ func connect() {
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
-	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"   //"demo"   //"demo"
-	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3" //"demo" //"sub-c-10b61350-bec7-11e9-a375-f698c1d99dce" //"demo" //
-	//config.SecretKey = //"pam"    //"demo"
-
-	config.PublishKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
-	config.SubscribeKey = "sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306"
-	config.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
-
+	config.PublishKey = "demo"
+	config.SubscribeKey = "demo"
 	config.CipherKey = "enigma"
 	pn = pubnub.NewPubNub(config)
 
@@ -159,19 +153,6 @@ func connect() {
 
 	pn.AddListener(listener)
 	showHelp()
-
-	/*config2 := pubnub.NewConfig()
-	config2.SubscribeRequestTimeout = 59
-	config2.UUID = "GlobalSubscriber"
-	config2.PNReconnectionPolicy = pubnub.PNLinearPolicy
-	config2.Log = infoLogger
-	config2.Log.SetPrefix("PubNub2:")
-
-	pn2 := pubnub.NewPubNub(config2)
-	pn2.AddListener(listener)
-	channel := "ch1"
-
-	pn2.Subscribe().Channels([]string{channel}).Execute()*/
 
 	for {
 		reader := bufio.NewReader(os.Stdin)
@@ -571,8 +552,6 @@ func setToken(args []string) {
 	pn.SetToken(args[0])
 }
 
-//p0F2AkF0Gl2AX-JDdHRsCkNyZXOkRGNoYW6gQ2dycKBDdXNyoWl1LTMzNTIwNTUPQ3NwY6Fpcy0xNzA3OTgzGB9DcGF0pERjaGFuoENncnCgQ3VzcqBDc3BjoERtZXRhoENzaWdYINqGs2EyEMHPZrp6znVqTBzXNBAD_31hUH3JuUSWE2A6
-//p0F2AkF0Gl2AaMlDdHRsCkNyZXOkRGNoYW6gQ2dycKBDdXNyoWl1LTE5NzQxMDcPQ3NwY6Fpcy0yMzExMDExGB9DcGF0pERjaGFuoENncnCgQ3VzcqBDc3BjoERtZXRhoENzaWdYIO1ti19DLbEKK-s_COJPlM1xtZCpP8K4sV51nvRPTIxf
 func setTokens(args []string) {
 	var tokens []string
 	tokens = strings.Split(args[0], ",")
@@ -758,7 +737,6 @@ func manageMemberships(args []string) {
 
 	if start != "" {
 		res, status, err := pn.ManageMemberships().Add(inArr).Update(upArr).Remove(reArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
-		//res, status, err := pn.UpdateMembers().UserID(userID).Add(inArr).Include(incl).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
@@ -933,7 +911,6 @@ func createSpace(args []string) {
 		pubnub.PNUserSpaceCustom,
 	}
 
-	//res, status, err := pn.CreateSpace().ID("id0").Name("name").Description("desc").Include([]string{"custom"}).Custom(custom).Execute()
 	res, status, err := pn.CreateSpace().ID(id).Name(name).Description(desc).Include(incl).Custom(custom).Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)

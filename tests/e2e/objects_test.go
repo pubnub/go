@@ -13,12 +13,6 @@ import (
 
 func ActivateWithPAM() *pubnub.PubNub {
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	// pn.Config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
-	// pn.Config.Secure = false
-	// pn.Config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
-	// pn.Config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
-	// pn.Config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
-
 	return pn
 }
 
