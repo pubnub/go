@@ -763,17 +763,14 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 }
 
-// Fail
 func TestObjectsListeners(t *testing.T) {
 	ObjectsListenersCommon(t, false, false)
 }
 
-// Fail
 func TestObjectsListenersWithPAM(t *testing.T) {
 	ObjectsListenersCommon(t, true, false)
 }
 
-// Fail
 func TestObjectsListenersWithPAMWithoutSecKey(t *testing.T) {
 	ObjectsListenersCommon(t, true, true)
 }
@@ -1000,39 +997,6 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		assert.Fail("timeout")
 	}
 
-	//Add user to space
-	inclSm := []pubnub.PNMembersInclude{
-		pubnub.PNMembersCustom,
-		pubnub.PNMembersUser,
-		pubnub.PNMembersUserCustom,
-	}
-
-	fmt.Println("inclSm===>", inclSm)
-	for k, value := range inclSm {
-		fmt.Println("inclSm===>", k, value)
-	}
-
-	custom3 := make(map[string]interface{})
-	custom3["a3"] = "b3"
-	custom3["c3"] = "d3"
-
-	in := pubnub.PNMembersInput{
-		ID:     userid,
-		Custom: custom3,
-	}
-
-	inArr := []pubnub.PNMembersInput{
-		in,
-	}
-	time.Sleep(1 * time.Second)
-
-	_, stAdd, errAdd := pn.ManageMembers().SpaceID(spaceid).Add(inArr).Update([]pubnub.PNMembersInput{}).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
-	assert.Nil(errAdd)
-	if errAdd != nil {
-		fmt.Println("ManageMembers-->", errAdd)
-	}
-	assert.Equal(200, stAdd.StatusCode)
-
 	//Read event
 	tic = time.NewTicker(time.Duration(eventWaitTime) * time.Second)
 	addUserToSpace := false
@@ -1072,6 +1036,39 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 
 	}()
+
+	//Add user to space
+	inclSm := []pubnub.PNMembersInclude{
+		pubnub.PNMembersCustom,
+		pubnub.PNMembersUser,
+		pubnub.PNMembersUserCustom,
+	}
+
+	fmt.Println("inclSm===>", inclSm)
+	for k, value := range inclSm {
+		fmt.Println("inclSm===>", k, value)
+	}
+
+	custom3 := make(map[string]interface{})
+	custom3["a3"] = "b3"
+	custom3["c3"] = "d3"
+
+	in := pubnub.PNMembersInput{
+		ID:     userid,
+		Custom: custom3,
+	}
+
+	inArr := []pubnub.PNMembersInput{
+		in,
+	}
+	time.Sleep(1 * time.Second)
+
+	_, stAdd, errAdd := pn.ManageMembers().SpaceID(spaceid).Add(inArr).Update([]pubnub.PNMembersInput{}).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+	assert.Nil(errAdd)
+	if errAdd != nil {
+		fmt.Println("ManageMembers-->", errAdd)
+	}
+	assert.Equal(200, stAdd.StatusCode)
 
 	<-waitforfunc
 
@@ -1140,7 +1137,6 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		assert.True(true)
 	case <-tic.C:
 		tic.Stop()
-		//assert.Fail("timeout")
 	}
 
 	//Delete user
@@ -1157,7 +1153,6 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		assert.True(true)
 	case <-tic.C:
 		tic.Stop()
-		//assert.Fail("timeout")
 	}
 
 	//Delete Space
@@ -1174,6 +1169,5 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		assert.True(true)
 	case <-tic.C:
 		tic.Stop()
-		//assert.Fail("timeout")
 	}
 }
