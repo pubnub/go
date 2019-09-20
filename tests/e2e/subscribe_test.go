@@ -1490,7 +1490,7 @@ func TestUnsubscribeAll(t *testing.T) {
 // Misc
 /////////////////////////////
 
-func TestSubscribe403Error(t *testing.T) {
+func Subscribe403Error(t *testing.T) {
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)
 	doneAccessDenied := make(chan bool)

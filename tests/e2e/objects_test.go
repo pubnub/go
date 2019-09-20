@@ -929,7 +929,6 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 			}
 			fmt.Println("=>>>>>>>>>>>>> restart")
 		}
-		fmt.Println("=>>>>>>>>>>>>> exit")
 
 	}()
 
