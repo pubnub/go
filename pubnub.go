@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.2.8"
+	Version = "4.3.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )

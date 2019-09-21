@@ -8,8 +8,8 @@ changelog:
       - 
         text: "UUID improvements"
         type: improvement
-    date: Sep 19, 19  
-    version: v4.2.8
+    date: Sep 23, 19  
+    version: v4.3.0
   - 
     changes: 
       - 
@@ -421,4 +421,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.2.8
+version: v4.3.0
