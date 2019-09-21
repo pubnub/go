@@ -477,6 +477,7 @@ type subscribeMessage struct {
 	Payload           interface{}   `json:"d"`
 	UserMetadata      interface{}   `json:"u"`
 	MessageType       PNMessageType `json:"e"`
+	SequenceNumber    int           `json:"s"`
 
 	PublishMetaData publishMetadata `json:"p"`
 }

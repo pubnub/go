@@ -227,6 +227,10 @@ const (
 	PNManageMembersOperation
 	// PNAccessManagerGrantToken is the enum used from Grant v3 requests
 	PNAccessManagerGrantToken
+	PNGetMessageActionsOperation
+	PNHistoryWithActionsOperation
+	PNAddMessageActionsOperation
+	PNRemoveMessageActionsOperation
 )
 
 const (

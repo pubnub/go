@@ -53,13 +53,6 @@ func (b *grantTokenBuilder) TTL(ttl int) *grantTokenBuilder {
 	return b
 }
 
-// AuthKeys sets the AuthKeys for the Grant request.
-func (b *grantTokenBuilder) AuthKeys(authKeys []string) *grantTokenBuilder {
-	b.opts.AuthKeys = authKeys
-
-	return b
-}
-
 // Uncomment when PAMv3 is fully functional.
 // Channels sets the Channels for the Grant request.
 // func (b *grantTokenBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenBuilder {
