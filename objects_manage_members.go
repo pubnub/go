@@ -48,7 +48,7 @@ func newManageMembersBuilderWithContext(pubnub *PubNub,
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *manageMembersBuilder) Include(include []PNMembersInclude) *manageMembersBuilder {
-	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
+	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
@@ -192,7 +192,7 @@ func (o *manageMembersOpts) buildQuery() (*url.Values, error) {
 	if o.End != "" {
 		q.Set("end", o.End)
 	}
-
+	o.pubnub.tokenManager.SetAuthParan(q, o.SpaceID, PNSpaces)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -252,7 +252,7 @@ func (o *manageMembersOpts) telemetryManager() *TelemetryManager {
 
 // PNManageMembersResponse is the Objects API Response for ManageMembers
 type PNManageMembersResponse struct {
-	Status     int         `json:"status"`
+	status     int         `json:"status"`
 	Data       []PNMembers `json:"data"`
 	TotalCount int         `json:"totalCount"`
 	Next       string      `json:"next"`

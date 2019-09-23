@@ -48,7 +48,7 @@ func newGetSpacesBuilderWithContext(pubnub *PubNub,
 
 // Auth sets the Authorization key with permissions to perform the request.
 func (b *getSpacesBuilder) Include(include []PNUserSpaceInclude) *getSpacesBuilder {
-	b.opts.Include = utils.EnumArrayToStringArray(fmt.Sprint(include))
+	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
@@ -165,7 +165,7 @@ func (o *getSpacesOpts) buildQuery() (*url.Values, error) {
 	if o.End != "" {
 		q.Set("end", o.End)
 	}
-
+	o.pubnub.tokenManager.SetAuthParan(q, "", PNSpaces)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -205,7 +205,7 @@ func (o *getSpacesOpts) telemetryManager() *TelemetryManager {
 
 // PNGetSpacesResponse is the Objects API Response for Get Spaces
 type PNGetSpacesResponse struct {
-	Status     int       `json:"status"`
+	status     int       `json:"status"`
 	Data       []PNSpace `json:"data"`
 	TotalCount int       `json:"totalCount"`
 	Next       string    `json:"next"`

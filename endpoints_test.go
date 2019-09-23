@@ -77,3 +77,48 @@ func xTestBuildURL(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal("https://ps.pndsn.com/my/path?a=2&b=hey", url.RequestURI())
 }
+
+func TestSignatureV2(t *testing.T) {
+	assert := assert.New(t)
+	httpMethod := "POST"
+	pubKey := "demo"
+	secKey := "wMfbo9G0xVUG8yfTfYw5qIdfJkTd7A"
+	path := "/v3/pam/demo/grant"
+	query := "PoundsSterling=%C2%A313.37&timestamp=123456789"
+	body := `{
+  "ttl": 1440,
+  "permissions": {
+    "resources" : {
+      "channels": {
+        "inbox-jay": 3
+      },
+      "groups": {},
+      "users": {},
+      "spaces": {}
+    },
+    "patterns" : {
+      "channels": {},
+      "groups": {},
+      "users": {},
+      "spaces": {}
+    },
+    "meta": {
+      "user-id": "jay@example.com",
+      "contains-unicode": "The 💩 test."
+    }
+  }
+}`
+	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body, nil)
+	assert.Equal("v2.k80LsDMD-sImA8rCBj-ntRKhZ8mSjHY8Ivngt9W3Yc4", sigv2)
+}
+
+func TestSignatureV2_1(t *testing.T) {
+	assert := assert.New(t)
+	httpMethod := "GET"
+	pubKey := "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
+	secKey := "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
+	path := "/v1/objects/sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f/spaces/pandu-ut-sid/users"
+	query := "l_obj=0.4545555556&l_pam=1.145&pnsdk=PubNubCSharp4.0.34.0&requestid=19e1dee9-2f87-45d6-97e5-3f4d3f9779a2&timestamp=1568724043&uuid=mytestuuid"
+	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, "", nil)
+	assert.Equal("v2.-S0k_J_rdoXqQTrQ7A3EVNxDSyupCv7OEPpS2EXukm4", sigv2)
+}

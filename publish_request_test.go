@@ -2,7 +2,6 @@ package pubnub
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"testing"
 
@@ -87,7 +86,7 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 		path, []int{})
 
 	query, err := o.opts.buildQuery()
-	log.Println(query)
+	//log.Println(query)
 
 	assert.Nil(err)
 	expected := &url.Values{}
@@ -122,7 +121,7 @@ func AssertSuccessPublishGet3(t *testing.T, expectedString string, message inter
 	o.QueryParam(queryParam)
 
 	query, err := o.opts.buildQuery()
-	log.Println(query)
+	//log.Println(query)
 
 	assert.Nil(err)
 	expected := &url.Values{}

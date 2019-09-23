@@ -3,7 +3,6 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
-	//"fmt"
 	"github.com/pubnub/go/utils"
 	"net/http"
 	"reflect"
@@ -40,20 +39,17 @@ import (
 // getHeartbeatInterval() seconds (default - 149).
 type SubscriptionManager struct {
 	sync.RWMutex
-
-	subscriptionLock sync.Mutex
-	hbDataMutex      sync.RWMutex
-
+	subscriptionLock    sync.Mutex
+	hbDataMutex         sync.RWMutex
 	listenerManager     *ListenerManager
 	stateManager        *StateManager
 	pubnub              *PubNub
 	reconnectionManager *ReconnectionManager
 	transport           http.RoundTripper
-
-	messages        chan subscribeMessage
-	ctx             Context
-	subscribeCancel func()
-	heartbeatCancel func()
+	messages            chan subscribeMessage
+	ctx                 Context
+	subscribeCancel     func()
+	heartbeatCancel     func()
 
 	// Store the latest timetoken to subscribe with, null by default to get the
 	// latest timetoken.
@@ -645,7 +641,6 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		case PNMessageTypeObjects:
 			pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
 			m.pubnub.Config.Log.Println("announceObjects,", pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType)
-			//go func() {
 			switch eventType {
 			case PNObjectsUserEvent:
 				m.pubnub.Config.Log.Println("pnUserEvent:", pnUserEvent)
@@ -657,7 +652,6 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 				m.pubnub.Config.Log.Println("pnMembershipEvent:", pnMembershipEvent)
 				m.listenerManager.announceMembershipEvent(pnMembershipEvent)
 			}
-			//}()
 
 		default:
 			var err error
@@ -678,35 +672,6 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 			m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
 			m.listenerManager.announceMessage(pnMessageResult)
 		}
-
-		// if payload.MessageType == PNMessageTypeSignal {
-		// 	messagePayload = payload.Payload
-		// } else if payload.MessageType == PNMessageTypeObjects {
-		// 	messagePayload = payload.Payload
-		// } else {
-		// 	var err error
-		// 	messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
-		// 	if err != nil {
-		// 		pnStatus := &PNStatus{
-		// 			Category:         PNBadRequestCategory,
-		// 			ErrorData:        err,
-		// 			Error:            true,
-		// 			Operation:        PNSubscribeOperation,
-		// 			AffectedChannels: []string{channel},
-		// 		}
-		// 		m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
-		// 		m.listenerManager.announceStatus(pnStatus)
-		// 	}
-		// }
-
-		// if payload.MessageType == PNMessageTypeSignal {
-		// 	m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
-		// 	m.listenerManager.announceSignal(pnMessageResult)
-
-		// } else {
-		// 	m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
-		// 	m.listenerManager.announceMessage(pnMessageResult)
-		// }
 		m.pubnub.Config.Log.Println("after announceMessage")
 	}
 }
@@ -727,46 +692,46 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	event := PNObjectsEvent(objectsPayload["event"].(string))
 	var id, userID, spaceID, description, timestamp, created, updated, eTag, name, externalID, profileURL, email string
 	var custom, data map[string]interface{}
-	if objectsPayload["data"] != nil {
-		data = objectsPayload["data"].(map[string]interface{})
-		if data["userId"] != nil {
-			userID = data["userId"].(string)
+	if o := objectsPayload["data"]; ok {
+		data = o.(map[string]interface{})
+		if d, ok := data["userId"]; ok {
+			userID = d.(string)
 		}
-		if data["id"] != nil {
-			id = data["id"].(string)
+		if d, ok := data["id"]; ok {
+			id = d.(string)
 		}
-		if data["spaceId"] != nil {
-			spaceID = data["spaceId"].(string)
+		if d, ok := data["spaceId"]; ok {
+			spaceID = d.(string)
 		}
-		if data["name"] != nil {
-			name = data["name"].(string)
+		if d, ok := data["name"]; ok {
+			name = d.(string)
 		}
-		if data["externalId"] != nil {
-			externalID = data["externalId"].(string)
+		if d, ok := data["externalId"]; ok {
+			externalID = d.(string)
 		}
-		if data["profileUrl"] != nil {
-			profileURL = data["profileUrl"].(string)
+		if d, ok := data["profileUrl"]; ok {
+			profileURL = d.(string)
 		}
-		if data["email"] != nil {
-			email = data["email"].(string)
+		if d, ok := data["email"]; ok {
+			email = d.(string)
 		}
-		if data["description"] != nil {
-			description = data["description"].(string)
+		if d, ok := data["description"]; ok {
+			description = d.(string)
 		}
-		if data["timestamp"] != nil {
-			timestamp = data["timestamp"].(string)
+		if d, ok := data["timestamp"]; ok {
+			timestamp = d.(string)
 		}
-		if data["created"] != nil {
-			created = data["created"].(string)
+		if d, ok := data["created"]; ok {
+			created = d.(string)
 		}
-		if data["updated"] != nil {
-			updated = data["updated"].(string)
+		if d, ok := data["updated"]; ok {
+			updated = d.(string)
 		}
-		if data["eTag"] != nil {
-			eTag = data["eTag"].(string)
+		if d, ok := data["eTag"]; ok {
+			eTag = d.(string)
 		}
-		if data["custom"] != nil {
-			custom = data["custom"].(map[string]interface{})
+		if d, ok := data["custom"]; ok {
+			custom = d.(map[string]interface{})
 		}
 
 	}

@@ -19,10 +19,9 @@
 #  name = "github.com/x/y"
 #  version = "2.4.0"
 
-
 [[constraint]]
-  name = "github.com/satori/go.uuid"
-  branch = "master"
+  name = "github.com/google/uuid"
+  version = "1.1.1"
 
 [[constraint]]
   name = "github.com/stretchr/testify"

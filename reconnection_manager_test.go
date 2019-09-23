@@ -1,11 +1,8 @@
 package pubnub
 
 import (
-	//"fmt"
 	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
-	//"log"
-	//"os"
 	"testing"
 	"time"
 )
@@ -86,7 +83,6 @@ func TestReconnect(t *testing.T) {
 	pn := NewPubNub(config)
 	pn.Config.MaximumReconnectionRetries = 1
 	pn.Config.PNReconnectionPolicy = PNLinearPolicy
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	r := newReconnectionManager(pn)
 	r.FailedCalls = 1
 	reconnected := false

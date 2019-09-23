@@ -108,7 +108,7 @@ func (o *deleteUserOpts) buildPath() (string, error) {
 func (o *deleteUserOpts) buildQuery() (*url.Values, error) {
 
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
-
+	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNUsers)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -149,7 +149,7 @@ func (o *deleteUserOpts) telemetryManager() *TelemetryManager {
 
 // PNDeleteUserResponse is the Objects API Response for delete user
 type PNDeleteUserResponse struct {
-	Status int         `json:"status"`
+	status int         `json:"status"`
 	Data   interface{} `json:"data"`
 }
 

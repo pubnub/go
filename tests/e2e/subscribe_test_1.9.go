@@ -41,8 +41,6 @@ func TestSubscribeParseLogsForAuthKey(t *testing.T) {
 	out, _ := ioutil.ReadAll(r)
 	os.Stdout = rescueStdout
 
-	//fmt.Printf("Captured: %s", out)
-
 	s := fmt.Sprintf("%s", out)
 	expected := fmt.Sprintf("https://%s/v2/subscribe/%s/%s/0?pnsdk=PubNub-Go/%s&uuid=%s&auth=%s",
 		pn.Config.Origin,

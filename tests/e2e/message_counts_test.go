@@ -2,9 +2,6 @@ package e2e
 
 import (
 	"fmt"
-	//"log"
-	//"os"
-	"strconv"
 	"testing"
 	"time"
 
@@ -28,7 +25,6 @@ func TestMessageCounts(t *testing.T) {
 	assert := a.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	r := GenRandom()
 	ch1 := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
@@ -52,23 +48,17 @@ func TestMessageCounts(t *testing.T) {
 	}
 
 	timestamp3 := GetTimetoken(pn)
-	fmt.Println("here", strconv.FormatInt(timestamp2, 10), strconv.FormatInt(timestamp3, 10))
 
-	_, s0, err0 := pn.MessageCounts().
+	_, _, err0 := pn.MessageCounts().
 		Channels([]string{ch1, ch2}).
 		ChannelsTimetoken([]int64{timestamp1, timestamp2, timestamp3}).
 		Execute()
-	fmt.Println("s0", s0)
-	fmt.Println("err0", err0)
 	assert.Contains(err0.Error(), pubnub.StrChannelsTimetokenLength)
 
-	ret, s, err := pn.MessageCounts().
+	ret, _, err := pn.MessageCounts().
 		Channels([]string{ch1, ch2}).
 		ChannelsTimetoken([]int64{timestamp2, timestamp3}).
 		Execute()
-
-	fmt.Println("s", s)
-	fmt.Println("s.StatusCode", s.StatusCode)
 
 	assert.Nil(err)
 	MatchMessageCounts(ret, 5, 0, ch1, ch2, assert)

@@ -171,6 +171,7 @@ func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 	if o.stringState != "" {
 		q.Set("state", o.stringState)
 	}
+
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
