@@ -49,7 +49,6 @@ type historyWithActionsBody struct {
 	Custom      map[string]interface{} `json:"custom"`
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *historyWithActionsBuilder) Include(include []PNUserSpaceInclude) *historyWithActionsBuilder {
 
 	b.opts.Include = EnumArrayToStringArray(include)
@@ -57,14 +56,12 @@ func (b *historyWithActionsBuilder) Include(include []PNUserSpaceInclude) *histo
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *historyWithActionsBuilder) ID(id string) *historyWithActionsBuilder {
 	b.opts.ID = id
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *historyWithActionsBuilder) Name(name string) *historyWithActionsBuilder {
 	b.opts.Name = name
 

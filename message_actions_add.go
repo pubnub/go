@@ -9,12 +9,11 @@ import (
 	"net/url"
 
 	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 )
 
 var emptyPNAddMessageActionsResponse *PNAddMessageActionsResponse
 
-const addMessageActionsPath = "/v1/actions/%s/channel/%s"
+const addMessageActionsPath = "/v1/actions/%s/channel/%s/message/%s"
 
 type addMessageActionsBuilder struct {
 	opts *addMessageActionsOpts
@@ -42,43 +41,25 @@ func newAddMessageActionsBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-type addMessageActionsBody struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Custom      map[string]interface{} `json:"custom"`
+type MessageAction struct {
+	ActionType  string `json:"type"`
+	ActionValue string `json:"value"`
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
-func (b *addMessageActionsBuilder) Include(include []PNUserSpaceInclude) *addMessageActionsBuilder {
-
-	b.opts.Include = EnumArrayToStringArray(include)
+func (b *addMessageActionsBuilder) Channel(channel string) *addMessageActionsBuilder {
+	b.opts.Channel = channel
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
-func (b *addMessageActionsBuilder) ID(id string) *addMessageActionsBuilder {
-	b.opts.ID = id
+func (b *addMessageActionsBuilder) MessageTimetoken(timetoken string) *addMessageActionsBuilder {
+	b.opts.MessageTimetoken = timetoken
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
-func (b *addMessageActionsBuilder) Name(name string) *addMessageActionsBuilder {
-	b.opts.Name = name
-
-	return b
-}
-
-func (b *addMessageActionsBuilder) Description(description string) *addMessageActionsBuilder {
-	b.opts.Description = description
-
-	return b
-}
-
-func (b *addMessageActionsBuilder) Custom(custom map[string]interface{}) *addMessageActionsBuilder {
-	b.opts.Custom = custom
+func (b *addMessageActionsBuilder) Action(action MessageAction) *addMessageActionsBuilder {
+	b.opts.Action = action
 
 	return b
 }
@@ -109,12 +90,10 @@ func (b *addMessageActionsBuilder) Execute() (*PNAddMessageActionsResponse, Stat
 type addMessageActionsOpts struct {
 	pubnub *PubNub
 
-	Include     []string
-	ID          string
-	Name        string
-	Description string
-	Custom      map[string]interface{}
-	QueryParam  map[string]string
+	Channel          string
+	MessageTimetoken string
+	Action           MessageAction
+	QueryParam       map[string]string
 
 	Transport http.RoundTripper
 
@@ -143,17 +122,13 @@ func (o *addMessageActionsOpts) validate() error {
 
 func (o *addMessageActionsOpts) buildPath() (string, error) {
 	return fmt.Sprintf(addMessageActionsPath,
-		o.pubnub.Config.SubscribeKey), nil
+		o.pubnub.Config.SubscribeKey, o.Channel, o.MessageTimetoken), nil
 }
 
 func (o *addMessageActionsOpts) buildQuery() (*url.Values, error) {
 
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
-	if o.Include != nil {
-		q.Set("include", string(utils.JoinChannels(o.Include)))
-	}
-	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -164,14 +139,7 @@ func (o *addMessageActionsOpts) jobQueue() chan *JobQItem {
 }
 
 func (o *addMessageActionsOpts) buildBody() ([]byte, error) {
-	b := &addMessageActionsBody{
-		ID:          o.ID,
-		Name:        o.Name,
-		Description: o.Description,
-		Custom:      o.Custom,
-	}
-
-	jsonEncBytes, errEnc := json.Marshal(b)
+	jsonEncBytes, errEnc := json.Marshal(o.Action)
 
 	if errEnc != nil {
 		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
@@ -205,10 +173,18 @@ func (o *addMessageActionsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-// PNAddMessageActionsResponse is the Objects API Response
+// PNMessageActionsResponse Message Actions response.
+type PNMessageActionsResponse struct {
+	ActionType       string `json:"type"`
+	Actionvalue      string `json:"value"`
+	ActionTimetoken  string `json:"actionTimetoken"`
+	MessageTimetoken string `json:"messageTimetoken"`
+}
+
+// PNAddMessageActionsResponse is the Add Message Actions API Response
 type PNAddMessageActionsResponse struct {
-	status int     `json:"status"`
-	Data   PNSpace `json:"data"`
+	status int                      `json:"status"`
+	Data   PNMessageActionsResponse `json:"data"`
 }
 
 func newPNAddMessageActionsResponse(jsonBytes []byte, o *addMessageActionsOpts,

@@ -251,6 +251,30 @@ func (pn *PubNub) GrantTokenWithContext(ctx Context) *grantTokenBuilder {
 	return newGrantTokenBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) AddMessageAction() *addMessageActionsBuilder {
+	return newAddMessageActionsBuilder(pn)
+}
+
+func (pn *PubNub) AddMessageActionWithContext(ctx Context) *addMessageActionsBuilder {
+	return newAddMessageActionsBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetMessageActions() *getMessageActionsBuilder {
+	return newGetMessageActionsBuilder(pn)
+}
+
+func (pn *PubNub) GetMessageActionsWithContext(ctx Context) *getMessageActionsBuilder {
+	return newGetMessageActionsBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) RemoveMessageAction() *removeMessageActionsBuilder {
+	return newRemoveMessageActionsBuilder(pn)
+}
+
+func (pn *PubNub) RemoveMessageActionWithContext(ctx Context) *removeMessageActionsBuilder {
+	return newRemoveMessageActionsBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) SetToken(token string) {
 	pn.tokenManager.StoreToken(token)
 }

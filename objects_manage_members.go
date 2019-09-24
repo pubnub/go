@@ -46,28 +46,24 @@ func newManageMembersBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *manageMembersBuilder) Include(include []PNMembersInclude) *manageMembersBuilder {
 	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *manageMembersBuilder) SpaceID(id string) *manageMembersBuilder {
 	b.opts.SpaceID = id
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *manageMembersBuilder) Limit(limit int) *manageMembersBuilder {
 	b.opts.Limit = limit
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *manageMembersBuilder) Start(start string) *manageMembersBuilder {
 	b.opts.Start = start
 

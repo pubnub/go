@@ -46,21 +46,18 @@ func newGetSpacesBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *getSpacesBuilder) Include(include []PNUserSpaceInclude) *getSpacesBuilder {
 	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *getSpacesBuilder) Limit(limit int) *getSpacesBuilder {
 	b.opts.Limit = limit
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *getSpacesBuilder) Start(start string) *getSpacesBuilder {
 	b.opts.Start = start
 

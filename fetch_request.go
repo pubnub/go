@@ -77,6 +77,12 @@ func (b *fetchBuilder) Reverse(r bool) *fetchBuilder {
 	return b
 }
 
+// WithActions fetches the actions associated with the message
+func (b *fetchBuilder) WithActions(withActions bool) *fetchBuilder {
+	b.opts.WithActions = withActions
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *fetchBuilder) QueryParam(queryParam map[string]string) *fetchBuilder {
 	b.opts.QueryParam = queryParam
@@ -105,8 +111,9 @@ type fetchOpts struct {
 
 	Channels []string
 
-	Start int64
-	End   int64
+	Start       int64
+	End         int64
+	WithActions bool
 
 	// default: 100
 	Count int

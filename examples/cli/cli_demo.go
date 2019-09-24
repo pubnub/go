@@ -57,7 +57,16 @@ func connect() {
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
+
+	config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
+	config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
+	config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
+
+	//config.AuthKey = "akey"
+	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
+	config.Secure = false
 	config.CipherKey = "enigma"
+
 	pn = pubnub.NewPubNub(config)
 
 	// for subscribe event
@@ -215,6 +224,9 @@ func showHelp() {
 	showDeleteUserHelp()
 	showUpdateUserHelp()
 	showGetUserHelp()
+	showAddActionHelp()
+	showGetActionsHelp()
+	showDeleteActionHelp()
 	fmt.Println("")
 	fmt.Println("================")
 	fmt.Println(" ||  COMMANDS  ||")
@@ -222,6 +234,27 @@ func showHelp() {
 	fmt.Println("")
 	fmt.Println(" UNSUBSCRIBE ALL \n\tq ")
 	fmt.Println(" QUIT \n\tctrl+c ")
+}
+
+func showAddActionHelp() {
+	fmt.Println(" AddAction EXAMPLE: ")
+	fmt.Println("	addaction channel timetoken actiontype actionval")
+	fmt.Println("	addaction my-channel 15210190573608384 reaction smiley_face")
+
+}
+
+func showGetActionsHelp() {
+	fmt.Println(" GetActions EXAMPLE: ")
+	fmt.Println("	getactions channel start end limit")
+	fmt.Println("	getactions my-channel 15692395344923130 15210190573608384 10")
+
+}
+
+func showDeleteActionHelp() {
+	fmt.Println(" DeleteAction EXAMPLE: ")
+	fmt.Println("	remaction channel messagetTimetoken actionTimetoken")
+	fmt.Println("	remaction my-channel 15210190573608384 15692395344923130 ")
+
 }
 
 func showEditMembershipsHelp() {
@@ -539,6 +572,14 @@ func readCommand(cmd string) {
 		getTokens(command[1:])
 	case "gettokenres":
 		getTokenRes(command[1:])
+	case "addaction":
+		addMessageAction(command[1:])
+	case "addactions":
+		addMessageActions(command[1:])
+	case "getactions":
+		getMessageActions(command[1:])
+	case "remaction":
+		removeMessageActions(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -546,6 +587,110 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func removeMessageActions(args []string) {
+	if len(args) < 3 {
+		showDeleteActionHelp()
+		return
+	}
+	channel := args[0]
+	tt := args[1]
+	att := args[2]
+	res, status, err := pn.RemoveMessageAction().Channel(channel).MessageTimetoken(tt).ActionTimetoken(att).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func getMessageActions(args []string) {
+	if len(args) < 1 {
+		showGetActionsHelp()
+		return
+	}
+	channel := args[0]
+	if len(args) == 4 {
+		var limit int
+
+		n, err := strconv.ParseInt(args[3], 10, 64)
+		if err == nil {
+			limit = int(n)
+		}
+
+		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).End(args[2]).Limit(limit).Execute()
+		fmt.Println("status", status)
+		fmt.Println("err", err)
+		fmt.Println("res", res)
+
+	} else if len(args) == 3 {
+		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).End(args[2]).Execute()
+		fmt.Println("status", status)
+		fmt.Println("err", err)
+		fmt.Println("res", res)
+	} else if len(args) == 2 {
+		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).Execute()
+		fmt.Println("status", status)
+		fmt.Println("err", err)
+		fmt.Println("res", res)
+	} else {
+		res, status, err := pn.GetMessageActions().Channel(channel).Execute()
+		fmt.Println("status", status)
+		fmt.Println("err", err)
+		fmt.Println("res", res)
+	}
+
+}
+
+func addMessageActions(args []string) {
+	if len(args) < 5 {
+		showAddActionHelp()
+		return
+	}
+	// addaction my-channel 15210190573608384 reaction smiley_face
+	channel := args[0]
+	tt := args[1]
+	actionType := args[2]
+	actionVal := args[3]
+
+	var count int
+
+	n, err := strconv.ParseInt(args[4], 10, 64)
+	if err == nil {
+		count = int(n)
+	}
+
+	for i := 0; i < count; i++ {
+		ma := pubnub.MessageAction{
+			ActionType:  actionType,
+			ActionValue: actionVal + "_" + strconv.Itoa(i),
+		}
+
+		res, status, err := pn.AddMessageAction().Channel(channel).MessageTimetoken(tt).Action(ma).Execute()
+		fmt.Println("status", status)
+		fmt.Println("err", err)
+		fmt.Println("res", res)
+	}
+}
+
+func addMessageAction(args []string) {
+	if len(args) < 4 {
+		showAddActionHelp()
+		return
+	}
+	// addaction my-channel 15210190573608384 reaction smiley_face
+	channel := args[0]
+	tt := args[1]
+	actionType := args[2]
+	actionVal := args[3]
+	ma := pubnub.MessageAction{
+		ActionType:  actionType,
+		ActionValue: actionVal,
+	}
+
+	res, status, err := pn.AddMessageAction().Channel(channel).MessageTimetoken(tt).Action(ma).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
 }
 
 func setToken(args []string) {

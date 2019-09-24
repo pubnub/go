@@ -9,7 +9,6 @@ import (
 	"net/url"
 
 	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 )
 
 var emptyPNRemoveMessageActionsResponse *PNRemoveMessageActionsResponse
@@ -42,43 +41,20 @@ func newRemoveMessageActionsBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-type removeMessageActionsBody struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Custom      map[string]interface{} `json:"custom"`
-}
-
-// Auth sets the Authorization key with permissions to perform the request.
-func (b *removeMessageActionsBuilder) Include(include []PNUserSpaceInclude) *removeMessageActionsBuilder {
-
-	b.opts.Include = EnumArrayToStringArray(include)
+func (b *removeMessageActionsBuilder) Channel(channel string) *removeMessageActionsBuilder {
+	b.opts.Channel = channel
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
-func (b *removeMessageActionsBuilder) ID(id string) *removeMessageActionsBuilder {
-	b.opts.ID = id
+func (b *removeMessageActionsBuilder) MessageTimetoken(timetoken string) *removeMessageActionsBuilder {
+	b.opts.MessageTimetoken = timetoken
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
-func (b *removeMessageActionsBuilder) Name(name string) *removeMessageActionsBuilder {
-	b.opts.Name = name
-
-	return b
-}
-
-func (b *removeMessageActionsBuilder) Description(description string) *removeMessageActionsBuilder {
-	b.opts.Description = description
-
-	return b
-}
-
-func (b *removeMessageActionsBuilder) Custom(custom map[string]interface{}) *removeMessageActionsBuilder {
-	b.opts.Custom = custom
+func (b *removeMessageActionsBuilder) ActionTimetoken(timetoken string) *removeMessageActionsBuilder {
+	b.opts.ActionTimetoken = timetoken
 
 	return b
 }
@@ -109,12 +85,11 @@ func (b *removeMessageActionsBuilder) Execute() (*PNRemoveMessageActionsResponse
 type removeMessageActionsOpts struct {
 	pubnub *PubNub
 
-	Include     []string
-	ID          string
-	Name        string
-	Description string
-	Custom      map[string]interface{}
-	QueryParam  map[string]string
+	Channel          string
+	MessageTimetoken string
+	ActionTimetoken  string
+	Custom           map[string]interface{}
+	QueryParam       map[string]string
 
 	Transport http.RoundTripper
 
@@ -143,17 +118,13 @@ func (o *removeMessageActionsOpts) validate() error {
 
 func (o *removeMessageActionsOpts) buildPath() (string, error) {
 	return fmt.Sprintf(removeMessageActionsPath,
-		o.pubnub.Config.SubscribeKey), nil
+		o.pubnub.Config.SubscribeKey, o.Channel, o.MessageTimetoken, o.ActionTimetoken), nil
 }
 
 func (o *removeMessageActionsOpts) buildQuery() (*url.Values, error) {
 
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
-	if o.Include != nil {
-		q.Set("include", string(utils.JoinChannels(o.Include)))
-	}
-	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -164,25 +135,11 @@ func (o *removeMessageActionsOpts) jobQueue() chan *JobQItem {
 }
 
 func (o *removeMessageActionsOpts) buildBody() ([]byte, error) {
-	b := &removeMessageActionsBody{
-		ID:          o.ID,
-		Name:        o.Name,
-		Description: o.Description,
-		Custom:      o.Custom,
-	}
-
-	jsonEncBytes, errEnc := json.Marshal(b)
-
-	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
-		return []byte{}, errEnc
-	}
-	return jsonEncBytes, nil
-
+	return []byte{}, nil
 }
 
 func (o *removeMessageActionsOpts) httpMethod() string {
-	return "POST"
+	return "DELETE"
 }
 
 func (o *removeMessageActionsOpts) isAuthRequired() bool {

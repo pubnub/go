@@ -7,14 +7,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 )
 
 var emptyPNGetMessageActionsResponse *PNGetMessageActionsResponse
 
-const getMessageActionsPath = "/v1/actions/%s/channel/%s/message/%s"
+const getMessageActionsPath = "/v1/actions/%s/channel/%s"
 
 type getMessageActionsBuilder struct {
 	opts *getMessageActionsOpts
@@ -42,43 +42,26 @@ func newGetMessageActionsBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-type getMessageActionsBody struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Custom      map[string]interface{} `json:"custom"`
-}
-
-// Auth sets the Authorization key with permissions to perform the request.
-func (b *getMessageActionsBuilder) Include(include []PNUserSpaceInclude) *getMessageActionsBuilder {
-
-	b.opts.Include = EnumArrayToStringArray(include)
+func (b *getMessageActionsBuilder) Channel(channel string) *getMessageActionsBuilder {
+	b.opts.Channel = channel
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
-func (b *getMessageActionsBuilder) ID(id string) *getMessageActionsBuilder {
-	b.opts.ID = id
+func (b *getMessageActionsBuilder) Start(timetoken string) *getMessageActionsBuilder {
+	b.opts.Start = timetoken
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
-func (b *getMessageActionsBuilder) Name(name string) *getMessageActionsBuilder {
-	b.opts.Name = name
+func (b *getMessageActionsBuilder) End(timetoken string) *getMessageActionsBuilder {
+	b.opts.End = timetoken
 
 	return b
 }
 
-func (b *getMessageActionsBuilder) Description(description string) *getMessageActionsBuilder {
-	b.opts.Description = description
-
-	return b
-}
-
-func (b *getMessageActionsBuilder) Custom(custom map[string]interface{}) *getMessageActionsBuilder {
-	b.opts.Custom = custom
+func (b *getMessageActionsBuilder) Limit(limit int) *getMessageActionsBuilder {
+	b.opts.Limit = limit
 
 	return b
 }
@@ -109,12 +92,11 @@ func (b *getMessageActionsBuilder) Execute() (*PNGetMessageActionsResponse, Stat
 type getMessageActionsOpts struct {
 	pubnub *PubNub
 
-	Include     []string
-	ID          string
-	Name        string
-	Description string
-	Custom      map[string]interface{}
-	QueryParam  map[string]string
+	Channel    string
+	Start      string
+	End        string
+	Limit      int
+	QueryParam map[string]string
 
 	Transport http.RoundTripper
 
@@ -143,17 +125,25 @@ func (o *getMessageActionsOpts) validate() error {
 
 func (o *getMessageActionsOpts) buildPath() (string, error) {
 	return fmt.Sprintf(getMessageActionsPath,
-		o.pubnub.Config.SubscribeKey), nil
+		o.pubnub.Config.SubscribeKey, o.Channel), nil
 }
 
 func (o *getMessageActionsOpts) buildQuery() (*url.Values, error) {
 
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
-	if o.Include != nil {
-		q.Set("include", string(utils.JoinChannels(o.Include)))
+	if o.Start != "" {
+		q.Set("start", o.Start)
 	}
-	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)
+
+	if o.End != "" {
+		q.Set("end", o.End)
+	}
+
+	if o.Limit > 0 {
+		q.Set("limit", strconv.Itoa(o.Limit))
+	}
+
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -164,25 +154,11 @@ func (o *getMessageActionsOpts) jobQueue() chan *JobQItem {
 }
 
 func (o *getMessageActionsOpts) buildBody() ([]byte, error) {
-	b := &getMessageActionsBody{
-		ID:          o.ID,
-		Name:        o.Name,
-		Description: o.Description,
-		Custom:      o.Custom,
-	}
-
-	jsonEncBytes, errEnc := json.Marshal(b)
-
-	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
-		return []byte{}, errEnc
-	}
-	return jsonEncBytes, nil
-
+	return []byte{}, nil
 }
 
 func (o *getMessageActionsOpts) httpMethod() string {
-	return "POST"
+	return "GET"
 }
 
 func (o *getMessageActionsOpts) isAuthRequired() bool {
@@ -205,10 +181,18 @@ func (o *getMessageActionsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-// PNGetMessageActionsResponse is the Objects API Response
+type PNGetMessageActionsMore struct {
+	URL   string `json:"url"`
+	Start string `json:"start"`
+	End   string `json:"end"`
+	Limit int    `json:"limit"`
+}
+
+// PNGetMessageActionsResponse is the GetMessageActions API Response
 type PNGetMessageActionsResponse struct {
-	status int     `json:"status"`
-	Data   PNSpace `json:"data"`
+	status int                        `json:"status"`
+	Data   []PNMessageActionsResponse `json:"data"`
+	More   PNGetMessageActionsMore    `json:"more"`
 }
 
 func newPNGetMessageActionsResponse(jsonBytes []byte, o *getMessageActionsOpts,
