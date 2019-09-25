@@ -35,6 +35,11 @@ func newTokenManager(pubnub *PubNub, ctx Context) *TokenManager {
 	return manager
 }
 
+// CleanUp resets the token manager
+func (m *TokenManager) CleanUp() {
+	m.Tokens = GrantResourcesWithPermissions{}
+}
+
 // SetAuthParan sets the auth param in the requests by retrieving the corresponding tokens from the token manager
 func (m *TokenManager) SetAuthParan(q *url.Values, resourceID string, resourceType PNResourceType) {
 	authParam := "auth"

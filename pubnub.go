@@ -295,6 +295,10 @@ func (pn *PubNub) GetToken(resourceId string, resourceType PNResourceType) strin
 	return pn.tokenManager.GetToken(resourceId, resourceType)
 }
 
+func (pn *PubNub) ResetTokenManager() {
+	pn.tokenManager.CleanUp()
+}
+
 func (pn *PubNub) Unsubscribe() *unsubscribeBuilder {
 	return newUnsubscribeBuilder(pn)
 }
@@ -532,6 +536,7 @@ func (pn *PubNub) Destroy() {
 	pn.Config.Log.Println("calling RemoveAllListeners")
 	pn.subscriptionManager.RemoveAllListeners()
 	pn.Config.Log.Println("after RemoveAllListeners")
+	pn.tokenManager.CleanUp()
 
 }
 

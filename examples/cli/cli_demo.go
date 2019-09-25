@@ -578,6 +578,10 @@ func readCommand(cmd string) {
 		addMessageActions(command[1:])
 	case "getactions":
 		getMessageActions(command[1:])
+	case "getactionsrec":
+		getMessageActionsRec(command[1:])
+	case "getactionsrec2":
+		getMessageActionsRec(command[1:])
 	case "remaction":
 		removeMessageActions(command[1:])
 	case "q":
@@ -587,6 +591,38 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func getMessageActionsRec2(args []string) {
+	channel := args[0]
+	getMessageActionsRecursive(channel, "", false, 0)
+}
+
+func getMessageActionsRec(args []string) {
+	channel := args[0]
+	getMessageActionsRecursive(channel, "", true, 0)
+}
+
+func getMessageActionsRecursive(channel string, start string, more bool, counter int) {
+	var res *pubnub.PNGetMessageActionsResponse
+	if start == "" {
+		res, _, _ = pn.GetMessageActions().Channel(channel).Execute()
+	} else {
+		res, _, _ = pn.GetMessageActions().Channel(channel).Start(start).Execute()
+	}
+	if (res != nil) && (len(res.Data) > 0) {
+		PrintMessageActions(res, counter+1)
+		if more {
+			if res.More.Start != "" {
+				getMessageActionsRecursive(channel, res.More.Start, more, len(res.Data))
+			}
+		} else {
+			if len(res.Data) > 0 {
+				getMessageActionsRecursive(channel, res.Data[0].ActionTimetoken, more, len(res.Data))
+			}
+		}
+	}
+
 }
 
 func removeMessageActions(args []string) {
@@ -620,23 +656,37 @@ func getMessageActions(args []string) {
 		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).End(args[2]).Limit(limit).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
-		fmt.Println("res", res)
+		//fmt.Println("res", res)
+		PrintMessageActions(res, 0)
 
 	} else if len(args) == 3 {
 		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).End(args[2]).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
-		fmt.Println("res", res)
+		//fmt.Println("res", res)
+		PrintMessageActions(res, 0)
 	} else if len(args) == 2 {
 		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
-		fmt.Println("res", res)
+		//fmt.Println("res", res)
+		PrintMessageActions(res, 0)
 	} else {
 		res, status, err := pn.GetMessageActions().Channel(channel).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
-		fmt.Println("res", res)
+		//fmt.Println("res", res)
+		PrintMessageActions(res, 0)
+	}
+
+}
+
+func PrintMessageActions(res *pubnub.PNGetMessageActionsResponse, counter int) {
+	if res != nil {
+		for i, k := range res.Data {
+			fmt.Println(fmt.Sprintf("No: %d, Val: %s", i+counter, k))
+		}
+		fmt.Println("More:", res.More)
 	}
 
 }
