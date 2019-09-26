@@ -40,6 +40,8 @@ const (
 	StrChannelsTimetoken = "Missing Channels Timetoken"
 	// StrChannelsTimetokenLength shows Length of Channels Timetoken message
 	StrChannelsTimetokenLength = "Length of Channels Timetoken and Channels do not match"
+	// StrInvalidTTL shows Invalid TTL message
+	StrInvalidTTL = "Invalid TTL"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.

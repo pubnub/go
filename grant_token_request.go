@@ -186,6 +186,10 @@ func (o *grantTokenOpts) validate() error {
 		return newValidationError(o, StrMissingSecretKey)
 	}
 
+	if o.TTL <= 0 {
+		return newValidationError(o, StrInvalidTTL)
+	}
+
 	return nil
 }
 
