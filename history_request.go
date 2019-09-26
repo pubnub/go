@@ -82,6 +82,12 @@ func (b *historyBuilder) IncludeTimetoken(i bool) *historyBuilder {
 	return b
 }
 
+// WithMeta fetches the meta data associated with the message
+func (b *historyBuilder) WithMeta(withMeta bool) *historyBuilder {
+	b.opts.WithMeta = withMeta
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *historyBuilder) QueryParam(queryParam map[string]string) *historyBuilder {
 	b.opts.QueryParam = queryParam
@@ -113,6 +119,7 @@ type historyOpts struct {
 	Start      int64
 	End        int64
 	QueryParam map[string]string
+	WithMeta   bool
 
 	// default: 100
 	Count int
@@ -181,6 +188,7 @@ func (o *historyOpts) buildQuery() (*url.Values, error) {
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_token", strconv.FormatBool(o.IncludeTimetoken))
+	q.Set("include_meta", strconv.FormatBool(o.IncludeTimetoken))
 
 	SetQueryParam(q, o.QueryParam)
 

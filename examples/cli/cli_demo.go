@@ -156,6 +156,18 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Description: %s", outputPrefix, membershipEvent.Description))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Timestamp: %s", outputPrefix, membershipEvent.Timestamp))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Custom: %v", outputPrefix, membershipEvent.Custom))
+
+			case messageActionsEvent := <-listener.MessageActionsEvent:
+				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
+				fmt.Println(" --- MessageActionsEvent: ")
+				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, messageActionsEvent))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Channel: %s", outputPrefix, messageActionsEvent.Channel))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.SubscribedChannel: %s", outputPrefix, messageActionsEvent.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Event: %s", outputPrefix, messageActionsEvent.Event))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionType: %s", outputPrefix, messageActionsEvent.Data.ActionType))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.Actionvalue: %s", outputPrefix, messageActionsEvent.Data.Actionvalue))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionTimetoken: %s", outputPrefix, messageActionsEvent.Data.ActionTimetoken))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.MessageTimetoken: %s", outputPrefix, messageActionsEvent.Data.MessageTimetoken))
 			}
 		}
 	}()

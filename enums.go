@@ -19,20 +19,30 @@ type ReconnectionPolicy int
 // PNPushType is used as an enum to catgorize the available Push Types
 type PNPushType int
 
-// PNUserSpaceInclude  is used as an enum to catgorize the available User and Space include types
+// PNUserSpaceInclude is used as an enum to catgorize the available User and Space include types
 type PNUserSpaceInclude int
 
-// PNMembershipsInclude  is used as an enum to catgorize the available Memberships include types
+// PNMembershipsInclude is used as an enum to catgorize the available Memberships include types
 type PNMembershipsInclude int
 
-// PNMembersInclude  is used as an enum to catgorize the available Members include types
+// PNMembersInclude is used as an enum to catgorize the available Members include types
 type PNMembersInclude int
 
-// PNObjectsEvent  is used as an enum to catgorize the available Object Events
+// PNObjectsEvent is used as an enum to catgorize the available Object Events
 type PNObjectsEvent string
 
-// PNObjectsEventType  is used as an enum to catgorize the available Object Event types
+// PNObjectsEventType is used as an enum to catgorize the available Object Event types
 type PNObjectsEventType string
+
+// PNMessageActionsEventType is used as an enum to catgorize the available Message Actions Event types
+type PNMessageActionsEventType string
+
+const (
+	// PNMessageActionsAddedEvent is the enum when the event of type `added` occurs
+	PNMessageActionsAdded PNMessageActionsEventType = "added"
+	// PNMessageActionsRemovedEvent is the enum when the event of type `removed` occurs
+	PNMessageActionsRemoved = "removed"
+)
 
 const (
 	// PNObjectsUserEvent is the enum when the event of type `user` occurs
@@ -41,6 +51,8 @@ const (
 	PNObjectsSpaceEvent = "space"
 	// PNObjectsMembershipEvent is the enum when the event of type `membership` occurs
 	PNObjectsMembershipEvent = "membership"
+	// PNObjectsNoneEvent is used for error handling
+	PNObjectsNoneEvent = "none"
 )
 
 const (
@@ -107,8 +119,8 @@ const (
 	PNMessageTypeSignal PNMessageType = 1 + iota
 	// PNMessageTypeObjects is to identify Objects the Subscribe response
 	PNMessageTypeObjects
-	// PNMessageTypeActions is to identify Actions the Subscribe response
-	PNMessageTypeActions
+	// PNMessageTypeMessageActions is to identify Actions the Subscribe response
+	PNMessageTypeMessageActions
 )
 
 const (

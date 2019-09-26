@@ -77,6 +77,12 @@ func (b *fetchBuilder) Reverse(r bool) *fetchBuilder {
 	return b
 }
 
+// WithMeta fetches the meta data associated with the message
+func (b *fetchBuilder) WithMeta(withMeta bool) *fetchBuilder {
+	b.opts.WithMeta = withMeta
+	return b
+}
+
 // WithActions fetches the actions associated with the message
 func (b *fetchBuilder) WithActions(withActions bool) *fetchBuilder {
 	b.opts.WithActions = withActions
@@ -114,6 +120,7 @@ type fetchOpts struct {
 	Start       int64
 	End         int64
 	WithActions bool
+	WithMeta    bool
 
 	// default: 100
 	Count int
@@ -184,6 +191,8 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
+	q.Set("include_meta", strconv.FormatBool(o.IncludeTimetoken))
+
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
