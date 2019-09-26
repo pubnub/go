@@ -176,7 +176,7 @@ func (o *addMessageActionsOpts) telemetryManager() *TelemetryManager {
 // PNMessageActionsResponse Message Actions response.
 type PNMessageActionsResponse struct {
 	ActionType       string `json:"type"`
-	Actionvalue      string `json:"value"`
+	ActionValue      string `json:"value"`
 	ActionTimetoken  string `json:"actionTimetoken"`
 	MessageTimetoken string `json:"messageTimetoken"`
 }

@@ -164,8 +164,8 @@ func (o *removeMessageActionsOpts) telemetryManager() *TelemetryManager {
 
 // PNRemoveMessageActionsResponse is the Objects API Response for create space
 type PNRemoveMessageActionsResponse struct {
-	status int     `json:"status"`
-	Data   PNSpace `json:"data"`
+	status int                      `json:"status"`
+	Data   PNMessageActionsResponse `json:"data"`
 }
 
 func newPNRemoveMessageActionsResponse(jsonBytes []byte, o *removeMessageActionsOpts,

@@ -38,9 +38,9 @@ type PNObjectsEventType string
 type PNMessageActionsEventType string
 
 const (
-	// PNMessageActionsAddedEvent is the enum when the event of type `added` occurs
+	// PNMessageActionsAdded is the enum when the event of type `added` occurs
 	PNMessageActionsAdded PNMessageActionsEventType = "added"
-	// PNMessageActionsRemovedEvent is the enum when the event of type `removed` occurs
+	// PNMessageActionsRemoved is the enum when the event of type `removed` occurs
 	PNMessageActionsRemoved = "removed"
 )
 

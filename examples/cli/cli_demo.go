@@ -165,7 +165,7 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s messageActionsEvent.SubscribedChannel: %s", outputPrefix, messageActionsEvent.SubscribedChannel))
 				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Event: %s", outputPrefix, messageActionsEvent.Event))
 				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionType: %s", outputPrefix, messageActionsEvent.Data.ActionType))
-				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.Actionvalue: %s", outputPrefix, messageActionsEvent.Data.Actionvalue))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionValue: %s", outputPrefix, messageActionsEvent.Data.ActionValue))
 				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionTimetoken: %s", outputPrefix, messageActionsEvent.Data.ActionTimetoken))
 				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.MessageTimetoken: %s", outputPrefix, messageActionsEvent.Data.MessageTimetoken))
 			}

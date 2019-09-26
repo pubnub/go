@@ -711,7 +711,7 @@ func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionMan
 			resp.ActionType = d.(string)
 		}
 		if d, ok := data["value"]; ok {
-			resp.Actionvalue = d.(string)
+			resp.ActionValue = d.(string)
 		}
 		if d, ok := data["actionTimetoken"]; ok {
 			resp.ActionTimetoken = d.(string)
