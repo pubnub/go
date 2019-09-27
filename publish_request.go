@@ -141,12 +141,7 @@ func (b *publishBuilder) UsePost(post bool) *publishBuilder {
 // ShouldStore if true the messages are stored in History
 func (b *publishBuilder) ShouldStore(store bool) *publishBuilder {
 	b.opts.ShouldStore = store
-	if store {
-		b.opts.setShouldStore = true
-	} else {
-		b.opts.setShouldStore = false
-	}
-
+	b.opts.setShouldStore = true
 	return b
 }
 
