@@ -1868,6 +1868,11 @@ func fetchRequest(args []string) {
 		}
 	}
 
+	var withMessageActions bool = false
+	if len(args) > 5 {
+		withMessageActions, _ = strconv.ParseBool(args[5])
+	}
+
 	if (end != 0) && (start != 0) {
 		res, status, err := pn.Fetch().
 			Channels(channels).
@@ -1875,6 +1880,7 @@ func fetchRequest(args []string) {
 			Start(start).
 			End(end).
 			Reverse(reverse).
+			WithMessageActions(withMessageActions).
 			Execute()
 		parseFetch(res, status, err)
 	} else if start != 0 {
@@ -1883,6 +1889,7 @@ func fetchRequest(args []string) {
 			Count(count).
 			Start(start).
 			Reverse(reverse).
+			WithMessageActions(withMessageActions).
 			Execute()
 		parseFetch(res, status, err)
 	} else if end != 0 {
@@ -1891,6 +1898,7 @@ func fetchRequest(args []string) {
 			Count(count).
 			End(end).
 			Reverse(reverse).
+			WithMessageActions(withMessageActions).
 			Execute()
 		parseFetch(res, status, err)
 	} else {
@@ -1898,6 +1906,7 @@ func fetchRequest(args []string) {
 			Channels(channels).
 			Count(count).
 			Reverse(reverse).
+			WithMessageActions(withMessageActions).
 			Execute()
 		parseFetch(res, status, err)
 	}

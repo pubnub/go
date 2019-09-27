@@ -187,7 +187,7 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 	case PNAddMessageActionsOperation:
 		fallthrough
 	case PNRemoveMessageActionsOperation:
-		endpoint = "ma"
+		endpoint = "msga"
 		break
 	case PNHistoryWithActionsOperation:
 		endpoint = "hist"

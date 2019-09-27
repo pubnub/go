@@ -17,7 +17,10 @@ import (
 var emptyFetchResp *FetchResponse
 
 const fetchPath = "/v3/history/sub-key/%s/channel/%s"
+const historyWithMessageActionsPath = "/v3/history-with-actions/sub-key/%s/channel/%s"
+
 const maxCountFetch = 25
+const maxCountHistoryWithMessageActions = 100
 
 type fetchBuilder struct {
 	opts *fetchOpts
@@ -84,8 +87,8 @@ func (b *fetchBuilder) WithMeta(withMeta bool) *fetchBuilder {
 }
 
 // WithActions fetches the actions associated with the message
-func (b *fetchBuilder) WithActions(withActions bool) *fetchBuilder {
-	b.opts.WithActions = withActions
+func (b *fetchBuilder) WithMessageActions(withMessageActions bool) *fetchBuilder {
+	b.opts.WithMessageActions = withMessageActions
 	return b
 }
 
@@ -117,10 +120,10 @@ type fetchOpts struct {
 
 	Channels []string
 
-	Start       int64
-	End         int64
-	WithActions bool
-	WithMeta    bool
+	Start              int64
+	End                int64
+	WithMessageActions bool
+	WithMeta           bool
 
 	// default: 100
 	Count int
@@ -162,15 +165,25 @@ func (o *fetchOpts) validate() error {
 		return newValidationError(o, StrMissingChannel)
 	}
 
+	if o.WithMessageActions && len(o.Channels) > 1 {
+		return newValidationError(o, "Only one channel is supported when WithMessageActions is true")
+	}
+
 	return nil
 }
 
 func (o *fetchOpts) buildPath() (string, error) {
 	channels := utils.JoinChannels(o.Channels)
 
-	return fmt.Sprintf(fetchPath,
-		o.pubnub.Config.SubscribeKey,
-		channels), nil
+	if o.WithMessageActions {
+		return fmt.Sprintf(historyWithMessageActionsPath,
+			o.pubnub.Config.SubscribeKey,
+			channels), nil
+	} else {
+		return fmt.Sprintf(fetchPath,
+			o.pubnub.Config.SubscribeKey,
+			channels), nil
+	}
 }
 
 func (o *fetchOpts) buildQuery() (*url.Values, error) {

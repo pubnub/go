@@ -14,7 +14,7 @@ import (
 
 var emptyPNGetMessageActionsResponse *PNGetMessageActionsResponse
 
-const getMessageActionsPath = "/v1/actions/%s/channel/%s"
+const getMessageActionsPath = "/v1/message-actions/%s/channel/%s"
 
 type getMessageActionsBuilder struct {
 	opts *getMessageActionsOpts

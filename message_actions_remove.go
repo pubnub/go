@@ -13,7 +13,7 @@ import (
 
 var emptyPNRemoveMessageActionsResponse *PNRemoveMessageActionsResponse
 
-const removeMessageActionsPath = "/v1/actions/%s/channel/%s/message/%s/action/%s"
+const removeMessageActionsPath = "/v1/message-actions/%s/channel/%s/message/%s/action/%s"
 
 type removeMessageActionsBuilder struct {
 	opts *removeMessageActionsOpts

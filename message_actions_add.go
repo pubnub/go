@@ -13,7 +13,7 @@ import (
 
 var emptyPNAddMessageActionsResponse *PNAddMessageActionsResponse
 
-const addMessageActionsPath = "/v1/actions/%s/channel/%s/message/%s"
+const addMessageActionsPath = "/v1/message-actions/%s/channel/%s/message/%s"
 
 type addMessageActionsBuilder struct {
 	opts *addMessageActionsOpts
