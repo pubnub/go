@@ -95,10 +95,10 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 	expected.Set("ttl", "10")
 	expected.Set("pnsdk", Version)
 	expected.Set("norep", "true")
-	expected.Set("store","0")
+	expected.Set("store", "0")
 
 	h.AssertQueriesEqual(t, expected, query,
-		[]string{"seqn", "pnsdk", "uuid","store"}, []string{})
+		[]string{"seqn", "pnsdk", "uuid", "store"}, []string{})
 
 }
 
@@ -133,10 +133,10 @@ func AssertSuccessPublishGet3(t *testing.T, expectedString string, message inter
 	expected.Set("norep", "true")
 	expected.Set("q1", "v1")
 	expected.Set("q2", "v2")
-	expected.Set("store","0")
+	expected.Set("store", "0")
 
 	h.AssertQueriesEqual(t, expected, query,
-		[]string{"seqn", "pnsdk", "uuid","store"}, []string{})
+		[]string{"seqn", "pnsdk", "uuid", "store"}, []string{})
 
 }
 
