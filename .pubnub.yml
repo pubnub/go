@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "Publish method now sets the ShouldStore flag if it is set to false"
+        type: bug
+    date: Oct 2, 19  
+    version: v4.3.1
+  - 
+    changes: 
+      - 
         text: "PAM v3 and TMS for Objects"
         type: improvement
       - 
@@ -421,4 +428,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.3.0
+version: v4.3.1
