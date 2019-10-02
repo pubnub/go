@@ -1873,6 +1873,11 @@ func fetchRequest(args []string) {
 		withMessageActions, _ = strconv.ParseBool(args[5])
 	}
 
+	var withMeta bool
+	if len(args) > 6 {
+		withMeta, _ = strconv.ParseBool(args[6])
+	}
+
 	if (end != 0) && (start != 0) {
 		res, status, err := pn.Fetch().
 			Channels(channels).
@@ -1881,6 +1886,7 @@ func fetchRequest(args []string) {
 			End(end).
 			Reverse(reverse).
 			WithMessageActions(withMessageActions).
+			WithMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	} else if start != 0 {
@@ -1890,6 +1896,7 @@ func fetchRequest(args []string) {
 			Start(start).
 			Reverse(reverse).
 			WithMessageActions(withMessageActions).
+			WithMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	} else if end != 0 {
@@ -1899,6 +1906,7 @@ func fetchRequest(args []string) {
 			End(end).
 			Reverse(reverse).
 			WithMessageActions(withMessageActions).
+			WithMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	} else {
@@ -1907,6 +1915,7 @@ func fetchRequest(args []string) {
 			Count(count).
 			Reverse(reverse).
 			WithMessageActions(withMessageActions).
+			WithMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	}
@@ -1921,6 +1930,15 @@ func parseFetch(res *pubnub.FetchResponse, status pubnub.StatusResponse, err err
 				message := pubnub.FetchResponseItem(messageInt)
 				fmt.Println("message.Message:", message.Message)
 				fmt.Println("message.Timetoken:", message.Timetoken)
+				fmt.Println("message.Meta:", message.Meta)
+				fmt.Println("message.Actions:", message.MessageActions)
+				// if message.MessageActions.ActionType != nil {
+				// 	for action, actionType := range message.MessageActions.ActionType {
+				// 		fmt.Println(action, actionType)
+				// 	}
+				// } else {
+				// 	fmt.Println("message.Actions nil ")
+				// }
 			}
 		}
 	} else {
@@ -1981,6 +1999,11 @@ func historyRequest(args []string) {
 		}
 	}
 
+	var withMeta bool
+	if len(args) > 6 {
+		withMeta, _ = strconv.ParseBool(args[6])
+	}
+
 	if (end != 0) && (start != 0) {
 		res, status, err := pn.History().
 			Channel(channel).
@@ -1989,6 +2012,7 @@ func historyRequest(args []string) {
 			End(end).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
+			WithMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	} else if start != 0 {
@@ -1998,6 +2022,7 @@ func historyRequest(args []string) {
 			Start(start).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
+			WithMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	} else if end != 0 {
@@ -2007,6 +2032,7 @@ func historyRequest(args []string) {
 			End(end).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
+			WithMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	} else {
@@ -2015,6 +2041,7 @@ func historyRequest(args []string) {
 			Count(count).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
+			WithMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	}
@@ -2027,6 +2054,8 @@ func parseHistory(res *pubnub.HistoryResponse, status pubnub.StatusResponse, err
 			for _, v := range res.Messages {
 				fmt.Println(fmt.Sprintf("%s Timetoken %d", outputPrefix, v.Timetoken))
 				fmt.Println(fmt.Sprintf("%s Message %s", outputPrefix, v.Message))
+
+				fmt.Println(fmt.Sprintf("%s Meta %s", outputPrefix, v.Meta))
 			}
 		} else {
 			fmt.Println(fmt.Sprintf("res.Messages null"))
@@ -2163,6 +2192,11 @@ func publishRequest(args []string) {
 		"q2": "v2",
 	}
 
+	meta := map[string]string{
+		"m1": "n1",
+		"m2": "n2",
+	}
+
 	for _, ch := range channels {
 		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
 		res, status, err := pn.Publish().
@@ -2170,6 +2204,7 @@ func publishRequest(args []string) {
 			Message(res).
 			UsePost(usePost).
 			ShouldStore(store).
+			Meta(meta).
 			DoNotReplicate(repl).QueryParam(queryParam).
 			Execute()
 

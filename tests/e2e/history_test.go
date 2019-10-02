@@ -71,15 +71,19 @@ func TestHistorySuccess(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
-	assert.Equal(int64(1234), res.StartTimetoken)
-	assert.Equal(int64(4321), res.EndTimetoken)
-	assert.Equal(2, len(res.Messages))
-	assert.Equal(int64(1111), res.Messages[0].Timetoken)
-	assert.Equal(map[string]interface{}{"a": float64(11), "b": float64(22)},
-		res.Messages[0].Message)
-	assert.Equal(int64(2222), res.Messages[1].Timetoken)
-	assert.Equal(map[string]interface{}{"a": float64(33), "b": float64(44)},
-		res.Messages[1].Message)
+	if res != nil {
+		assert.Equal(int64(1234), res.StartTimetoken)
+		assert.Equal(int64(4321), res.EndTimetoken)
+		assert.Equal(2, len(res.Messages))
+		assert.Equal(int64(1111), res.Messages[0].Timetoken)
+		assert.Equal(map[string]interface{}{"a": float64(11), "b": float64(22)},
+			res.Messages[0].Message)
+		assert.Equal(int64(2222), res.Messages[1].Timetoken)
+		assert.Equal(map[string]interface{}{"a": float64(33), "b": float64(44)},
+			res.Messages[1].Message)
+	} else {
+		assert.Fail("res nil")
+	}
 }
 
 func TestHistorySuccessContext(t *testing.T) {
@@ -101,17 +105,20 @@ func TestHistorySuccessContext(t *testing.T) {
 		Channel("ch").
 		Transport(interceptor.Transport).
 		Execute()
-
-	assert.Nil(err)
-	assert.Equal(int64(1234), res.StartTimetoken)
-	assert.Equal(int64(4321), res.EndTimetoken)
-	assert.Equal(2, len(res.Messages))
-	assert.Equal(int64(1111), res.Messages[0].Timetoken)
-	assert.Equal(map[string]interface{}{"a": float64(11), "b": float64(22)},
-		res.Messages[0].Message)
-	assert.Equal(int64(2222), res.Messages[1].Timetoken)
-	assert.Equal(map[string]interface{}{"a": float64(33), "b": float64(44)},
-		res.Messages[1].Message)
+	if res != nil {
+		assert.Nil(err)
+		assert.Equal(int64(1234), res.StartTimetoken)
+		assert.Equal(int64(4321), res.EndTimetoken)
+		assert.Equal(2, len(res.Messages))
+		assert.Equal(int64(1111), res.Messages[0].Timetoken)
+		assert.Equal(map[string]interface{}{"a": float64(11), "b": float64(22)},
+			res.Messages[0].Message)
+		assert.Equal(int64(2222), res.Messages[1].Timetoken)
+		assert.Equal(map[string]interface{}{"a": float64(33), "b": float64(44)},
+			res.Messages[1].Message)
+	} else {
+		assert.Fail("res nil")
+	}
 }
 
 func TestHistoryEncryptedPNOther(t *testing.T) {
@@ -138,17 +145,21 @@ func TestHistoryEncryptedPNOther(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
-	assert.Equal(1, len(res.Messages))
+	if res != nil {
+		assert.Equal(1, len(res.Messages))
 
-	if msgOther, ok := res.Messages[0].Message.(map[string]interface{}); !ok {
-		assert.Fail("!map[string]interface{}")
-	} else {
-		//fmt.Println(msgOther)
-		if msgOther2, ok := msgOther["pn_other"].(map[string]interface{}); !ok {
-			assert.Fail("!map[string]interface{} 2")
+		if msgOther, ok := res.Messages[0].Message.(map[string]interface{}); !ok {
+			assert.Fail("!map[string]interface{}")
 		} else {
-			assert.Equal("hey", msgOther2["text"])
+			//fmt.Println(msgOther)
+			if msgOther2, ok := msgOther["pn_other"].(map[string]interface{}); !ok {
+				assert.Fail("!map[string]interface{} 2")
+			} else {
+				assert.Equal("hey", msgOther2["text"])
+			}
 		}
+	} else {
+		assert.Fail("res nil")
 	}
 
 	config.CipherKey = ""

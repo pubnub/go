@@ -188,7 +188,7 @@ func (o *historyOpts) buildQuery() (*url.Values, error) {
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_token", strconv.FormatBool(o.IncludeTimetoken))
-	q.Set("include_meta", strconv.FormatBool(o.IncludeTimetoken))
+	q.Set("include_meta", strconv.FormatBool(o.WithMeta))
 
 	SetQueryParam(q, o.QueryParam)
 
@@ -237,6 +237,7 @@ type HistoryResponse struct {
 // HistoryResponseItem is used to store the Message and the associated timetoken from the History request.
 type HistoryResponseItem struct {
 	Message   interface{}
+	Meta      interface{}
 	Timetoken int64
 }
 
@@ -277,6 +278,9 @@ func getHistoryItemsWithTimetoken(historyResponseItems []HistoryResponseItem, o 
 
 			o.pubnub.Config.Log.Println(v.Timetoken)
 			items[i].Timetoken = v.Timetoken
+
+			o.pubnub.Config.Log.Println(v.Meta)
+			items[i].Meta = v.Meta
 		} else {
 			b = true
 			break

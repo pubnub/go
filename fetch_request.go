@@ -131,9 +131,7 @@ type fetchOpts struct {
 	// default: false
 	Reverse bool
 
-	// default: false
-	IncludeTimetoken bool
-	QueryParam       map[string]string
+	QueryParam map[string]string
 
 	// nil hacks
 	setStart bool
@@ -204,7 +202,7 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
-	q.Set("include_meta", strconv.FormatBool(o.IncludeTimetoken))
+	q.Set("include_meta", strconv.FormatBool(o.WithMeta))
 
 	SetQueryParam(q, o.QueryParam)
 
@@ -248,6 +246,29 @@ type FetchResponse struct {
 	Messages map[string][]FetchResponseItem
 }
 
+func (o *fetchOpts) parseMessageActions(actions interface{}) PNHistoryMessageActionsResponse {
+	fmt.Println(actions)
+	if actions != nil {
+		actionsMap := actions.(map[string]interface{})
+		for actionType, action := range actionsMap {
+			fmt.Println("action:", action)
+			fmt.Println("actionType:", actionType)
+			for actionVal, val := range action.(map[string]interface{}) {
+				fmt.Println("actionVal:", actionVal)
+				fmt.Println("val:", val)
+				v := val.([]interface{})
+				for i, k := range v {
+					for j, l := range k.(map[string]interface{}) {
+						fmt.Println("v", k, i, j, l)
+					}
+				}
+			}
+		}
+	}
+
+	return PNHistoryMessageActionsResponse{}
+}
+
 func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]FetchResponseItem {
 	messages := make(map[string][]FetchResponseItem, len(channels))
 
@@ -264,7 +285,10 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 					histItem := FetchResponseItem{
 						Message:   msg,
 						Timetoken: histResponse["timetoken"].(string),
+						Meta:      histResponse["meta"],
 					}
+					histItem.MessageActions = o.parseMessageActions(histResponse["actions"])
+
 					items[count] = histItem
 					o.pubnub.Config.Log.Printf("Channel:%s, count:%d %d\n", channel, count, len(items))
 					count++
@@ -316,6 +340,21 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 
 // FetchResponseItem contains the message and the associated timetoken.
 type FetchResponseItem struct {
-	Message   interface{}
-	Timetoken string
+	Message        interface{}                     `json:"message"`
+	Meta           interface{}                     `json:"meta"`
+	MessageActions PNHistoryMessageActionsResponse `json:"actions"`
+	Timetoken      string                          `json:"timetoken"`
+}
+
+type PNHistoryMessageActionsResponse struct {
+	ActionType interface{} `json:"-"`
+}
+
+type PNHistoryMessageActionsTypeMap struct {
+	ActionsTypeMap map[string][]PNHistoryMessageActionsType `json:"-"`
+}
+
+type PNHistoryMessageActionsType struct {
+	UUID            string `json:"uuid"`
+	ActionTimetoken string `json:"actionTimetoken"`
 }
