@@ -58,12 +58,14 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 
-	config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
-	config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
-	config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
+	// config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
+	// config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
+	// config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
+	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"
+	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3"
 
 	//config.AuthKey = "akey"
-	config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
+	//config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
 	config.Secure = false
 	config.CipherKey = "enigma"
 
@@ -1932,6 +1934,26 @@ func parseFetch(res *pubnub.FetchResponse, status pubnub.StatusResponse, err err
 				fmt.Println("message.Timetoken:", message.Timetoken)
 				fmt.Println("message.Meta:", message.Meta)
 				fmt.Println("message.Actions:", message.MessageActions)
+
+				for action, _ := range message.MessageActions {
+					actionTypes := message.MessageActions[action].ActionsTypeValues
+					fmt.Println("action1:", action)
+					if len(actionTypes) > 0 {
+						for actionVal, actionType := range actionTypes {
+							fmt.Println("actionVal:", actionVal)
+							r00 := actionType
+							if r00 != nil {
+								fmt.Println("UUID", r00[0].UUID)
+								fmt.Println("ActionTimetoken", r00[0].ActionTimetoken)
+							} else {
+								fmt.Println("r0 nil")
+							}
+						}
+					} else {
+						fmt.Println("actionTypes nil")
+					}
+				}
+
 				// if message.MessageActions.ActionType != nil {
 				// 	for action, actionType := range message.MessageActions.ActionType {
 				// 		fmt.Println(action, actionType)

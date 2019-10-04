@@ -241,32 +241,57 @@ func (o *fetchOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-// FetchResponse is the response to Fetch request. It contains a map of type FetchResponseItem
-type FetchResponse struct {
-	Messages map[string][]FetchResponseItem
-}
+func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistoryMessageActionsTypeMap {
+	o.pubnub.Config.Log.Println(actions)
+	resp := make(map[string]PNHistoryMessageActionsTypeMap)
 
-func (o *fetchOpts) parseMessageActions(actions interface{}) PNHistoryMessageActionsResponse {
-	fmt.Println(actions)
 	if actions != nil {
 		actionsMap := actions.(map[string]interface{})
+
 		for actionType, action := range actionsMap {
-			fmt.Println("action:", action)
-			fmt.Println("actionType:", actionType)
-			for actionVal, val := range action.(map[string]interface{}) {
-				fmt.Println("actionVal:", actionVal)
-				fmt.Println("val:", val)
-				v := val.([]interface{})
-				for i, k := range v {
-					for j, l := range k.(map[string]interface{}) {
-						fmt.Println("v", k, i, j, l)
+
+			o.pubnub.Config.Log.Println("action:", action)
+			o.pubnub.Config.Log.Println("actionType:", actionType) //reaction2
+
+			actionMap := action.(map[string]interface{})
+
+			if actionMap != nil {
+				messageActionsTypeMap := PNHistoryMessageActionsTypeMap{}
+				messageActionsTypeMap.ActionsTypeValues = make(map[string][]PNHistoryMessageActionTypeVal, len(actionMap))
+				for actionVal, val := range actionMap {
+					o.pubnub.Config.Log.Println("actionVal:", actionVal) // smiley_face
+					o.pubnub.Config.Log.Println("val:", val)
+
+					actionValInt := val.([]interface{})
+					if actionValInt != nil {
+						params := make([]PNHistoryMessageActionTypeVal, len(actionValInt))
+						pCount := 0
+						for _, actionParam := range actionValInt {
+
+							pv := PNHistoryMessageActionTypeVal{}
+							for actionParamName, actionParamVal := range actionParam.(map[string]interface{}) {
+								o.pubnub.Config.Log.Println("actionParamName", actionParamName)
+								o.pubnub.Config.Log.Println("actionParamVal", actionParamVal)
+								switch actionParamName {
+								case "uuid":
+									pv.UUID = actionParamVal.(string)
+								case "actionTimetoken":
+									pv.ActionTimetoken = actionParamVal.(string)
+								}
+							}
+							params[pCount] = pv
+							pCount++
+						}
+						messageActionsTypeMap.ActionsTypeValues[actionVal] = params
 					}
 				}
+				resp[actionType] = messageActionsTypeMap
 			}
+
 		}
 	}
 
-	return PNHistoryMessageActionsResponse{}
+	return resp
 }
 
 func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]FetchResponseItem {
@@ -338,23 +363,24 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 	return resp, status, nil
 }
 
-// FetchResponseItem contains the message and the associated timetoken.
-type FetchResponseItem struct {
-	Message        interface{}                     `json:"message"`
-	Meta           interface{}                     `json:"meta"`
-	MessageActions PNHistoryMessageActionsResponse `json:"actions"`
-	Timetoken      string                          `json:"timetoken"`
+// FetchResponse is the response to Fetch request. It contains a map of type FetchResponseItem
+type FetchResponse struct {
+	Messages map[string][]FetchResponseItem
 }
 
-type PNHistoryMessageActionsResponse struct {
-	ActionType interface{} `json:"-"`
+// FetchResponseItem contains the message and the associated timetoken.
+type FetchResponseItem struct {
+	Message        interface{}                               `json:"message"`
+	Meta           interface{}                               `json:"meta"`
+	MessageActions map[string]PNHistoryMessageActionsTypeMap `json:"actions"`
+	Timetoken      string                                    `json:"timetoken"`
 }
 
 type PNHistoryMessageActionsTypeMap struct {
-	ActionsTypeMap map[string][]PNHistoryMessageActionsType `json:"-"`
+	ActionsTypeValues map[string][]PNHistoryMessageActionTypeVal `json:"-"`
 }
 
-type PNHistoryMessageActionsType struct {
+type PNHistoryMessageActionTypeVal struct {
 	UUID            string `json:"uuid"`
 	ActionTimetoken string `json:"actionTimetoken"`
 }

@@ -14,32 +14,52 @@ import (
 )
 
 func TestMessageActionsListeners(t *testing.T) {
-	MessageActionsListenersCommon(t, false)
+	MessageActionsListenersCommon(t, false, false, false)
 }
 
 func TestMessageActionsListenersEnc(t *testing.T) {
-	MessageActionsListenersCommon(t, true)
+	MessageActionsListenersCommon(t, true, false, false)
 }
 
-func MessageActionsListenersCommon(t *testing.T, encrypted bool) {
+func TestMessageActionsListenersWithMeta(t *testing.T) {
+	MessageActionsListenersCommon(t, false, true, false)
+}
+
+func TestMessageActionsListenersEncWithMeta(t *testing.T) {
+	MessageActionsListenersCommon(t, true, true, false)
+}
+
+func TestMessageActionsListenersWithMA(t *testing.T) {
+	MessageActionsListenersCommon(t, false, false, true)
+}
+
+func TestMessageActionsListenersEncWithMA(t *testing.T) {
+	MessageActionsListenersCommon(t, true, false, true)
+}
+
+func TestMessageActionsListenersWithMetaMA(t *testing.T) {
+	MessageActionsListenersCommon(t, false, true, true)
+}
+
+func TestMessageActionsListenersEncWithMetaMA(t *testing.T) {
+	MessageActionsListenersCommon(t, true, true, true)
+}
+
+func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessageActions bool) {
 	eventWaitTime := 2
 	assert := assert.New(t)
 
-	pn := pubnub.NewPubNub(configCopy())
+	pnMA := pubnub.NewPubNub(configCopy())
 
 	r := GenRandom()
 
-	ch := fmt.Sprintf("test_message_actions_%d", r.Intn(99999))
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	chMA := fmt.Sprintf("test_message_actions_%d", r.Intn(99999))
+	if enableDebuggingInTests {
+		pnMA.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 
-	pn.Config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
-	pn.Config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
-	pn.Config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
-
-	pn.Config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
-	pn.Config.Secure = false
 	if encrypted {
-		pn.Config.CipherKey = "enigma"
+		pnMA.Config.CipherKey = "enigma"
 	}
 
 	// Subscribe,
@@ -54,7 +74,6 @@ func MessageActionsListenersCommon(t *testing.T, encrypted bool) {
 
 	go func() {
 		for {
-			fmt.Println("Running =--->")
 			select {
 
 			case status := <-listener.Status:
@@ -65,17 +84,19 @@ func MessageActionsListenersCommon(t *testing.T, encrypted bool) {
 					fmt.Println(" --- status: ", status)
 				}
 			case messageActionsEvent := <-listener.MessageActionsEvent:
-				fmt.Println(" --- MessageActionsEvent: ")
-				fmt.Println(fmt.Sprintf("%s", messageActionsEvent))
-				fmt.Println(fmt.Sprintf("messageActionsEvent.Channel: %s", messageActionsEvent.Channel))
-				fmt.Println(fmt.Sprintf("messageActionsEvent.SubscribedChannel: %s", messageActionsEvent.SubscribedChannel))
-				fmt.Println(fmt.Sprintf("messageActionsEvent.Event: %s", messageActionsEvent.Event))
-				fmt.Println(fmt.Sprintf("messageActionsEvent.Data.ActionType: %s", messageActionsEvent.Data.ActionType))
-				fmt.Println(fmt.Sprintf("messageActionsEvent.Data.ActionValue: %s", messageActionsEvent.Data.ActionValue))
-				fmt.Println(fmt.Sprintf("messageActionsEvent.Data.ActionTimetoken: %s", messageActionsEvent.Data.ActionTimetoken))
-				fmt.Println(fmt.Sprintf("messageActionsEvent.Data.MessageTimetoken: %s", messageActionsEvent.Data.MessageTimetoken))
+				if enableDebuggingInTests {
+					fmt.Println(" --- MessageActionsEvent: ")
+					fmt.Println(fmt.Sprintf("%s", messageActionsEvent))
+					fmt.Println(fmt.Sprintf("messageActionsEvent.Channel: %s", messageActionsEvent.Channel))
+					fmt.Println(fmt.Sprintf("messageActionsEvent.SubscribedChannel: %s", messageActionsEvent.SubscribedChannel))
+					fmt.Println(fmt.Sprintf("messageActionsEvent.Event: %s", messageActionsEvent.Event))
+					fmt.Println(fmt.Sprintf("messageActionsEvent.Data.ActionType: %s", messageActionsEvent.Data.ActionType))
+					fmt.Println(fmt.Sprintf("messageActionsEvent.Data.ActionValue: %s", messageActionsEvent.Data.ActionValue))
+					fmt.Println(fmt.Sprintf("messageActionsEvent.Data.ActionTimetoken: %s", messageActionsEvent.Data.ActionTimetoken))
+					fmt.Println(fmt.Sprintf("messageActionsEvent.Data.MessageTimetoken: %s", messageActionsEvent.Data.MessageTimetoken))
+				}
 
-				if (messageActionsEvent.Event == pubnub.PNMessageActionsAdded) && (messageActionsEvent.Channel == ch) {
+				if (messageActionsEvent.Event == pubnub.PNMessageActionsAdded) && (messageActionsEvent.Channel == chMA) {
 					mut.Lock()
 					addEvent = true
 					recActionTimetoken = messageActionsEvent.Data.ActionTimetoken
@@ -84,20 +105,19 @@ func MessageActionsListenersCommon(t *testing.T, encrypted bool) {
 					recMessageTimetoken = messageActionsEvent.Data.MessageTimetoken
 					mut.Unlock()
 				}
-				if (messageActionsEvent.Event == pubnub.PNMessageActionsRemoved) && (messageActionsEvent.Channel == ch) {
+				if (messageActionsEvent.Event == pubnub.PNMessageActionsRemoved) && (messageActionsEvent.Channel == chMA) {
 					mut.Lock()
 					delEvent = true
 					mut.Unlock()
 				}
 			}
-			fmt.Println("=>>>>>>>>>>>>> restart")
 		}
 
 	}()
 
-	pn.AddListener(listener)
+	pnMA.AddListener(listener)
 
-	pn.Subscribe().Channels([]string{ch}).Execute()
+	pnMA.Subscribe().Channels([]string{chMA}).Execute()
 
 	tic := time.NewTicker(time.Duration(eventWaitTime) * time.Second)
 	select {
@@ -107,12 +127,22 @@ func MessageActionsListenersCommon(t *testing.T, encrypted bool) {
 		assert.Fail("timeout")
 	}
 
-	// Publish,
+	meta := map[string]string{
+		"m1": "n1",
+		"m2": "n2",
+	}
+	if !withMeta {
+		meta = nil
+	}
 
-	resPub, _, _ := pn.Publish().
-		Channel("ch").
-		Message("hey").
-		ShouldStore(false).
+	// Publish,
+	message := fmt.Sprintf("hey_%d", r.Intn(99999))
+
+	resPub, _, _ := pnMA.Publish().
+		Channel(chMA).
+		Message(message).
+		ShouldStore(true).
+		Meta(meta).
 		Execute()
 
 	var messageTimetoken string
@@ -120,6 +150,7 @@ func MessageActionsListenersCommon(t *testing.T, encrypted bool) {
 	// read tt,
 	if resPub != nil {
 		messageTimetoken = strconv.FormatInt(resPub.Timestamp, 10)
+		fmt.Println("messageTimetoken", messageTimetoken)
 
 		// add action,
 		ma := pubnub.MessageAction{
@@ -127,7 +158,7 @@ func MessageActionsListenersCommon(t *testing.T, encrypted bool) {
 			ActionValue: "smiley_face",
 		}
 
-		resAddMA, _, errAddMA := pn.AddMessageAction().Channel(ch).MessageTimetoken(messageTimetoken).Action(ma).Execute()
+		resAddMA, _, errAddMA := pnMA.AddMessageAction().Channel(chMA).MessageTimetoken(messageTimetoken).Action(ma).Execute()
 
 		assert.Nil(errAddMA)
 
@@ -153,39 +184,113 @@ func MessageActionsListenersCommon(t *testing.T, encrypted bool) {
 		limit := 1
 
 		recActionTimetokenM1 := recActionTimetoken
+		fmt.Println("recActionTimetoken", recActionTimetoken)
 
 		n, err := strconv.ParseInt(recActionTimetoken, 10, 64)
 		if err == nil {
 			n = n + 1
 			recActionTimetokenM1 = strconv.FormatInt(n, 10)
 		}
+		fmt.Println("recActionTimetokenM1", recActionTimetokenM1, limit)
 
-		resGetMA1, _, errGetMA1 := pn.GetMessageActions().Channel(ch).Execute()
+		resGetMA1, _, errGetMA1 := pnMA.GetMessageActions().Channel(chMA).Execute()
 		assert.Nil(errGetMA1)
 		mut.Lock()
 		MatchGetMA(1, assert, resGetMA1, recActionType, recActionTimetoken, recActionValue, recMessageTimetoken)
 		mut.Unlock()
 
-		resGetMA2, _, errGetMA2 := pn.GetMessageActions().Channel(ch).Start(recActionTimetokenM1).Execute()
+		resGetMA2, _, errGetMA2 := pnMA.GetMessageActions().Channel(chMA).Start(recActionTimetokenM1).Execute()
 		assert.Nil(errGetMA2)
 		mut.Lock()
 		MatchGetMA(2, assert, resGetMA2, recActionType, recActionTimetoken, recActionValue, recMessageTimetoken)
 		mut.Unlock()
 
-		resGetMA3, _, errGetMA3 := pn.GetMessageActions().Channel(ch).Start(recActionTimetokenM1).End(recActionTimetoken).Execute()
+		resGetMA3, _, errGetMA3 := pnMA.GetMessageActions().Channel(chMA).Start(recActionTimetokenM1).End(recActionTimetoken).Execute()
 		assert.Nil(errGetMA3)
 		mut.Lock()
 		MatchGetMA(3, assert, resGetMA3, recActionType, recActionTimetoken, recActionValue, recMessageTimetoken)
 		mut.Unlock()
 
-		resGetMA4, _, errGetMA4 := pn.GetMessageActions().Channel(ch).Limit(limit).Execute()
+		resGetMA4, _, errGetMA4 := pnMA.GetMessageActions().Channel(chMA).Limit(limit).Execute()
 		assert.Nil(errGetMA4)
 		mut.Lock()
 		MatchGetMA(4, assert, resGetMA4, recActionType, recActionTimetoken, recActionValue, recMessageTimetoken)
 		mut.Unlock()
 
+		//Fetch with Actions
+		// var ttForMA int64
+		// tt, err := strconv.ParseInt(recActionTimetoken, 10, 64)
+		// if err == nil {
+		// 	ttForMA = int64(tt)
+		// }
+
+		var att int64
+		tt, err := strconv.ParseInt(recActionTimetoken, 10, 64)
+		if err == nil {
+			att = int64(tt)
+		}
+
+		var mtt int64
+		tt1, err := strconv.ParseInt(resGetMA1.Data[0].MessageTimetoken, 10, 64)
+		if err == nil {
+			mtt = int64(tt1)
+		}
+
+		if enableDebuggingInTests {
+			fmt.Println("att", att)
+			fmt.Println("mtt", mtt)
+			fmt.Println("recActionTimetoken", recActionTimetoken)
+			fmt.Println("messageTimetoken", messageTimetoken)
+			fmt.Println("resPub", resPub)
+		}
+
+		// Test History with Meta
+		resHist, _, errHist := pnMA.History().
+			Channel(chMA).
+			Count(10).
+			Reverse(true).
+			Start(att).
+			End(mtt).
+			WithMeta(withMeta).
+			IncludeTimetoken(true).
+			Execute()
+		assert.Nil(errHist)
+		mut.Lock()
+		MatchHistoryMessageWithMAResp(assert, resHist, chMA, message, mtt, meta, withMeta)
+		mut.Unlock()
+
+		// Test Fetch with Meta
+		retFM2, _, errFM2 := pnMA.Fetch().
+			Channels([]string{chMA}).
+			Count(10).
+			Reverse(true).
+			Start(att).
+			End(mtt).
+			WithMeta(withMeta).
+			Execute()
+		assert.Nil(errFM2)
+		mut.Lock()
+		MatchFetchMessageWithMAResp(assert, retFM2, chMA, message, mtt, att, pnMA.Config.UUID, ma, meta, withMeta, false)
+		mut.Unlock()
+
+		// Test Fetch with Meta and Actions
+		retFM, _, errFM := pnMA.Fetch().
+			Channels([]string{chMA}).
+			Count(10).
+			Reverse(true).
+			Start(att).
+			End(mtt).
+			WithMeta(withMeta).
+			WithMessageActions(withMessageActions).
+			Execute()
+
+		assert.Nil(errFM)
+		mut.Lock()
+		MatchFetchMessageWithMAResp(assert, retFM, chMA, message, mtt, att, pnMA.Config.UUID, ma, meta, withMeta, withMessageActions)
+		mut.Unlock()
+
 		// remove action,
-		resDelMA, _, errDelMA := pn.RemoveMessageAction().Channel(ch).MessageTimetoken(messageTimetoken).ActionTimetoken(recActionTimetoken).Execute()
+		resDelMA, _, errDelMA := pnMA.RemoveMessageAction().Channel(chMA).MessageTimetoken(messageTimetoken).ActionTimetoken(recActionTimetoken).Execute()
 		assert.Nil(errDelMA)
 		assert.NotNil(resDelMA)
 
@@ -196,6 +301,75 @@ func MessageActionsListenersCommon(t *testing.T, encrypted bool) {
 		mut.Unlock()
 	} else {
 		assert.Fail("resPub nil")
+	}
+}
+
+func MatchHistoryMessageWithMAResp(assert *assert.Assertions, resp *pubnub.HistoryResponse, chMA, message string, messageTimetoken int64, meta interface{}, withMeta bool) {
+	if resp != nil {
+		messages := resp.Messages
+		fmt.Println("====> history messages:", messages)
+		if messages != nil {
+			assert.Equal(message, messages[0].Message)
+			assert.Equal(messageTimetoken, messages[0].Timetoken)
+			if withMeta {
+				if meta != nil {
+					meta := messages[0].Meta.(map[string]interface{})
+					assert.Equal("n1", meta["m1"])
+					assert.Equal("n2", meta["m2"])
+					fmt.Println("meta:", meta)
+				} else {
+					assert.Fail("meta nil")
+				}
+			}
+		} else {
+			assert.Fail("messages nil")
+		}
+	} else {
+		assert.Fail("res nil")
+	}
+}
+
+func MatchFetchMessageWithMAResp(assert *assert.Assertions, resp *pubnub.FetchResponse, chMA, message string, messageTimetoken, recActionTimetokenM1 int64, UUID string, ma pubnub.MessageAction, meta interface{}, withMeta, withMessageActions bool) {
+	if resp != nil {
+		messages := resp.Messages
+		fmt.Println("messages:", messages)
+		m0 := messages[chMA]
+		if m0 != nil {
+			assert.Equal(message, m0[0].Message)
+			assert.Equal(strconv.FormatInt(messageTimetoken, 10), m0[0].Timetoken)
+			if withMeta {
+				if meta != nil {
+					meta := m0[0].Meta.(map[string]interface{})
+					assert.Equal("n1", meta["m1"])
+					assert.Equal("n2", meta["m2"])
+					fmt.Println("meta:", meta)
+				} else {
+					assert.Fail("meta nil")
+				}
+			}
+			if withMessageActions {
+				actionTypes := m0[0].MessageActions
+
+				if len(actionTypes) > 0 {
+					a0 := actionTypes[ma.ActionType]
+					r00 := a0.ActionsTypeValues[ma.ActionValue]
+					if r00 != nil {
+						assert.Equal(UUID, r00[0].UUID)
+						assert.Equal(strconv.FormatInt(recActionTimetokenM1, 10), r00[0].ActionTimetoken)
+						fmt.Println("action val:", r00[0].UUID, r00[0].ActionTimetoken)
+					} else {
+						assert.Fail("r0 nil")
+					}
+				} else {
+					assert.Fail("actionTypes nil")
+				}
+			}
+		} else {
+			assert.Fail("m0 nil")
+		}
+
+	} else {
+		assert.Fail("res nil")
 	}
 }
 

@@ -335,45 +335,109 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 
 }
 
+func TestFetchResponseMetaCipher(t *testing.T) {
+	FetchResponseMetaCommon(t, true)
+}
+
 func TestFetchResponseMeta(t *testing.T) {
+	FetchResponseMetaCommon(t, false)
+}
+
+func FetchResponseMetaCommon(t *testing.T, withCipher bool) {
 	assert := assert.New(t)
 
-	jsonString := []byte(`{"status": 200, "channels": {"my-channel": [{"message": "6f+dRox3OKNiBHdGRT5HpA==", "timetoken": "15699986472636251", "meta": {"m1": "n1", "m2": "n2"}}]}, "error_message": "", "error": false}`)
+	jsonString := []byte(`{"status": 200, "channels": {"my-channel": [{"message": "my-message", "timetoken": "15699986472636251", "meta": {"m1": "n1", "m2": "n2"}}]}, "error_message": "", "error": false}`)
+	cipher := ""
+	if withCipher {
+		cipher = "enigma"
+		jsonString = []byte(`{"status": 200, "channels": {"my-channel": [{"message": "6f+dRox3OKNiBHdGRT5HpA==", "timetoken": "15699986472636251", "meta": {"m1": "n1", "m2": "n2"}}]}, "error_message": "", "error": false}`)
+	}
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	resp, _, err := newFetchResponse(jsonString, initFetchOpts(cipher), fakeResponseState)
 	assert.Nil(err)
 	if resp != nil {
-		assert.Equal(int64(15699986472636251), resp.StartTimetoken)
-		assert.Equal(int64(15699986472636251), resp.EndTimetoken)
-
 		messages := resp.Messages
-		meta := messages[0].Meta.(map[string]interface{})
-		assert.Equal("my-message", messages[0].Message)
-		assert.Equal("n1", meta["m1"])
-		assert.Equal("n2", meta["m2"])
+		m0 := messages["my-channel"]
+		if m0 != nil {
+			assert.Equal("my-message", m0[0].Message)
+			assert.Equal("15699986472636251", m0[0].Timetoken)
+			meta := m0[0].Meta.(map[string]interface{})
+			assert.Equal("n1", meta["m1"])
+			assert.Equal("n2", meta["m2"])
+		} else {
+			assert.Fail("m0 nil")
+		}
 	} else {
 		assert.Fail("res nil")
 	}
 }
 
+func TestFetchResponseMetaAndActionsCipher(t *testing.T) {
+	FetchResponseMetaAndActionsCommon(t, true)
+}
+
 func TestFetchResponseMetaAndActions(t *testing.T) {
+	FetchResponseMetaAndActionsCommon(t, false)
+}
+
+func FetchResponseMetaAndActionsCommon(t *testing.T, withCipher bool) {
 	assert := assert.New(t)
 
-	jsonString := []byte(`{"status": 200, "channels": {"my-channel": [{"message": "6f+dRox3OKNiBHdGRT5HpA==", "timetoken": "15699986472636251", "meta": {"m1": "n1", "m2": "n2"}, "actions": {"reaction2": {"smiley_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177371680470"}]}, "reaction": {"smiley_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177592799750"}, {"uuid": "pn-0e6345ab-529e-4fce-be3e-6bd041296661", "actionTimetoken": "15700010213930810"}], "frown_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177482326900"}]}}}]}, "error_message": "", "error": false}`)
+	jsonString := []byte(`{"status": 200, "channels": {"my-channel": [{"message": "my-message", "timetoken": "15699986472636251", "meta": {"m1": "n1", "m2": "n2"}, "actions": {"reaction2": {"smiley_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177371680470"}]}, "reaction": {"smiley_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177592799750"}, {"uuid": "pn-0e6345ab-529e-4fce-be3e-6bd041296661", "actionTimetoken": "15700010213930810"}], "frown_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177482326900"}]}}}]}, "error_message": "", "error": false}`)
+	cipher := ""
+	if withCipher {
+		cipher = "enigma"
+		jsonString = []byte(`{"status": 200, "channels": {"my-channel": [{"message": "6f+dRox3OKNiBHdGRT5HpA==", "timetoken": "15699986472636251", "meta": {"m1": "n1", "m2": "n2"}, "actions": {"reaction2": {"smiley_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177371680470"}]}, "reaction": {"smiley_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177592799750"}, {"uuid": "pn-0e6345ab-529e-4fce-be3e-6bd041296661", "actionTimetoken": "15700010213930810"}], "frown_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177482326900"}]}}}]}, "error_message": "", "error": false}`)
+	}
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	resp, _, err := newFetchResponse(jsonString, initFetchOpts(cipher), fakeResponseState)
 	assert.Nil(err)
 
 	if resp != nil {
-		assert.Equal(int64(15699986472636251), resp.StartTimetoken)
-		assert.Equal(int64(15699986472636251), resp.EndTimetoken)
-
 		messages := resp.Messages
-		meta := messages[0].Meta.(map[string]interface{})
-		assert.Equal("my-message", messages[0].Message)
-		assert.Equal(int64(15699986472636251), messages[0].Timetoken)
-		assert.Equal("n1", meta["m1"])
-		assert.Equal("n2", meta["m2"])
+		m0 := messages["my-channel"]
+		if m0 != nil {
+			assert.Equal("my-message", m0[0].Message)
+			assert.Equal("15699986472636251", m0[0].Timetoken)
+			meta := m0[0].Meta.(map[string]interface{})
+			assert.Equal("n1", meta["m1"])
+			assert.Equal("n2", meta["m2"])
+		} else {
+			assert.Fail("m0 nil")
+		}
+
+		actions := m0[0].MessageActions
+
+		if len(actions) > 0 {
+			a0 := actions["reaction2"]
+			r00 := a0.ActionsTypeValues["smiley_face"]
+			if r00 != nil {
+				assert.Equal("pn-f3d10ae1-0437-4366-b509-0b5abd797a02", r00[0].UUID)
+				assert.Equal("15700177371680470", r00[0].ActionTimetoken)
+			} else {
+				assert.Fail("r0 nil")
+			}
+
+			a1 := actions["reaction"]
+			r10 := a1.ActionsTypeValues["smiley_face"]
+			if r10 != nil {
+				assert.Equal("pn-f3d10ae1-0437-4366-b509-0b5abd797a02", r10[0].UUID)
+				assert.Equal("15700177592799750", r10[0].ActionTimetoken)
+				assert.Equal("pn-0e6345ab-529e-4fce-be3e-6bd041296661", r10[1].UUID)
+				assert.Equal("15700010213930810", r10[1].ActionTimetoken)
+			} else {
+				assert.Fail("r0 nil")
+			}
+			r11 := a1.ActionsTypeValues["frown_face"]
+			if r11 != nil {
+				assert.Equal("pn-f3d10ae1-0437-4366-b509-0b5abd797a02", r11[0].UUID)
+				assert.Equal("15700177482326900", r11[0].ActionTimetoken)
+			} else {
+				assert.Fail("r0 nil")
+			}
+		} else {
+			assert.Fail("actions nil")
+		}
 	} else {
 		assert.Fail("res nil")
 	}
