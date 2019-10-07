@@ -51,22 +51,11 @@ func connect() {
 		fmt.Println("Logging enabled writing to ", logfileName)
 		infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-	//config.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
-	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 
-	// config.PublishKey = "pub-c-03f156ea-a2e3-4c35-a733-9535824be897"
-	// config.SubscribeKey = "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f"
-	// config.SecretKey = "sec-c-MmUxNTZjMmYtNzFkNS00ODkzLWE2YjctNmQ4YzE5NWNmZDA3"
-	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"
-	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3"
-
-	//config.AuthKey = "akey"
-	//config.Origin = "ingress.bronze.aws-pdx-1.ps.pn"
-	config.Secure = false
 	config.CipherKey = "enigma"
 
 	pn = pubnub.NewPubNub(config)
