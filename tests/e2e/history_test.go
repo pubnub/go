@@ -155,7 +155,6 @@ func TestHistoryEncryptedPNOther(t *testing.T) {
 		if msgOther, ok := res.Messages[0].Message.(map[string]interface{}); !ok {
 			assert.Fail("!map[string]interface{}")
 		} else {
-			//fmt.Println(msgOther)
 			if msgOther2, ok := msgOther["pn_other"].(map[string]interface{}); !ok {
 				assert.Fail("!map[string]interface{} 2")
 			} else {
