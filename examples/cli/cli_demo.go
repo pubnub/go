@@ -625,7 +625,7 @@ func getMessageActionsRecursive(channel string, start string, more bool, counter
 		res, _, _ = pn.GetMessageActions().Channel(channel).Start(start).Execute()
 	}
 	if (res != nil) && (len(res.Data) > 0) {
-		PrintMessageActions(res, counter+1)
+		printMessageActions(res, counter+1)
 		if more {
 			if res.More.Start != "" {
 				getMessageActionsRecursive(channel, res.More.Start, more, len(res.Data))
@@ -670,32 +670,28 @@ func getMessageActions(args []string) {
 		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).End(args[2]).Limit(limit).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
-		//fmt.Println("res", res)
-		PrintMessageActions(res, 0)
+		printMessageActions(res, 0)
 
 	} else if len(args) == 3 {
 		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).End(args[2]).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
-		//fmt.Println("res", res)
-		PrintMessageActions(res, 0)
+		printMessageActions(res, 0)
 	} else if len(args) == 2 {
 		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
-		//fmt.Println("res", res)
-		PrintMessageActions(res, 0)
+		printMessageActions(res, 0)
 	} else {
 		res, status, err := pn.GetMessageActions().Channel(channel).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
-		//fmt.Println("res", res)
-		PrintMessageActions(res, 0)
+		printMessageActions(res, 0)
 	}
 
 }
 
-func PrintMessageActions(res *pubnub.PNGetMessageActionsResponse, counter int) {
+func printMessageActions(res *pubnub.PNGetMessageActionsResponse, counter int) {
 	if res != nil {
 		for i, k := range res.Data {
 			fmt.Println(fmt.Sprintf("No: %d, Val: %s", i+counter, k))
@@ -1870,7 +1866,7 @@ func fetchRequest(args []string) {
 		}
 	}
 
-	var withMessageActions bool = false
+	var withMessageActions = false
 	if len(args) > 5 {
 		withMessageActions, _ = strconv.ParseBool(args[5])
 	}
@@ -1935,7 +1931,7 @@ func parseFetch(res *pubnub.FetchResponse, status pubnub.StatusResponse, err err
 				fmt.Println("message.Meta:", message.Meta)
 				fmt.Println("message.Actions:", message.MessageActions)
 
-				for action, _ := range message.MessageActions {
+				for action := range message.MessageActions {
 					actionTypes := message.MessageActions[action].ActionsTypeValues
 					fmt.Println("action1:", action)
 					if len(actionTypes) > 0 {
@@ -1953,14 +1949,6 @@ func parseFetch(res *pubnub.FetchResponse, status pubnub.StatusResponse, err err
 						fmt.Println("actionTypes nil")
 					}
 				}
-
-				// if message.MessageActions.ActionType != nil {
-				// 	for action, actionType := range message.MessageActions.ActionType {
-				// 		fmt.Println(action, actionType)
-				// 	}
-				// } else {
-				// 	fmt.Println("message.Actions nil ")
-				// }
 			}
 		}
 	} else {

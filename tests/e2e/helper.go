@@ -12,7 +12,7 @@ import (
 	pubnub "github.com/pubnub/go"
 )
 
-var enableDebuggingInTests bool = false
+var enableDebuggingInTests = false
 
 const (
 	SPECIAL_CHARACTERS = "-.,_~:/?#[]@!$&'()*+;=`|"

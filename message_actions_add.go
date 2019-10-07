@@ -41,6 +41,7 @@ func newAddMessageActionsBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
+// MessageAction struct is used to create a Message Action
 type MessageAction struct {
 	ActionType  string `json:"type"`
 	ActionValue string `json:"value"`

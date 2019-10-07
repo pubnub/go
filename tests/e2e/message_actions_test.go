@@ -217,13 +217,6 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 		MatchGetMA(4, assert, resGetMA4, recActionType, recActionTimetoken, recActionValue, recMessageTimetoken)
 		mut.Unlock()
 
-		//Fetch with Actions
-		// var ttForMA int64
-		// tt, err := strconv.ParseInt(recActionTimetoken, 10, 64)
-		// if err == nil {
-		// 	ttForMA = int64(tt)
-		// }
-
 		var att int64
 		tt, err := strconv.ParseInt(recActionTimetoken, 10, 64)
 		if err == nil {

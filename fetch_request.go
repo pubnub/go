@@ -177,11 +177,10 @@ func (o *fetchOpts) buildPath() (string, error) {
 		return fmt.Sprintf(historyWithMessageActionsPath,
 			o.pubnub.Config.SubscribeKey,
 			channels), nil
-	} else {
-		return fmt.Sprintf(fetchPath,
-			o.pubnub.Config.SubscribeKey,
-			channels), nil
 	}
+	return fmt.Sprintf(fetchPath,
+		o.pubnub.Config.SubscribeKey,
+		channels), nil
 }
 
 func (o *fetchOpts) buildQuery() (*url.Values, error) {
@@ -376,10 +375,12 @@ type FetchResponseItem struct {
 	Timetoken      string                                    `json:"timetoken"`
 }
 
+// PNHistoryMessageActionsTypeMap is the struct used in the Fetch request that includes Message Actions
 type PNHistoryMessageActionsTypeMap struct {
 	ActionsTypeValues map[string][]PNHistoryMessageActionTypeVal `json:"-"`
 }
 
+// PNHistoryMessageActionTypeVal is the struct used in the Fetch request that includes Message Actions
 type PNHistoryMessageActionTypeVal struct {
 	UUID            string `json:"uuid"`
 	ActionTimetoken string `json:"actionTimetoken"`

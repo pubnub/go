@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Message Actions"
+        type: improvement
+      - 
+        text: "Grant Token validation for TTL"
+        type: improvement
+    date: Oct 7, 19  
+    version: v4.4.0
+  - 
+    changes: 
+      - 
         text: "Publish method now sets the ShouldStore flag if it is set to false"
         type: bug
     date: Oct 2, 19  
@@ -436,4 +446,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.3.1
+version: v4.4.0

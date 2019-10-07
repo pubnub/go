@@ -235,13 +235,17 @@ const (
 	// PNManageMembershipsOperation is the enum used to manage memberships in the Object API.
 	PNManageMembershipsOperation
 	// PNManageMembersOperation is the enum used to manage members in the Object API.
-	// ENUM ORDER needs to be maintained for Objects API
+	// ENUM ORDER needs to be maintained for Objects API.
 	PNManageMembersOperation
-	// PNAccessManagerGrantToken is the enum used from Grant v3 requests
+	// PNAccessManagerGrantToken is the enum used for Grant v3 requests.
 	PNAccessManagerGrantToken
+	// PNGetMessageActionsOperation is the enum used for Message Actions Get requests.
 	PNGetMessageActionsOperation
+	// PNHistoryWithActionsOperation is the enum used for History with Actions requests.
 	PNHistoryWithActionsOperation
+	// PNAddMessageActionsOperation is the enum used for Message Actions Add requests.
 	PNAddMessageActionsOperation
+	// PNRemoveMessageActionsOperation is the enum used for Message Actions Remove requests.
 	PNRemoveMessageActionsOperation
 )
 

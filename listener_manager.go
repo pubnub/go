@@ -308,6 +308,7 @@ type PNMembershipEvent struct {
 	Subscription      string
 }
 
+// PNMessageActionsEvent is the Response for a Message Actions Event
 type PNMessageActionsEvent struct {
 	Event             PNMessageActionsEventType
 	Data              PNMessageActionsResponse
