@@ -8,6 +8,9 @@ changelog:
       - 
         text: "Grant Token validation for TTL"
         type: improvement
+      - 
+        text: "withMeta param in History and Fetch"
+        type: improvement
     date: Oct 7, 19  
     version: v4.4.0
   - 
