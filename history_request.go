@@ -82,8 +82,8 @@ func (b *historyBuilder) IncludeTimetoken(i bool) *historyBuilder {
 	return b
 }
 
-// WithMeta fetches the meta data associated with the message
-func (b *historyBuilder) WithMeta(withMeta bool) *historyBuilder {
+// IncludeMeta fetches the meta data associated with the message
+func (b *historyBuilder) IncludeMeta(withMeta bool) *historyBuilder {
 	b.opts.WithMeta = withMeta
 	return b
 }

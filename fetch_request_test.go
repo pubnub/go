@@ -100,7 +100,7 @@ func TestFetchMessageActionValidation(t *testing.T) {
 	o := newFetchBuilder(pubnub)
 	o.Channels(channels)
 	o.Reverse(false)
-	o.WithMessageActions(true)
+	o.IncludeMessageActions(true)
 
 	_, _, e := o.Execute()
 	assert.Equal("pubnub/validation: pubnub: \x06: Only one channel is supported when WithMessageActions is true", e.Error())
