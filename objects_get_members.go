@@ -52,21 +52,18 @@ func (b *getMembersBuilder) SpaceID(id string) *getMembersBuilder {
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *getMembersBuilder) Include(include []PNMembersInclude) *getMembersBuilder {
 	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *getMembersBuilder) Limit(limit int) *getMembersBuilder {
 	b.opts.Limit = limit
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *getMembersBuilder) Start(start string) *getMembersBuilder {
 	b.opts.Start = start
 

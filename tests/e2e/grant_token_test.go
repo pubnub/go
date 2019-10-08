@@ -15,7 +15,9 @@ func TestGrantToken(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 	u1 := randomized("u")
 	s1 := randomized("s")
 

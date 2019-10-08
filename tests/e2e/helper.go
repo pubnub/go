@@ -12,6 +12,8 @@ import (
 	pubnub "github.com/pubnub/go"
 )
 
+var enableDebuggingInTests = false
+
 const (
 	SPECIAL_CHARACTERS = "-.,_~:/?#[]@!$&'()*+;=`|"
 	SPECIAL_CHANNEL    = "-._~:/?#[]@!$&'()*+;=`|"

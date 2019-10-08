@@ -141,7 +141,6 @@ func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
 		Create: false,
 	}
 	for k, v := range b {
-		//fmt.Println(k, string(v))
 		i, _ := strconv.Atoi(string(v))
 		switch k {
 		case 0:
@@ -156,7 +155,7 @@ func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
 			r.Create = (i == 1)
 		}
 	}
-	//fmt.Println(r)
+
 	switch resourceType {
 	case PNChannels:
 		return ChannelPermissions{

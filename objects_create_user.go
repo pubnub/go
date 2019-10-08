@@ -51,21 +51,18 @@ type createUserBody struct {
 	Custom     map[string]interface{} `json:"custom"`
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *createUserBuilder) Include(include []PNUserSpaceInclude) *createUserBuilder {
 	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *createUserBuilder) ID(id string) *createUserBuilder {
 	b.opts.ID = id
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *createUserBuilder) Name(name string) *createUserBuilder {
 	b.opts.Name = name
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strconv"
 	"testing"
 
 	h "github.com/pubnub/go/tests/helpers"
@@ -52,7 +53,7 @@ func TestHistoryRequestBasic(t *testing.T) {
 	expected.Set("count", "100")
 	expected.Set("reverse", "false")
 	expected.Set("include_token", "false")
-	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "include_meta"}, []string{})
 
 	body, err := opts.buildBody()
 
@@ -82,7 +83,7 @@ func TestNewHistoryBuilder(t *testing.T) {
 	expected.Set("count", "100")
 	expected.Set("reverse", "false")
 	expected.Set("include_token", "false")
-	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "include_meta"}, []string{})
 
 	body, err := o.opts.buildBody()
 
@@ -112,7 +113,7 @@ func TestNewHistoryBuilderContext(t *testing.T) {
 	expected.Set("count", "100")
 	expected.Set("reverse", "false")
 	expected.Set("include_token", "false")
-	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "include_meta"}, []string{})
 
 	body, err := o.opts.buildBody()
 
@@ -153,7 +154,53 @@ func TestHistoryRequestAllParams(t *testing.T) {
 	expected.Set("reverse", "false")
 	expected.Set("count", "3")
 	expected.Set("include_token", "true")
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "include_meta"}, []string{})
+}
+
+func HistoryRequestWithMetaCommon(t *testing.T, withMeta bool) {
+	assert := assert.New(t)
+
+	opts := &historyOpts{
+		Channel:          "ch",
+		Start:            int64(100000),
+		End:              int64(200000),
+		setStart:         true,
+		setEnd:           true,
+		Reverse:          false,
+		Count:            3,
+		IncludeTimetoken: true,
+		pubnub:           pubnub,
+	}
+	opts.WithMeta = withMeta
+
+	path, err := opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/history/sub-key/sub_key/channel/%s", opts.Channel),
+		u.EscapedPath(), []int{})
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("start", "100000")
+	expected.Set("end", "200000")
+	expected.Set("reverse", "false")
+	expected.Set("count", "3")
+	expected.Set("include_token", "true")
+	expected.Set("include_meta", strconv.FormatBool(withMeta))
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+}
+
+func TestHistoryRequestWithMetaTrue(t *testing.T) {
+	HistoryRequestWithMetaCommon(t, true)
+}
+
+func TestHistoryRequestWithMetaFalse(t *testing.T) {
+	HistoryRequestWithMetaCommon(t, false)
 }
 
 func TestHistoryResponseParsingStringMessages(t *testing.T) {
@@ -415,6 +462,43 @@ func TestHistoryEncryptMap(t *testing.T) {
 	}
 
 	pnconfig.CipherKey = ""
+}
+
+func TestHistoryResponseMeta(t *testing.T) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`[[{"message":"my-message","meta":{"m1":"n1","m2":"n2"}}],15699986472636251,15699986472636251]`)
+
+	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	assert.Nil(err)
+
+	assert.Equal(int64(15699986472636251), resp.StartTimetoken)
+	assert.Equal(int64(15699986472636251), resp.EndTimetoken)
+
+	messages := resp.Messages
+	meta := messages[0].Meta.(map[string]interface{})
+	assert.Equal("my-message", messages[0].Message)
+	assert.Equal("n1", meta["m1"])
+	assert.Equal("n2", meta["m2"])
+}
+
+func TestHistoryResponseMetaAndTT(t *testing.T) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`[[{"message":"my-message","meta":{"m1":"n1","m2":"n2"},"timetoken":15699986472636251}],15699986472636251,15699986472636251]`)
+
+	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	assert.Nil(err)
+
+	assert.Equal(int64(15699986472636251), resp.StartTimetoken)
+	assert.Equal(int64(15699986472636251), resp.EndTimetoken)
+
+	messages := resp.Messages
+	meta := messages[0].Meta.(map[string]interface{})
+	assert.Equal("my-message", messages[0].Message)
+	assert.Equal(int64(15699986472636251), messages[0].Timetoken)
+	assert.Equal("n1", meta["m1"])
+	assert.Equal("n2", meta["m2"])
 }
 
 func TestHistoryResponseError(t *testing.T) {

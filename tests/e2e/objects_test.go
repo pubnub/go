@@ -783,7 +783,9 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	if withPAM {
 		pn2 := ActivateWithPAM()
 		if runWithoutSecretKey {
-			pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+			if enableDebuggingInTests {
+				pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+			}
 			tokens := RunGrant(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, true)
 			SetPN(pn, pn2, tokens)
 			SetPN(pnSub, pn2, tokens)
@@ -797,12 +799,16 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		} else {
 			pn = pn2
 			pnSub = pn2
-			pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+			if enableDebuggingInTests {
+				pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+			}
 			RunGrant(pn, []string{userid}, []string{spaceid}, true, true, true, true, true, false)
 		}
 	}
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-	pnSub.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+		pnSub.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 
 	//Subscribe to the channel names
 

@@ -2,7 +2,9 @@ package pubnub
 
 import (
 	"fmt"
+	"net/url"
 	"reflect"
+	"strconv"
 	"testing"
 
 	h "github.com/pubnub/go/tests/helpers"
@@ -13,12 +15,10 @@ func AssertSuccessFetchGet(t *testing.T, expectedString string, channels []strin
 	assert := assert.New(t)
 
 	opts := &fetchOpts{
-		Channels:         channels,
-		Reverse:          false,
-		IncludeTimetoken: true,
-		pubnub:           pubnub,
+		Channels: channels,
+		Reverse:  false,
+		pubnub:   pubnub,
 	}
-
 	path, err := opts.buildPath()
 	assert.Nil(err)
 
@@ -37,6 +37,76 @@ func TestFetchQueryParam(t *testing.T) {
 	AssertSuccessFetchGetQueryParam(t, "%22test%22?max=25&reverse=false", channels)
 }
 
+func TestFetchMetaAndActions(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, true)
+}
+
+func TestFetchActions(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, false, true)
+}
+
+func TestFetchMeta(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, false)
+}
+
+func AssertSuccessFetchGetMetaAndActions(t *testing.T, expectedString string, channels []string, withMeta, withMessageActions bool) {
+	assert := assert.New(t)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts := &fetchOpts{
+		Channels:   channels,
+		Reverse:    false,
+		pubnub:     pubnub,
+		QueryParam: queryParam,
+	}
+	opts.WithMeta = withMeta
+	opts.WithMessageActions = withMessageActions
+
+	path, err := opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+
+	if withMessageActions {
+
+		h.AssertPathsEqual(t,
+			fmt.Sprintf("/v3/history-with-actions/sub-key/sub_key/channel/%s", expectedString),
+			u.EscapedPath(), []int{})
+	} else {
+		h.AssertPathsEqual(t,
+			fmt.Sprintf("/v3/history/sub-key/sub_key/channel/%s", expectedString),
+			u.EscapedPath(), []int{})
+	}
+
+	u1, err := opts.buildQuery()
+	assert.Nil(err)
+
+	assert.Equal("v1", u1.Get("q1"))
+	assert.Equal("v2", u1.Get("q2"))
+	assert.Equal(strconv.FormatBool(withMeta), u1.Get("include_meta"))
+}
+
+func TestFetchMessageActionValidation(t *testing.T) {
+	assert := assert.New(t)
+
+	channels := []string{"test1", "test2"}
+	o := newFetchBuilder(pubnub)
+	o.Channels(channels)
+	o.Reverse(false)
+	o.WithMessageActions(true)
+
+	_, _, e := o.Execute()
+	assert.Equal("pubnub/validation: pubnub: \x06: Only one channel is supported when WithMessageActions is true", e.Error())
+
+}
+
 func AssertSuccessFetchGetQueryParam(t *testing.T, expectedString string, channels []string) {
 	assert := assert.New(t)
 	queryParam := map[string]string{
@@ -45,11 +115,10 @@ func AssertSuccessFetchGetQueryParam(t *testing.T, expectedString string, channe
 	}
 
 	opts := &fetchOpts{
-		Channels:         channels,
-		Reverse:          false,
-		IncludeTimetoken: true,
-		pubnub:           pubnub,
-		QueryParam:       queryParam,
+		Channels:   channels,
+		Reverse:    false,
+		pubnub:     pubnub,
+		QueryParam: queryParam,
 	}
 
 	u, err := opts.buildQuery()
@@ -264,6 +333,114 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 	assert.Equal("15229450607090584", respMyChannel[2].Timetoken)
 	pn.Config.CipherKey = ""
 
+}
+
+func TestFetchResponseMetaCipher(t *testing.T) {
+	FetchResponseMetaCommon(t, true)
+}
+
+func TestFetchResponseMeta(t *testing.T) {
+	FetchResponseMetaCommon(t, false)
+}
+
+func FetchResponseMetaCommon(t *testing.T, withCipher bool) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`{"status": 200, "channels": {"my-channel": [{"message": "my-message", "timetoken": "15699986472636251", "meta": {"m1": "n1", "m2": "n2"}}]}, "error_message": "", "error": false}`)
+	cipher := ""
+	if withCipher {
+		cipher = "enigma"
+		jsonString = []byte(`{"status": 200, "channels": {"my-channel": [{"message": "6f+dRox3OKNiBHdGRT5HpA==", "timetoken": "15699986472636251", "meta": {"m1": "n1", "m2": "n2"}}]}, "error_message": "", "error": false}`)
+	}
+
+	resp, _, err := newFetchResponse(jsonString, initFetchOpts(cipher), fakeResponseState)
+	assert.Nil(err)
+	if resp != nil {
+		messages := resp.Messages
+		m0 := messages["my-channel"]
+		if m0 != nil {
+			assert.Equal("my-message", m0[0].Message)
+			assert.Equal("15699986472636251", m0[0].Timetoken)
+			meta := m0[0].Meta.(map[string]interface{})
+			assert.Equal("n1", meta["m1"])
+			assert.Equal("n2", meta["m2"])
+		} else {
+			assert.Fail("m0 nil")
+		}
+	} else {
+		assert.Fail("res nil")
+	}
+}
+
+func TestFetchResponseMetaAndActionsCipher(t *testing.T) {
+	FetchResponseMetaAndActionsCommon(t, true)
+}
+
+func TestFetchResponseMetaAndActions(t *testing.T) {
+	FetchResponseMetaAndActionsCommon(t, false)
+}
+
+func FetchResponseMetaAndActionsCommon(t *testing.T, withCipher bool) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`{"status": 200, "channels": {"my-channel": [{"message": "my-message", "timetoken": "15699986472636251", "meta": {"m1": "n1", "m2": "n2"}, "actions": {"reaction2": {"smiley_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177371680470"}]}, "reaction": {"smiley_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177592799750"}, {"uuid": "pn-0e6345ab-529e-4fce-be3e-6bd041296661", "actionTimetoken": "15700010213930810"}], "frown_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177482326900"}]}}}]}, "error_message": "", "error": false}`)
+	cipher := ""
+	if withCipher {
+		cipher = "enigma"
+		jsonString = []byte(`{"status": 200, "channels": {"my-channel": [{"message": "6f+dRox3OKNiBHdGRT5HpA==", "timetoken": "15699986472636251", "meta": {"m1": "n1", "m2": "n2"}, "actions": {"reaction2": {"smiley_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177371680470"}]}, "reaction": {"smiley_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177592799750"}, {"uuid": "pn-0e6345ab-529e-4fce-be3e-6bd041296661", "actionTimetoken": "15700010213930810"}], "frown_face": [{"uuid": "pn-f3d10ae1-0437-4366-b509-0b5abd797a02", "actionTimetoken": "15700177482326900"}]}}}]}, "error_message": "", "error": false}`)
+	}
+
+	resp, _, err := newFetchResponse(jsonString, initFetchOpts(cipher), fakeResponseState)
+	assert.Nil(err)
+
+	if resp != nil {
+		messages := resp.Messages
+		m0 := messages["my-channel"]
+		if m0 != nil {
+			assert.Equal("my-message", m0[0].Message)
+			assert.Equal("15699986472636251", m0[0].Timetoken)
+			meta := m0[0].Meta.(map[string]interface{})
+			assert.Equal("n1", meta["m1"])
+			assert.Equal("n2", meta["m2"])
+		} else {
+			assert.Fail("m0 nil")
+		}
+
+		actions := m0[0].MessageActions
+
+		if len(actions) > 0 {
+			a0 := actions["reaction2"]
+			r00 := a0.ActionsTypeValues["smiley_face"]
+			if r00 != nil {
+				assert.Equal("pn-f3d10ae1-0437-4366-b509-0b5abd797a02", r00[0].UUID)
+				assert.Equal("15700177371680470", r00[0].ActionTimetoken)
+			} else {
+				assert.Fail("r0 nil")
+			}
+
+			a1 := actions["reaction"]
+			r10 := a1.ActionsTypeValues["smiley_face"]
+			if r10 != nil {
+				assert.Equal("pn-f3d10ae1-0437-4366-b509-0b5abd797a02", r10[0].UUID)
+				assert.Equal("15700177592799750", r10[0].ActionTimetoken)
+				assert.Equal("pn-0e6345ab-529e-4fce-be3e-6bd041296661", r10[1].UUID)
+				assert.Equal("15700010213930810", r10[1].ActionTimetoken)
+			} else {
+				assert.Fail("r0 nil")
+			}
+			r11 := a1.ActionsTypeValues["frown_face"]
+			if r11 != nil {
+				assert.Equal("pn-f3d10ae1-0437-4366-b509-0b5abd797a02", r11[0].UUID)
+				assert.Equal("15700177482326900", r11[0].ActionTimetoken)
+			} else {
+				assert.Fail("r0 nil")
+			}
+		} else {
+			assert.Fail("actions nil")
+		}
+	} else {
+		assert.Fail("res nil")
+	}
 }
 
 func TestFireValidateSubscribeKey(t *testing.T) {

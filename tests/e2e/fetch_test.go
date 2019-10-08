@@ -27,6 +27,22 @@ func MatchFetchMessages(ret *pubnub.FetchResponse, start int, ch1, ch2 string, a
 }
 
 func TestFetch(t *testing.T) {
+	FetchCommon(t, false, false)
+}
+
+func TestFetchWithMeta(t *testing.T) {
+	FetchCommon(t, true, false)
+}
+
+func TestFetchWithMessageActions(t *testing.T) {
+	FetchCommon(t, false, true)
+}
+
+func TestFetchWithMetaAndMessageActions(t *testing.T) {
+	FetchCommon(t, true, true)
+}
+
+func FetchCommon(t *testing.T, withMeta, withMessageActions bool) {
 	assert := a.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())

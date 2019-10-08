@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Message Actions"
+        type: improvement
+      - 
+        text: "Grant Token validation for TTL"
+        type: improvement
+    date: Oct 7, 19  
+    version: v4.4.0
+  - 
+    changes: 
+      - 
         text: "Publish method now sets the ShouldStore flag if it is set to false"
         type: bug
     date: Oct 2, 19  
@@ -368,6 +378,9 @@ features:
     - STORAGE-DELETE-MESSAGES
     - STORAGE-FETCH-MESSAGES
     - STORAGE-MESSAGE-COUNT
+    - STORAGE-HISTORY-WITH-META
+    - STORAGE-FETCH-WITH-META
+    - STORAGE-FETCH-WITH-MESSAGE-ACTIONS
   subscribe: 
     - SUBSCRIBE-CHANNELS
     - SUBSCRIBE-CHANNEL-GROUPS
@@ -383,6 +396,7 @@ features:
     - SUBSCRIBE-MEMBERSHIP-LISTENER
     - SUBSCRIBE-SPACE-LISTENER
     - SUBSCRIBE-USER-LISTENER
+    - SUBSCRIBE-MESSAGE-ACTIONS-LISTENER
   objects:
     - OBJECTS-GET-USERS
     - OBJECTS-GET-USER
@@ -398,6 +412,10 @@ features:
     - OBJECTS-MANAGE-MEMBERSHIPS
     - OBJECTS-GET-MEMBERS
     - OBJECTS-MANAGE-MEMBERS
+  message-actions:
+    - MESSAGE-ACTIONS-GET
+    - MESSAGE-ACTIONS-ADD
+    - MESSAGE-ACTIONS-REMOVE  
   time: 
     - TIME-TIME
   unsubscribe: 
@@ -428,4 +446,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.3.1
+version: v4.4.0
