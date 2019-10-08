@@ -1872,8 +1872,8 @@ func fetchRequest(args []string) {
 			Start(start).
 			End(end).
 			Reverse(reverse).
-			WithMessageActions(withMessageActions).
-			WithMeta(withMeta).
+			IncludeMessageActions(withMessageActions).
+			IncludeMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	} else if start != 0 {
@@ -1882,8 +1882,8 @@ func fetchRequest(args []string) {
 			Count(count).
 			Start(start).
 			Reverse(reverse).
-			WithMessageActions(withMessageActions).
-			WithMeta(withMeta).
+			IncludeMessageActions(withMessageActions).
+			IncludeMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	} else if end != 0 {
@@ -1892,8 +1892,8 @@ func fetchRequest(args []string) {
 			Count(count).
 			End(end).
 			Reverse(reverse).
-			WithMessageActions(withMessageActions).
-			WithMeta(withMeta).
+			IncludeMessageActions(withMessageActions).
+			IncludeMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	} else {
@@ -1901,8 +1901,8 @@ func fetchRequest(args []string) {
 			Channels(channels).
 			Count(count).
 			Reverse(reverse).
-			WithMessageActions(withMessageActions).
-			WithMeta(withMeta).
+			IncludeMessageActions(withMessageActions).
+			IncludeMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	}
@@ -2011,7 +2011,7 @@ func historyRequest(args []string) {
 			End(end).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
-			WithMeta(withMeta).
+			IncludeMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	} else if start != 0 {
@@ -2021,7 +2021,7 @@ func historyRequest(args []string) {
 			Start(start).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
-			WithMeta(withMeta).
+			IncludeMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	} else if end != 0 {
@@ -2031,7 +2031,7 @@ func historyRequest(args []string) {
 			End(end).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
-			WithMeta(withMeta).
+			IncludeMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	} else {
@@ -2040,7 +2040,7 @@ func historyRequest(args []string) {
 			Count(count).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
-			WithMeta(withMeta).
+			IncludeMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	}

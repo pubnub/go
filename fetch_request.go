@@ -80,14 +80,14 @@ func (b *fetchBuilder) Reverse(r bool) *fetchBuilder {
 	return b
 }
 
-// WithMeta fetches the meta data associated with the message
-func (b *fetchBuilder) WithMeta(withMeta bool) *fetchBuilder {
+// IncludeMeta fetches the meta data associated with the message
+func (b *fetchBuilder) IncludeMeta(withMeta bool) *fetchBuilder {
 	b.opts.WithMeta = withMeta
 	return b
 }
 
-// WithActions fetches the actions associated with the message
-func (b *fetchBuilder) WithMessageActions(withMessageActions bool) *fetchBuilder {
+// IncludeMessageActions fetches the actions associated with the message
+func (b *fetchBuilder) IncludeMessageActions(withMessageActions bool) *fetchBuilder {
 	b.opts.WithMessageActions = withMessageActions
 	return b
 }

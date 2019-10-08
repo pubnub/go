@@ -244,7 +244,7 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 			Reverse(true).
 			Start(att).
 			End(mtt).
-			WithMeta(withMeta).
+			IncludeMeta(withMeta).
 			IncludeTimetoken(true).
 			Execute()
 		assert.Nil(errHist)
@@ -259,7 +259,7 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 			Reverse(true).
 			Start(att).
 			End(mtt).
-			WithMeta(withMeta).
+			IncludeMeta(withMeta).
 			Execute()
 		assert.Nil(errFM2)
 		mut.Lock()
@@ -273,8 +273,8 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 			Reverse(true).
 			Start(att).
 			End(mtt).
-			WithMeta(withMeta).
-			WithMessageActions(withMessageActions).
+			IncludeMeta(withMeta).
+			IncludeMessageActions(withMessageActions).
 			Execute()
 
 		assert.Nil(errFM)
