@@ -9,7 +9,7 @@ changelog:
         text: "WithMessageActions param is now IncludeMessageActions in Fetch"
         type: improvement
     date: Oct 8, 19  
-    version: v4.4.1
+    version: v4.5.0
   - 
     changes: 
       - 
@@ -459,4 +459,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.4.1
+version: v4.5.0

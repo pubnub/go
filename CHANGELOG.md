@@ -1,4 +1,4 @@
-## [v4.4.1](https://github.com/pubnub/go/tree/v4.4.1)
+## [v4.5.0](https://github.com/pubnub/go/tree/v4.5.0)
   October-8-2019
 
 ## [v4.4.0](https://github.com/pubnub/go/tree/v4.4.0)
