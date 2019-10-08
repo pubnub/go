@@ -176,8 +176,21 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 	case PNAccessManagerGrant:
 		endpoint = "pam"
 		break
+	case PNAccessManagerGrantToken:
+		endpoint = "pamv3"
+		break
 	case PNSignalOperation:
 		endpoint = "sig"
+		break
+	case PNGetMessageActionsOperation:
+		fallthrough
+	case PNAddMessageActionsOperation:
+		fallthrough
+	case PNRemoveMessageActionsOperation:
+		endpoint = "msga"
+		break
+	case PNHistoryWithActionsOperation:
+		endpoint = "hist"
 		break
 	case PNCreateUserOperation:
 		fallthrough

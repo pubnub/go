@@ -51,13 +51,13 @@ func connect() {
 		fmt.Println("Logging enabled writing to ", logfileName)
 		infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-	//config.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
-	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
+
 	config.CipherKey = "enigma"
+
 	pn = pubnub.NewPubNub(config)
 
 	// for subscribe event
@@ -147,6 +147,18 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Description: %s", outputPrefix, membershipEvent.Description))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Timestamp: %s", outputPrefix, membershipEvent.Timestamp))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Custom: %v", outputPrefix, membershipEvent.Custom))
+
+			case messageActionsEvent := <-listener.MessageActionsEvent:
+				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
+				fmt.Println(" --- MessageActionsEvent: ")
+				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, messageActionsEvent))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Channel: %s", outputPrefix, messageActionsEvent.Channel))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.SubscribedChannel: %s", outputPrefix, messageActionsEvent.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Event: %s", outputPrefix, messageActionsEvent.Event))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionType: %s", outputPrefix, messageActionsEvent.Data.ActionType))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionValue: %s", outputPrefix, messageActionsEvent.Data.ActionValue))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionTimetoken: %s", outputPrefix, messageActionsEvent.Data.ActionTimetoken))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.MessageTimetoken: %s", outputPrefix, messageActionsEvent.Data.MessageTimetoken))
 			}
 		}
 	}()
@@ -215,6 +227,9 @@ func showHelp() {
 	showDeleteUserHelp()
 	showUpdateUserHelp()
 	showGetUserHelp()
+	showAddActionHelp()
+	showGetActionsHelp()
+	showDeleteActionHelp()
 	fmt.Println("")
 	fmt.Println("================")
 	fmt.Println(" ||  COMMANDS  ||")
@@ -222,6 +237,27 @@ func showHelp() {
 	fmt.Println("")
 	fmt.Println(" UNSUBSCRIBE ALL \n\tq ")
 	fmt.Println(" QUIT \n\tctrl+c ")
+}
+
+func showAddActionHelp() {
+	fmt.Println(" AddAction EXAMPLE: ")
+	fmt.Println("	addaction channel timetoken actiontype actionval")
+	fmt.Println("	addaction my-channel 15210190573608384 reaction smiley_face")
+
+}
+
+func showGetActionsHelp() {
+	fmt.Println(" GetActions EXAMPLE: ")
+	fmt.Println("	getactions channel start end limit")
+	fmt.Println("	getactions my-channel 15692395344923130 15210190573608384 10")
+
+}
+
+func showDeleteActionHelp() {
+	fmt.Println(" DeleteAction EXAMPLE: ")
+	fmt.Println("	remaction channel messagetTimetoken actionTimetoken")
+	fmt.Println("	remaction my-channel 15210190573608384 15692395344923130 ")
+
 }
 
 func showEditMembershipsHelp() {
@@ -539,6 +575,18 @@ func readCommand(cmd string) {
 		getTokens(command[1:])
 	case "gettokenres":
 		getTokenRes(command[1:])
+	case "addaction":
+		addMessageAction(command[1:])
+	case "addactions":
+		addMessageActions(command[1:])
+	case "getactions":
+		getMessageActions(command[1:])
+	case "getactionsrec":
+		getMessageActionsRec(command[1:])
+	case "getactionsrec2":
+		getMessageActionsRec(command[1:])
+	case "remaction":
+		removeMessageActions(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -546,6 +594,152 @@ func readCommand(cmd string) {
 	default:
 		showHelp()
 	}
+}
+
+func getMessageActionsRec2(args []string) {
+	channel := args[0]
+	getMessageActionsRecursive(channel, "", false, 0)
+}
+
+func getMessageActionsRec(args []string) {
+	channel := args[0]
+	getMessageActionsRecursive(channel, "", true, 0)
+}
+
+func getMessageActionsRecursive(channel string, start string, more bool, counter int) {
+	var res *pubnub.PNGetMessageActionsResponse
+	if start == "" {
+		res, _, _ = pn.GetMessageActions().Channel(channel).Execute()
+	} else {
+		res, _, _ = pn.GetMessageActions().Channel(channel).Start(start).Execute()
+	}
+	if (res != nil) && (len(res.Data) > 0) {
+		printMessageActions(res, counter+1)
+		if more {
+			if res.More.Start != "" {
+				getMessageActionsRecursive(channel, res.More.Start, more, len(res.Data))
+			}
+		} else {
+			if len(res.Data) > 0 {
+				getMessageActionsRecursive(channel, res.Data[0].ActionTimetoken, more, len(res.Data))
+			}
+		}
+	}
+
+}
+
+func removeMessageActions(args []string) {
+	if len(args) < 3 {
+		showDeleteActionHelp()
+		return
+	}
+	channel := args[0]
+	tt := args[1]
+	att := args[2]
+	res, status, err := pn.RemoveMessageAction().Channel(channel).MessageTimetoken(tt).ActionTimetoken(att).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func getMessageActions(args []string) {
+	if len(args) < 1 {
+		showGetActionsHelp()
+		return
+	}
+	channel := args[0]
+	if len(args) == 4 {
+		var limit int
+
+		n, err := strconv.ParseInt(args[3], 10, 64)
+		if err == nil {
+			limit = int(n)
+		}
+
+		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).End(args[2]).Limit(limit).Execute()
+		fmt.Println("status", status)
+		fmt.Println("err", err)
+		printMessageActions(res, 0)
+
+	} else if len(args) == 3 {
+		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).End(args[2]).Execute()
+		fmt.Println("status", status)
+		fmt.Println("err", err)
+		printMessageActions(res, 0)
+	} else if len(args) == 2 {
+		res, status, err := pn.GetMessageActions().Channel(channel).Start(args[1]).Execute()
+		fmt.Println("status", status)
+		fmt.Println("err", err)
+		printMessageActions(res, 0)
+	} else {
+		res, status, err := pn.GetMessageActions().Channel(channel).Execute()
+		fmt.Println("status", status)
+		fmt.Println("err", err)
+		printMessageActions(res, 0)
+	}
+
+}
+
+func printMessageActions(res *pubnub.PNGetMessageActionsResponse, counter int) {
+	if res != nil {
+		for i, k := range res.Data {
+			fmt.Println(fmt.Sprintf("No: %d, Val: %s", i+counter, k))
+		}
+		fmt.Println("More:", res.More)
+	}
+
+}
+
+func addMessageActions(args []string) {
+	if len(args) < 5 {
+		showAddActionHelp()
+		return
+	}
+	// addaction my-channel 15210190573608384 reaction smiley_face
+	channel := args[0]
+	tt := args[1]
+	actionType := args[2]
+	actionVal := args[3]
+
+	var count int
+
+	n, err := strconv.ParseInt(args[4], 10, 64)
+	if err == nil {
+		count = int(n)
+	}
+
+	for i := 0; i < count; i++ {
+		ma := pubnub.MessageAction{
+			ActionType:  actionType,
+			ActionValue: actionVal + "_" + strconv.Itoa(i),
+		}
+
+		res, status, err := pn.AddMessageAction().Channel(channel).MessageTimetoken(tt).Action(ma).Execute()
+		fmt.Println("status", status)
+		fmt.Println("err", err)
+		fmt.Println("res", res)
+	}
+}
+
+func addMessageAction(args []string) {
+	if len(args) < 4 {
+		showAddActionHelp()
+		return
+	}
+	// addaction my-channel 15210190573608384 reaction smiley_face
+	channel := args[0]
+	tt := args[1]
+	actionType := args[2]
+	actionVal := args[3]
+	ma := pubnub.MessageAction{
+		ActionType:  actionType,
+		ActionValue: actionVal,
+	}
+
+	res, status, err := pn.AddMessageAction().Channel(channel).MessageTimetoken(tt).Action(ma).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
 }
 
 func setToken(args []string) {
@@ -1661,6 +1855,16 @@ func fetchRequest(args []string) {
 		}
 	}
 
+	var withMessageActions = false
+	if len(args) > 5 {
+		withMessageActions, _ = strconv.ParseBool(args[5])
+	}
+
+	var withMeta bool
+	if len(args) > 6 {
+		withMeta, _ = strconv.ParseBool(args[6])
+	}
+
 	if (end != 0) && (start != 0) {
 		res, status, err := pn.Fetch().
 			Channels(channels).
@@ -1668,6 +1872,8 @@ func fetchRequest(args []string) {
 			Start(start).
 			End(end).
 			Reverse(reverse).
+			WithMessageActions(withMessageActions).
+			WithMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	} else if start != 0 {
@@ -1676,6 +1882,8 @@ func fetchRequest(args []string) {
 			Count(count).
 			Start(start).
 			Reverse(reverse).
+			WithMessageActions(withMessageActions).
+			WithMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	} else if end != 0 {
@@ -1684,6 +1892,8 @@ func fetchRequest(args []string) {
 			Count(count).
 			End(end).
 			Reverse(reverse).
+			WithMessageActions(withMessageActions).
+			WithMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	} else {
@@ -1691,6 +1901,8 @@ func fetchRequest(args []string) {
 			Channels(channels).
 			Count(count).
 			Reverse(reverse).
+			WithMessageActions(withMessageActions).
+			WithMeta(withMeta).
 			Execute()
 		parseFetch(res, status, err)
 	}
@@ -1705,6 +1917,27 @@ func parseFetch(res *pubnub.FetchResponse, status pubnub.StatusResponse, err err
 				message := pubnub.FetchResponseItem(messageInt)
 				fmt.Println("message.Message:", message.Message)
 				fmt.Println("message.Timetoken:", message.Timetoken)
+				fmt.Println("message.Meta:", message.Meta)
+				fmt.Println("message.Actions:", message.MessageActions)
+
+				for action := range message.MessageActions {
+					actionTypes := message.MessageActions[action].ActionsTypeValues
+					fmt.Println("action1:", action)
+					if len(actionTypes) > 0 {
+						for actionVal, actionType := range actionTypes {
+							fmt.Println("actionVal:", actionVal)
+							r00 := actionType
+							if r00 != nil {
+								fmt.Println("UUID", r00[0].UUID)
+								fmt.Println("ActionTimetoken", r00[0].ActionTimetoken)
+							} else {
+								fmt.Println("r0 nil")
+							}
+						}
+					} else {
+						fmt.Println("actionTypes nil")
+					}
+				}
 			}
 		}
 	} else {
@@ -1765,6 +1998,11 @@ func historyRequest(args []string) {
 		}
 	}
 
+	var withMeta bool
+	if len(args) > 6 {
+		withMeta, _ = strconv.ParseBool(args[6])
+	}
+
 	if (end != 0) && (start != 0) {
 		res, status, err := pn.History().
 			Channel(channel).
@@ -1773,6 +2011,7 @@ func historyRequest(args []string) {
 			End(end).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
+			WithMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	} else if start != 0 {
@@ -1782,6 +2021,7 @@ func historyRequest(args []string) {
 			Start(start).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
+			WithMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	} else if end != 0 {
@@ -1791,6 +2031,7 @@ func historyRequest(args []string) {
 			End(end).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
+			WithMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	} else {
@@ -1799,6 +2040,7 @@ func historyRequest(args []string) {
 			Count(count).
 			IncludeTimetoken(includeTimetoken).
 			Reverse(reverse).
+			WithMeta(withMeta).
 			Execute()
 		parseHistory(res, status, err)
 	}
@@ -1811,6 +2053,8 @@ func parseHistory(res *pubnub.HistoryResponse, status pubnub.StatusResponse, err
 			for _, v := range res.Messages {
 				fmt.Println(fmt.Sprintf("%s Timetoken %d", outputPrefix, v.Timetoken))
 				fmt.Println(fmt.Sprintf("%s Message %s", outputPrefix, v.Message))
+
+				fmt.Println(fmt.Sprintf("%s Meta %s", outputPrefix, v.Meta))
 			}
 		} else {
 			fmt.Println(fmt.Sprintf("res.Messages null"))
@@ -1947,6 +2191,11 @@ func publishRequest(args []string) {
 		"q2": "v2",
 	}
 
+	meta := map[string]string{
+		"m1": "n1",
+		"m2": "n2",
+	}
+
 	for _, ch := range channels {
 		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
 		res, status, err := pn.Publish().
@@ -1954,6 +2203,7 @@ func publishRequest(args []string) {
 			Message(res).
 			UsePost(usePost).
 			ShouldStore(store).
+			Meta(meta).
 			DoNotReplicate(repl).QueryParam(queryParam).
 			Execute()
 

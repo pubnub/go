@@ -52,21 +52,18 @@ func (b *getMembershipsBuilder) UserID(id string) *getMembershipsBuilder {
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *getMembershipsBuilder) Include(include []PNMembershipsInclude) *getMembershipsBuilder {
 	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *getMembershipsBuilder) Limit(limit int) *getMembershipsBuilder {
 	b.opts.Limit = limit
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *getMembershipsBuilder) Start(start string) *getMembershipsBuilder {
 	b.opts.Start = start
 

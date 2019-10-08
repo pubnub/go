@@ -477,6 +477,7 @@ type subscribeMessage struct {
 	Payload           interface{}   `json:"d"`
 	UserMetadata      interface{}   `json:"u"`
 	MessageType       PNMessageType `json:"e"`
+	SequenceNumber    int           `json:"s"`
 
 	PublishMetaData publishMetadata `json:"p"`
 }
@@ -541,6 +542,136 @@ func subscribeMessageWorker(m *SubscriptionManager) {
 	m.exitSubscriptionManagerMutex.Unlock()
 }
 
+func processPresencePayload(m *SubscriptionManager, payload subscribeMessage, channel, subscriptionMatch string, publishMeta publishMetadata) {
+	var presencePayload map[string]interface{}
+	var action, uuid, actualChannel, subscribedChannel string
+	var occupancy int
+	var timestamp int64
+	var data interface{}
+	var ok, hereNowRefresh bool
+
+	if presencePayload, ok = payload.Payload.(map[string]interface{}); !ok {
+		m.listenerManager.announceStatus(&PNStatus{
+			Category:         PNUnknownCategory,
+			ErrorData:        errors.New("Presence response parsing error"),
+			Error:            true,
+			Operation:        PNSubscribeOperation,
+			AffectedChannels: []string{channel},
+		})
+	}
+
+	action, _ = presencePayload["action"].(string)
+	uuid, _ = presencePayload["uuid"].(string)
+	occupancy, _ = presencePayload["occupancy"].(int)
+	if presencePayload["timestamp"] != nil {
+		m.pubnub.Config.Log.Println("presencePayload['timestamp'] type", reflect.TypeOf(presencePayload["timestamp"]).Kind())
+		switch presencePayload["timestamp"].(type) {
+		case int:
+			timestamp = int64(presencePayload["timestamp"].(int))
+			break
+		case int64:
+			timestamp = presencePayload["timestamp"].(int64)
+			break
+		case float64:
+			timestamp = int64(presencePayload["timestamp"].(float64))
+			break
+		}
+
+	}
+
+	data = presencePayload["data"]
+	if presencePayload["here_now_refresh"] != nil {
+		hereNowRefresh = presencePayload["here_now_refresh"].(bool)
+	}
+	timetoken, _ := strconv.ParseInt(publishMeta.PublishTimetoken, 10, 64)
+
+	strippedPresenceChannel := ""
+	strippedPresenceSubscription := ""
+
+	if channel != "" {
+		strippedPresenceChannel = strings.Replace(channel, "-pnpres", "", -1)
+	}
+
+	if subscriptionMatch != "" {
+		actualChannel = channel
+		subscribedChannel = subscriptionMatch
+		strippedPresenceSubscription = strings.Replace(subscriptionMatch, "-pnpres", "", -1)
+	} else {
+		subscribedChannel = channel
+	}
+
+	pnPresenceResult := &PNPresence{
+		Event:             action,
+		ActualChannel:     actualChannel,
+		SubscribedChannel: subscribedChannel,
+		Channel:           strippedPresenceChannel,
+		Subscription:      strippedPresenceSubscription,
+		State:             data,
+		Timetoken:         timetoken,
+		Occupancy:         occupancy,
+		UUID:              uuid,
+		Timestamp:         timestamp,
+		HereNowRefresh:    hereNowRefresh,
+	}
+	m.listenerManager.announcePresence(pnPresenceResult)
+}
+
+func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage, channel, subscriptionMatch string, publishMeta publishMetadata) {
+	actualCh := ""
+	subscribedCh := channel
+	timetoken, _ := strconv.ParseInt(publishMeta.PublishTimetoken, 10, 64)
+
+	if subscriptionMatch != "" {
+		actualCh = channel
+		subscribedCh = subscriptionMatch
+	}
+	var messagePayload interface{}
+
+	switch payload.MessageType {
+	case PNMessageTypeSignal:
+		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+		m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
+		m.listenerManager.announceSignal(pnMessageResult)
+	case PNMessageTypeObjects:
+		pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
+		m.pubnub.Config.Log.Println("announceObjects,", pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType)
+		switch eventType {
+		case PNObjectsUserEvent:
+			m.pubnub.Config.Log.Println("pnUserEvent:", pnUserEvent)
+			m.listenerManager.announceUserEvent(pnUserEvent)
+		case PNObjectsSpaceEvent:
+			m.pubnub.Config.Log.Println("pnSpaceEvent:", pnSpaceEvent)
+			m.listenerManager.announceSpaceEvent(pnSpaceEvent)
+		case PNObjectsMembershipEvent:
+			m.pubnub.Config.Log.Println("pnMembershipEvent:", pnMembershipEvent)
+			m.listenerManager.announceMembershipEvent(pnMembershipEvent)
+		}
+	case PNMessageTypeMessageActions:
+		pnMessageActionsEvent := createPNMessageActionsEventResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
+		m.pubnub.Config.Log.Println("PNMessageTypeMessageActions:", pnMessageActionsEvent)
+		m.listenerManager.announceMessageActionsEvent(pnMessageActionsEvent)
+	default:
+		var err error
+		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
+		if err != nil {
+			pnStatus := &PNStatus{
+				Category:         PNBadRequestCategory,
+				ErrorData:        err,
+				Error:            true,
+				Operation:        PNSubscribeOperation,
+				AffectedChannels: []string{channel},
+			}
+			m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
+			m.listenerManager.announceStatus(pnStatus)
+
+		}
+		pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+		m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
+		m.listenerManager.announceMessage(pnMessageResult)
+	}
+	m.pubnub.Config.Log.Println("after announceMessage")
+}
+
 func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 	channel := payload.Channel
 	subscriptionMatch := payload.SubscriptionMatch
@@ -551,129 +682,55 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 	}
 
 	if strings.Contains(payload.Channel, "-pnpres") {
-		var presencePayload map[string]interface{}
-		var action, uuid, actualChannel, subscribedChannel string
-		var occupancy int
-		var timestamp int64
-		var data interface{}
-		var ok, hereNowRefresh bool
-
-		if presencePayload, ok = payload.Payload.(map[string]interface{}); !ok {
-			m.listenerManager.announceStatus(&PNStatus{
-				Category:         PNUnknownCategory,
-				ErrorData:        errors.New("Presence response parsing error"),
-				Error:            true,
-				Operation:        PNSubscribeOperation,
-				AffectedChannels: []string{channel},
-			})
-		}
-
-		action, _ = presencePayload["action"].(string)
-		uuid, _ = presencePayload["uuid"].(string)
-		occupancy, _ = presencePayload["occupancy"].(int)
-		if presencePayload["timestamp"] != nil {
-			m.pubnub.Config.Log.Println("presencePayload['timestamp'] type", reflect.TypeOf(presencePayload["timestamp"]).Kind())
-			switch presencePayload["timestamp"].(type) {
-			case int:
-				timestamp = int64(presencePayload["timestamp"].(int))
-				break
-			case int64:
-				timestamp = presencePayload["timestamp"].(int64)
-				break
-			case float64:
-				timestamp = int64(presencePayload["timestamp"].(float64))
-				break
-			}
-
-		}
-
-		data = presencePayload["data"]
-		if presencePayload["here_now_refresh"] != nil {
-			hereNowRefresh = presencePayload["here_now_refresh"].(bool)
-		}
-		timetoken, _ := strconv.ParseInt(publishMetadata.PublishTimetoken, 10, 64)
-
-		strippedPresenceChannel := ""
-		strippedPresenceSubscription := ""
-
-		if channel != "" {
-			strippedPresenceChannel = strings.Replace(channel, "-pnpres", "", -1)
-		}
-
-		if subscriptionMatch != "" {
-			actualChannel = channel
-			subscribedChannel = subscriptionMatch
-			strippedPresenceSubscription = strings.Replace(subscriptionMatch, "-pnpres", "", -1)
-		} else {
-			subscribedChannel = channel
-		}
-
-		pnPresenceResult := &PNPresence{
-			Event:             action,
-			ActualChannel:     actualChannel,
-			SubscribedChannel: subscribedChannel,
-			Channel:           strippedPresenceChannel,
-			Subscription:      strippedPresenceSubscription,
-			State:             data,
-			Timetoken:         timetoken,
-			Occupancy:         occupancy,
-			UUID:              uuid,
-			Timestamp:         timestamp,
-			HereNowRefresh:    hereNowRefresh,
-		}
-		m.listenerManager.announcePresence(pnPresenceResult)
+		processPresencePayload(m, payload, channel, subscriptionMatch, publishMetadata)
 	} else {
-		actualCh := ""
-		subscribedCh := channel
-		timetoken, _ := strconv.ParseInt(publishMetadata.PublishTimetoken, 10, 64)
-
-		if subscriptionMatch != "" {
-			actualCh = channel
-			subscribedCh = subscriptionMatch
-		}
-		var messagePayload interface{}
-
-		switch payload.MessageType {
-		case PNMessageTypeSignal:
-			pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
-			m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
-			m.listenerManager.announceSignal(pnMessageResult)
-		case PNMessageTypeObjects:
-			pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
-			m.pubnub.Config.Log.Println("announceObjects,", pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType)
-			switch eventType {
-			case PNObjectsUserEvent:
-				m.pubnub.Config.Log.Println("pnUserEvent:", pnUserEvent)
-				m.listenerManager.announceUserEvent(pnUserEvent)
-			case PNObjectsSpaceEvent:
-				m.pubnub.Config.Log.Println("pnSpaceEvent:", pnSpaceEvent)
-				m.listenerManager.announceSpaceEvent(pnSpaceEvent)
-			case PNObjectsMembershipEvent:
-				m.pubnub.Config.Log.Println("pnMembershipEvent:", pnMembershipEvent)
-				m.listenerManager.announceMembershipEvent(pnMembershipEvent)
-			}
-
-		default:
-			var err error
-			messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
-			if err != nil {
-				pnStatus := &PNStatus{
-					Category:         PNBadRequestCategory,
-					ErrorData:        err,
-					Error:            true,
-					Operation:        PNSubscribeOperation,
-					AffectedChannels: []string{channel},
-				}
-				m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
-				m.listenerManager.announceStatus(pnStatus)
-
-			}
-			pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
-			m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
-			m.listenerManager.announceMessage(pnMessageResult)
-		}
-		m.pubnub.Config.Log.Println("after announceMessage")
+		processNonPresencePayload(m, payload, channel, subscriptionMatch, publishMetadata)
 	}
+}
+
+func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) *PNMessageActionsEvent {
+	var messageActionsPayload map[string]interface{}
+	var ok bool
+	if messageActionsPayload, ok = maPayload.(map[string]interface{}); !ok {
+		m.listenerManager.announceStatus(&PNStatus{
+			Category:         PNUnknownCategory,
+			ErrorData:        errors.New("Message Actions response parsing error"),
+			Error:            true,
+			Operation:        PNSubscribeOperation,
+			AffectedChannels: []string{channel},
+		})
+		return nil
+	}
+	eventType := PNMessageActionsEventType(messageActionsPayload["event"].(string))
+	var data map[string]interface{}
+	resp := PNMessageActionsResponse{}
+
+	if o := messageActionsPayload["data"]; ok {
+		data = o.(map[string]interface{})
+		if d, ok := data["type"]; ok {
+			resp.ActionType = d.(string)
+		}
+		if d, ok := data["value"]; ok {
+			resp.ActionValue = d.(string)
+		}
+		if d, ok := data["actionTimetoken"]; ok {
+			resp.ActionTimetoken = d.(string)
+		}
+		if d, ok := data["messageTimetoken"]; ok {
+			resp.MessageTimetoken = d.(string)
+		}
+	}
+
+	pnMessageActionsEvent := &PNMessageActionsEvent{
+		Event:             eventType,
+		Data:              resp,
+		ActualChannel:     actualCh,
+		SubscribedChannel: subscribedCh,
+		Channel:           channel,
+		Subscription:      subscriptionMatch,
+	}
+
+	return pnMessageActionsEvent
 }
 
 func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) (*PNUserEvent, *PNSpaceEvent, *PNMembershipEvent, PNObjectsEventType) {
@@ -687,6 +744,7 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 			Operation:        PNSubscribeOperation,
 			AffectedChannels: []string{channel},
 		})
+		return nil, nil, nil, PNObjectsNoneEvent
 	}
 	eventType := PNObjectsEventType(objectsPayload["type"].(string))
 	event := PNObjectsEvent(objectsPayload["event"].(string))

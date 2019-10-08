@@ -203,7 +203,9 @@ func TestGrantMultipleMixed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
@@ -231,7 +233,9 @@ func TestGrantSingleChannel(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 	pn.SetClient(interceptor.GetClient())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).

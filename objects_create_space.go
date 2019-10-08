@@ -49,7 +49,6 @@ type createSpaceBody struct {
 	Custom      map[string]interface{} `json:"custom"`
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *createSpaceBuilder) Include(include []PNUserSpaceInclude) *createSpaceBuilder {
 
 	b.opts.Include = EnumArrayToStringArray(include)
@@ -57,14 +56,12 @@ func (b *createSpaceBuilder) Include(include []PNUserSpaceInclude) *createSpaceB
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *createSpaceBuilder) ID(id string) *createSpaceBuilder {
 	b.opts.ID = id
 
 	return b
 }
 
-// Auth sets the Authorization key with permissions to perform the request.
 func (b *createSpaceBuilder) Name(name string) *createSpaceBuilder {
 	b.opts.Name = name
 

@@ -17,7 +17,10 @@ import (
 var emptyFetchResp *FetchResponse
 
 const fetchPath = "/v3/history/sub-key/%s/channel/%s"
+const historyWithMessageActionsPath = "/v3/history-with-actions/sub-key/%s/channel/%s"
+
 const maxCountFetch = 25
+const maxCountHistoryWithMessageActions = 100
 
 type fetchBuilder struct {
 	opts *fetchOpts
@@ -77,6 +80,18 @@ func (b *fetchBuilder) Reverse(r bool) *fetchBuilder {
 	return b
 }
 
+// WithMeta fetches the meta data associated with the message
+func (b *fetchBuilder) WithMeta(withMeta bool) *fetchBuilder {
+	b.opts.WithMeta = withMeta
+	return b
+}
+
+// WithActions fetches the actions associated with the message
+func (b *fetchBuilder) WithMessageActions(withMessageActions bool) *fetchBuilder {
+	b.opts.WithMessageActions = withMessageActions
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *fetchBuilder) QueryParam(queryParam map[string]string) *fetchBuilder {
 	b.opts.QueryParam = queryParam
@@ -105,8 +120,10 @@ type fetchOpts struct {
 
 	Channels []string
 
-	Start int64
-	End   int64
+	Start              int64
+	End                int64
+	WithMessageActions bool
+	WithMeta           bool
 
 	// default: 100
 	Count int
@@ -114,9 +131,7 @@ type fetchOpts struct {
 	// default: false
 	Reverse bool
 
-	// default: false
-	IncludeTimetoken bool
-	QueryParam       map[string]string
+	QueryParam map[string]string
 
 	// nil hacks
 	setStart bool
@@ -148,12 +163,21 @@ func (o *fetchOpts) validate() error {
 		return newValidationError(o, StrMissingChannel)
 	}
 
+	if o.WithMessageActions && len(o.Channels) > 1 {
+		return newValidationError(o, "Only one channel is supported when WithMessageActions is true")
+	}
+
 	return nil
 }
 
 func (o *fetchOpts) buildPath() (string, error) {
 	channels := utils.JoinChannels(o.Channels)
 
+	if o.WithMessageActions {
+		return fmt.Sprintf(historyWithMessageActionsPath,
+			o.pubnub.Config.SubscribeKey,
+			channels), nil
+	}
 	return fmt.Sprintf(fetchPath,
 		o.pubnub.Config.SubscribeKey,
 		channels), nil
@@ -177,6 +201,8 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
+	q.Set("include_meta", strconv.FormatBool(o.WithMeta))
+
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
@@ -214,9 +240,57 @@ func (o *fetchOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
-// FetchResponse is the response to Fetch request. It contains a map of type FetchResponseItem
-type FetchResponse struct {
-	Messages map[string][]FetchResponseItem
+func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistoryMessageActionsTypeMap {
+	o.pubnub.Config.Log.Println(actions)
+	resp := make(map[string]PNHistoryMessageActionsTypeMap)
+
+	if actions != nil {
+		actionsMap := actions.(map[string]interface{})
+
+		for actionType, action := range actionsMap {
+
+			o.pubnub.Config.Log.Println("action:", action)
+			o.pubnub.Config.Log.Println("actionType:", actionType) //reaction2
+
+			actionMap := action.(map[string]interface{})
+
+			if actionMap != nil {
+				messageActionsTypeMap := PNHistoryMessageActionsTypeMap{}
+				messageActionsTypeMap.ActionsTypeValues = make(map[string][]PNHistoryMessageActionTypeVal, len(actionMap))
+				for actionVal, val := range actionMap {
+					o.pubnub.Config.Log.Println("actionVal:", actionVal) // smiley_face
+					o.pubnub.Config.Log.Println("val:", val)
+
+					actionValInt := val.([]interface{})
+					if actionValInt != nil {
+						params := make([]PNHistoryMessageActionTypeVal, len(actionValInt))
+						pCount := 0
+						for _, actionParam := range actionValInt {
+
+							pv := PNHistoryMessageActionTypeVal{}
+							for actionParamName, actionParamVal := range actionParam.(map[string]interface{}) {
+								o.pubnub.Config.Log.Println("actionParamName", actionParamName)
+								o.pubnub.Config.Log.Println("actionParamVal", actionParamVal)
+								switch actionParamName {
+								case "uuid":
+									pv.UUID = actionParamVal.(string)
+								case "actionTimetoken":
+									pv.ActionTimetoken = actionParamVal.(string)
+								}
+							}
+							params[pCount] = pv
+							pCount++
+						}
+						messageActionsTypeMap.ActionsTypeValues[actionVal] = params
+					}
+				}
+				resp[actionType] = messageActionsTypeMap
+			}
+
+		}
+	}
+
+	return resp
 }
 
 func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]FetchResponseItem {
@@ -235,7 +309,10 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 					histItem := FetchResponseItem{
 						Message:   msg,
 						Timetoken: histResponse["timetoken"].(string),
+						Meta:      histResponse["meta"],
 					}
+					histItem.MessageActions = o.parseMessageActions(histResponse["actions"])
+
 					items[count] = histItem
 					o.pubnub.Config.Log.Printf("Channel:%s, count:%d %d\n", channel, count, len(items))
 					count++
@@ -285,8 +362,26 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 	return resp, status, nil
 }
 
+// FetchResponse is the response to Fetch request. It contains a map of type FetchResponseItem
+type FetchResponse struct {
+	Messages map[string][]FetchResponseItem
+}
+
 // FetchResponseItem contains the message and the associated timetoken.
 type FetchResponseItem struct {
-	Message   interface{}
-	Timetoken string
+	Message        interface{}                               `json:"message"`
+	Meta           interface{}                               `json:"meta"`
+	MessageActions map[string]PNHistoryMessageActionsTypeMap `json:"actions"`
+	Timetoken      string                                    `json:"timetoken"`
+}
+
+// PNHistoryMessageActionsTypeMap is the struct used in the Fetch request that includes Message Actions
+type PNHistoryMessageActionsTypeMap struct {
+	ActionsTypeValues map[string][]PNHistoryMessageActionTypeVal `json:"-"`
+}
+
+// PNHistoryMessageActionTypeVal is the struct used in the Fetch request that includes Message Actions
+type PNHistoryMessageActionTypeVal struct {
+	UUID            string `json:"uuid"`
+	ActionTimetoken string `json:"actionTimetoken"`
 }

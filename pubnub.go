@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.3.1"
+	Version = "4.4.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -40,6 +40,8 @@ const (
 	StrChannelsTimetoken = "Missing Channels Timetoken"
 	// StrChannelsTimetokenLength shows Length of Channels Timetoken message
 	StrChannelsTimetokenLength = "Length of Channels Timetoken and Channels do not match"
+	// StrInvalidTTL shows Invalid TTL message
+	StrInvalidTTL = "Invalid TTL"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.
@@ -251,6 +253,30 @@ func (pn *PubNub) GrantTokenWithContext(ctx Context) *grantTokenBuilder {
 	return newGrantTokenBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) AddMessageAction() *addMessageActionsBuilder {
+	return newAddMessageActionsBuilder(pn)
+}
+
+func (pn *PubNub) AddMessageActionWithContext(ctx Context) *addMessageActionsBuilder {
+	return newAddMessageActionsBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) GetMessageActions() *getMessageActionsBuilder {
+	return newGetMessageActionsBuilder(pn)
+}
+
+func (pn *PubNub) GetMessageActionsWithContext(ctx Context) *getMessageActionsBuilder {
+	return newGetMessageActionsBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) RemoveMessageAction() *removeMessageActionsBuilder {
+	return newRemoveMessageActionsBuilder(pn)
+}
+
+func (pn *PubNub) RemoveMessageActionWithContext(ctx Context) *removeMessageActionsBuilder {
+	return newRemoveMessageActionsBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) SetToken(token string) {
 	pn.tokenManager.StoreToken(token)
 }
@@ -269,6 +295,10 @@ func (pn *PubNub) GetTokensByResource(resourceType PNResourceType) GrantResource
 
 func (pn *PubNub) GetToken(resourceId string, resourceType PNResourceType) string {
 	return pn.tokenManager.GetToken(resourceId, resourceType)
+}
+
+func (pn *PubNub) ResetTokenManager() {
+	pn.tokenManager.CleanUp()
 }
 
 func (pn *PubNub) Unsubscribe() *unsubscribeBuilder {
@@ -508,6 +538,7 @@ func (pn *PubNub) Destroy() {
 	pn.Config.Log.Println("calling RemoveAllListeners")
 	pn.subscriptionManager.RemoveAllListeners()
 	pn.Config.Log.Println("after RemoveAllListeners")
+	pn.tokenManager.CleanUp()
 
 }
 

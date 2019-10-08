@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+go version
+go env
 
 set -e
 echo "" > coverage.txt

@@ -6,24 +6,26 @@ import (
 
 //
 type Listener struct {
-	Status          chan *PNStatus
-	Message         chan *PNMessage
-	Presence        chan *PNPresence
-	Signal          chan *PNMessage
-	UserEvent       chan *PNUserEvent
-	SpaceEvent      chan *PNSpaceEvent
-	MembershipEvent chan *PNMembershipEvent
+	Status              chan *PNStatus
+	Message             chan *PNMessage
+	Presence            chan *PNPresence
+	Signal              chan *PNMessage
+	UserEvent           chan *PNUserEvent
+	SpaceEvent          chan *PNSpaceEvent
+	MembershipEvent     chan *PNMembershipEvent
+	MessageActionsEvent chan *PNMessageActionsEvent
 }
 
 func NewListener() *Listener {
 	return &Listener{
-		Status:          make(chan *PNStatus),
-		Message:         make(chan *PNMessage),
-		Presence:        make(chan *PNPresence),
-		Signal:          make(chan *PNMessage),
-		UserEvent:       make(chan *PNUserEvent),
-		SpaceEvent:      make(chan *PNSpaceEvent),
-		MembershipEvent: make(chan *PNMembershipEvent),
+		Status:              make(chan *PNStatus),
+		Message:             make(chan *PNMessage),
+		Presence:            make(chan *PNPresence),
+		Signal:              make(chan *PNMessage),
+		UserEvent:           make(chan *PNUserEvent),
+		SpaceEvent:          make(chan *PNSpaceEvent),
+		MembershipEvent:     make(chan *PNMembershipEvent),
+		MessageActionsEvent: make(chan *PNMessageActionsEvent),
 	}
 }
 
@@ -173,6 +175,24 @@ func (m *ListenerManager) announceMembershipEvent(message *PNMembershipEvent) {
 	}()
 }
 
+func (m *ListenerManager) announceMessageActionsEvent(message *PNMessageActionsEvent) {
+	go func() {
+		m.RLock()
+	AnnounceMessageActionsEvent:
+		for l := range m.listeners {
+			select {
+			case <-m.exitListener:
+				m.pubnub.Config.Log.Println("announceMessageActionsEvent exitListener")
+				break AnnounceMessageActionsEvent
+
+			case l.MessageActionsEvent <- message:
+				m.pubnub.Config.Log.Println("l.MessageActionsEvent", message)
+			}
+		}
+		m.RUnlock()
+	}()
+}
+
 func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	go func() {
 		m.RLock()
@@ -282,6 +302,16 @@ type PNMembershipEvent struct {
 	Description       string
 	Timestamp         string
 	Custom            map[string]interface{}
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
+}
+
+// PNMessageActionsEvent is the Response for a Message Actions Event
+type PNMessageActionsEvent struct {
+	Event             PNMessageActionsEventType
+	Data              PNMessageActionsResponse
 	SubscribedChannel string
 	ActualChannel     string
 	Channel           string
