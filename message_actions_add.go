@@ -180,6 +180,7 @@ type PNMessageActionsResponse struct {
 	ActionValue      string `json:"value"`
 	ActionTimetoken  string `json:"actionTimetoken"`
 	MessageTimetoken string `json:"messageTimetoken"`
+	UUID             string `json:"uuid"`
 }
 
 // PNAddMessageActionsResponse is the Add Message Actions API Response

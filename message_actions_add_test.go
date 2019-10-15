@@ -93,6 +93,7 @@ func TestAddMessageActionsResponseValuePass(t *testing.T) {
 	assert.Equal("reaction", r.Data.ActionType)
 	assert.Equal("smiley_face", r.Data.ActionValue)
 	assert.Equal("15692384791344400", r.Data.ActionTimetoken)
+	assert.Equal("pn-871b8325-a11f-48cb-9c15-64984790703e", r.Data.UUID)
 
 	assert.Nil(err)
 }
