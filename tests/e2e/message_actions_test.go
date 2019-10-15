@@ -94,6 +94,7 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 					fmt.Println(fmt.Sprintf("messageActionsEvent.Data.ActionValue: %s", messageActionsEvent.Data.ActionValue))
 					fmt.Println(fmt.Sprintf("messageActionsEvent.Data.ActionTimetoken: %s", messageActionsEvent.Data.ActionTimetoken))
 					fmt.Println(fmt.Sprintf("messageActionsEvent.Data.MessageTimetoken: %s", messageActionsEvent.Data.MessageTimetoken))
+					fmt.Println(fmt.Sprintf("messageActionsEvent.Data.UUID: %s", messageActionsEvent.Data.UUID))
 				}
 
 				if (messageActionsEvent.Event == pubnub.PNMessageActionsAdded) && (messageActionsEvent.Channel == chMA) {
