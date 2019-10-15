@@ -3,7 +3,7 @@ changelog:
   - 
     changes: 
       - 
-        text: "UUID in Message Actions"
+        text: "UUID in Message Actions response"
         type: improvement
     date: Oct 16, 19  
     version: v4.5.1
