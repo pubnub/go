@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "UUID in Message Actions response"
+        type: improvement
+    date: Oct 16, 19  
+    version: v4.5.1
+  - 
+    changes: 
+      - 
         text: "WithMeta param is now IncludeMeta in History and Fetch"
         type: improvement
       - 
@@ -459,4 +466,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.5.0
+version: v4.5.1

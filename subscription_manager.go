@@ -647,7 +647,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 			m.listenerManager.announceMembershipEvent(pnMembershipEvent)
 		}
 	case PNMessageTypeMessageActions:
-		pnMessageActionsEvent := createPNMessageActionsEventResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
+		pnMessageActionsEvent := createPNMessageActionsEventResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID)
 		m.pubnub.Config.Log.Println("PNMessageTypeMessageActions:", pnMessageActionsEvent)
 		m.listenerManager.announceMessageActionsEvent(pnMessageActionsEvent)
 	default:
@@ -688,7 +688,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 	}
 }
 
-func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) *PNMessageActionsEvent {
+func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string) *PNMessageActionsEvent {
 	var messageActionsPayload map[string]interface{}
 	var ok bool
 	if messageActionsPayload, ok = maPayload.(map[string]interface{}); !ok {
@@ -719,6 +719,7 @@ func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionMan
 		if d, ok := data["messageTimetoken"]; ok {
 			resp.MessageTimetoken = d.(string)
 		}
+		resp.UUID = issuingClientID
 	}
 
 	pnMessageActionsEvent := &PNMessageActionsEvent{

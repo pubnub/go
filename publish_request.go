@@ -293,6 +293,8 @@ func (o *publishOpts) buildPath() (string, error) {
 				return "", errEnc
 			}
 			msg = string(jsonEncBytes)
+			o.pubnub.Config.Log.Println("len(jsonEncBytes)", len(jsonEncBytes))
+
 		} else {
 			if serializedMsg, ok := o.Message.(string); ok {
 				msg = serializedMsg
