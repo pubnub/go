@@ -2196,11 +2196,25 @@ func publishRequest(args []string) {
 		"m2": "n2",
 	}
 
+	payload := map[string]interface{}{
+		"pn_apns": map[string]interface{}{
+			"aps": map[string]interface{}{
+				"alert": "hi",
+				"badge": 2,
+				"sound": "melody",
+			},
+		},
+		"pn_gcm": map[string]interface{}{
+			"c": "1",
+		},
+		"b": "2",
+	}
+
 	for _, ch := range channels {
 		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
 		res, status, err := pn.Publish().
 			Channel(ch).
-			Message(res).
+			Message(payload).
 			UsePost(usePost).
 			ShouldStore(store).
 			Meta(meta).
