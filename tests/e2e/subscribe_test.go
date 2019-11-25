@@ -718,7 +718,9 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	// 	assert.Fail(err)
 	// }
 	// fmt.Println("SubscribePublishUnsubscribeMultiCommon after doneUnsubscribe")
-	exit <- true
+	if exit != nil {
+		exit <- true
+	}
 	// fmt.Println("SubscribePublishUnsubscribeMultiCommon after exit")
 
 	// assert.Zero(len(pn.GetSubscribedChannels()))
