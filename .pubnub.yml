@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Heartbeat Manager and Listener Manager deadlock fixes"
+        type: bug
+      - 
+        text: "Fixed a panic due to closed channel when the background `Publish` requests context is cancelled and `Destroy` is called"
+        type: bug
+    date: Nov 27, 19  
+    version: v4.5.2
+  - 
+    changes: 
+      - 
         text: "UUID in Message Actions response"
         type: improvement
     date: Oct 16, 19  
@@ -459,11 +469,11 @@ supported-platforms:
       - "1.10.8"
       - "1.11.13"
       - "1.12.9"
-      - "1.13"
+      - "1.13.4"
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.5.1
+version: v4.5.2

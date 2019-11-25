@@ -132,7 +132,11 @@ func (m *HeartbeatManager) startHeartbeatTimer(runIndependentOfSubscribe bool) {
 	m.Unlock()
 
 	m.pubnub.Config.Log.Println("heartbeat: new timer", m.pubnub.Config.HeartbeatInterval)
-	if m.pubnub.Config.PresenceTimeout <= 0 && m.pubnub.Config.HeartbeatInterval <= 0 {
+	m.pubnub.Config.Lock()
+	presenceTimeout := m.pubnub.Config.PresenceTimeout
+	heartbeatInterval := m.pubnub.Config.HeartbeatInterval
+	m.pubnub.Config.Unlock()
+	if presenceTimeout <= 0 && heartbeatInterval <= 0 {
 		return
 	}
 
