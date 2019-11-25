@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -56,16 +57,25 @@ func (m *ListenerManager) addListener(listener *Listener) {
 }
 
 func (m *ListenerManager) removeListener(listener *Listener) {
+	fmt.Println("before removeListener")
+	if m.exitListener != nil {
+		m.exitListener <- true
+	}
+	m.Lock()
 	delete(m.listeners, listener)
+	m.Unlock()
+	fmt.Println("after removeListener")
 }
 
 func (m *ListenerManager) removeAllListeners() {
-	m.Lock()
+	fmt.Println("in removeListener")
 	m.pubnub.Config.Log.Println("in removeAllListeners")
-	for l := range m.listeners {
+	m.Lock()
+	lis := m.listeners
+	m.Unlock()
+	for l := range lis {
 		delete(m.listeners, l)
 	}
-	m.Unlock()
 }
 
 func (m *ListenerManager) announceStatus(status *PNStatus) {

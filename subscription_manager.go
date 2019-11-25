@@ -952,9 +952,7 @@ func (m *SubscriptionManager) AddListener(listener *Listener) {
 }
 
 func (m *SubscriptionManager) RemoveListener(listener *Listener) {
-	m.listenerManager.Lock()
 	m.listenerManager.removeListener(listener)
-	m.listenerManager.Unlock()
 }
 
 func (m *SubscriptionManager) RemoveAllListeners() {
