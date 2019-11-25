@@ -6,7 +6,7 @@ changelog:
         text: "Heartbeat Manager and Listener Manager deadlock fixes"
         type: bug
       - 
-        text: "Fixed a panic due to closed channel when the background `Publish` requests context is cancelled and `Destroy` is called"
+        text: "Fixed a panic due to a closed channel when `Publish` requests context is cancelled and `Destroy` is called"
         type: bug
     date: Nov 27, 19  
     version: v4.5.2
