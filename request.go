@@ -54,12 +54,6 @@ func addToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan
 			return
 		default:
 			fillJobQ(req, client, opts, j)
-			// jqi := &JobQItem{
-			// 	Req:         req,
-			// 	Client:      client,
-			// 	JobResponse: j,
-			// }
-			// opts.jobQueue() <- jqi
 		}
 	} else {
 		fillJobQ(req, client, opts, j)

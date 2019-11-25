@@ -77,7 +77,6 @@ func (m *HeartbeatManager) nonIndependentHeartbeatLoop() {
 				}
 			}()
 			wg.Wait()
-			//time.Sleep(time.Duration(timediff) * time.Second)
 			m.pubnub.Config.Log.Println("heartbeat sleep end")
 
 			m.Lock()
