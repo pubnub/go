@@ -38,6 +38,86 @@ func (m *HeartbeatManager) Destroy() {
 	m.stopHeartbeat(true, true)
 }
 
+func (m *HeartbeatManager) nonIndependentHeartbeatLoop() {
+	timeNow := time.Now().Unix()
+
+	m.pubnub.subscriptionManager.hbDataMutex.RLock()
+	reqSentAt := m.pubnub.subscriptionManager.requestSentAt
+	m.pubnub.subscriptionManager.hbDataMutex.RUnlock()
+
+	if reqSentAt > 0 {
+		timediff := int64(m.pubnub.Config.HeartbeatInterval) - (timeNow - reqSentAt)
+		m.pubnub.Config.Log.Println(fmt.Sprintf("heartbeat timediff: %d", timediff))
+		m.pubnub.subscriptionManager.hbDataMutex.Lock()
+		m.pubnub.subscriptionManager.requestSentAt = 0
+		m.pubnub.subscriptionManager.hbDataMutex.Unlock()
+		if timediff > 10 {
+			m.Lock()
+			m.hbTimer.Stop()
+			m.Unlock()
+
+			m.pubnub.Config.Log.Println(fmt.Sprintf("heartbeat sleeping timediff: %d", timediff))
+			waitTimer := time.NewTicker(time.Duration(timediff) * time.Second)
+
+			var wg sync.WaitGroup
+			wg.Add(1)
+			go func() {
+				waitTimerCh := waitTimer.C
+				for {
+					select {
+					case <-m.hbDone:
+						wg.Done()
+						m.pubnub.Config.Log.Println("nonIndependentHeartbeatLoop: breaking out to HeartbeatLabel")
+						return
+					case <-waitTimerCh:
+						m.pubnub.Config.Log.Println("nonIndependentHeartbeatLoop: waitTimerCh done")
+						wg.Done()
+						return
+					}
+				}
+			}()
+			wg.Wait()
+			//time.Sleep(time.Duration(timediff) * time.Second)
+			m.pubnub.Config.Log.Println("heartbeat sleep end")
+
+			m.Lock()
+			m.hbTimer = time.NewTicker(time.Duration(m.pubnub.Config.HeartbeatInterval) * time.Second)
+			m.Unlock()
+		}
+	}
+	m.performHeartbeatLoop()
+}
+
+func (m *HeartbeatManager) readHeartBeatTimer(runIndependentOfSubscribe bool) {
+	go func() {
+
+		defer m.hbLoopMutex.Unlock()
+		defer func() {
+			m.Lock()
+			m.hbDone = nil
+			m.Unlock()
+		}()
+	HeartbeatLabel:
+		for {
+			m.RLock()
+			timerCh := m.hbTimer.C
+			m.RUnlock()
+
+			select {
+			case <-timerCh:
+				if runIndependentOfSubscribe {
+					m.performHeartbeatLoop()
+				} else {
+					m.nonIndependentHeartbeatLoop()
+				}
+			case <-m.hbDone:
+				m.pubnub.Config.Log.Println("heartbeat: loop after stop")
+				break HeartbeatLabel
+			}
+		}
+	}()
+}
+
 func (m *HeartbeatManager) startHeartbeatTimer(runIndependentOfSubscribe bool) {
 	m.RLock()
 	hbRunning := m.hbRunning
@@ -66,79 +146,8 @@ func (m *HeartbeatManager) startHeartbeatTimer(runIndependentOfSubscribe bool) {
 		m.performHeartbeatLoop()
 	}
 
-	go func() {
+	m.readHeartBeatTimer(runIndependentOfSubscribe)
 
-		defer m.hbLoopMutex.Unlock()
-		defer func() {
-			m.Lock()
-			m.hbDone = nil
-			m.Unlock()
-		}()
-	HeartbeatLabel:
-		for {
-			m.RLock()
-			timerCh := m.hbTimer.C
-			doneCh := m.hbDone
-			m.RUnlock()
-
-			select {
-			case <-timerCh:
-				timeNow := time.Now().Unix()
-				if runIndependentOfSubscribe {
-					m.performHeartbeatLoop()
-				} else {
-					m.pubnub.subscriptionManager.hbDataMutex.RLock()
-					reqSentAt := m.pubnub.subscriptionManager.requestSentAt
-					m.pubnub.subscriptionManager.hbDataMutex.RUnlock()
-
-					if reqSentAt > 0 {
-						timediff := int64(m.pubnub.Config.HeartbeatInterval) - (timeNow - reqSentAt)
-						m.pubnub.Config.Log.Println(fmt.Sprintf("heartbeat timediff: %d", timediff))
-						m.pubnub.subscriptionManager.hbDataMutex.Lock()
-						m.pubnub.subscriptionManager.requestSentAt = 0
-						m.pubnub.subscriptionManager.hbDataMutex.Unlock()
-						if timediff > 10 {
-							m.Lock()
-							m.hbTimer.Stop()
-							m.Unlock()
-
-							m.pubnub.Config.Log.Println(fmt.Sprintf("heartbeat sleeping timediff: %d", timediff))
-							waitTimer := time.NewTicker(time.Duration(timediff) * time.Second)
-
-							var wg sync.WaitGroup
-							wg.Add(1)
-							go func() {
-								waitTimerCh := waitTimer.C
-								for {
-									select {
-									case <-doneCh:
-										wg.Done()
-										println("breaking out to HeartbeatLabel")
-										return
-									case <-waitTimerCh:
-										println("waitTimerCh done")
-										wg.Done()
-										return
-									}
-								}
-							}()
-							wg.Wait()
-							//time.Sleep(time.Duration(timediff) * time.Second)
-							m.pubnub.Config.Log.Println("heartbeat sleep end")
-
-							m.Lock()
-							m.hbTimer = time.NewTicker(time.Duration(m.pubnub.Config.HeartbeatInterval) * time.Second)
-							m.Unlock()
-						}
-					}
-					m.performHeartbeatLoop()
-				}
-			case <-doneCh:
-				m.pubnub.Config.Log.Println("heartbeat: loop after stop")
-				break HeartbeatLabel
-			}
-		}
-	}()
 }
 
 func (m *HeartbeatManager) stopHeartbeat(runIndependentOfSubscribe bool, skipRuncheck bool) {

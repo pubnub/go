@@ -55,6 +55,7 @@ func connect() {
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
+	config.SubscribeRequestTimeout = 35
 
 	config.CipherKey = "enigma"
 
@@ -591,6 +592,7 @@ func readCommand(cmd string) {
 		pn.UnsubscribeAll()
 	case "d":
 		pn.Destroy()
+		fmt.Println("after Destroy")
 	default:
 		showHelp()
 	}
