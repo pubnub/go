@@ -594,6 +594,7 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutCustomEncPost(t *testing.T) 
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
+	fmt.Println("after SubscribePublishUnsubscribeMultiCommon got message")
 	m := <-pubMessage
 	//s1 := reflect.ValueOf(m)
 	//fmt.Println("s:::", s1, s1.Type())
@@ -698,6 +699,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 		//return
 	}
 
+	fmt.Println("SubscribePublishUnsubscribeMultiCommon publish done")
 	pn.Publish().Channel(ch).Message(s).UsePost(usePost).Execute()
 
 	select {

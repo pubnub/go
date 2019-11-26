@@ -61,6 +61,7 @@ func (m *ListenerManager) removeListener(listener *Listener) {
 		m.exitListener <- true
 	}
 	m.Lock()
+	m.pubnub.Config.Log.Println("in removeListener lock")
 	delete(m.listeners, listener)
 	m.Unlock()
 	m.pubnub.Config.Log.Println("after removeListener")
@@ -76,12 +77,21 @@ func (m *ListenerManager) removeAllListeners() {
 	}
 }
 
+func (m *ListenerManager) copyListeners() map[*Listener]bool {
+	m.RLock()
+	lis := make(map[*Listener]bool)
+	for k, v := range m.listeners {
+		lis[k] = v
+	}
+	m.RUnlock()
+	return lis
+}
+
 func (m *ListenerManager) announceStatus(status *PNStatus) {
 	go func() {
-		m.RLock()
-		m.pubnub.Config.Log.Println("announceStatus lock")
+		lis := m.copyListeners()
 	AnnounceStatusLabel:
-		for l := range m.listeners {
+		for l := range lis {
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceStatus exitListener")
@@ -89,17 +99,15 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 			case l.Status <- status:
 			}
 		}
-		m.pubnub.Config.Log.Println("announceStatus unlock")
-		m.RUnlock()
 		m.pubnub.Config.Log.Println("announceStatus exit")
 	}()
 }
 
 func (m *ListenerManager) announceMessage(message *PNMessage) {
 	go func() {
-		m.RLock()
+		lis := m.copyListeners()
 	AnnounceMessageLabel:
-		for l := range m.listeners {
+		for l := range lis {
 			select {
 			case <-m.exitListenerAnnounce:
 				m.pubnub.Config.Log.Println("announceMessage exitListenerAnnounce")
@@ -107,15 +115,16 @@ func (m *ListenerManager) announceMessage(message *PNMessage) {
 			case l.Message <- message:
 			}
 		}
-		m.RUnlock()
+
 	}()
 }
 
 func (m *ListenerManager) announceSignal(message *PNMessage) {
 	go func() {
-		m.RLock()
+		lis := m.copyListeners()
+
 	AnnounceSignalLabel:
-		for l := range m.listeners {
+		for l := range lis {
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceSignal exitListener")
@@ -124,15 +133,15 @@ func (m *ListenerManager) announceSignal(message *PNMessage) {
 			case l.Signal <- message:
 			}
 		}
-		m.RUnlock()
 	}()
 }
 
 func (m *ListenerManager) announceUserEvent(message *PNUserEvent) {
 	go func() {
-		m.RLock()
+		lis := m.copyListeners()
+
 	AnnounceUserEventLabel:
-		for l := range m.listeners {
+		for l := range lis {
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceUserEvent exitListener")
@@ -142,15 +151,15 @@ func (m *ListenerManager) announceUserEvent(message *PNUserEvent) {
 				m.pubnub.Config.Log.Println("l.UserEvent", message)
 			}
 		}
-		m.RUnlock()
 	}()
 }
 
 func (m *ListenerManager) announceSpaceEvent(message *PNSpaceEvent) {
 	go func() {
-		m.RLock()
+		lis := m.copyListeners()
+
 	AnnounceSpaceEventLabel:
-		for l := range m.listeners {
+		for l := range lis {
 			m.pubnub.Config.Log.Println("l.SpaceEvent", l)
 			select {
 			case <-m.exitListener:
@@ -161,15 +170,15 @@ func (m *ListenerManager) announceSpaceEvent(message *PNSpaceEvent) {
 				m.pubnub.Config.Log.Println("l.SpaceEvent", message)
 			}
 		}
-		m.RUnlock()
 	}()
 }
 
 func (m *ListenerManager) announceMembershipEvent(message *PNMembershipEvent) {
 	go func() {
-		m.RLock()
+		lis := m.copyListeners()
+
 	AnnounceMembershipEvent:
-		for l := range m.listeners {
+		for l := range lis {
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceMembershipEvent exitListener")
@@ -179,15 +188,15 @@ func (m *ListenerManager) announceMembershipEvent(message *PNMembershipEvent) {
 				m.pubnub.Config.Log.Println("l.MembershipEvent", message)
 			}
 		}
-		m.RUnlock()
 	}()
 }
 
 func (m *ListenerManager) announceMessageActionsEvent(message *PNMessageActionsEvent) {
 	go func() {
-		m.RLock()
+		lis := m.copyListeners()
+
 	AnnounceMessageActionsEvent:
-		for l := range m.listeners {
+		for l := range lis {
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announceMessageActionsEvent exitListener")
@@ -197,15 +206,15 @@ func (m *ListenerManager) announceMessageActionsEvent(message *PNMessageActionsE
 				m.pubnub.Config.Log.Println("l.MessageActionsEvent", message)
 			}
 		}
-		m.RUnlock()
 	}()
 }
 
 func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	go func() {
-		m.RLock()
+		lis := m.copyListeners()
+
 	AnnouncePresenceLabel:
-		for l := range m.listeners {
+		for l := range lis {
 			select {
 			case <-m.exitListener:
 				m.pubnub.Config.Log.Println("announcePresence exitListener")
@@ -214,7 +223,6 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 			case l.Presence <- presence:
 			}
 		}
-		m.RUnlock()
 	}()
 }
 
