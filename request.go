@@ -194,6 +194,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 		responseInfo.AuthKey = auth[0]
 	}
 
+	opts.config().Log.Println("PNUnknownCategory", string(val), responseInfo)
 	status = createStatus(PNUnknownCategory, string(val), responseInfo, nil)
 
 	return val, status, nil
