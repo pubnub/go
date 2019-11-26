@@ -57,9 +57,6 @@ func (m *ListenerManager) addListener(listener *Listener) {
 
 func (m *ListenerManager) removeListener(listener *Listener) {
 	m.pubnub.Config.Log.Println("before removeListener")
-	if m.exitListener != nil {
-		m.exitListener <- true
-	}
 	m.Lock()
 	m.pubnub.Config.Log.Println("in removeListener lock")
 	delete(m.listeners, listener)

@@ -1199,12 +1199,12 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 		tic.Stop()
 		assert.Fail("timeout")
 	}
-	fmt.Println("TestSubscribePublishPartialUnsubscribe before RemoveListener ")
+	fmt.Println("TestSubscribePublishPartialUnsubscribe before UnsubscribeAll ")
 
 	pn.UnsubscribeAll()
-	fmt.Println("TestSubscribePublishPartialUnsubscribe after RemoveListener ")
-	pn.RemoveListener(listener)
 	fmt.Println("TestSubscribePublishPartialUnsubscribe after UnsubscribeAll ")
+	pn.RemoveListener(listener)
+	fmt.Println("TestSubscribePublishPartialUnsubscribe after RemoveListener ")
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
