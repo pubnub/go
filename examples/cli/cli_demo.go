@@ -55,6 +55,7 @@ func connect() {
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
+	config.SubscribeRequestTimeout = 35
 
 	config.CipherKey = "enigma"
 
@@ -591,6 +592,7 @@ func readCommand(cmd string) {
 		pn.UnsubscribeAll()
 	case "d":
 		pn.Destroy()
+		fmt.Println("after Destroy")
 	default:
 		showHelp()
 	}
@@ -2196,11 +2198,25 @@ func publishRequest(args []string) {
 		"m2": "n2",
 	}
 
+	payload := map[string]interface{}{
+		"pn_apns": map[string]interface{}{
+			"aps": map[string]interface{}{
+				"alert": "hi",
+				"badge": 2,
+				"sound": "melody",
+			},
+		},
+		"pn_gcm": map[string]interface{}{
+			"c": "1",
+		},
+		"b": "2",
+	}
+	fmt.Println(payload)
 	for _, ch := range channels {
 		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
 		res, status, err := pn.Publish().
 			Channel(ch).
-			Message(res).
+			Message(message).
 			UsePost(usePost).
 			ShouldStore(store).
 			Meta(meta).

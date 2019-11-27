@@ -294,10 +294,11 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		combinedGroups := m.stateManager.prepareGroupList(true)
 
 		if len(combinedChannels) == 0 && len(combinedGroups) == 0 {
+			m.pubnub.Config.Log.Println("no channels left to subscribe")
 			m.listenerManager.announceStatus(&PNStatus{
 				Category: PNDisconnectedCategory,
 			})
-			m.pubnub.Config.Log.Println("no channels left to subscribe")
+
 			m.reconnectionManager.stopHeartbeatTimer()
 
 			break
@@ -952,9 +953,7 @@ func (m *SubscriptionManager) AddListener(listener *Listener) {
 }
 
 func (m *SubscriptionManager) RemoveListener(listener *Listener) {
-	m.listenerManager.Lock()
 	m.listenerManager.removeListener(listener)
-	m.listenerManager.Unlock()
 }
 
 func (m *SubscriptionManager) RemoveAllListeners() {

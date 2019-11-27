@@ -38,13 +38,26 @@ type ResponseInfo struct {
 	OriginalResponse *http.Response
 }
 
-func addToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan *JobQResponse) {
+func fillJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan *JobQResponse) {
 	jqi := &JobQItem{
 		Req:         req,
 		Client:      client,
 		JobResponse: j,
 	}
 	opts.jobQueue() <- jqi
+}
+
+func addToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan *JobQResponse, ctx Context) {
+	if ctx != nil {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			fillJobQ(req, client, opts, j)
+		}
+	} else {
+		fillJobQ(req, client, opts, j)
+	}
 }
 
 func buildBody(opts endpointOpts, url *url.URL) (io.Reader, error) {
@@ -130,7 +143,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 
 	if runRequestWorker && opts.config().MaxWorkers > 0 {
 		j := make(chan *JobQResponse)
-		go addToJobQ(req, client, opts, j)
+		go addToJobQ(req, client, opts, j, ctx)
 		jr := <-j
 		close(j)
 		res = jr.Resp
@@ -181,6 +194,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 		responseInfo.AuthKey = auth[0]
 	}
 
+	opts.config().Log.Println("PNUnknownCategory", string(val), responseInfo)
 	status = createStatus(PNUnknownCategory, string(val), responseInfo, nil)
 
 	return val, status, nil
