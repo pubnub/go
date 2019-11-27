@@ -2211,12 +2211,12 @@ func publishRequest(args []string) {
 		},
 		"b": "2",
 	}
-
+	fmt.Println(payload)
 	for _, ch := range channels {
 		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
 		res, status, err := pn.Publish().
 			Channel(ch).
-			Message(payload).
+			Message(message).
 			UsePost(usePost).
 			ShouldStore(store).
 			Meta(meta).
