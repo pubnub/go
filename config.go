@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pubnub/go/utils"
 	"log"
+	"sync"
 )
 
 const (
@@ -14,6 +15,7 @@ const (
 // PubNub client behaviour. Configuration instance contain additional set of
 // properties which allow to perform precise PubNub client configuration.
 type Config struct {
+	sync.RWMutex
 	PublishKey                 string             // PublishKey you can get it from admin panel (only required if publishing).
 	SubscribeKey               string             // SubscribeKey you can get it from admin panel.
 	SecretKey                  string             // SecretKey (only required for modifying/revealing access permissions).
@@ -95,9 +97,10 @@ func (c *Config) checkMinTimeout(timeout int) int {
 func (c *Config) SetPresenceTimeoutWithCustomInterval(
 	timeout, interval int) *Config {
 	timeout = c.checkMinTimeout(timeout)
+	c.Lock()
 	c.PresenceTimeout = timeout
 	c.HeartbeatInterval = interval
-
+	c.Unlock()
 	return c
 }
 

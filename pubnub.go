@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.5.1"
+	Version = "4.5.2"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -517,9 +517,6 @@ func (pn *PubNub) DeleteMessagesWithContext(ctx Context) *historyDeleteBuilder {
 }
 
 func (pn *PubNub) Destroy() {
-	pn.requestWorkers.Close()
-
-	close(pn.jobQueue)
 	pn.Config.Log.Println("Calling Destroy")
 	pn.cancel()
 
@@ -538,6 +535,10 @@ func (pn *PubNub) Destroy() {
 	pn.Config.Log.Println("calling RemoveAllListeners")
 	pn.subscriptionManager.RemoveAllListeners()
 	pn.Config.Log.Println("after RemoveAllListeners")
+	close(pn.jobQueue)
+	pn.Config.Log.Println("after close jobQueue")
+	pn.requestWorkers.Close()
+	pn.Config.Log.Println("after close requestWorkers")
 	pn.tokenManager.CleanUp()
 
 }

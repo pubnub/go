@@ -594,6 +594,7 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutCustomEncPost(t *testing.T) 
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
+	fmt.Println("after SubscribePublishUnsubscribeMultiCommon got message")
 	m := <-pubMessage
 	//s1 := reflect.ValueOf(m)
 	//fmt.Println("s:::", s1, s1.Type())
@@ -698,6 +699,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 		//return
 	}
 
+	fmt.Println("SubscribePublishUnsubscribeMultiCommon publish done")
 	pn.Publish().Channel(ch).Message(s).UsePost(usePost).Execute()
 
 	select {
@@ -718,7 +720,9 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	// 	assert.Fail(err)
 	// }
 	// fmt.Println("SubscribePublishUnsubscribeMultiCommon after doneUnsubscribe")
-	exit <- true
+	if exit != nil {
+		exit <- true
+	}
 	// fmt.Println("SubscribePublishUnsubscribeMultiCommon after exit")
 
 	// assert.Zero(len(pn.GetSubscribedChannels()))
@@ -1146,6 +1150,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	heySub := heyIterator(3)
 
 	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	pn.Config.UUID = randomized("sub-partialu-uuid")
 
 	listener := pubnub.NewListener()
@@ -1183,6 +1188,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	pn.AddListener(listener)
 
 	pn.Subscribe().Channels([]string{ch1, ch2}).Execute()
+	fmt.Println("TestSubscribePublishPartialUnsubscribe after subscribe ", timeout)
 
 	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
@@ -1193,12 +1199,16 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 		tic.Stop()
 		assert.Fail("timeout")
 	}
+	fmt.Println("TestSubscribePublishPartialUnsubscribe before UnsubscribeAll ")
 
-	pn.RemoveListener(listener)
 	pn.UnsubscribeAll()
+	fmt.Println("TestSubscribePublishPartialUnsubscribe after UnsubscribeAll ")
+	pn.RemoveListener(listener)
+	fmt.Println("TestSubscribePublishPartialUnsubscribe after RemoveListener ")
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
+	fmt.Println("TestSubscribePublishPartialUnsubscribe after all ")
 }
 
 func JoinLeaveChannel(t *testing.T) {

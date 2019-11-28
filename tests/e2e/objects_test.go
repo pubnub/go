@@ -195,26 +195,29 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 	assert.Equal("d", res3.Data.Custom["c"])
 
 	//getusers
-	res6, st6, err6 := pn.GetUsers().Include(incl).Limit(100).Count(true).Execute()
-	assert.Nil(err6)
-	assert.Equal(200, st6.StatusCode)
-	assert.True(res6.TotalCount > 0)
-	found := false
-	for i := range res6.Data {
-		if res6.Data[i].ID == id {
-			assert.Equal(name, res6.Data[i].Name)
-			assert.Equal(extid, res6.Data[i].ExternalID)
-			assert.Equal(purl, res6.Data[i].ProfileURL)
-			assert.Equal(email, res6.Data[i].Email)
-			assert.Equal(res.Data.Created, res6.Data[i].Created)
-			assert.Equal(res2.Data.Updated, res6.Data[i].Updated)
-			assert.Equal(res2.Data.ETag, res6.Data[i].ETag)
-			assert.Equal("b", res6.Data[i].Custom["a"])
-			assert.Equal("d", res6.Data[i].Custom["c"])
-			found = true
+	if withPAM {
+		res6, st6, err6 := pn.GetUsers().Include(incl).Limit(100).Count(true).Execute()
+		assert.Nil(err6)
+		assert.Equal(200, st6.StatusCode)
+		assert.True(res6.TotalCount > 0)
+		found := false
+		for i := range res6.Data {
+			fmt.Println(res6.Data[i], id)
+			if res6.Data[i].ID == id {
+				assert.Equal(name, res6.Data[i].Name)
+				assert.Equal(extid, res6.Data[i].ExternalID)
+				assert.Equal(purl, res6.Data[i].ProfileURL)
+				assert.Equal(email, res6.Data[i].Email)
+				assert.Equal(res.Data.Created, res6.Data[i].Created)
+				assert.Equal(res2.Data.Updated, res6.Data[i].Updated)
+				assert.Equal(res2.Data.ETag, res6.Data[i].ETag)
+				assert.Equal("b", res6.Data[i].Custom["a"])
+				assert.Equal("d", res6.Data[i].Custom["c"])
+				found = true
+			}
 		}
+		assert.True(found)
 	}
-	assert.True(found)
 
 	//delete
 	res5, st5, err5 := pn.DeleteUser().ID(id).Execute()
@@ -312,24 +315,26 @@ func ObjectsCreateUpdateGetDeleteSpaceCommon(t *testing.T, withPAM, runWithoutSe
 	assert.Equal("d", res3.Data.Custom["c"])
 
 	//getusers
-	res6, st6, err6 := pn.GetSpaces().Include(incl).Limit(100).Count(true).Execute()
-	assert.Nil(err6)
-	assert.Equal(200, st6.StatusCode)
-	assert.True(res6.TotalCount > 0)
-	found := false
-	for i := range res6.Data {
-		if res6.Data[i].ID == id {
-			assert.Equal(name, res6.Data[i].Name)
-			assert.Equal(desc, res6.Data[i].Description)
-			assert.Equal(res.Data.Created, res6.Data[i].Created)
-			assert.Equal(res2.Data.Updated, res6.Data[i].Updated)
-			assert.Equal(res2.Data.ETag, res6.Data[i].ETag)
-			assert.Equal("b", res6.Data[i].Custom["a"])
-			assert.Equal("d", res6.Data[i].Custom["c"])
-			found = true
+	if withPAM {
+		res6, st6, err6 := pn.GetSpaces().Include(incl).Limit(100).Count(true).Execute()
+		assert.Nil(err6)
+		assert.Equal(200, st6.StatusCode)
+		assert.True(res6.TotalCount > 0)
+		found := false
+		for i := range res6.Data {
+			if res6.Data[i].ID == id {
+				assert.Equal(name, res6.Data[i].Name)
+				assert.Equal(desc, res6.Data[i].Description)
+				assert.Equal(res.Data.Created, res6.Data[i].Created)
+				assert.Equal(res2.Data.Updated, res6.Data[i].Updated)
+				assert.Equal(res2.Data.ETag, res6.Data[i].ETag)
+				assert.Equal("b", res6.Data[i].Custom["a"])
+				assert.Equal("d", res6.Data[i].Custom["c"])
+				found = true
+			}
 		}
+		assert.True(found)
 	}
-	assert.True(found)
 
 	//delete
 	res5, st5, err5 := pn.DeleteSpace().ID(id).Execute()
