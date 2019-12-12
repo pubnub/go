@@ -36,12 +36,16 @@ const (
 	StrMissingDeviceID = "Missing Device ID"
 	// StrMissingPushType shows Missing Push Type message
 	StrMissingPushType = "Missing Push Type"
+	// StrMissingPushTopic shows Missing Push Topic message
+	StrMissingPushTopic = "Missing Push Topic"
 	// StrChannelsTimetoken shows Missing Channels Timetoken message
 	StrChannelsTimetoken = "Missing Channels Timetoken"
 	// StrChannelsTimetokenLength shows Length of Channels Timetoken message
 	StrChannelsTimetokenLength = "Length of Channels Timetoken and Channels do not match"
 	// StrInvalidTTL shows Invalid TTL message
 	StrInvalidTTL = "Invalid TTL"
+	// StrMissingPushTitle shows `Push title missing` message
+	StrMissingPushTitle = "Push title missing"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.

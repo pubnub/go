@@ -30,8 +30,22 @@ type endpointOpts interface {
 func SetQueryParam(q *url.Values, queryParam map[string]string) {
 	if queryParam != nil {
 		for key, value := range queryParam {
-			q.Set(key, value)
+			q.Set(key, utils.URLEncode(value))
 		}
+	}
+}
+
+func SetPushEnvironment(q *url.Values, env PNPushEnvironment) {
+	if string(env) != "" {
+		q.Set("environment", string(env))
+	} else {
+		q.Set("environment", string(PNPushEnvironmentDevelopment))
+	}
+}
+
+func SetPushTopic(q *url.Values, topic string) {
+	if topic != "" {
+		q.Set("topic", utils.URLEncode(topic))
 	}
 }
 

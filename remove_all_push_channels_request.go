@@ -9,6 +9,7 @@ import (
 )
 
 const removeAllPushChannelsForDevicePath = "/v1/push/sub-key/%s/devices/%s/remove"
+const removeAllPushChannelsForDevicePathAPNS2 = "/v2/push/sub-key/%s/devices-apns2/%s/remove"
 
 var emptyRemoveAllPushChannelsForDeviceResponse *RemoveAllPushChannelsForDeviceResponse
 
@@ -39,16 +40,26 @@ func newRemoveAllPushChannelsForDeviceBuilderWithContext(
 }
 
 // PushType sets the PushType for the RemoveAllPushNotifications request.
-func (b *removeAllPushChannelsForDeviceBuilder) PushType(
-	pushType PNPushType) *removeAllPushChannelsForDeviceBuilder {
+func (b *removeAllPushChannelsForDeviceBuilder) PushType(pushType PNPushType) *removeAllPushChannelsForDeviceBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
 // DeviceIDForPush sets the device id for RemoveAllPushNotifications request.
-func (b *removeAllPushChannelsForDeviceBuilder) DeviceIDForPush(
-	deviceID string) *removeAllPushChannelsForDeviceBuilder {
+func (b *removeAllPushChannelsForDeviceBuilder) DeviceIDForPush(deviceID string) *removeAllPushChannelsForDeviceBuilder {
 	b.opts.DeviceIDForPush = deviceID
+	return b
+}
+
+// Topic sets the topic of for APNS2 Push Notifcataions
+func (b *removeAllPushChannelsForDeviceBuilder) Topic(topic string) *removeAllPushChannelsForDeviceBuilder {
+	b.opts.Topic = topic
+	return b
+}
+
+// Environment sets the environment of for APNS2 Push Notifcataions
+func (b *removeAllPushChannelsForDeviceBuilder) Environment(env PNPushEnvironment) *removeAllPushChannelsForDeviceBuilder {
+	b.opts.Environment = env
 	return b
 }
 
@@ -76,6 +87,8 @@ type removeAllPushChannelsForDeviceOpts struct {
 	PushType        PNPushType
 	QueryParam      map[string]string
 	DeviceIDForPush string
+	Topic           string
+	Environment     PNPushEnvironment
 
 	Transport http.RoundTripper
 
@@ -107,6 +120,10 @@ func (o *removeAllPushChannelsForDeviceOpts) validate() error {
 		return newValidationError(o, StrMissingPushType)
 	}
 
+	if o.PushType == PNPushTypeAPNS2 && (o.Topic == "") {
+		return newValidationError(o, StrMissingPushTopic)
+	}
+
 	return nil
 }
 
@@ -114,6 +131,12 @@ func (o *removeAllPushChannelsForDeviceOpts) validate() error {
 type RemoveAllPushChannelsForDeviceResponse struct{}
 
 func (o *removeAllPushChannelsForDeviceOpts) buildPath() (string, error) {
+	if o.PushType == PNPushTypeAPNS2 {
+		return fmt.Sprintf(removeAllPushChannelsForDevicePathAPNS2,
+			o.pubnub.Config.SubscribeKey,
+			utils.URLEncode(o.DeviceIDForPush)), nil
+	}
+
 	return fmt.Sprintf(removeAllPushChannelsForDevicePath,
 		o.pubnub.Config.SubscribeKey,
 		utils.URLEncode(o.DeviceIDForPush)), nil
@@ -122,7 +145,11 @@ func (o *removeAllPushChannelsForDeviceOpts) buildPath() (string, error) {
 func (o *removeAllPushChannelsForDeviceOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 	q.Set("type", o.PushType.String())
+	SetPushEnvironment(q, o.Environment)
+	SetPushTopic(q, o.Topic)
+
 	SetQueryParam(q, o.QueryParam)
+
 	return q, nil
 }
 

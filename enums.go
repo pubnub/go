@@ -37,6 +37,14 @@ type PNObjectsEventType string
 // PNMessageActionsEventType is used as an enum to catgorize the available Message Actions Event types
 type PNMessageActionsEventType string
 
+// PNEnvironment is used as an enum to catgorize the available Message Actions Event types
+type PNPushEnvironment string
+
+const (
+	PNPushEnvironmentDevelopment PNPushEnvironment = "development"
+	PNPushEnvironmentProduction                    = "production"
+)
+
 const (
 	// PNMessageActionsAdded is the enum when the event of type `added` occurs
 	PNMessageActionsAdded PNMessageActionsEventType = "added"
@@ -258,6 +266,8 @@ const (
 	PNPushTypeAPNS
 	// PNPushTypeMPNS is used as an enum to for selecting `MPNS` as the PNPushType
 	PNPushTypeMPNS
+	// PNPushTypeAPNS2 is used as an enum to for selecting `APNS2` as the PNPushType
+	PNPushTypeAPNS2
 )
 
 func (p PNPushType) String() string {
@@ -270,6 +280,9 @@ func (p PNPushType) String() string {
 
 	case PNPushTypeMPNS:
 		return "mpns"
+
+	case PNPushTypeAPNS2:
+		return "apns2"
 
 	default:
 		return "none"
