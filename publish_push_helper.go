@@ -48,9 +48,9 @@ type PNAPNS2Data struct {
 }
 
 type PNPushTarget struct {
-	Topic           string            `json:"topic"`
-	Exclude_devices []string          `json:"exclude_devices"`
-	Environment     PNPushEnvironment `json:"environment"`
+	Topic          string            `json:"topic"`
+	ExcludeDevices []string          `json:"exclude_devices"`
+	Environment    PNPushEnvironment `json:"environment"`
 }
 
 type publishPushHelperBuilder struct {
@@ -156,8 +156,8 @@ func (b *publishPushHelperBuilder) BuildPayload() (map[string]interface{}, error
 		response["pn_gcm"] = fcm
 	}
 
-	if b.opts.NonPush != nil {
-		for key, value := range b.opts.NonPush {
+	if b.opts.CommonPayload != nil {
+		for key, value := range b.opts.CommonPayload {
 			response[key] = value
 		}
 	}
@@ -297,8 +297,8 @@ func (b *publishPushHelperBuilder) SetMPNSPayload(pnMPNSData PNMPNSData) *publis
 	return b
 }
 
-func (b *publishPushHelperBuilder) SetNonPushPayload(nonPush map[string]interface{}) *publishPushHelperBuilder {
-	b.opts.NonPush = nonPush
+func (b *publishPushHelperBuilder) SetCommonPayload(commonPayload map[string]interface{}) *publishPushHelperBuilder {
+	b.opts.CommonPayload = commonPayload
 
 	return b
 }
@@ -321,7 +321,7 @@ type publishPushHelperOpts struct {
 	PushAPNSData   *PNAPNSData
 	PushMPNSData   *PNMPNSData
 	PushFCMData    *PNFCMData
-	NonPush        map[string]interface{}
+	CommonPayload  map[string]interface{}
 	PushCustomData map[string]interface{}
 
 	ctx Context
