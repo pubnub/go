@@ -47,7 +47,7 @@ func PushPayloadCommon(t *testing.T, withContext, withAPNS, withAPNS2, withFCM, 
 	}
 
 	apns2One := PNAPNS2Data{
-		CollapseId: "invitations",
+		CollapseID: "invitations",
 		Expiration: "2019-12-13T22:06:09Z",
 		Version:    "v1",
 		Targets: []PNPushTarget{
@@ -63,7 +63,7 @@ func PushPayloadCommon(t *testing.T, withContext, withAPNS, withAPNS2, withFCM, 
 	}
 
 	apns2Two := PNAPNS2Data{
-		CollapseId: "invitations",
+		CollapseID: "invitations",
 		Expiration: "2019-12-15T22:06:09Z",
 		Version:    "v2",
 		Targets: []PNPushTarget{
@@ -133,7 +133,7 @@ func PushPayloadCommon(t *testing.T, withContext, withAPNS, withAPNS2, withFCM, 
 		o.SetCommonPayload(CommonPayload)
 	}
 
-	result, _ := o.BuildPayload()
+	result := o.BuildPayload()
 	assert.NotNil(result)
 	if result != nil {
 		if withAPNS2 || withAPNS {
@@ -156,7 +156,7 @@ func PushPayloadCommon(t *testing.T, withContext, withAPNS, withAPNS2, withFCM, 
 
 			if withAPNS2 {
 				resAPNS2 := result["pn_push"].([]PNAPNS2Data)
-				assert.Equal(apns2[0].CollapseId, resAPNS2[0].CollapseId)
+				assert.Equal(apns2[0].CollapseID, resAPNS2[0].CollapseID)
 				assert.Equal(apns2[0].Expiration, resAPNS2[0].Expiration)
 				assert.Equal(apns2[0].Version, resAPNS2[0].Version)
 				assert.True(apns2[0].Targets[0].Environment == resAPNS2[0].Targets[0].Environment)
@@ -164,7 +164,7 @@ func PushPayloadCommon(t *testing.T, withContext, withAPNS, withAPNS2, withFCM, 
 				assert.Equal(apns2[0].Targets[0].ExcludeDevices[0], resAPNS2[0].Targets[0].ExcludeDevices[0])
 				assert.Equal(apns2[0].Targets[0].ExcludeDevices[1], resAPNS2[0].Targets[0].ExcludeDevices[1])
 
-				assert.Equal(apns2[1].CollapseId, resAPNS2[1].CollapseId)
+				assert.Equal(apns2[1].CollapseID, resAPNS2[1].CollapseID)
 				assert.Equal(apns2[1].Expiration, resAPNS2[1].Expiration)
 				assert.Equal(apns2[1].Version, resAPNS2[1].Version)
 				assert.True(apns2[1].Targets[0].Environment == resAPNS2[1].Targets[0].Environment)

@@ -6,6 +6,7 @@ import (
 
 )
 
+// PNMPNSData is the struct used for the MPNS paylod
 type PNMPNSData struct {
 	Title       string `json:"title"`
 	Type        string `json:"type"`
@@ -15,16 +16,19 @@ type PNMPNSData struct {
 	Custom      map[string]interface{}
 }
 
+// PNFCMData is the struct used for the FCM paylod
 type PNFCMData struct {
 	Data   PNFCMDataFields `json:"data"`
 	Custom map[string]interface{}
 }
 
+// PNFCMDataFields is the helper struct used for the FCM paylod
 type PNFCMDataFields struct {
 	Summary interface{} `json:"summary"`
 	Custom  map[string]interface{}
 }
 
+// PNAPSData is the helper struct used for the APNS paylod
 type PNAPSData struct {
 	Alert    interface{} `json:"alert"`
 	Badge    int         `json:"badge"`
@@ -35,18 +39,21 @@ type PNAPSData struct {
 	Custom   map[string]interface{}
 }
 
+// PNAPNSData is the struct used for the APNS paylod
 type PNAPNSData struct {
 	APS    PNAPSData `json:"aps"`
 	Custom map[string]interface{}
 }
 
+// PNAPNS2Data is the struct used for the APNS2 paylod
 type PNAPNS2Data struct {
-	CollapseId string         `json:"collapseId"`
+	CollapseID string         `json:"collapseId"`
 	Expiration string         `json:"expiration"`
 	Targets    []PNPushTarget `json:"targets"`
 	Version    string         `json:"version"`
 }
 
+// PNPushTarget is the helper struct used for the APNS2 paylod
 type PNPushTarget struct {
 	Topic          string            `json:"topic"`
 	ExcludeDevices []string          `json:"exclude_devices"`
@@ -79,63 +86,8 @@ func newPublishPushHelperBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-// func (b *publishPushHelperBuilder) APNS2SupportData(pushAPNS2SupportData []PushAPNS2Data) *publishPushHelperBuilder {
-// 	b.opts.PushAPNS2Data = pushAPNS2SupportData
-
-// 	return b
-// }
-
-// // APNS2Data APNS2 Support Data
-// func (b *publishPushHelperBuilder) PushTypes(pushTypes []PNPushType) *publishPushHelperBuilder {
-// 	b.opts.PushTypes = pushTypes
-
-// 	return b
-// }
-
-// func (b *publishPushHelperBuilder) Title(title string) *publishPushHelperBuilder {
-// 	b.opts.PushTitle = title
-
-// 	return b
-// }
-
-// func (b *publishPushHelperBuilder) Body(body string) *publishPushHelperBuilder {
-// 	b.opts.PushBody = body
-
-// 	return b
-// }
-
-// func (b *publishPushHelperBuilder) Badge(badge int) *publishPushHelperBuilder {
-// 	b.opts.PushBadge = badge
-
-// 	return b
-// }
-
-// func (b *publishPushHelperBuilder) Sound(sound string) *publishPushHelperBuilder {
-// 	b.opts.PushSound = sound
-
-// 	return b
-// }
-
-// func (b *publishPushHelperBuilder) Email(email string) *publishPushHelperBuilder {
-// 	b.opts.Email = email
-
-// 	return b
-// }
-
-// func (b *publishPushHelperBuilder) Custom(custom map[string]interface{}) *publishPushHelperBuilder {
-// 	b.opts.PushCustomData = custom
-
-// 	return b
-// }
-
-// GetPayload runs the publishPushHelper request.
-func (b *publishPushHelperBuilder) BuildPayload() (map[string]interface{}, error) {
-
-	// err := b.opts.validate()
-	// if err != nil {
-	// 	return emptyPNPublishPushHelperResponse, err
-	// }
-
+// BuildPayload builds the push payload and returns an map of interface
+func (b *publishPushHelperBuilder) BuildPayload() map[string]interface{} {
 	response := make(map[string]interface{})
 	apns := b.opts.buildAPNSPayload()
 	if apns != nil {
@@ -162,22 +114,7 @@ func (b *publishPushHelperBuilder) BuildPayload() (map[string]interface{}, error
 		}
 	}
 
-	// for value := range b.opts.PushTypes {
-	// 	switch value {
-	// 	case PNPushTypeAPNS:
-	// 		response.PushPayload["pn_apns"] = b.buildAPNSPayload()
-	// 	case PNPushTypeAPNS2:
-	// 		response.PushPayload["pn_push"] = b.opts.PushAPNS2Data
-	// 		response.PushPayload["pn_apns"] = b.buildAPNSPayload()
-	// 	case PNPushTypeMPNS:
-	// 		response.PushPayload["pn_mpns"] = b.buildMPNSPayload()
-	// 	case PNPushTypeGCM:
-	// 		response.PushPayload["pn_gcm"] = b.buildFCMPayload()
-	// 	default:
-	// 	}
-	// }
-
-	return response, nil
+	return response
 }
 
 func (o *publishPushHelperOpts) buildAPNSPayload() map[string]interface{} {
@@ -284,6 +221,7 @@ func (o *publishPushHelperOpts) buildFCMPayload() map[string]interface{} {
 	return fcm
 }
 
+// SetAPNSPayload sets the APNS payload
 func (b *publishPushHelperBuilder) SetAPNSPayload(pnAPNSData PNAPNSData, pnAPNS2Data []PNAPNS2Data) *publishPushHelperBuilder {
 	b.opts.PushAPNSData = &pnAPNSData
 	b.opts.PushAPNS2Data = pnAPNS2Data
@@ -291,18 +229,21 @@ func (b *publishPushHelperBuilder) SetAPNSPayload(pnAPNSData PNAPNSData, pnAPNS2
 	return b
 }
 
+// SetMPNSPayload sets the MPNS payload
 func (b *publishPushHelperBuilder) SetMPNSPayload(pnMPNSData PNMPNSData) *publishPushHelperBuilder {
 	b.opts.PushMPNSData = &pnMPNSData
 
 	return b
 }
 
+// SetCommonPayload sets the common payload
 func (b *publishPushHelperBuilder) SetCommonPayload(commonPayload map[string]interface{}) *publishPushHelperBuilder {
 	b.opts.CommonPayload = commonPayload
 
 	return b
 }
 
+// SetFCMPayload sets the FCM payload
 func (b *publishPushHelperBuilder) SetFCMPayload(pnFCMData PNFCMData) *publishPushHelperBuilder {
 	b.opts.PushFCMData = &pnFCMData
 
@@ -312,11 +253,6 @@ func (b *publishPushHelperBuilder) SetFCMPayload(pnFCMData PNFCMData) *publishPu
 type publishPushHelperOpts struct {
 	pubnub *PubNub
 
-	//PushTypes      []PNPushType
-	// PushTitle      string
-	// PushBody       string
-	// PushBadge      int
-	// PushSound      string
 	PushAPNS2Data  []PNAPNS2Data
 	PushAPNSData   *PNAPNSData
 	PushMPNSData   *PNMPNSData
@@ -329,16 +265,4 @@ type publishPushHelperOpts struct {
 
 func (o *publishPushHelperOpts) context() Context {
 	return o.ctx
-}
-
-func (o *publishPushHelperOpts) validate() error {
-	// if len(o.PushTypes) <= 0 {
-	// 	return newValidationError(o, StrMissingPushType)
-	// }
-
-	// if len(o.PushTitle) <= 0 {
-	// 	return newValidationError(o, StrMissingPushTitle)
-	// }
-
-	return nil
 }

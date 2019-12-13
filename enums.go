@@ -37,12 +37,14 @@ type PNObjectsEventType string
 // PNMessageActionsEventType is used as an enum to catgorize the available Message Actions Event types
 type PNMessageActionsEventType string
 
-// PNEnvironment is used as an enum to catgorize the available Message Actions Event types
+// PNPushEnvironment is used as an enum to catgorize the available Message Actions Event types
 type PNPushEnvironment string
 
 const (
+	//PNPushEnvironmentDevelopment for development
 	PNPushEnvironmentDevelopment PNPushEnvironment = "development"
-	PNPushEnvironmentProduction                    = "production"
+	//PNPushEnvironmentDevelopment for production
+	PNPushEnvironmentProduction = "production"
 )
 
 const (
