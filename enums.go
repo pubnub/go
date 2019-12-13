@@ -43,7 +43,7 @@ type PNPushEnvironment string
 const (
 	//PNPushEnvironmentDevelopment for development
 	PNPushEnvironmentDevelopment PNPushEnvironment = "development"
-	//PNPushEnvironmentDevelopment for production
+	//PNPushEnvironmentProduction for production
 	PNPushEnvironmentProduction = "production"
 )
 
