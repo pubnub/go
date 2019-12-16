@@ -512,11 +512,11 @@ func (pn *PubNub) TimeWithContext(ctx Context) *timeBuilder {
 	return newTimeBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) PushPayloadHelper() *publishPushHelperBuilder {
+func (pn *PubNub) CreatePushPayload() *publishPushHelperBuilder {
 	return newPublishPushHelperBuilder(pn)
 }
 
-func (pn *PubNub) PushPayloadHelperWithContext(ctx Context) *publishPushHelperBuilder {
+func (pn *PubNub) CreatePushPayloadWithContext(ctx Context) *publishPushHelperBuilder {
 	return newPublishPushHelperBuilderWithContext(pn, ctx)
 }
 

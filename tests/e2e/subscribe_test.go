@@ -329,7 +329,7 @@ func TestSubscribePublishUnsubscribePushHelper(t *testing.T) {
 		"pn_debug": true,
 	}
 
-	s := pn.PushPayloadHelper().SetAPNSPayload(apns, apns2).SetCommonPayload(CommonPayload).SetFCMPayload(fcm).SetMPNSPayload(mpns).BuildPayload()
+	s := pn.CreatePushPayload().SetAPNSPayload(apns, apns2).SetCommonPayload(CommonPayload).SetFCMPayload(fcm).SetMPNSPayload(mpns).BuildPayload()
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
 	m := <-pubMessage
