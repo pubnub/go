@@ -6,7 +6,7 @@ changelog:
         text: "APNS2"
         type: improvement
       - 
-        text: "Push message helper class"
+        text: "Push payload helper class"
         type: improvement
     date: Dec 17, 19  
     version: v4.6.0  
