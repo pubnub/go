@@ -512,6 +512,14 @@ func (pn *PubNub) TimeWithContext(ctx Context) *timeBuilder {
 	return newTimeBuilderWithContext(pn, ctx)
 }
 
+func (pn *PubNub) PushMessageHelper() *publishPushHelperBuilder {
+	return newPublishPushHelperBuilder(pn)
+}
+
+func (pn *PubNub) PushMessageHelperWithContext(ctx Context) *publishPushHelperBuilder {
+	return newPublishPushHelperBuilderWithContext(pn, ctx)
+}
+
 func (pn *PubNub) DeleteMessages() *historyDeleteBuilder {
 	return newHistoryDeleteBuilder(pn)
 }

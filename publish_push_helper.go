@@ -1,11 +1,5 @@
 package pubnub
 
-import (
-//"fmt"
-//"strconv"
-
-)
-
 // PNMPNSData is the struct used for the MPNS paylod
 type PNMPNSData struct {
 	Title       string `json:"title"`
