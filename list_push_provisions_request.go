@@ -13,6 +13,7 @@ import (
 )
 
 const listChannelsOfPushPath = "/v1/push/sub-key/%s/devices/%s"
+const listChannelsOfPushPathAPNS2 = "/v2/push/sub-key/%s/devices-apns2/%s"
 
 var emptyListPushProvisionsRequestResponse *ListPushProvisionsRequestResponse
 
@@ -43,16 +44,26 @@ func newListPushProvisionsRequestBuilderWithContext(
 }
 
 // PushType sets the PushType for the List Push Provisions request.
-func (b *listPushProvisionsRequestBuilder) PushType(
-	pushType PNPushType) *listPushProvisionsRequestBuilder {
+func (b *listPushProvisionsRequestBuilder) PushType(pushType PNPushType) *listPushProvisionsRequestBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
 // DeviceIDForPush sets the device id for List Push Provisions request.
-func (b *listPushProvisionsRequestBuilder) DeviceIDForPush(
-	deviceID string) *listPushProvisionsRequestBuilder {
+func (b *listPushProvisionsRequestBuilder) DeviceIDForPush(deviceID string) *listPushProvisionsRequestBuilder {
 	b.opts.DeviceIDForPush = deviceID
+	return b
+}
+
+// Topic sets the topic of for APNS2 Push Notifcataions
+func (b *listPushProvisionsRequestBuilder) Topic(topic string) *listPushProvisionsRequestBuilder {
+	b.opts.Topic = topic
+	return b
+}
+
+// Environment sets the environment of for APNS2 Push Notifcataions
+func (b *listPushProvisionsRequestBuilder) Environment(env PNPushEnvironment) *listPushProvisionsRequestBuilder {
+	b.opts.Environment = env
 	return b
 }
 
@@ -107,6 +118,8 @@ type listPushProvisionsRequestOpts struct {
 	DeviceIDForPush string
 	QueryParam      map[string]string
 	Transport       http.RoundTripper
+	Topic           string
+	Environment     PNPushEnvironment
 
 	ctx Context
 }
@@ -136,6 +149,10 @@ func (o *listPushProvisionsRequestOpts) validate() error {
 		return newValidationError(o, StrMissingPushType)
 	}
 
+	if o.PushType == PNPushTypeAPNS2 && (o.Topic == "") {
+		return newValidationError(o, StrMissingPushTopic)
+	}
+
 	return nil
 }
 
@@ -145,6 +162,12 @@ type ListPushProvisionsRequestResponse struct {
 }
 
 func (o *listPushProvisionsRequestOpts) buildPath() (string, error) {
+	if o.PushType == PNPushTypeAPNS2 {
+		return fmt.Sprintf(listChannelsOfPushPathAPNS2,
+			o.pubnub.Config.SubscribeKey,
+			utils.URLEncode(o.DeviceIDForPush)), nil
+	}
+
 	return fmt.Sprintf(listChannelsOfPushPath,
 		o.pubnub.Config.SubscribeKey,
 		utils.URLEncode(o.DeviceIDForPush)), nil
@@ -153,6 +176,9 @@ func (o *listPushProvisionsRequestOpts) buildPath() (string, error) {
 func (o *listPushProvisionsRequestOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 	q.Set("type", o.PushType.String())
+	SetPushEnvironment(q, o.Environment)
+	SetPushTopic(q, o.Topic)
+
 	SetQueryParam(q, o.QueryParam)
 	return q, nil
 }

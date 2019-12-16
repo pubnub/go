@@ -104,6 +104,33 @@ func TestAddChannelsToPushOptsBuildQueryParams(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestAddChannelsToPushOptsBuildQueryParamsTopicAndEnv(t *testing.T) {
+	assert := assert.New(t)
+	queryParam := map[string]string{
+		"q1": "v1",
+		"q2": "v2",
+	}
+
+	opts := &addChannelsToPushOpts{
+		Channels:        []string{"ch1", "ch2", "ch3"},
+		DeviceIDForPush: "deviceId",
+		PushType:        PNPushTypeAPNS,
+		pubnub:          pubnub,
+		QueryParam:      queryParam,
+		Topic:           "a",
+		Environment:     PNPushEnvironmentProduction,
+	}
+
+	u, err := opts.buildQuery()
+	assert.Equal("ch1,ch2,ch3", u.Get("add"))
+	assert.Equal("apns", u.Get("type"))
+	assert.Equal("v1", u.Get("q1"))
+	assert.Equal("v2", u.Get("q2"))
+	assert.Equal("production", u.Get("environment"))
+	assert.Equal("a", u.Get("topic"))
+	assert.Nil(err)
+}
+
 func TestAddChannelsToPushOptsBuildBody(t *testing.T) {
 	assert := assert.New(t)
 

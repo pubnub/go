@@ -27,11 +27,28 @@ type endpointOpts interface {
 	telemetryManager() *TelemetryManager
 }
 
+// SetQueryParam appends the query params map to the query string
 func SetQueryParam(q *url.Values, queryParam map[string]string) {
 	if queryParam != nil {
 		for key, value := range queryParam {
-			q.Set(key, value)
+			q.Set(key, utils.URLEncode(value))
 		}
+	}
+}
+
+// SetPushEnvironment appends the push environment to the query string
+func SetPushEnvironment(q *url.Values, env PNPushEnvironment) {
+	if string(env) != "" {
+		q.Set("environment", string(env))
+	} else {
+		q.Set("environment", string(PNPushEnvironmentDevelopment))
+	}
+}
+
+// SetPushTopic appends the topic to the query string
+func SetPushTopic(q *url.Values, topic string) {
+	if topic != "" {
+		q.Set("topic", utils.URLEncode(topic))
 	}
 }
 

@@ -10,6 +10,7 @@ import (
 )
 
 const removeChannelsFromPushPath = "/v1/push/sub-key/%s/devices/%s"
+const removeChannelsFromPushPathAPNS2 = "/v2/push/sub-key/%s/devices-apns2/%s"
 
 var emptyRemoveChannelsFromPushResponse *RemoveChannelsFromPushResponse
 
@@ -27,8 +28,7 @@ func newRemoveChannelsFromPushBuilder(pubnub *PubNub) *removeChannelsFromPushBui
 	return &builder
 }
 
-func newRemoveChannelsFromPushBuilderWithContext(
-	pubnub *PubNub, context Context) *removeChannelsFromPushBuilder {
+func newRemoveChannelsFromPushBuilderWithContext(pubnub *PubNub, context Context) *removeChannelsFromPushBuilder {
 	builder := removeChannelsFromPushBuilder{
 		opts: &removeChannelsFromPushOpts{
 			pubnub: pubnub,
@@ -40,23 +40,32 @@ func newRemoveChannelsFromPushBuilderWithContext(
 }
 
 // Channels sets the channels to remove from Push Notifications
-func (b *removeChannelsFromPushBuilder) Channels(
-	channels []string) *removeChannelsFromPushBuilder {
+func (b *removeChannelsFromPushBuilder) Channels(channels []string) *removeChannelsFromPushBuilder {
 	b.opts.Channels = channels
 	return b
 }
 
 // PushType sets the PushType for the RemovePushNotificationsFromChannels request.
-func (b *removeChannelsFromPushBuilder) PushType(
-	pushType PNPushType) *removeChannelsFromPushBuilder {
+func (b *removeChannelsFromPushBuilder) PushType(pushType PNPushType) *removeChannelsFromPushBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
 // DeviceIDForPush sets the DeviceIDForPush for the RemovePushNotificationsFromChannels request.
-func (b *removeChannelsFromPushBuilder) DeviceIDForPush(
-	deviceID string) *removeChannelsFromPushBuilder {
+func (b *removeChannelsFromPushBuilder) DeviceIDForPush(deviceID string) *removeChannelsFromPushBuilder {
 	b.opts.DeviceIDForPush = deviceID
+	return b
+}
+
+// Topic sets the topic of for APNS2 Push Notifcataions
+func (b *removeChannelsFromPushBuilder) Topic(topic string) *removeChannelsFromPushBuilder {
+	b.opts.Topic = topic
+	return b
+}
+
+// Environment sets the environment of for APNS2 Push Notifcataions
+func (b *removeChannelsFromPushBuilder) Environment(env PNPushEnvironment) *removeChannelsFromPushBuilder {
+	b.opts.Environment = env
 	return b
 }
 
@@ -68,8 +77,7 @@ func (b *removeChannelsFromPushBuilder) QueryParam(queryParam map[string]string)
 }
 
 // Execute runs the RemovePushNotificationsFromChannels request.
-func (b *removeChannelsFromPushBuilder) Execute() (
-	*RemoveChannelsFromPushResponse, StatusResponse, error) {
+func (b *removeChannelsFromPushBuilder) Execute() (*RemoveChannelsFromPushResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyRemoveChannelsFromPushResponse, status, err
@@ -85,6 +93,8 @@ type removeChannelsFromPushOpts struct {
 	QueryParam      map[string]string
 	PushType        PNPushType
 	DeviceIDForPush string
+	Topic           string
+	Environment     PNPushEnvironment
 
 	Transport http.RoundTripper
 
@@ -120,6 +130,10 @@ func (o *removeChannelsFromPushOpts) validate() error {
 		return newValidationError(o, StrMissingPushType)
 	}
 
+	if o.PushType == PNPushTypeAPNS2 && (o.Topic == "") {
+		return newValidationError(o, StrMissingPushTopic)
+	}
+
 	return nil
 }
 
@@ -127,6 +141,12 @@ func (o *removeChannelsFromPushOpts) validate() error {
 type RemoveChannelsFromPushResponse struct{}
 
 func (o *removeChannelsFromPushOpts) buildPath() (string, error) {
+	if o.PushType == PNPushTypeAPNS2 {
+		return fmt.Sprintf(removeChannelsFromPushPathAPNS2,
+			o.pubnub.Config.SubscribeKey,
+			utils.URLEncode(o.DeviceIDForPush)), nil
+
+	}
 	return fmt.Sprintf(removeChannelsFromPushPath,
 		o.pubnub.Config.SubscribeKey,
 		utils.URLEncode(o.DeviceIDForPush)), nil
@@ -135,6 +155,7 @@ func (o *removeChannelsFromPushOpts) buildPath() (string, error) {
 func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 	q.Set("type", o.PushType.String())
+
 	var channels []string
 
 	for _, v := range o.Channels {
@@ -142,6 +163,8 @@ func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
 	}
 
 	q.Set("remove", strings.Join(channels, ","))
+	SetPushEnvironment(q, o.Environment)
+	SetPushTopic(q, o.Topic)
 	SetQueryParam(q, o.QueryParam)
 	return q, nil
 }

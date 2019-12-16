@@ -9,6 +9,7 @@ import (
 )
 
 const addChannelsToPushPath = "/v1/push/sub-key/%s/devices/%s"
+const addChannelsToPushPathAPNS2 = "/v2/push/sub-key/%s/devices-apns2/%s"
 
 var emptyAddPushNotificationsOnChannelsResponse *AddPushNotificationsOnChannelsResponse
 
@@ -40,24 +41,33 @@ func newAddPushNotificationsOnChannelsBuilderWithContext(
 }
 
 // Channels sets the channels to enable Push Notifications
-func (b *addPushNotificationsOnChannelsBuilder) Channels(
-	channels []string) *addPushNotificationsOnChannelsBuilder {
+func (b *addPushNotificationsOnChannelsBuilder) Channels(channels []string) *addPushNotificationsOnChannelsBuilder {
 	b.opts.Channels = channels
 
 	return b
 }
 
 // PushType set the type of Push: GCM, APNS, MPNS
-func (b *addPushNotificationsOnChannelsBuilder) PushType(
-	pushType PNPushType) *addPushNotificationsOnChannelsBuilder {
+func (b *addPushNotificationsOnChannelsBuilder) PushType(pushType PNPushType) *addPushNotificationsOnChannelsBuilder {
 	b.opts.PushType = pushType
 	return b
 }
 
 // DeviceIDForPush sets the device of for Push Notifcataions
-func (b *addPushNotificationsOnChannelsBuilder) DeviceIDForPush(
-	deviceID string) *addPushNotificationsOnChannelsBuilder {
+func (b *addPushNotificationsOnChannelsBuilder) DeviceIDForPush(deviceID string) *addPushNotificationsOnChannelsBuilder {
 	b.opts.DeviceIDForPush = deviceID
+	return b
+}
+
+// Topic sets the topic of for APNS2 Push Notifcataions
+func (b *addPushNotificationsOnChannelsBuilder) Topic(topic string) *addPushNotificationsOnChannelsBuilder {
+	b.opts.Topic = topic
+	return b
+}
+
+// Environment sets the environment of for APNS2 Push Notifcataions
+func (b *addPushNotificationsOnChannelsBuilder) Environment(env PNPushEnvironment) *addPushNotificationsOnChannelsBuilder {
+	b.opts.Environment = env
 	return b
 }
 
@@ -69,8 +79,7 @@ func (b *addPushNotificationsOnChannelsBuilder) QueryParam(queryParam map[string
 }
 
 // Execute runs add Push Notifications on channels request
-func (b *addPushNotificationsOnChannelsBuilder) Execute() (
-	*AddPushNotificationsOnChannelsResponse, StatusResponse, error) {
+func (b *addPushNotificationsOnChannelsBuilder) Execute() (*AddPushNotificationsOnChannelsResponse, StatusResponse, error) {
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyAddPushNotificationsOnChannelsResponse, status, err
@@ -87,6 +96,8 @@ type addChannelsToPushOpts struct {
 	QueryParam      map[string]string
 	Transport       http.RoundTripper
 	ctx             Context
+	Topic           string
+	Environment     PNPushEnvironment
 }
 
 func (o *addChannelsToPushOpts) config() Config {
@@ -118,6 +129,10 @@ func (o *addChannelsToPushOpts) validate() error {
 		return newValidationError(o, StrMissingPushType)
 	}
 
+	if o.PushType == PNPushTypeAPNS2 && (o.Topic == "") {
+		return newValidationError(o, StrMissingPushTopic)
+	}
+
 	return nil
 }
 
@@ -125,6 +140,12 @@ func (o *addChannelsToPushOpts) validate() error {
 type AddPushNotificationsOnChannelsResponse struct{}
 
 func (o *addChannelsToPushOpts) buildPath() (string, error) {
+	if o.PushType == PNPushTypeAPNS2 {
+		return fmt.Sprintf(addChannelsToPushPathAPNS2,
+			o.pubnub.Config.SubscribeKey,
+			utils.URLEncode(o.DeviceIDForPush)), nil
+	}
+
 	return fmt.Sprintf(addChannelsToPushPath,
 		o.pubnub.Config.SubscribeKey,
 		utils.URLEncode(o.DeviceIDForPush)), nil
@@ -141,6 +162,8 @@ func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
 
 	q.Set("add", strings.Join(channels, ","))
 	q.Set("type", o.PushType.String())
+	SetPushEnvironment(q, o.Environment)
+	SetPushTopic(q, o.Topic)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
