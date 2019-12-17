@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.5.2"
+	Version = "4.6.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -36,12 +36,16 @@ const (
 	StrMissingDeviceID = "Missing Device ID"
 	// StrMissingPushType shows Missing Push Type message
 	StrMissingPushType = "Missing Push Type"
+	// StrMissingPushTopic shows Missing Push Topic message
+	StrMissingPushTopic = "Missing Push Topic"
 	// StrChannelsTimetoken shows Missing Channels Timetoken message
 	StrChannelsTimetoken = "Missing Channels Timetoken"
 	// StrChannelsTimetokenLength shows Length of Channels Timetoken message
 	StrChannelsTimetokenLength = "Length of Channels Timetoken and Channels do not match"
 	// StrInvalidTTL shows Invalid TTL message
 	StrInvalidTTL = "Invalid TTL"
+	// StrMissingPushTitle shows `Push title missing` message
+	StrMissingPushTitle = "Push title missing"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.
@@ -506,6 +510,14 @@ func (pn *PubNub) Time() *timeBuilder {
 
 func (pn *PubNub) TimeWithContext(ctx Context) *timeBuilder {
 	return newTimeBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) CreatePushPayload() *publishPushHelperBuilder {
+	return newPublishPushHelperBuilder(pn)
+}
+
+func (pn *PubNub) CreatePushPayloadWithContext(ctx Context) *publishPushHelperBuilder {
+	return newPublishPushHelperBuilderWithContext(pn, ctx)
 }
 
 func (pn *PubNub) DeleteMessages() *historyDeleteBuilder {
