@@ -70,6 +70,12 @@ func (b *getSpacesBuilder) End(end string) *getSpacesBuilder {
 	return b
 }
 
+func (b *getSpacesBuilder) Filter(filter string) *getSpacesBuilder {
+	b.opts.Filter = filter
+
+	return b
+}
+
 func (b *getSpacesBuilder) Count(count bool) *getSpacesBuilder {
 	b.opts.Count = count
 
@@ -106,6 +112,7 @@ type getSpacesOpts struct {
 	Include    []string
 	Start      string
 	End        string
+	Filter     string
 	Count      bool
 	QueryParam map[string]string
 
@@ -162,6 +169,10 @@ func (o *getSpacesOpts) buildQuery() (*url.Values, error) {
 	if o.End != "" {
 		q.Set("end", o.End)
 	}
+	if o.Filter != "" {
+		q.Set("filter", utils.URLEncode(o.Filter))
+	}
+
 	o.pubnub.tokenManager.SetAuthParan(q, "", PNSpaces)
 	SetQueryParam(q, o.QueryParam)
 

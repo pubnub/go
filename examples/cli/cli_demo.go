@@ -53,8 +53,8 @@ func connect() {
 	}
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
-	config.PublishKey = "demo"
-	config.SubscribeKey = "demo"
+	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"
+	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3"
 	config.SubscribeRequestTimeout = 35
 
 	config.CipherKey = "enigma"
