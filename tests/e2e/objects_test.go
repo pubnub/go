@@ -122,6 +122,7 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+
 	r := GenRandom()
 
 	id := fmt.Sprintf("testuser_%d", r.Intn(99999))
@@ -137,7 +138,7 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 
 	}
 
-	name := "name"
+	name := fmt.Sprintf("name_%d", r.Intn(99999))
 	extid := "extid"
 	purl := "profileurl"
 	email := "email"
@@ -217,6 +218,28 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 			}
 		}
 		assert.True(found)
+
+		res6F, st6F, err6F := pn.GetUsers().Include(incl).Limit(100).Filter("name == '" + name + "'").Count(true).Execute()
+		assert.Nil(err6F)
+		assert.Equal(200, st6F.StatusCode)
+		assert.True(res6F.TotalCount > 0)
+		foundF := false
+		for i := range res6F.Data {
+			fmt.Println(res6F.Data[i], id)
+			if res6F.Data[i].ID == id {
+				assert.Equal(name, res6F.Data[i].Name)
+				assert.Equal(extid, res6F.Data[i].ExternalID)
+				assert.Equal(purl, res6F.Data[i].ProfileURL)
+				assert.Equal(email, res6F.Data[i].Email)
+				assert.Equal(res.Data.Created, res6F.Data[i].Created)
+				assert.Equal(res2.Data.Updated, res6F.Data[i].Updated)
+				assert.Equal(res2.Data.ETag, res6F.Data[i].ETag)
+				assert.Equal("b", res6F.Data[i].Custom["a"])
+				assert.Equal("d", res6F.Data[i].Custom["c"])
+				foundF = true
+			}
+		}
+		assert.True(foundF)
 	}
 
 	//delete
@@ -265,7 +288,7 @@ func ObjectsCreateUpdateGetDeleteSpaceCommon(t *testing.T, withPAM, runWithoutSe
 		}
 
 	}
-	name := "name"
+	name := fmt.Sprintf("name_%d", r.Intn(99999))
 	desc := "desc"
 
 	custom := make(map[string]interface{})
@@ -334,6 +357,26 @@ func ObjectsCreateUpdateGetDeleteSpaceCommon(t *testing.T, withPAM, runWithoutSe
 			}
 		}
 		assert.True(found)
+
+		res6F, st6F, err6F := pn.GetSpaces().Include(incl).Limit(100).Filter("name like '" + name + "*'").Count(true).Execute()
+		assert.Nil(err6F)
+		assert.Equal(200, st6F.StatusCode)
+		assert.True(res6F.TotalCount > 0)
+		foundF := false
+		for i := range res6F.Data {
+			if res6F.Data[i].ID == id {
+				assert.Equal(name, res6F.Data[i].Name)
+				assert.Equal(desc, res6F.Data[i].Description)
+				assert.Equal(res.Data.Created, res6F.Data[i].Created)
+				assert.Equal(res2.Data.Updated, res6F.Data[i].Updated)
+				assert.Equal(res2.Data.ETag, res6F.Data[i].ETag)
+				assert.Equal("b", res6F.Data[i].Custom["a"])
+				assert.Equal("d", res6F.Data[i].Custom["c"])
+				foundF = true
+			}
+		}
+		assert.True(foundF)
+
 	}
 
 	//delete
@@ -387,8 +430,9 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 
 	}
+	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-	name := "name"
+	name := fmt.Sprintf("name_%d", r.Intn(99999))
 	extid := "extid"
 	purl := "profileurl"
 	email := "email"
@@ -571,6 +615,36 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		fmt.Println("GetMemberships->", errGetMem.Error())
 	}
 
+	filterExp := fmt.Sprintf("custom.c3 == '%s' || custom.c2 == '%s'", "d3", "d2")
+
+	fmt.Println("GetMemberships ====>", filterExp)
+
+	resGetMemF, stGetMemF, errGetMemF := pn.GetMemberships().UserID(userid).Include(inclMemberships).Filter(filterExp).Limit(limit).Count(count).Execute()
+	foundGetMemF := false
+	assert.Nil(errGetMemF)
+	if errGetMemF == nil {
+		for i := range resGetMemF.Data {
+			if resGetMemF.Data[i].ID == spaceid {
+				foundGetMemF = true
+				assert.Equal(name, resGetMemF.Data[i].Space.Name)
+				assert.Equal(desc, resGetMemF.Data[i].Space.Description)
+				assert.Equal("b1", resGetMemF.Data[i].Space.Custom["a1"])
+				assert.Equal("d1", resGetMemF.Data[i].Space.Custom["c1"])
+				if withPAM {
+					assert.Equal("b3", resGetMemF.Data[i].Custom["a3"])
+					assert.Equal("d3", resGetMemF.Data[i].Custom["c3"])
+				} else {
+					assert.Equal("b2", resGetMemF.Data[i].Custom["a2"])
+					assert.Equal("d2", resGetMemF.Data[i].Custom["c2"])
+				}
+			}
+		}
+		assert.Equal(200, stGetMemF.StatusCode)
+		assert.True(foundGetMemF)
+	} else {
+		fmt.Println("GetMemberships->", errGetMemF.Error())
+	}
+
 	//Remove Space Memberships
 	re := pubnub.PNMembersRemove{
 		ID: userid,
@@ -700,6 +774,34 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		assert.True(foundGetMembers)
 	} else {
 		fmt.Println("GetMembers->", errGetMembers.Error())
+	}
+
+	filterExp2 := fmt.Sprintf("custom.a5 == '%s' || custom.c5 == '%s'", custom5["a5"], custom5["c5"])
+	fmt.Println("GetMembers ====>", filterExp2)
+
+	resGetMembersF, stGetMembersF, errGetMembersF := pn.GetMembers().SpaceID(spaceid2).Include(inclSm).Filter(filterExp2).Limit(limit).Count(count).Execute()
+	fmt.Println("resGetMembers -->", resGetMembersF)
+	assert.Nil(errGetMembersF)
+	assert.Equal(200, stGetMembersF.StatusCode)
+	if errGetMembersF == nil {
+		foundGetMembersF := false
+
+		for i := range resGetMembersF.Data {
+			if resGetMembersF.Data[i].ID == userid2 {
+				foundGetMembersF = true
+				assert.Equal(name, resGetMembersF.Data[i].User.Name)
+				assert.Equal(extid, resGetMembersF.Data[i].User.ExternalID)
+				assert.Equal(purl, resGetMembersF.Data[i].User.ProfileURL)
+				assert.Equal(email, resGetMembersF.Data[i].User.Email)
+				assert.Equal(custom["a"], resGetMembersF.Data[i].User.Custom["a"])
+				assert.Equal(custom["c"], resGetMembersF.Data[i].User.Custom["c"])
+				assert.Equal(custom5["a5"], resGetMembersF.Data[i].Custom["a5"])
+				assert.Equal(custom5["c5"], resGetMembersF.Data[i].Custom["c5"])
+			}
+		}
+		assert.True(foundGetMembersF)
+	} else {
+		fmt.Println("GetMembers->", errGetMembersF.Error())
 	}
 
 	// //Remove user memberships

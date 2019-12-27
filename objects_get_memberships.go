@@ -176,7 +176,7 @@ func (o *getMembershipsOpts) buildQuery() (*url.Values, error) {
 		q.Set("end", o.End)
 	}
 	if o.Filter != "" {
-		q.Set("filter", utils.URLEncode(o.Filter))
+		q.Set("filter", o.Filter)
 	}
 	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNUsers)
 	SetQueryParam(q, o.QueryParam)
