@@ -1790,96 +1790,96 @@ func Subscribe403Error(t *testing.T) {
 	exitListener <- true
 }
 
-func TestSubscribeSignal(t *testing.T) {
-	interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
-		Query:              "",
-		ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","e":1,"f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","d":"Signal"}]}`,
-		IgnoreQueryKeys:    []string{"pnsdk", "uuid", "tt"},
-		ResponseStatusCode: 200,
-	})
+// func TestSubscribeSignal(t *testing.T) {
+// 	// interceptor := stubs.NewInterceptor()
+// 	// interceptor.AddStub(&stubs.Stub{
+// 	// 	Method:             "GET",
+// 	// 	Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
+// 	// 	Query:              "",
+// 	// 	ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","e":1,"f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","d":"Signal"}]}`,
+// 	// 	IgnoreQueryKeys:    []string{"pnsdk", "uuid", "tt"},
+// 	// 	ResponseStatusCode: 200,
+// 	// })
 
-	assert := assert.New(t)
-	doneMeta := make(chan bool)
-	errChan := make(chan string)
+// 	assert := assert.New(t)
+// 	doneMeta := make(chan bool)
+// 	errChan := make(chan string)
 
-	pn := pubnub.NewPubNub(configCopy())
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+// 	pn := pubnub.NewPubNub(configCopy())
+// 	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-	pn.SetSubscribeClient(interceptor.GetClient())
-	listener := pubnub.NewListener()
-	exitListener := make(chan bool)
+// 	// pn.SetSubscribeClient(interceptor.GetClient())
+// 	listener := pubnub.NewListener()
+// 	exitListener := make(chan bool)
 
-	go func() {
-	ExitLabel:
-		for {
-			select {
-			case status := <-listener.Status:
-				// ignore status messages
-				if status.Error {
-					errChan <- fmt.Sprintf("Status Error: %s", status.Category)
-					break
-				} else {
-					//fmt.Println("status", status)
-					//doneMeta <- true
-					break
-				}
-			case message := <-listener.Signal:
-				meta, ok := message.Message.(string)
-				if !ok {
-					errChan <- "Invalid message type"
-				}
-				//fmt.Println("signal", message)
-				assert.Equal(meta, "Signal")
+// 	go func() {
+// 	ExitLabel:
+// 		for {
+// 			select {
+// 			case status := <-listener.Status:
+// 				// ignore status messages
+// 				if status.Error {
+// 					errChan <- fmt.Sprintf("Status Error: %s", status.Category)
+// 					break
+// 				} else {
+// 					//fmt.Println("status", status)
+// 					//doneMeta <- true
+// 					break
+// 				}
+// 			case message := <-listener.Signal:
+// 				meta, ok := message.Message.(string)
+// 				if !ok {
+// 					errChan <- "Invalid message type"
+// 				}
+// 				//fmt.Println("signal", message)
+// 				assert.Equal(meta, "Signal")
 
-				doneMeta <- true
-				break
-			case message := <-listener.Message:
-				meta, ok := message.UserMetadata.(string)
-				if !ok {
-					errChan <- "Invalid message type"
-				}
-				fmt.Println("message", message)
-				assert.Equal(meta, "mydata")
-				doneMeta <- true
-				break
-			case <-listener.Presence:
-				fmt.Println("Presence")
-				errChan <- "Got presence while awaiting for a status event"
-				break
-			case <-exitListener:
-				break ExitLabel
+// 				doneMeta <- true
+// 				break
+// 			case message := <-listener.Message:
+// 				meta, ok := message.UserMetadata.(string)
+// 				if !ok {
+// 					errChan <- "Invalid message type"
+// 				}
+// 				fmt.Println("message", message)
+// 				assert.Equal(meta, "mydata")
+// 				doneMeta <- true
+// 				break
+// 			case <-listener.Presence:
+// 				fmt.Println("Presence")
+// 				errChan <- "Got presence while awaiting for a status event"
+// 				break
+// 			case <-exitListener:
+// 				break ExitLabel
 
-			}
-		}
-	}()
+// 			}
+// 		}
+// 	}()
 
-	pn.AddListener(listener)
+// 	pn.AddListener(listener)
 
-	pn.Subscribe().
-		Channels([]string{"ch"}).
-		Execute()
+// 	pn.Subscribe().
+// 		Channels([]string{"ch"}).
+// 		Execute()
 
-	select {
-	case <-doneMeta:
-	case err := <-errChan:
-		assert.Fail(err)
-	}
-	exitListener <- true
-}
+// 	select {
+// 	case <-doneMeta:
+// 	case err := <-errChan:
+// 		assert.Fail(err)
+// 	}
+// 	exitListener <- true
+// }
 
 func TestSubscribeParseUserMeta(t *testing.T) {
-	interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
-		Query:              "",
-		ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","u":"mydata","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
-		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
-		ResponseStatusCode: 200,
-	})
+	// interceptor := stubs.NewInterceptor()
+	// interceptor.AddStub(&stubs.Stub{
+	// 	Method:             "GET",
+	// 	Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
+	// 	Query:              "",
+	// 	ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","u":"mydata","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
+	// 	IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+	// 	ResponseStatusCode: 200,
+	// })
 
 	assert := assert.New(t)
 	doneMeta := make(chan bool)
@@ -1887,7 +1887,7 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	pn.SetSubscribeClient(interceptor.GetClient())
+	//pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
 	exitListener := make(chan bool)
 
