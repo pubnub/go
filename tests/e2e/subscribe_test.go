@@ -86,8 +86,10 @@ func TestRequestMesssageOverflow(t *testing.T) {
 	}
 
 	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -107,6 +109,9 @@ func TestRequestMesssageOverflow(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				break
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -123,6 +128,8 @@ func TestRequestMesssageOverflow(t *testing.T) {
 		tic.Stop()
 		assert.Fail("timeout")
 	}
+
+	exitListener <- true
 }
 
 /////////////////////////////
@@ -152,8 +159,10 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			//fmt.Println("listening...")
 			select {
@@ -183,6 +192,9 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				//break
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 		//fmt.Println("exit listening...")
@@ -223,6 +235,7 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	//fmt.Println("after select")
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
+	exitListener <- true
 }
 
 func GenRandom() *rand.Rand {
@@ -1330,8 +1343,10 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	pn.Config.UUID = randomized("sub-partialu-uuid")
 
 	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -1357,6 +1372,9 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 				}
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -1385,6 +1403,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
 	fmt.Println("TestSubscribePublishPartialUnsubscribe after all ")
+	exitListener <- true
 }
 
 func JoinLeaveChannel(t *testing.T) {
@@ -1411,9 +1430,11 @@ func JoinLeaveChannel(t *testing.T) {
 
 	listenerEmitter := pubnub.NewListener()
 	listenerPresenceListener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	// emitter
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listenerEmitter.Status:
@@ -1428,12 +1449,16 @@ func JoinLeaveChannel(t *testing.T) {
 			case <-listenerEmitter.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				return
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
 
 	// listener
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listenerPresenceListener.Status:
@@ -1460,6 +1485,9 @@ func JoinLeaveChannel(t *testing.T) {
 				assert.Equal("join", presence.Event)
 				assert.Equal(configEmitter.UUID, presence.UUID)
 				wg.Done()
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -1510,6 +1538,7 @@ func JoinLeaveChannel(t *testing.T) {
 		assert.Fail("timeout")
 
 	}
+	exitListener <- true
 }
 
 func SubscribeJoinLeaveGroup(t *testing.T) {
@@ -1537,9 +1566,11 @@ func SubscribeJoinLeaveGroup(t *testing.T) {
 
 	listenerEmitter := pubnub.NewListener()
 	listenerPresenceListener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	// emitter
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listenerEmitter.Status:
@@ -1554,12 +1585,16 @@ func SubscribeJoinLeaveGroup(t *testing.T) {
 			case <-listenerEmitter.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				return
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
 
 	// listener
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listenerPresenceListener.Status:
@@ -1586,6 +1621,9 @@ func SubscribeJoinLeaveGroup(t *testing.T) {
 				assert.Equal("join", presence.Event)
 				assert.Equal(configEmitter.UUID, presence.UUID)
 				wg.Done()
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -1638,6 +1676,8 @@ func SubscribeJoinLeaveGroup(t *testing.T) {
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+
+	exitListener <- true
 }
 
 /////////////////////////////
@@ -1691,8 +1731,10 @@ func Subscribe403Error(t *testing.T) {
 
 	pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -1710,6 +1752,9 @@ func Subscribe403Error(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				break
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -1742,6 +1787,7 @@ func Subscribe403Error(t *testing.T) {
 		assert.Fail("timeout")
 
 	}
+	exitListener <- true
 }
 
 func TestSubscribeSignal(t *testing.T) {
@@ -1764,8 +1810,10 @@ func TestSubscribeSignal(t *testing.T) {
 
 	pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -1801,6 +1849,9 @@ func TestSubscribeSignal(t *testing.T) {
 				fmt.Println("Presence")
 				errChan <- "Got presence while awaiting for a status event"
 				break
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -1816,6 +1867,7 @@ func TestSubscribeSignal(t *testing.T) {
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+	exitListener <- true
 }
 
 func TestSubscribeParseUserMeta(t *testing.T) {
@@ -1837,8 +1889,10 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 
 	pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -1863,6 +1917,9 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				break
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -1878,6 +1935,7 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+	exitListener <- true
 }
 
 func TestSubscribeWithCustomTimetoken(t *testing.T) {
@@ -1909,8 +1967,10 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	//pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -1927,6 +1987,9 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a message"
 				break
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -1950,6 +2013,7 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 	}
 
 	pn.UnsubscribeAll()
+	exitListener <- true
 }
 
 func TestSubscribeWithFilter(t *testing.T) {
@@ -1960,6 +2024,7 @@ func TestSubscribeWithFilter(t *testing.T) {
 	ch := randomized("sub-wf-ch")
 
 	pn := pubnub.NewPubNub(configCopy())
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	pn.Config.FilterExpression = "language!=spanish"
 	listener := pubnub.NewListener()
 
@@ -2015,6 +2080,7 @@ func TestSubscribeWithFilter(t *testing.T) {
 		Execute()
 
 	<-donePublish
+
 }
 
 func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
@@ -2028,8 +2094,10 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 	config.CipherKey = "my-key"
 	pn := pubnub.NewPubNub(config)
 	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -2043,6 +2111,9 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				return
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -2075,6 +2146,7 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 		assert.Fail("timeout")
 
 	}
+	exitListener <- true
 }
 
 func TestSubscribeSuperCall(t *testing.T) {
@@ -2091,8 +2163,10 @@ func TestSubscribeSuperCall(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -2108,6 +2182,9 @@ func TestSubscribeSuperCall(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				return
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -2129,6 +2206,7 @@ func TestSubscribeSuperCall(t *testing.T) {
 	case err := <-errChan:
 		assert.Fail(err)
 	}
+	exitListener <- true
 }
 
 func ReconnectionExhaustion(t *testing.T) {
@@ -2162,8 +2240,10 @@ func ReconnectionExhaustion(t *testing.T) {
 	pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
 	count := 0
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -2184,6 +2264,9 @@ func ReconnectionExhaustion(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				return
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -2204,4 +2287,5 @@ func ReconnectionExhaustion(t *testing.T) {
 		assert.Fail("timeout")
 
 	}
+	exitListener <- true
 }

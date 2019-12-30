@@ -154,46 +154,52 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 	res, st, err := pn.CreateUser().Include(incl).ID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(err)
 	assert.Equal(200, st.StatusCode)
-	assert.Equal(id, res.Data.ID)
-	assert.Equal(name, res.Data.Name)
-	assert.Equal(extid, res.Data.ExternalID)
-	assert.Equal(purl, res.Data.ProfileURL)
-	assert.Equal(email, res.Data.Email)
-	assert.NotNil(res.Data.Created)
-	assert.NotNil(res.Data.Updated)
-	assert.NotNil(res.Data.ETag)
-	assert.Equal("b", res.Data.Custom["a"])
-	assert.Equal("d", res.Data.Custom["c"])
+	if res != nil {
+		assert.Equal(id, res.Data.ID)
+		assert.Equal(name, res.Data.Name)
+		assert.Equal(extid, res.Data.ExternalID)
+		assert.Equal(purl, res.Data.ProfileURL)
+		assert.Equal(email, res.Data.Email)
+		assert.NotNil(res.Data.Created)
+		assert.NotNil(res.Data.Updated)
+		assert.NotNil(res.Data.ETag)
+		assert.Equal("b", res.Data.Custom["a"])
+		assert.Equal("d", res.Data.Custom["c"])
+	}
 
 	email = "email2"
 
 	res2, st2, err2 := pn.UpdateUser().Include(incl).ID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(err2)
 	assert.Equal(200, st2.StatusCode)
-	assert.Equal(id, res2.Data.ID)
-	assert.Equal(name, res2.Data.Name)
-	assert.Equal(extid, res2.Data.ExternalID)
-	assert.Equal(purl, res2.Data.ProfileURL)
-	assert.Equal(email, res2.Data.Email)
-	assert.Equal(res.Data.Created, res2.Data.Created)
-	assert.NotNil(res2.Data.Updated)
-	assert.NotNil(res2.Data.ETag)
-	assert.Equal("b", res2.Data.Custom["a"])
-	assert.Equal("d", res2.Data.Custom["c"])
+	if res2 != nil {
+		assert.Equal(id, res2.Data.ID)
+		assert.Equal(name, res2.Data.Name)
+		assert.Equal(extid, res2.Data.ExternalID)
+		assert.Equal(purl, res2.Data.ProfileURL)
+		assert.Equal(email, res2.Data.Email)
+		assert.Equal(res.Data.Created, res2.Data.Created)
+		assert.NotNil(res2.Data.Updated)
+		assert.NotNil(res2.Data.ETag)
+		assert.Equal("b", res2.Data.Custom["a"])
+		assert.Equal("d", res2.Data.Custom["c"])
+	}
 
 	res3, st3, err3 := pn.GetUser().Include(incl).ID(id).Execute()
 	assert.Nil(err3)
 	assert.Equal(200, st3.StatusCode)
-	assert.Equal(id, res3.Data.ID)
-	assert.Equal(name, res3.Data.Name)
-	assert.Equal(extid, res3.Data.ExternalID)
-	assert.Equal(purl, res3.Data.ProfileURL)
-	assert.Equal(email, res3.Data.Email)
-	assert.Equal(res.Data.Created, res3.Data.Created)
-	assert.Equal(res2.Data.Updated, res3.Data.Updated)
-	assert.Equal(res2.Data.ETag, res3.Data.ETag)
-	assert.Equal("b", res3.Data.Custom["a"])
-	assert.Equal("d", res3.Data.Custom["c"])
+	if res3 != nil {
+		assert.Equal(id, res3.Data.ID)
+		assert.Equal(name, res3.Data.Name)
+		assert.Equal(extid, res3.Data.ExternalID)
+		assert.Equal(purl, res3.Data.ProfileURL)
+		assert.Equal(email, res3.Data.Email)
+		assert.Equal(res.Data.Created, res3.Data.Created)
+		assert.Equal(res2.Data.Updated, res3.Data.Updated)
+		assert.Equal(res2.Data.ETag, res3.Data.ETag)
+		assert.Equal("b", res3.Data.Custom["a"])
+		assert.Equal("d", res3.Data.Custom["c"])
+	}
 
 	//getusers
 	if withPAM {
@@ -430,7 +436,7 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 
 	}
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	name := fmt.Sprintf("name_%d", r.Intn(99999))
 	extid := "extid"
@@ -448,16 +454,18 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	res, st, err := pn.CreateUser().Include(incl).ID(userid).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(err)
 	assert.Equal(200, st.StatusCode)
-	assert.Equal(userid, res.Data.ID)
-	assert.Equal(name, res.Data.Name)
-	assert.Equal(extid, res.Data.ExternalID)
-	assert.Equal(purl, res.Data.ProfileURL)
-	assert.Equal(email, res.Data.Email)
-	assert.NotNil(res.Data.Created)
-	assert.NotNil(res.Data.Updated)
-	assert.NotNil(res.Data.ETag)
-	assert.Equal("b", res.Data.Custom["a"])
-	assert.Equal("d", res.Data.Custom["c"])
+	if res != nil {
+		assert.Equal(userid, res.Data.ID)
+		assert.Equal(name, res.Data.Name)
+		assert.Equal(extid, res.Data.ExternalID)
+		assert.Equal(purl, res.Data.ProfileURL)
+		assert.Equal(email, res.Data.Email)
+		assert.NotNil(res.Data.Created)
+		assert.NotNil(res.Data.Updated)
+		assert.NotNil(res.Data.ETag)
+		assert.Equal("b", res.Data.Custom["a"])
+		assert.Equal("d", res.Data.Custom["c"])
+	}
 
 	desc := "desc"
 	custom2 := make(map[string]interface{})
@@ -467,14 +475,16 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	res2, st2, err2 := pn.CreateSpace().Include(incl).ID(spaceid).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(err2)
 	assert.Equal(200, st2.StatusCode)
-	assert.Equal(spaceid, res2.Data.ID)
-	assert.Equal(name, res2.Data.Name)
-	assert.Equal(desc, res2.Data.Description)
-	assert.NotNil(res2.Data.Created)
-	assert.NotNil(res2.Data.Updated)
-	assert.NotNil(res2.Data.ETag)
-	assert.Equal("b1", res2.Data.Custom["a1"])
-	assert.Equal("d1", res2.Data.Custom["c1"])
+	if res2 != nil {
+		assert.Equal(spaceid, res2.Data.ID)
+		assert.Equal(name, res2.Data.Name)
+		assert.Equal(desc, res2.Data.Description)
+		assert.NotNil(res2.Data.Created)
+		assert.NotNil(res2.Data.Updated)
+		assert.NotNil(res2.Data.ETag)
+		assert.Equal("b1", res2.Data.Custom["a1"])
+		assert.Equal("d1", res2.Data.Custom["c1"])
+	}
 
 	userid2 := fmt.Sprintf("testuser_%d", r.Intn(99999))
 
@@ -615,7 +625,8 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		fmt.Println("GetMemberships->", errGetMem.Error())
 	}
 
-	filterExp := fmt.Sprintf("custom.c3 == '%s' || custom.c2 == '%s'", "d3", "d2")
+	//filterExp := fmt.Sprintf("custom.c3 == '%s' || custom.c2 == '%s'", "d3", "d2")
+	filterExp := fmt.Sprintf("space.name == '%s'", name)
 
 	fmt.Println("GetMemberships ====>", filterExp)
 
@@ -776,7 +787,8 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		fmt.Println("GetMembers->", errGetMembers.Error())
 	}
 
-	filterExp2 := fmt.Sprintf("custom.a5 == '%s' || custom.c5 == '%s'", custom5["a5"], custom5["c5"])
+	//filterExp2 := fmt.Sprintf("custom.a5 == '%s' || custom.c5 == '%s'", custom5["a5"], custom5["c5"])
+	filterExp2 := fmt.Sprintf("user.name == '%s'", name)
 	fmt.Println("GetMembers ====>", filterExp2)
 
 	resGetMembersF, stGetMembersF, errGetMembersF := pn.GetMembers().SpaceID(spaceid2).Include(inclSm).Filter(filterExp2).Limit(limit).Count(count).Execute()
@@ -933,8 +945,10 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	deleteSpace := false
 
 	doneConnected := make(chan bool)
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			fmt.Println("Running =--->")
 			select {
@@ -1038,9 +1052,12 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 					removeUserFromSpace = true
 					mut.Unlock()
 				}
+			case <-exitListener:
+				break ExitLabel
 
 			}
 			fmt.Println("=>>>>>>>>>>>>> restart")
+
 		}
 
 	}()
@@ -1226,4 +1243,6 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	mut.Lock()
 	assert.True(deleteSpace)
 	mut.Unlock()
+
+	exitListener <- true
 }
