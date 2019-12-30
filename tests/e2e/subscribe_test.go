@@ -1842,7 +1842,7 @@ func TestSubscribeSignal(t *testing.T) {
 					errChan <- "Invalid message type"
 				}
 				fmt.Println("message", message)
-				assert.Equal(meta, "my-data")
+				assert.Equal(meta, "mydata")
 				doneMeta <- true
 				break
 			case <-listener.Presence:
@@ -1876,7 +1876,7 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 		Method:             "GET",
 		Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
 		Query:              "",
-		ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","u":"my-data","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
+		ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","u":"mydata","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
 	})
@@ -1911,7 +1911,7 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 					errChan <- "Invalid message type"
 				}
 
-				assert.Equal(meta, "my-data")
+				assert.Equal(meta, "mydata")
 				doneMeta <- true
 				break
 			case <-listener.Presence:
