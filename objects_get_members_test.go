@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertGetMembers(t *testing.T, checkQueryParam, testContext bool) {
+func AssertGetMembers(t *testing.T, checkQueryParam, testContext, withFilter bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -46,6 +46,9 @@ func AssertGetMembers(t *testing.T, checkQueryParam, testContext bool) {
 	o.End(end)
 	o.Count(false)
 	o.QueryParam(queryParam)
+	if withFilter {
+		o.Filter("custom.a5 == 'b5' || custom.c5 == 'd5'")
+	}
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -67,16 +70,28 @@ func AssertGetMembers(t *testing.T, checkQueryParam, testContext bool) {
 		assert.Equal(start, u.Get("start"))
 		assert.Equal(end, u.Get("end"))
 		assert.Equal("0", u.Get("count"))
+		if withFilter {
+			assert.Equal("custom.a5 == 'b5' || custom.c5 == 'd5'", u.Get("filter"))
+		}
+
 	}
 
 }
 
 func TestGetMembers(t *testing.T) {
-	AssertGetMembers(t, true, false)
+	AssertGetMembers(t, true, false, false)
 }
 
 func TestGetMembersContext(t *testing.T) {
-	AssertGetMembers(t, true, true)
+	AssertGetMembers(t, true, true, false)
+}
+
+func TestGetMembersWithFilter(t *testing.T) {
+	AssertGetMembers(t, true, false, true)
+}
+
+func TestGetMembersWithFilterContext(t *testing.T) {
+	AssertGetMembers(t, true, true, true)
 }
 
 func TestGetMembersResponseValueError(t *testing.T) {

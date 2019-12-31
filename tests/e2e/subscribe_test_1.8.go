@@ -25,8 +25,10 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 
 	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -52,6 +54,9 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				//break
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -107,6 +112,7 @@ func TestSubscribeUnsubscribeGroup(t *testing.T) {
 		Channels([]string{ch}).
 		ChannelGroup(cg).
 		Execute()
+	exitListener <- true
 }
 
 func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
@@ -122,8 +128,10 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 	cg2 := randomized("sub-spuag-cg2")
 
 	pn.AddListener(listener)
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -139,6 +147,8 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 				assert.Equal(ch, message.Channel)
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
+			case <-exitListener:
+				break ExitLabel
 			}
 		}
 	}()
@@ -200,4 +210,5 @@ func TestSubscribePublishUnsubscribeAllGroup(t *testing.T) {
 		Execute()
 
 	assert.Nil(err)
+	exitListener <- true
 }

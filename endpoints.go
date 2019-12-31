@@ -80,10 +80,6 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 		return &url.URL{}, err
 	}
 
-	if o.config().FilterExpression != "" {
-		query.Set("filter-expr", o.config().FilterExpression)
-	}
-
 	if v := o.config().AuthKey; v != "" && query.Get("auth") == "" {
 		query.Set("auth", v)
 	}
@@ -120,6 +116,14 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 
 	if v := query.Get("uuid"); v != "" {
 		query.Set("uuid", utils.URLEncode(v))
+	}
+
+	if v := query.Get("filter-expr"); v != "" {
+		query.Set("filter-expr", utils.URLEncode(v))
+	}
+
+	if v := query.Get("filter"); v != "" {
+		query.Set("filter", utils.URLEncode(v))
 	}
 
 	i := 0
