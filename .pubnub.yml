@@ -5,7 +5,7 @@ changelog:
       - 
         text: "Objects Filtering"
         type: improvement
-    date: Jan 1, 20  
+    date: Jan 3, 20  
     version: v4.6.1  
   - 
     changes: 
@@ -464,7 +464,6 @@ features:
     - OBJECTS-GET-MEMBERS
     - OBJECTS-MANAGE-MEMBERS
     - OBJECTS-FILTERING
-    - OBJECTS-SORTING
   message-actions:
     - MESSAGE-ACTIONS-GET
     - MESSAGE-ACTIONS-ADD
