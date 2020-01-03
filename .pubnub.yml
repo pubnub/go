@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "Objects Filtering"
+        type: improvement
+    date: Jan 3, 20  
+    version: v4.6.1  
+  - 
+    changes: 
+      - 
         text: "APNS2"
         type: improvement
       - 
@@ -456,6 +463,7 @@ features:
     - OBJECTS-MANAGE-MEMBERSHIPS
     - OBJECTS-GET-MEMBERS
     - OBJECTS-MANAGE-MEMBERS
+    - OBJECTS-FILTERING
   message-actions:
     - MESSAGE-ACTIONS-GET
     - MESSAGE-ACTIONS-ADD
@@ -491,4 +499,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.6.0
+version: v4.6.1

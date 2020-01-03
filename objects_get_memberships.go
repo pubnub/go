@@ -76,6 +76,12 @@ func (b *getMembershipsBuilder) End(end string) *getMembershipsBuilder {
 	return b
 }
 
+func (b *getMembershipsBuilder) Filter(filter string) *getMembershipsBuilder {
+	b.opts.Filter = filter
+
+	return b
+}
+
 func (b *getMembershipsBuilder) Count(count bool) *getMembershipsBuilder {
 	b.opts.Count = count
 
@@ -112,6 +118,7 @@ type getMembershipsOpts struct {
 	Include    []string
 	Start      string
 	End        string
+	Filter     string
 	Count      bool
 	QueryParam map[string]string
 
@@ -167,6 +174,9 @@ func (o *getMembershipsOpts) buildQuery() (*url.Values, error) {
 
 	if o.End != "" {
 		q.Set("end", o.End)
+	}
+	if o.Filter != "" {
+		q.Set("filter", o.Filter)
 	}
 	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNUsers)
 	SetQueryParam(q, o.QueryParam)

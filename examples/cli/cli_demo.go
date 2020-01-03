@@ -55,7 +55,8 @@ func connect() {
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
-	config.SubscribeRequestTimeout = 35
+
+	config.FilterExpression = "name="
 
 	config.CipherKey = "enigma"
 
@@ -1216,7 +1217,7 @@ func getUsers(args []string) {
 		fmt.Println("res", res)
 
 	} else {
-		res, status, err := pn.GetUsers().Include(incl).Limit(limit).Count(count).Execute()
+		res, status, err := pn.GetUsers().Include(incl).Limit(limit).Filter("name == 'name 891'").Count(count).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)

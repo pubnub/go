@@ -41,8 +41,11 @@ func HeartbeatTimeoutEvent(t *testing.T) {
 	listenerEmitter := pubnub.NewListener()
 	listenerPresenceListener := pubnub.NewListener()
 
+	exitListener := make(chan bool)
+
 	// emitter
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listenerEmitter.Status:
@@ -57,12 +60,15 @@ func HeartbeatTimeoutEvent(t *testing.T) {
 			case <-listenerEmitter.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				return
+			case <-exitListener:
+				break ExitLabel
 			}
 		}
 	}()
 
 	// listener
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listenerPresenceListener.Status:
@@ -90,6 +96,8 @@ func HeartbeatTimeoutEvent(t *testing.T) {
 					assert.Equal(configEmitter.UUID, presence.UUID)
 					wg.Done()
 				}
+			case <-exitListener:
+				break ExitLabel
 			}
 		}
 	}()
@@ -144,6 +152,8 @@ func HeartbeatTimeoutEvent(t *testing.T) {
 		assert.Fail(err)
 		return
 	}
+
+	exitListener <- true
 }
 
 func TestHeartbeatStubbedRequest(t *testing.T) {
@@ -179,8 +189,10 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 
 	listener := pubnub.NewListener()
 	pn.AddListener(listener)
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -199,6 +211,8 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				return
+			case <-exitListener:
+				break ExitLabel
 			}
 		}
 	}()
@@ -224,6 +238,8 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 	pn.Unsubscribe().
 		Channels([]string{ch}).
 		Execute()
+
+	exitListener <- true
 }
 
 // Test triggers BadRequestCategory in subscription.Status channel
@@ -261,8 +277,10 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 
 	listener := pubnub.NewListener()
 	pn.AddListener(listener)
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listener.Status:
@@ -278,6 +296,8 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				return
+			case <-exitListener:
+				break ExitLabel
 			}
 		}
 	}()
@@ -303,6 +323,8 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 	pn.Unsubscribe().
 		Channels([]string{ch}).
 		Execute()
+
+	exitListener <- true
 }
 
 // NOTICE: snippet for manual hb testing
@@ -332,9 +354,11 @@ func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 	pn := pubnub.NewPubNub(configEmitter)
 
 	listenerEmitter := pubnub.NewListener()
+	exitListener := make(chan bool)
 
 	// emitter
 	go func() {
+	ExitLabel:
 		for {
 			select {
 			case status := <-listenerEmitter.Status:
@@ -349,6 +373,9 @@ func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 			case <-listenerEmitter.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 				return
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 	}()
@@ -411,4 +438,6 @@ func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 		assert.Fail(err)
 		return
 	}
+
+	exitListener <- true
 }

@@ -71,8 +71,10 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 	delEvent := false
 	var recActionType, recActionTimetoken, recActionValue, recMessageTimetoken string
 	doneConnected := make(chan bool)
+	exitListener := make(chan bool)
 
 	go func() {
+	ExitLabel:
 		for {
 			select {
 
@@ -111,6 +113,9 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 					delEvent = true
 					mut.Unlock()
 				}
+			case <-exitListener:
+				break ExitLabel
+
 			}
 		}
 
@@ -296,6 +301,7 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 	} else {
 		assert.Fail("resPub nil")
 	}
+	exitListener <- true
 }
 
 func MatchHistoryMessageWithMAResp(assert *assert.Assertions, resp *pubnub.HistoryResponse, chMA, message string, messageTimetoken int64, meta interface{}, withMeta bool) {

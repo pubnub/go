@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertGetUsers(t *testing.T, checkQueryParam, testContext bool) {
+func AssertGetUsers(t *testing.T, checkQueryParam, testContext, withFilter bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -44,6 +44,9 @@ func AssertGetUsers(t *testing.T, checkQueryParam, testContext bool) {
 	o.End(end)
 	o.Count(false)
 	o.QueryParam(queryParam)
+	if withFilter {
+		o.Filter("name like 'a*'")
+	}
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -65,16 +68,27 @@ func AssertGetUsers(t *testing.T, checkQueryParam, testContext bool) {
 		assert.Equal(start, u.Get("start"))
 		assert.Equal(end, u.Get("end"))
 		assert.Equal("0", u.Get("count"))
+		if withFilter {
+			assert.Equal("name like 'a*'", u.Get("filter"))
+		}
 	}
 
 }
 
 func TestGetUsers(t *testing.T) {
-	AssertGetUsers(t, true, false)
+	AssertGetUsers(t, true, false, false)
 }
 
 func TestGetUsersContext(t *testing.T) {
-	AssertGetUsers(t, true, true)
+	AssertGetUsers(t, true, true, false)
+}
+
+func TestGetUsersWithFilter(t *testing.T) {
+	AssertGetUsers(t, true, false, true)
+}
+
+func TestGetUsersWithFilterContext(t *testing.T) {
+	AssertGetUsers(t, true, true, true)
 }
 
 func TestGetUsersResponseValueError(t *testing.T) {
