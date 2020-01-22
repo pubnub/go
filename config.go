@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	presenceTimeout = 0
+	presenceTimeout = 300
 )
 
 // Config instance is storage for user-provided information which describe further
