@@ -111,6 +111,7 @@ func (o *subscribeOpts) context() Context {
 }
 
 func (o *subscribeOpts) validate() error {
+
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)
 	}

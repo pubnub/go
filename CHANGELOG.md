@@ -1,5 +1,8 @@
+## [v4.6.2](https://github.com/pubnub/go/tree/v4.6.2)
+  January-22-2020 
+
 ## [v4.6.1](https://github.com/pubnub/go/tree/v4.6.1)
-  December-30-2019
+  January-3-2020 
 
 ## [v4.6.0](https://github.com/pubnub/go/tree/v4.6.0)
   December-17-2019

@@ -163,7 +163,7 @@ func TestSubscribeValidatePublishKey(t *testing.T) {
 		pubnub:           pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x01: Missing Publish Key", opts.validate().Error())
+	assert.Nil(opts.validate())
 }
 
 func TestSubscribeValidateCHAndCG(t *testing.T) {
