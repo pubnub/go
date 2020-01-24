@@ -62,7 +62,7 @@ type SubscriptionManager struct {
 
 	subscriptionStateAnnounced   bool
 	heartbeatStopCalled          bool
-	exitSubscriptionManagerMutex sync.Mutex
+	exitSubscriptionManagerMutex sync.RWMutex
 	exitSubscriptionManager      chan bool
 	queryParam                   map[string]string
 	channelsOpen                 bool
@@ -170,9 +170,11 @@ func (m *SubscriptionManager) Destroy() {
 		m.RLock()
 		m.channelsOpen = false
 		m.RUnlock()
+		m.exitSubscriptionManagerMutex.RLock()
 		if m.exitSubscriptionManager != nil {
 			close(m.exitSubscriptionManager)
 		}
+		m.exitSubscriptionManagerMutex.RUnlock()
 		if m.listenerManager.exitListener != nil {
 			close(m.listenerManager.exitListener)
 		}
@@ -512,15 +514,18 @@ func subscribeMessageWorker(m *SubscriptionManager) {
 	m.pubnub.Config.Log.Println("subscribeMessageWorker")
 
 	m.Unlock()
+	m.pubnub.Config.Log.Println("acquiring lock exitSubscriptionManagerMutex")
+	m.exitSubscriptionManagerMutex.Lock()
 	if m.exitSubscriptionManager != nil {
 		m.exitSubscriptionManager <- true
 		m.pubnub.Config.Log.Println("close exitSubscriptionManager")
 	}
-	m.pubnub.Config.Log.Println("acquiring lock exitSubscriptionManagerMutex")
-	m.exitSubscriptionManagerMutex.Lock()
 	m.pubnub.Config.Log.Println("make channel exitSubscriptionManager")
 	m.exitSubscriptionManager = make(chan bool)
-	for m.exitSubscriptionManager != nil {
+	m.exitSubscriptionManagerMutex.Unlock()
+
+SubscribeMessageWorkerLabel:
+	for {
 		m.pubnub.Config.Log.Println("subscribeMessageWorker looping...")
 		combinedChannels := m.stateManager.prepareChannelList(true)
 		combinedGroups := m.stateManager.prepareGroupList(true)
@@ -532,15 +537,17 @@ func subscribeMessageWorker(m *SubscriptionManager) {
 		select {
 		case <-m.exitSubscriptionManager:
 			m.pubnub.Config.Log.Println("subscribeMessageWorker context done")
-			m.exitSubscriptionManager = nil
-			break
+			// m.exitSubscriptionManagerMutex.Lock()
+			// m.exitSubscriptionManager = nil
+			// m.exitSubscriptionManagerMutex.Unlock()
+			break SubscribeMessageWorkerLabel
 		case message := <-m.messages:
 			m.pubnub.Config.Log.Println("subscribeMessageWorker messages")
 			processSubscribePayload(m, message)
 		}
 	}
 	m.pubnub.Config.Log.Println("subscribeMessageWorker after for")
-	m.exitSubscriptionManagerMutex.Unlock()
+
 }
 
 func processPresencePayload(m *SubscriptionManager, payload subscribeMessage, channel, subscriptionMatch string, publishMeta publishMetadata) {
