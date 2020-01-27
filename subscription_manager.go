@@ -537,9 +537,6 @@ SubscribeMessageWorkerLabel:
 		select {
 		case <-m.exitSubscriptionManager:
 			m.pubnub.Config.Log.Println("subscribeMessageWorker context done")
-			// m.exitSubscriptionManagerMutex.Lock()
-			// m.exitSubscriptionManager = nil
-			// m.exitSubscriptionManagerMutex.Unlock()
 			break SubscribeMessageWorkerLabel
 		case message := <-m.messages:
 			m.pubnub.Config.Log.Println("subscribeMessageWorker messages")
