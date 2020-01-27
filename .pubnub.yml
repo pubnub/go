@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "Make publish key optional on subscribe"
+        type: bug
+    date: Jan 24, 20  
+    version: v4.6.2  
+  - 
+    changes: 
+      - 
         text: "Objects Filtering"
         type: improvement
     date: Jan 3, 20  
@@ -499,4 +506,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.6.1
+version: v4.6.2
