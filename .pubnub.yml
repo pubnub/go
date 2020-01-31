@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "Fix data race"
+        type: bug
+    date: Jan 28, 20  
+    version: v4.6.3  
+  - 
+    changes: 
+      - 
         text: "Make publish key optional on subscribe"
         type: bug
     date: Jan 24, 20  
@@ -506,4 +513,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.6.2
+version: v4.6.3
