@@ -39,7 +39,9 @@ func TestHistoryCallWithAllParams(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 	pn.SetClient(interceptor.GetClient())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 
 	res, _, err := pn.History().
 		Channel("ch").

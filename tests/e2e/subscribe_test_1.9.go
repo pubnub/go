@@ -24,8 +24,10 @@ func TestSubscribeParseLogsForAuthKey(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 	pn.Config.AuthKey = "myAuthKey"
 	channel := "ch"
+	if enableDebuggingInTests {
 
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 
 	pn.Subscribe().
 		Channels([]string{channel}).

@@ -2,7 +2,7 @@ package e2e
 
 import (
 	"context"
-	"fmt"
+	//"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -24,7 +24,9 @@ func TestDestroy(t *testing.T) {
 	// 	log.Println(http.ListenAndServe("localhost:6060", nil))
 	// }()
 
-	config.Log = log.New(os.Stdout, "", log.Ltime|log.Lmicroseconds)
+	if enableDebuggingInTests {
+		config.Log = log.New(os.Stdout, "", log.Ltime|log.Lmicroseconds)
+	}
 	config.PNReconnectionPolicy = pubnub.PNExponentialPolicy
 	config.MaximumReconnectionRetries = -1
 	config.UUID = testSerial
@@ -47,13 +49,14 @@ func TestDestroy(t *testing.T) {
 	// pn.UnsubscribeAll()
 	// pn.RemoveListener(listener)
 	// pn.Destroy()
-	fmt.Println("after cancelPub")
+
+	//fmt.Println("after cancelPub")
 	pn.UnsubscribeAll()
-	fmt.Println("after UnsubscribeAll")
+	//fmt.Println("after UnsubscribeAll")
 	pn.RemoveListener(listener)
-	fmt.Println("after RemoveListener")
+	//fmt.Println("after RemoveListener")
 	pn.Destroy()
-	fmt.Println("after Destroy")
+	//fmt.Println("after Destroy")
 
 	pn = nil
 }

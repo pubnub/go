@@ -69,8 +69,10 @@ func RunGrant(pn *pubnub.PubNub, users, spaces []string, read, write, manage, de
 		Users(u).
 		Spaces(s).
 		Execute()
-	fmt.Println(res)
-	fmt.Println(err)
+	if enableDebuggingInTests {
+		fmt.Println(res)
+		fmt.Println(err)
+	}
 
 	token2 := ""
 
@@ -81,8 +83,10 @@ func RunGrant(pn *pubnub.PubNub, users, spaces []string, read, write, manage, de
 			UsersPattern(up).
 			SpacesPattern(sp).
 			Execute()
-		fmt.Println(res2)
-		fmt.Println(err2)
+		if enableDebuggingInTests {
+			fmt.Println(res2)
+			fmt.Println(err2)
+		}
 		token2 = res2.Data.Token
 	}
 
@@ -100,9 +104,12 @@ func SetPN(pn, pn2 *pubnub.PubNub, tokens []string) {
 	pn.Config.Secure = pn2.Config.Secure
 
 	pn.SetTokens(tokens)
-	fmt.Println("========")
-	fmt.Println(pn.GetTokens())
-	fmt.Println("========")
+	if enableDebuggingInTests {
+
+		fmt.Println("========")
+		fmt.Println(pn.GetTokens())
+		fmt.Println("========")
+	}
 }
 
 func TestObjectsCreateUpdateGetDeleteUser(t *testing.T) {
@@ -209,7 +216,7 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 		assert.True(res6.TotalCount > 0)
 		found := false
 		for i := range res6.Data {
-			fmt.Println(res6.Data[i], id)
+			//fmt.Println(res6.Data[i], id)
 			if res6.Data[i].ID == id {
 				assert.Equal(name, res6.Data[i].Name)
 				assert.Equal(extid, res6.Data[i].ExternalID)
@@ -231,7 +238,7 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 		assert.True(res6F.TotalCount > 0)
 		foundF := false
 		for i := range res6F.Data {
-			fmt.Println(res6F.Data[i], id)
+			//fmt.Println(res6F.Data[i], id)
 			if res6F.Data[i].ID == id {
 				assert.Equal(name, res6F.Data[i].Name)
 				assert.Equal(extid, res6F.Data[i].ExternalID)
@@ -436,7 +443,9 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 
 	}
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 
 	name := fmt.Sprintf("name_%d", r.Intn(99999))
 	extid := "extid"
@@ -526,7 +535,7 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 		found := false
 		assert.True(resAdd.TotalCount > 0)
-		fmt.Println("resAdd-->", resAdd)
+		//fmt.Println("resAdd-->", resAdd)
 
 		for i := range resAdd.Data {
 			if resAdd.Data[i].ID == userid {
@@ -544,7 +553,10 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 		assert.True(found)
 	} else {
-		fmt.Println("ManageMembers->", errAdd.Error())
+		if enableDebuggingInTests {
+
+			fmt.Println("ManageMembers->", errAdd.Error())
+		}
 	}
 
 	//Update Space Memberships
@@ -586,7 +598,10 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 			}
 			assert.True(foundUp)
 		} else {
-			fmt.Println("ManageMembers->", errUp.Error())
+			if enableDebuggingInTests {
+
+				fmt.Println("ManageMembers->", errUp.Error())
+			}
 		}
 	}
 	//Get Space Memberships
@@ -597,7 +612,7 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		pubnub.PNMembershipsSpaceCustom,
 	}
 
-	fmt.Println("GetMemberships ====>")
+	//fmt.Println("GetMemberships ====>")
 
 	resGetMem, stGetMem, errGetMem := pn.GetMemberships().UserID(userid).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	foundGetMem := false
@@ -622,13 +637,15 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		assert.Equal(200, stGetMem.StatusCode)
 		assert.True(foundGetMem)
 	} else {
-		fmt.Println("GetMemberships->", errGetMem.Error())
+		if enableDebuggingInTests {
+			fmt.Println("GetMemberships->", errGetMem.Error())
+		}
 	}
 
 	//filterExp := fmt.Sprintf("custom.c3 == '%s' || custom.c2 == '%s'", "d3", "d2")
 	filterExp := fmt.Sprintf("space.name == '%s'", name)
 
-	fmt.Println("GetMemberships ====>", filterExp)
+	//fmt.Println("GetMemberships ====>", filterExp)
 
 	resGetMemF, stGetMemF, errGetMemF := pn.GetMemberships().UserID(userid).Include(inclMemberships).Filter(filterExp).Limit(limit).Count(count).Execute()
 	foundGetMemF := false
@@ -653,7 +670,10 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		assert.Equal(200, stGetMemF.StatusCode)
 		assert.True(foundGetMemF)
 	} else {
-		fmt.Println("GetMemberships->", errGetMemF.Error())
+		if enableDebuggingInTests {
+
+			fmt.Println("GetMemberships->", errGetMemF.Error())
+		}
 	}
 
 	//Remove Space Memberships
@@ -687,7 +707,10 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 		assert.False(foundRem)
 	} else {
-		fmt.Println("ManageMembers->", errRem.Error())
+		if enableDebuggingInTests {
+
+			fmt.Println("ManageMembers->", errRem.Error())
+		}
 	}
 
 	inMem := pubnub.PNMembershipsInput{
@@ -701,7 +724,7 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	//Add user memberships
 	resManageMemAdd, stManageMemAdd, errManageMemAdd := pn.ManageMemberships().UserID(userid2).Add(inArrMem).Update([]pubnub.PNMembershipsInput{}).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
-	fmt.Println("resManageMemAdd -->", resManageMemAdd)
+	//fmt.Println("resManageMemAdd -->", resManageMemAdd)
 	assert.Nil(errManageMemAdd)
 	assert.Equal(200, stManageMemAdd.StatusCode)
 	if errManageMemAdd == nil {
@@ -720,7 +743,10 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 		assert.True(foundManageMembers)
 	} else {
-		fmt.Println("ManageMemberships->", errManageMemAdd.Error())
+		if enableDebuggingInTests {
+
+			fmt.Println("ManageMemberships->", errManageMemAdd.Error())
+		}
 	}
 
 	// //Update user memberships
@@ -739,7 +765,7 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	}
 
 	resManageMemUp, stManageMemUp, errManageMemUp := pn.ManageMemberships().UserID(userid2).Add([]pubnub.PNMembershipsInput{}).Update(upArrMem).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
-	fmt.Println("resManageMemUp -->", resManageMemUp)
+	//fmt.Println("resManageMemUp -->", resManageMemUp)
 	assert.Nil(errManageMemUp)
 	assert.Equal(200, stManageMemUp.StatusCode)
 	if errManageMemUp == nil {
@@ -758,12 +784,15 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 		assert.True(foundManageMembersUp)
 	} else {
-		fmt.Println("ManageMemberships->", errManageMemUp.Error())
+		if enableDebuggingInTests {
+
+			fmt.Println("ManageMemberships->", errManageMemUp.Error())
+		}
 	}
 
 	// //Get members
 	resGetMembers, stGetMembers, errGetMembers := pn.GetMembers().SpaceID(spaceid2).Include(inclSm).Limit(limit).Count(count).Execute()
-	fmt.Println("resGetMembers -->", resGetMembers)
+	//fmt.Println("resGetMembers -->", resGetMembers)
 	assert.Nil(errGetMembers)
 	assert.Equal(200, stGetMembers.StatusCode)
 	if errGetMembers == nil {
@@ -784,15 +813,18 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 		assert.True(foundGetMembers)
 	} else {
-		fmt.Println("GetMembers->", errGetMembers.Error())
+		if enableDebuggingInTests {
+
+			fmt.Println("GetMembers->", errGetMembers.Error())
+		}
 	}
 
 	//filterExp2 := fmt.Sprintf("custom.a5 == '%s' || custom.c5 == '%s'", custom5["a5"], custom5["c5"])
 	filterExp2 := fmt.Sprintf("user.name == '%s'", name)
-	fmt.Println("GetMembers ====>", filterExp2)
+	//fmt.Println("GetMembers ====>", filterExp2)
 
 	resGetMembersF, stGetMembersF, errGetMembersF := pn.GetMembers().SpaceID(spaceid2).Include(inclSm).Filter(filterExp2).Limit(limit).Count(count).Execute()
-	fmt.Println("resGetMembers -->", resGetMembersF)
+	//fmt.Println("resGetMembers -->", resGetMembersF)
 	assert.Nil(errGetMembersF)
 	assert.Equal(200, stGetMembersF.StatusCode)
 	if errGetMembersF == nil {
@@ -813,7 +845,10 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 		assert.True(foundGetMembersF)
 	} else {
-		fmt.Println("GetMembers->", errGetMembersF.Error())
+		if enableDebuggingInTests {
+
+			fmt.Println("GetMembers->", errGetMembersF.Error())
+		}
 	}
 
 	// //Remove user memberships
@@ -838,7 +873,10 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		}
 		assert.False(foundManageMemRem)
 	} else {
-		fmt.Println("ManageMemberships->", errManageMemRem.Error())
+		if enableDebuggingInTests {
+
+			fmt.Println("ManageMemberships->", errManageMemRem.Error())
+		}
 	}
 
 	//delete
@@ -950,7 +988,7 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	go func() {
 	ExitLabel:
 		for {
-			fmt.Println("Running =--->")
+			//fmt.Println("Running =--->")
 			select {
 
 			case status := <-listener.Status:
@@ -958,27 +996,32 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 				case pubnub.PNConnectedCategory:
 					doneConnected <- true
 				default:
-					fmt.Println(" --- status: ", status)
+					if enableDebuggingInTests {
+
+						fmt.Println(" --- status: ", status)
+					}
 				}
 
 			case userEvent := <-listener.UserEvent:
+				if enableDebuggingInTests {
 
-				fmt.Println(" --- UserEvent: ")
-				fmt.Println(fmt.Sprintf("%s", userEvent))
-				fmt.Println(fmt.Sprintf("userEvent.Channel: %s", userEvent.Channel))
-				fmt.Println(fmt.Sprintf("userEvent.SubscribedChannel: %s", userEvent.SubscribedChannel))
-				fmt.Println(fmt.Sprintf("userEvent.Event: %s", userEvent.Event))
-				fmt.Println(fmt.Sprintf("userEvent.UserID: %s", userEvent.UserID))
-				fmt.Println(fmt.Sprintf("userEvent.Description: %s", userEvent.Description))
-				fmt.Println(fmt.Sprintf("userEvent.Timestamp: %s", userEvent.Timestamp))
-				fmt.Println(fmt.Sprintf("userEvent.Name: %s", userEvent.Name))
-				fmt.Println(fmt.Sprintf("userEvent.ExternalID: %s", userEvent.ExternalID))
-				fmt.Println(fmt.Sprintf("userEvent.ProfileURL: %s", userEvent.ProfileURL))
-				fmt.Println(fmt.Sprintf("userEvent.Email: %s", userEvent.Email))
-				fmt.Println(fmt.Sprintf("userEvent.Created: %s", userEvent.Created))
-				fmt.Println(fmt.Sprintf("userEvent.Updated: %s", userEvent.Updated))
-				fmt.Println(fmt.Sprintf("userEvent.ETag: %s", userEvent.ETag))
-				fmt.Println(fmt.Sprintf("userEvent.Custom: %v", userEvent.Custom))
+					fmt.Println(" --- UserEvent: ")
+					fmt.Println(fmt.Sprintf("%s", userEvent))
+					fmt.Println(fmt.Sprintf("userEvent.Channel: %s", userEvent.Channel))
+					fmt.Println(fmt.Sprintf("userEvent.SubscribedChannel: %s", userEvent.SubscribedChannel))
+					fmt.Println(fmt.Sprintf("userEvent.Event: %s", userEvent.Event))
+					fmt.Println(fmt.Sprintf("userEvent.UserID: %s", userEvent.UserID))
+					fmt.Println(fmt.Sprintf("userEvent.Description: %s", userEvent.Description))
+					fmt.Println(fmt.Sprintf("userEvent.Timestamp: %s", userEvent.Timestamp))
+					fmt.Println(fmt.Sprintf("userEvent.Name: %s", userEvent.Name))
+					fmt.Println(fmt.Sprintf("userEvent.ExternalID: %s", userEvent.ExternalID))
+					fmt.Println(fmt.Sprintf("userEvent.ProfileURL: %s", userEvent.ProfileURL))
+					fmt.Println(fmt.Sprintf("userEvent.Email: %s", userEvent.Email))
+					fmt.Println(fmt.Sprintf("userEvent.Created: %s", userEvent.Created))
+					fmt.Println(fmt.Sprintf("userEvent.Updated: %s", userEvent.Updated))
+					fmt.Println(fmt.Sprintf("userEvent.ETag: %s", userEvent.ETag))
+					fmt.Println(fmt.Sprintf("userEvent.Custom: %v", userEvent.Custom))
+				}
 
 				if (userEvent.Event == pubnub.PNObjectsEventDelete) && (userEvent.UserID == userid) {
 					mut.Lock()
@@ -992,18 +1035,21 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 				}
 			case spaceEvent := <-listener.SpaceEvent:
 
-				fmt.Println(" --- SpaceEvent: ")
-				fmt.Println(fmt.Sprintf("%s", spaceEvent))
-				fmt.Println(fmt.Sprintf("spaceEvent.Channel: %s", spaceEvent.Channel))
-				fmt.Println(fmt.Sprintf("spaceEvent.SubscribedChannel: %s", spaceEvent.SubscribedChannel))
-				fmt.Println(fmt.Sprintf("spaceEvent.Event: %s", spaceEvent.Event))
-				fmt.Println(fmt.Sprintf("spaceEvent.SpaceID: %s", spaceEvent.SpaceID))
-				fmt.Println(fmt.Sprintf("spaceEvent.Description: %s", spaceEvent.Description))
-				fmt.Println(fmt.Sprintf("spaceEvent.Timestamp: %s", spaceEvent.Timestamp))
-				fmt.Println(fmt.Sprintf("spaceEvent.Created: %s", spaceEvent.Created))
-				fmt.Println(fmt.Sprintf("spaceEvent.Updated: %s", spaceEvent.Updated))
-				fmt.Println(fmt.Sprintf("spaceEvent.ETag: %s", spaceEvent.ETag))
-				fmt.Println(fmt.Sprintf("spaceEvent.Custom: %v", spaceEvent.Custom))
+				if enableDebuggingInTests {
+
+					fmt.Println(" --- SpaceEvent: ")
+					fmt.Println(fmt.Sprintf("%s", spaceEvent))
+					fmt.Println(fmt.Sprintf("spaceEvent.Channel: %s", spaceEvent.Channel))
+					fmt.Println(fmt.Sprintf("spaceEvent.SubscribedChannel: %s", spaceEvent.SubscribedChannel))
+					fmt.Println(fmt.Sprintf("spaceEvent.Event: %s", spaceEvent.Event))
+					fmt.Println(fmt.Sprintf("spaceEvent.SpaceID: %s", spaceEvent.SpaceID))
+					fmt.Println(fmt.Sprintf("spaceEvent.Description: %s", spaceEvent.Description))
+					fmt.Println(fmt.Sprintf("spaceEvent.Timestamp: %s", spaceEvent.Timestamp))
+					fmt.Println(fmt.Sprintf("spaceEvent.Created: %s", spaceEvent.Created))
+					fmt.Println(fmt.Sprintf("spaceEvent.Updated: %s", spaceEvent.Updated))
+					fmt.Println(fmt.Sprintf("spaceEvent.ETag: %s", spaceEvent.ETag))
+					fmt.Println(fmt.Sprintf("spaceEvent.Custom: %v", spaceEvent.Custom))
+				}
 				if (spaceEvent.Event == pubnub.PNObjectsEventDelete) && (spaceEvent.SpaceID == spaceid) {
 					mut.Lock()
 					deleteSpace = true
@@ -1016,17 +1062,19 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 				}
 
 			case membershipEvent := <-listener.MembershipEvent:
+				if enableDebuggingInTests {
 
-				fmt.Println(" --- MembershipEvent: ")
-				fmt.Println(fmt.Sprintf("%s", membershipEvent))
-				fmt.Println(fmt.Sprintf("membershipEvent.Channel: %s", membershipEvent.Channel))
-				fmt.Println(fmt.Sprintf("membershipEvent.SubscribedChannel: %s", membershipEvent.SubscribedChannel))
-				fmt.Println(fmt.Sprintf("membershipEvent.Event: %s", membershipEvent.Event))
-				fmt.Println(fmt.Sprintf("membershipEvent.SpaceID: %s", membershipEvent.SpaceID))
-				fmt.Println(fmt.Sprintf("membershipEvent.UserID: %s", membershipEvent.UserID))
-				fmt.Println(fmt.Sprintf("membershipEvent.Description: %s", membershipEvent.Description))
-				fmt.Println(fmt.Sprintf("membershipEvent.Timestamp: %s", membershipEvent.Timestamp))
-				fmt.Println(fmt.Sprintf("membershipEvent.Custom: %v", membershipEvent.Custom))
+					fmt.Println(" --- MembershipEvent: ")
+					fmt.Println(fmt.Sprintf("%s", membershipEvent))
+					fmt.Println(fmt.Sprintf("membershipEvent.Channel: %s", membershipEvent.Channel))
+					fmt.Println(fmt.Sprintf("membershipEvent.SubscribedChannel: %s", membershipEvent.SubscribedChannel))
+					fmt.Println(fmt.Sprintf("membershipEvent.Event: %s", membershipEvent.Event))
+					fmt.Println(fmt.Sprintf("membershipEvent.SpaceID: %s", membershipEvent.SpaceID))
+					fmt.Println(fmt.Sprintf("membershipEvent.UserID: %s", membershipEvent.UserID))
+					fmt.Println(fmt.Sprintf("membershipEvent.Description: %s", membershipEvent.Description))
+					fmt.Println(fmt.Sprintf("membershipEvent.Timestamp: %s", membershipEvent.Timestamp))
+					fmt.Println(fmt.Sprintf("membershipEvent.Custom: %v", membershipEvent.Custom))
+				}
 				if (membershipEvent.Event == pubnub.PNObjectsEventCreate) && (membershipEvent.SpaceID == spaceid) && (membershipEvent.UserID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
 					mut.Lock()
 					addUserToSpace = true
@@ -1056,7 +1104,8 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 				break ExitLabel
 
 			}
-			fmt.Println("=>>>>>>>>>>>>> restart")
+
+			//fmt.Println("=>>>>>>>>>>>>> restart")
 
 		}
 
@@ -1134,9 +1183,12 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		pubnub.PNMembersUserCustom,
 	}
 
-	fmt.Println("inclSm===>", inclSm)
-	for k, value := range inclSm {
-		fmt.Println("inclSm===>", k, value)
+	if enableDebuggingInTests {
+
+		fmt.Println("inclSm===>", inclSm)
+		for k, value := range inclSm {
+			fmt.Println("inclSm===>", k, value)
+		}
 	}
 
 	custom3 := make(map[string]interface{})
@@ -1154,8 +1206,11 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	_, stAdd, errAdd := pn.ManageMembers().SpaceID(spaceid).Add(inArr).Update([]pubnub.PNMembersInput{}).Remove([]pubnub.PNMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errAdd)
-	if errAdd != nil {
-		fmt.Println("ManageMembers-->", errAdd)
+	if enableDebuggingInTests {
+
+		if errAdd != nil {
+			fmt.Println("ManageMembers-->", errAdd)
+		}
 	}
 	assert.Equal(200, stAdd.StatusCode)
 
@@ -1188,12 +1243,15 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	}
 
 	resManageMemUp, stManageMemUp, errManageMemUp := pn.ManageMemberships().UserID(userid).Add([]pubnub.PNMembershipsInput{}).Update(upArrMem).Remove([]pubnub.PNMembershipsRemove{}).Include(inclMemberships).Limit(limit).Count(count).Execute()
-	fmt.Println("resManageMemUp -->", resManageMemUp)
-	assert.Nil(errManageMemUp)
-	if errManageMemUp != nil {
-		fmt.Println("ManageMemberships-->", errManageMemUp)
-	}
 
+	assert.Nil(errManageMemUp)
+	if enableDebuggingInTests {
+
+		fmt.Println("resManageMemUp -->", resManageMemUp)
+		if errManageMemUp != nil {
+			fmt.Println("ManageMemberships-->", errManageMemUp)
+		}
+	}
 	assert.Equal(200, stManageMemUp.StatusCode)
 
 	time.Sleep(1 * time.Second)
@@ -1211,10 +1269,12 @@ func ObjectsListenersCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	}
 	_, stManageMemRem, errManageMemRem := pn.ManageMemberships().UserID(userid).Add([]pubnub.PNMembershipsInput{}).Update([]pubnub.PNMembershipsInput{}).Remove(reArrMem).Include(inclMemberships).Limit(limit).Count(count).Execute()
 	assert.Nil(errManageMemRem)
-	if errManageMemRem != nil {
-		fmt.Println("ManageMemberships-->", errManageMemRem)
-	}
+	if enableDebuggingInTests {
 
+		if errManageMemRem != nil {
+			fmt.Println("ManageMemberships-->", errManageMemRem)
+		}
+	}
 	assert.Equal(200, stManageMemRem.StatusCode)
 
 	time.Sleep(1 * time.Second)
