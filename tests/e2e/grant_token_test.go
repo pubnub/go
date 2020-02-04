@@ -1,7 +1,7 @@
 package e2e
 
 import (
-	"fmt"
+	//"fmt"
 
 	pubnub "github.com/pubnub/go"
 	"github.com/stretchr/testify/assert"
@@ -81,7 +81,7 @@ func TestGrantToken(t *testing.T) {
 		if err == nil {
 			chResources := pubnub.ParseGrantResources(cborObject.Resources, token, cborObject.Timestamp, cborObject.TTL)
 
-			fmt.Println(chResources)
+			//fmt.Println(chResources)
 
 			// assert.Equal(ch[ch1].Read, chResources.Channels[ch1].Permissions.Read)
 			// assert.Equal(ch[ch1].Write, chResources.Channels[ch1].Permissions.Write)

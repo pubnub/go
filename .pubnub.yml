@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "Make publish/grant workers per instance"
+        type: bug
+    date: Feb 5, 20  
+    version: v4.6.4  
+  - 
+    changes: 
+      - 
         text: "Fix data race"
         type: bug
     date: Jan 28, 20  
@@ -505,12 +512,12 @@ supported-platforms:
       - "1.9.7"
       - "1.10.8"
       - "1.11.13"
-      - "1.12.9"
-      - "1.13.4"
+      - "1.12.16"
+      - "1.13.7"
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.6.3
+version: v4.6.4
