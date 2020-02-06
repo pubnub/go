@@ -83,7 +83,7 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 				case pubnub.PNConnectedCategory:
 					doneConnected <- true
 				default:
-					fmt.Println(" --- status: ", status)
+					//fmt.Println(" --- status: ", status)
 				}
 			case messageActionsEvent := <-listener.MessageActionsEvent:
 				if enableDebuggingInTests {
@@ -156,7 +156,7 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 	// read tt,
 	if resPub != nil {
 		messageTimetoken = strconv.FormatInt(resPub.Timestamp, 10)
-		fmt.Println("messageTimetoken", messageTimetoken)
+		//fmt.Println("messageTimetoken", messageTimetoken)
 
 		// add action,
 		ma := pubnub.MessageAction{
@@ -190,14 +190,14 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 		limit := 1
 
 		recActionTimetokenM1 := recActionTimetoken
-		fmt.Println("recActionTimetoken", recActionTimetoken)
+		//fmt.Println("recActionTimetoken", recActionTimetoken)
 
 		n, err := strconv.ParseInt(recActionTimetoken, 10, 64)
 		if err == nil {
 			n = n + 1
 			recActionTimetokenM1 = strconv.FormatInt(n, 10)
 		}
-		fmt.Println("recActionTimetokenM1", recActionTimetokenM1, limit)
+		//fmt.Println("recActionTimetokenM1", recActionTimetokenM1, limit)
 
 		resGetMA1, _, errGetMA1 := pnMA.GetMessageActions().Channel(chMA).Execute()
 		assert.Nil(errGetMA1)
@@ -307,7 +307,7 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 func MatchHistoryMessageWithMAResp(assert *assert.Assertions, resp *pubnub.HistoryResponse, chMA, message string, messageTimetoken int64, meta interface{}, withMeta bool) {
 	if resp != nil {
 		messages := resp.Messages
-		fmt.Println("====> history messages:", messages)
+		//fmt.Println("====> history messages:", messages)
 		if messages != nil {
 			assert.Equal(message, messages[0].Message)
 			assert.Equal(messageTimetoken, messages[0].Timetoken)
@@ -316,7 +316,7 @@ func MatchHistoryMessageWithMAResp(assert *assert.Assertions, resp *pubnub.Histo
 					meta := messages[0].Meta.(map[string]interface{})
 					assert.Equal("n1", meta["m1"])
 					assert.Equal("n2", meta["m2"])
-					fmt.Println("meta:", meta)
+					//fmt.Println("meta:", meta)
 				} else {
 					assert.Fail("meta nil")
 				}
@@ -332,7 +332,7 @@ func MatchHistoryMessageWithMAResp(assert *assert.Assertions, resp *pubnub.Histo
 func MatchFetchMessageWithMAResp(assert *assert.Assertions, resp *pubnub.FetchResponse, chMA, message string, messageTimetoken, recActionTimetokenM1 int64, UUID string, ma pubnub.MessageAction, meta interface{}, withMeta, withMessageActions bool) {
 	if resp != nil {
 		messages := resp.Messages
-		fmt.Println("messages:", messages)
+		//fmt.Println("messages:", messages)
 		m0 := messages[chMA]
 		if m0 != nil {
 			assert.Equal(message, m0[0].Message)
@@ -342,7 +342,7 @@ func MatchFetchMessageWithMAResp(assert *assert.Assertions, resp *pubnub.FetchRe
 					meta := m0[0].Meta.(map[string]interface{})
 					assert.Equal("n1", meta["m1"])
 					assert.Equal("n2", meta["m2"])
-					fmt.Println("meta:", meta)
+					//fmt.Println("meta:", meta)
 				} else {
 					assert.Fail("meta nil")
 				}
@@ -356,7 +356,7 @@ func MatchFetchMessageWithMAResp(assert *assert.Assertions, resp *pubnub.FetchRe
 					if r00 != nil {
 						assert.Equal(UUID, r00[0].UUID)
 						assert.Equal(strconv.FormatInt(recActionTimetokenM1, 10), r00[0].ActionTimetoken)
-						fmt.Println("action val:", r00[0].UUID, r00[0].ActionTimetoken)
+						//fmt.Println("action val:", r00[0].UUID, r00[0].ActionTimetoken)
 					} else {
 						assert.Fail("r0 nil")
 					}

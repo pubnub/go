@@ -40,7 +40,9 @@ func SubscribesLogsForQueryParams(t *testing.T) {
 		"q2": "v2",
 	}
 
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 	pn.Subscribe().
 		Channels([]string{"ch1", "ch2"}).
 		QueryParam(queryParam).
@@ -77,7 +79,9 @@ func TestRequestMesssageOverflow(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 	pn.Config.MessageQueueOverflowCount = 2
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 
 	timestamp1 := GetTimetoken(pn)
 	for i := 0; i < 3; i++ {
@@ -848,7 +852,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 				case pubnub.PNAcknowledgmentCategory:
 					doneUnsubscribe <- true
 				default:
-					fmt.Println("SubscribePublishUnsubscribeMultiCommon status", status)
+					//fmt.Println("SubscribePublishUnsubscribeMultiCommon status", status)
 					doneUnsubscribe <- true
 				}
 			case message := <-listener.Message:
@@ -862,7 +866,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
 			case <-tic.C:
-				fmt.Println("SubscribePublishUnsubscribeMultiCommon timeout")
+				//fmt.Println("SubscribePublishUnsubscribeMultiCommon timeout")
 				assert.Fail("timeout")
 				errChan <- "timeout"
 
@@ -888,7 +892,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 		//return
 	}
 
-	fmt.Println("SubscribePublishUnsubscribeMultiCommon publish done")
+	//fmt.Println("SubscribePublishUnsubscribeMultiCommon publish done")
 	pn.Publish().Channel(ch).Message(s).UsePost(usePost).Execute()
 
 	select {
@@ -902,7 +906,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 		Channels([]string{ch}).
 		Execute()
 
-	fmt.Println("SubscribePublishUnsubscribeMultiCommon before doneUnsubscribe")
+	//fmt.Println("SubscribePublishUnsubscribeMultiCommon before doneUnsubscribe")
 	// select {
 	// case <-doneUnsubscribe:
 	// case err := <-errChan:
@@ -1339,7 +1343,9 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	heySub := heyIterator(3)
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 	pn.Config.UUID = randomized("sub-partialu-uuid")
 
 	listener := pubnub.NewListener()
@@ -1382,7 +1388,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	pn.AddListener(listener)
 
 	pn.Subscribe().Channels([]string{ch1, ch2}).Execute()
-	fmt.Println("TestSubscribePublishPartialUnsubscribe after subscribe ", timeout)
+	//fmt.Println("TestSubscribePublishPartialUnsubscribe after subscribe ", timeout)
 
 	tic := time.NewTicker(time.Duration(timeout) * time.Second)
 	select {
@@ -1393,16 +1399,16 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 		tic.Stop()
 		assert.Fail("timeout")
 	}
-	fmt.Println("TestSubscribePublishPartialUnsubscribe before UnsubscribeAll ")
+	//fmt.Println("TestSubscribePublishPartialUnsubscribe before UnsubscribeAll ")
 
 	pn.UnsubscribeAll()
-	fmt.Println("TestSubscribePublishPartialUnsubscribe after UnsubscribeAll ")
+	//fmt.Println("TestSubscribePublishPartialUnsubscribe after UnsubscribeAll ")
 	pn.RemoveListener(listener)
-	fmt.Println("TestSubscribePublishPartialUnsubscribe after RemoveListener ")
+	//fmt.Println("TestSubscribePublishPartialUnsubscribe after RemoveListener ")
 
 	assert.Zero(len(pn.GetSubscribedChannels()))
 	assert.Zero(len(pn.GetSubscribedGroups()))
-	fmt.Println("TestSubscribePublishPartialUnsubscribe after all ")
+	//fmt.Println("TestSubscribePublishPartialUnsubscribe after all ")
 	exitListener <- true
 }
 
@@ -1724,12 +1730,16 @@ func Subscribe403Error(t *testing.T) {
 	ch := randomized("sub-403-ch")
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 	pamConfig := pamConfigCopy()
 	pamConfig.SecretKey = ""
 	pn2 := pubnub.NewPubNub(pamConfig)
 
-	pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 	listener := pubnub.NewListener()
 	exitListener := make(chan bool)
 
@@ -2024,7 +2034,9 @@ func TestSubscribeWithFilter(t *testing.T) {
 	ch := randomized("sub-wf-ch")
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
 	pn.Config.FilterExpression = "language!=spanish"
 	listener := pubnub.NewListener()
 

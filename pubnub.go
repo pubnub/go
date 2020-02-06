@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.6.3"
+	Version = "4.6.4"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -599,8 +599,8 @@ func (pn *PubNub) newNonSubQueueProcessor(maxWorkers int, ctx Context) *RequestW
 	pn.Config.Log.Printf("Init RequestWorkers: workers %d", maxWorkers)
 
 	p := &RequestWorkers{
-		Workers:    workers,
-		MaxWorkers: maxWorkers,
+		WorkersChannel: workers,
+		MaxWorkers:     maxWorkers,
 	}
 	p.Start(pn, ctx)
 	return p

@@ -28,6 +28,8 @@ const outputSuffix = "\x1b[32;2m Example <<<< \x1b[0m"
 
 func main() {
 	connect()
+	// go pubnub.NewPubNub(pubnub.NewConfig())
+	// pubnub.NewPubNub(pubnub.NewConfig())
 }
 
 func connect() {
@@ -56,7 +58,7 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 
-	config.FilterExpression = "name="
+	//config.FilterExpression = "name="
 
 	config.CipherKey = "enigma"
 

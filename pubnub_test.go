@@ -30,3 +30,8 @@ func TestDemoInitializer(t *testing.T) {
 	assert.Equal("demo", demo.Config.SubscribeKey)
 	assert.Equal("demo", demo.Config.SecretKey)
 }
+
+func TestMultipleConcurrentInit(t *testing.T) {
+	go NewPubNub(NewConfig())
+	NewPubNub(NewConfig())
+}
