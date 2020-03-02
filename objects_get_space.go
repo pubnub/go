@@ -9,7 +9,6 @@ import (
 	"net/url"
 
 	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 )
 
 var emptyPNGetSpaceResponse *PNGetSpaceResponse

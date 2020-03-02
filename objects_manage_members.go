@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 )
 
 var emptyManageMembersResponse *PNManageMembersResponse

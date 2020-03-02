@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"
