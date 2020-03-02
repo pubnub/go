@@ -36,6 +36,13 @@ func SetQueryParam(q *url.Values, queryParam map[string]string) {
 	}
 }
 
+func SetArrayTypeQueryParam(q *url.Values, val []string, key string) {
+	for _, value := range val {
+		q.Add(key, utils.URLEncode(value))
+		fmt.Println(key, value)
+	}
+}
+
 // SetPushEnvironment appends the push environment to the query string
 func SetPushEnvironment(q *url.Values, env PNPushEnvironment) {
 	if string(env) != "" {
@@ -128,10 +135,13 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 
 	i := 0
 	for k, v := range *query {
-		if i == len(*query)-1 {
-			stringifiedQuery += fmt.Sprintf("%s=%s", k, v[0])
-		} else {
-			stringifiedQuery += fmt.Sprintf("%s=%s&", k, v[0])
+		for j, value := range v {
+			if (i == len(*query)-1) && (j == len(v)-1) {
+				stringifiedQuery += fmt.Sprintf("%s=%s", k, value)
+			} else {
+				stringifiedQuery += fmt.Sprintf("%s=%s&", k, value)
+			}
+			j++
 		}
 
 		i++

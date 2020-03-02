@@ -76,6 +76,12 @@ func (b *getUsersBuilder) Filter(filter string) *getUsersBuilder {
 	return b
 }
 
+func (b *getUsersBuilder) Sort(sort []string) *getUsersBuilder {
+	b.opts.Sort = sort
+
+	return b
+}
+
 func (b *getUsersBuilder) Count(count bool) *getUsersBuilder {
 	b.opts.Count = count
 
@@ -113,6 +119,7 @@ type getUsersOpts struct {
 	Start      string
 	End        string
 	Filter     string
+	Sort       []string
 	Count      bool
 	QueryParam map[string]string
 
@@ -151,7 +158,7 @@ func (o *getUsersOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Include != nil {
-		q.Set("include", string(utils.JoinChannels(o.Include)))
+		SetArrayTypeQueryParam(q, o.Include, "include")
 	}
 
 	q.Set("limit", strconv.Itoa(o.Limit))
@@ -171,6 +178,9 @@ func (o *getUsersOpts) buildQuery() (*url.Values, error) {
 	}
 	if o.Filter != "" {
 		q.Set("filter", o.Filter)
+	}
+	if o.Sort != nil {
+		SetArrayTypeQueryParam(q, o.Sort, "sort")
 	}
 
 	o.pubnub.tokenManager.SetAuthParan(q, "", PNUsers)

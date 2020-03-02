@@ -73,6 +73,18 @@ func (b *updateSpaceBuilder) Description(description string) *updateSpaceBuilder
 	return b
 }
 
+func (b *updateSpaceBuilder) Filter(filter string) *updateSpaceBuilder {
+	b.opts.Filter = filter
+
+	return b
+}
+
+func (b *updateSpaceBuilder) Sort(sort []string) *updateSpaceBuilder {
+	b.opts.Sort = sort
+
+	return b
+}
+
 func (b *updateSpaceBuilder) Custom(custom map[string]interface{}) *updateSpaceBuilder {
 	b.opts.Custom = custom
 
@@ -108,6 +120,8 @@ type updateSpaceOpts struct {
 	ID          string
 	Name        string
 	Description string
+	Filter      string
+	Sort        []string
 	Custom      map[string]interface{}
 	QueryParam  map[string]string
 
@@ -146,8 +160,12 @@ func (o *updateSpaceOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Include != nil {
-		q.Set("include", string(utils.JoinChannels(o.Include)))
+		SetArrayTypeQueryParam(q, o.Include, "include")
 	}
+	if o.Sort != nil {
+		SetArrayTypeQueryParam(q, o.Sort, "sort")
+	}
+
 	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)
 	SetQueryParam(q, o.QueryParam)
 

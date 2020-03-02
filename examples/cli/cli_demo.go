@@ -1010,13 +1010,14 @@ func getMembers(args []string) {
 		pubnub.PNMembersUser,
 		pubnub.PNMembersUserCustom,
 	}
+	sort := []string{"name", "created:desc"}
 	if start != "" {
-		res, status, err := pn.GetMembers().SpaceID(id).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+		res, status, err := pn.GetMembers().SpaceID(id).Include(incl).Sort(sort).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 	} else {
-		res, status, err := pn.GetMembers().SpaceID(id).Include(incl).Limit(limit).Count(count).Execute()
+		res, status, err := pn.GetMembers().SpaceID(id).Sort(sort).Include(incl).Limit(limit).Count(count).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)

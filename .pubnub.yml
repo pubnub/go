@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Objects Sorting"
+        type: improvement
+      - 
+        text: "Object include multiple values fix"
+        type: bug
+    date: Mar 7, 20  
+    version: v4.6.5  
+  - 
+    changes: 
+      - 
         text: "Make publish/grant workers per instance"
         type: bug
     date: Feb 5, 20  
