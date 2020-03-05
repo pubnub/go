@@ -201,6 +201,10 @@ func (o *manageMembersOpts) buildQuery() (*url.Values, error) {
 	if o.End != "" {
 		q.Set("end", o.End)
 	}
+	if o.Filter != "" {
+		q.Set("filter", o.Filter)
+	}
+
 	if o.Sort != nil {
 		SetArrayTypeQueryParam(q, o.Sort, "sort")
 	}

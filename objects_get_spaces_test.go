@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertGetSpaces(t *testing.T, checkQueryParam, testContext, withFilter bool) {
+func AssertGetSpaces(t *testing.T, checkQueryParam, testContext, withFilter bool, withSort bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -47,6 +47,10 @@ func AssertGetSpaces(t *testing.T, checkQueryParam, testContext, withFilter bool
 	if withFilter {
 		o.Filter("name like 'a*'")
 	}
+	sort := []string{"name", "created:desc"}
+	if withSort {
+		o.Sort(sort)
+	}
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -71,24 +75,46 @@ func AssertGetSpaces(t *testing.T, checkQueryParam, testContext, withFilter bool
 		if withFilter {
 			assert.Equal("name like 'a*'", u.Get("filter"))
 		}
+		if withSort {
+			s := (*u)["sort"]
+			assert.True((s[0] == utils.URLEncode(sort[0])) || (s[0] == utils.URLEncode(sort[1])))
+			assert.True((s[1] == utils.URLEncode(sort[0])) || (s[1] == utils.URLEncode(sort[1])))
+		}
+
 	}
 
 }
 
 func TestGetSpaces(t *testing.T) {
-	AssertGetSpaces(t, true, false, false)
+	AssertGetSpaces(t, true, false, false, false)
 }
 
 func TestGetSpacesContext(t *testing.T) {
-	AssertGetSpaces(t, true, true, false)
+	AssertGetSpaces(t, true, true, false, false)
 }
 
 func TestGetSpacesWithFilter(t *testing.T) {
-	AssertGetSpaces(t, true, false, true)
+	AssertGetSpaces(t, true, false, true, false)
 }
 
 func TestGetSpacesWithFilterContext(t *testing.T) {
-	AssertGetSpaces(t, true, true, true)
+	AssertGetSpaces(t, true, true, true, false)
+}
+
+func TestGetSpacesWithSort(t *testing.T) {
+	AssertGetSpaces(t, true, false, false, true)
+}
+
+func TestGetSpacesWithSortContext(t *testing.T) {
+	AssertGetSpaces(t, true, true, false, true)
+}
+
+func TestGetSpacesWithFilterWithSort(t *testing.T) {
+	AssertGetSpaces(t, true, false, true, true)
+}
+
+func TestGetSpacesWithFilterWithSortContext(t *testing.T) {
+	AssertGetSpaces(t, true, true, true, true)
 }
 
 func TestGetSpacesResponseValueError(t *testing.T) {

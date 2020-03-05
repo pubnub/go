@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool) {
+func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool, withFilter bool, withSort bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -48,6 +48,13 @@ func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool) {
 	o.QueryParam(queryParam)
 
 	id0 := "id0"
+	if withFilter {
+		o.Filter("name like 'a*'")
+	}
+	sort := []string{"name", "created:desc"}
+	if withSort {
+		o.Sort(sort)
+	}
 
 	custom3 := make(map[string]interface{})
 	custom3["a3"] = "b3"
@@ -109,16 +116,49 @@ func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool) {
 		assert.Equal(start, u.Get("start"))
 		assert.Equal(end, u.Get("end"))
 		assert.Equal("0", u.Get("count"))
+		if withFilter {
+			assert.Equal("name like 'a*'", u.Get("filter"))
+		}
+		if withSort {
+			s := (*u)["sort"]
+			assert.True((s[0] == utils.URLEncode(sort[0])) || (s[0] == utils.URLEncode(sort[1])))
+			assert.True((s[1] == utils.URLEncode(sort[0])) || (s[1] == utils.URLEncode(sort[1])))
+		}
+
 	}
 
 }
 
 func TestManageMemberships(t *testing.T) {
-	AssertManageMemberships(t, true, false)
+	AssertManageMemberships(t, true, false, false, false)
 }
 
 func TestManageMembershipsContext(t *testing.T) {
-	AssertManageMemberships(t, true, true)
+	AssertManageMemberships(t, true, true, false, false)
+}
+
+func TestManageMembershipsWithFilter(t *testing.T) {
+	AssertManageMemberships(t, true, false, true, false)
+}
+
+func TestManageMembershipsWithFilterContext(t *testing.T) {
+	AssertManageMemberships(t, true, true, true, false)
+}
+
+func TestManageMembershipsWithSort(t *testing.T) {
+	AssertManageMemberships(t, true, false, false, true)
+}
+
+func TestManageMembershipsWithSortContext(t *testing.T) {
+	AssertManageMemberships(t, true, true, false, true)
+}
+
+func TestManageMembershipsWithFilterWithSort(t *testing.T) {
+	AssertManageMemberships(t, true, false, true, true)
+}
+
+func TestManageMembershipsWithFilterWithSortContext(t *testing.T) {
+	AssertManageMemberships(t, true, true, true, true)
 }
 
 func TestManageMembershipsResponseValueError(t *testing.T) {

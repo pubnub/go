@@ -87,18 +87,6 @@ func (b *updateUserBuilder) Email(email string) *updateUserBuilder {
 	return b
 }
 
-func (b *updateUserBuilder) Filter(filter string) *updateUserBuilder {
-	b.opts.Filter = filter
-
-	return b
-}
-
-func (b *updateUserBuilder) Sort(sort []string) *updateUserBuilder {
-	b.opts.Sort = sort
-
-	return b
-}
-
 func (b *updateUserBuilder) Custom(custom map[string]interface{}) *updateUserBuilder {
 	b.opts.Custom = custom
 
@@ -136,8 +124,6 @@ type updateUserOpts struct {
 	ExternalID string
 	ProfileURL string
 	Email      string
-	Filter     string
-	Sort       []string
 	Custom     map[string]interface{}
 	QueryParam map[string]string
 
@@ -177,9 +163,6 @@ func (o *updateUserOpts) buildQuery() (*url.Values, error) {
 
 	if o.Include != nil {
 		SetArrayTypeQueryParam(q, o.Include, "include")
-	}
-	if o.Sort != nil {
-		SetArrayTypeQueryParam(q, o.Sort, "sort")
 	}
 
 	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNUsers)

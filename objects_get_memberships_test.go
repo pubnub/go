@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertGetMemberships(t *testing.T, checkQueryParam, testContext, withFilter bool) {
+func AssertGetMemberships(t *testing.T, checkQueryParam, testContext, withFilter bool, withSort bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -49,6 +49,10 @@ func AssertGetMemberships(t *testing.T, checkQueryParam, testContext, withFilter
 	if withFilter {
 		o.Filter("custom.a5 == 'b5' || custom.c5 == 'd5'")
 	}
+	sort := []string{"name", "created:desc"}
+	if withSort {
+		o.Sort(sort)
+	}
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -73,25 +77,45 @@ func AssertGetMemberships(t *testing.T, checkQueryParam, testContext, withFilter
 		if withFilter {
 			assert.Equal("custom.a5 == 'b5' || custom.c5 == 'd5'", u.Get("filter"))
 		}
-
+		if withSort {
+			s := (*u)["sort"]
+			assert.True((s[0] == utils.URLEncode(sort[0])) || (s[0] == utils.URLEncode(sort[1])))
+			assert.True((s[1] == utils.URLEncode(sort[0])) || (s[1] == utils.URLEncode(sort[1])))
+		}
 	}
 
 }
 
 func TestGetMemberships(t *testing.T) {
-	AssertGetMemberships(t, true, false, false)
+	AssertGetMemberships(t, true, false, false, false)
 }
 
 func TestGetMembershipsContext(t *testing.T) {
-	AssertGetMemberships(t, true, true, false)
+	AssertGetMemberships(t, true, true, false, false)
 }
 
 func TestGetMembershipsWithFilter(t *testing.T) {
-	AssertGetMemberships(t, true, false, true)
+	AssertGetMemberships(t, true, false, true, false)
 }
 
 func TestGetMembershipsWithFilterContext(t *testing.T) {
-	AssertGetMemberships(t, true, true, true)
+	AssertGetMemberships(t, true, true, true, false)
+}
+
+func TestGetMembershipsWithSort(t *testing.T) {
+	AssertGetMemberships(t, true, false, false, true)
+}
+
+func TestGetMembershipsWithSortContext(t *testing.T) {
+	AssertGetMemberships(t, true, true, false, true)
+}
+
+func TestGetMembershipsWithFilterWithSort(t *testing.T) {
+	AssertGetMemberships(t, true, false, true, true)
+}
+
+func TestGetMembershipsWithFilterWithSortContext(t *testing.T) {
+	AssertGetMemberships(t, true, true, true, true)
 }
 
 func TestGetMembershipsResponseValueError(t *testing.T) {

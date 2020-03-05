@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
+func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool, withFilter bool, withSort bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -48,6 +48,13 @@ func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
 	o.QueryParam(queryParam)
 
 	id0 := "id0"
+	if withFilter {
+		o.Filter("name like 'a*'")
+	}
+	sort := []string{"name", "created:desc"}
+	if withSort {
+		o.Sort(sort)
+	}
 
 	custom := make(map[string]interface{})
 	custom["a1"] = "b1"
@@ -108,16 +115,49 @@ func AssertManageMembers(t *testing.T, checkQueryParam, testContext bool) {
 		assert.Equal(start, u.Get("start"))
 		assert.Equal(end, u.Get("end"))
 		assert.Equal("0", u.Get("count"))
+		if withFilter {
+			assert.Equal("name like 'a*'", u.Get("filter"))
+		}
+		if withSort {
+			s := (*u)["sort"]
+			assert.True((s[0] == utils.URLEncode(sort[0])) || (s[0] == utils.URLEncode(sort[1])))
+			assert.True((s[1] == utils.URLEncode(sort[0])) || (s[1] == utils.URLEncode(sort[1])))
+		}
+
 	}
 
 }
 
 func TestManageMembers(t *testing.T) {
-	AssertManageMembers(t, true, false)
+	AssertManageMembers(t, true, false, false, false)
 }
 
 func TestManageMembersContext(t *testing.T) {
-	AssertManageMembers(t, true, true)
+	AssertManageMembers(t, true, true, false, false)
+}
+
+func TestManageMembersWithFilter(t *testing.T) {
+	AssertManageMembers(t, true, false, true, false)
+}
+
+func TestManageMembersWithFilterContext(t *testing.T) {
+	AssertManageMembers(t, true, true, true, false)
+}
+
+func TestManageMembersWithSort(t *testing.T) {
+	AssertManageMembers(t, true, false, false, true)
+}
+
+func TestManageMembersWithSortContext(t *testing.T) {
+	AssertManageMembers(t, true, true, false, true)
+}
+
+func TestManageMembersWithFilterWithSort(t *testing.T) {
+	AssertManageMembers(t, true, false, true, true)
+}
+
+func TestManageMembersWithFilterWithSortContext(t *testing.T) {
+	AssertManageMembers(t, true, true, true, true)
 }
 
 func TestManageMembersResponseValueError(t *testing.T) {

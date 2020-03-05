@@ -39,7 +39,6 @@ func SetQueryParam(q *url.Values, queryParam map[string]string) {
 func SetArrayTypeQueryParam(q *url.Values, val []string, key string) {
 	for _, value := range val {
 		q.Add(key, utils.URLEncode(value))
-		fmt.Println(key, value)
 	}
 }
 
