@@ -508,9 +508,9 @@ func ObjectsMembershipsCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert.Equal(200, st4.StatusCode)
 
 	inclSm := []pubnub.PNMembersInclude{
+		pubnub.PNMembersUserCustom,
 		pubnub.PNMembersCustom,
 		pubnub.PNMembersUser,
-		pubnub.PNMembersUserCustom,
 	}
 
 	custom3 := make(map[string]interface{})
