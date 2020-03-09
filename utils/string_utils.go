@@ -142,6 +142,7 @@ func PreparePamParams(params *url.Values) string {
 
 		i++
 	}
+	//stringifiedQuery = strings.Replace(stringifiedQuery, "%2F", "/", -1)
 	fmt.Println("stringifiedQuery1:", stringifiedQuery)
 
 	return stringifiedQuery
@@ -159,29 +160,31 @@ func PamEncode(value string) string {
 		")", "%29",
 		"[", "%5B",
 		"]", "%5D",
-		"~", "%7E")
+		"~", "%7E",
+	)
 
 	stringifiedParam = replacer.Replace(stringifiedParam)
+	//stringifiedParam = strings.Replace(stringifiedParam, "%2F", "/", -1)
 
 	return stringifiedParam
 }
 
-func QueryToString(query *url.Values) string {
-	stringifiedQuery := ""
-	i := 0
+// func QueryToString(query *url.Values) string {
+// 	stringifiedQuery := ""
+// 	i := 0
 
-	for k, v := range *query {
-		if i == len(*query)-1 {
-			stringifiedQuery += fmt.Sprintf("%s=%s", k, v[0])
-		} else {
-			stringifiedQuery += fmt.Sprintf("%s=%s&", k, v[0])
-		}
+// 	for k, v := range *query {
+// 		if i == len(*query)-1 {
+// 			stringifiedQuery += fmt.Sprintf("%s=%s", k, v[0])
+// 		} else {
+// 			stringifiedQuery += fmt.Sprintf("%s=%s&", k, v[0])
+// 		}
 
-		i++
-	}
+// 		i++
+// 	}
 
-	return stringifiedQuery
-}
+// 	return stringifiedQuery
+// }
 
 // TODO: verify the helper is used where supposed to
 func URLEncode(s string) string {

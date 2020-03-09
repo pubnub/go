@@ -202,8 +202,10 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 		assert.Equal(purl, res3.Data.ProfileURL)
 		assert.Equal(email, res3.Data.Email)
 		assert.Equal(res.Data.Created, res3.Data.Created)
-		assert.Equal(res2.Data.Updated, res3.Data.Updated)
-		assert.Equal(res2.Data.ETag, res3.Data.ETag)
+		if res2 != nil {
+			assert.Equal(res2.Data.Updated, res3.Data.Updated)
+			assert.Equal(res2.Data.ETag, res3.Data.ETag)
+		}
 		assert.Equal("b", res3.Data.Custom["a"])
 		assert.Equal("d", res3.Data.Custom["c"])
 	}
@@ -223,8 +225,10 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 				assert.Equal(purl, res6.Data[i].ProfileURL)
 				assert.Equal(email, res6.Data[i].Email)
 				assert.Equal(res.Data.Created, res6.Data[i].Created)
-				assert.Equal(res2.Data.Updated, res6.Data[i].Updated)
-				assert.Equal(res2.Data.ETag, res6.Data[i].ETag)
+				if res2 != nil {
+					assert.Equal(res2.Data.Updated, res6.Data[i].Updated)
+					assert.Equal(res2.Data.ETag, res6.Data[i].ETag)
+				}
 				assert.Equal("b", res6.Data[i].Custom["a"])
 				assert.Equal("d", res6.Data[i].Custom["c"])
 				found = true
@@ -259,12 +263,16 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 	res5, st5, err5 := pn.DeleteUser().ID(id).Execute()
 	assert.Nil(err5)
 	assert.Equal(200, st5.StatusCode)
-	assert.Nil(res5.Data)
+	if res5 != nil {
+		assert.Nil(res5.Data)
+	}
 
 	//getuser
 	res4, st4, err4 := pn.GetUser().Include(incl).ID(id).Execute()
 	assert.NotNil(err4)
-	assert.Nil(res4)
+	if res5 != nil {
+		assert.Nil(res4)
+	}
 	assert.Equal(404, st4.StatusCode)
 
 }
@@ -315,58 +323,67 @@ func ObjectsCreateUpdateGetDeleteSpaceCommon(t *testing.T, withPAM, runWithoutSe
 	res, st, err := pn.CreateSpace().Include(incl).ID(id).Name(name).Description(desc).Custom(custom).Execute()
 	assert.Nil(err)
 	assert.Equal(200, st.StatusCode)
-	assert.Equal(id, res.Data.ID)
-	assert.Equal(name, res.Data.Name)
-	assert.Equal(desc, res.Data.Description)
-	assert.NotNil(res.Data.Created)
-	assert.NotNil(res.Data.Updated)
-	assert.NotNil(res.Data.ETag)
-	assert.Equal("b", res.Data.Custom["a"])
-	assert.Equal("d", res.Data.Custom["c"])
+	if res != nil {
+		assert.Equal(id, res.Data.ID)
+		assert.Equal(name, res.Data.Name)
+		assert.Equal(desc, res.Data.Description)
+		assert.NotNil(res.Data.Created)
+		assert.NotNil(res.Data.Updated)
+		assert.NotNil(res.Data.ETag)
+		assert.Equal("b", res.Data.Custom["a"])
+		assert.Equal("d", res.Data.Custom["c"])
+	}
 
 	desc = "desc2"
 
 	res2, st2, err2 := pn.UpdateSpace().Include(incl).ID(id).Name(name).Description(desc).Custom(custom).Execute()
 	assert.Nil(err2)
 	assert.Equal(200, st2.StatusCode)
-	assert.Equal(id, res2.Data.ID)
-	assert.Equal(name, res2.Data.Name)
-	assert.Equal(desc, res2.Data.Description)
-	assert.Equal(res.Data.Created, res2.Data.Created)
-	assert.NotNil(res2.Data.Updated)
-	assert.NotNil(res2.Data.ETag)
-	assert.Equal("b", res2.Data.Custom["a"])
-	assert.Equal("d", res2.Data.Custom["c"])
+	if res2 != nil {
+		assert.Equal(id, res2.Data.ID)
+		assert.Equal(name, res2.Data.Name)
+		assert.Equal(desc, res2.Data.Description)
+		assert.Equal(res.Data.Created, res2.Data.Created)
+		assert.NotNil(res2.Data.Updated)
+		assert.NotNil(res2.Data.ETag)
+		assert.Equal("b", res2.Data.Custom["a"])
+		assert.Equal("d", res2.Data.Custom["c"])
+	}
 
 	res3, st3, err3 := pn.GetSpace().Include(incl).ID(id).Execute()
 	assert.Nil(err3)
 	assert.Equal(200, st3.StatusCode)
-	assert.Equal(id, res3.Data.ID)
-	assert.Equal(name, res3.Data.Name)
-	assert.Equal(desc, res3.Data.Description)
-	assert.Equal(res.Data.Created, res3.Data.Created)
-	assert.Equal(res2.Data.Updated, res3.Data.Updated)
-	assert.Equal(res2.Data.ETag, res3.Data.ETag)
-	assert.Equal("b", res3.Data.Custom["a"])
-	assert.Equal("d", res3.Data.Custom["c"])
+	if res3 != nil {
+		assert.Equal(id, res3.Data.ID)
+		assert.Equal(name, res3.Data.Name)
+		assert.Equal(desc, res3.Data.Description)
+		assert.Equal(res.Data.Created, res3.Data.Created)
+		assert.Equal(res2.Data.Updated, res3.Data.Updated)
+		assert.Equal(res2.Data.ETag, res3.Data.ETag)
+		assert.Equal("b", res3.Data.Custom["a"])
+		assert.Equal("d", res3.Data.Custom["c"])
+	}
 
 	//getusers
 	if withPAM {
 		res6, st6, err6 := pn.GetSpaces().Include(incl).Limit(100).Count(true).Execute()
 		assert.Nil(err6)
 		assert.Equal(200, st6.StatusCode)
-		assert.True(res6.TotalCount > 0)
 		found := false
-		for i := range res6.Data {
-			if res6.Data[i].ID == id {
-				assert.Equal(name, res6.Data[i].Name)
-				assert.Equal(desc, res6.Data[i].Description)
-				assert.Equal(res.Data.Created, res6.Data[i].Created)
-				assert.Equal(res2.Data.Updated, res6.Data[i].Updated)
-				assert.Equal(res2.Data.ETag, res6.Data[i].ETag)
-				assert.Equal("b", res6.Data[i].Custom["a"])
-				assert.Equal("d", res6.Data[i].Custom["c"])
-				found = true
+		if res6 != nil {
+			assert.True(res6.TotalCount > 0)
+
+			for i := range res6.Data {
+				if res6.Data[i].ID == id {
+					assert.Equal(name, res6.Data[i].Name)
+					assert.Equal(desc, res6.Data[i].Description)
+					assert.Equal(res.Data.Created, res6.Data[i].Created)
+					assert.Equal(res2.Data.Updated, res6.Data[i].Updated)
+					assert.Equal(res2.Data.ETag, res6.Data[i].ETag)
+					assert.Equal("b", res6.Data[i].Custom["a"])
+					assert.Equal("d", res6.Data[i].Custom["c"])
+					found = true
+				}
 			}
 		}
 		assert.True(found)
@@ -374,18 +391,21 @@ func ObjectsCreateUpdateGetDeleteSpaceCommon(t *testing.T, withPAM, runWithoutSe
 		res6F, st6F, err6F := pn.GetSpaces().Include(incl).Limit(100).Filter("name like '" + name + "*'").Count(true).Execute()
 		assert.Nil(err6F)
 		assert.Equal(200, st6F.StatusCode)
-		assert.True(res6F.TotalCount > 0)
 		foundF := false
-		for i := range res6F.Data {
-			if res6F.Data[i].ID == id {
-				assert.Equal(name, res6F.Data[i].Name)
-				assert.Equal(desc, res6F.Data[i].Description)
-				assert.Equal(res.Data.Created, res6F.Data[i].Created)
-				assert.Equal(res2.Data.Updated, res6F.Data[i].Updated)
-				assert.Equal(res2.Data.ETag, res6F.Data[i].ETag)
-				assert.Equal("b", res6F.Data[i].Custom["a"])
-				assert.Equal("d", res6F.Data[i].Custom["c"])
-				foundF = true
+		if res6F != nil {
+			assert.True(res6F.TotalCount > 0)
+
+			for i := range res6F.Data {
+				if res6F.Data[i].ID == id {
+					assert.Equal(name, res6F.Data[i].Name)
+					assert.Equal(desc, res6F.Data[i].Description)
+					assert.Equal(res.Data.Created, res6F.Data[i].Created)
+					assert.Equal(res2.Data.Updated, res6F.Data[i].Updated)
+					assert.Equal(res2.Data.ETag, res6F.Data[i].ETag)
+					assert.Equal("b", res6F.Data[i].Custom["a"])
+					assert.Equal("d", res6F.Data[i].Custom["c"])
+					foundF = true
+				}
 			}
 		}
 		assert.True(foundF)
@@ -396,12 +416,16 @@ func ObjectsCreateUpdateGetDeleteSpaceCommon(t *testing.T, withPAM, runWithoutSe
 	res5, st5, err5 := pn.DeleteSpace().ID(id).Execute()
 	assert.Nil(err5)
 	assert.Equal(200, st5.StatusCode)
-	assert.Nil(res5.Data)
+	if res5 != nil {
+		assert.Nil(res5.Data)
+	}
 
 	//getuser
 	res4, st4, err4 := pn.GetSpace().Include(incl).ID(id).Execute()
 	assert.NotNil(err4)
-	assert.Nil(res4)
+	if res4 != nil {
+		assert.Nil(res4)
+	}
 	assert.Equal(404, st4.StatusCode)
 
 }

@@ -58,6 +58,9 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 
+	config.PublishKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
+	config.SubscribeKey = "sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306"
+	config.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
 	//config.FilterExpression = "name="
 
 	config.CipherKey = "enigma"
