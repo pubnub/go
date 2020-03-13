@@ -183,7 +183,7 @@ func (o *manageMembershipsOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Include != nil {
-		SetArrayTypeQueryParam(q, o.Include, "include")
+		SetQueryParamAsCommaSepString(q, o.Include, "include")
 	}
 	q.Set("limit", strconv.Itoa(o.Limit))
 
@@ -205,7 +205,7 @@ func (o *manageMembershipsOpts) buildQuery() (*url.Values, error) {
 	}
 
 	if o.Sort != nil {
-		SetArrayTypeQueryParam(q, o.Sort, "sort")
+		SetQueryParamAsCommaSepString(q, o.Sort, "sort")
 	}
 
 	o.pubnub.tokenManager.SetAuthParan(q, o.UserID, PNUsers)

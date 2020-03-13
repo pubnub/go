@@ -5,10 +5,7 @@ changelog:
       - 
         text: "Objects Sorting"
         type: improvement
-      - 
-        text: "Object include multiple values fix"
-        type: bug
-    date: Mar 7, 20  
+    date: Mar 19, 20  
     version: v4.6.5  
   - 
     changes: 

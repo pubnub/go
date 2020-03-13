@@ -42,6 +42,10 @@ func SetArrayTypeQueryParam(q *url.Values, val []string, key string) {
 	}
 }
 
+func SetQueryParamAsCommaSepString(q *url.Values, val []string, key string) {
+	q.Set(key, strings.Join(val, ","))
+}
+
 // SetPushEnvironment appends the push environment to the query string
 func SetPushEnvironment(q *url.Values, env PNPushEnvironment) {
 	if string(env) != "" {
@@ -173,6 +177,8 @@ func createSignatureV2(o endpointOpts, path string, query *url.Values) string {
 	b, err := o.buildBody()
 	if err == nil {
 		bodyString = string(b)
+	} else {
+		o.config().Log.Println("buildBody error", err.Error())
 	}
 
 	sig := createSignatureV2FromStrings(

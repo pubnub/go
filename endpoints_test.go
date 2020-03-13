@@ -134,50 +134,62 @@ func TestSignatureV2_2(t *testing.T) {
 	assert.Equal("v2.w39EWDHc0ibDCxOD2jiJEutjpc_1VJ1SDyGaABEljSs", sigv2)
 }
 
-// func TestSignatureV2_3(t *testing.T) {
-// 	assert := assert.New(t)
-// 	httpMethod := "GET"
-// 	pubKey := "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
-// 	secKey := "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
-// 	path := "/v3/pam/sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306/grant"
-// 	query := "timestamp=1583479519"
-// 	body := `{"ttl":"3","permissions":{"resources":{"channels":{},"groups":{},"users":{"userid9820":31,"userid1962":31},"spaces":{"spaceid9820":31,"spaceid1962":31}},"patterns":{"channels":{},"groups":{},"users":{},"spaces":{}},"meta":{}}}`
-// 	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body, nil)
-// 	assert.Equal("v2.GbQoBigWGAHX9BAFOlr84nW8XO9QgNob9g21KEr1KfA", sigv2)
-// }
+func TestSignatureV2_granttoken(t *testing.T) {
+	assert := assert.New(t)
+	httpMethod := "POST"
+	pubKey := "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
+	secKey := "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
+	path := "/v3/pam/sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306/grant"
+	query := "pnsdk=PubNub-Go%2F4.6.5&timestamp=1583755527&uuid=pn-f1df31f1-6ba9-49e1-ae72-084c15404302"
+	body := `{"ttl":10,"permissions":{"resources":{"channels":{},"groups":{},"users":{"u1":7,"u2":7},"spaces":{"s1":31,"s2":31}},"patterns":{"channels":{},"groups":{},"users":{"^u-[0-9a-f]*$":15},"spaces":{"^s-[0-9a-f]*$":27}},"meta":{}}}`
+	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body, nil)
+	assert.Equal("v2.Dd2YCsd-Ds_fFpGyuHIetndf2UrgZ-FTwcLggcPfx98", sigv2)
+}
 
-// func TestSignatureV2_4(t *testing.T) {
-// 	assert := assert.New(t)
-// 	httpMethod := "GET"
-// 	pubKey := "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
-// 	secKey := "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
-// 	path := "/v3/pam/sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306/grant"
-// 	query := "timestamp=1583486135"
-// 	body := `{"ttl":"3","permissions":{"resources":{"channels":{},"groups":{},"users":{"userid6155":31,"userid7504":31},"spaces":{"spaceid6155":31,"spaceid7504":31}},"patterns":{"channels":{},"groups":{},"users":{},"spaces":{}},"meta":{}}}`
-// 	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body, nil)
-// 	assert.Equal("v2.Md5iDqxLLCU1wj3L6wUmsrbW6IrOuhZyPEi1AwdsELs", sigv2)
-// }
+func TestSignatureV2_3(t *testing.T) {
+	assert := assert.New(t)
+	httpMethod := "POST"
+	pubKey := "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
+	secKey := "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
+	path := "/v3/pam/sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306/grant"
+	query := "timestamp=1583479519"
+	body := `{"ttl":"3","permissions":{"resources":{"channels":{},"groups":{},"users":{"userid9820":31,"userid1962":31},"spaces":{"spaceid9820":31,"spaceid1962":31}},"patterns":{"channels":{},"groups":{},"users":{},"spaces":{}},"meta":{}}}`
+	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body, nil)
+	assert.Equal("v2.GbQoBigWGAHX9BAFOlr84nW8XO9QgNob9g21KEr1KfA", sigv2)
+}
 
-// func TestSignatureV2_5(t *testing.T) {
-// 	assert := assert.New(t)
-// 	httpMethod := "GET"
-// 	pubKey := "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
-// 	secKey := "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
-// 	path := "/v3/pam/sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306/grant"
-// 	query := "timestamp=1583486728"
-// 	body := `{"ttl":"3","permissions":{"resources":{"channels":{},"groups":{},"users":{"userid4289":31,"userid4476":31},"spaces":{"spaceid4289":31,"spaceid4476":31}},"patterns":{"channels":{},"groups":{},"users":{},"spaces":{}},"meta":{}}}`
-// 	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body, nil)
-// 	assert.Equal("v2._LxrtaeGughFMF7aFMnzqpLAjM9JT4ELlUjVNskXgDs", sigv2)
-// }
+func TestSignatureV2_4(t *testing.T) {
+	assert := assert.New(t)
+	httpMethod := "POST"
+	pubKey := "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
+	secKey := "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
+	path := "/v3/pam/sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306/grant"
+	query := "timestamp=1583486135"
+	body := `{"ttl":"3","permissions":{"resources":{"channels":{},"groups":{},"users":{"userid6155":31,"userid7504":31},"spaces":{"spaceid6155":31,"spaceid7504":31}},"patterns":{"channels":{},"groups":{},"users":{},"spaces":{}},"meta":{}}}`
+	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body, nil)
+	assert.Equal("v2.Md5iDqxLLCU1wj3L6wUmsrbW6IrOuhZyPEi1AwdsELs", sigv2)
+}
 
-// func TestSignatureV2_6(t *testing.T) {
-// 	assert := assert.New(t)
-// 	httpMethod := "GET"
-// 	pubKey := "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
-// 	secKey := "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
-// 	path := "/v1/objects/sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306/users"
-// 	query := "include=custom&pnsdk=PubNub-Go/4.6.5&timestamp=1583493622&uuid=pn-01fb5308-f0ce-480b-b051-6ff98ba22467"
-// 	body := `{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"}}`
-// 	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body, nil)
-// 	assert.Equal("v2.a--gef4a6Rm3Oe7k2pPOP9IbjRPWi5Ky-RKpIcQIYn0", sigv2)
-// }
+func TestSignatureV2_5(t *testing.T) {
+	assert := assert.New(t)
+	httpMethod := "POST"
+	pubKey := "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
+	secKey := "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
+	path := "/v3/pam/sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306/grant"
+	query := "timestamp=1583486728"
+	body := `{"ttl":"3","permissions":{"resources":{"channels":{},"groups":{},"users":{"userid4289":31,"userid4476":31},"spaces":{"spaceid4289":31,"spaceid4476":31}},"patterns":{"channels":{},"groups":{},"users":{},"spaces":{}},"meta":{}}}`
+	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body, nil)
+	assert.Equal("v2._LxrtaeGughFMF7aFMnzqpLAjM9JT4ELlUjVNskXgDs", sigv2)
+}
+
+func TestSignatureV2_6(t *testing.T) {
+	assert := assert.New(t)
+	httpMethod := "POST"
+	pubKey := "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
+	secKey := "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
+	path := "/v1/objects/sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306/users"
+	query := "include=custom&pnsdk=PubNub-Go/4.6.5&timestamp=1583493622&uuid=pn-01fb5308-f0ce-480b-b051-6ff98ba22467"
+	body := `{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"}}`
+	sigv2 := createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body, nil)
+	assert.Equal("v2.a--gef4a6Rm3Oe7k2pPOP9IbjRPWi5Ky-RKpIcQIYn0", sigv2)
+}

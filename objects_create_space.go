@@ -147,7 +147,7 @@ func (o *createSpaceOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Include != nil {
-		SetArrayTypeQueryParam(q, o.Include, "include")
+		SetQueryParamAsCommaSepString(q, o.Include, "include")
 	}
 	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)
 	SetQueryParam(q, o.QueryParam)
