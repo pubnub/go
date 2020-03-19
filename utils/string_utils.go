@@ -143,7 +143,7 @@ func PreparePamParams(params *url.Values) string {
 		i++
 	}
 	//stringifiedQuery = strings.Replace(stringifiedQuery, "%2F", "/", -1)
-	fmt.Println("stringifiedQuery1:", stringifiedQuery)
+	//fmt.Println("stringifiedQuery1:", stringifiedQuery)
 
 	return stringifiedQuery
 }

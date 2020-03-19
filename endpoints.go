@@ -149,7 +149,7 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 
 		i++
 	}
-	fmt.Println("stringifiedQuery0:", stringifiedQuery)
+	//fmt.Println("stringifiedQuery0:", stringifiedQuery)
 
 	if signature != "" {
 		stringifiedQuery += fmt.Sprintf("&signature=%s", signature)
