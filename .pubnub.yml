@@ -5,6 +5,9 @@ changelog:
       - 
         text: "Objects Sorting"
         type: improvement
+      - 
+        text: "Go 1.14+ crypto unit tests fixes"
+        type: improvement
     date: Mar 26, 20  
     version: v4.6.5  
   - 
