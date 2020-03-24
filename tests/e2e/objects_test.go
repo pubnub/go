@@ -211,14 +211,14 @@ func ObjectsCreateUpdateGetDeleteUserCommon(t *testing.T, withPAM, runWithoutSec
 	}
 
 	//getusers
+	sort := []string{"created:desc"}
 	if withPAM {
-		res6, st6, err6 := pn.GetUsers().Include(incl).Limit(100).Count(true).Execute()
+		res6, st6, err6 := pn.GetUsers().Include(incl).Sort(sort).Limit(100).Count(true).Execute()
 		assert.Nil(err6)
 		assert.Equal(200, st6.StatusCode)
 		assert.True(res6.TotalCount > 0)
 		found := false
 		for i := range res6.Data {
-			//fmt.Println(res6.Data[i], id)
 			if res6.Data[i].ID == id {
 				assert.Equal(name, res6.Data[i].Name)
 				assert.Equal(extid, res6.Data[i].ExternalID)
