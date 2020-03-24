@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"testing"
 
@@ -120,9 +121,9 @@ func AssertManageMemberships(t *testing.T, checkQueryParam, testContext bool, wi
 			assert.Equal("name like 'a*'", u.Get("filter"))
 		}
 		if withSort {
-			s := (*u)["sort"]
-			assert.True((s[0] == utils.URLEncode(sort[0])) || (s[0] == utils.URLEncode(sort[1])))
-			assert.True((s[1] == utils.URLEncode(sort[0])) || (s[1] == utils.URLEncode(sort[1])))
+			v := &url.Values{}
+			SetQueryParamAsCommaSepString(v, sort, "sort")
+			assert.Equal(v.Get("sort"), u.Get("sort"))
 		}
 
 	}

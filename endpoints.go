@@ -135,6 +135,12 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 	if v := query.Get("filter"); v != "" {
 		query.Set("filter", utils.URLEncode(v))
 	}
+	if v := query.Get("include"); v != "" {
+		query.Set("include", utils.URLEncode(v))
+	}
+	if v := query.Get("sort"); v != "" {
+		query.Set("sort", utils.URLEncode(v))
+	}
 
 	i := 0
 	for k, v := range *query {
@@ -149,7 +155,6 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 
 		i++
 	}
-	//fmt.Println("stringifiedQuery0:", stringifiedQuery)
 
 	if signature != "" {
 		stringifiedQuery += fmt.Sprintf("&signature=%s", signature)
