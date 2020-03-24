@@ -364,9 +364,10 @@ func ObjectsCreateUpdateGetDeleteSpaceCommon(t *testing.T, withPAM, runWithoutSe
 		assert.Equal("d", res3.Data.Custom["c"])
 	}
 
+	sort := []string{"created:desc"}
 	//getusers
 	if withPAM {
-		res6, st6, err6 := pn.GetSpaces().Include(incl).Limit(100).Count(true).Execute()
+		res6, st6, err6 := pn.GetSpaces().Include(incl).Sort(sort).Limit(100).Count(true).Execute()
 		assert.Nil(err6)
 		assert.Equal(200, st6.StatusCode)
 		found := false
