@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"log"
