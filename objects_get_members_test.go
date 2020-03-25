@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"testing"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertGetMembers(t *testing.T, checkQueryParam, testContext, withFilter bool) {
+func AssertGetMembers(t *testing.T, checkQueryParam, testContext, withFilter bool, withSort bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -50,6 +51,11 @@ func AssertGetMembers(t *testing.T, checkQueryParam, testContext, withFilter boo
 		o.Filter("custom.a5 == 'b5' || custom.c5 == 'd5'")
 	}
 
+	sort := []string{"name", "created:desc"}
+	if withSort {
+		o.Sort(sort)
+	}
+
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
 
@@ -73,25 +79,46 @@ func AssertGetMembers(t *testing.T, checkQueryParam, testContext, withFilter boo
 		if withFilter {
 			assert.Equal("custom.a5 == 'b5' || custom.c5 == 'd5'", u.Get("filter"))
 		}
+		if withSort {
+			v := &url.Values{}
+			SetQueryParamAsCommaSepString(v, sort, "sort")
+			assert.Equal(v.Get("sort"), u.Get("sort"))
+		}
 
 	}
 
 }
 
 func TestGetMembers(t *testing.T) {
-	AssertGetMembers(t, true, false, false)
+	AssertGetMembers(t, true, false, false, false)
 }
 
 func TestGetMembersContext(t *testing.T) {
-	AssertGetMembers(t, true, true, false)
+	AssertGetMembers(t, true, true, false, false)
 }
 
 func TestGetMembersWithFilter(t *testing.T) {
-	AssertGetMembers(t, true, false, true)
+	AssertGetMembers(t, true, false, true, false)
 }
 
 func TestGetMembersWithFilterContext(t *testing.T) {
-	AssertGetMembers(t, true, true, true)
+	AssertGetMembers(t, true, true, true, false)
+}
+
+func TestGetMembersWithSort(t *testing.T) {
+	AssertGetMembers(t, true, false, false, true)
+}
+
+func TestGetMembersWithSortContext(t *testing.T) {
+	AssertGetMembers(t, true, true, false, true)
+}
+
+func TestGetMembersWithFilterWithSort(t *testing.T) {
+	AssertGetMembers(t, true, false, true, true)
+}
+
+func TestGetMembersWithFilterWithSortContext(t *testing.T) {
+	AssertGetMembers(t, true, true, true, true)
 }
 
 func TestGetMembersResponseValueError(t *testing.T) {

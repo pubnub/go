@@ -125,10 +125,14 @@ func PreparePamParams(params *url.Values) string {
 	i := 0
 
 	for _, v := range sortedKeys {
-		if i == len(sortedKeys)-1 {
-			stringifiedQuery += fmt.Sprintf("%s=%s", v, PamEncode((*params)[v][0]))
-		} else {
-			stringifiedQuery += fmt.Sprintf("%s=%s&", v, PamEncode((*params)[v][0]))
+		paramVal := (*params)[v]
+		for j, value := range paramVal {
+			if (i == len(sortedKeys)-1) && (j == len(paramVal)-1) {
+				stringifiedQuery += fmt.Sprintf("%s=%s", v, PamEncode(value))
+			} else {
+				stringifiedQuery += fmt.Sprintf("%s=%s&", v, PamEncode(value))
+			}
+			j++
 		}
 
 		i++
@@ -149,28 +153,12 @@ func PamEncode(value string) string {
 		")", "%29",
 		"[", "%5B",
 		"]", "%5D",
-		"~", "%7E")
+		"~", "%7E",
+	)
 
 	stringifiedParam = replacer.Replace(stringifiedParam)
 
 	return stringifiedParam
-}
-
-func QueryToString(query *url.Values) string {
-	stringifiedQuery := ""
-	i := 0
-
-	for k, v := range *query {
-		if i == len(*query)-1 {
-			stringifiedQuery += fmt.Sprintf("%s=%s", k, v[0])
-		} else {
-			stringifiedQuery += fmt.Sprintf("%s=%s&", k, v[0])
-		}
-
-		i++
-	}
-
-	return stringifiedQuery
 }
 
 // TODO: verify the helper is used where supposed to
