@@ -374,12 +374,16 @@ func MatchFetchMessageWithMAResp(assert *assert.Assertions, resp *pubnub.FetchRe
 }
 
 func MatchGetMA(i int, assert *assert.Assertions, res *pubnub.PNGetMessageActionsResponse, recActionType, recActionTimetoken, recActionValue, recMessageTimetoken string) {
-	if len(res.Data) > 0 {
-		assert.Equal(recActionTimetoken, res.Data[0].ActionTimetoken)
-		assert.Equal(recActionType, res.Data[0].ActionType)
-		assert.Equal(recActionValue, res.Data[0].ActionValue)
-		assert.Equal(recMessageTimetoken, res.Data[0].MessageTimetoken)
+	if res != nil {
+		if len(res.Data) > 0 {
+			assert.Equal(recActionTimetoken, res.Data[0].ActionTimetoken)
+			assert.Equal(recActionType, res.Data[0].ActionType)
+			assert.Equal(recActionValue, res.Data[0].ActionValue)
+			assert.Equal(recMessageTimetoken, res.Data[0].MessageTimetoken)
+		} else {
+			assert.Fail(fmt.Sprintf("res.Data < 0, %d", i))
+		}
 	} else {
-		assert.Fail(fmt.Sprintf("res.Data < 0, %d", i))
+		assert.Fail(fmt.Sprintf("res.Data nil"))
 	}
 }

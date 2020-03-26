@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"testing"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertGetUsers(t *testing.T, checkQueryParam, testContext, withFilter bool) {
+func AssertGetUsers(t *testing.T, checkQueryParam, testContext, withFilter bool, withSort bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -47,6 +48,10 @@ func AssertGetUsers(t *testing.T, checkQueryParam, testContext, withFilter bool)
 	if withFilter {
 		o.Filter("name like 'a*'")
 	}
+	sort := []string{"name", "created:desc"}
+	if withSort {
+		o.Sort(sort)
+	}
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -71,24 +76,45 @@ func AssertGetUsers(t *testing.T, checkQueryParam, testContext, withFilter bool)
 		if withFilter {
 			assert.Equal("name like 'a*'", u.Get("filter"))
 		}
+		if withSort {
+			v := &url.Values{}
+			SetQueryParamAsCommaSepString(v, sort, "sort")
+			assert.Equal(v.Get("sort"), u.Get("sort"))
+		}
 	}
 
 }
 
 func TestGetUsers(t *testing.T) {
-	AssertGetUsers(t, true, false, false)
+	AssertGetUsers(t, true, false, false, false)
 }
 
 func TestGetUsersContext(t *testing.T) {
-	AssertGetUsers(t, true, true, false)
+	AssertGetUsers(t, true, true, false, false)
 }
 
 func TestGetUsersWithFilter(t *testing.T) {
-	AssertGetUsers(t, true, false, true)
+	AssertGetUsers(t, true, false, true, false)
 }
 
 func TestGetUsersWithFilterContext(t *testing.T) {
-	AssertGetUsers(t, true, true, true)
+	AssertGetUsers(t, true, true, true, false)
+}
+
+func TestGetUsersWithSort(t *testing.T) {
+	AssertGetUsers(t, true, false, false, true)
+}
+
+func TestGetUsersWithSortContext(t *testing.T) {
+	AssertGetUsers(t, true, true, false, true)
+}
+
+func TestGetUsersWithFilterWithSort(t *testing.T) {
+	AssertGetUsers(t, true, false, true, true)
+}
+
+func TestGetUsersWithFilterWithSortContext(t *testing.T) {
+	AssertGetUsers(t, true, true, true, true)
 }
 
 func TestGetUsersResponseValueError(t *testing.T) {

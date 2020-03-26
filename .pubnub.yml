@@ -3,6 +3,16 @@ changelog:
   - 
     changes: 
       - 
+        text: "Objects Sorting"
+        type: improvement
+      - 
+        text: "Go 1.14+ crypto unit tests fixes"
+        type: improvement
+    date: Mar 26, 20  
+    version: v4.6.5  
+  - 
+    changes: 
+      - 
         text: "Make publish/grant workers per instance"
         type: bug
     date: Feb 5, 20  
@@ -485,6 +495,7 @@ features:
     - OBJECTS-GET-MEMBERS
     - OBJECTS-MANAGE-MEMBERS
     - OBJECTS-FILTERING
+    - OBJECTS-SORTING
   message-actions:
     - MESSAGE-ACTIONS-GET
     - MESSAGE-ACTIONS-ADD
@@ -513,11 +524,12 @@ supported-platforms:
       - "1.10.8"
       - "1.11.13"
       - "1.12.16"
-      - "1.13.7"
+      - "1.13.9"
+      - "1.14.1"
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.6.4
+version: v4.6.5

@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 )
 
 var emptyManageMembershipsResponse *PNManageMembershipsResponse
@@ -82,6 +81,18 @@ func (b *manageMembershipsBuilder) Count(count bool) *manageMembershipsBuilder {
 	return b
 }
 
+func (b *manageMembershipsBuilder) Filter(filter string) *manageMembershipsBuilder {
+	b.opts.Filter = filter
+
+	return b
+}
+
+func (b *manageMembershipsBuilder) Sort(sort []string) *manageMembershipsBuilder {
+	b.opts.Sort = sort
+
+	return b
+}
+
 func (b *manageMembershipsBuilder) Add(userMembershipInput []PNMembershipsInput) *manageMembershipsBuilder {
 	b.opts.MembershipsAdd = userMembershipInput
 
@@ -130,6 +141,8 @@ type manageMembershipsOpts struct {
 	Include           []string
 	Start             string
 	End               string
+	Filter            string
+	Sort              []string
 	Count             bool
 	QueryParam        map[string]string
 	MembershipsRemove []PNMembershipsRemove
@@ -170,7 +183,7 @@ func (o *manageMembershipsOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Include != nil {
-		q.Set("include", string(utils.JoinChannels(o.Include)))
+		SetQueryParamAsCommaSepString(q, o.Include, "include")
 	}
 	q.Set("limit", strconv.Itoa(o.Limit))
 
@@ -187,6 +200,14 @@ func (o *manageMembershipsOpts) buildQuery() (*url.Values, error) {
 	if o.End != "" {
 		q.Set("end", o.End)
 	}
+	if o.Filter != "" {
+		q.Set("filter", o.Filter)
+	}
+
+	if o.Sort != nil {
+		SetQueryParamAsCommaSepString(q, o.Sort, "sort")
+	}
+
 	o.pubnub.tokenManager.SetAuthParan(q, o.UserID, PNUsers)
 
 	SetQueryParam(q, o.QueryParam)

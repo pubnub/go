@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 )
 
 var emptyGetMembersResponse *PNGetMembersResponse
@@ -82,6 +81,12 @@ func (b *getMembersBuilder) Filter(filter string) *getMembersBuilder {
 	return b
 }
 
+func (b *getMembersBuilder) Sort(sort []string) *getMembersBuilder {
+	b.opts.Sort = sort
+
+	return b
+}
+
 func (b *getMembersBuilder) Count(count bool) *getMembersBuilder {
 	b.opts.Count = count
 
@@ -119,6 +124,7 @@ type getMembersOpts struct {
 	Start      string
 	End        string
 	Filter     string
+	Sort       []string
 	Count      bool
 	QueryParam map[string]string
 
@@ -157,7 +163,7 @@ func (o *getMembersOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Include != nil {
-		q.Set("include", string(utils.JoinChannels(o.Include)))
+		SetQueryParamAsCommaSepString(q, o.Include, "include")
 	}
 
 	q.Set("limit", strconv.Itoa(o.Limit))
@@ -177,6 +183,10 @@ func (o *getMembersOpts) buildQuery() (*url.Values, error) {
 	}
 	if o.Filter != "" {
 		q.Set("filter", o.Filter)
+	}
+
+	if o.Sort != nil {
+		SetQueryParamAsCommaSepString(q, o.Sort, "sort")
 	}
 
 	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)

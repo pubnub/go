@@ -9,7 +9,6 @@ import (
 	"net/url"
 
 	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 )
 
 var emptyPNGetUserResponse *PNGetUserResponse
@@ -117,7 +116,7 @@ func (o *getUserOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Include != nil {
-		q.Set("include", string(utils.JoinChannels(o.Include)))
+		SetQueryParamAsCommaSepString(q, o.Include, "include")
 	}
 	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNUsers)
 

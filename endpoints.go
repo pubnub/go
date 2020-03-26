@@ -36,6 +36,16 @@ func SetQueryParam(q *url.Values, queryParam map[string]string) {
 	}
 }
 
+func SetArrayTypeQueryParam(q *url.Values, val []string, key string) {
+	for _, value := range val {
+		q.Add(key, utils.URLEncode(value))
+	}
+}
+
+func SetQueryParamAsCommaSepString(q *url.Values, val []string, key string) {
+	q.Set(key, strings.Join(val, ","))
+}
+
 // SetPushEnvironment appends the push environment to the query string
 func SetPushEnvironment(q *url.Values, env PNPushEnvironment) {
 	if string(env) != "" {
@@ -125,13 +135,22 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 	if v := query.Get("filter"); v != "" {
 		query.Set("filter", utils.URLEncode(v))
 	}
+	if v := query.Get("include"); v != "" {
+		query.Set("include", utils.URLEncode(v))
+	}
+	if v := query.Get("sort"); v != "" {
+		query.Set("sort", utils.URLEncode(v))
+	}
 
 	i := 0
 	for k, v := range *query {
-		if i == len(*query)-1 {
-			stringifiedQuery += fmt.Sprintf("%s=%s", k, v[0])
-		} else {
-			stringifiedQuery += fmt.Sprintf("%s=%s&", k, v[0])
+		for j, value := range v {
+			if (i == len(*query)-1) && (j == len(v)-1) {
+				stringifiedQuery += fmt.Sprintf("%s=%s", k, value)
+			} else {
+				stringifiedQuery += fmt.Sprintf("%s=%s&", k, value)
+			}
+			j++
 		}
 
 		i++
@@ -163,6 +182,8 @@ func createSignatureV2(o endpointOpts, path string, query *url.Values) string {
 	b, err := o.buildBody()
 	if err == nil {
 		bodyString = string(b)
+	} else {
+		o.config().Log.Println("buildBody error", err.Error())
 	}
 
 	sig := createSignatureV2FromStrings(

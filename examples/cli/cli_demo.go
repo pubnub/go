@@ -53,14 +53,11 @@ func connect() {
 		fmt.Println("Logging enabled writing to ", logfileName)
 		infoLogger = log.New(f, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
+
 	config.Log = infoLogger
 	config.Log.SetPrefix("PubNub :->  ")
-	config.PublishKey = "demo"
-	config.SubscribeKey = "demo"
-
-	//config.FilterExpression = "name="
-
-	config.CipherKey = "enigma"
+	config.PublishKey = "demo-36"
+	config.SubscribeKey = "demo-36"
 
 	pn = pubnub.NewPubNub(config)
 
@@ -1007,16 +1004,17 @@ func getMembers(args []string) {
 
 	incl := []pubnub.PNMembersInclude{
 		pubnub.PNMembersCustom,
-		pubnub.PNMembersUser,
 		pubnub.PNMembersUserCustom,
+		pubnub.PNMembersUser,
 	}
+	sort := []string{"created:desc"}
 	if start != "" {
-		res, status, err := pn.GetMembers().SpaceID(id).Include(incl).Limit(limit).Count(count).Start(start).Execute()
+		res, status, err := pn.GetMembers().SpaceID(id).Include(incl).Sort(sort).Limit(limit).Count(count).Start(start).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)
 	} else {
-		res, status, err := pn.GetMembers().SpaceID(id).Include(incl).Limit(limit).Count(count).Execute()
+		res, status, err := pn.GetMembers().SpaceID(id).Sort(sort).Include(incl).Limit(limit).Count(count).Execute()
 		fmt.Println("status", status)
 		fmt.Println("err", err)
 		fmt.Println("res", res)

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -146,8 +145,9 @@ func (o *updateSpaceOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.Include != nil {
-		q.Set("include", string(utils.JoinChannels(o.Include)))
+		SetQueryParamAsCommaSepString(q, o.Include, "include")
 	}
+
 	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNSpaces)
 	SetQueryParam(q, o.QueryParam)
 
