@@ -3,6 +3,13 @@ changelog:
   - 
     changes: 
       - 
+        text: "Reconnect manager panic fix"
+        type: bug
+    date: Apr 9, 20  
+    version: v4.6.6  
+  - 
+    changes: 
+      - 
         text: "Objects Sorting"
         type: improvement
       - 
@@ -532,4 +539,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.6.5
+version: v4.6.6
