@@ -182,6 +182,7 @@ func (m *SubscriptionManager) Destroy() {
 			close(m.listenerManager.exitListenerAnnounce)
 		}
 		if m.reconnectionManager.exitReconnectionManager != nil {
+			m.reconnectionManager.stopHeartbeatTimer()
 			close(m.reconnectionManager.exitReconnectionManager)
 		}
 
