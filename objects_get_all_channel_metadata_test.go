@@ -11,12 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertGetSpaces(t *testing.T, checkQueryParam, testContext, withFilter bool, withSort bool) {
+func AssertGetAllChannelMetadata(t *testing.T, checkQueryParam, testContext, withFilter bool, withSort bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	incl := []PNUserSpaceInclude{
-		PNUserSpaceCustom,
+	incl := []PNChannelMetadataInclude{
+		PNChannelMetadataIncludeCustom,
 	}
 
 	queryParam := map[string]string{
@@ -30,9 +30,9 @@ func AssertGetSpaces(t *testing.T, checkQueryParam, testContext, withFilter bool
 
 	inclStr := EnumArrayToStringArray(incl)
 
-	o := newGetSpacesBuilder(pn)
+	o := newGetAllChannelMetadataBuilder(pn)
 	if testContext {
-		o = newGetSpacesBuilderWithContext(pn, backgroundContext)
+		o = newGetAllChannelMetadataBuilderWithContext(pn, backgroundContext)
 	}
 
 	limit := 90
@@ -57,7 +57,7 @@ func AssertGetSpaces(t *testing.T, checkQueryParam, testContext, withFilter bool
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/objects/%s/spaces", pn.Config.SubscribeKey),
+		fmt.Sprintf("/v2/objects/%s/channels", pn.Config.SubscribeKey),
 		path, []int{})
 
 	body, err := o.opts.buildBody()
@@ -86,66 +86,66 @@ func AssertGetSpaces(t *testing.T, checkQueryParam, testContext, withFilter bool
 
 }
 
-func TestGetSpaces(t *testing.T) {
-	AssertGetSpaces(t, true, false, false, false)
+func TestGetAllChannelMetadata(t *testing.T) {
+	AssertGetAllChannelMetadata(t, true, false, false, false)
 }
 
-func TestGetSpacesContext(t *testing.T) {
-	AssertGetSpaces(t, true, true, false, false)
+func TestGetAllChannelMetadataContext(t *testing.T) {
+	AssertGetAllChannelMetadata(t, true, true, false, false)
 }
 
-func TestGetSpacesWithFilter(t *testing.T) {
-	AssertGetSpaces(t, true, false, true, false)
+func TestGetAllChannelMetadataWithFilter(t *testing.T) {
+	AssertGetAllChannelMetadata(t, true, false, true, false)
 }
 
-func TestGetSpacesWithFilterContext(t *testing.T) {
-	AssertGetSpaces(t, true, true, true, false)
+func TestGetAllChannelMetadataWithFilterContext(t *testing.T) {
+	AssertGetAllChannelMetadata(t, true, true, true, false)
 }
 
-func TestGetSpacesWithSort(t *testing.T) {
-	AssertGetSpaces(t, true, false, false, true)
+func TestGetAllChannelMetadataWithSort(t *testing.T) {
+	AssertGetAllChannelMetadata(t, true, false, false, true)
 }
 
-func TestGetSpacesWithSortContext(t *testing.T) {
-	AssertGetSpaces(t, true, true, false, true)
+func TestGetAllChannelMetadataWithSortContext(t *testing.T) {
+	AssertGetAllChannelMetadata(t, true, true, false, true)
 }
 
-func TestGetSpacesWithFilterWithSort(t *testing.T) {
-	AssertGetSpaces(t, true, false, true, true)
+func TestGetAllChannelMetadataWithFilterWithSort(t *testing.T) {
+	AssertGetAllChannelMetadata(t, true, false, true, true)
 }
 
-func TestGetSpacesWithFilterWithSortContext(t *testing.T) {
-	AssertGetSpaces(t, true, true, true, true)
+func TestGetAllChannelMetadataWithFilterWithSortContext(t *testing.T) {
+	AssertGetAllChannelMetadata(t, true, true, true, true)
 }
 
-func TestGetSpacesResponseValueError(t *testing.T) {
+func TestGetAllChannelMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getSpacesOpts{
+	opts := &getAllChannelMetadataOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`s`)
 
-	_, _, err := newPNGetSpacesResponse(jsonBytes, opts, StatusResponse{})
+	_, _, err := newPNGetAllChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-func TestGetSpacesResponseValuePass(t *testing.T) {
+func TestGetAllChannelMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getSpacesOpts{
+	opts := &getAllChannelMetadataOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`{"status":200,"data":[{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"},{"id":"id01","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T14:44:52.799969Z","updated":"2019-08-20T14:44:52.799969Z","eTag":"Aee9zsKNndXlHw"}],"totalCount":2,"next":"Mg","prev":"Nd"}`)
 
-	r, _, err := newPNGetSpacesResponse(jsonBytes, opts, StatusResponse{})
+	r, _, err := newPNGetAllChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(2, r.TotalCount)
 	assert.Equal("Mg", r.Next)
 	assert.Equal("Nd", r.Prev)
 	assert.Equal("id0", r.Data[0].ID)
 	assert.Equal("name", r.Data[0].Name)
 	assert.Equal("desc", r.Data[0].Description)
-	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data[0].Created)
+	//assert.Equal("2019-08-20T13:26:08.341297Z", r.Data[0].Created)
 	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data[0].Updated)
 	assert.Equal("Aee9zsKNndXlHw", r.Data[0].ETag)
 	assert.Equal("b", r.Data[0].Custom["a"])

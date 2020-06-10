@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertDeleteUser(t *testing.T, checkQueryParam, testContext bool) {
+func AssertRemoveUUIDMetadata(t *testing.T, checkQueryParam, testContext bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -21,19 +21,19 @@ func AssertDeleteUser(t *testing.T, checkQueryParam, testContext bool) {
 		queryParam = nil
 	}
 
-	o := newDeleteUserBuilder(pn)
+	o := newRemoveUUIDMetadataBuilder(pn)
 	if testContext {
-		o = newDeleteUserBuilderWithContext(pn, backgroundContext)
+		o = newRemoveUUIDMetadataBuilderWithContext(pn, backgroundContext)
 	}
 
-	o.ID("id0")
+	o.UUID("id0")
 	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/objects/%s/users/%s", pn.Config.SubscribeKey, "id0"),
+		fmt.Sprintf("/v2/objects/%s/uuids/%s", pn.Config.SubscribeKey, "id0"),
 		path, []int{})
 
 	body, err := o.opts.buildBody()
@@ -48,35 +48,35 @@ func AssertDeleteUser(t *testing.T, checkQueryParam, testContext bool) {
 
 }
 
-func TestDeleteUser(t *testing.T) {
-	AssertDeleteUser(t, true, false)
+func TestRemoveUUIDMetadata(t *testing.T) {
+	AssertRemoveUUIDMetadata(t, true, false)
 }
 
-func TestDeleteUserContext(t *testing.T) {
-	AssertDeleteUser(t, true, true)
+func TestRemoveUUIDMetadataContext(t *testing.T) {
+	AssertRemoveUUIDMetadata(t, true, true)
 }
 
-func TestDeleteUserResponseValueError(t *testing.T) {
+func TestRemoveUUIDMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &deleteUserOpts{
+	opts := &removeUUIDMetadataOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`s`)
 
-	_, _, err := newPNDeleteUserResponse(jsonBytes, opts, StatusResponse{})
+	_, _, err := newPNRemoveUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-func TestDeleteUserResponseValuePass(t *testing.T) {
+func TestRemoveUUIDMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &deleteUserOpts{
+	opts := &removeUUIDMetadataOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`{"status":200,"data":null}`)
 
-	r, _, err := newPNDeleteUserResponse(jsonBytes, opts, StatusResponse{})
+	r, _, err := newPNRemoveUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(nil, r.Data)
 
 	assert.Nil(err)

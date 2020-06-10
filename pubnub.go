@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.6.6"
+	Version = "4.7.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -113,116 +113,132 @@ func (pn *PubNub) MessageCountsWithContext(ctx Context) *messageCountsBuilder {
 	return newMessageCountsBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) CreateUser() *createUserBuilder {
-	return newCreateUserBuilder(pn)
+func (pn *PubNub) GetAllUUIDMetadata() *getAllUUIDMetadataBuilder {
+	return newGetAllUUIDMetadataBuilder(pn)
 }
 
-func (pn *PubNub) CreateUserWithContext(ctx Context) *createUserBuilder {
-	return newCreateUserBuilderWithContext(pn, ctx)
+func (pn *PubNub) GetAllUUIDMetadataWithContext(ctx Context) *getAllUUIDMetadataBuilder {
+	return newGetAllUUIDMetadataBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) GetUsers() *getUsersBuilder {
-	return newGetUsersBuilder(pn)
+func (pn *PubNub) GetUUIDMetadata() *getUUIDMetadataBuilder {
+	return newGetUUIDMetadataBuilder(pn)
 }
 
-func (pn *PubNub) GetUsersWithContext(ctx Context) *getUsersBuilder {
-	return newGetUsersBuilderWithContext(pn, ctx)
+func (pn *PubNub) GetUUIDMetadataWithContext(ctx Context) *getUUIDMetadataBuilder {
+	return newGetUUIDMetadataBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) GetUser() *getUserBuilder {
-	return newGetUserBuilder(pn)
+func (pn *PubNub) SetUUIDMetadata() *setUUIDMetadataBuilder {
+	return newSetUUIDMetadataBuilder(pn)
 }
 
-func (pn *PubNub) GetUserWithContext(ctx Context) *getUserBuilder {
-	return newGetUserBuilderWithContext(pn, ctx)
+func (pn *PubNub) SetUUIDMetadataWithContext(ctx Context) *setUUIDMetadataBuilder {
+	return newSetUUIDMetadataBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) UpdateUser() *updateUserBuilder {
-	return newUpdateUserBuilder(pn)
+func (pn *PubNub) RemoveUUIDMetadata() *removeUUIDMetadataBuilder {
+	return newRemoveUUIDMetadataBuilder(pn)
 }
 
-func (pn *PubNub) UpdateUserWithContext(ctx Context) *updateUserBuilder {
-	return newUpdateUserBuilderWithContext(pn, ctx)
+func (pn *PubNub) RemoveUUIDMetadataWithContext(ctx Context) *removeUUIDMetadataBuilder {
+	return newRemoveUUIDMetadataBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) DeleteUser() *deleteUserBuilder {
-	return newDeleteUserBuilder(pn)
+func (pn *PubNub) GetAllChannelMetadata() *getAllChannelMetadataBuilder {
+	return newGetAllChannelMetadataBuilder(pn)
 }
 
-func (pn *PubNub) DeleteUserWithContext(ctx Context) *deleteUserBuilder {
-	return newDeleteUserBuilderWithContext(pn, ctx)
+func (pn *PubNub) GetAllChannelMetadataWithContext(ctx Context) *getAllChannelMetadataBuilder {
+	return newGetAllChannelMetadataBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) CreateSpace() *createSpaceBuilder {
-	return newCreateSpaceBuilder(pn)
+func (pn *PubNub) GetChannelMetadata() *getChannelMetadataBuilder {
+	return newGetChannelMetadataBuilder(pn)
 }
 
-func (pn *PubNub) CreateSpaceWithContext(ctx Context) *createSpaceBuilder {
-	return newCreateSpaceBuilderWithContext(pn, ctx)
+func (pn *PubNub) GetChannelMetadataWithContext(ctx Context) *getChannelMetadataBuilder {
+	return newGetChannelMetadataBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) GetSpaces() *getSpacesBuilder {
-	return newGetSpacesBuilder(pn)
+func (pn *PubNub) SetChannelMetadata() *setChannelMetadataBuilder {
+	return newSetChannelMetadataBuilder(pn)
 }
 
-func (pn *PubNub) GetSpacesWithContext(ctx Context) *getSpacesBuilder {
-	return newGetSpacesBuilderWithContext(pn, ctx)
+func (pn *PubNub) SetChannelMetadataWithContext(ctx Context) *setChannelMetadataBuilder {
+	return newSetChannelMetadataBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) GetSpace() *getSpaceBuilder {
-	return newGetSpaceBuilder(pn)
+func (pn *PubNub) RemoveChannelMetadata() *removeChannelMetadataBuilder {
+	return newRemoveChannelMetadataBuilder(pn)
 }
 
-func (pn *PubNub) GetSpaceWithContext(ctx Context) *getSpaceBuilder {
-	return newGetSpaceBuilderWithContext(pn, ctx)
+func (pn *PubNub) RemoveChannelMetadataWithContext(ctx Context) *removeChannelMetadataBuilder {
+	return newRemoveChannelMetadataBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) UpdateSpace() *updateSpaceBuilder {
-	return newUpdateSpaceBuilder(pn)
+func (pn *PubNub) GetMemberships() *getMembershipsBuilderV2 {
+	return newGetMembershipsBuilderV2(pn)
 }
 
-func (pn *PubNub) UpdateSpaceWithContext(ctx Context) *updateSpaceBuilder {
-	return newUpdateSpaceBuilderWithContext(pn, ctx)
+func (pn *PubNub) GetMembershipsWithContext(ctx Context) *getMembershipsBuilderV2 {
+	return newGetMembershipsBuilderV2WithContext(pn, ctx)
 }
 
-func (pn *PubNub) DeleteSpace() *deleteSpaceBuilder {
-	return newDeleteSpaceBuilder(pn)
+func (pn *PubNub) GetChannelMembers() *getChannelMembersBuilderV2 {
+	return newGetChannelMembersBuilderV2(pn)
 }
 
-func (pn *PubNub) DeleteSpaceWithContext(ctx Context) *deleteSpaceBuilder {
-	return newDeleteSpaceBuilderWithContext(pn, ctx)
+func (pn *PubNub) GetChannelMembersWithContext(ctx Context) *getChannelMembersBuilderV2 {
+	return newGetChannelMembersBuilderV2WithContext(pn, ctx)
 }
 
-func (pn *PubNub) GetMemberships() *getMembershipsBuilder {
-	return newGetMembershipsBuilder(pn)
+func (pn *PubNub) SetChannelMembers() *setChannelMembersBuilder {
+	return newSetChannelMembersBuilder(pn)
 }
 
-func (pn *PubNub) GetMembershipsWithContext(ctx Context) *getMembershipsBuilder {
-	return newGetMembershipsBuilderWithContext(pn, ctx)
+func (pn *PubNub) SetChannelMembersWithContext(ctx Context) *setChannelMembersBuilder {
+	return newSetChannelMembersBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) GetMembers() *getMembersBuilder {
-	return newGetMembersBuilder(pn)
+func (pn *PubNub) RemoveChannelMembers() *removeChannelMembersBuilder {
+	return newRemoveChannelMembersBuilder(pn)
 }
 
-func (pn *PubNub) GetMembersWithContext(ctx Context) *getMembersBuilder {
-	return newGetMembersBuilderWithContext(pn, ctx)
+func (pn *PubNub) RemoveChannelMembersWithContext(ctx Context) *removeChannelMembersBuilder {
+	return newRemoveChannelMembersBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) ManageMembers() *manageMembersBuilder {
-	return newManageMembersBuilder(pn)
+func (pn *PubNub) SetMemberships() *setMembershipsBuilder {
+	return newSetMembershipsBuilder(pn)
 }
 
-func (pn *PubNub) ManageMembersWithContext(ctx Context) *manageMembersBuilder {
-	return newManageMembersBuilderWithContext(pn, ctx)
+func (pn *PubNub) SetMembershipsWithContext(ctx Context) *setMembershipsBuilder {
+	return newSetMembershipsBuilderWithContext(pn, ctx)
 }
 
-func (pn *PubNub) ManageMemberships() *manageMembershipsBuilder {
-	return newManageMembershipsBuilder(pn)
+func (pn *PubNub) RemoveMemberships() *removeMembershipsBuilder {
+	return newRemoveMembershipsBuilder(pn)
 }
 
-func (pn *PubNub) ManageMembershipsWithContext(ctx Context) *manageMembershipsBuilder {
-	return newManageMembershipsBuilderWithContext(pn, ctx)
+func (pn *PubNub) RemoveMembershipsWithContext(ctx Context) *removeMembershipsBuilder {
+	return newRemoveMembershipsBuilderWithContext(pn, ctx)
+}
+
+func (pn *PubNub) ManageChannelMembers() *manageChannelMembersBuilderV2 {
+	return newManageChannelMembersBuilderV2(pn)
+}
+
+func (pn *PubNub) ManageChannelMembersWithContext(ctx Context) *manageChannelMembersBuilderV2 {
+	return newManageChannelMembersBuilderV2WithContext(pn, ctx)
+}
+
+func (pn *PubNub) ManageMemberships() *manageMembershipsBuilderV2 {
+	return newManageMembershipsBuilderV2(pn)
+}
+
+func (pn *PubNub) ManageMembershipsWithContext(ctx Context) *manageMembershipsBuilderV2 {
+	return newManageMembershipsBuilderV2WithContext(pn, ctx)
 }
 
 func (pn *PubNub) Signal() *signalBuilder {

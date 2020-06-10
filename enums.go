@@ -19,14 +19,17 @@ type ReconnectionPolicy int
 // PNPushType is used as an enum to catgorize the available Push Types
 type PNPushType int
 
-// PNUserSpaceInclude is used as an enum to catgorize the available User and Space include types
-type PNUserSpaceInclude int
+// PNUUIDMetadataInclude is used as an enum to catgorize the available UUID include types
+type PNUUIDMetadataInclude int
+
+// PNChannelMetadataInclude is used as an enum to catgorize the available Channel include types
+type PNChannelMetadataInclude int
 
 // PNMembershipsInclude is used as an enum to catgorize the available Memberships include types
 type PNMembershipsInclude int
 
-// PNMembersInclude is used as an enum to catgorize the available Members include types
-type PNMembersInclude int
+// PNChannelMembersInclude is used as an enum to catgorize the available Members include types
+type PNChannelMembersInclude int
 
 // PNObjectsEvent is used as an enum to catgorize the available Object Events
 type PNObjectsEvent string
@@ -55,58 +58,66 @@ const (
 )
 
 const (
-	// PNObjectsUserEvent is the enum when the event of type `user` occurs
-	PNObjectsUserEvent PNObjectsEventType = "user"
-	// PNObjectsSpaceEvent is the enum when the event of type `space` occurs
-	PNObjectsSpaceEvent = "space"
 	// PNObjectsMembershipEvent is the enum when the event of type `membership` occurs
-	PNObjectsMembershipEvent = "membership"
+	PNObjectsMembershipEvent PNObjectsEventType = "membership"
+	// PNObjectsChannelEvent is the enum when the event of type `channel` occurs
+	PNObjectsChannelEvent = "channel"
+	// PNObjectsUUIDEvent is the enum when the event of type `uuid` occurs
+	PNObjectsUUIDEvent = "uuid"
 	// PNObjectsNoneEvent is used for error handling
 	PNObjectsNoneEvent = "none"
 )
 
 const (
-	// PNObjectsEventCreate is the enum when the event `create` occurs
-	PNObjectsEventCreate PNObjectsEvent = "create"
-	// PNObjectsEventUpdate is the enum when the event `update` occurs
-	PNObjectsEventUpdate = "update"
-	// PNObjectsEventDelete is the enum when the event `delete` occurs
-	PNObjectsEventDelete = "delete"
+	// PNObjectsEventRemove is the enum when the event `delete` occurs
+	PNObjectsEventRemove PNObjectsEvent = "delete"
+	// PNObjectsEventSet is the enum when the event `set` occurs
+	PNObjectsEventSet = "set"
 )
 
 const (
-	// PNUserSpaceCustom is the enum equivalent to the value `custom` available User and Space include types
-	PNUserSpaceCustom PNUserSpaceInclude = 1 + iota
+	// PNUUIDMetadataIncludeCustom is the enum equivalent to the value `custom` available UUID include types
+	PNUUIDMetadataIncludeCustom PNUUIDMetadataInclude = 1 + iota
 )
 
-func (s PNUserSpaceInclude) String() string {
+const (
+	// PNChannelMetadataIncludeCustom is the enum equivalent to the value `custom` available Channel include types
+	PNChannelMetadataIncludeCustom PNChannelMetadataInclude = 1 + iota
+)
+
+func (s PNUUIDMetadataInclude) String() string {
+	return [...]string{"custom"}[s-1]
+}
+
+func (s PNChannelMetadataInclude) String() string {
 	return [...]string{"custom"}[s-1]
 }
 
 const (
-	// PNMembershipsCustom is the enum equivalent to the value `custom` available Memberships include types
-	PNMembershipsCustom PNMembershipsInclude = 1 + iota
-	// PNMembershipsSpace is the enum equivalent to the value `space` available Memberships include types
-	PNMembershipsSpace
-	// PNMembershipsSpaceCustom is the enum equivalent to the value `space.custom` available Memberships include types
-	PNMembershipsSpaceCustom
+	// PNMembershipsIncludeCustom is the enum equivalent to the value `custom` available Memberships include types
+	PNMembershipsIncludeCustom PNMembershipsInclude = 1 + iota
+	// PNMembershipsIncludeChannel is the enum equivalent to the value `channel` available Memberships include types
+	PNMembershipsIncludeChannel
+	// PNMembershipsIncludeChannelCustom is the enum equivalent to the value `channel.custom` available Memberships include types
+	PNMembershipsIncludeChannelCustom
 )
 
 func (s PNMembershipsInclude) String() string {
-	return [...]string{"custom", "space", "space.custom"}[s-1]
+	return [...]string{"custom", "channel", "channel.custom"}[s-1]
 }
 
 const (
-	// PNMembersCustom is the enum equivalent to the value `custom` available Members include types
-	PNMembersCustom PNMembersInclude = 1 + iota
-	// PNMembersUser is the enum equivalent to the value `user` available Members include types
-	PNMembersUser
-	// PNMembersUserCustom is the enum equivalent to the value `user.custom` available Members include types
-	PNMembersUserCustom
+	// PNChannelMembersIncludeCustom is the enum equivalent to the value `custom` available Members include types
+	PNChannelMembersIncludeCustom PNChannelMembersInclude = 1 + iota
+	// PNChannelMembersIncludeUUID is the enum equivalent to the value `uuid` available Members include types
+	PNChannelMembersIncludeUUID
+	// PNChannelMembersIncludeUUIDCustom is the enum equivalent to the value `uuid.custom` available Members include types
+	PNChannelMembersIncludeUUIDCustom
 )
 
-func (s PNMembersInclude) String() string {
-	return [...]string{"custom", "user", "user.custom"}[s-1]
+func (s PNChannelMembersInclude) String() string {
+	//return [...]string{"custom", "user", "user.custom", "uuid", "uuid.custom"}[s-1]
+	return [...]string{"custom", "uuid", "uuid.custom"}[s-1]
 }
 
 // PNMessageType is used as an enum to catgorize the Subscribe response.
@@ -240,13 +251,37 @@ const (
 	PNUpdateSpaceOperation
 	// PNGetMembershipsOperation is the enum used to get memberships in the Object API.
 	PNGetMembershipsOperation
-	// PNGetMembersOperation is the enum used to get members in the Object API.
-	PNGetMembersOperation
+	// PNGetChannelMembersOperation is the enum used to get members in the Object API.
+	PNGetChannelMembersOperation
 	// PNManageMembershipsOperation is the enum used to manage memberships in the Object API.
 	PNManageMembershipsOperation
 	// PNManageMembersOperation is the enum used to manage members in the Object API.
 	// ENUM ORDER needs to be maintained for Objects API.
 	PNManageMembersOperation
+	// PNSetChannelMembersOperation is the enum used to Set Members in the Object API.
+	PNSetChannelMembersOperation
+	// PNSetMembershipsOperation is the enum used to Set Memberships in the Object API.
+	PNSetMembershipsOperation
+	// PNRemoveChannelMetadataOperation is the enum used to Remove Channel Metadata in the Object API.
+	PNRemoveChannelMetadataOperation
+	// PNRemoveUUIDMetadataOperation is the enum used to Remove UUID Metadata in the Object API.
+	PNRemoveUUIDMetadataOperation
+	// PNGetAllChannelMetadataOperation is the enum used to Get All Channel Metadata in the Object API.
+	PNGetAllChannelMetadataOperation
+	// PNGetAllUUIDMetadataOperation is the enum used to Get All UUID Metadata in the Object API.
+	PNGetAllUUIDMetadataOperation
+	// PNGetUUIDMetadataOperation is the enum used to Get UUID Metadata in the Object API.
+	PNGetUUIDMetadataOperation
+	// PNRemoveMembershipsOperation is the enum used to Remove Memberships in the Object API.
+	PNRemoveMembershipsOperation
+	// PNRemoveChannelMembersOperation is the enum used to Remove Members in the Object API.
+	PNRemoveChannelMembersOperation
+	// PNSetUUIDMetadataOperation is the enum used to Set UUID Metadata in the Object API.
+	PNSetUUIDMetadataOperation
+	// PNSetChannelMetadataOperation is the enum used to Set Channel Metadata in the Object API.
+	PNSetChannelMetadataOperation
+	// PNGetChannelMetadataOperation is the enum used to Get Channel Metadata in the Object API.
+	PNGetChannelMetadataOperation
 	// PNAccessManagerGrantToken is the enum used for Grant v3 requests.
 	PNAccessManagerGrantToken
 	// PNGetMessageActionsOperation is the enum used for Message Actions Get requests.
@@ -327,9 +362,21 @@ var operations = [...]string{
 	"Delete Space",
 	"Update Space",
 	"PNGetMembershipsOperation",
-	"PNGetMembersOperation",
+	"PNGetChannelMembersOperation",
 	"PNManageMembershipsOperation",
 	"PNManageMembersOperation",
+	"PNSetChannelMembersOperation",
+	"PNSetMembershipsOperation",
+	"PNRemoveChannelMetadataOperation",
+	"PNRemoveUUIDMetadataOperation",
+	"PNGetAllChannelMetadataOperation",
+	"PNGetAllUUIDMetadataOperation",
+	"PNGetUUIDMetadataOperation",
+	"PNRemoveMembershipsOperation",
+	"PNRemoveChannelMembersOperation",
+	"PNSetUUIDMetadataOperation",
+	"PNSetChannelMetadataOperation",
+	"PNGetChannelMetadataOperation",
 	"GrantToken",
 }
 
@@ -472,13 +519,37 @@ func (t OperationType) String() string {
 	case PNUpdateSpaceOperation:
 		return "Update Space"
 	case PNGetMembershipsOperation:
-		return "Get Memberships"
-	case PNGetMembersOperation:
-		return "Get Members"
+		return "Get Memberships V2"
+	case PNGetChannelMembersOperation:
+		return "Get Members V2"
 	case PNManageMembershipsOperation:
-		return "Manage Memberships"
+		return "Manage Memberships V2"
 	case PNManageMembersOperation:
-		return "Manage Members"
+		return "Manage Members V2"
+	case PNSetChannelMembersOperation:
+		return "Set Members V2"
+	case PNSetMembershipsOperation:
+		return "Set Memberships V2"
+	case PNRemoveChannelMetadataOperation:
+		return "Remove Channel Metadata V2"
+	case PNRemoveUUIDMetadataOperation:
+		return "Remove Metadata V2"
+	case PNGetAllChannelMetadataOperation:
+		return "Get All Channel Metadata V2"
+	case PNGetAllUUIDMetadataOperation:
+		return "Get All UUID Metadata V2"
+	case PNGetUUIDMetadataOperation:
+		return "Get UUID Metadata V2"
+	case PNRemoveMembershipsOperation:
+		return "Remove Memberships V2"
+	case PNRemoveChannelMembersOperation:
+		return "Remove Members V2"
+	case PNSetUUIDMetadataOperation:
+		return "Set UUID Metadata V2"
+	case PNSetChannelMetadataOperation:
+		return "Set Channel Metadata V2"
+	case PNGetChannelMetadataOperation:
+		return "Get Channel Metadata V2"
 	case PNAccessManagerGrantToken:
 		return "Grant Token"
 	default:
@@ -490,16 +561,20 @@ func (t OperationType) String() string {
 func EnumArrayToStringArray(include interface{}) []string {
 	s := []string{}
 	switch fmt.Sprintf("%s", reflect.TypeOf(include)) {
-	case "[]pubnub.PNMembersInclude":
-		for _, v := range include.([]PNMembersInclude) {
+	case "[]pubnub.PNChannelMembersInclude":
+		for _, v := range include.([]PNChannelMembersInclude) {
 			s = append(s, fmt.Sprintf("%s", v))
 		}
 	case "[]pubnub.PNMembershipsInclude":
 		for _, v := range include.([]PNMembershipsInclude) {
 			s = append(s, fmt.Sprintf("%s", v))
 		}
-	case "[]pubnub.PNUserSpaceInclude":
-		for _, v := range include.([]PNUserSpaceInclude) {
+	case "[]pubnub.PNUUIDMetadataInclude":
+		for _, v := range include.([]PNUUIDMetadataInclude) {
+			s = append(s, fmt.Sprintf("%s", v))
+		}
+	case "[]pubnub.PNChannelMetadataInclude":
+		for _, v := range include.([]PNChannelMetadataInclude) {
 			s = append(s, fmt.Sprintf("%s", v))
 		}
 	}

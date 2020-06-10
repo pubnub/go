@@ -9,11 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertUpdateSpace(t *testing.T, checkQueryParam, testContext bool) {
+func AssertSetChannelMetadata(t *testing.T, checkQueryParam, testContext bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	incl := []PNUserSpaceInclude{
-		PNUserSpaceCustom,
+	incl := []PNChannelMetadataInclude{
+		PNChannelMetadataIncludeCustom,
 	}
 	custom := make(map[string]interface{})
 	custom["a"] = "b"
@@ -30,13 +30,13 @@ func AssertUpdateSpace(t *testing.T, checkQueryParam, testContext bool) {
 
 	inclStr := EnumArrayToStringArray(incl)
 
-	o := newUpdateSpaceBuilder(pn)
+	o := newSetChannelMetadataBuilder(pn)
 	if testContext {
-		o = newUpdateSpaceBuilderWithContext(pn, backgroundContext)
+		o = newSetChannelMetadataBuilderWithContext(pn, backgroundContext)
 	}
 
 	o.Include(incl)
-	o.ID("id0")
+	o.Channel("id0")
 	o.Name("name")
 	o.Description("exturl")
 	o.Custom(custom)
@@ -46,13 +46,13 @@ func AssertUpdateSpace(t *testing.T, checkQueryParam, testContext bool) {
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/objects/%s/spaces/%s", pn.Config.SubscribeKey, "id0"),
+		fmt.Sprintf("/v2/objects/%s/channels/%s", pn.Config.SubscribeKey, "id0"),
 		path, []int{})
 
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
 
-	expectedBody := "{\"id\":\"id0\",\"name\":\"name\",\"description\":\"exturl\",\"custom\":{\"a\":\"b\",\"c\":\"d\"}}"
+	expectedBody := "{\"name\":\"name\",\"description\":\"exturl\",\"custom\":{\"a\":\"b\",\"c\":\"d\"}}"
 
 	assert.Equal(expectedBody, string(body))
 
@@ -65,39 +65,39 @@ func AssertUpdateSpace(t *testing.T, checkQueryParam, testContext bool) {
 
 }
 
-func TestUpdateSpace(t *testing.T) {
-	AssertUpdateSpace(t, true, false)
+func TestSetChannelMetadata(t *testing.T) {
+	AssertSetChannelMetadata(t, true, false)
 }
 
-func TestUpdateSpaceContext(t *testing.T) {
-	AssertUpdateSpace(t, true, true)
+func TestSetChannelMetadataContext(t *testing.T) {
+	AssertSetChannelMetadata(t, true, true)
 }
 
-func TestUpdateSpaceResponseValueError(t *testing.T) {
+func TestSetChannelMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &updateSpaceOpts{
+	opts := &setChannelMetadataOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`s`)
 
-	_, _, err := newPNUpdateSpaceResponse(jsonBytes, opts, StatusResponse{})
+	_, _, err := newPNSetChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-func TestUpdateSpaceResponseValuePass(t *testing.T) {
+func TestSetChannelMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &updateSpaceOpts{
+	opts := &setChannelMetadataOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","description":"desc","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T14:48:11.675743Z","eTag":"AYKH2s7ZlYKoJA"}}`)
 
-	r, _, err := newPNUpdateSpaceResponse(jsonBytes, opts, StatusResponse{})
+	r, _, err := newPNSetChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("id0", r.Data.ID)
 	assert.Equal("name", r.Data.Name)
 	assert.Equal("desc", r.Data.Description)
-	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data.Created)
+	// assert.Equal("2019-08-20T13:26:08.341297Z", r.Data.Created)
 	assert.Equal("2019-08-20T14:48:11.675743Z", r.Data.Updated)
 	assert.Equal("AYKH2s7ZlYKoJA", r.Data.ETag)
 	assert.Equal("b", r.Data.Custom["a"])

@@ -5,7 +5,7 @@ go env
 set -e
 echo "" > coverage.txt
 
-go test -v -race -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./ ./
+go test -v -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./ ./
 
 go test -v -race -coverprofile=utils_tests.out -covermode=atomic -coverpkg=./ ./utils/
 

@@ -1,3 +1,9 @@
+## [v4.7.0](https://github.com/pubnub/go/releases/tag/v4.7.0)
+June-10-2020
+
+#### Added
+- BREAKING CHANGE: This version does not support Objects v1 (beta). 
+
 ## [v4.6.6](https://github.com/pubnub/go/tree/v4.6.6)
   Apr-9-2020 
 

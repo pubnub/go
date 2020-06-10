@@ -1,24 +1,11 @@
+go_import_path: github.com/pubnub/go  
+dist: xenial
 language: go
-
-go:
-  - 1.9.7
-  - 1.10.8
-  - 1.11.13  
-  - 1.12.16
-  - 1.13.9
-  - 1.14.1
-  - master
-  - tip
+os: linux
 
 env:
-  - DEP_VERSION=0.5.0  
-  
-matrix:
-  allow_failures:
-    - go: tip
-    - go: master
-  fast_finish: true
-go_import_path: github.com/pubnub/go  
+  jobs:
+    - DEP_VERSION=0.5.0  
 
 before_install:
   - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
@@ -30,8 +17,57 @@ install:
   - dep status
   - go get -u github.com/wadey/gocovmerge
 
-script:
-  - bash ./scripts/run-tests.sh
 
-after_success:
-    - bash <(curl -s https://codecov.io/bash)
+stages:
+  - name: "test"
+    if: |
+      type != pull_request \
+      AND tag IS blank
+  - name: "code coverage"
+    if: |
+      type == pull_request
+
+jobs:
+  include:
+    - stage: "test"
+      name: 'Go 1.9.7'
+      go: 1.9.7
+      script: 
+        - bash ./scripts/run-tests.sh
+    - name: 'Go 1.10.8'
+      go: 1.10.8
+      script: 
+        - bash ./scripts/run-tests.sh
+    - name: 'Go 1.11.13'
+      go: 1.11.13
+      script: 
+        - bash ./scripts/run-tests.sh
+    - name: 'Go 1.12.17'
+      go: 1.12.17
+      script: 
+        - bash ./scripts/run-tests.sh
+    - name: 'Go 1.13.12'
+      go: 1.13.12
+      script: 
+        - bash ./scripts/run-tests.sh
+    - name: 'Go 1.14.4'
+      go: 1.14.4
+      script: 
+        - bash ./scripts/run-tests.sh
+    - name: 'Go "master"'
+      go: master
+      script: 
+        - bash ./scripts/run-tests.sh
+    - name: 'Go "tip"'
+      go: tip
+      script: bash ./scripts/run-tests.sh
+    - stage: "code coverage"
+      name: 'Test & Code coverage'
+      go: 1.14.4
+      script: bash ./scripts/run-tests.sh
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
+  allow_failures:
+    - go: tip
+    - go: master
+  fast_finish: true

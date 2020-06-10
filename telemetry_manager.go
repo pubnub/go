@@ -214,11 +214,35 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 		fallthrough
 	case PNGetMembershipsOperation:
 		fallthrough
-	case PNGetMembersOperation:
+	case PNGetChannelMembersOperation:
 		fallthrough
 	case PNManageMembershipsOperation:
 		fallthrough
 	case PNManageMembersOperation:
+		fallthrough
+	case PNSetChannelMembersOperation:
+		fallthrough
+	case PNSetMembershipsOperation:
+		fallthrough
+	case PNRemoveChannelMetadataOperation:
+		fallthrough
+	case PNRemoveUUIDMetadataOperation:
+		fallthrough
+	case PNGetAllChannelMetadataOperation:
+		fallthrough
+	case PNGetAllUUIDMetadataOperation:
+		fallthrough
+	case PNGetUUIDMetadataOperation:
+		fallthrough
+	case PNRemoveMembershipsOperation:
+		fallthrough
+	case PNRemoveChannelMembersOperation:
+		fallthrough
+	case PNSetUUIDMetadataOperation:
+		fallthrough
+	case PNGetChannelMetadataOperation:
+		fallthrough
+	case PNSetChannelMetadataOperation:
 		endpoint = "obj"
 		break
 	default:

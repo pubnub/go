@@ -14,29 +14,29 @@ import (
 
 var emptyGetMembershipsResponse *PNGetMembershipsResponse
 
-const getMembershipsPath = "/v1/objects/%s/users/%s/spaces"
+const getMembershipsPathV2 = "/v2/objects/%s/uuids/%s/channels"
 
-const spaceMembershipLimit = 100
+const membershipsLimitV2 = 100
 
-type getMembershipsBuilder struct {
-	opts *getMembershipsOpts
+type getMembershipsBuilderV2 struct {
+	opts *getMembershipsOptsV2
 }
 
-func newGetMembershipsBuilder(pubnub *PubNub) *getMembershipsBuilder {
-	builder := getMembershipsBuilder{
-		opts: &getMembershipsOpts{
+func newGetMembershipsBuilderV2(pubnub *PubNub) *getMembershipsBuilderV2 {
+	builder := getMembershipsBuilderV2{
+		opts: &getMembershipsOptsV2{
 			pubnub: pubnub,
 		},
 	}
-	builder.opts.Limit = spaceMembershipLimit
+	builder.opts.Limit = membershipsLimitV2
 
 	return &builder
 }
 
-func newGetMembershipsBuilderWithContext(pubnub *PubNub,
-	context Context) *getMembershipsBuilder {
-	builder := getMembershipsBuilder{
-		opts: &getMembershipsOpts{
+func newGetMembershipsBuilderV2WithContext(pubnub *PubNub,
+	context Context) *getMembershipsBuilderV2 {
+	builder := getMembershipsBuilderV2{
+		opts: &getMembershipsOptsV2{
 			pubnub: pubnub,
 			ctx:    context,
 		},
@@ -45,69 +45,73 @@ func newGetMembershipsBuilderWithContext(pubnub *PubNub,
 	return &builder
 }
 
-func (b *getMembershipsBuilder) UserID(id string) *getMembershipsBuilder {
-	b.opts.ID = id
+func (b *getMembershipsBuilderV2) UUID(uuid string) *getMembershipsBuilderV2 {
+	b.opts.UUID = uuid
 
 	return b
 }
 
-func (b *getMembershipsBuilder) Include(include []PNMembershipsInclude) *getMembershipsBuilder {
+func (b *getMembershipsBuilderV2) Include(include []PNMembershipsInclude) *getMembershipsBuilderV2 {
 	b.opts.Include = EnumArrayToStringArray(include)
 
 	return b
 }
 
-func (b *getMembershipsBuilder) Limit(limit int) *getMembershipsBuilder {
+func (b *getMembershipsBuilderV2) Limit(limit int) *getMembershipsBuilderV2 {
 	b.opts.Limit = limit
 
 	return b
 }
 
-func (b *getMembershipsBuilder) Start(start string) *getMembershipsBuilder {
+func (b *getMembershipsBuilderV2) Start(start string) *getMembershipsBuilderV2 {
 	b.opts.Start = start
 
 	return b
 }
 
-func (b *getMembershipsBuilder) End(end string) *getMembershipsBuilder {
+func (b *getMembershipsBuilderV2) End(end string) *getMembershipsBuilderV2 {
 	b.opts.End = end
 
 	return b
 }
 
-func (b *getMembershipsBuilder) Filter(filter string) *getMembershipsBuilder {
+func (b *getMembershipsBuilderV2) Filter(filter string) *getMembershipsBuilderV2 {
 	b.opts.Filter = filter
 
 	return b
 }
 
-func (b *getMembershipsBuilder) Sort(sort []string) *getMembershipsBuilder {
+func (b *getMembershipsBuilderV2) Sort(sort []string) *getMembershipsBuilderV2 {
 	b.opts.Sort = sort
 
 	return b
 }
 
-func (b *getMembershipsBuilder) Count(count bool) *getMembershipsBuilder {
+func (b *getMembershipsBuilderV2) Count(count bool) *getMembershipsBuilderV2 {
 	b.opts.Count = count
 
 	return b
 }
 
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
-func (b *getMembershipsBuilder) QueryParam(queryParam map[string]string) *getMembershipsBuilder {
+func (b *getMembershipsBuilderV2) QueryParam(queryParam map[string]string) *getMembershipsBuilderV2 {
 	b.opts.QueryParam = queryParam
 
 	return b
 }
 
 // Transport sets the Transport for the getMemberships request.
-func (b *getMembershipsBuilder) Transport(tr http.RoundTripper) *getMembershipsBuilder {
+func (b *getMembershipsBuilderV2) Transport(tr http.RoundTripper) *getMembershipsBuilderV2 {
 	b.opts.Transport = tr
 	return b
 }
 
 // Execute runs the getMemberships request.
-func (b *getMembershipsBuilder) Execute() (*PNGetMembershipsResponse, StatusResponse, error) {
+func (b *getMembershipsBuilderV2) Execute() (*PNGetMembershipsResponse, StatusResponse, error) {
+	if len(b.opts.UUID) <= 0 {
+		b.opts.UUID = b.opts.pubnub.Config.UUID
+	}
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGetMembershipsResponse, status, err
@@ -116,9 +120,9 @@ func (b *getMembershipsBuilder) Execute() (*PNGetMembershipsResponse, StatusResp
 	return newPNGetMembershipsResponse(rawJSON, b.opts, status)
 }
 
-type getMembershipsOpts struct {
+type getMembershipsOptsV2 struct {
 	pubnub     *PubNub
-	ID         string
+	UUID       string
 	Limit      int
 	Include    []string
 	Start      string
@@ -133,19 +137,19 @@ type getMembershipsOpts struct {
 	ctx Context
 }
 
-func (o *getMembershipsOpts) config() Config {
+func (o *getMembershipsOptsV2) config() Config {
 	return *o.pubnub.Config
 }
 
-func (o *getMembershipsOpts) client() *http.Client {
+func (o *getMembershipsOptsV2) client() *http.Client {
 	return o.pubnub.GetClient()
 }
 
-func (o *getMembershipsOpts) context() Context {
+func (o *getMembershipsOptsV2) context() Context {
 	return o.ctx
 }
 
-func (o *getMembershipsOpts) validate() error {
+func (o *getMembershipsOptsV2) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)
 	}
@@ -153,12 +157,12 @@ func (o *getMembershipsOpts) validate() error {
 	return nil
 }
 
-func (o *getMembershipsOpts) buildPath() (string, error) {
-	return fmt.Sprintf(getMembershipsPath,
-		o.pubnub.Config.SubscribeKey, o.ID), nil
+func (o *getMembershipsOptsV2) buildPath() (string, error) {
+	return fmt.Sprintf(getMembershipsPathV2,
+		o.pubnub.Config.SubscribeKey, o.UUID), nil
 }
 
-func (o *getMembershipsOpts) buildQuery() (*url.Values, error) {
+func (o *getMembershipsOptsV2) buildQuery() (*url.Values, error) {
 
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
@@ -188,41 +192,40 @@ func (o *getMembershipsOpts) buildQuery() (*url.Values, error) {
 		SetQueryParamAsCommaSepString(q, o.Sort, "sort")
 	}
 
-	o.pubnub.tokenManager.SetAuthParan(q, o.ID, PNUsers)
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
 }
 
-func (o *getMembershipsOpts) jobQueue() chan *JobQItem {
+func (o *getMembershipsOptsV2) jobQueue() chan *JobQItem {
 	return o.pubnub.jobQueue
 }
 
-func (o *getMembershipsOpts) buildBody() ([]byte, error) {
+func (o *getMembershipsOptsV2) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *getMembershipsOpts) httpMethod() string {
+func (o *getMembershipsOptsV2) httpMethod() string {
 	return "GET"
 }
 
-func (o *getMembershipsOpts) isAuthRequired() bool {
+func (o *getMembershipsOptsV2) isAuthRequired() bool {
 	return true
 }
 
-func (o *getMembershipsOpts) requestTimeout() int {
+func (o *getMembershipsOptsV2) requestTimeout() int {
 	return o.pubnub.Config.NonSubscribeRequestTimeout
 }
 
-func (o *getMembershipsOpts) connectTimeout() int {
+func (o *getMembershipsOptsV2) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
-func (o *getMembershipsOpts) operationType() OperationType {
+func (o *getMembershipsOptsV2) operationType() OperationType {
 	return PNGetMembershipsOperation
 }
 
-func (o *getMembershipsOpts) telemetryManager() *TelemetryManager {
+func (o *getMembershipsOptsV2) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
@@ -235,7 +238,7 @@ type PNGetMembershipsResponse struct {
 	Prev       string          `json:"prev"`
 }
 
-func newPNGetMembershipsResponse(jsonBytes []byte, o *getMembershipsOpts,
+func newPNGetMembershipsResponse(jsonBytes []byte, o *getMembershipsOptsV2,
 	status StatusResponse) (*PNGetMembershipsResponse, StatusResponse, error) {
 
 	resp := &PNGetMembershipsResponse{}

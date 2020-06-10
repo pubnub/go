@@ -4,14 +4,13 @@ import (
 	"sync"
 )
 
-//
 type Listener struct {
 	Status              chan *PNStatus
 	Message             chan *PNMessage
 	Presence            chan *PNPresence
 	Signal              chan *PNMessage
-	UserEvent           chan *PNUserEvent
-	SpaceEvent          chan *PNSpaceEvent
+	UUIDEvent           chan *PNUUIDEvent
+	ChannelEvent        chan *PNChannelEvent
 	MembershipEvent     chan *PNMembershipEvent
 	MessageActionsEvent chan *PNMessageActionsEvent
 }
@@ -22,8 +21,8 @@ func NewListener() *Listener {
 		Message:             make(chan *PNMessage),
 		Presence:            make(chan *PNPresence),
 		Signal:              make(chan *PNMessage),
-		UserEvent:           make(chan *PNUserEvent),
-		SpaceEvent:          make(chan *PNSpaceEvent),
+		UUIDEvent:           make(chan *PNUUIDEvent),
+		ChannelEvent:        make(chan *PNChannelEvent),
 		MembershipEvent:     make(chan *PNMembershipEvent),
 		MessageActionsEvent: make(chan *PNMessageActionsEvent),
 	}
@@ -133,38 +132,38 @@ func (m *ListenerManager) announceSignal(message *PNMessage) {
 	}()
 }
 
-func (m *ListenerManager) announceUserEvent(message *PNUserEvent) {
+func (m *ListenerManager) announceUUIDEvent(message *PNUUIDEvent) {
 	go func() {
 		lis := m.copyListeners()
 
-	AnnounceUserEventLabel:
+	AnnounceUUIDEventLabel:
 		for l := range lis {
 			select {
 			case <-m.exitListener:
-				m.pubnub.Config.Log.Println("announceUserEvent exitListener")
-				break AnnounceUserEventLabel
+				m.pubnub.Config.Log.Println("announceUUIDEvent exitListener")
+				break AnnounceUUIDEventLabel
 
-			case l.UserEvent <- message:
-				m.pubnub.Config.Log.Println("l.UserEvent", message)
+			case l.UUIDEvent <- message:
+				m.pubnub.Config.Log.Println("l.UUIDEvent", message)
 			}
 		}
 	}()
 }
 
-func (m *ListenerManager) announceSpaceEvent(message *PNSpaceEvent) {
+func (m *ListenerManager) announceChannelEvent(message *PNChannelEvent) {
 	go func() {
 		lis := m.copyListeners()
 
-	AnnounceSpaceEventLabel:
+	AnnounceChannelEventLabel:
 		for l := range lis {
-			m.pubnub.Config.Log.Println("l.SpaceEvent", l)
+			m.pubnub.Config.Log.Println("l.ChannelEvent", l)
 			select {
 			case <-m.exitListener:
-				m.pubnub.Config.Log.Println("announceSpaceEvent exitListener")
-				break AnnounceSpaceEventLabel
+				m.pubnub.Config.Log.Println("announceChannelEvent exitListener")
+				break AnnounceChannelEventLabel
 
-			case l.SpaceEvent <- message:
-				m.pubnub.Config.Log.Println("l.SpaceEvent", message)
+			case l.ChannelEvent <- message:
+				m.pubnub.Config.Log.Println("l.ChannelEvent", message)
 			}
 		}
 	}()
@@ -270,17 +269,16 @@ type PNPresence struct {
 	HereNowRefresh    bool
 }
 
-// PNUserEvent is the Response for an User Event
-type PNUserEvent struct {
+// PNUUIDEvent is the Response for an User Event
+type PNUUIDEvent struct {
 	Event             PNObjectsEvent
-	UserID            string
+	UUID              string
 	Description       string
 	Timestamp         string
 	Name              string
 	ExternalID        string
 	ProfileURL        string
 	Email             string
-	Created           string
 	Updated           string
 	ETag              string
 	Custom            map[string]interface{}
@@ -290,14 +288,13 @@ type PNUserEvent struct {
 	Subscription      string
 }
 
-// PNSpaceEvent is the Response for a Space Event
-type PNSpaceEvent struct {
+// PNChannelEvent is the Response for a Space Event
+type PNChannelEvent struct {
 	Event             PNObjectsEvent
-	SpaceID           string
+	ChannelID         string
 	Description       string
 	Timestamp         string
 	Name              string
-	Created           string
 	Updated           string
 	ETag              string
 	Custom            map[string]interface{}
@@ -310,8 +307,8 @@ type PNSpaceEvent struct {
 // PNMembershipEvent is the Response for a Membership Event
 type PNMembershipEvent struct {
 	Event             PNObjectsEvent
-	UserID            string
-	SpaceID           string
+	UUID              string
+	ChannelID         string
 	Description       string
 	Timestamp         string
 	Custom            map[string]interface{}

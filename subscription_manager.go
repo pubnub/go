@@ -639,15 +639,15 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 		m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
 		m.listenerManager.announceSignal(pnMessageResult)
 	case PNMessageTypeObjects:
-		pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
-		m.pubnub.Config.Log.Println("announceObjects,", pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType)
+		pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
+		m.pubnub.Config.Log.Println("announceObjects,", pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType)
 		switch eventType {
-		case PNObjectsUserEvent:
-			m.pubnub.Config.Log.Println("pnUserEvent:", pnUserEvent)
-			m.listenerManager.announceUserEvent(pnUserEvent)
-		case PNObjectsSpaceEvent:
-			m.pubnub.Config.Log.Println("pnSpaceEvent:", pnSpaceEvent)
-			m.listenerManager.announceSpaceEvent(pnSpaceEvent)
+		case PNObjectsUUIDEvent:
+			m.pubnub.Config.Log.Println("pnUUIDEvent:", pnUUIDEvent)
+			m.listenerManager.announceUUIDEvent(pnUUIDEvent)
+		case PNObjectsChannelEvent:
+			m.pubnub.Config.Log.Println("pnChannelEvent:", pnChannelEvent)
+			m.listenerManager.announceChannelEvent(pnChannelEvent)
 		case PNObjectsMembershipEvent:
 			m.pubnub.Config.Log.Println("pnMembershipEvent:", pnMembershipEvent)
 			m.listenerManager.announceMembershipEvent(pnMembershipEvent)
@@ -740,7 +740,7 @@ func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionMan
 	return pnMessageActionsEvent
 }
 
-func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) (*PNUserEvent, *PNSpaceEvent, *PNMembershipEvent, PNObjectsEventType) {
+func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) (*PNUUIDEvent, *PNChannelEvent, *PNMembershipEvent, PNObjectsEventType) {
 	var objectsPayload map[string]interface{}
 	var ok bool
 	if objectsPayload, ok = objPayload.(map[string]interface{}); !ok {
@@ -755,18 +755,31 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	}
 	eventType := PNObjectsEventType(objectsPayload["type"].(string))
 	event := PNObjectsEvent(objectsPayload["event"].(string))
-	var id, userID, spaceID, description, timestamp, created, updated, eTag, name, externalID, profileURL, email string
+	version := ""
+	if d, ok := objectsPayload["version"]; ok {
+		version = d.(string)
+		if version == "1.0" {
+			m.pubnub.Config.Log.Println("Ignoring version 1.0 event")
+			return &PNUUIDEvent{}, &PNChannelEvent{}, &PNMembershipEvent{}, PNObjectsNoneEvent
+		}
+	} else {
+		m.pubnub.Config.Log.Println("Ignoring non versioned event")
+		return &PNUUIDEvent{}, &PNChannelEvent{}, &PNMembershipEvent{}, PNObjectsNoneEvent
+	}
+	var id, UUID, channelID, description, timestamp, updated, eTag, name, externalID, profileURL, email string
 	var custom, data map[string]interface{}
 	if o := objectsPayload["data"]; ok {
 		data = o.(map[string]interface{})
-		if d, ok := data["userId"]; ok {
-			userID = d.(string)
+		if d, ok := data["uuid"]; ok {
+			u := d.(map[string]interface{})
+			UUID = u["id"].(string)
 		}
 		if d, ok := data["id"]; ok {
 			id = d.(string)
 		}
-		if d, ok := data["spaceId"]; ok {
-			spaceID = d.(string)
+		if d, ok := data["channel"]; ok {
+			ch := d.(map[string]interface{})
+			channelID = ch["id"].(string)
 		}
 		if d, ok := data["name"]; ok {
 			name = d.(string)
@@ -786,9 +799,6 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		if d, ok := data["timestamp"]; ok {
 			timestamp = d.(string)
 		}
-		if d, ok := data["created"]; ok {
-			created = d.(string)
-		}
 		if d, ok := data["updated"]; ok {
 			updated = d.(string)
 		}
@@ -804,11 +814,10 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	pnObjectsResult := &PNObjectsResponse{
 		Event:       event,
 		EventType:   eventType,
-		UserID:      userID,
-		SpaceID:     spaceID,
+		ID:          id,
+		Channel:     channel,
 		Description: description,
 		Timestamp:   timestamp,
-		Created:     created,
 		Updated:     updated,
 		ETag:        eTag,
 		Custom:      custom,
@@ -819,13 +828,12 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		Email:       email,
 	}
 
-	pnSpaceEvent := &PNSpaceEvent{
+	pnChannelEvent := &PNChannelEvent{
 		Event:             pnObjectsResult.Event,
-		SpaceID:           id,
+		ChannelID:         id,
 		Description:       pnObjectsResult.Description,
 		Timestamp:         pnObjectsResult.Timestamp,
 		Name:              pnObjectsResult.Name,
-		Created:           pnObjectsResult.Created,
 		Updated:           pnObjectsResult.Updated,
 		ETag:              pnObjectsResult.ETag,
 		Custom:            pnObjectsResult.Custom,
@@ -835,11 +843,10 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		Subscription:      subscriptionMatch,
 	}
 
-	pnUserEvent := &PNUserEvent{
+	pnUUIDEvent := &PNUUIDEvent{
 		Event:             pnObjectsResult.Event,
-		UserID:            id,
+		UUID:              id,
 		Timestamp:         pnObjectsResult.Timestamp,
-		Created:           pnObjectsResult.Created,
 		Updated:           pnObjectsResult.Updated,
 		ETag:              pnObjectsResult.ETag,
 		Custom:            pnObjectsResult.Custom,
@@ -855,18 +862,18 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 
 	pnMembershipEvent := &PNMembershipEvent{
 		Event:             pnObjectsResult.Event,
-		UserID:            pnObjectsResult.UserID,
-		SpaceID:           pnObjectsResult.SpaceID,
+		UUID:              UUID,
+		ChannelID:         channelID,
 		Description:       pnObjectsResult.Description,
 		Timestamp:         pnObjectsResult.Timestamp,
 		Custom:            pnObjectsResult.Custom,
 		ActualChannel:     actualCh,
 		SubscribedChannel: subscribedCh,
-		Channel:           channel,
+		Channel:           pnObjectsResult.Channel,
 		Subscription:      subscriptionMatch,
 	}
 
-	return pnUserEvent, pnSpaceEvent, pnMembershipEvent, eventType
+	return pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType
 }
 
 func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64) *PNMessage {

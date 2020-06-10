@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertDeleteSpace(t *testing.T, checkQueryParam, testContext bool) {
+func AssertRemoveChannelMetadata(t *testing.T, checkQueryParam, testContext bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -21,19 +21,19 @@ func AssertDeleteSpace(t *testing.T, checkQueryParam, testContext bool) {
 		queryParam = nil
 	}
 
-	o := newDeleteSpaceBuilder(pn)
+	o := newRemoveChannelMetadataBuilder(pn)
 	if testContext {
-		o = newDeleteSpaceBuilderWithContext(pn, backgroundContext)
+		o = newRemoveChannelMetadataBuilderWithContext(pn, backgroundContext)
 	}
 
-	o.ID("id0")
+	o.Channel("id0")
 	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/objects/%s/spaces/%s", pn.Config.SubscribeKey, "id0"),
+		fmt.Sprintf("/v2/objects/%s/channels/%s", pn.Config.SubscribeKey, "id0"),
 		path, []int{})
 
 	body, err := o.opts.buildBody()
@@ -48,35 +48,35 @@ func AssertDeleteSpace(t *testing.T, checkQueryParam, testContext bool) {
 
 }
 
-func TestDeleteSpace(t *testing.T) {
-	AssertDeleteSpace(t, true, false)
+func TestRemoveChannelMetadata(t *testing.T) {
+	AssertRemoveChannelMetadata(t, true, false)
 }
 
-func TestDeleteSpaceContext(t *testing.T) {
-	AssertDeleteSpace(t, true, true)
+func TestRemoveChannelMetadataContext(t *testing.T) {
+	AssertRemoveChannelMetadata(t, true, true)
 }
 
-func TestDeleteSpaceResponseValueError(t *testing.T) {
+func TestRemoveChannelMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &deleteSpaceOpts{
+	opts := &removeChannelMetadataOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`s`)
 
-	_, _, err := newPNDeleteSpaceResponse(jsonBytes, opts, StatusResponse{})
+	_, _, err := newPNRemoveChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-func TestDeleteSpaceResponseValuePass(t *testing.T) {
+func TestRemoveChannelMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &deleteSpaceOpts{
+	opts := &removeChannelMetadataOpts{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`{"status":200,"data":null}`)
 
-	r, _, err := newPNDeleteSpaceResponse(jsonBytes, opts, StatusResponse{})
+	r, _, err := newPNRemoveChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(nil, r.Data)
 
 	assert.Nil(err)

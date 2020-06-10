@@ -11,12 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertGetMemberships(t *testing.T, checkQueryParam, testContext, withFilter bool, withSort bool) {
+func AssertGetMembershipsV2(t *testing.T, checkQueryParam, testContext, withFilter bool, withSort bool) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
 	incl := []PNMembershipsInclude{
-		PNMembershipsCustom,
+		PNMembershipsIncludeCustom,
 	}
 
 	queryParam := map[string]string{
@@ -30,9 +30,9 @@ func AssertGetMemberships(t *testing.T, checkQueryParam, testContext, withFilter
 
 	inclStr := EnumArrayToStringArray(incl)
 
-	o := newGetMembershipsBuilder(pn)
+	o := newGetMembershipsBuilderV2(pn)
 	if testContext {
-		o = newGetMembershipsBuilderWithContext(pn, backgroundContext)
+		o = newGetMembershipsBuilderV2WithContext(pn, backgroundContext)
 	}
 
 	userID := "id0"
@@ -40,7 +40,7 @@ func AssertGetMemberships(t *testing.T, checkQueryParam, testContext, withFilter
 	start := "Mxmy"
 	end := "Nxny"
 
-	o.UserID(userID)
+	o.UUID(userID)
 	o.Include(incl)
 	o.Limit(limit)
 	o.Start(start)
@@ -59,7 +59,7 @@ func AssertGetMemberships(t *testing.T, checkQueryParam, testContext, withFilter
 	assert.Nil(err)
 
 	h.AssertPathsEqual(t,
-		fmt.Sprintf("/v1/objects/%s/users/%s/spaces", pn.Config.SubscribeKey, "id0"),
+		fmt.Sprintf("/v2/objects/%s/uuids/%s/channels", pn.Config.SubscribeKey, "id0"),
 		path, []int{})
 
 	body, err := o.opts.buildBody()
@@ -87,42 +87,42 @@ func AssertGetMemberships(t *testing.T, checkQueryParam, testContext, withFilter
 
 }
 
-func TestGetMemberships(t *testing.T) {
-	AssertGetMemberships(t, true, false, false, false)
+func TestGetMembershipsV2(t *testing.T) {
+	AssertGetMembershipsV2(t, true, false, false, false)
 }
 
-func TestGetMembershipsContext(t *testing.T) {
-	AssertGetMemberships(t, true, true, false, false)
+func TestGetMembershipsV2Context(t *testing.T) {
+	AssertGetMembershipsV2(t, true, true, false, false)
 }
 
-func TestGetMembershipsWithFilter(t *testing.T) {
-	AssertGetMemberships(t, true, false, true, false)
+func TestGetMembershipsV2WithFilter(t *testing.T) {
+	AssertGetMembershipsV2(t, true, false, true, false)
 }
 
-func TestGetMembershipsWithFilterContext(t *testing.T) {
-	AssertGetMemberships(t, true, true, true, false)
+func TestGetMembershipsV2WithFilterContext(t *testing.T) {
+	AssertGetMembershipsV2(t, true, true, true, false)
 }
 
-func TestGetMembershipsWithSort(t *testing.T) {
-	AssertGetMemberships(t, true, false, false, true)
+func TestGetMembershipsV2WithSort(t *testing.T) {
+	AssertGetMembershipsV2(t, true, false, false, true)
 }
 
-func TestGetMembershipsWithSortContext(t *testing.T) {
-	AssertGetMemberships(t, true, true, false, true)
+func TestGetMembershipsV2WithSortContext(t *testing.T) {
+	AssertGetMembershipsV2(t, true, true, false, true)
 }
 
-func TestGetMembershipsWithFilterWithSort(t *testing.T) {
-	AssertGetMemberships(t, true, false, true, true)
+func TestGetMembershipsV2WithFilterWithSort(t *testing.T) {
+	AssertGetMembershipsV2(t, true, false, true, true)
 }
 
-func TestGetMembershipsWithFilterWithSortContext(t *testing.T) {
-	AssertGetMemberships(t, true, true, true, true)
+func TestGetMembershipsV2WithFilterWithSortContext(t *testing.T) {
+	AssertGetMembershipsV2(t, true, true, true, true)
 }
 
-func TestGetMembershipsResponseValueError(t *testing.T) {
+func TestGetMembershipsV2ResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getMembershipsOpts{
+	opts := &getMembershipsOptsV2{
 		pubnub: pn,
 	}
 	jsonBytes := []byte(`s`)
@@ -131,26 +131,26 @@ func TestGetMembershipsResponseValueError(t *testing.T) {
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-func TestGetMembershipsResponseValuePass(t *testing.T) {
+func TestGetMembershipsV2ResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getMembershipsOpts{
+	opts := &getMembershipsOptsV2{
 		pubnub: pn,
 	}
-	jsonBytes := []byte(`{"status":200,"data":[{"id":"id0","custom":{"a3":"b3","c3":"d3"},"space":{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"},"created":"2019-08-20T13:26:24.07832Z","updated":"2019-08-20T13:26:24.07832Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ", "prev":"NQ"}`)
+	jsonBytes := []byte(`{"status":200,"data":[{"id":"id0","custom":{"a3":"b3","c3":"d3"},"channel":{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"},"created":"2019-08-20T13:26:24.07832Z","updated":"2019-08-20T13:26:24.07832Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ", "prev":"NQ"}`)
 
 	r, _, err := newPNGetMembershipsResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(1, r.TotalCount)
 	assert.Equal("MQ", r.Next)
 	assert.Equal("NQ", r.Prev)
 	assert.Equal("id0", r.Data[0].ID)
-	assert.Equal("name", r.Data[0].Space.Name)
-	assert.Equal("desc", r.Data[0].Space.Description)
-	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data[0].Space.Created)
-	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data[0].Space.Updated)
-	assert.Equal("Aee9zsKNndXlHw", r.Data[0].Space.ETag)
-	assert.Equal("b", r.Data[0].Space.Custom["a"])
-	assert.Equal(nil, r.Data[0].Space.Custom["c"])
+	assert.Equal("name", r.Data[0].Channel.Name)
+	assert.Equal("desc", r.Data[0].Channel.Description)
+	// assert.Equal("2019-08-20T13:26:08.341297Z", r.Data[0].Channel.Created)
+	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data[0].Channel.Updated)
+	assert.Equal("Aee9zsKNndXlHw", r.Data[0].Channel.ETag)
+	assert.Equal("b", r.Data[0].Channel.Custom["a"])
+	assert.Equal(nil, r.Data[0].Channel.Custom["c"])
 	assert.Equal("2019-08-20T13:26:24.07832Z", r.Data[0].Created)
 	assert.Equal("2019-08-20T13:26:24.07832Z", r.Data[0].Updated)
 	assert.Equal("AamrnoXdpdmzjwE", r.Data[0].ETag)
