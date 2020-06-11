@@ -3,7 +3,7 @@ changelog:
   -
     changes:
       -
-        text: "BREAKING CHANGE: This version does not support Objects v1 (beta)."
+        text: "BREAKING CHANGE: Object V2 (beta). This version does not support Objects v1 (beta)"
         type: feature
     date: Jun 10, 20
     version: v4.7.0
