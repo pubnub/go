@@ -3,10 +3,23 @@ changelog:
   -
     changes:
       -
+        text: "Files."
+        type: feature
+      -
+        text: "Random IV option in EncryptString and DecryptString."
+        type: improvement
+      -
+        text: "Runes to string conversion fixes."
+        type: bug
+    date: Jul 24, 20
+    version: v4.8.0
+  -
+    changes:
+      -
         text: "BREAKING CHANGE: Object V2 (beta). This version does not support Objects v1 (beta)"
         type: feature
     date: Jun 10, 20
-    version: v4.7.0
+    version: v4.8.0
   - 
     changes: 
       - 
@@ -551,4 +564,4 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.7.0
+version: v4.8.0

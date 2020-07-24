@@ -1,3 +1,15 @@
+## [v4.8.0](https://github.com/pubnub/go/releases/tag/v4.8.0)
+July-24-2020
+
+#### Added
+- Files. 
+
+#### Modified
+- Random IV option in EncryptString and DecryptString. 
+
+#### Fixed
+- Runes to string conversion fixes. 
+
 ## [v4.7.0](https://github.com/pubnub/go/releases/tag/v4.7.0)
 June-10-2020
 
