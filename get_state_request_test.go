@@ -268,7 +268,7 @@ func TestGetStateValidateChannel(t *testing.T) {
 	opts := &getStateOpts{
 		pubnub: pn,
 	}
-	assert.Equal("pubnub/validation: pubnub: \v: Missing Channel or Channel Group", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Get State: Missing Channel or Channel Group", opts.validate().Error())
 }
 
 func TestGetStateValidateSubscribeKey(t *testing.T) {
@@ -281,7 +281,7 @@ func TestGetStateValidateSubscribeKey(t *testing.T) {
 		pubnub:        pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \v: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Get State: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestNewGetStateResponseErrorUnmarshalling(t *testing.T) {

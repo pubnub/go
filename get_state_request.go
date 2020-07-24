@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -167,6 +168,10 @@ func (o *getStateOpts) jobQueue() chan *JobQItem {
 
 func (o *getStateOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
+}
+
+func (o *getStateOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *getStateOpts) httpMethod() string {

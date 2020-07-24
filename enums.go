@@ -142,6 +142,8 @@ const (
 	PNMessageTypeObjects
 	// PNMessageTypeMessageActions is to identify Actions the Subscribe response
 	PNMessageTypeMessageActions
+	// PNMessageTypeFile is to identify Files the Subscribe response
+	PNMessageTypeFile
 )
 
 const (
@@ -292,6 +294,20 @@ const (
 	PNAddMessageActionsOperation
 	// PNRemoveMessageActionsOperation is the enum used for Message Actions Remove requests.
 	PNRemoveMessageActionsOperation
+	// PNDeleteFileOperation is the enum used for DeleteFile requests.
+	PNDeleteFileOperation
+	// PNDownloadFileOperation is the enum used for DownloadFile requests.
+	PNDownloadFileOperation
+	// PNGetFileURLOperation is the enum used for GetFileURL requests.
+	PNGetFileURLOperation
+	// PNListFilesOperation is the enum used for ListFiles requests.
+	PNListFilesOperation
+	// PNSendFileOperation is the enum used for SendFile requests.
+	PNSendFileOperation
+	// PNSendFileToS3Operation is the enum used for v requests.
+	PNSendFileToS3Operation
+	// PNPublishFileMessageOperation is the enum used for PublishFileMessage requests.
+	PNPublishFileMessageOperation
 )
 
 const (
@@ -361,23 +377,34 @@ var operations = [...]string{
 	"Create Space",
 	"Delete Space",
 	"Update Space",
-	"PNGetMembershipsOperation",
-	"PNGetChannelMembersOperation",
-	"PNManageMembershipsOperation",
-	"PNManageMembersOperation",
-	"PNSetChannelMembersOperation",
-	"PNSetMembershipsOperation",
-	"PNRemoveChannelMetadataOperation",
-	"PNRemoveUUIDMetadataOperation",
-	"PNGetAllChannelMetadataOperation",
-	"PNGetAllUUIDMetadataOperation",
-	"PNGetUUIDMetadataOperation",
-	"PNRemoveMembershipsOperation",
-	"PNRemoveChannelMembersOperation",
-	"PNSetUUIDMetadataOperation",
-	"PNSetChannelMetadataOperation",
-	"PNGetChannelMetadataOperation",
-	"GrantToken",
+	"GetMemberships",
+	"GetChannelMembers",
+	"ManageMemberships",
+	"ManageMembers",
+	"SetChannelMembers",
+	"SetMemberships",
+	"RemoveChannelMetadata",
+	"RemoveUUIDMetadata",
+	"GetAllChannelMetadata",
+	"GetAllUUIDMetadata",
+	"GetUUIDMetadata",
+	"RemoveMemberships",
+	"RemoveChannelMembers",
+	"SetUUIDMetadata",
+	"SetChannelMetadata",
+	"GetChannelMetadata",
+	"Grant Token",
+	"GetMessageActions",
+	"HistoryWithActions",
+	"AddMessageActions",
+	"RemoveMessageActions",
+	"DeleteFile",
+	"DownloadFile",
+	"GetFileURL",
+	"ListFiles",
+	"SendFile",
+	"SendFileToS3",
+	"PublishFile",
 }
 
 func (c StatusCategory) String() string {
@@ -552,6 +579,28 @@ func (t OperationType) String() string {
 		return "Get Channel Metadata V2"
 	case PNAccessManagerGrantToken:
 		return "Grant Token"
+	case PNGetMessageActionsOperation:
+		return "Get Message Actions"
+	case PNHistoryWithActionsOperation:
+		return "History With Actions"
+	case PNAddMessageActionsOperation:
+		return "Add Message Actions"
+	case PNRemoveMessageActionsOperation:
+		return "Remove Message Actions"
+	case PNDeleteFileOperation:
+		return "Delete File"
+	case PNDownloadFileOperation:
+		return "Download File"
+	case PNGetFileURLOperation:
+		return "Get File URL"
+	case PNListFilesOperation:
+		return "List Files"
+	case PNSendFileOperation:
+		return "Send File"
+	case PNSendFileToS3Operation:
+		return "Send File To S3"
+	case PNPublishFileMessageOperation:
+		return "Publish File"
 	default:
 		return "No Category Matched"
 	}

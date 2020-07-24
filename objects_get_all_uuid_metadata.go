@@ -3,8 +3,10 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -193,6 +195,10 @@ func (o *getAllUUIDMetadataOpts) jobQueue() chan *JobQItem {
 
 func (o *getAllUUIDMetadataOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
+}
+
+func (o *getAllUUIDMetadataOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *getAllUUIDMetadataOpts) httpMethod() string {

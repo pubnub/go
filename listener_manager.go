@@ -4,6 +4,7 @@ import (
 	"sync"
 )
 
+// Listener type has all the `types` of response events
 type Listener struct {
 	Status              chan *PNStatus
 	Message             chan *PNMessage
@@ -13,8 +14,10 @@ type Listener struct {
 	ChannelEvent        chan *PNChannelEvent
 	MembershipEvent     chan *PNMembershipEvent
 	MessageActionsEvent chan *PNMessageActionsEvent
+	File                chan *PNFilesEvent
 }
 
+// NewListener initates the listener to facilitate the event handling
 func NewListener() *Listener {
 	return &Listener{
 		Status:              make(chan *PNStatus),
@@ -25,9 +28,11 @@ func NewListener() *Listener {
 		ChannelEvent:        make(chan *PNChannelEvent),
 		MembershipEvent:     make(chan *PNMembershipEvent),
 		MessageActionsEvent: make(chan *PNMessageActionsEvent),
+		File:                make(chan *PNFilesEvent),
 	}
 }
 
+// ListenerManager is used in the internal handling of listeners.
 type ListenerManager struct {
 	sync.RWMutex
 	ctx                  Context
@@ -222,6 +227,23 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	}()
 }
 
+func (m *ListenerManager) announceFile(file *PNFilesEvent) {
+	go func() {
+		lis := m.copyListeners()
+
+	AnnounceFileLabel:
+		for l := range lis {
+			select {
+			case <-m.exitListener:
+				m.pubnub.Config.Log.Println("announceFile exitListener")
+				break AnnounceFileLabel
+
+			case l.File <- file:
+			}
+		}
+	}()
+}
+
 // PNStatus is the status struct
 type PNStatus struct {
 	Category              StatusCategory
@@ -326,4 +348,16 @@ type PNMessageActionsEvent struct {
 	ActualChannel     string
 	Channel           string
 	Subscription      string
+}
+
+// PNFilesEvent is the Response for a Files Event
+type PNFilesEvent struct {
+	File              PNFileMessageAndDetails
+	UserMetadata      interface{}
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
+	Publisher         string
+	Timetoken         int64
 }

@@ -146,5 +146,5 @@ func TestAddChannelOptsValidateSub(t *testing.T) {
 		ChannelGroup: "cg",
 		pubnub:       pn,
 	}
-	assert.Equal("pubnub/validation: pubnub: \f: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Add Channel To Channel Group: Missing Subscribe Key", opts.validate().Error())
 }

@@ -9,17 +9,20 @@ const (
 	messageTypePAM
 )
 
+// JobQResponse is the type to store the resposne and error of the requests in the queue.
 type JobQResponse struct {
 	Resp  *http.Response
 	Error error
 }
 
+// JobQItem is the type to store the request, client and its resposne.
 type JobQItem struct {
 	Req         *http.Request
 	Client      *http.Client
 	JobResponse chan *JobQResponse
 }
 
+// RequestWorkers is the type to store the workers info
 type RequestWorkers struct {
 	Workers        []Worker
 	WorkersChannel chan chan *JobQItem
@@ -27,6 +30,7 @@ type RequestWorkers struct {
 	Sem            chan bool
 }
 
+// Worker is the type to store the worker info
 type Worker struct {
 	WorkersChannel chan chan *JobQItem
 	JobChannel     chan *JobQItem

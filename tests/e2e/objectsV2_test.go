@@ -51,9 +51,9 @@ func TestObjectsV2CreateUpdateGetDeleteUUIDWithPAM(t *testing.T) {
 	ObjectsCreateUpdateGetDeleteUUIDCommon(t, true, false)
 }
 
-func TestObjectsV2CreateUpdateGetDeleteUUIDWithPAMWithoutSecKey(t *testing.T) {
-	ObjectsCreateUpdateGetDeleteUUIDCommon(t, true, true)
-}
+// func TestObjectsV2CreateUpdateGetDeleteUUIDWithPAMWithoutSecKey(t *testing.T) {
+// 	ObjectsCreateUpdateGetDeleteUUIDCommon(t, true, true)
+// }
 
 func ObjectsCreateUpdateGetDeleteUUIDCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
@@ -220,9 +220,9 @@ func TestObjectsV2CreateUpdateGetDeleteChannelWithPAM(t *testing.T) {
 	ObjectsCreateUpdateGetDeleteChannelCommon(t, true, false)
 }
 
-func TestObjectsV2CreateUpdateGetDeleteChannelWithPAMWithoutSecKey(t *testing.T) {
-	ObjectsCreateUpdateGetDeleteChannelCommon(t, true, true)
-}
+// func TestObjectsV2CreateUpdateGetDeleteChannelWithPAMWithoutSecKey(t *testing.T) {
+// 	ObjectsCreateUpdateGetDeleteChannelCommon(t, true, true)
+// }
 
 func ObjectsCreateUpdateGetDeleteChannelCommon(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert := assert.New(t)
@@ -379,9 +379,9 @@ func TestObjectsV2SetRemoveMembershipsV2WithPAM(t *testing.T) {
 }
 
 // PASSES after adding PAM checks for Update Members
-func TestObjectsV2SetRemoveMembershipsV2WithPAMWithoutSecKey(t *testing.T) {
-	ObjectsSetRemoveMembershipsCommonV2(t, true, true)
-}
+// func TestObjectsV2SetRemoveMembershipsV2WithPAMWithoutSecKey(t *testing.T) {
+// 	ObjectsSetRemoveMembershipsCommonV2(t, true, true)
+// }
 
 func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert := assert.New(t)
@@ -953,9 +953,9 @@ func TestObjectsV2MembershipsV2WithPAM(t *testing.T) {
 }
 
 // PASSES after adding PAM checks for Update Members
-func TestObjectsV2MembershipsV2WithPAMWithoutSecKey(t *testing.T) {
-	ObjectsMembershipsCommonV2(t, true, true)
-}
+// func TestObjectsV2MembershipsV2WithPAMWithoutSecKey(t *testing.T) {
+// 	ObjectsMembershipsCommonV2(t, true, true)
+// }
 
 func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert := assert.New(t)
@@ -1525,9 +1525,9 @@ func TestObjectsV2ListenersV2WithPAM(t *testing.T) {
 	ObjectsListenersCommonV2(t, true, false)
 }
 
-func TestObjectsV2ListenersV2WithPAMWithoutSecKey(t *testing.T) {
-	ObjectsListenersCommonV2(t, true, true)
-}
+// func TestObjectsV2ListenersV2WithPAMWithoutSecKey(t *testing.T) {
+// 	ObjectsListenersCommonV2(t, true, true)
+// }
 
 func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	//Create channel names for Space and User

@@ -3,11 +3,14 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"mime/multipart"
+	"strconv"
+
 	"github.com/pubnub/go/pnerr"
 	"github.com/pubnub/go/utils"
-	"io/ioutil"
-	"strconv"
 
 	"net/http"
 	"net/url"
@@ -88,6 +91,16 @@ func (b *historyBuilder) IncludeMeta(withMeta bool) *historyBuilder {
 	return b
 }
 
+// func (b *historyBuilder) IncludeUUID(includeUUID bool) *historyBuilder {
+// 	b.opts.IncludeUUID = includeUUID
+// 	return b
+// }
+
+// func (b *historyBuilder) IncludeMessageType(includeMessageType bool) *historyBuilder {
+// 	b.opts.IncludeMessageType = includeMessageType
+// 	return b
+// }
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *historyBuilder) QueryParam(queryParam map[string]string) *historyBuilder {
 	b.opts.QueryParam = queryParam
@@ -116,10 +129,12 @@ type historyOpts struct {
 
 	Channel string
 
-	Start      int64
-	End        int64
-	QueryParam map[string]string
-	WithMeta   bool
+	Start              int64
+	End                int64
+	QueryParam         map[string]string
+	WithMeta           bool
+	IncludeUUID        bool
+	IncludeMessageType bool
 
 	// default: 100
 	Count int
@@ -189,6 +204,8 @@ func (o *historyOpts) buildQuery() (*url.Values, error) {
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_token", strconv.FormatBool(o.IncludeTimetoken))
 	q.Set("include_meta", strconv.FormatBool(o.WithMeta))
+	// q.Set("include_message_type", strconv.FormatBool(o.IncludeMessageType))
+	// q.Set("include_uuid", strconv.FormatBool(o.IncludeUUID))
 
 	SetQueryParam(q, o.QueryParam)
 
@@ -201,6 +218,10 @@ func (o *historyOpts) jobQueue() chan *JobQItem {
 
 func (o *historyOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
+}
+
+func (o *historyOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *historyOpts) httpMethod() string {

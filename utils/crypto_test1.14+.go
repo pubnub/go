@@ -4,8 +4,9 @@ package utils
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // TestComplexClassDecryption tests the complex struct decryption.
@@ -15,7 +16,7 @@ func TestComplexClassDecryption(t *testing.T) {
 
 	message := "Bc846Ri5HK1ixqP/dzAyZq23Z/NBlcPn2UX8h38xTGINs72yF5gtU0t9fFEMxjY+DmezWt0nG7eN7RABrj697tK1nooVHYIxgDLMsjMTw5N0K+rUM823n7LcHfEoXaX8oH2E6zkg6iK5pmT8nlh6LF6Bw1G5zkluT8oTjnbFJcpEvTyT2ZKzcqptgYsE9XZiRs1+hbUOxVQW8p7EIsErOmzEB8OKrFemADTysTDKflPcOoAyCLLEB1+uV/DMpXdUUXW0aXpU1/PZt3ggVMJI9AYG/lEzbXtqLZKtaMUcHOrADP9TH2ePxn6OHzNYvgJCs0KF/HAfIiv4tl6sx2jP/PBQ+IIC3/R5WBLMLcIgC7igWyLeAmltKFvda2c5MUqnYzqYiJIAdK6SoQWoaV6lBl0MMKGXG6UB/iB4YFQQN22qdfQ0a9RdYVRDb5iUap2aqhuAAmQZnCJxGbptuyn2MV1Y6fczSstwCUrlXQE5+1E="
 
-	decrypted, decErr := DecryptString("enigma", message)
+	decrypted, decErr := DecryptString("enigma", message, false)
 	assert.NoError(decErr)
 
 	customComplexMessage := initComplexMessage()
@@ -35,6 +36,6 @@ func TestComplexClassEncryption(t *testing.T) {
 	b1, err := json.Marshal(customComplexMessage)
 	assert.NoError(err)
 
-	encrypted := EncryptString("enigma", string(b1))
+	encrypted := EncryptString("enigma", string(b1), false)
 	assert.Equal("Bc846Ri5HK1ixqP/dzAyZq23Z/NBlcPn2UX8h38xTGINs72yF5gtU0t9fFEMxjY+DmezWt0nG7eN7RABrj697tK1nooVHYIxgDLMsjMTw5N0K+rUM823n7LcHfEoXaX8oH2E6zkg6iK5pmT8nlh6LF6Bw1G5zkluT8oTjnbFJcpEvTyT2ZKzcqptgYsE9XZiRs1+hbUOxVQW8p7EIsErOmzEB8OKrFemADTysTDKflPcOoAyCLLEB1+uV/DMpXdUUXW0aXpU1/PZt3ggVMJI9AYG/lEzbXtqLZKtaMUcHOrADP9TH2ePxn6OHzNYvgJCs0KF/HAfIiv4tl6sx2jP/PBQ+IIC3/R5WBLMLcIgC7igWyLeAmltKFvda2c5MUqnYzqYiJIAdK6SoQWoaV6lBl0MMKGXG6UB/iB4YFQQN22qdfQ0a9RdYVRDb5iUap2aqhuAAmQZnCJxGbptuyn2MV1Y6fczSstwCUrlXQE5+1E=", encrypted)
 }

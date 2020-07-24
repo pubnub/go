@@ -541,5 +541,5 @@ func TestPublishValidateSubscribeKey(t *testing.T) {
 		pubnub: pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x03: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Publish: Missing Subscribe Key", opts.validate().Error())
 }

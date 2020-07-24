@@ -260,7 +260,7 @@ func TestValidatePublishKey(t *testing.T) {
 	opts := &fireOpts{
 		pubnub: pn,
 	}
-	assert.Equal("pubnub/validation: pubnub: \x04: Missing Publish Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Fire: Missing Publish Key", opts.validate().Error())
 }
 
 func TestValidateSubscribeKey(t *testing.T) {
@@ -270,7 +270,7 @@ func TestValidateSubscribeKey(t *testing.T) {
 	opts := &fireOpts{
 		pubnub: pn,
 	}
-	assert.Equal("pubnub/validation: pubnub: \x04: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Fire: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestValidateChannel(t *testing.T) {
@@ -279,7 +279,7 @@ func TestValidateChannel(t *testing.T) {
 	opts := &fireOpts{
 		pubnub: pn,
 	}
-	assert.Equal("pubnub/validation: pubnub: \x04: Missing Channel", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Fire: Missing Channel", opts.validate().Error())
 }
 
 func TestValidateMessage(t *testing.T) {
@@ -289,7 +289,7 @@ func TestValidateMessage(t *testing.T) {
 		Channel: "ch",
 		pubnub:  pn,
 	}
-	assert.Equal("pubnub/validation: pubnub: \x04: Missing Message", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Fire: Missing Message", opts.validate().Error())
 }
 
 func TestValidate(t *testing.T) {

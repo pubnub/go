@@ -3,10 +3,23 @@ changelog:
   -
     changes:
       -
+        text: "Files."
+        type: feature
+      -
+        text: "Random IV option in EncryptString and DecryptString."
+        type: improvement
+      -
+        text: "Runes to string conversion fixes."
+        type: bug
+    date: Jul 24, 20
+    version: v4.8.0
+  -
+    changes:
+      -
         text: "BREAKING CHANGE: Object V2 (beta). This version does not support Objects v1 (beta)"
         type: feature
     date: Jun 10, 20
-    version: v4.7.0
+    version: v4.8.0
   - 
     changes: 
       - 
@@ -450,6 +463,7 @@ features:
     - PUBLISH-FIRE
     - PUBLISH-REPLICATION-FLAG
     - PUBLISH-MESSAGE-TTL
+    - PUBLISH-FILE-MESSAGE
   push: 
     - PUSH-ADD-DEVICE-TO-CHANNELS
     - PUSH-REMOVE-DEVICE-FROM-CHANNELS
@@ -470,6 +484,7 @@ features:
     - STORAGE-HISTORY-WITH-META
     - STORAGE-FETCH-WITH-META
     - STORAGE-FETCH-WITH-MESSAGE-ACTIONS
+    - STORAGE-FETCH-WITH-FILE
   subscribe: 
     - SUBSCRIBE-CHANNELS
     - SUBSCRIBE-CHANNEL-GROUPS
@@ -486,6 +501,7 @@ features:
     - SUBSCRIBE-SPACE-LISTENER
     - SUBSCRIBE-USER-LISTENER
     - SUBSCRIBE-MESSAGE-ACTIONS-LISTENER
+    - SUBSCRIBE-FILE-LISTENER
   objects:
     - OBJECTS-FILTERING
     - OBJECTS-SORTING
@@ -505,6 +521,12 @@ features:
     - OBJECTS-REMOVE-CHANNEL-MEMBERS-V2
     - OBJECTS-MANAGE-MEMBERSHIPS-V2
     - OBJECTS-MANAGE-CHANNEL-MEMBERS-V2
+  files:
+    - FILES-SEND-FILE
+    - FILES-LIST-FILES
+    - FILES-GET-FILE-URL
+    - FILES-DELETE-FILE
+    - FILES-DOWNLOAD-FILE
   message-actions:
     - MESSAGE-ACTIONS-GET
     - MESSAGE-ACTIONS-ADD
@@ -519,6 +541,7 @@ features:
     - TELEMETRY
     - QUERY-PARAM
     - CREATE-PUSH-PAYLOAD
+    - RANDOM-INITIALIZATION-VECTOR
   notify:
     - REQUEST-MESSAGE-COUNT-EXCEEDED  
   signal:
@@ -533,12 +556,12 @@ supported-platforms:
       - "1.10.8"
       - "1.11.13"
       - "1.12.17"
-      - "1.13.12"
-      - "1.14.4"
+      - "1.13.14"
+      - "1.14.6"
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.7.0
+version: v4.8.0

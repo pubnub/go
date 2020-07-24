@@ -200,7 +200,7 @@ func TestLeaveOptsValidateSub(t *testing.T) {
 		pubnub: pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x02: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Unsubscribe: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestLeaveOptsValidateCH(t *testing.T) {
@@ -210,5 +210,5 @@ func TestLeaveOptsValidateCH(t *testing.T) {
 		pubnub: pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x02: Missing Channel or Channel Group", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Unsubscribe: Missing Channel or Channel Group", opts.validate().Error())
 }

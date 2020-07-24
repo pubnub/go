@@ -245,6 +245,21 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 	case PNSetChannelMetadataOperation:
 		endpoint = "obj"
 		break
+	case PNDeleteFileOperation:
+		fallthrough
+	case PNDownloadFileOperation:
+		fallthrough
+	case PNGetFileURLOperation:
+		fallthrough
+	case PNListFilesOperation:
+		fallthrough
+	case PNSendFileOperation:
+		fallthrough
+	case PNSendFileToS3Operation:
+		fallthrough
+	case PNPublishFileMessageOperation:
+		endpoint = "file"
+		break
 	default:
 		endpoint = "time"
 		break

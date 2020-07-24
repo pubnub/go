@@ -184,7 +184,7 @@ func TestHereNowValidateSubscribeKey(t *testing.T) {
 		pubnub: pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \b: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Here Now: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestHereNowBuildPath(t *testing.T) {

@@ -5,11 +5,14 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -22,17 +25,28 @@ var valIV = "0123456789012345"
 // It accepts the following parameters:
 // cipherKey: cipher key to use to encrypt.
 // message: to encrypted.
+// useRandomInitializationVector: if true the IV is random and is sent along with the message
 //
 // returns the base64 encoded encrypted string.
-func EncryptString(cipherKey string, message string) string {
+func EncryptString(cipherKey string, message string, useRandomInitializationVector bool) string {
 	block, _ := aesCipher(cipherKey)
+
 	message = encodeNonASCIIChars(message)
 	value := []byte(message)
 	value = padWithPKCS7(value)
-	blockmode := cipher.NewCBCEncrypter(block, []byte(valIV))
+	iv := make([]byte, aes.BlockSize)
+	if useRandomInitializationVector {
+		iv = generateIV(aes.BlockSize)
+	} else {
+		iv = []byte(valIV)
+	}
+	blockmode := cipher.NewCBCEncrypter(block, iv)
+
 	cipherBytes := make([]byte, len(value))
 	blockmode.CryptBlocks(cipherBytes, value)
-
+	if useRandomInitializationVector {
+		return base64.StdEncoding.EncodeToString(append(iv, cipherBytes...))
+	}
 	return base64.StdEncoding.EncodeToString(cipherBytes)
 }
 
@@ -49,10 +63,11 @@ type B struct {
 // It accepts the following parameters:
 // cipherKey: cipher key to use to decrypt.
 // message: to encrypted.
+// useRandomInitializationVector: if true the IV is random and is prepended to the text. The IV is extracted and then the cipher is decoded.
 //
 // returns the unencoded encrypted string,
 // error if any.
-func DecryptString(cipherKey string, message string) (
+func DecryptString(cipherKey string, message string, useRandomInitializationVector bool) (
 	retVal interface{}, err error) {
 	if message == "" {
 		return "**decrypt error***", errors.New("message is empty")
@@ -67,7 +82,15 @@ func DecryptString(cipherKey string, message string) (
 	if decodeErr != nil {
 		return "***decrypt error***", fmt.Errorf("decrypt error on decode: %s", decodeErr)
 	}
-	decrypter := cipher.NewCBCDecrypter(block, []byte(valIV))
+	iv := make([]byte, aes.BlockSize)
+	if useRandomInitializationVector {
+		iv = value[:16]
+		value = value[16:]
+	} else {
+		iv = []byte(valIV)
+	}
+
+	decrypter := cipher.NewCBCDecrypter(block, iv)
 	//to handle decryption errors
 	defer func() {
 		if r := recover(); r != nil {
@@ -92,7 +115,7 @@ func DecryptString(cipherKey string, message string) (
 // returns the cipher block,
 // error if any.
 func aesCipher(cipherKey string) (cipher.Block, error) {
-	key := encryptCipherKey(cipherKey)
+	key := EncryptCipherKey(cipherKey)
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -100,13 +123,13 @@ func aesCipher(cipherKey string) (cipher.Block, error) {
 	return block, nil
 }
 
-// encryptCipherKey creates the 256 bit hex of the cipher key
+// EncryptCipherKey creates the 256 bit hex of the cipher key
 //
 // It accepts the following parameters:
 // cipherKey: cipher key to use to decrypt.
 //
 // returns the 256 bit hex of the cipher key.
-func encryptCipherKey(cipherKey string) []byte {
+func EncryptCipherKey(cipherKey string) []byte {
 	hash := sha256.New()
 	hash.Write([]byte(cipherKey))
 
@@ -192,4 +215,177 @@ func unpadPKCS7(data []byte) ([]byte, error) {
 	}
 
 	return data[:len(data)-padlen], nil
+}
+
+func generateIV(blocksize int) []byte {
+	iv := make([]byte, aes.BlockSize)
+	if _, err := rand.Read(iv); err != nil {
+		panic(err)
+	}
+	return iv
+}
+
+func EncryptFile(cipherKey string, iv []byte, filePart io.Writer, file *os.File) {
+	key := EncryptCipherKey(cipherKey)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+	if bytes.Equal(iv, []byte{}) {
+		iv = generateIV(aes.BlockSize)
+	}
+	_, e := filePart.Write(iv)
+	if e != nil {
+		panic(e)
+	}
+	blockSize := 16
+	bufferSize := 16
+	p := make([]byte, bufferSize)
+
+	mode := cipher.NewCBCEncrypter(block, iv)
+	cryptoRan := false
+	fii, _ := file.Stat()
+	contentLenIn := fii.Size()
+	var contentRead int64
+
+	for {
+		n2, err2 := io.ReadFull(file, p)
+		contentRead += int64(n2)
+		if err2 != nil {
+			if err2 == io.EOF {
+				ciphertext := make([]byte, blockSize)
+				copy(ciphertext[:n2], p[:n2])
+				break
+			}
+
+			if err2 == io.ErrUnexpectedEOF {
+				if !cryptoRan {
+					text := make([]byte, blockSize)
+					ciphertext := make([]byte, blockSize)
+					copy(text[:n2], p[:n2])
+					pad := bytes.Repeat([]byte{byte(blockSize - n2)}, blockSize-n2)
+					copy(text[n2:], pad)
+					mode.CryptBlocks(ciphertext, text)
+					filePart.Write(ciphertext)
+				} else {
+					text := make([]byte, blockSize)
+					ciphertext := make([]byte, blockSize)
+					copy(text[:n2], p[:n2])
+					pad := bytes.Repeat([]byte{byte(blockSize - n2)}, blockSize-n2)
+					copy(text[n2:], pad)
+					mode.CryptBlocks(ciphertext, text)
+					filePart.Write(ciphertext)
+
+				}
+
+			}
+			break
+		}
+
+		ciphertext := make([]byte, blockSize)
+		cryptoRan = true
+		if contentRead >= contentLenIn {
+			pad := bytes.Repeat([]byte{byte(blockSize - n2)}, blockSize-n2)
+			copy(p[n2:], pad)
+		}
+
+		mode.CryptBlocks(ciphertext, p)
+		filePart.Write(ciphertext)
+
+	}
+}
+
+func DecryptFile(cipherKey string, contentLenEnc int64, reader io.Reader, w io.WriteCloser) {
+	key := EncryptCipherKey(cipherKey)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+	blockSize := 16
+	bufferSize := 16
+	p := make([]byte, bufferSize)
+	ivBuff := make([]byte, blockSize)
+	emptyByteVar := make([]byte, blockSize)
+
+	iv2 := make([]byte, blockSize)
+	count := 0
+
+	var mode cipher.BlockMode
+
+	cryptoRan := false
+	var contentDownloaded int64
+
+	go func() {
+	ExitReadLabel:
+		for {
+			n2, err2 := io.ReadFull(reader, p)
+			if err2 != nil {
+				if err2 == io.EOF {
+					ciphertext := make([]byte, blockSize)
+					copy(ciphertext, p[:n2])
+					ciphertext, _ = unpadPKCS7(ciphertext)
+					w.Write(ciphertext)
+					w.Close()
+					break ExitReadLabel
+				}
+
+				if err2 == io.ErrUnexpectedEOF {
+					if bytes.Equal(iv2, emptyByteVar) {
+						copy(iv2, ivBuff[0:blockSize])
+						mode = cipher.NewCBCDecrypter(block, iv2)
+					}
+					if !cryptoRan {
+						text := make([]byte, blockSize)
+						ciphertext := make([]byte, blockSize)
+						copy(text, p[:n2])
+						mode.CryptBlocks(ciphertext, text)
+						ciphertext, _ = unpadPKCS7(ciphertext)
+						w.Write(ciphertext)
+
+						w.Close()
+						break ExitReadLabel
+					} else {
+						ciphertext := make([]byte, blockSize)
+						copy(ciphertext, p[:n2])
+						ciphertext, _ = unpadPKCS7(ciphertext)
+						w.Write(ciphertext)
+						w.Close()
+						break ExitReadLabel
+					}
+
+				}
+				break ExitReadLabel
+			} else {
+				contentDownloaded += int64(n2)
+				if count < blockSize/bufferSize {
+					if err != nil {
+						panic(err)
+					}
+					copy(ivBuff[bufferSize*count:], p)
+				} else {
+
+					if bytes.Equal(iv2, emptyByteVar) {
+						copy(iv2, ivBuff[0:blockSize])
+						mode = cipher.NewCBCDecrypter(block, iv2)
+					}
+
+					ciphertext := make([]byte, blockSize)
+
+					text := make([]byte, blockSize)
+					copy(text, p[:n2])
+
+					mode.CryptBlocks(ciphertext, p)
+					cryptoRan = true
+					if contentDownloaded >= contentLenEnc {
+						ciphertext, _ = unpadPKCS7(ciphertext)
+						w.Write(ciphertext)
+					} else {
+						w.Write(ciphertext)
+					}
+				}
+			}
+			count++
+
+		}
+	}()
 }

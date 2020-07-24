@@ -1,6 +1,9 @@
 package pubnub
 
 import (
+	"bytes"
+	"errors"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"testing"
@@ -28,6 +31,10 @@ func (o *fakeEndpointOpts) buildQuery() (*url.Values, error) {
 
 func (o *fakeEndpointOpts) buildBody() ([]byte, error) {
 	return []byte("myBody"), nil
+}
+
+func (o *fakeEndpointOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *fakeEndpointOpts) jobQueue() chan *JobQItem {
@@ -60,22 +67,6 @@ func (o *fakeEndpointOpts) operationType() OperationType {
 
 func (o *fakeEndpointOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
-}
-
-func xTestBuildURL(t *testing.T) {
-	assert := assert.New(t)
-
-	pnc := NewConfig()
-	pn := NewPubNub(pnc)
-
-	e := &fakeEndpointOpts{
-		pubnub: pn,
-	}
-
-	url, err := buildURL(e)
-
-	assert.Nil(err)
-	assert.Equal("https://ps.pndsn.com/my/path?a=2&b=hey", url.RequestURI())
 }
 
 func TestSignatureV2(t *testing.T) {

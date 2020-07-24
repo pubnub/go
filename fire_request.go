@@ -1,7 +1,10 @@
 package pubnub
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"mime/multipart"
 	"strconv"
 
 	"github.com/pubnub/go/pnerr"
@@ -170,7 +173,7 @@ func (o *fireOpts) buildPath() (string, error) {
 	var err error
 
 	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-		msg := utils.EncryptString(cipherKey, string(message))
+		msg := utils.EncryptString(cipherKey, string(message), o.pubnub.Config.UseRandomInitializationVector)
 
 		o.Message = []byte(msg)
 	}
@@ -239,7 +242,7 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 		}
 
 		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-			enc := utils.EncryptString(cipherKey, string(msg))
+			enc := utils.EncryptString(cipherKey, string(msg), o.pubnub.Config.UseRandomInitializationVector)
 			msg, err := utils.ValueAsString(enc)
 			if err != nil {
 				return []byte{}, err
@@ -249,6 +252,10 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 		return msg, nil
 	}
 	return []byte{}, nil
+}
+
+func (o *fireOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *fireOpts) httpMethod() string {

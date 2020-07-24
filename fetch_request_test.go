@@ -103,7 +103,7 @@ func TestFetchMessageActionValidation(t *testing.T) {
 	o.IncludeMessageActions(true)
 
 	_, _, e := o.Execute()
-	assert.Equal("pubnub/validation: pubnub: \x06: Only one channel is supported when WithMessageActions is true", e.Error())
+	assert.Equal("pubnub/validation: pubnub: Fetch Messages: Only one channel is supported when WithMessageActions is true", e.Error())
 
 }
 
@@ -267,7 +267,7 @@ func TestFetchResponseWithCipherInterface(t *testing.T) {
 
 		break
 	default:
-		assert.Fail(string(reflect.TypeOf(data).Kind()), " expected interafce")
+		assert.Fail(fmt.Sprintf("%s", reflect.TypeOf(data).Kind()), " expected interafce")
 		break
 	}
 
@@ -317,7 +317,7 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 
 		break
 	default:
-		assert.Fail(string(reflect.TypeOf(data).Kind()), " expected interafce")
+		assert.Fail(fmt.Sprintf("%s", reflect.TypeOf(data).Kind()), " expected interafce")
 		break
 	}
 
@@ -452,7 +452,7 @@ func TestFireValidateSubscribeKey(t *testing.T) {
 		pubnub:  pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x06: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Fetch Messages: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestFireValidateCH(t *testing.T) {
@@ -462,7 +462,7 @@ func TestFireValidateCH(t *testing.T) {
 		Reverse: false,
 		pubnub:  pn,
 	}
-	assert.Equal("pubnub/validation: pubnub: \x06: Missing Channel", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Fetch Messages: Missing Channel", opts.validate().Error())
 }
 
 func TestNewFetchResponseValueError(t *testing.T) {

@@ -47,17 +47,17 @@ func Serialize(msg interface{}) ([]byte, error) {
 	return jsonSerialized, nil
 }
 
-func SerializeAndEncrypt(msg interface{}, cipherKey string, serialize bool) (string, error) {
+func SerializeAndEncrypt(msg interface{}, cipherKey string, serialize bool, useRandomInitializationVector bool) (string, error) {
 	var encrypted string
 	if serialize {
 		jsonSerialized, errJSONMarshal := json.Marshal(msg)
 		if errJSONMarshal != nil {
 			return "", errJSONMarshal
 		}
-		encrypted = EncryptString(cipherKey, string(jsonSerialized))
+		encrypted = EncryptString(cipherKey, string(jsonSerialized), useRandomInitializationVector)
 	} else {
 		if serializedMsg, ok := msg.(string); ok {
-			encrypted = EncryptString(cipherKey, serializedMsg)
+			encrypted = EncryptString(cipherKey, serializedMsg, useRandomInitializationVector)
 		} else {
 			return "", pnerr.NewBuildRequestError("Message is not JSON serialized.")
 		}
@@ -66,7 +66,7 @@ func SerializeAndEncrypt(msg interface{}, cipherKey string, serialize bool) (str
 	return encrypted, nil
 }
 
-func SerializeEncryptAndSerialize(msg interface{}, cipherKey string, serialize bool) (string, error) {
+func SerializeEncryptAndSerialize(msg interface{}, cipherKey string, serialize bool, useRandomInitializationVector bool) (string, error) {
 	var encrypted string
 
 	if serialize {
@@ -74,10 +74,10 @@ func SerializeEncryptAndSerialize(msg interface{}, cipherKey string, serialize b
 		if errJSONMarshal != nil {
 			return "", errJSONMarshal
 		}
-		encrypted = EncryptString(cipherKey, string(jsonSerialized))
+		encrypted = EncryptString(cipherKey, string(jsonSerialized), useRandomInitializationVector)
 	} else {
 		if serializedMsg, ok := msg.(string); ok {
-			encrypted = EncryptString(cipherKey, serializedMsg)
+			encrypted = EncryptString(cipherKey, serializedMsg, useRandomInitializationVector)
 		} else {
 			return "", pnerr.NewBuildRequestError("Message is not JSON serialized.")
 		}

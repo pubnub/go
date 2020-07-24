@@ -131,5 +131,5 @@ func TestWhereNowValidateSubscribeKey(t *testing.T) {
 		pubnub: pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \a: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Where Now: Missing Subscribe Key", opts.validate().Error())
 }

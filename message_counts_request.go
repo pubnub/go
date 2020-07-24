@@ -3,14 +3,17 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"mime/multipart"
 
-	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/pubnub/go/pnerr"
+	"github.com/pubnub/go/utils"
 
 	"net/http"
 	"net/url"
@@ -169,6 +172,10 @@ func (o *messageCountsOpts) jobQueue() chan *JobQItem {
 
 func (o *messageCountsOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
+}
+
+func (o *messageCountsOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *messageCountsOpts) httpMethod() string {

@@ -3,35 +3,33 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
-	"github.com/pubnub/go/utils"
 	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/pubnub/go/utils"
 )
 
 // SubscriptionManager Events:
 // - ConnectedCategory - after connection established
 // - DisconnectedCategory - after subscription loop stops for any reason (no
 // channels left or error happened)
-
-// Unsubscribe.
+// Unsubscribe
 // When you unsubscribe from channel or channel group the following events
 // happens:
 // - LoopStopCategory - immediately when no more channels or channel groups left
 // to subscribe
 // - PNUnsubscribeOperation - after leave request was fulfilled and server is
 // notified about unsubscibed items
-//
-// Announcement
+// Announcement:
 // Status, Message and Presence announcement happens in a distinct goroutine.
 // It doesn't block subscribe loop.
 // Keep in mind that each listener will receive the same pointer to a response
 // object. You may wish to create a shallow copy of either the response or the
 // response message by you own to not affect the other listeners.
-
 // Heartbeat:
 // - Heartbeat is enabled by default.
 // - Default presence timeout is 0 seconds.
@@ -69,7 +67,7 @@ type SubscriptionManager struct {
 	requestSentAt                int64
 }
 
-// SubscribeOperation
+// SubscribeOperation is the type to store the subscribe op params
 type SubscribeOperation struct {
 	Channels         []string
 	ChannelGroups    []string
@@ -80,12 +78,14 @@ type SubscribeOperation struct {
 	QueryParam       map[string]string
 }
 
+// UnsubscribeOperation is the types to store unsubscribe op params
 type UnsubscribeOperation struct {
 	Channels      []string
 	ChannelGroups []string
 	QueryParam    map[string]string
 }
 
+// StateOperation is the types to store state op params
 type StateOperation struct {
 	channels      []string
 	channelGroups []string
@@ -162,6 +162,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 	return manager
 }
 
+// Destroy closes the subscription manager, listeners and reconnection manager instances.
 func (m *SubscriptionManager) Destroy() {
 	if m.subscribeCancel != nil {
 		m.subscribeCancel()
@@ -656,6 +657,25 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 		pnMessageActionsEvent := createPNMessageActionsEventResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID)
 		m.pubnub.Config.Log.Println("PNMessageTypeMessageActions:", pnMessageActionsEvent)
 		m.listenerManager.announceMessageActionsEvent(pnMessageActionsEvent)
+	case PNMessageTypeFile:
+		var err error
+		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
+		if err != nil {
+			pnStatus := &PNStatus{
+				Category:         PNBadRequestCategory,
+				ErrorData:        err,
+				Error:            true,
+				Operation:        PNSubscribeOperation,
+				AffectedChannels: []string{channel},
+			}
+			m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
+			m.listenerManager.announceStatus(pnStatus)
+
+		}
+
+		pnFilesEvent := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+		m.pubnub.Config.Log.Println("PNMessageTypeFile:", PNMessageTypeFile)
+		m.listenerManager.announceFile(pnFilesEvent)
 	default:
 		var err error
 		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
@@ -694,6 +714,41 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 	}
 }
 
+func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64) *PNFilesEvent {
+	var filesPayload map[string]interface{}
+	var ok bool
+	if filesPayload, ok = filePayload.(map[string]interface{}); !ok {
+		m.listenerManager.announceStatus(&PNStatus{
+			Category:         PNUnknownCategory,
+			ErrorData:        errors.New("Files response parsing error"),
+			Error:            true,
+			Operation:        PNSubscribeOperation,
+			AffectedChannels: []string{channel},
+		})
+		return nil
+	}
+
+	resp := PNFileMessageAndDetails{}
+	resp.PNFile, resp.PNMessage = ParseFileInfo(filesPayload)
+	resGetFile, _, _ := m.pubnub.GetFileURL().Channel(channel).ID(resp.PNFile.ID).Name(resp.PNFile.Name).Execute()
+
+	if resGetFile != nil {
+		resp.PNFile.URL = resGetFile.URL
+	}
+
+	pnFilesEvent := &PNFilesEvent{
+		File:              resp,
+		ActualChannel:     actualCh,
+		SubscribedChannel: subscribedCh,
+		Channel:           channel,
+		Subscription:      subscriptionMatch,
+		Timetoken:         timetoken,
+		Publisher:         issuingClientID,
+		UserMetadata:      userMetadata,
+	}
+	return pnFilesEvent
+}
+
 func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string) *PNMessageActionsEvent {
 	var messageActionsPayload map[string]interface{}
 	var ok bool
@@ -711,7 +766,7 @@ func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionMan
 	var data map[string]interface{}
 	resp := PNMessageActionsResponse{}
 
-	if o := messageActionsPayload["data"]; ok {
+	if o, ok := messageActionsPayload["data"]; ok {
 		data = o.(map[string]interface{})
 		if d, ok := data["type"]; ok {
 			resp.ActionType = d.(string)
@@ -768,7 +823,7 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	}
 	var id, UUID, channelID, description, timestamp, updated, eTag, name, externalID, profileURL, email string
 	var custom, data map[string]interface{}
-	if o := objectsPayload["data"]; ok {
+	if o, ok := objectsPayload["data"]; ok {
 		data = o.(map[string]interface{})
 		if d, ok := data["uuid"]; ok {
 			u := d.(map[string]interface{})
@@ -912,7 +967,7 @@ func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error)
 				msg, ok := v["pn_other"].(string)
 				if ok {
 					pnConf.Log.Println("v[pn_other]", v["pn_other"], v, msg)
-					decrypted, errDecryption := utils.DecryptString(pnConf.CipherKey, msg)
+					decrypted, errDecryption := utils.DecryptString(pnConf.CipherKey, msg, pnConf.UseRandomInitializationVector)
 					if errDecryption != nil {
 						pnConf.Log.Println(errDecryption, msg)
 						return v, errDecryption
@@ -935,7 +990,7 @@ func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error)
 			return v, nil
 		case string:
 			var intf interface{}
-			decrypted, errDecryption := utils.DecryptString(pnConf.CipherKey, data.(string))
+			decrypted, errDecryption := utils.DecryptString(pnConf.CipherKey, data.(string), pnConf.UseRandomInitializationVector)
 			if errDecryption != nil {
 				pnConf.Log.Println(errDecryption, intf)
 				intf = data
@@ -960,18 +1015,22 @@ func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error)
 	}
 }
 
+// AddListener adds a new listener.
 func (m *SubscriptionManager) AddListener(listener *Listener) {
 	m.listenerManager.addListener(listener)
 }
 
+// RemoveListener removes the listener.
 func (m *SubscriptionManager) RemoveListener(listener *Listener) {
 	m.listenerManager.removeListener(listener)
 }
 
+// RemoveAllListeners removes all the listeners.
 func (m *SubscriptionManager) RemoveAllListeners() {
 	m.listenerManager.removeAllListeners()
 }
 
+// GetListeners gets all the listeners.
 func (m *SubscriptionManager) GetListeners() map[*Listener]bool {
 	listn := m.listenerManager.listeners
 	return listn
@@ -994,6 +1053,7 @@ func (m *SubscriptionManager) reconnect() {
 	}
 }
 
+// Disconnect stops all open subscribe requests, timers, heartbeats and unsubscribes from all channels
 func (m *SubscriptionManager) Disconnect() {
 	m.pubnub.Config.Log.Println("disconnect")
 

@@ -1,8 +1,11 @@
 package pubnub
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -158,6 +161,10 @@ func (o *heartbeatOpts) jobQueue() chan *JobQItem {
 
 func (o *heartbeatOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
+}
+
+func (o *heartbeatOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *heartbeatOpts) httpMethod() string {

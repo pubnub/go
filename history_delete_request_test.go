@@ -133,7 +133,7 @@ func TestHistoryDeleteOptsValidateSub(t *testing.T) {
 		pubnub:   pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x17: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Delete messages: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestHistoryDeleteOptsValidateSec(t *testing.T) {
@@ -149,5 +149,5 @@ func TestHistoryDeleteOptsValidateSec(t *testing.T) {
 		pubnub:   pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x17: Missing Secret Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Delete messages: Missing Secret Key", opts.validate().Error())
 }

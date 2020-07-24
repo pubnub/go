@@ -3,8 +3,10 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"mime/multipart"
 	"reflect"
 	"strconv"
 
@@ -222,7 +224,7 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 
 	o.pubnub.Config.Log.Println("EncryptString: encrypting", fmt.Sprintf("%s", o.Message))
 	if o.pubnub.Config.DisablePNOtherProcessing {
-		if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJSONMarshal != nil {
+		if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize, o.pubnub.Config.UseRandomInitializationVector); errJSONMarshal != nil {
 			o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 			return "", errJSONMarshal
 		}
@@ -236,7 +238,7 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 
 			if ok {
 				o.pubnub.Config.Log.Println(ok, msgPart)
-				encMsg, errJSONMarshal := utils.SerializeAndEncrypt(msgPart, cipherKey, o.Serialize)
+				encMsg, errJSONMarshal := utils.SerializeAndEncrypt(msgPart, cipherKey, o.Serialize, o.pubnub.Config.UseRandomInitializationVector)
 				if errJSONMarshal != nil {
 					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 					return "", errJSONMarshal
@@ -249,14 +251,14 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 				}
 				msg = string(jsonEncBytes)
 			} else {
-				if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJSONMarshal != nil {
+				if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize, o.pubnub.Config.UseRandomInitializationVector); errJSONMarshal != nil {
 					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 					return "", errJSONMarshal
 				}
 			}
 			break
 		default:
-			if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize); errJSONMarshal != nil {
+			if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize, o.pubnub.Config.UseRandomInitializationVector); errJSONMarshal != nil {
 				o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 				return "", errJSONMarshal
 			}
@@ -380,6 +382,10 @@ func (o *publishOpts) buildBody() ([]byte, error) {
 		return []byte{}, pnerr.NewBuildRequestError("buildBody: Message is not JSON serialized.")
 	}
 	return []byte{}, nil
+}
+
+func (o *publishOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *publishOpts) httpMethod() string {

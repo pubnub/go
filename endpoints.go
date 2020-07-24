@@ -1,8 +1,10 @@
 package pubnub
 
 import (
+	"bytes"
 	"fmt"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -22,6 +24,7 @@ type endpointOpts interface {
 	buildPath() (string, error)
 	buildQuery() (*url.Values, error)
 	buildBody() ([]byte, error)
+	buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error)
 	httpMethod() string
 	operationType() OperationType
 	telemetryManager() *TelemetryManager
@@ -36,12 +39,14 @@ func SetQueryParam(q *url.Values, queryParam map[string]string) {
 	}
 }
 
+// SetArrayTypeQueryParam appends to the query string the key val pair
 func SetArrayTypeQueryParam(q *url.Values, val []string, key string) {
 	for _, value := range val {
 		q.Add(key, utils.URLEncode(value))
 	}
 }
 
+// SetQueryParamAsCommaSepString appends to the query string the comma separated string.
 func SetQueryParamAsCommaSepString(q *url.Values, val []string, key string) {
 	q.Set(key, strings.Join(val, ","))
 }
@@ -160,17 +165,31 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 		stringifiedQuery += fmt.Sprintf("&signature=%s", signature)
 	}
 
-	path = fmt.Sprintf("//%s%s", o.config().Origin, path)
-
 	secure := ""
 	if o.config().Secure {
 		secure = "s"
 	}
 
+	scheme := fmt.Sprintf("http%s", secure)
+
+	host := o.config().Origin
+
+	if o.httpMethod() != "POSTFORM" {
+		path = fmt.Sprintf("//%s%s", o.config().Origin, path)
+	} else {
+		p := strings.Split(path, "://")
+		scheme = p[0]
+		p2 := strings.Split(p[1], "?")
+		path = fmt.Sprintf("//%s", p2[0])
+		h := strings.Split(p[1], "/")
+		host = h[0]
+		stringifiedQuery = ""
+	}
+
 	retURL := &url.URL{
 		Opaque:   path,
-		Scheme:   fmt.Sprintf("http%s", secure),
-		Host:     o.config().Origin,
+		Scheme:   scheme,
+		Host:     host,
 		RawQuery: stringifiedQuery,
 	}
 
@@ -217,5 +236,5 @@ func createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body 
 }
 
 func newValidationError(o endpointOpts, msg string) error {
-	return pnerr.NewValidationError(string(o.operationType()), msg)
+	return pnerr.NewValidationError(o.operationType().String(), msg)
 }

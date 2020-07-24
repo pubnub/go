@@ -3,11 +3,14 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/pubnub/go/pnerr"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+
+	"github.com/pubnub/go/pnerr"
 )
 
 const grantTokenPath = "/v3/pam/%s/grant"
@@ -327,6 +330,10 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil
+}
+
+func (o *grantTokenOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *grantTokenOpts) httpMethod() string {

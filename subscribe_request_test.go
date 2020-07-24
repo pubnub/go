@@ -147,7 +147,7 @@ func TestSubscribeValidateSubscribeKey(t *testing.T) {
 		pubnub:           pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x01: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Subscribe: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestSubscribeValidatePublishKey(t *testing.T) {
@@ -176,7 +176,7 @@ func TestSubscribeValidateCHAndCG(t *testing.T) {
 		pubnub:           pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x01: Missing Channel", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Subscribe: Missing Channel", opts.validate().Error())
 }
 
 func TestSubscribeValidateState(t *testing.T) {

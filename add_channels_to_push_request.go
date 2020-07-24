@@ -1,11 +1,15 @@
 package pubnub
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
-	"github.com/pubnub/go/utils"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/pubnub/go/utils"
 )
 
 const addChannelsToPushPath = "/v1/push/sub-key/%s/devices/%s"
@@ -175,6 +179,10 @@ func (o *addChannelsToPushOpts) jobQueue() chan *JobQItem {
 
 func (o *addChannelsToPushOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
+}
+
+func (o *addChannelsToPushOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *addChannelsToPushOpts) httpMethod() string {

@@ -144,5 +144,5 @@ func TestRemChannelsFromCGValidateSubscribeKey(t *testing.T) {
 		pubnub: pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \r: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Remove Channel From Channel Group: Missing Subscribe Key", opts.validate().Error())
 }

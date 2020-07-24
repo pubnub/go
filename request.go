@@ -3,12 +3,14 @@ package pubnub
 import (
 	"bytes"
 	"fmt"
-	"github.com/pubnub/go/pnerr"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/pubnub/go/pnerr"
 )
 
 // StatusResponse is used to store the usable properties in the response of an request.
@@ -25,6 +27,7 @@ type StatusResponse struct {
 	Request               string
 	AffectedChannels      []string
 	AffectedChannelGroups []string
+	AdditionalData        interface{}
 }
 
 // ResponseInfo is used to store the properties in the response of an request.
@@ -61,6 +64,7 @@ func addToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan
 }
 
 func buildBody(opts endpointOpts, url *url.URL) (io.Reader, error) {
+
 	b, err := opts.buildBody()
 	if err != nil {
 		opts.config().Log.Println("PNUnknownCategory", err, url)
@@ -99,9 +103,22 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 		if err != nil {
 			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
 		}
-
 		req, err = newRequest("POST", url, body, opts.config().UseHTTP2)
 		req.Header.Set("Content-Type", "application/json")
+	} else if opts.httpMethod() == "POSTFORM" {
+
+		body, w, _, err := opts.buildBodyMultipartFileUpload()
+		if err != nil {
+			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
+		}
+
+		req, err = newRequestForMultipartWriter("POST", url.RequestURI(), &body, w, opts.config().UseHTTP2)
+		if err != nil {
+			opts.config().Log.Println("POST ERROR : ", err)
+			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
+		}
+
+		req.Header.Set("Content-Type", w.FormDataContentType())
 	} else if opts.httpMethod() == "DELETE" {
 		req, err = newRequest("DELETE", url, nil, opts.config().UseHTTP2)
 	} else if opts.httpMethod() == "PATCH" {
@@ -131,6 +148,7 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 	}
 
 	client := opts.client()
+
 	startTimestamp := time.Now()
 
 	var res *http.Response
@@ -194,16 +212,33 @@ func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
 		responseInfo.AuthKey = auth[0]
 	}
 
-	opts.config().Log.Println("PNUnknownCategory", string(val), responseInfo)
+	if opts.httpMethod() != "POSTFORM" {
+		opts.config().Log.Println("PNUnknownCategory", string(val), responseInfo)
+	}
 	status = createStatus(PNUnknownCategory, string(val), responseInfo, nil)
 
 	return val, status, nil
 }
 
-func newRequest(method string, u *url.URL, body io.Reader, useHTTP2 bool) (*http.Request,
-	error) {
+func newRequestForMultipartWriter(method string, URL string, body io.Reader, writer *multipart.Writer, useHTTP2 bool) (*http.Request, error) {
+	req, err := http.NewRequest(method, URL, body)
+	if useHTTP2 {
+		req.Proto = "HTTP/2.0"
+		req.ProtoMajor = 2
+		req.ProtoMinor = 0
+	} else {
+		req.Proto = "HTTP/1.1"
+		req.ProtoMajor = 1
+		req.ProtoMinor = 1
+	}
+	return req, err
+}
 
-	rc, ok := body.(io.ReadCloser)
+func newRequest(method string, u *url.URL, body io.Reader, useHTTP2 bool) (*http.Request, error) {
+	var rc io.ReadCloser
+	var ok bool
+
+	rc, ok = body.(io.ReadCloser)
 	if !ok && body != nil {
 		rc = ioutil.NopCloser(body)
 	}
@@ -231,6 +266,7 @@ func newRequest(method string, u *url.URL, body io.Reader, useHTTP2 bool) (*http
 		Body:       rc,
 		Host:       u.Host,
 	}
+
 	return req, nil
 
 }
@@ -238,7 +274,7 @@ func newRequest(method string, u *url.URL, body io.Reader, useHTTP2 bool) (*http
 func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusResponse, error) {
 	status := StatusResponse{}
 
-	if resp.StatusCode != 200 {
+	if (resp.StatusCode != 200) && (resp.StatusCode != 204) {
 		// Errors like 400, 403, 500
 		e := pnerr.NewServerError(resp.StatusCode, resp.Body)
 
@@ -272,6 +308,8 @@ func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusRespon
 	}
 
 	opts.config().Log.Println("200 OK: resp.StatusCode, resp.Status, resp.Body, resp.Request.URL, string(body)", resp.StatusCode, resp.Status, resp.Body, resp.Request.URL, string(body))
+
+	//opts.config().Log.Println("200 OK: resp.StatusCode, resp.Status, resp.Request.URL", resp.StatusCode, resp.Status, resp.Request.URL)
 	return body, status, nil
 }
 

@@ -109,7 +109,7 @@ func TestHeartbeatValidateChAndCg(t *testing.T) {
 		pubnub: pubnub,
 	}
 	err := opts.validate()
-	assert.Equal("pubnub/validation: pubnub: 	: Missing Channel or Channel Group", err.Error())
+	assert.Equal("pubnub/validation: pubnub: Heartbeat: Missing Channel or Channel Group", err.Error())
 }
 
 func TestHeartbeatValidateSubKey(t *testing.T) {
@@ -120,5 +120,5 @@ func TestHeartbeatValidateSubKey(t *testing.T) {
 		pubnub: pn,
 	}
 	err := opts.validate()
-	assert.Equal("pubnub/validation: pubnub: 	: Missing Subscribe Key", err.Error())
+	assert.Equal("pubnub/validation: pubnub: Heartbeat: Missing Subscribe Key", err.Error())
 }

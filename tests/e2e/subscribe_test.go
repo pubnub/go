@@ -15,10 +15,10 @@ import (
 	pubnub "github.com/pubnub/go"
 	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
-)
 
-import _ "net/http/pprof"
-import "net/http"
+	"net/http"
+	_ "net/http/pprof"
+)
 
 var timeout = 3
 
@@ -1806,7 +1806,7 @@ func Subscribe403Error(t *testing.T) {
 // 	// 	Method:             "GET",
 // 	// 	Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
 // 	// 	Query:              "",
-// 	// 	ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","e":1,"f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","d":"Signal"}]}`,
+// 	// 	ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","e":1,"f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo","c":"chTest","d":"Signal"}]}`,
 // 	// 	IgnoreQueryKeys:    []string{"pnsdk", "uuid", "tt"},
 // 	// 	ResponseStatusCode: 200,
 // 	// })
@@ -1886,7 +1886,7 @@ func TestSubscribeParseUserMeta(t *testing.T) {
 	// 	Method:             "GET",
 	// 	Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
 	// 	Query:              "",
-	// 	ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo-36","c":"chTest","u":"mydata","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
+	// 	ResponseBody:       `{"t":{"t":"14858178301085322","r":7},"m":[{"a":"4","f":512,"i":"02a7b822-220c-49b0-90c4-d9cbecc0fd85","s":1,"p":{"t":"14858178301075219","r":7},"k":"demo","c":"chTest","u":"mydata","d":{"City":"Goiania","Name":"Marcelo"}}]}`,
 	// 	IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 	// 	ResponseStatusCode: 200,
 	// })

@@ -135,5 +135,5 @@ func TestDeleteChannelGroupOptsValidateSub(t *testing.T) {
 		pubnub:       pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x0e: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Remove Channel Group: Missing Subscribe Key", opts.validate().Error())
 }

@@ -253,7 +253,7 @@ func TestGrantTokenOptsValidateSub(t *testing.T) {
 		pubnub:        pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x15: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Grant: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestGrantTokenOptsValidateSec(t *testing.T) {
@@ -272,7 +272,7 @@ func TestGrantTokenOptsValidateSec(t *testing.T) {
 		pubnub:        pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x15: Missing Secret Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Grant: Missing Secret Key", opts.validate().Error())
 }
 
 func TestGrantTokenOptsValidatePub(t *testing.T) {
@@ -291,7 +291,7 @@ func TestGrantTokenOptsValidatePub(t *testing.T) {
 		pubnub:        pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x15: Missing Publish Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: Grant: Missing Publish Key", opts.validate().Error())
 }
 
 func TestNewGrantResponseErrorUnmarshalling(t *testing.T) {

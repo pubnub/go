@@ -3,8 +3,10 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"mime/multipart"
 	"strconv"
 
 	"github.com/pubnub/go/pnerr"
@@ -92,6 +94,16 @@ func (b *fetchBuilder) IncludeMessageActions(withMessageActions bool) *fetchBuil
 	return b
 }
 
+// func (b *fetchBuilder) IncludeUUID(includeUUID bool) *fetchBuilder {
+// 	b.opts.IncludeUUID = includeUUID
+// 	return b
+// }
+
+// func (b *fetchBuilder) IncludeMessageType(includeMessageType bool) *fetchBuilder {
+// 	b.opts.IncludeMessageType = includeMessageType
+// 	return b
+// }
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *fetchBuilder) QueryParam(queryParam map[string]string) *fetchBuilder {
 	b.opts.QueryParam = queryParam
@@ -124,6 +136,8 @@ type fetchOpts struct {
 	End                int64
 	WithMessageActions bool
 	WithMeta           bool
+	IncludeUUID        bool
+	IncludeMessageType bool
 
 	// default: 100
 	Count int
@@ -202,6 +216,8 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_meta", strconv.FormatBool(o.WithMeta))
+	// q.Set("include_message_type", strconv.FormatBool(o.IncludeMessageType))
+	// q.Set("include_uuid", strconv.FormatBool(o.IncludeUUID))
 
 	SetQueryParam(q, o.QueryParam)
 
@@ -214,6 +230,10 @@ func (o *fetchOpts) jobQueue() chan *JobQItem {
 
 func (o *fetchOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
+}
+
+func (o *fetchOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *fetchOpts) httpMethod() string {
@@ -312,6 +332,13 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 						Meta:      histResponse["meta"],
 					}
 					histItem.MessageActions = o.parseMessageActions(histResponse["actions"])
+					if filesPayload, okFile := msg.(map[string]interface{}); okFile {
+						f, m := ParseFileInfo(filesPayload)
+						if f.Name != "" && f.ID != "" {
+							histItem.File = f
+							histItem.Message = m
+						}
+					}
 
 					items[count] = histItem
 					o.pubnub.Config.Log.Printf("Channel:%s, count:%d %d\n", channel, count, len(items))
@@ -372,6 +399,7 @@ type FetchResponseItem struct {
 	Message        interface{}                               `json:"message"`
 	Meta           interface{}                               `json:"meta"`
 	MessageActions map[string]PNHistoryMessageActionsTypeMap `json:"actions"`
+	File           PNFileDetails                             `json:"file"`
 	Timetoken      string                                    `json:"timetoken"`
 }
 

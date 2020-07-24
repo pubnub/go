@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+
+	"github.com/pubnub/go/pnerr"
+	"github.com/pubnub/go/utils"
 )
 
 const setStatePath = "/v2/presence/sub-key/%s/channel/%s/uuid/%s/data"
@@ -173,6 +175,10 @@ func (o *setStateOpts) jobQueue() chan *JobQItem {
 
 func (o *setStateOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
+}
+
+func (o *setStateOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *setStateOpts) httpMethod() string {

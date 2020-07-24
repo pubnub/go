@@ -46,12 +46,12 @@ jobs:
       go: 1.12.17
       script: 
         - bash ./scripts/run-tests.sh
-    - name: 'Go 1.13.12'
-      go: 1.13.12
+    - name: 'Go 1.13.14'
+      go: 1.13.14
       script: 
         - bash ./scripts/run-tests.sh
-    - name: 'Go 1.14.4'
-      go: 1.14.4
+    - name: 'Go 1.14.6'
+      go: 1.14.6
       script: 
         - bash ./scripts/run-tests.sh
     - name: 'Go "master"'
@@ -63,7 +63,7 @@ jobs:
       script: bash ./scripts/run-tests.sh
     - stage: "code coverage"
       name: 'Test & Code coverage'
-      go: 1.14.4
+      go: 1.14.6
       script: bash ./scripts/run-tests.sh
       after_success:
         - bash <(curl -s https://codecov.io/bash)

@@ -161,6 +161,18 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionValue: %s", outputPrefix, messageActionsEvent.Data.ActionValue))
 				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionTimetoken: %s", outputPrefix, messageActionsEvent.Data.ActionTimetoken))
 				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.MessageTimetoken: %s", outputPrefix, messageActionsEvent.Data.MessageTimetoken))
+			case file := <-listener.File:
+				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
+				fmt.Println(" --- MessageActionsEvent: ")
+				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, messageActionsEvent))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Channel: %s", outputPrefix, messageActionsEvent.Channel))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.SubscribedChannel: %s", outputPrefix, messageActionsEvent.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Event: %s", outputPrefix, messageActionsEvent.Event))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionType: %s", outputPrefix, messageActionsEvent.Data.ActionType))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionValue: %s", outputPrefix, messageActionsEvent.Data.ActionValue))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionTimetoken: %s", outputPrefix, messageActionsEvent.Data.ActionTimetoken))
+				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.MessageTimetoken: %s", outputPrefix, messageActionsEvent.Data.MessageTimetoken))
+
 			}
 		}
 	}()
@@ -2149,6 +2161,7 @@ func publishTest() {
 func publish(i int, ch string) {
 	msg := fmt.Sprintf("Message: %d", i)
 	fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
+
 	res, status, err := pn.Publish().
 		Channel(ch).
 		Message(msg).
@@ -2212,8 +2225,10 @@ func publishRequest(args []string) {
 		"b": "2",
 	}
 	fmt.Println(payload)
+
 	for _, ch := range channels {
 		fmt.Println(fmt.Sprintf("%s Publishing to channel: %s", outputPrefix, ch))
+
 		res, status, err := pn.Publish().
 			Channel(ch).
 			Message(message).

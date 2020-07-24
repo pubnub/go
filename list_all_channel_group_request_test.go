@@ -135,7 +135,7 @@ func TestListAllChannelsValidateSubscribeKey(t *testing.T) {
 		pubnub:       pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x0f: Missing Subscribe Key", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: List Channels In Channel Group: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestListAllChannelsValidateChannelGrp(t *testing.T) {
@@ -145,5 +145,5 @@ func TestListAllChannelsValidateChannelGrp(t *testing.T) {
 		pubnub: pn,
 	}
 
-	assert.Equal("pubnub/validation: pubnub: \x0f: Missing Channel Group", opts.validate().Error())
+	assert.Equal("pubnub/validation: pubnub: List Channels In Channel Group: Missing Channel Group", opts.validate().Error())
 }
