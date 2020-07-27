@@ -2,13 +2,13 @@
 July-24-2020
 
 #### Added
-- Files. 
+- Files: Allows users to upload and share files.
 
 #### Modified
-- Random IV option in EncryptString and DecryptString. 
+- BREAKING CHANGE: EncryptString and DecryptString functions now accept a third param - bool, if true the IV is random and is sent along with the message. Default is false. 
 
 #### Fixed
-- Runes to string conversion fixes. 
+- BREAKING CHANGE: runes to string converion now returns string, this mostly affect the validation responses. This makes the SDK compatible with Go 1.15. 
 
 ## [v4.7.0](https://github.com/pubnub/go/releases/tag/v4.7.0)
 June-10-2020

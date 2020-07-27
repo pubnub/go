@@ -3,13 +3,13 @@ changelog:
   -
     changes:
       -
-        text: "Files."
+        text: "Files: Allows users to upload and share files."
         type: feature
       -
-        text: "Random IV option in EncryptString and DecryptString."
+        text: "BREAKING CHANGE: EncryptString and DecryptString functions now accept a third param - bool, if true the IV is random and is sent along with the message. Default is false."
         type: improvement
       -
-        text: "Runes to string conversion fixes."
+        text: "BREAKING CHANGE: runes to string converion now returns string, this mostly affect the validation responses. This makes the SDK compatible with Go 1.15"
         type: bug
     date: Jul 24, 20
     version: v4.8.0
@@ -19,7 +19,7 @@ changelog:
         text: "BREAKING CHANGE: Object V2 (beta). This version does not support Objects v1 (beta)"
         type: feature
     date: Jun 10, 20
-    version: v4.8.0
+    version: v4.7.0
   - 
     changes: 
       - 
