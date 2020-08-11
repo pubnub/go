@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.8.0"
+	Version = "4.9.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -378,8 +378,8 @@ func (pn *PubNub) GetTokensByResource(resourceType PNResourceType) GrantResource
 }
 
 // GetToken Returns the token for the specified resource type and ID. When no token is set for the resource ID, the method checks for a pattern token at the resource level. Returns nil if not found.
-func (pn *PubNub) GetToken(resourceId string, resourceType PNResourceType) string {
-	return pn.tokenManager.GetToken(resourceId, resourceType)
+func (pn *PubNub) GetToken(resourceID string, resourceType PNResourceType) string {
+	return pn.tokenManager.GetToken(resourceID, resourceType)
 }
 
 // ResetTokenManager resets the token manager.

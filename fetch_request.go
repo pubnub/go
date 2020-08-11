@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"mime/multipart"
+	"reflect"
 	"strconv"
 
 	"github.com/pubnub/go/pnerr"
@@ -31,7 +32,9 @@ type fetchBuilder struct {
 func newFetchBuilder(pubnub *PubNub) *fetchBuilder {
 	builder := fetchBuilder{
 		opts: &fetchOpts{
-			pubnub: pubnub,
+			pubnub:          pubnub,
+			WithUUID:        true,
+			WithMessageType: true,
 		},
 	}
 
@@ -42,8 +45,10 @@ func newFetchBuilderWithContext(pubnub *PubNub,
 	context Context) *fetchBuilder {
 	builder := fetchBuilder{
 		opts: &fetchOpts{
-			pubnub: pubnub,
-			ctx:    context,
+			pubnub:          pubnub,
+			ctx:             context,
+			WithUUID:        true,
+			WithMessageType: true,
 		},
 	}
 
@@ -94,15 +99,17 @@ func (b *fetchBuilder) IncludeMessageActions(withMessageActions bool) *fetchBuil
 	return b
 }
 
-// func (b *fetchBuilder) IncludeUUID(includeUUID bool) *fetchBuilder {
-// 	b.opts.IncludeUUID = includeUUID
-// 	return b
-// }
+// IncludeUUID fetches the UUID associated with the message
+func (b *fetchBuilder) IncludeUUID(withUUID bool) *fetchBuilder {
+	b.opts.WithUUID = withUUID
+	return b
+}
 
-// func (b *fetchBuilder) IncludeMessageType(includeMessageType bool) *fetchBuilder {
-// 	b.opts.IncludeMessageType = includeMessageType
-// 	return b
-// }
+// IncludeMessageType fetches the Message Type associated with the message
+func (b *fetchBuilder) IncludeMessageType(withMessageType bool) *fetchBuilder {
+	b.opts.WithMessageType = withMessageType
+	return b
+}
 
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *fetchBuilder) QueryParam(queryParam map[string]string) *fetchBuilder {
@@ -136,8 +143,8 @@ type fetchOpts struct {
 	End                int64
 	WithMessageActions bool
 	WithMeta           bool
-	IncludeUUID        bool
-	IncludeMessageType bool
+	WithUUID           bool
+	WithMessageType    bool
 
 	// default: 100
 	Count int
@@ -216,8 +223,8 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_meta", strconv.FormatBool(o.WithMeta))
-	// q.Set("include_message_type", strconv.FormatBool(o.IncludeMessageType))
-	// q.Set("include_uuid", strconv.FormatBool(o.IncludeUUID))
+	q.Set("include_message_type", strconv.FormatBool(o.WithMessageType))
+	q.Set("include_uuid", strconv.FormatBool(o.WithUUID))
 
 	SetQueryParam(q, o.QueryParam)
 
@@ -313,6 +320,7 @@ func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistor
 	return resp
 }
 
+//{"status": 200, "error": false, "error_message": "", "channels": {"ch1":[{"message_type": "", "message": {"text": "hey"}, "timetoken": "15959610984115342", "meta": "", "uuid": "db9c5e39-7c95-40f5-8d71-125765b6f561"}]}}
 func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]FetchResponseItem {
 	messages := make(map[string][]FetchResponseItem, len(channels))
 
@@ -331,9 +339,28 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 						Timetoken: histResponse["timetoken"].(string),
 						Meta:      histResponse["meta"],
 					}
+					if d, ok := histResponse["message_type"]; ok {
+						switch v := d.(type) {
+						case float64:
+							histItem.MessageType = int(v)
+						case string:
+							t, err := strconv.ParseInt(v, 10, 64)
+							if err == nil {
+								histItem.MessageType = int(t)
+							} else {
+								o.pubnub.Config.Log.Printf("MessageType conversion error.")
+							}
+						default:
+							o.pubnub.Config.Log.Printf("histResponse message_type type %vv", reflect.TypeOf(v).Kind())
+						}
+					}
+					if d, ok := histResponse["uuid"]; ok {
+						histItem.UUID = d.(string)
+					}
 					histItem.MessageActions = o.parseMessageActions(histResponse["actions"])
 					if filesPayload, okFile := msg.(map[string]interface{}); okFile {
 						f, m := ParseFileInfo(filesPayload)
+
 						if f.Name != "" && f.ID != "" {
 							histItem.File = f
 							histItem.Message = m
@@ -401,6 +428,8 @@ type FetchResponseItem struct {
 	MessageActions map[string]PNHistoryMessageActionsTypeMap `json:"actions"`
 	File           PNFileDetails                             `json:"file"`
 	Timetoken      string                                    `json:"timetoken"`
+	UUID           string                                    `json:"uuid"`
+	MessageType    int                                       `json:"message_type"`
 }
 
 // PNHistoryMessageActionsTypeMap is the struct used in the Fetch request that includes Message Actions

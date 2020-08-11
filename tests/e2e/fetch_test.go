@@ -2,6 +2,8 @@ package e2e
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -46,6 +48,10 @@ func FetchCommon(t *testing.T, withMeta, withMessageActions bool) {
 	assert := a.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+
 	reverse := true
 
 	r := GenRandom()

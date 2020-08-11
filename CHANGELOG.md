@@ -1,3 +1,12 @@
+## [v4.9.0](https://github.com/pubnub/go/releases/tag/v4.9.0)
+August-11-2020
+
+#### Added
+- History v3 with UUID and MessageType. 
+
+#### Modified
+- PNPublishMessage struct changes, PublishFile enhancements. 
+
 ## [v4.8.0](https://github.com/pubnub/go/releases/tag/v4.8.0)
 July-24-2020
 

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 
 	//"io/ioutil"
 	"encoding/json"
@@ -59,6 +60,8 @@ func connect() {
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
+	config.CipherKey = "enigma"
+	config.UseRandomInitializationVector = true
 
 	pn = pubnub.NewPubNub(config)
 
@@ -164,15 +167,24 @@ func connect() {
 			case file := <-listener.File:
 				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
 				fmt.Println(" --- MessageActionsEvent: ")
-				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, messageActionsEvent))
-				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Channel: %s", outputPrefix, messageActionsEvent.Channel))
-				fmt.Println(fmt.Sprintf("%s messageActionsEvent.SubscribedChannel: %s", outputPrefix, messageActionsEvent.SubscribedChannel))
-				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Event: %s", outputPrefix, messageActionsEvent.Event))
-				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionType: %s", outputPrefix, messageActionsEvent.Data.ActionType))
-				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionValue: %s", outputPrefix, messageActionsEvent.Data.ActionValue))
-				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.ActionTimetoken: %s", outputPrefix, messageActionsEvent.Data.ActionTimetoken))
-				fmt.Println(fmt.Sprintf("%s messageActionsEvent.Data.MessageTimetoken: %s", outputPrefix, messageActionsEvent.Data.MessageTimetoken))
+				fmt.Println(fmt.Sprintf("file.File.PNMessage.Text: %s", file.File.PNMessage.Text))
+				fmt.Println(fmt.Sprintf("file.File.PNFile.Name: %s", file.File.PNFile.Name))
+				fmt.Println(fmt.Sprintf("file.File.PNFile.ID: %s", file.File.PNFile.ID))
+				fmt.Println(fmt.Sprintf("file.File.PNFile.URL: %s", file.File.PNFile.URL))
+				fmt.Println(fmt.Sprintf("file.Channel: %s", file.Channel))
+				fmt.Println(fmt.Sprintf("file.Timetoken: %d", file.Timetoken))
+				fmt.Println(fmt.Sprintf("file.SubscribedChannel: %s", file.SubscribedChannel))
+				fmt.Println(fmt.Sprintf("file.Publisher: %s", file.Publisher))
+				out, _ := os.Create("out.txt")
+				resDLFile, statusDLFile, errDLFile := pn.DownloadFile().Channel("demo-channel").CipherKey("enigma").ID(file.File.PNFile.ID).Name(file.File.PNFile.Name).Execute()
+				fmt.Println(statusDLFile, errDLFile)
+				if resDLFile != nil {
+					_, err := io.Copy(out, resDLFile.File)
 
+					if err != nil {
+						fmt.Println(err)
+					}
+				}
 			}
 		}
 	}()

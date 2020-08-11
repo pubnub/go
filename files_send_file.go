@@ -263,11 +263,11 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 		return emptySendFileResponse, s3ResponseStatus, errS3Response
 	}
 
-	m := PNPublishMessage{
+	m := &PNPublishMessage{
 		Text: o.Message,
 	}
 
-	file := PNFileInfoForPublish{
+	file := &PNFileInfoForPublish{
 		ID:   respForS3.Data.ID,
 		Name: o.Name,
 	}

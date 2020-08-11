@@ -77,8 +77,29 @@ func (b *publishFileMessageBuilder) Channel(channel string) *publishFileMessageB
 }
 
 // Message sets the Payload for the PublishFileMessage request.
-func (b *publishFileMessageBuilder) Message(msg interface{}) *publishFileMessageBuilder {
+func (b *publishFileMessageBuilder) FileName(name string) *publishFileMessageBuilder {
+	b.opts.FileName = name
+
+	return b
+}
+
+// Message sets the Payload for the PublishFileMessage request.
+func (b *publishFileMessageBuilder) Message(msg PNPublishFileMessage) *publishFileMessageBuilder {
 	b.opts.Message = msg
+
+	return b
+}
+
+// Message sets the Payload for the PublishFileMessage request.
+func (b *publishFileMessageBuilder) MessageText(msg string) *publishFileMessageBuilder {
+	b.opts.MessageText = msg
+
+	return b
+}
+
+// Message sets the Payload for the PublishFileMessage request.
+func (b *publishFileMessageBuilder) FileID(id string) *publishFileMessageBuilder {
+	b.opts.FileID = id
 
 	return b
 }
@@ -123,6 +144,9 @@ type publishFileMessageOpts struct {
 	ShouldStore    bool
 	setTTL         bool
 	setShouldStore bool
+	MessageText    string
+	FileID         string
+	FileName       string
 	QueryParam     map[string]string
 	Transport      http.RoundTripper
 	ctx            Context
@@ -149,6 +173,31 @@ func (o *publishFileMessageOpts) validate() error {
 		return newValidationError(o, StrMissingPubKey)
 	}
 
+	if (o.Message == nil) && (o.FileID == "") {
+		return newValidationError(o, StrMissingFileID)
+	}
+
+	if (o.Message == nil) && (o.FileName == "") {
+		return newValidationError(o, StrMissingFileName)
+	}
+
+	if o.Message != nil {
+		if filesPayload, okFile := o.Message.(PNPublishFileMessage); okFile {
+			if filesPayload.PNFile != nil {
+				if filesPayload.PNFile.ID == "" {
+					return newValidationError(o, StrMissingFileID)
+				}
+				if filesPayload.PNFile.Name == "" {
+					return newValidationError(o, StrMissingFileName)
+				}
+			} else {
+				return newValidationError(o, StrMissingFileID)
+			}
+		} else {
+			return newValidationError(o, StrMissingMessage)
+		}
+	}
+
 	return nil
 }
 
@@ -159,6 +208,22 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 			o.pubnub.Config.SubscribeKey,
 			utils.URLEncode(o.Channel),
 			"0"), nil
+	}
+
+	if o.Message == nil {
+		m := &PNPublishMessage{
+			Text: o.MessageText,
+		}
+
+		file := &PNFileInfoForPublish{
+			ID:   o.FileID,
+			Name: o.FileName,
+		}
+
+		o.Message = PNPublishFileMessage{
+			PNFile:    file,
+			PNMessage: m,
+		}
 	}
 
 	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {

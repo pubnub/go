@@ -39,20 +39,65 @@ func TestFetchQueryParam(t *testing.T) {
 
 func TestFetchMetaAndActions(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, true)
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, true, false, false)
 }
 
 func TestFetchActions(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, false, true)
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, false, true, false, false)
 }
 
 func TestFetchMeta(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, false)
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, false, false, false)
 }
 
-func AssertSuccessFetchGetMetaAndActions(t *testing.T, expectedString string, channels []string, withMeta, withMessageActions bool) {
+func TestFetchMetaAndActionsWithUUID(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, true, true, false)
+}
+
+func TestFetchActionsWithUUID(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, false, true, true, false)
+}
+
+func TestFetchMetaWithUUID(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, false, true, false)
+}
+
+func TestFetchMetaAndActionsWithMT(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, true, false, true)
+}
+
+func TestFetchActionsWithMT(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, false, true, false, true)
+}
+
+func TestFetchMetaWithMT(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, false, false, true)
+}
+
+func TestFetchMetaAndActionsWithUUIDAndMT(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, true, true, true)
+}
+
+func TestFetchActionsWithUUIDAndMT(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, false, true, true, true)
+}
+
+func TestFetchMetaWithUUIDAndMT(t *testing.T) {
+	channels := []string{"test1", "test2"}
+	AssertSuccessFetchGetMetaAndActions(t, "test1,test2", channels, true, false, true, true)
+}
+
+func AssertSuccessFetchGetMetaAndActions(t *testing.T, expectedString string, channels []string, withMeta, withMessageActions, withUUID, withMessageType bool) {
 	assert := assert.New(t)
 	queryParam := map[string]string{
 		"q1": "v1",
@@ -67,6 +112,12 @@ func AssertSuccessFetchGetMetaAndActions(t *testing.T, expectedString string, ch
 	}
 	opts.WithMeta = withMeta
 	opts.WithMessageActions = withMessageActions
+	if withUUID {
+		opts.WithUUID = withUUID
+	}
+	if withMessageType {
+		opts.WithMessageType = withMessageType
+	}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -91,6 +142,13 @@ func AssertSuccessFetchGetMetaAndActions(t *testing.T, expectedString string, ch
 	assert.Equal("v1", u1.Get("q1"))
 	assert.Equal("v2", u1.Get("q2"))
 	assert.Equal(strconv.FormatBool(withMeta), u1.Get("include_meta"))
+	if withMessageType {
+		assert.Equal(strconv.FormatBool(withMessageType), u1.Get("include_message_type"))
+	}
+	if withUUID {
+		assert.Equal(strconv.FormatBool(withUUID), u1.Get("include_uuid"))
+	}
+
 }
 
 func TestFetchMessageActionValidation(t *testing.T) {
@@ -364,6 +422,58 @@ func FetchResponseMetaCommon(t *testing.T, withCipher bool) {
 			meta := m0[0].Meta.(map[string]interface{})
 			assert.Equal("n1", meta["m1"])
 			assert.Equal("n2", meta["m2"])
+		} else {
+			assert.Fail("m0 nil")
+		}
+	} else {
+		assert.Fail("res nil")
+	}
+}
+
+func TestFetchResponseMessageTypeAndUUID(t *testing.T) {
+	FetchResponseCommonForMessageTypeAndUUID(t, false)
+}
+
+func FetchResponseCommonForMessageTypeAndUUID(t *testing.T, withCipher bool) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"my-channel":[{"message_type": 4, "message": "my-message", "timetoken": "15959610984115342", "meta": "", "uuid": "db9c5e39-7c95-40f5-8d71-125765b6f561"}]}}`)
+
+	resp, _, err := newFetchResponse(jsonString, initFetchOpts(""), fakeResponseState)
+	assert.Nil(err)
+	if resp != nil {
+		messages := resp.Messages
+		m0 := messages["my-channel"]
+		if m0 != nil {
+			assert.Equal("my-message", m0[0].Message)
+			assert.Equal("15959610984115342", m0[0].Timetoken)
+			assert.Equal(4, m0[0].MessageType)
+			assert.Equal("db9c5e39-7c95-40f5-8d71-125765b6f561", m0[0].UUID)
+		} else {
+			assert.Fail("m0 nil")
+		}
+	} else {
+		assert.Fail("res nil")
+	}
+}
+
+func TestFetchResponseWithoutMessageTypeAndUUID(t *testing.T) {
+	FetchResponseCommonForWithoutMessageTypeAndUUID(t, false)
+}
+
+func FetchResponseCommonForWithoutMessageTypeAndUUID(t *testing.T, withCipher bool) {
+	assert := assert.New(t)
+
+	jsonString := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"my-channel":[{"message": "my-message", "timetoken": "15959610984115342", "meta": ""}]}}`)
+
+	resp, _, err := newFetchResponse(jsonString, initFetchOpts(""), fakeResponseState)
+	assert.Nil(err)
+	if resp != nil {
+		messages := resp.Messages
+		m0 := messages["my-channel"]
+		if m0 != nil {
+			assert.Equal("my-message", m0[0].Message)
+			assert.Equal("15959610984115342", m0[0].Timetoken)
 		} else {
 			assert.Fail("m0 nil")
 		}

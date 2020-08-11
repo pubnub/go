@@ -56,7 +56,6 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-	pn.Config.Secure = true
 
 	cipherKey := ""
 	if useCipher {
@@ -232,6 +231,8 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 			ret1, _, _ := pn.FetchWithContext(backgroundContext).
 				Channels([]string{ch}).
 				Count(25).
+				IncludeMessageType(true).
+				IncludeUUID(true).
 				Reverse(true).
 				Execute()
 			chMessages := ret1.Messages[ch]
@@ -252,8 +253,10 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 				} else {
 					if enableDebuggingInTests {
 						fmt.Println("pubnub.PNPublishMessage", msg.Text)
+						fmt.Println("chMessages[i].MessageType:", chMessages[i].MessageType)
+						fmt.Println("chMessages[i].UUID, UUID:", chMessages[i].UUID, pn.Config.UUID)
 					}
-					if msg.Text == message && file.ID == id && file.Name == name {
+					if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
 						bFoundInFetch = true
 						break
 					}

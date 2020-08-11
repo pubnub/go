@@ -1,5 +1,16 @@
---- 
+---
+version: v4.9.0 
 changelog: 
+  -
+    changes:
+      -
+        text: "History v3 with UUID and MessageType."
+        type: feature
+      -
+        text: "PNPublishMessage struct changes, PublishFile enhancements."
+        type: improvement
+    date: Aug 11, 20
+    version: v4.9.0
   -
     changes:
       -
@@ -485,6 +496,8 @@ features:
     - STORAGE-FETCH-WITH-META
     - STORAGE-FETCH-WITH-MESSAGE-ACTIONS
     - STORAGE-FETCH-WITH-FILE
+    - STORAGE-FETCH-WITH-INCLUDE-MESSAGE-TYPE
+    - STORAGE-FETCH-WITH-INCLUDE-UUID
   subscribe: 
     - SUBSCRIBE-CHANNELS
     - SUBSCRIBE-CHANNEL-GROUPS
@@ -564,4 +577,3 @@ supported-platforms:
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
-version: v4.8.0

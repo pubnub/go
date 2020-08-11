@@ -13,8 +13,8 @@ type PNFileInfoForPublish struct {
 
 // PNPublishFileMessage is the message struct used in Publish File
 type PNPublishFileMessage struct {
-	PNMessage PNPublishMessage     `json:"message"`
-	PNFile    PNFileInfoForPublish `json:"file"`
+	PNMessage *PNPublishMessage     `json:"message"`
+	PNFile    *PNFileInfoForPublish `json:"file"`
 }
 
 // PNFileInfo is the File Upload API struct returned on for each file.
@@ -59,7 +59,7 @@ type PNFileMessageAndDetails struct {
 // ParseFileInfo is a function extract file info and add to the struct PNFileMessageAndDetails
 func ParseFileInfo(filesPayload map[string]interface{}) (PNFileDetails, PNPublishMessage) {
 	var data map[string]interface{}
-	resp := PNFileMessageAndDetails{}
+	resp := &PNFileMessageAndDetails{}
 	resp.PNMessage = PNPublishMessage{}
 	resp.PNFile = PNFileDetails{}
 
