@@ -7,7 +7,7 @@ changelog:
         text: "History v3 with UUID and MessageType."
         type: feature
       -
-        text: "PNPublishMessage struct changes, PublishFile enhancements."
+        text: "BREAKING CHANGE: PNPublishMessage struct changes, PublishFile enhancements."
         type: improvement
     date: Aug 11, 20
     version: v4.9.0
