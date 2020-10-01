@@ -60,7 +60,8 @@ func connect() {
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
-	config.CipherKey = "enigma"
+
+	//config.CipherKey = "enigma"
 	config.UseRandomInitializationVector = true
 
 	pn = pubnub.NewPubNub(config)
@@ -611,8 +612,16 @@ func readCommand(cmd string) {
 		getMessageActionsRec(command[1:])
 	case "getactionsrec2":
 		getMessageActionsRec(command[1:])
-	case "remaction":
-		removeMessageActions(command[1:])
+	case "uploadfile":
+		uploadFile(command[1:])
+	case "delfile":
+		delFile(command[1:])
+	case "listfiles":
+		listFiles(command[1:])
+	case "getfileurl":
+		getFileURL(command[1:])
+	case "downloadfile":
+		downloadFile(command[1:])
 	case "q":
 		pn.UnsubscribeAll()
 	case "d":
@@ -620,6 +629,75 @@ func readCommand(cmd string) {
 		fmt.Println("after Destroy")
 	default:
 		showHelp()
+	}
+}
+
+func uploadFile(args []string) {
+	channel := args[0]
+	message := args[1]
+	name := args[2]
+	filepath := args[3]
+	file, err := os.Open(filepath)
+
+	defer file.Close()
+
+	cipherKey := args[4]
+	res, status, err := pn.SendFile().Channel(channel).Message(message).CipherKey(cipherKey).Name(name).File(file).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+
+}
+
+func delFile(args []string) {
+	ch := args[0]
+	id := args[1]
+	name := args[2]
+
+	res, status, err := pn.DeleteFile().Channel(ch).ID(id).Name(name).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func listFiles(args []string) {
+	ch := args[0]
+	res, status, err := pn.ListFiles().Channel(ch).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func getFileURL(args []string) {
+	ch := args[0]
+	id := args[1]
+	name := args[2]
+
+	res, status, err := pn.GetFileURL().Channel(ch).ID(id).Name(name).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", res)
+}
+
+func downloadFile(args []string) {
+	ch := args[0]
+	id := args[1]
+	name := args[2]
+
+	resDLFile, status, err := pn.DownloadFile().Channel(ch).ID(id).Name(name).Execute()
+	fmt.Println("status", status)
+	fmt.Println("err", err)
+	fmt.Println("res", resDLFile)
+
+	if resDLFile != nil {
+		out, _ := os.Create("out.txt")
+		defer out.Close()
+
+		_, err := io.Copy(out, resDLFile.File)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -2243,7 +2321,7 @@ func publishRequest(args []string) {
 
 		res, status, err := pn.Publish().
 			Channel(ch).
-			Message(message).
+			Message("Text with 😜 emoji 🎉" + message).
 			UsePost(usePost).
 			ShouldStore(store).
 			Meta(meta).

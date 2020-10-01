@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "4.9.0"
+	Version = "4.9.1"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -707,6 +707,7 @@ func (pn *PubNub) PublishFileMessageWithContext(ctx Context) *publishFileMessage
 // Destroy stops all open requests, removes listeners, closes heartbeats, and cleans up.
 func (pn *PubNub) Destroy() {
 	pn.Config.Log.Println("Calling Destroy")
+	pn.UnsubscribeAll()
 	pn.cancel()
 
 	if pn.subscriptionManager != nil {

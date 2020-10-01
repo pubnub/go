@@ -1,6 +1,16 @@
 ---
-version: v4.9.0 
+version: v4.9.1 
 changelog: 
+  -
+    changes:
+      -
+        text: "Fix for a deadlock on destroy."
+        type: bug
+      -
+        text: "Fetch response nil check."
+        type: bug
+    date: Oct 1, 20
+    version: v4.9.1
   -
     changes:
       -

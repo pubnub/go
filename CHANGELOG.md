@@ -1,3 +1,10 @@
+## [v4.9.1](https://github.com/pubnub/go/releases/tag/v4.9.1)
+October-1-2020
+
+#### Fixed
+- Fix for a deadlock on destroy. 
+- Fetch response nil check. 
+
 ## [v4.9.0](https://github.com/pubnub/go/releases/tag/v4.9.0)
 August-11-2020
 

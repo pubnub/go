@@ -56,7 +56,6 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-
 	cipherKey := ""
 	if useCipher {
 		if customCipher != "" {
@@ -287,8 +286,8 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 			assert.Nil(errDelFile)
 			assert.Equal(200, statusDelFile.StatusCode)
 
-			_, statusGetFile2, _ := pn.DownloadFile().Channel(ch).ID(id).Name(name).Execute()
-			assert.Equal(404, statusGetFile2.StatusCode)
+			// _, statusGetFile2, _ := pn.DownloadFile().Channel(ch).ID(id).Name(name).Execute()
+			// assert.Equal(404, statusGetFile2.StatusCode)
 
 		} else {
 			assert.Fail("resSendFile nil")

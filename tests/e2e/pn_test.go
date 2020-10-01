@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 	"testing"
+
 	//"time"
 
 	pubnub "github.com/pubnub/go"
@@ -59,4 +60,29 @@ func TestDestroy(t *testing.T) {
 	//fmt.Println("after Destroy")
 
 	pn = nil
+}
+
+func TestDestroy2(t *testing.T) {
+	testSerial := "bb"
+	config := configCopy()
+	// go func() {
+	// 	log.Println(http.ListenAndServe("localhost:6060", nil))
+	// }()
+
+	if enableDebuggingInTests {
+		config.Log = log.New(os.Stdout, "", log.Ltime|log.Lmicroseconds)
+	}
+	config.PNReconnectionPolicy = pubnub.PNExponentialPolicy
+	config.MaximumReconnectionRetries = -1
+	config.UUID = testSerial
+	config.SuppressLeaveEvents = true
+	config.SetPresenceTimeoutWithCustomInterval(330, 300)
+	config.MaxWorkers = 0
+
+	pn := pubnub.NewPubNub(config)
+	listener := pubnub.NewListener()
+	pn.AddListener(listener)
+	pn.Subscribe().Channels([]string{"a." + testSerial}).Execute()
+	<-listener.Status
+	pn.Destroy()
 }

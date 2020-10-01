@@ -72,19 +72,19 @@ func (m *ListenerManager) removeAllListeners() {
 	m.pubnub.Config.Log.Println("in removeAllListeners")
 	m.Lock()
 	lis := m.listeners
-	m.Unlock()
 	for l := range lis {
 		delete(m.listeners, l)
 	}
+	m.Unlock()
 }
 
 func (m *ListenerManager) copyListeners() map[*Listener]bool {
-	m.RLock()
+	m.Lock()
 	lis := make(map[*Listener]bool)
 	for k, v := range m.listeners {
 		lis[k] = v
 	}
-	m.RUnlock()
+	m.Unlock()
 	return lis
 }
 

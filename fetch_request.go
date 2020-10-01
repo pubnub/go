@@ -351,7 +351,12 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 								o.pubnub.Config.Log.Printf("MessageType conversion error.")
 							}
 						default:
-							o.pubnub.Config.Log.Printf("histResponse message_type type %vv", reflect.TypeOf(v).Kind())
+							o.pubnub.Config.Log.Printf("histResponse message_type type %vv", d)
+							if v != nil {
+								o.pubnub.Config.Log.Printf("histResponse message_type type %vv", reflect.TypeOf(v).Kind())
+							} else {
+								o.pubnub.Config.Log.Printf("histResponse message_type nil")
+							}
 						}
 					}
 					if d, ok := histResponse["uuid"]; ok {
