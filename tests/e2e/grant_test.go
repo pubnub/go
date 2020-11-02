@@ -13,6 +13,234 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGrantObjectsUUIDGetTTLSucccess(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	channel := "channel"
+
+	res, _, err := pn.Grant().
+		Get(true).TTL(0).
+		AuthKeys([]string{"uuid-key"}).UUIDs([]string{channel}).
+		Execute()
+
+	assert.Nil(err)
+	assert.NotNil(res)
+
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].WriteEnabled)
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].ReadEnabled)
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].ManageEnabled)
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].DeleteEnabled)
+	assert.True(res.UUIDs[channel].AuthKeys["uuid-key"].GetEnabled)
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].UpdateEnabled)
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].JoinEnabled)
+
+}
+
+// Does not fail
+func TestGrantObjectsUUIDGetTTLFailure(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	channel := "channel"
+
+	res, _, err := pn.Grant().
+		Get(true).TTL(9999999999999999).
+		AuthKeys([]string{"uuid-key"}).UUIDs([]string{channel}).
+		Execute()
+
+	assert.Nil(err)
+	assert.NotNil(res)
+
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].WriteEnabled)
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].ReadEnabled)
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].ManageEnabled)
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].DeleteEnabled)
+	assert.True(res.UUIDs[channel].AuthKeys["uuid-key"].GetEnabled)
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].UpdateEnabled)
+	assert.True(!res.UUIDs[channel].AuthKeys["uuid-key"].JoinEnabled)
+
+}
+
+func TestGrantObjectsUUIDGetUpdateManJoinWithAuthSucccess(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	channel := "channel"
+
+	res, _, err := pn.Grant().
+		Get(true).Update(true).Manage(true).Join(true).
+		AuthKeys([]string{"uuid-key"}).Channels([]string{channel}).
+		Execute()
+
+	assert.Nil(err)
+	assert.NotNil(res)
+
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].WriteEnabled)
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].ReadEnabled)
+	assert.True(res.Channels[channel].AuthKeys["uuid-key"].ManageEnabled)
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].DeleteEnabled)
+	assert.True(res.Channels[channel].AuthKeys["uuid-key"].GetEnabled)
+	assert.True(res.Channels[channel].AuthKeys["uuid-key"].UpdateEnabled)
+	assert.True(res.Channels[channel].AuthKeys["uuid-key"].JoinEnabled)
+
+}
+
+func TestGrantObjectsUUIDGetUpdateManJoinSucccess(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	channel := "channel"
+
+	res, _, err := pn.Grant().
+		Get(true).Update(true).Manage(true).Join(true).
+		Channels([]string{channel}).
+		Execute()
+
+	assert.Nil(err)
+	assert.NotNil(res)
+
+	assert.True(!res.Channels[channel].WriteEnabled)
+	assert.True(!res.Channels[channel].ReadEnabled)
+	assert.True(res.Channels[channel].ManageEnabled)
+	assert.True(!res.Channels[channel].DeleteEnabled)
+	assert.True(res.Channels[channel].GetEnabled)
+	assert.True(res.Channels[channel].UpdateEnabled)
+	assert.True(res.Channels[channel].JoinEnabled)
+
+}
+
+func TestGrantObjectsUUIDGetUpdateDelSucccess(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	channel := "channel"
+
+	res, _, err := pn.Grant().
+		Get(true).Update(true).Delete(true).
+		Channels([]string{channel}).
+		Execute()
+
+	assert.Nil(err)
+	assert.NotNil(res)
+
+	assert.True(!res.Channels[channel].WriteEnabled)
+	assert.True(!res.Channels[channel].ReadEnabled)
+	assert.True(!res.Channels[channel].ManageEnabled)
+	assert.True(res.Channels[channel].DeleteEnabled)
+	assert.True(res.Channels[channel].GetEnabled)
+	assert.True(res.Channels[channel].UpdateEnabled)
+	assert.True(!res.Channels[channel].JoinEnabled)
+
+}
+
+func TestGrantObjectsUUIDGetUpdateDelWithAuthSucccess(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	channel := "channel"
+
+	res, _, err := pn.Grant().
+		Get(true).Update(true).Delete(true).
+		AuthKeys([]string{"uuid-key"}).Channels([]string{channel}).
+		Execute()
+
+	assert.Nil(err)
+	assert.NotNil(res)
+
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].WriteEnabled)
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].ReadEnabled)
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].ManageEnabled)
+	assert.True(res.Channels[channel].AuthKeys["uuid-key"].DeleteEnabled)
+	assert.True(res.Channels[channel].AuthKeys["uuid-key"].GetEnabled)
+	assert.True(res.Channels[channel].AuthKeys["uuid-key"].UpdateEnabled)
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].JoinEnabled)
+
+}
+
+func TestGrantObjectsChannelSucccess(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	channel := "channel"
+
+	res, _, err := pn.Grant().
+		Get(true).Read(true).Join(true).
+		Channels([]string{channel}).
+		Execute()
+
+	assert.Nil(err)
+	assert.NotNil(res)
+
+	assert.True(!res.Channels[channel].WriteEnabled)
+	assert.True(res.Channels[channel].ReadEnabled)
+	assert.True(!res.Channels[channel].ManageEnabled)
+	assert.True(!res.Channels[channel].DeleteEnabled)
+	assert.True(res.Channels[channel].GetEnabled)
+	assert.True(!res.Channels[channel].UpdateEnabled)
+	assert.True(res.Channels[channel].JoinEnabled)
+
+}
+
+func TestGrantObjectsChannelWithAuthSucccess(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	channel := "channel"
+
+	res, _, err := pn.Grant().
+		Get(true).Read(true).Join(true).
+		AuthKeys([]string{"uuid-key"}).Channels([]string{channel}).
+		Execute()
+
+	assert.Nil(err)
+	assert.NotNil(res)
+
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].WriteEnabled)
+	assert.True(res.Channels[channel].AuthKeys["uuid-key"].ReadEnabled)
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].ManageEnabled)
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].DeleteEnabled)
+	assert.True(res.Channels[channel].AuthKeys["uuid-key"].GetEnabled)
+	assert.True(!res.Channels[channel].AuthKeys["uuid-key"].UpdateEnabled)
+	assert.True(res.Channels[channel].AuthKeys["uuid-key"].JoinEnabled)
+
+}
+
+func TestGrantObjectsUUIDSucccessNotStubbed(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	res, _, err := pn.Grant().
+		Get(true).Update(true).Join(true).
+		AuthKeys([]string{"uuid-key"}).UUIDs([]string{"ch1", "ch2"}).
+		Execute()
+
+	assert.Nil(err)
+	assert.NotNil(res)
+
+	assert.True(res.UUIDs["ch1"].AuthKeys["uuid-key"].GetEnabled)
+	assert.True(res.UUIDs["ch1"].AuthKeys["uuid-key"].UpdateEnabled)
+	assert.True(res.UUIDs["ch1"].AuthKeys["uuid-key"].JoinEnabled)
+	assert.True(res.UUIDs["ch2"].AuthKeys["uuid-key"].GetEnabled)
+	assert.True(res.UUIDs["ch2"].AuthKeys["uuid-key"].UpdateEnabled)
+	assert.True(res.UUIDs["ch2"].AuthKeys["uuid-key"].JoinEnabled)
+}
+
+func TestGrantChannelsAndUUIDsFailureNotStubbed(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	res, _, err := pn.Grant().Channels([]string{"ch1", "ch2"}).
+		Get(true).Update(true).Join(true).Read(true).
+		AuthKeys([]string{"uuid-key"}).UUIDs([]string{"ch1", "ch2"}).
+		Execute()
+
+	assert.NotNil(err)
+	assert.Nil(res)
+}
+
 func TestGrantParseLogsForAuthKey(t *testing.T) {
 
 	assert := assert.New(t)

@@ -152,6 +152,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 			if enableDebuggingInTests {
 				fmt.Println("resSendFile.Data.ID ==>", resSendFile.Data.ID)
 			}
+			assert.NotEqual(0, resSendFile.Timestamp)
 			time.Sleep(2 * time.Second)
 
 			resGetFile, statusGetFile, errGetFile := pn.GetFileURL().Channel(ch).ID(id).Name(name).Execute()
@@ -252,8 +253,6 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 				} else {
 					if enableDebuggingInTests {
 						fmt.Println("pubnub.PNPublishMessage", msg.Text)
-						fmt.Println("chMessages[i].MessageType:", chMessages[i].MessageType)
-						fmt.Println("chMessages[i].UUID, UUID:", chMessages[i].UUID, pn.Config.UUID)
 					}
 					if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
 						bFoundInFetch = true

@@ -24,7 +24,8 @@ func RunGrantV2(pn *pubnub.PubNub, users, spaces []string, read, write, manage, 
 
 	res, _, _ := pn.Grant().
 		Read(true).Write(true).Manage(true).
-		Channels(append(users, spaces...)).AuthKeys([]string{authkey}).
+		Get(true).Update(true).Join(true).
+		UUIDs(append(users, spaces...)).AuthKeys([]string{authkey}).
 		Execute()
 
 	if res != nil {

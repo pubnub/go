@@ -9,6 +9,76 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGrantRequestObjects(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`{"message":"Success","payload":{"level":"uuid","subscribe_key":"sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306","ttl":1440,"uuids":{"ch1":{"auths":{"pam-key":{"r":0,"w":0,"m":0,"d":0,"g":1,"u":1,"j":1}}},"ch2":{"auths":{"pam-key":{"r":0,"w":0,"m":0,"d":0,"g":1,"u":1,"j":1}}}}},"service":"Access Manager","status":200}`)
+
+	e, _, err := newGrantResponse(jsonBytes, StatusResponse{})
+
+	assert.Nil(err)
+	assert.Equal(false, e.ManageEnabled)
+	assert.Equal(false, e.ReadEnabled)
+	assert.Equal(false, e.WriteEnabled)
+	assert.Equal(1440, e.TTL)
+	assert.Equal(false, e.UUIDs["ch1"].AuthKeys["pam-key"].ManageEnabled)
+	assert.Equal(false, e.UUIDs["ch1"].AuthKeys["pam-key"].ReadEnabled)
+	assert.Equal(false, e.UUIDs["ch1"].AuthKeys["pam-key"].WriteEnabled)
+	assert.Equal(false, e.UUIDs["ch1"].AuthKeys["pam-key"].DeleteEnabled)
+	assert.Equal(false, e.UUIDs["ch2"].AuthKeys["pam-key"].ManageEnabled)
+	assert.Equal(false, e.UUIDs["ch2"].AuthKeys["pam-key"].ReadEnabled)
+	assert.Equal(false, e.UUIDs["ch2"].AuthKeys["pam-key"].WriteEnabled)
+	assert.Equal(false, e.UUIDs["ch2"].AuthKeys["pam-key"].DeleteEnabled)
+	assert.Equal(true, e.UUIDs["ch1"].AuthKeys["pam-key"].GetEnabled)
+	assert.Equal(true, e.UUIDs["ch1"].AuthKeys["pam-key"].UpdateEnabled)
+	assert.Equal(true, e.UUIDs["ch1"].AuthKeys["pam-key"].JoinEnabled)
+	assert.Equal(true, e.UUIDs["ch2"].AuthKeys["pam-key"].GetEnabled)
+	assert.Equal(true, e.UUIDs["ch2"].AuthKeys["pam-key"].UpdateEnabled)
+	assert.Equal(true, e.UUIDs["ch2"].AuthKeys["pam-key"].JoinEnabled)
+
+}
+
+func TestNewGrantObjectsPremsBuilder(t *testing.T) {
+	assert := assert.New(t)
+	o := newGrantBuilder(pubnub)
+	o.AuthKeys([]string{"my-auth-key"})
+	o.UUIDs([]string{"uuid"})
+	o.Get(true)
+	o.Update(true)
+	o.Join(true)
+	o.TTL(5000)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+	u := &url.URL{
+		Path: path,
+	}
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/auth/grant/sub-key/%s", o.opts.pubnub.Config.SubscribeKey),
+		u.EscapedPath(), []int{})
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("auth", "my-auth-key")
+	expected.Set("target-uuid", "uuid")
+	expected.Set("r", "0")
+	expected.Set("w", "0")
+	expected.Set("m", "0")
+	expected.Set("d", "0")
+	expected.Set("g", "1")
+	expected.Set("u", "1")
+	expected.Set("j", "1")
+	expected.Set("ttl", "5000")
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "timestamp"}, []string{})
+
+	body, err := o.opts.buildBody()
+
+	assert.Nil(err)
+	assert.Equal([]byte{}, body)
+}
+
 func TestGrantRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 

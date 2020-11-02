@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	pubnub "github.com/pubnub/go"
 	"github.com/pubnub/go/tests/stubs"
 	"github.com/stretchr/testify/assert"
@@ -21,6 +22,7 @@ import (
 )
 
 var timeout = 3
+var testChannel = uuid.New().String()
 
 func SubscribesLogsForQueryParams(t *testing.T) {
 	go func() {
@@ -819,7 +821,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 
 	//r := GenRandom()
 
-	ch := "testChannel_sub_96112" //fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
+	ch := randomized("testChannel_sub")
 
 	pn := pubnub.NewPubNub(configCopy())
 	ips, err1 := net.LookupIP(pn.Config.Origin)

@@ -69,6 +69,26 @@ func (b *grantBuilder) Delete(del bool) *grantBuilder {
 	return b
 }
 
+func (b *grantBuilder) Get(get bool) *grantBuilder {
+	b.opts.Get = get
+	b.opts.isGetSet = true
+	return b
+}
+
+func (b *grantBuilder) Update(update bool) *grantBuilder {
+	b.opts.Update = update
+	b.opts.isUpdateSet = true
+
+	return b
+}
+
+func (b *grantBuilder) Join(join bool) *grantBuilder {
+	b.opts.Join = join
+	b.opts.isJoinSet = true
+
+	return b
+}
+
 // TTL in minutes for which granted permissions are valid.
 //
 // Min: 1
@@ -104,6 +124,13 @@ func (b *grantBuilder) ChannelGroups(groups []string) *grantBuilder {
 	return b
 }
 
+// ChannelGroups sets the ChannelGroups for the Grant request.
+func (b *grantBuilder) UUIDs(targetUUIDs []string) *grantBuilder {
+	b.opts.UUIDs = targetUUIDs
+
+	return b
+}
+
 // Meta sets the Meta for the Grant request.
 func (b *grantBuilder) Meta(meta map[string]interface{}) *grantBuilder {
 	b.opts.Meta = meta
@@ -135,6 +162,7 @@ type grantOpts struct {
 	AuthKeys      []string
 	Channels      []string
 	ChannelGroups []string
+	UUIDs         []string
 	QueryParam    map[string]string
 	Meta          map[string]interface{}
 
@@ -144,6 +172,9 @@ type grantOpts struct {
 	Write  bool
 	Manage bool
 	Delete bool
+	Get    bool
+	Update bool
+	Join   bool
 	// Max: 525600
 	// Min: 1
 	// Default: 1440
@@ -151,7 +182,10 @@ type grantOpts struct {
 	TTL int
 
 	// nil hacks
-	setTTL bool
+	setTTL      bool
+	isGetSet    bool
+	isUpdateSet bool
+	isJoinSet   bool
 }
 
 func (o *grantOpts) config() Config {
@@ -213,6 +247,30 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 		q.Set("d", "0")
 	}
 
+	if o.isGetSet {
+		if o.Get {
+			q.Set("g", "1")
+		} else {
+			q.Set("g", "0")
+		}
+	}
+
+	if o.isUpdateSet {
+		if o.Update {
+			q.Set("u", "1")
+		} else {
+			q.Set("u", "0")
+		}
+	}
+
+	if o.isJoinSet {
+		if o.Join {
+			q.Set("j", "1")
+		} else {
+			q.Set("j", "0")
+		}
+	}
+
 	if len(o.AuthKeys) > 0 {
 		q.Set("auth", strings.Join(o.AuthKeys, ","))
 	}
@@ -223,6 +281,10 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 
 	if len(o.ChannelGroups) > 0 {
 		q.Set("channel-group", strings.Join(o.ChannelGroups, ","))
+	}
+
+	if len(o.UUIDs) > 0 {
+		q.Set("target-uuid", strings.Join(o.UUIDs, ","))
 	}
 
 	if o.setTTL {
@@ -283,18 +345,21 @@ type GrantResponse struct {
 
 	Channels      map[string]*PNPAMEntityData
 	ChannelGroups map[string]*PNPAMEntityData
+	UUIDs         map[string]*PNPAMEntityData
 
 	ReadEnabled   bool
 	WriteEnabled  bool
 	ManageEnabled bool
 	DeleteEnabled bool
+	GetEnabled    bool
+	UpdateEnabled bool
+	JoinEnabled   bool
 }
 
 func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	*GrantResponse, StatusResponse, error) {
 	resp := &GrantResponse{}
 	var value interface{}
-
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
@@ -305,6 +370,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 
 	constructedChannels := make(map[string]*PNPAMEntityData)
 	constructedGroups := make(map[string]*PNPAMEntityData)
+	constructedUUIDs := make(map[string]*PNPAMEntityData)
 
 	grantData, _ := value.(map[string]interface{})
 	payload := grantData["payload"]
@@ -380,8 +446,15 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 		channelMap, _ := val.(map[string]interface{})
 
 		for channelName, value := range channelMap {
-			constructedChannels[channelName] = fetchChannel(channelName,
-				value, parsedPayload)
+			constructedChannels[channelName] = fetchChannel(channelName, value, parsedPayload)
+		}
+	}
+
+	if val, ok := parsedPayload["uuids"]; ok {
+		uuids, _ := val.(map[string]interface{})
+
+		for uuid, value := range uuids {
+			constructedUUIDs[uuid] = fetchChannel(uuid, value, parsedPayload)
 		}
 	}
 
@@ -392,42 +465,15 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	resp.SubscribeKey = subKey
 	resp.Channels = constructedChannels
 	resp.ChannelGroups = constructedGroups
+	resp.UUIDs = constructedUUIDs
 
-	if r, ok := parsedPayload["r"]; ok {
-		parsedValue, _ := r.(float64)
-		if parsedValue == float64(1) {
-			resp.ReadEnabled = true
-		} else {
-			resp.ReadEnabled = false
-		}
-	}
-
-	if r, ok := parsedPayload["w"]; ok {
-		parsedValue, _ := r.(float64)
-		if parsedValue == float64(1) {
-			resp.WriteEnabled = true
-		} else {
-			resp.WriteEnabled = false
-		}
-	}
-
-	if r, ok := parsedPayload["m"]; ok {
-		parsedValue, _ := r.(float64)
-		if parsedValue == float64(1) {
-			resp.ManageEnabled = true
-		} else {
-			resp.ManageEnabled = false
-		}
-	}
-
-	if r, ok := parsedPayload["d"]; ok {
-		parsedValue, _ := r.(float64)
-		if parsedValue == float64(1) {
-			resp.DeleteEnabled = true
-		} else {
-			resp.DeleteEnabled = false
-		}
-	}
+	resp.ReadEnabled = parsePerms(parsedPayload, "r")
+	resp.WriteEnabled = parsePerms(parsedPayload, "w")
+	resp.ManageEnabled = parsePerms(parsedPayload, "m")
+	resp.DeleteEnabled = parsePerms(parsedPayload, "d")
+	resp.GetEnabled = parsePerms(parsedPayload, "g")
+	resp.UpdateEnabled = parsePerms(parsedPayload, "u")
+	resp.JoinEnabled = parsePerms(parsedPayload, "j")
 
 	if r, ok := parsedPayload["ttl"]; ok {
 		parsedValue, _ := r.(float64)
@@ -437,8 +483,19 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	return resp, status, nil
 }
 
-func fetchChannel(channelName string,
-	value interface{}, parsedPayload map[string]interface{}) *PNPAMEntityData {
+func parsePerms(parsedPayload map[string]interface{}, name string) bool {
+	if r, ok := parsedPayload[name]; ok {
+		parsedValue, _ := r.(float64)
+		if parsedValue == float64(1) {
+			return true
+		} else {
+			return false
+		}
+	}
+	return false
+}
+
+func fetchChannel(channelName string, value interface{}, parsedPayload map[string]interface{}) *PNPAMEntityData {
 
 	auths := make(map[string]*PNAccessManagerKeyData)
 	entityData := &PNPAMEntityData{
@@ -483,6 +540,12 @@ func readKeyData(val interface{}, keyData *PNAccessManagerKeyData, entityData *P
 			entityData.ManageEnabled = readValue
 		case PNDeleteEnabled:
 			entityData.DeleteEnabled = readValue
+		case PNGetEnabled:
+			entityData.GetEnabled = readValue
+		case PNUpdateEnabled:
+			entityData.UpdateEnabled = readValue
+		case PNJoinEnabled:
+			entityData.JoinEnabled = readValue
 		}
 	} else {
 		switch grantType {
@@ -494,6 +557,12 @@ func readKeyData(val interface{}, keyData *PNAccessManagerKeyData, entityData *P
 			keyData.ManageEnabled = readValue
 		case PNDeleteEnabled:
 			keyData.DeleteEnabled = readValue
+		case PNGetEnabled:
+			keyData.GetEnabled = readValue
+		case PNUpdateEnabled:
+			keyData.UpdateEnabled = readValue
+		case PNJoinEnabled:
+			keyData.JoinEnabled = readValue
 		}
 	}
 }
@@ -516,6 +585,18 @@ func createPNAccessManagerKeyData(value interface{}, entityData *PNPAMEntityData
 
 	if val, ok := valueMap["d"]; ok {
 		readKeyData(val, keyData, entityData, writeToEntityData, PNDeleteEnabled)
+	}
+
+	if val, ok := valueMap["g"]; ok {
+		readKeyData(val, keyData, entityData, writeToEntityData, PNGetEnabled)
+	}
+
+	if val, ok := valueMap["u"]; ok {
+		readKeyData(val, keyData, entityData, writeToEntityData, PNUpdateEnabled)
+	}
+
+	if val, ok := valueMap["j"]; ok {
+		readKeyData(val, keyData, entityData, writeToEntityData, PNJoinEnabled)
 	}
 
 	if val, ok := valueMap["ttl"]; ok {

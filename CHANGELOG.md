@@ -1,3 +1,17 @@
+## [v4.10.0](https://github.com/pubnub/go/releases/tag/v4.10.0)
+November-2-2020
+
+#### Added
+- Objects v2 PAM changes. 
+
+#### Modified
+- Fetch with 100 messages. 
+- Include timetoken in send file. 
+- Readme updates. 
+
+#### Fixed
+- Read Publish File Message retry count from config. 
+
 ## [v4.9.1](https://github.com/pubnub/go/releases/tag/v4.9.1)
 October-1-2020
 

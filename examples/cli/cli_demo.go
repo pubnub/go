@@ -61,7 +61,7 @@ func connect() {
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 
-	//config.CipherKey = "enigma"
+	config.CipherKey = "enigma"
 	config.UseRandomInitializationVector = true
 
 	pn = pubnub.NewPubNub(config)

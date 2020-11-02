@@ -22,8 +22,9 @@ var emptyFetchResp *FetchResponse
 const fetchPath = "/v3/history/sub-key/%s/channel/%s"
 const historyWithMessageActionsPath = "/v3/history-with-actions/sub-key/%s/channel/%s"
 
-const maxCountFetch = 25
-const maxCountHistoryWithMessageActions = 100
+const maxCountFetch = 100
+const maxCountFetchMoreThanOneChannel = 25
+const maxCountHistoryWithMessageActions = 25
 
 type fetchBuilder struct {
 	opts *fetchOpts
@@ -215,10 +216,20 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 		q.Set("end", strconv.FormatInt(o.End, 10))
 	}
 
-	if o.Count > 0 && o.Count <= maxCountFetch {
+	maxCount := maxCountFetch
+
+	if o.WithMessageActions {
+		maxCount = maxCountHistoryWithMessageActions
+	}
+
+	if len(o.Channels) > 1 {
+		maxCount = maxCountFetchMoreThanOneChannel
+	}
+
+	if o.Count > 0 && o.Count <= maxCount {
 		q.Set("max", strconv.Itoa(o.Count))
 	} else {
-		q.Set("max", strconv.Itoa(maxCountFetch))
+		q.Set("max", strconv.Itoa(maxCount))
 	}
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))

@@ -187,6 +187,35 @@ func AssertSuccessFetchGetQueryParam(t *testing.T, expectedString string, channe
 
 }
 
+func TestSuccessFetchQueryOneChannel(t *testing.T) {
+	opts := &fetchOpts{
+		Channels: []string{"ch"},
+		Reverse:  false,
+		pubnub:   pubnub,
+	}
+
+	query, _ := opts.buildQuery()
+
+	assert.Equal(t, "100", query.Get("max"))
+	assert.Equal(t, "false", query.Get("reverse"))
+
+}
+
+func TestSuccessFetchQueryOneChannelWithMessageActions(t *testing.T) {
+	opts := &fetchOpts{
+		Channels:           []string{"ch"},
+		Reverse:            false,
+		pubnub:             pubnub,
+		WithMessageActions: true,
+	}
+
+	query, _ := opts.buildQuery()
+
+	assert.Equal(t, "25", query.Get("max"))
+	assert.Equal(t, "false", query.Get("reverse"))
+
+}
+
 func AssertSuccessFetchQuery(t *testing.T, expectedString string, channels []string) {
 	opts := &fetchOpts{
 		Channels: channels,

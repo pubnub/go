@@ -41,6 +41,12 @@ const (
 	PNDeleteEnabled
 	// PNCreateEnabled Create Enabled. Applies to Objects
 	PNCreateEnabled
+	// PNGetEnabled Get Enabled. Applies to Objects
+	PNGetEnabled
+	// PNUpdateEnabled Update Enabled. Applies to Objects
+	PNUpdateEnabled
+	// PNJoinEnabled Join Enabled. Applies to Objects
+	PNJoinEnabled
 )
 
 // PNResourceType grant types
@@ -96,6 +102,9 @@ type PNPAMEntityData struct {
 	WriteEnabled  bool
 	ManageEnabled bool
 	DeleteEnabled bool
+	GetEnabled    bool
+	UpdateEnabled bool
+	JoinEnabled   bool
 	TTL           int
 }
 
@@ -105,6 +114,9 @@ type PNAccessManagerKeyData struct {
 	WriteEnabled  bool
 	ManageEnabled bool
 	DeleteEnabled bool
+	GetEnabled    bool
+	UpdateEnabled bool
+	JoinEnabled   bool
 	TTL           int
 }
 

@@ -1,6 +1,22 @@
 ---
-version: v4.9.1 
+version: v4.10.0 
 changelog: 
+  -
+    changes:
+      -
+        text: "Objects v2 PAM changes."
+        type: feature
+      -
+        text: "Fetch with 100 messages."
+        type: improvement
+      -
+        text: "Include timetoken in send file."
+        type: improvement
+      -
+        text: "Read Publish File Message retry count from config."
+        type: bug
+    date: Nov 2, 20
+    version: v4.10.0
   -
     changes:
       -

@@ -235,8 +235,9 @@ type PNSendFileResponseForS3 struct {
 
 // PNSendFileResponse is the type used to store the response info of Send File.
 type PNSendFileResponse struct {
-	status int        `json:"status"`
-	Data   PNFileData `json:"data"`
+	Timestamp int64
+	status    int        `json:"status"`
+	Data      PNFileData `json:"data"`
 }
 
 // TODO Add retry on publish failure
@@ -279,17 +280,19 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 
 	sent := false
 	tryCount := 0
-
-	for !sent && tryCount < 5 {
+	var timestamp int64
+	maxCount := o.config().FileMessagePublishRetryLimit
+	for !sent && tryCount < maxCount {
 		tryCount++
-		_, pubFileResponseStatus, errPubFileResponse := o.pubnub.PublishFileMessage().TTL(o.TTL).Meta(o.Meta).ShouldStore(o.ShouldStore).Channel(o.Channel).Message(message).Execute()
+		pubFileMessageResponse, pubFileResponseStatus, errPubFileResponse := o.pubnub.PublishFileMessage().TTL(o.TTL).Meta(o.Meta).ShouldStore(o.ShouldStore).Channel(o.Channel).Message(message).Execute()
 		if errPubFileResponse != nil {
-			if tryCount >= 5 {
+			if tryCount >= maxCount {
 				pubFileResponseStatus.AdditionalData = file
 				return emptySendFileResponse, pubFileResponseStatus, errPubFileResponse
 			}
 			continue
 		} else {
+			timestamp = pubFileMessageResponse.Timestamp
 			sent = true
 			break
 		}
@@ -298,6 +301,7 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 	d := PNFileData{}
 	d.ID = respForS3.Data.ID
 	resp.Data = d
+	resp.Timestamp = timestamp
 
 	return resp, status, nil
 }
