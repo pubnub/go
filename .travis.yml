@@ -53,18 +53,26 @@ jobs:
     - name: 'Go 1.14.6'
       go: 1.14.6
       script: 
-        - bash ./scripts/run-tests.sh
+        - bash ./scripts/run-tests.sh -mod=mod
+    - name: 'Go 1.15.12'
+      go: 1.15.12
+      script: 
+        - bash ./scripts/run-tests.sh -mod=mod
+    - name: 'Go 1.16.4'
+      go: 1.16.4
+      script: 
+        - bash ./scripts/run-tests.sh -mod=mod
     - name: 'Go "master"'
       go: master
       script: 
-        - bash ./scripts/run-tests.sh
+        - bash ./scripts/run-tests.sh -mod=mod
     - name: 'Go "tip"'
       go: tip
-      script: bash ./scripts/run-tests.sh
+      script: bash ./scripts/run-tests.sh -mod=mod
     - stage: "code coverage"
       name: 'Test & Code coverage'
-      go: 1.14.6
-      script: bash ./scripts/run-tests.sh
+      go: 1.16.4
+      script: bash ./scripts/run-tests.sh -mod=mod
       after_success:
         - bash <(curl -s https://codecov.io/bash)
   allow_failures:
