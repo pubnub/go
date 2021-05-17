@@ -144,6 +144,7 @@ func TestHistoryEncryptedPNOther(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 	pn.SetClient(interceptor.GetClient())
+	pn.Config.UseRandomInitializationVector = false
 
 	res, _, err := pn.History().
 		Channel("ch").

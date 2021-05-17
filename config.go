@@ -80,7 +80,7 @@ func NewConfig() *Config {
 		UsePAMV3:                      true,
 		StoreTokensOnGrant:            true,
 		FileMessagePublishRetryLimit:  5,
-		UseRandomInitializationVector: false,
+		UseRandomInitializationVector: true,
 	}
 
 	c.UUID = fmt.Sprintf("pn-%s", utils.UUID())

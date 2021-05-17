@@ -277,6 +277,7 @@ func TestFetchQuery(t *testing.T) {
 func initFetchOpts(cipher string) *fetchOpts {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = cipher
+	pn.Config.UseRandomInitializationVector = false
 	return &fetchOpts{
 		Channels: []string{"test1,test2"},
 		Reverse:  false,
@@ -377,6 +378,7 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
 	pn.Config.DisablePNOtherProcessing = true
+	pn.Config.UseRandomInitializationVector = false
 	f := &fetchOpts{
 		Channels: []string{"test1,test2"},
 		Reverse:  false,

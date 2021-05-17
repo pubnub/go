@@ -2,9 +2,11 @@ package pubnub
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
+	"log"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type customStruct struct {
@@ -18,6 +20,7 @@ func TestParseCipherInterfaceCipherWithCipher(t *testing.T) {
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
+	pn.Config.UseRandomInitializationVector = false
 
 	intf, err := parseCipherInterface(s, pn.Config)
 
@@ -214,6 +217,7 @@ func TestParseCipherInterfaceCipherWithCipherStringPNOther(t *testing.T) {
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
+	pn.Config.UseRandomInitializationVector = false
 
 	intf, _ := parseCipherInterface(s, pn.Config)
 
@@ -232,6 +236,7 @@ func TestParseCipherInterfaceCipherWithoutCipherStruct(t *testing.T) {
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
+	pn.Config.UseRandomInitializationVector = false
 
 	intf, _ := parseCipherInterface(s, pn.Config)
 	msg := intf.(map[string]interface{})
@@ -249,6 +254,7 @@ func TestParseCipherInterfaceCipherWithCipherStructPNOther(t *testing.T) {
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
+	pn.Config.UseRandomInitializationVector = false
 
 	intf, _ := parseCipherInterface(s, pn.Config)
 
@@ -289,6 +295,7 @@ func TestParseCipherInterfaceCipherWithCipherStructPNOtherDisable(t *testing.T) 
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.DisablePNOtherProcessing = true
+	pn.Config.UseRandomInitializationVector = false
 	pn.Config.CipherKey = "enigma"
 
 	intf, _ := parseCipherInterface(s, pn.Config)
@@ -320,6 +327,7 @@ func TestParseCipherInterfaceCipherWithoutCipherStruct2(t *testing.T) {
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
+	pn.Config.UseRandomInitializationVector = false
 
 	intf, _ := parseCipherInterface(s, pn.Config)
 	msg := intf.(map[string]interface{})
@@ -393,6 +401,7 @@ func TestProcessSubscribePayload(t *testing.T) {
 				assert.Equal(int64(15078947309567840), presence.Timestamp)
 				assert.Equal("bfce00ff4018fce180438bb04afc8da8", presence.UUID)
 				assert.Equal(1, presence.Occupancy)
+				log.Println(presence.Occupancy)
 				done <- true
 				break
 			}
@@ -405,7 +414,7 @@ func TestProcessSubscribePayload(t *testing.T) {
 		"action":    "join",
 		"timestamp": int64(15078947309567840),
 		"uuid":      "bfce00ff4018fce180438bb04afc8da8",
-		"occupancy": 1,
+		"occupancy": float64(1),
 	}
 
 	sm := &subscribeMessage{
@@ -456,7 +465,7 @@ func TestProcessSubscribePayloadPresence(t *testing.T) {
 		"action":    "join",
 		"timestamp": float64(1535709775),
 		"uuid":      "pn-7b82321a-5359-4780-bfc0-611659105d74",
-		"occupancy": 4,
+		"occupancy": float64(4),
 	}
 
 	sm := &subscribeMessage{
@@ -506,7 +515,7 @@ func TestProcessSubscribePayloadSubMatch(t *testing.T) {
 		"action":           "join",
 		"timestamp":        int64(15078947309567840),
 		"uuid":             "bfce00ff4018fce180438bb04afc8da8",
-		"occupancy":        1,
+		"occupancy":        float64(1),
 		"here_now_refresh": true,
 	}
 
@@ -526,6 +535,7 @@ func TestProcessSubscribePayloadCipherErr(t *testing.T) {
 	assert := assert.New(t)
 	done := make(chan bool)
 	pn := NewPubNub(NewDemoConfig())
+	pn.Config.UseRandomInitializationVector = false
 	pn.Config.CipherKey = "s"
 	listener := NewListener()
 

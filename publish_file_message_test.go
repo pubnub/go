@@ -13,6 +13,8 @@ func AssertSuccessPublishFileMessageGetAllParameters(t *testing.T, expectedStrin
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = cipher
+	pn.Config.UseRandomInitializationVector = false
+
 	o := newPublishFileMessageBuilder(pn)
 	m1 := PNPublishFileMessage{}
 	if genFromIDAndName {

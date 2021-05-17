@@ -58,6 +58,7 @@ func AssertSuccessFirePostAllParameters(t *testing.T, expectedString string, mes
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = cipher
+	pn.Config.UseRandomInitializationVector = false
 
 	o := newFireBuilder(pn)
 	o.Channel("ch")
@@ -110,6 +111,7 @@ func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, mess
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = cipher
+	pn.Config.UseRandomInitializationVector = false
 
 	o := newFireBuilder(pn)
 	o.Channel("ch")

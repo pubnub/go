@@ -299,6 +299,8 @@ func TestHistoryResponseParsingMap(t *testing.T) {
 func TestHistoryPNOther(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig.CipherKey = "testCipher"
+	pnconfig.UseRandomInitializationVector = false
+
 	int64Val := int64(14991775432719844)
 	jsonString := []byte(`[[{"pn_other":"ven1bo79fk88nq5EIcnw/N9RmGzLeeWMnsabr1UL3iw="},1,"a",1.1,false,14991775432719844],14991775432719844,14991868111600528]`)
 

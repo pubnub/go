@@ -1,3 +1,16 @@
+## [v5.0.0](https://github.com/pubnub/go/releases/tag/v5.0.0)
+May-17-2021
+
+#### Added
+- Update Go SDK Metadata. 
+
+#### Modified
+- BREAKING CHANGE - IV used for encryption is now random by default. 
+- BREAKING CHANGE - The SDK now suppoorts Go Modules. 
+
+#### Fixed
+- Presence event occupancy field parsed incorrectly. 
+
 ## [v4.10.0](https://github.com/pubnub/go/releases/tag/v4.10.0)
 November-2-2020
 

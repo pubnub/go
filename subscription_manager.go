@@ -569,7 +569,11 @@ func processPresencePayload(m *SubscriptionManager, payload subscribeMessage, ch
 
 	action, _ = presencePayload["action"].(string)
 	uuid, _ = presencePayload["uuid"].(string)
-	occupancy, _ = presencePayload["occupancy"].(int)
+	if presencePayload["occupancy"] != nil {
+		occupancyFromJSON, _ := presencePayload["occupancy"].(float64)
+		occupancy = int(occupancyFromJSON)
+		m.pubnub.Config.Log.Println("occupancy ", occupancy)
+	}
 	if presencePayload["timestamp"] != nil {
 		m.pubnub.Config.Log.Println("presencePayload['timestamp'] type", reflect.TypeOf(presencePayload["timestamp"]).Kind())
 		switch presencePayload["timestamp"].(type) {

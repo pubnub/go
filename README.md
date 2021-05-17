@@ -1,7 +1,7 @@
 # PubNub Go SDK
 
 [![GoDoc](https://godoc.org/github.com/pubnub/go?status.svg)](https://godoc.org/github.com/pubnub/go)
-[![Build Status](https://travis-ci.org/pubnub/go.svg?branch=master)](https://travis-ci.org/pubnub/go)
+[![Build Status](https://travis-ci.com/pubnub/go.svg?branch=master)](https://travis-ci.com/pubnub/go)
 [![codecov.io](https://codecov.io/github/pubnub/go/coverage.svg)](https://codecov.io/github/pubnub/go)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pubnub/go)](https://goreportcard.com/report/github.com/pubnub/go)
 

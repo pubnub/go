@@ -1,6 +1,22 @@
 ---
-version: v4.10.0 
+version: v5.0.0 
 changelog: 
+  -
+    changes:
+      -
+        text: "Update Go SDK Metadata."
+        type: feature
+      -
+        text: "BREAKING CHANGE - IV used for encryption is now random by default."
+        type: improvement
+      -
+        text: "BREAKING CHANGE - The SDK now suppoorts Go Modules."
+        type: improvement
+      -
+        text: "Presence event occupancy field parsed incorrectly."
+        type: bug
+    date: 2021-05-17
+    version: v5.0.0
   -
     changes:
       -
@@ -15,7 +31,7 @@ changelog:
       -
         text: "Read Publish File Message retry count from config."
         type: bug
-    date: Nov 2, 20
+    date: 2020-11-02
     version: v4.10.0
   -
     changes:
@@ -25,7 +41,7 @@ changelog:
       -
         text: "Fetch response nil check."
         type: bug
-    date: Oct 1, 20
+    date: 2020-10-01
     version: v4.9.1
   -
     changes:
@@ -35,7 +51,7 @@ changelog:
       -
         text: "BREAKING CHANGE: PNPublishMessage struct changes, PublishFile enhancements."
         type: improvement
-    date: Aug 11, 20
+    date: 2020-08-11
     version: v4.9.0
   -
     changes:
@@ -48,14 +64,14 @@ changelog:
       -
         text: "BREAKING CHANGE: runes to string converion now returns string, this mostly affect the validation responses. This makes the SDK compatible with Go 1.15"
         type: bug
-    date: Jul 24, 20
+    date: 2020-07-24
     version: v4.8.0
   -
     changes:
       -
         text: "BREAKING CHANGE: Object V2 (beta). This version does not support Objects v1 (beta)"
         type: feature
-    date: Jun 10, 20
+    date: 2020-06-10
     version: v4.7.0
   - 
     changes: 
@@ -65,35 +81,35 @@ changelog:
       - 
         text: "Go 1.14+ crypto unit tests fixes"
         type: improvement
-    date: Mar 26, 20  
+    date: 2020-03-26
     version: v4.6.5  
   - 
     changes: 
       - 
         text: "Make publish/grant workers per instance"
         type: bug
-    date: Feb 5, 20  
+    date: 2020-02-05
     version: v4.6.4  
   - 
     changes: 
       - 
         text: "Fix data race"
         type: bug
-    date: Jan 28, 20  
+    date: 2020-01-28
     version: v4.6.3  
   - 
     changes: 
       - 
         text: "Make publish key optional on subscribe"
         type: bug
-    date: Jan 24, 20  
+    date: 2020-01-24
     version: v4.6.2  
   - 
     changes: 
       - 
         text: "Objects Filtering"
         type: improvement
-    date: Jan 3, 20  
+    date: 2020-01-03
     version: v4.6.1  
   - 
     changes: 
@@ -103,7 +119,7 @@ changelog:
       - 
         text: "Push payload helper class"
         type: improvement
-    date: Dec 17, 19  
+    date: 2019-12-17
     version: v4.6.0  
   - 
     changes: 
@@ -113,14 +129,14 @@ changelog:
       - 
         text: "Fixed a panic due to a closed channel when `Publish` requests context is cancelled and `Destroy` is called"
         type: bug
-    date: Nov 27, 19  
+    date: 2019-11-27
     version: v4.5.2
   - 
     changes: 
       - 
         text: "UUID in Message Actions response"
         type: improvement
-    date: Oct 16, 19  
+    date: 2019-10-16
     version: v4.5.1
   - 
     changes: 
@@ -130,7 +146,7 @@ changelog:
       - 
         text: "WithMessageActions param is now IncludeMessageActions in Fetch"
         type: improvement
-    date: Oct 8, 19  
+    date: 2019-10-08
     version: v4.5.0
   - 
     changes: 
@@ -143,14 +159,14 @@ changelog:
       - 
         text: "withMeta param in History and Fetch"
         type: improvement
-    date: Oct 7, 19  
+    date: 2019-10-07
     version: v4.4.0
   - 
     changes: 
       - 
         text: "Publish method now sets the ShouldStore flag if it is set to false"
         type: bug
-    date: Oct 2, 19  
+    date: 2019-10-02
     version: v4.3.1
   - 
     changes: 
@@ -160,7 +176,7 @@ changelog:
       - 
         text: "UUID improvements"
         type: improvement
-    date: Sep 23, 19  
+    date: 2019-09-23
     version: v4.3.0
   - 
     changes: 
@@ -170,28 +186,28 @@ changelog:
       - 
         text: "Grant Optimizations"
         type: improvement
-    date: Aug 28, 19  
+    date: 2019-08-28
     version: v4.2.7  
   - 
     changes: 
       - 
         text: "Signals"
         type: improvement
-    date: Aug 8, 19  
+    date: 2019-08-08
     version: v4.2.6  
   - 
     changes: 
       - 
         text: "UUID param in Set and Get State"
         type: improvement
-    date: Aug 1, 19  
+    date: 2019-08-01
     version: v4.2.5  
   - 
     changes: 
       - 
         text: "Destroy now cleans up all goroutines opened by the SDK"
         type: bug
-    date: Jun 20, 19  
+    date: 2019-06-20
     version: v4.2.4  
   - 
     changes: 
@@ -201,28 +217,28 @@ changelog:
       - 
         text: "UUID dependency update"
         type: improvement
-    date: Jun 13, 19  
+    date: 2019-06-13
     version: v4.2.3  
   - 
     changes: 
       - 
         text: "Presence Timeout cannot be lower than 20"
         type: improvement
-    date: May 27, 19  
+    date: 2019-05-27
     version: v4.2.2
   - 
     changes: 
       - 
         text: "History timetoken float64 to int64 conversion loss fix"
         type: bug
-    date: Mar 21, 19  
+    date: 2019-03-21
     version: v4.2.1
   - 
     changes: 
       - 
         text: "Message Counts simplification (Breaking changes from the previous version)."
         type: improvement
-    date: Mar 13, 19  
+    date: 2019-03-13
     version: v4.2.0
   - 
     changes: 
@@ -232,7 +248,7 @@ changelog:
       - 
         text: "All request were secure (https), even when the Secure flag was false"
         type: bug
-    date: Mar 5, 19  
+    date: 2019-03-05
     version: v4.1.7
   - 
     changes: 
@@ -242,7 +258,7 @@ changelog:
       - 
         text: "QueryParam and State in Presence Heartbeat"
         type: improvement
-    date: Jan 15, 19  
+    date: 2019-01-15
     version: v4.1.6
   - 
     changes: 
@@ -252,7 +268,7 @@ changelog:
       - 
         text: "Heartbeats per channel"
         type: feature
-    date: Dec 18, 18  
+    date: 2018-12-18
     version: v4.1.5
   - 
     changes: 
@@ -268,7 +284,7 @@ changelog:
       - 
         text: "Max concurrent workers for Publish and Grant requests"
         type: improvement
-    date: Oct 16, 18  
+    date: 2018-10-18
     version: v4.1.4
   - 
     changes: 
@@ -278,7 +294,7 @@ changelog:
       - 
         text: "Presence timetoken float64 fix"
         type: bug
-    date: Sep 4, 18  
+    date: 2018-09-04
     version: v4.1.3
   - 
     changes: 
@@ -291,7 +307,7 @@ changelog:
       - 
         text: "coverage improvements"
         type: improvement
-    date: Aug 1, 18  
+    date: 2018-08-01
     version: v4.1.2
   - 
     changes: 
@@ -304,7 +320,7 @@ changelog:
       - 
         text: "integration tests optimizations"
         type: improvement
-    date: Jun 21, 18       
+    date: 2018-06-21
     version: v4.1.1
   - 
     changes: 
@@ -338,7 +354,7 @@ changelog:
       - 
         text: "Uuid is now UUID in StatusResponse and ResponseInfo"
         type: improvement
-    date: Jun 18, 18        
+    date: 2018-06-18
     version: v4.1.0
   - 
     changes: 
@@ -357,6 +373,7 @@ changelog:
       - 
         text: "stop tickers, state manager locks"
         type: bug
+    date: 2018-06-08
     version: v4.0.0-rc.5
   - 
     changes: 
@@ -384,12 +401,14 @@ changelog:
       - 
         text: "unsubscribe from presence only channel"
         type: bug
+    date: 2018-05-03
     version: v4.0.0-rc.4
   - 
     changes: 
       - 
         text: "Reconnection fixes"
         type: bug
+    date: 2018-05-31
     version: v4.0.0-rc.3
   - 
     changes: 
@@ -405,69 +424,79 @@ changelog:
       - 
         text: "integration tests fixes for the changes done on auth"
         type: improvement
+    date: 2018-05-24
     version: v4.0.0-rc.2
   - 
     changes: 
       - 
         text: "set state refactor fix"
         type: bug
+    date: 2018-05-21
     version: v4.0.0-rc.1
   - 
     changes: 
       - 
         text: "Subscribe with state"
         type: improvement
+    date: 2018-05-18
     version: v4.0.0-beta.8
   - 
     changes: 
       - 
         text: "cipher improvements"
         type: improvement
+    date: 2018-04-12
     version: v4.0.0-beta.7
   - 
     changes: 
       - 
         text: "Fire, Fetch, HereNowRequest"
         type: improvement
+    date: 2018-04-05
     version: v4.0.0-beta.6
   - 
     changes: 
       - 
         text: "add subscribe builder"
         type: improvement
+    date: 2018-01-10
     version: v4.0.0-beta.5
   - 
     changes: 
       - 
         text: "add Telemetry Manager"
         type: improvement
+    date: 2018-01-03
     version: v4.0.0-beta.4
   - 
     changes: 
       - 
         text: "add Destroy() method"
         type: improvement
+    date: 2017-12-20
     version: v4.0.0-beta.3
   - 
     changes: 
       - 
         text: "add reconnection manager"
-        type: impovement
+        type: improvement
       - 
         text: "rename list, remove, add, delete channel of channel groups"
-        type: impovement
+        type: improvement
       - 
         text: "fix comma encoding"
         type: bug
       - 
         text: "fix signature"
         type: bug
+    date: 2017-11-07
     version: v4.0.0-beta.2
   - 
     changes: 
       - 
         text: "initial beta"
-        type: impovement
+        type: improvement
+    date: 2017-10-04
     version: v4.0.0-beta
 features: 
   access: 
@@ -528,7 +557,7 @@ features:
     - SUBSCRIBE-CHANNELS
     - SUBSCRIBE-CHANNEL-GROUPS
     - SUBSCRIBE-PRESENCE-CHANNELS
-    - SUBSCRIBE-PRESENCE-CHANNEL-GROUPS
+    - SUBSCRIBE-PRESENCE-CHANNELS-GROUPS
     - SUBSCRIBE-WITH-TIMETOKEN
     - SUBSCRIBE-WILDCARD
     - SUBSCRIBE-FILTER-EXPRESSION
@@ -597,9 +626,115 @@ supported-platforms:
       - "1.12.17"
       - "1.13.14"
       - "1.14.6"
+      - "1.15.12"      
+      - "1.16.4"      
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."
       - "Mac OS X 10.8 or later, amd64"
       - "Windows 7 or later, amd64, 386"
     version: "PubNub Go SDK"
+sdks:
+  -
+    full-name: PubNub Go SDK
+    short-name: Go
+    artifacts:      
+      -
+        artifact-type: api-client
+        language: go
+        tier: 1
+        tags:
+          - Server
+        source-repository: https://github.com/pubnub/go
+        documentation: https://www.pubnub.com/docs/sdks/go
+        distributions:
+          -
+            distribution-type: package
+            distribution-repository: GitHub release
+            package-name: Go
+            location: https://github.com/pubnub/go/releases/tag/v5.0.0
+            requires:
+              -
+                name: "Go"
+                min-version: "1.9.7"
+                max-version: "1.16.4"
+                license: "https://golang.org/doc/tos"
+                license-url: "https://golang.org/doc/tos"
+                location: "Should be installed on the computer"
+                is-required: "Required"
+              -
+                name: "github.com/brianolson/cbor_go"
+                min-version: "1.0.0"
+                license: "Apache License 2.0"
+                license-url: "https://github.com/brianolson/cbor_go/blob/master/LICENSE"
+                location: "Shipped within package"
+                is-required: "Required"
+              -
+                name: "github.com/davecgh/go-spew"
+                min-version: "1.1.1"
+                license: "ISC"
+                license-url: "https://github.com/davecgh/go-spew/blob/master/LICENSE"
+                location: "Transitive dependency"
+                is-required: "Required"
+              -
+                name: "github.com/google/uuid"
+                min-version: "1.1.1"
+                license: "BSD3"
+                license-url: "https://github.com/google/uuid/blob/master/LICENSE"
+                location: "Shipped within package"
+                is-required: "Required"
+              -
+                name: "github.com/pmezard/go-difflib"
+                min-version: "1.0.0"
+                license: "BSD3"
+                license-url: "https://github.com/pmezard/go-difflib/blob/master/LICENSE"
+                location: "Transitive dependency"
+                is-required: "Required"
+              -
+                name: "github.com/stretchr/testify"
+                min-version: "1.2.2"
+                license: "MIT"
+                license-url: "https://github.com/stretchr/testify/blob/master/LICENSE"
+                location: "Shipped within package"
+                is-required: "Required"
+              -
+                name: "golang.org/x/net"
+                min-version: "HEAD"
+                license: "BSD3"
+                license-url: "https://pkg.go.dev/golang.org/x/net?tab=licenses"
+                location: "Shipped within package"
+                is-required: "Required"
+              -
+                name: "golang.org/x/text"
+                min-version: "0.3.2"
+                license: "BSD3"
+                license-url: "https://pkg.go.dev/golang.org/x/text?tab=licenses"
+                location: "Transitive dependency"
+                is-required: "Required"
+            supported-platforms:
+                supported-operating-systems:                  
+                  Windows:
+                    target-architecture:
+                      - i386
+                      - amd64
+                    minimum-os-version:
+                      - Windows 7 Professional
+                      - Windows 7 Enterprise
+                      - Windows 7 Ultimate
+                    maximum-os-version:
+                      - Windows 10 Enterprise
+                  Linux:
+                    target-architecture:
+                      - i386
+                      - amd64
+                    maximum-os-version:
+                      - Ubuntu 20.04 LTS
+                    minimum-os-version:
+                      - Ubuntu 12.04
+                  macOS:
+                    target-architecture:
+                      - x86-64
+                    minimum-os-version:
+                      - Mac OS X 10.8
+                    maximum-os-version:
+                      - macOS 11.3.1

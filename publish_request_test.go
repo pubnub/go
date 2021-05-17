@@ -435,7 +435,7 @@ func TestPublishEncryptPNOther(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
-
+	pn.Config.UseRandomInitializationVector = false
 	pn.Config.CipherKey = "enigma"
 	s := map[string]interface{}{
 		"not_other": "1234",
@@ -461,7 +461,7 @@ func TestPublishEncryptPNOther(t *testing.T) {
 func TestPublishEncryptPNOtherDisable(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-
+	pn.Config.UseRandomInitializationVector = false
 	pn.Config.CipherKey = "enigma"
 	pn.Config.DisablePNOtherProcessing = true
 
