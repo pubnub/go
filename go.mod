@@ -1,6 +1,6 @@
-module pubnub.com/go
+module pubnub.com/go/v5
 
-go 1.14
+go 1.16
 
 require (
 	github.com/brianolson/cbor_go v1.0.0
