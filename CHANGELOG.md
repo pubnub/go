@@ -1,3 +1,9 @@
+## [v5.0.2](https://github.com/pubnub/go/releases/tag/v5.0.2)
+May-26-2021
+
+#### Fixed
+- Go mod file fix. 
+
 ## [v5.0.1](https://github.com/pubnub/go/releases/tag/v5.0.1)
 May-25-2021
 

@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	uuid "github.com/google/uuid"
-	pnerr "github.com/pubnub/go/pnerr"
+	pnerr "github.com/pubnub/go/v5/pnerr"
 )
 
 // JoinChannels encodes and joins channels

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubnub/go/pnerr"
-	"github.com/pubnub/go/utils"
+	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v5/utils"
 )
 
 type endpointOpts interface {

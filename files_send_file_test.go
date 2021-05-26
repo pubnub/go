@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	h "github.com/pubnub/go/tests/helpers"
+	h "github.com/pubnub/go/v5/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 

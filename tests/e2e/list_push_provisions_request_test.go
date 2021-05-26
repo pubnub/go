@@ -2,9 +2,10 @@ package e2e
 
 import (
 	"fmt"
-	pubnub "github.com/pubnub/go"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	pubnub "github.com/pubnub/go/v5"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestListPushProvisionsNotStubbed(t *testing.T) {

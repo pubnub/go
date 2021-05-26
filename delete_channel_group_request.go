@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/utils"
+	"github.com/pubnub/go/v5/utils"
 )
 
 const deleteChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s/remove"

@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/utils"
+	"github.com/pubnub/go/v5/utils"
 )
 
 const removeChannelsFromPushPath = "/v1/push/sub-key/%s/devices/%s"

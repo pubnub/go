@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/pnerr"
+	"github.com/pubnub/go/v5/pnerr"
 )
 
 var emptyPNGetAllUUIDMetadataResponse *PNGetAllUUIDMetadataResponse

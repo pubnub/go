@@ -3,11 +3,12 @@ package e2e
 import (
 	//"fmt"
 
-	pubnub "github.com/pubnub/go"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
 	"testing"
+
+	pubnub "github.com/pubnub/go/v5"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGrantToken(t *testing.T) {

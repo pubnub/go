@@ -1,6 +1,13 @@
 ---
-version: v5.0.1 
+version: v5.0.2 
 changelog: 
+  -
+    changes:
+      -
+        text: "Go mod file fix."
+        type: bug
+    date: 2021-05-26
+    version: v5.0.2
   -
     changes:
       -

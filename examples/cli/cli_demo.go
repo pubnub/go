@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	pubnub "github.com/pubnub/go"
+	pubnub "github.com/pubnub/go/v5"
 
 	"net/http"
 	_ "net/http/pprof"

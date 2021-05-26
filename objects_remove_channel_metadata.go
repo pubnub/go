@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/pnerr"
+	"github.com/pubnub/go/v5/pnerr"
 )
 
 var emptyPNRemoveChannelMetadataResponse *PNRemoveChannelMetadataResponse

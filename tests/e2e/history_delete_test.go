@@ -3,7 +3,7 @@ package e2e
 import (
 	"testing"
 
-	pubnub "github.com/pubnub/go"
+	pubnub "github.com/pubnub/go/v5"
 	"github.com/stretchr/testify/assert"
 )
 

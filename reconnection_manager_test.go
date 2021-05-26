@@ -1,10 +1,11 @@
 package pubnub
 
 import (
-	"github.com/pubnub/go/tests/stubs"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/pubnub/go/v5/tests/stubs"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestExponentialExhaustion(t *testing.T) {

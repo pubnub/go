@@ -1,6 +1,10 @@
 package main
 
-import pubnub "github.com/pubnub/go"
+import (
+	"fmt"
+
+	pubnub "github.com/pubnub/go/v5"
+)
 
 func main() {
 	config := pubnub.NewConfig()

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	pubnub "github.com/pubnub/go"
+	pubnub "github.com/pubnub/go/v5"
 )
 
 var pn *pubnub.PubNub

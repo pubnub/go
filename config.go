@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/pubnub/go/utils"
+	"github.com/pubnub/go/v5/utils"
 )
 
 const (
