@@ -1,17 +1,5 @@
-## [v5.0.3](https://github.com/pubnub/go/releases/tag/v5.0.3)
-June-1-2021
-
-#### Fixed
-- Bump version. 
-
-## [v5.0.2](https://github.com/pubnub/go/releases/tag/v5.0.2)
-May-27-2021
-
-#### Fixed
-- Go mod file fix. 
-
 ## [v5.0.0](https://github.com/pubnub/go/releases/tag/v5.0.0)
-May-27-2021
+May-17-2021
 
 #### Added
 - Update Go SDK Metadata. 

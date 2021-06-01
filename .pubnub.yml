@@ -1,20 +1,6 @@
 ---
-version: v5.0.3 
+version: v5.0.0 
 changelog: 
-  -
-    changes:
-      -
-        text: "Bump version."
-        type: bug
-    date: 2021-06-01
-    version: v5.0.3
-  -
-    changes:
-      -
-        text: "Go mod file fix."
-        type: bug
-    date: 2021-05-27
-    version: v5.0.2
   -
     changes:
       -
@@ -29,7 +15,7 @@ changelog:
       -
         text: "Presence event occupancy field parsed incorrectly."
         type: bug
-    date: 2021-05-27
+    date: 2021-05-17
     version: v5.0.0
   -
     changes:
