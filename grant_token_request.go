@@ -56,20 +56,19 @@ func (b *grantTokenBuilder) TTL(ttl int) *grantTokenBuilder {
 	return b
 }
 
-// Uncomment when PAMv3 is fully functional.
 // Channels sets the Channels for the Grant request.
-// func (b *grantTokenBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenBuilder {
-// 	b.opts.Channels = channels
+func (b *grantTokenBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenBuilder {
+	b.opts.Channels = channels
 
-// 	return b
-// }
+	return b
+}
 
-// // ChannelGroups sets the ChannelGroups for the Grant request.
-// func (b *grantTokenBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantTokenBuilder {
-// 	b.opts.ChannelGroups = groups
+// ChannelGroups sets the ChannelGroups for the Grant request.
+func (b *grantTokenBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantTokenBuilder {
+	b.opts.ChannelGroups = groups
 
-// 	return b
-// }
+	return b
+}
 
 // Users sets the Users for the Grant request.
 func (b *grantTokenBuilder) Users(users map[string]UserSpacePermissions) *grantTokenBuilder {
@@ -85,20 +84,20 @@ func (b *grantTokenBuilder) Spaces(spaces map[string]UserSpacePermissions) *gran
 	return b
 }
 
-// Uncomment when PAMv3 is fully functional.
-// // Channels sets the Channels for the Grant request.
-// func (b *grantTokenBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenBuilder {
-// 	b.opts.ChannelsPattern = channels
 
-// 	return b
-// }
+// Channels sets the Channels for the Grant request.
+func (b *grantTokenBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenBuilder {
+	b.opts.ChannelsPattern = channels
 
-// // ChannelGroups sets the ChannelGroups for the Grant request.
-// func (b *grantTokenBuilder) ChannelGroupsPattern(groups map[string]GroupPermissions) *grantTokenBuilder {
-// 	b.opts.ChannelGroupsPattern = groups
+	return b
+}
 
-// 	return b
-// }
+// ChannelGroups sets the ChannelGroups for the Grant request.
+func (b *grantTokenBuilder) ChannelGroupsPattern(groups map[string]GroupPermissions) *grantTokenBuilder {
+	b.opts.ChannelGroupsPattern = groups
+
+	return b
+}
 
 // Users sets the Users for the Grant request.
 func (b *grantTokenBuilder) UsersPattern(users map[string]UserSpacePermissions) *grantTokenBuilder {
