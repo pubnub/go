@@ -1,3 +1,9 @@
+## [v5.0.4](https://github.com/pubnub/go/releases/tag/v5.0.4)
+August-5-2021
+
+#### Fixed
+- Bump dependencies & go mod tidy.
+
 ## [v5.0.3](https://github.com/pubnub/go/releases/tag/v5.0.3)
 June-1-2021
 

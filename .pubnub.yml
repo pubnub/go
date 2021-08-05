@@ -1,6 +1,13 @@
 ---
-version: v5.0.3 
+version: v5.0.4
 changelog: 
+  -
+    changes:
+      -
+        text: "Bump dependencies & go mod tidy."
+        type: improvement
+    date: 2021-08-05
+    version: v5.0.4
   -
     changes:
       -
