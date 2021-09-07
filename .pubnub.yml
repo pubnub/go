@@ -652,11 +652,11 @@ sdks:
   -
     full-name: PubNub Go SDK
     short-name: Go
+    tier: 1
     artifacts:      
       -
         artifact-type: api-client
         language: go
-        tier: 1
         tags:
           - Server
         source-repository: https://github.com/pubnub/go
