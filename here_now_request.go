@@ -374,27 +374,19 @@ func parseChannelData(channelName string, rawData interface{}) HereNowChannelDat
 				for _, user := range parsedUUIDs {
 					if u, ok := user.(map[string]interface{}); ok {
 						if len(u) > 0 {
+							occData := HereNowOccupantsData{}
+
+							if uuid, ok := u["uuid"].(string); ok {
+								occData.UUID = uuid
+							}
+
 							if _, ok := u["state"]; ok {
-								occData := HereNowOccupantsData{}
-
-								if uuid, ok := u["uuid"].(string); ok {
-									occData.UUID = uuid
-								}
-
 								if state, ok := u["state"].(map[string]interface{}); ok {
 									occData.State = state
 								}
-
-								occupants = append(occupants, occData)
-							} else {
-								occData := HereNowOccupantsData{}
-
-								if uuid, ok := u["uuid"].(string); ok {
-									occData.UUID = uuid
-								}
-
-								occupants = append(occupants, occData)
 							}
+
+							occupants = append(occupants, occData)
 						}
 					} else {
 						empty := make(map[string]interface{})
