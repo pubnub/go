@@ -270,18 +270,6 @@ func newHereNowResponse(jsonBytes []byte, channelNames []string,
 						resp.Channels = channels
 
 						return resp, status, nil
-					} else if len(val) == 1 {
-						resp.TotalChannels = 1
-
-						if totalOcc, ok := parsedPayload["total_occupancy"].(float64); ok {
-							resp.TotalOccupancy = int(totalOcc)
-						}
-
-						resp.Channels = append(resp.Channels, HereNowChannelData{
-							channelNames[0], 1, []HereNowOccupantsData{},
-						})
-
-						return resp, status, nil
 					} else {
 						if totalCh, ok := parsedValue["total_channels"].(float64); ok {
 							resp.TotalChannels = int(totalCh)
