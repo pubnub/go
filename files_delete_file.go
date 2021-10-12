@@ -179,6 +179,10 @@ func (o *deleteFileOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *deleteFileOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNDeleteFileResponse is the File Upload API Response for Delete file operation
 type PNDeleteFileResponse struct {
 	status int `json:"status"`

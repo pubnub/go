@@ -149,3 +149,7 @@ func (o *deleteChannelGroupOpts) operationType() OperationType {
 func (o *deleteChannelGroupOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
+
+func (o *deleteChannelGroupOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}

@@ -258,6 +258,10 @@ func (o *removeMembershipsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *removeMembershipsOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNRemoveMembershipsResponse is the Objects API Response for RemoveMemberships
 type PNRemoveMembershipsResponse struct {
 	status     int             `json:"status"`

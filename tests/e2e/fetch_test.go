@@ -18,14 +18,23 @@ func GetTimetoken(pn *pubnub.PubNub) int64 {
 
 func MatchFetchMessages(ret *pubnub.FetchResponse, start int, ch1, ch2 string, assert *a.Assertions) {
 	chMessages := ret.Messages[ch1]
-	for i := start; i < len(chMessages); i++ {
-		assert.Equal(fmt.Sprintf("testch1 %d", i), chMessages[i].Message)
-	}
-	ch2Messages := ret.Messages[ch2]
-	for i := start; i < len(ch2Messages); i++ {
-		assert.Equal(fmt.Sprintf("testch2 %d", i), ch2Messages[i].Message)
-	}
+	messages1 := make([]string, len(chMessages))
+	expectedMessages1 := make([]string, len(chMessages))
 
+	for i := start; i < len(chMessages); i++ {
+		messages1[i] = chMessages[i].Message.(string)
+		expectedMessages1[i] = "testch1 %d"
+	}
+	assert.ElementsMatch(expectedMessages1, messages1)
+
+	ch2Messages := ret.Messages[ch2]
+	messages2 := make([]string, len(ch2Messages))
+	expectedMessages2 := make([]string, len(ch2Messages))
+	for i := start; i < len(ch2Messages); i++ {
+		messages2[i] = ch2Messages[i].Message.(string)
+		expectedMessages2[i] = "testch2 %d"
+	}
+	assert.ElementsMatch(expectedMessages2, messages2)
 }
 
 func TestFetch(t *testing.T) {
@@ -54,23 +63,24 @@ func FetchCommon(t *testing.T, withMeta, withMessageActions bool) {
 
 	reverse := true
 
-	r := GenRandom()
-	ch1 := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
-	ch2 := fmt.Sprintf("testChannel_sub_%d", r.Intn(99999))
+	ch1 := randomized("testChannel_sub_%d")
+	ch2 := ch1 + "_2"
 
 	timestamp1 := GetTimetoken(pn)
+	time.Sleep(500 * time.Millisecond)
 	timestamp2 := int64(0)
 
 	for i := 0; i < 10; i++ {
 		if i == 5 {
+			time.Sleep(500 * time.Millisecond)
 			timestamp2 = GetTimetoken(pn)
+			time.Sleep(500 * time.Millisecond)
 		}
+		time.Sleep(100 * time.Millisecond) //to reduce possiblity of quota exceeded
 		pn.Publish().Channel(ch1).Message(fmt.Sprintf("testch1 %d", i)).Execute()
-		time.Sleep(1 * time.Second)
 		pn.Publish().Channel(ch2).Message(fmt.Sprintf("testch2 %d", i)).Execute()
-		time.Sleep(1 * time.Second)
 	}
-
+	time.Sleep(500 * time.Millisecond)
 	timestamp3 := GetTimetoken(pn)
 
 	ret, _, err := pn.Fetch().

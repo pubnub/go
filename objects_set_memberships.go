@@ -258,6 +258,10 @@ func (o *setMembershipsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *setMembershipsOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNSetMembershipsResponse is the Objects API Response for SetMemberships
 type PNSetMembershipsResponse struct {
 	status     int             `json:"status"`

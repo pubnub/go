@@ -235,6 +235,10 @@ func (o *getChannelMembersOptsV2) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *getChannelMembersOptsV2) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNGetChannelMembersResponse is the Objects API Response for Get Members
 type PNGetChannelMembersResponse struct {
 	status     int                `json:"status"`

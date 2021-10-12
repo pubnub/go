@@ -208,3 +208,7 @@ func (o *addChannelsToPushOpts) operationType() OperationType {
 func (o *addChannelsToPushOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
+
+func (o *addChannelsToPushOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}

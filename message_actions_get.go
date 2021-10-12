@@ -187,6 +187,10 @@ func (o *getMessageActionsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *getMessageActionsOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNGetMessageActionsMore is the struct used when the PNGetMessageActionsResponse has more link
 type PNGetMessageActionsMore struct {
 	URL   string `json:"url"`

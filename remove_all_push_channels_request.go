@@ -191,3 +191,7 @@ func (o *removeAllPushChannelsForDeviceOpts) operationType() OperationType {
 func (o *removeAllPushChannelsForDeviceOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
+
+func (o *removeAllPushChannelsForDeviceOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}

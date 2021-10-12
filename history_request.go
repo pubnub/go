@@ -234,6 +234,10 @@ func (o *historyOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *historyOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // HistoryResponse is used to store the response from the History request.
 type HistoryResponse struct {
 	Messages       []HistoryResponseItem

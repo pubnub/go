@@ -154,6 +154,10 @@ func (o *removeChannelMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *removeChannelMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNRemoveChannelMetadataResponse is the Objects API Response for delete space
 type PNRemoveChannelMetadataResponse struct {
 	status int         `json:"status"`

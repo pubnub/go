@@ -255,6 +255,10 @@ func (o *setChannelMembersOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *setChannelMembersOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNSetChannelMembersResponse is the Objects API Response for SetChannelMembers
 type PNSetChannelMembersResponse struct {
 	status     int                `json:"status"`

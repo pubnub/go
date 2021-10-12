@@ -284,3 +284,7 @@ func (o *fireOpts) operationType() OperationType {
 func (o *fireOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
+
+func (o *fireOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}

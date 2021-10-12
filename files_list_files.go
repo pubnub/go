@@ -177,6 +177,10 @@ func (o *listFilesOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *listFilesOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNListFilesResponse is the File Upload API Response for Get Spaces
 type PNListFilesResponse struct {
 	status int          `json:"status"`

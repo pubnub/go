@@ -212,3 +212,7 @@ func (o *subscribeOpts) operationType() OperationType {
 func (o *subscribeOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
+
+func (o *subscribeOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}

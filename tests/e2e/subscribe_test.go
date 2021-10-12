@@ -80,19 +80,19 @@ func TestRequestMesssageOverflow(t *testing.T) {
 	ch := randomized("sub-message-overflow")
 
 	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.MessageQueueOverflowCount = 2
+	pn.Config.MessageQueueOverflowCount = 1
 	if enableDebuggingInTests {
 		//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
 	timestamp1 := GetTimetoken(pn)
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 6; i++ {
 		message := fmt.Sprintf("message %d", i)
+		time.Sleep(time.Millisecond * 100) //to prevent quota exceeded
 		pn.Publish().Channel(ch).Message(message).Execute()
 	}
 
 	listener := pubnub.NewListener()
-	exitListener := make(chan bool)
 
 	go func() {
 	ExitLabel:
@@ -101,23 +101,13 @@ func TestRequestMesssageOverflow(t *testing.T) {
 			case status := <-listener.Status:
 				switch status.Category {
 				case pubnub.PNConnectedCategory:
-					continue
 				case pubnub.PNRequestMessageCountExceededCategory:
 					doneSubscribe <- true
-					break
+					break ExitLabel
 				default:
 					errChan <- fmt.Sprintf("error ===> %v", status)
-					break
 				}
 			case <-listener.Message:
-				errChan <- "Got message while awaiting for a status event"
-				break
-			case <-listener.Presence:
-				errChan <- "Got presence while awaiting for a status event"
-				break
-			case <-exitListener:
-				break ExitLabel
-
 			}
 		}
 	}()
@@ -134,8 +124,6 @@ func TestRequestMesssageOverflow(t *testing.T) {
 		tic.Stop()
 		assert.Fail("timeout")
 	}
-
-	exitListener <- true
 }
 
 /////////////////////////////
@@ -351,7 +339,11 @@ func TestSubscribePublishUnsubscribePushHelper(t *testing.T) {
 	s := pn.CreatePushPayload().SetAPNSPayload(apns, apns2).SetCommonPayload(CommonPayload).SetFCMPayload(fcm).SetMPNSPayload(mpns).BuildPayload()
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 
 	if m != nil {
 		result := m.(map[string]interface{})
@@ -430,7 +422,11 @@ func TestSubscribePublishUnsubscribeString(t *testing.T) {
 	s := "hey"
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(string)
 	assert.Equal(s, msg)
 }
@@ -441,7 +437,11 @@ func TestSubscribePublishUnsubscribeStringEnc(t *testing.T) {
 	s := "yay!"
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(string)
 	assert.Equal(s, msg)
 }
@@ -452,7 +452,11 @@ func TestSubscribePublishUnsubscribeInt(t *testing.T) {
 	s := 1
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(float64)
 	assert.Equal(float64(1), msg)
 }
@@ -463,7 +467,11 @@ func TestSubscribePublishUnsubscribeIntEnc(t *testing.T) {
 	s := 1
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(float64)
 	assert.Equal(float64(1), msg)
 }
@@ -478,7 +486,11 @@ func TestSubscribePublishUnsubscribePNOtherDisable(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, true, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(map[string]interface{})
 	assert.Equal("123456", msg["not_other"])
 	assert.Equal("yay!", msg["pn_other"])
@@ -494,7 +506,11 @@ func TestSubscribePublishUnsubscribePNOther(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(map[string]interface{})
 	assert.Equal("12345", msg["not_other"])
 	assert.Equal("yay!", msg["pn_other"])
@@ -515,7 +531,11 @@ func TestSubscribePublishUnsubscribePNOtherComplex(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(map[string]interface{})
 	assert.Equal("12345", msg["not_other"])
 	if msgOther, ok := msg["pn_other"].(map[string]interface{}); !ok {
@@ -536,7 +556,11 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutPNOther(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
 	assert.Equal("yay!", msg["ss_other"])
@@ -553,7 +577,11 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherEnc(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(map[string]interface{})
 	assert.Equal("123", msg["not_other"])
 	assert.Equal("yay!", msg["ss_other"])
@@ -573,7 +601,11 @@ func TestSubscribePublishUnsubscribeInterfaceCustom(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	//s1 := reflect.ValueOf(m)
 	//fmt.Println("s:::", s1, s1.Type())
 	if msg, ok := m.(map[string]interface{}); !ok {
@@ -600,7 +632,11 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutCustomEnc(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, false)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	//s1 := reflect.ValueOf(m)
 	//fmt.Println("s:::", s1, s1.Type())
 	if msg, ok := m.(map[string]interface{}); !ok {
@@ -624,7 +660,11 @@ func TestSubscribePublishUnsubscribeStringPost(t *testing.T) {
 	s := "hey"
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, true)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(string)
 	assert.Equal(s, msg)
 }
@@ -635,7 +675,11 @@ func TestSubscribePublishUnsubscribeStringEncPost(t *testing.T) {
 	s := "hey"
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(string)
 	assert.Equal(s, msg)
 }
@@ -646,7 +690,11 @@ func TestSubscribePublishUnsubscribeIntPost(t *testing.T) {
 	s := 1
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, true)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(float64)
 	assert.Equal(float64(1), msg)
 }
@@ -657,7 +705,11 @@ func TestSubscribePublishUnsubscribeIntEncPost(t *testing.T) {
 	s := 1
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(float64)
 	assert.Equal(float64(1), msg)
 }
@@ -672,7 +724,11 @@ func TestSubscribePublishUnsubscribePNOtherDisablePost(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, true, true)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(map[string]interface{})
 	assert.Equal("123456", msg["not_other"])
 	assert.Equal("yay!", msg["pn_other"])
@@ -688,7 +744,11 @@ func TestSubscribePublishUnsubscribePNOtherPost(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(map[string]interface{})
 	assert.Equal("12345", msg["not_other"])
 	assert.Equal("yay!", msg["pn_other"])
@@ -709,7 +769,11 @@ func TestSubscribePublishUnsubscribePNOtherComplexPost(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(map[string]interface{})
 	assert.Equal("12345", msg["not_other"])
 	if msgOther, ok := msg["pn_other"].(map[string]interface{}); !ok {
@@ -730,7 +794,11 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherPost(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, true)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
 	assert.Equal("yay!", msg["ss_other"])
@@ -747,7 +815,11 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutPNOtherEncPost(t *testing.T)
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	msg := m.(map[string]interface{})
 	assert.Equal("123", msg["not_other"])
 	assert.Equal("yay!", msg["ss_other"])
@@ -762,7 +834,11 @@ func TestSubscribePublishUnsubscribeInterfaceCustomPost(t *testing.T) {
 	}
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, true)
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	//s1 := reflect.ValueOf(m)
 	//fmt.Println("s:::", s1, s1.Type())
 	if msg, ok := m.(map[string]interface{}); !ok {
@@ -790,7 +866,11 @@ func TestSubscribePublishUnsubscribeInterfaceWithoutCustomEncPost(t *testing.T) 
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "enigma", pubMessage, false, true)
 	fmt.Println("after SubscribePublishUnsubscribeMultiCommon got message")
-	m := <-pubMessage
+	m, ok := <-pubMessage
+	if !ok {
+		assert.Fail("pubMessage channel closed")
+		return
+	}
 	//s1 := reflect.ValueOf(m)
 	//fmt.Println("s:::", s1, s1.Type())
 	if msg, ok := m.(map[string]interface{}); !ok {
@@ -814,7 +894,17 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	doneUnsubscribe := make(chan bool)
 	donePublish := make(chan bool)
 	exit := make(chan bool)
-	errChan := make(chan string)
+	var once sync.Once
+	defer func() {
+		close(pubMessage)
+		timer := time.NewTimer(time.Duration(timeout) * time.Second)
+		select {
+		case exit <- true:
+		case <-timer.C:
+			assert.Fail("Closing listener timed out. Listener is not waiting on exitListener channel")
+		}
+
+	}()
 	// go func() {
 	// 	log.Println(http.ListenAndServe("localhost:6062", nil))
 	// }()
@@ -839,8 +929,6 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 
 	listener := pubnub.NewListener()
 
-	tic := time.NewTicker(time.Duration(timeout) * time.Second)
-
 	go func() {
 	CloseLoop:
 		for {
@@ -850,12 +938,22 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 				case pubnub.PNConnectedCategory:
 					doneSubscribe <- true
 				case pubnub.PNDisconnectedCategory:
-					doneUnsubscribe <- true
+					once.Do(func() {
+						doneUnsubscribe <- true
+					},
+					)
 				case pubnub.PNAcknowledgmentCategory:
-					doneUnsubscribe <- true
+					once.Do(func() {
+						doneUnsubscribe <- true
+					},
+					)
+
 				default:
+					once.Do(func() {
+						doneUnsubscribe <- true
+					},
+					)
 					//fmt.Println("SubscribePublishUnsubscribeMultiCommon status", status)
-					doneUnsubscribe <- true
 				}
 			case message := <-listener.Message:
 				donePublish <- true
@@ -865,18 +963,7 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 					fmt.Println("pubMessage nil")
 				}
 
-			case <-listener.Presence:
-				errChan <- "Got presence while awaiting for a status event"
-			case <-tic.C:
-				//fmt.Println("SubscribePublishUnsubscribeMultiCommon timeout")
-				assert.Fail("timeout")
-				errChan <- "timeout"
-
-				break CloseLoop
 			case <-exit:
-				if tic != nil {
-					tic.Stop()
-				}
 				break CloseLoop
 			}
 		}
@@ -886,27 +973,43 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	pn.AddListener(listener)
 
 	pn.Subscribe().Channels([]string{ch}).Execute()
-
+	timer := time.NewTimer(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneSubscribe:
-	case err := <-errChan:
-		assert.Fail(err)
-		//return
+		timer.Stop()
+	case <-timer.C:
+		assert.Fail("Waiting on subscribe timed out")
+		return
+	}
+	_, _, err := pn.Publish().Channel(ch).Message(s).UsePost(usePost).Execute()
+
+	if err != nil {
+		t.Errorf("Publish failed %s", err)
+		return
+	}
+
+	timer = time.NewTimer(time.Duration(timeout*3) * time.Second)
+	select {
+	case <-donePublish:
+		timer.Stop()
+	case <-timer.C:
+		assert.Fail("Waiting on publish timed out")
+		return
 	}
 
 	//fmt.Println("SubscribePublishUnsubscribeMultiCommon publish done")
-	pn.Publish().Channel(ch).Message(s).UsePost(usePost).Execute()
-
-	select {
-	case <-donePublish:
-	case err := <-errChan:
-		assert.Fail(err)
-		//return
-	}
 
 	pn.Unsubscribe().
 		Channels([]string{ch}).
 		Execute()
+	timer = time.NewTimer(time.Duration(timeout) * time.Second)
+	select {
+	case <-doneUnsubscribe:
+		timer.Stop()
+	case <-timer.C:
+		assert.Fail("Waiting on unsubscribe timed out")
+		return
+	}
 
 	//fmt.Println("SubscribePublishUnsubscribeMultiCommon before doneUnsubscribe")
 	// select {
@@ -915,9 +1018,6 @@ func SubscribePublishUnsubscribeMultiCommon(t *testing.T, s interface{}, cipher 
 	// 	assert.Fail(err)
 	// }
 	// fmt.Println("SubscribePublishUnsubscribeMultiCommon after doneUnsubscribe")
-	if exit != nil {
-		exit <- true
-	}
 	// fmt.Println("SubscribePublishUnsubscribeMultiCommon after exit")
 
 	// assert.Zero(len(pn.GetSubscribedChannels()))
@@ -1341,8 +1441,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 
 	ch1 := randomized("sub-partialu-ch1")
 	ch2 := randomized("sub-partialu-ch2")
-	heyPub := heyIterator(3)
-	heySub := heyIterator(3)
+	expectedMsg := randomized("sub-partialu-expectedMsg")
 
 	pn := pubnub.NewPubNub(configCopy())
 	if enableDebuggingInTests {
@@ -1361,7 +1460,10 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 				switch status.Category {
 				case pubnub.PNConnectedCategory:
 					once.Do(func() {
-						pn.Publish().Channel(ch1).Message(<-heyPub).Execute()
+						_, _, err := pn.Publish().Channel(ch1).Message(expectedMsg).Execute()
+						if err != nil {
+							errChan <- "Failed when publishing: " + err.Error()
+						}
 					})
 					continue
 				}
@@ -1370,13 +1472,10 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 					doneUnsubscribe <- true
 				}
 			case message := <-listener.Message:
-				if message.Message == <-heySub {
+				if message.Message == expectedMsg {
 					pn.Unsubscribe().
 						Channels([]string{ch2}).
 						Execute()
-				} else {
-					errChan <- fmt.Sprintf("Unexpected message: %s",
-						message.Message)
 				}
 			case <-listener.Presence:
 				errChan <- "Got presence while awaiting for a status event"
@@ -1973,13 +2072,20 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 
 	assert := assert.New(t)
 	doneConnected := make(chan bool)
-	errChan := make(chan string)
+	errChan := make(chan string, 2)
 
 	pn := pubnub.NewPubNub(configCopy())
 	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	//pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
 	exitListener := make(chan bool)
+
+	defer func() {
+		select {
+		case exitListener <- true:
+		case <-time.NewTimer(3 * time.Second).C:
+		}
+	}()
 
 	go func() {
 	ExitLabel:
@@ -2023,9 +2129,8 @@ func TestSubscribeWithCustomTimetoken(t *testing.T) {
 		assert.Fail("timeout")
 
 	}
-
 	pn.UnsubscribeAll()
-	exitListener <- true
+
 }
 
 func TestSubscribeWithFilter(t *testing.T) {
@@ -2067,8 +2172,11 @@ func TestSubscribeWithFilter(t *testing.T) {
 		Channels([]string{ch}).
 		Execute()
 
+	timer := time.NewTimer(time.Second * 3)
 	select {
 	case <-doneSubscribe:
+	case <-timer.C:
+		assert.Fail("Waiting on subscribe timed out")
 	case err := <-errChan:
 		assert.Fail(err)
 	}
@@ -2078,23 +2186,35 @@ func TestSubscribeWithFilter(t *testing.T) {
 	meta := make(map[string]string)
 	meta["language"] = "spanish"
 
-	pnPublish.Publish().
+	if _, _, err := pnPublish.Publish().
 		Channel("ch").
 		Meta(meta).
 		Message("Hola!").
-		Execute()
+		Execute(); err != nil {
+
+		t.Errorf("Publish failed %s", err)
+		return
+	}
 
 	anotherMeta := make(map[string]string)
 	anotherMeta["language"] = "english"
 
-	pnPublish.Publish().
+	if _, _, err := pnPublish.Publish().
 		Channel(ch).
 		Meta(anotherMeta).
 		Message("Hello!").
-		Execute()
+		Execute(); err != nil {
 
-	<-donePublish
+		t.Errorf("Publish failed %s", err)
+		return
+	}
 
+	timer = time.NewTimer(time.Second * 3)
+	select {
+	case <-donePublish:
+	case <-timer.C:
+		assert.Fail("Waiting on publish timed out")
+	}
 }
 
 func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
@@ -2109,6 +2229,14 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 	pn := pubnub.NewPubNub(config)
 	listener := pubnub.NewListener()
 	exitListener := make(chan bool)
+	defer func() {
+		timer := time.NewTimer(time.Duration(timeout) * time.Second)
+		select {
+		case exitListener <- true:
+		case <-timer.C:
+			assert.Fail("Closing listener timed out. Listener is not waiting on exitListener channel")
+		}
+	}()
 
 	go func() {
 	ExitLabel:
@@ -2138,19 +2266,30 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 		Channels([]string{ch}).
 		Execute()
 
+	timer := time.NewTimer(time.Duration(timeout) * time.Second)
 	select {
 	case <-doneConnect:
 	case err := <-errChan:
 		assert.Fail(err)
+		return
+	case <-timer.C:
+		timer.Stop()
+		assert.Fail("Waiting on connected event timed out")
+		return
 	}
 
-	pn.Publish().
+	_, _, err := pn.Publish().
 		UsePost(true).
 		Channel(ch).
 		Message("hey").
 		Execute()
 
-	tic := time.NewTicker(time.Duration(timeout) * time.Second)
+	if err != nil {
+		assert.Fail("Publish failed")
+		return
+	}
+
+	tic := time.NewTicker(time.Duration(timeout*3) * time.Second)
 	select {
 	case <-donePublish:
 	case err := <-errChan:
@@ -2158,9 +2297,7 @@ func TestSubscribePublishUnsubscribeWithEncrypt(t *testing.T) {
 	case <-tic.C:
 		tic.Stop()
 		assert.Fail("timeout")
-
 	}
-	exitListener <- true
 }
 
 func TestSubscribeSuperCall(t *testing.T) {

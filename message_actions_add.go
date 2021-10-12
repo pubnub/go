@@ -180,6 +180,10 @@ func (o *addMessageActionsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *addMessageActionsOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNMessageActionsResponse Message Actions response.
 type PNMessageActionsResponse struct {
 	ActionType       string `json:"type"`

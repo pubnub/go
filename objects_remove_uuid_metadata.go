@@ -156,6 +156,10 @@ func (o *removeUUIDMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *removeUUIDMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNRemoveUUIDMetadataResponse is the Objects API Response for delete user
 type PNRemoveUUIDMetadataResponse struct {
 	status int         `json:"status"`

@@ -321,6 +321,10 @@ func (o *publishFileMessageOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *publishFileMessageOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PublishFileMessageResponse is the response to PublishFileMessage request.
 type PublishFileMessageResponse struct {
 	Timestamp int64

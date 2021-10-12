@@ -1,6 +1,16 @@
 ---
-version: v5.0.3 
+version: v6.0.0 
 changelog: 
+  -
+    changes:
+      -
+        text: "Add grantToken functionality (PAMv3). Method grantToken has been added. It allows generation of signed token with permissions for channels and channel groups."
+        type: feature
+      -
+        text: "Acceptance tests plugged into CI pipeline."
+        type: feature
+    date: 2021-10-12
+    version: v6.0.0
   -
     changes:
       -
@@ -519,7 +529,9 @@ features:
     - ACCESS-GRANT-DELETE
     - ACCESS-SECRET-KEY-ALL-ACCESS
     - ACCESS-GRANT-V3
-    - ACCESS-TOKEN-MANAGEMENT
+    - ACCESS-GRANT-TOKEN
+    - ACCESS-PARSE-TOKEN
+    - ACCESS-SET-TOKEN
   channel-groups: 
     - CHANNEL-GROUPS-ADD-CHANNELS
     - CHANNEL-GROUPS-REMOVE-CHANNELS
@@ -634,11 +646,6 @@ scm: github.com/pubnub/go
 supported-platforms: 
   - 
     editors: 
-      - "1.9.7"
-      - "1.10.8"
-      - "1.11.13"
-      - "1.12.17"
-      - "1.13.14"
       - "1.14.6"
       - "1.15.12"      
       - "1.16.4"      
@@ -670,7 +677,7 @@ sdks:
             requires:
               -
                 name: "Go"
-                min-version: "1.9.7"
+                min-version: "1.14.6"
                 max-version: "1.16.4"
                 license: "https://golang.org/doc/tos"
                 license-url: "https://golang.org/doc/tos"

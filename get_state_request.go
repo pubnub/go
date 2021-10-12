@@ -198,6 +198,10 @@ func (o *getStateOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *getStateOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // GetStateResponse is the struct returned when the Execute function of GetState is called.
 type GetStateResponse struct {
 	State map[string]interface{}

@@ -225,6 +225,10 @@ func (o *getAllChannelMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *getAllChannelMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNGetAllChannelMetadataResponse is the Objects API Response for Get Spaces
 type PNGetAllChannelMetadataResponse struct {
 	status     int         `json:"status"`

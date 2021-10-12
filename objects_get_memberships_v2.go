@@ -235,6 +235,10 @@ func (o *getMembershipsOptsV2) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *getMembershipsOptsV2) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNGetMembershipsResponse is the Objects API Response for Get Memberships
 type PNGetMembershipsResponse struct {
 	status     int             `json:"status"`

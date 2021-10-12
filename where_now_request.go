@@ -149,6 +149,10 @@ func (o *whereNowOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *whereNowOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // WhereNowResponse is the response of the WhereNow request. Contains channels info.
 type WhereNowResponse struct {
 	Channels []string

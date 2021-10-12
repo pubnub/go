@@ -208,6 +208,10 @@ func (o *sendFileToS3Opts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *sendFileToS3Opts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNSendFileToS3Response is the File Upload API Response for Get Spaces
 type PNSendFileToS3Response struct {
 }

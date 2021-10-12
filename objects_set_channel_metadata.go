@@ -207,6 +207,10 @@ func (o *setChannelMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *setChannelMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNSetChannelMetadataResponse is the Objects API Response for Update Space
 type PNSetChannelMetadataResponse struct {
 	status int       `json:"status"`

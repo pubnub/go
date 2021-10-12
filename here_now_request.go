@@ -205,6 +205,10 @@ func (o *hereNowOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *hereNowOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // HereNowResponse is the struct returned when the Execute function of HereNow is called.
 type HereNowResponse struct {
 	TotalChannels  int

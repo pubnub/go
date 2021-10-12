@@ -392,10 +392,8 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	r := GenRandom()
-
-	userid := fmt.Sprintf("testuser_%d", r.Intn(99999))
-	spaceid := fmt.Sprintf("testspace_%d", r.Intn(99999))
+	userid := randomized("testuser1")
+	spaceid := randomized("testspace")
 
 	if withPAM {
 		pn2 := ActivateWithPAMV2()
@@ -412,7 +410,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	name := fmt.Sprintf("name_%d", r.Intn(99999))
+	name := randomized("name")
 	extid := "extid"
 	purl := "profileurl"
 	email := "email"
@@ -465,25 +463,25 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 		assert.Equal("d1", res2.Data.Custom["c1"])
 	}
 
-	userid2 := fmt.Sprintf("testuser_%d", r.Intn(99999))
+	userid2 := randomized("testuser2")
 
 	_, st3, err3 := pn.SetUUIDMetadata().Include(inclUUID).UUID(userid2).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(err3)
 	assert.Equal(200, st3.StatusCode)
 
-	spaceid2 := fmt.Sprintf("testspace_%d", r.Intn(99999))
+	spaceid2 := randomized("testspace")
 
 	_, st4, err4 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid2).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(err4)
 	assert.Equal(200, st4.StatusCode)
 
-	userid3 := fmt.Sprintf("testuser_%d", r.Intn(99999))
+	userid3 := randomized("testuser3")
 
 	_, stuser3, erruser3 := pn.SetUUIDMetadata().Include(inclUUID).UUID(userid3).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(erruser3)
 	assert.Equal(200, stuser3.StatusCode)
 
-	spaceid3 := fmt.Sprintf("testspace_%d", r.Intn(99999))
+	spaceid3 := randomized("testspace")
 
 	_, stspace3, errspace3 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid3).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(errspace3)
@@ -522,9 +520,10 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	}
 
 	//Add Space Memberships
+	sortSetChannelMembers := []string{"uuid.id:desc"}
 	sort := []string{"updated:desc"}
 
-	resAdd, stAdd, errAdd := pn.SetChannelMembers().Channel(spaceid).Sort(sort).Set(inArr).Include(inclSm).Limit(limit).Count(count).Execute()
+	resAdd, stAdd, errAdd := pn.SetChannelMembers().Channel(spaceid).Sort(sortSetChannelMembers).Set(inArr).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errAdd)
 	assert.Equal(200, stAdd.StatusCode)
 	if errAdd == nil {
@@ -966,10 +965,8 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	r := GenRandom()
-
-	userid := fmt.Sprintf("testuser_%d", r.Intn(99999))
-	spaceid := fmt.Sprintf("testspace_%d", r.Intn(99999))
+	userid := randomized("testuser1")
+	spaceid := randomized("testspace1")
 
 	if withPAM {
 		pn2 := ActivateWithPAMV2()
@@ -986,7 +983,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	name := fmt.Sprintf("name_%d", r.Intn(99999))
+	name := randomized("name")
 	extid := "extid"
 	purl := "profileurl"
 	email := "email"
@@ -1039,25 +1036,25 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 		assert.Equal("d1", res2.Data.Custom["c1"])
 	}
 
-	userid2 := fmt.Sprintf("testuser_%d", r.Intn(99999))
+	userid2 := randomized("testuser2")
 
 	_, st3, err3 := pn.SetUUIDMetadata().Include(inclUUID).UUID(userid2).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(err3)
 	assert.Equal(200, st3.StatusCode)
 
-	spaceid2 := fmt.Sprintf("testspace_%d", r.Intn(99999))
+	spaceid2 := randomized("testspace2")
 
 	_, st4, err4 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid2).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(err4)
 	assert.Equal(200, st4.StatusCode)
 
-	userid3 := fmt.Sprintf("testuser_%d", r.Intn(99999))
+	userid3 := randomized("testuser3")
 
 	_, stuser3, erruser3 := pn.SetUUIDMetadata().Include(inclUUID).UUID(userid3).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
 	assert.Nil(erruser3)
 	assert.Equal(200, stuser3.StatusCode)
 
-	spaceid3 := fmt.Sprintf("testspace_%d", r.Intn(99999))
+	spaceid3 := randomized("testspace3")
 
 	_, stspace3, errspace3 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid3).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(errspace3)
@@ -1096,9 +1093,10 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	}
 
 	//Add Space Memberships
+	sortManageChannelMembers := []string{"uuid.id:desc"}
 	sort := []string{"updated:desc"}
 
-	resAdd, stAdd, errAdd := pn.ManageChannelMembers().Channel(spaceid).Sort(sort).Set(inArr).Remove([]pubnub.PNChannelMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+	resAdd, stAdd, errAdd := pn.ManageChannelMembers().Channel(spaceid).Sort(sortManageChannelMembers).Set(inArr).Remove([]pubnub.PNChannelMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errAdd)
 	assert.Equal(200, stAdd.StatusCode)
 	if errAdd == nil {

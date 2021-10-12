@@ -228,6 +228,10 @@ func (o *downloadFileOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *downloadFileOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNDownloadFileResponse is the File Upload API Response for Get Spaces
 type PNDownloadFileResponse struct {
 	status int       `json:"status"`

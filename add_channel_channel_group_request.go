@@ -181,6 +181,10 @@ func (o *addChannelOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *addChannelOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // AddChannelToChannelGroupResponse is the struct returned when the Execute function of AddChannelToChannelGroup is called.
 type AddChannelToChannelGroupResponse struct {
 }

@@ -278,6 +278,10 @@ func (o *fetchOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *fetchOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistoryMessageActionsTypeMap {
 	o.pubnub.Config.Log.Println(actions)
 	resp := make(map[string]PNHistoryMessageActionsTypeMap)

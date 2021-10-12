@@ -166,6 +166,10 @@ func (o *getUUIDMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *getUUIDMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNGetUUIDMetadataResponse is the Objects API Response for Get User
 type PNGetUUIDMetadataResponse struct {
 	status int    `json:"status"`

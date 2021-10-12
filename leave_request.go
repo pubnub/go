@@ -146,3 +146,7 @@ func (o *leaveOpts) operationType() OperationType {
 func (o *leaveOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
+
+func (o *leaveOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}

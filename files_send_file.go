@@ -226,6 +226,10 @@ func (o *sendFileOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *sendFileOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNSendFileResponseForS3 is the File Upload API Response for SendFile.
 type PNSendFileResponseForS3 struct {
 	status            int                 `json:"status"`

@@ -226,6 +226,10 @@ func (o *setUUIDMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *setUUIDMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNSetUUIDMetadataResponse is the Objects API Response for Update user
 type PNSetUUIDMetadataResponse struct {
 	status int    `json:"status"`

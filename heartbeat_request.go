@@ -190,3 +190,7 @@ func (o *heartbeatOpts) operationType() OperationType {
 func (o *heartbeatOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
+
+func (o *heartbeatOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}

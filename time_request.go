@@ -134,6 +134,10 @@ func (o *timeOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *timeOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // TimeResponse is the response when Time call is executed.
 type TimeResponse struct {
 	Timetoken int64

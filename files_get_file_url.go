@@ -184,6 +184,10 @@ func (o *getFileURLOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *getFileURLOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNGetFileURLResponse is the File Upload API Response for Get Spaces
 type PNGetFileURLResponse struct {
 	URL string `json:"location"`

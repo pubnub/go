@@ -3,18 +3,8 @@ dist: xenial
 language: go
 os: linux
 
-env:
-  jobs:
-    - DEP_VERSION=0.5.0  
-
-before_install:
-  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
-  - chmod +x $GOPATH/bin/dep
-
 install:
   - mkdir -p $GOPATH/src/github.com/pubnub
-  - dep ensure
-  - dep status
   - go get -u github.com/wadey/gocovmerge
 
 
@@ -30,27 +20,7 @@ stages:
 jobs:
   include:
     - stage: "test"
-      name: 'Go 1.9.7'
-      go: 1.9.7
-      script: 
-        - bash ./scripts/run-tests.sh
-    - name: 'Go 1.10.8'
-      go: 1.10.8
-      script: 
-        - bash ./scripts/run-tests.sh
-    - name: 'Go 1.11.13'
-      go: 1.11.13
-      script: 
-        - bash ./scripts/run-tests.sh
-    - name: 'Go 1.12.17'
-      go: 1.12.17
-      script: 
-        - bash ./scripts/run-tests.sh
-    - name: 'Go 1.13.14'
-      go: 1.13.14
-      script: 
-        - bash ./scripts/run-tests.sh
-    - name: 'Go 1.14.6'
+      name: 'Go 1.14.6'
       go: 1.14.6
       script: 
         - bash ./scripts/run-tests.sh -mod=mod

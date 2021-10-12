@@ -220,3 +220,7 @@ func (o *listPushProvisionsRequestOpts) operationType() OperationType {
 func (o *listPushProvisionsRequestOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
+
+func (o *listPushProvisionsRequestOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}

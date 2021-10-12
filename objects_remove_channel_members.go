@@ -255,6 +255,10 @@ func (o *removeChannelMembersOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *removeChannelMembersOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // PNRemoveChannelMembersResponse is the Objects API Response for RemoveChannelMembers
 type PNRemoveChannelMembersResponse struct {
 	status     int                `json:"status"`

@@ -151,6 +151,10 @@ func (o *allChannelGroupOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *allChannelGroupOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // AllChannelGroupResponse is the struct returned when the Execute function of List All Channel Groups is called.
 type AllChannelGroupResponse struct {
 	Channels     []string

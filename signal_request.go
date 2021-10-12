@@ -205,6 +205,10 @@ func (o *signalOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *signalOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 // SignalResponse is the response to Signal request.
 type SignalResponse struct {
 	Timestamp int64
