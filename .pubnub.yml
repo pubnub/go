@@ -1,6 +1,13 @@
 ---
-version: v6.0.0 
+version: v6.0.1 
 changelog: 
+  -
+    changes:
+      -
+        text: "Using correct major version number in imports."
+        type: bug
+    date: 2021-10-13
+    version: v6.0.1
   -
     changes:
       -

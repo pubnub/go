@@ -9,8 +9,8 @@ import (
 	"mime/multipart"
 	"strconv"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 
 	"net/http"
 	"net/url"

@@ -1,4 +1,4 @@
-module github.com/pubnub/go/v5
+module github.com/pubnub/go/v6
 
 go 1.16
 

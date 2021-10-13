@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	pubnub "github.com/pubnub/go/v5"
+	pubnub "github.com/pubnub/go/v6"
 )
 
 type Lists struct {

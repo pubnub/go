@@ -11,8 +11,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const getStatePath = "/v2/presence/sub-key/%s/channel/%s/uuid/%s"

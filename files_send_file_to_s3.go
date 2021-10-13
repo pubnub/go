@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 )
 
 var emptySendFileToS3Response *PNSendFileToS3Response

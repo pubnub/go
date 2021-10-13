@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 const grantPath = "/v2/auth/grant/sub-key/%s"

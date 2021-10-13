@@ -6,7 +6,7 @@ import (
 	"runtime/pprof"
 	"time"
 
-	pubnub "github.com/pubnub/go/v5"
+	pubnub "github.com/pubnub/go/v6"
 )
 
 func main() {

@@ -3,7 +3,7 @@ package contract
 import (
 	"context"
 
-	pubnub "github.com/pubnub/go/v5"
+	pubnub "github.com/pubnub/go/v6"
 )
 
 func iGrantATokenSpecifyingThosePermissions(ctx context.Context) error {

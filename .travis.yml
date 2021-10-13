@@ -1,4 +1,4 @@
-go_import_path: github.com/pubnub/go/v5  
+go_import_path: github.com/pubnub/go/v6
 dist: xenial
 language: go
 os: linux

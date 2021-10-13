@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyPNAddMessageActionsResponse *PNAddMessageActionsResponse

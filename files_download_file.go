@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/utils"
 )
 
 var emptyDownloadFileResponse *PNDownloadFileResponse

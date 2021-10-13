@@ -1,3 +1,9 @@
+## [v6.0.1](https://github.com/pubnub/go/releases/tag/v6.0.1)
+October-13-2021
+
+#### Fixed
+- Using correct major version number in imports. 
+
 ## [v6.0.0](https://github.com/pubnub/go/releases/tag/v6.0.0)
 October-12-2021
 
