@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyPNGetChannelMetadataResponse *PNGetChannelMetadataResponse
@@ -163,6 +163,10 @@ func (o *getChannelMetadataOpts) operationType() OperationType {
 
 func (o *getChannelMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *getChannelMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNGetChannelMetadataResponse is the Objects API Response for Get Space

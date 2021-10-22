@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyPNGetMessageActionsResponse *PNGetMessageActionsResponse
@@ -185,6 +185,10 @@ func (o *getMessageActionsOpts) operationType() OperationType {
 
 func (o *getMessageActionsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *getMessageActionsOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNGetMessageActionsMore is the struct used when the PNGetMessageActionsResponse has more link

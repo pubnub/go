@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 
 	"net/http"
 	"net/url"
@@ -203,6 +203,10 @@ func (o *signalOpts) operationType() OperationType {
 
 func (o *signalOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *signalOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // SignalResponse is the response to Signal request.

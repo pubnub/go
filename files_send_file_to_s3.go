@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 )
 
 var emptySendFileToS3Response *PNSendFileToS3Response
@@ -206,6 +206,10 @@ func (o *sendFileToS3Opts) operationType() OperationType {
 
 func (o *sendFileToS3Opts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *sendFileToS3Opts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNSendFileToS3Response is the File Upload API Response for Get Spaces

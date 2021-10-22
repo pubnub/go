@@ -9,8 +9,8 @@ import (
 	"mime/multipart"
 	"strconv"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 
 	"net/http"
 	"net/url"
@@ -232,6 +232,10 @@ func (o *historyOpts) operationType() OperationType {
 
 func (o *historyOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *historyOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // HistoryResponse is used to store the response from the History request.

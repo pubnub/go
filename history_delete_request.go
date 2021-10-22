@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const historyDeletePath = "/v3/history/sub-key/%s/channel/%s"
@@ -185,6 +185,10 @@ func (o *historyDeleteOpts) operationType() OperationType {
 
 func (o *historyDeleteOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *historyDeleteOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // HistoryDeleteResponse is the struct returned when Delete Messages is called.

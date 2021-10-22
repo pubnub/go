@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const allChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s"
@@ -149,6 +149,10 @@ func (o *allChannelGroupOpts) operationType() OperationType {
 
 func (o *allChannelGroupOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *allChannelGroupOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // AllChannelGroupResponse is the struct returned when the Execute function of List All Channel Groups is called.

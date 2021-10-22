@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyGetMembershipsResponse *PNGetMembershipsResponse
@@ -233,6 +233,10 @@ func (o *getMembershipsOptsV2) operationType() OperationType {
 
 func (o *getMembershipsOptsV2) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *getMembershipsOptsV2) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNGetMembershipsResponse is the Objects API Response for Get Memberships

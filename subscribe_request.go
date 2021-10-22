@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const subscribePath = "/v2/subscribe/%s/%s/0"
@@ -211,4 +211,8 @@ func (o *subscribeOpts) operationType() OperationType {
 
 func (o *subscribeOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *subscribeOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }

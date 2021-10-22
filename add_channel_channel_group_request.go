@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const addChannelToChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s"
@@ -179,6 +179,10 @@ func (o *addChannelOpts) operationType() OperationType {
 
 func (o *addChannelOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *addChannelOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // AddChannelToChannelGroupResponse is the struct returned when the Execute function of AddChannelToChannelGroup is called.

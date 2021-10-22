@@ -1,6 +1,8 @@
 package e2e
 
 import (
+	crypto_rand "crypto/rand"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -9,7 +11,8 @@ import (
 	"net/http"
 	"time"
 
-	pubnub "github.com/pubnub/go/v5"
+	pubnub "github.com/pubnub/go/v6"
+	"github.com/stretchr/testify/assert"
 )
 
 var enableDebuggingInTests = false
@@ -28,9 +31,17 @@ var (
 	connectionErrorTemplate = "pubnub/connection: %s"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
+func seedRand() {
+	var b [8]byte
+	_, err := crypto_rand.Read(b[:])
+	if err != nil {
+		panic("cannot seed math/rand package with cryptographically secure random number generator")
+	}
+	rand.Seed(int64(binary.LittleEndian.Uint64(b[:])))
+}
 
+func init() {
+	seedRand()
 	config = pubnub.NewConfig()
 	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"
 	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3"
@@ -76,13 +87,45 @@ func (t fakeTransport) Dial(string, string) (net.Conn, error) {
 	return nil, errors.New("ooops!")
 }
 
+func logInTest(format string, a ...interface{}) (n int, err error) {
+	if enableDebuggingInTests {
+		return fmt.Printf(format, a...)
+	}
+	return 0, nil
+}
+
+func checkFor(assert *assert.Assertions, maxTime, intervalTime time.Duration, fun func() error) {
+	maxTimeout := time.NewTimer(maxTime)
+	interval := time.NewTicker(intervalTime)
+	lastErr := fun()
+	if lastErr == nil {
+		return
+	}
+ForLoop:
+	for {
+		select {
+		case <-interval.C:
+			lastErr := fun()
+			if lastErr != nil {
+				logInTest("Error: %s. Checking in next %s\n", lastErr, intervalTime)
+				continue
+			} else {
+				break ForLoop
+			}
+		case <-maxTimeout.C:
+			assert.Fail(lastErr.Error())
+			break ForLoop
+		}
+	}
+}
+
 func heyIterator(count int) <-chan string {
 	channel := make(chan string)
 
 	init := "hey-"
 
 	go func() {
-		for i := 1; i <= i; i++ {
+		for i := 1; i <= count; i++ {
 			channel <- fmt.Sprintf("%s%d", init, i)
 		}
 	}()

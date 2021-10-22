@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const heartbeatPath = "/v2/presence/sub-key/%s/channel/%s/heartbeat"
@@ -189,4 +189,8 @@ func (o *heartbeatOpts) operationType() OperationType {
 
 func (o *heartbeatOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *heartbeatOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }

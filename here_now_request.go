@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var hereNowPath = "/v2/presence/sub_key/%s/channel/%s"
@@ -203,6 +203,10 @@ func (o *hereNowOpts) operationType() OperationType {
 
 func (o *hereNowOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *hereNowOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // HereNowResponse is the struct returned when the Execute function of HereNow is called.

@@ -12,7 +12,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "5.0.3"
+	Version = "6.0.1"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -360,26 +360,6 @@ func (pn *PubNub) RemoveMessageActionWithContext(ctx Context) *removeMessageActi
 // SetToken Stores a single token in the Token Management System for use in API calls.
 func (pn *PubNub) SetToken(token string) {
 	pn.tokenManager.StoreToken(token)
-}
-
-// SetTokens Stores multiple tokens in the Token Management System for use in API calls.
-func (pn *PubNub) SetTokens(tokens []string) {
-	pn.tokenManager.StoreTokens(tokens)
-}
-
-// GetTokens Returns the token for the specified resource type and ID. When no token is set for the resource ID, the method checks for a pattern token at the resource level. Returns nil if not found.
-func (pn *PubNub) GetTokens() GrantResourcesWithPermissions {
-	return pn.tokenManager.GetAllTokens()
-}
-
-// GetTokensByResource Returns the token(s) for the specified type. Returns nil if not found.
-func (pn *PubNub) GetTokensByResource(resourceType PNResourceType) GrantResourcesWithPermissions {
-	return pn.tokenManager.GetTokensByResource(resourceType)
-}
-
-// GetToken Returns the token for the specified resource type and ID. When no token is set for the resource ID, the method checks for a pattern token at the resource level. Returns nil if not found.
-func (pn *PubNub) GetToken(resourceID string, resourceType PNResourceType) string {
-	return pn.tokenManager.GetToken(resourceID, resourceType)
 }
 
 // ResetTokenManager resets the token manager.

@@ -1,3 +1,16 @@
+## [v6.0.1](https://github.com/pubnub/go/releases/tag/v6.0.1)
+October-13-2021
+
+#### Fixed
+- Using correct major version number in imports. 
+
+## [v6.0.0](https://github.com/pubnub/go/releases/tag/v6.0.0)
+October-12-2021
+
+#### Added
+- Add grantToken functionality (PAMv3). Method grantToken has been added. It allows generation of signed token with permissions for channels and channel groups. 
+- Acceptance tests plugged into CI pipeline. 
+
 ## [v5.0.3](https://github.com/pubnub/go/releases/tag/v5.0.3)
 June-1-2021
 

@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	h "github.com/pubnub/go/v5/tests/helpers"
+	h "github.com/pubnub/go/v6/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 

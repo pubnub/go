@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyListFilesResponse *PNListFilesResponse
@@ -175,6 +175,10 @@ func (o *listFilesOpts) operationType() OperationType {
 
 func (o *listFilesOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *listFilesOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNListFilesResponse is the File Upload API Response for Get Spaces

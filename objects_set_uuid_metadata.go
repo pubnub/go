@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyPNSetUUIDMetadataResponse *PNSetUUIDMetadataResponse
@@ -224,6 +224,10 @@ func (o *setUUIDMetadataOpts) operationType() OperationType {
 
 func (o *setUUIDMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *setUUIDMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNSetUUIDMetadataResponse is the Objects API Response for Update user

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	h "github.com/pubnub/go/v5/tests/helpers"
+	h "github.com/pubnub/go/v6/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,9 +13,8 @@ func TestGrantTokenParseResourcePermissions(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	o := newGrantTokenBuilder(pn)
 
-	m := map[string]UserSpacePermissions{
-		"channel": UserSpacePermissions{
-			Create: true,
+	m := map[string]ChannelPermissions{
+		"channel": {
 			Read:   true,
 			Write:  true,
 			Manage: true,
@@ -23,9 +22,9 @@ func TestGrantTokenParseResourcePermissions(t *testing.T) {
 		},
 	}
 
-	r := o.opts.parseResourcePermissions(m, PNUsers)
+	r := o.opts.parseResourcePermissions(m, PNChannels)
 	for _, v := range r {
-		assert.Equal(int64(31), v)
+		assert.Equal(int64(15), v)
 	}
 }
 
@@ -34,20 +33,18 @@ func TestGrantTokenParseResourcePermissions2(t *testing.T) {
 
 	pn := NewPubNub(NewDemoConfig())
 	o := newGrantTokenBuilder(pn)
-
-	m := map[string]UserSpacePermissions{
-		"channel": UserSpacePermissions{
-			Create: false,
+	m := map[string]ChannelPermissions{
+		"channel": {
 			Read:   true,
 			Write:  true,
 			Manage: true,
-			Delete: true,
+			Delete: false,
 		},
 	}
 
-	r := o.opts.parseResourcePermissions(m, PNUsers)
+	r := o.opts.parseResourcePermissions(m, PNChannels)
 	for _, v := range r {
-		assert.Equal(int64(15), v)
+		assert.Equal(int64(7), v)
 	}
 }
 
@@ -56,39 +53,14 @@ func TestGrantTokenParseResourcePermissions3(t *testing.T) {
 
 	pn := NewPubNub(NewDemoConfig())
 	o := newGrantTokenBuilder(pn)
-
-	m := map[string]UserSpacePermissions{
-		"channel": UserSpacePermissions{
-			Create: false,
+	m := map[string]ChannelPermissions{
+		"channel": {
 			Read:   true,
 			Write:  true,
 			Manage: true,
 			Delete: false,
 		},
-	}
-
-	r := o.opts.parseResourcePermissions(m, PNUsers)
-	for _, v := range r {
-		assert.Equal(int64(7), v)
-	}
-}
-
-func TestGrantTokenParseResourcePermissions4(t *testing.T) {
-	assert := assert.New(t)
-
-	pn := NewPubNub(NewDemoConfig())
-	o := newGrantTokenBuilder(pn)
-
-	m := map[string]UserSpacePermissions{
-		"channel": UserSpacePermissions{
-			Create: false,
-			Read:   true,
-			Write:  true,
-			Manage: true,
-			Delete: false,
-		},
-		"channel2": UserSpacePermissions{
-			Create: false,
+		"channel2": {
 			Read:   true,
 			Write:  false,
 			Manage: true,
@@ -96,7 +68,7 @@ func TestGrantTokenParseResourcePermissions4(t *testing.T) {
 		},
 	}
 
-	r := o.opts.parseResourcePermissions(m, PNUsers)
+	r := o.opts.parseResourcePermissions(m, PNChannels)
 	assert.Equal(int64(7), r["channel"])
 	assert.Equal(int64(5), r["channel2"])
 }
@@ -123,50 +95,28 @@ func AssertTestGrantToken(t *testing.T, checkQueryParam, testContext bool) {
 		queryParam = nil
 	}
 
-	// ch := map[string]ChannelPermissions{
-	// 	"channel": ChannelPermissions{
-	// 		Write:  false,
-	// 		Read:   true,
-	// 		Delete: false,
-	// 	},
-	// }
-
-	u := map[string]UserSpacePermissions{
-		"users": UserSpacePermissions{
-			Create: false,
+	ch := map[string]ChannelPermissions{
+		"channel": {
+			Write:  false,
 			Read:   true,
-			Write:  true,
-			Manage: true,
-			Delete: true,
+			Delete: false,
 		},
 	}
 
-	s := map[string]UserSpacePermissions{
-		"spaces": UserSpacePermissions{
-			Create: true,
+	cg := map[string]GroupPermissions{
+		"cg": {
 			Read:   true,
-			Write:  true,
 			Manage: true,
-			Delete: true,
+		},
+		"cg2": {
+			Read:   true,
+			Manage: false,
 		},
 	}
-
-	// cg := map[string]GroupPermissions{
-	// 	"cg": GroupPermissions{
-	// 		Read:   true,
-	// 		Manage: true,
-	// 	},
-	// 	"cg2": GroupPermissions{
-	// 		Read:   true,
-	// 		Manage: false,
-	// 	},
-	// }
 
 	o.TTL(100)
-	//o.Channels(ch)
-	o.Users(u)
-	o.Spaces(s)
-	//o.ChannelGroups(cg)
+	o.Channels(ch)
+	o.ChannelGroups(cg)
 	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()
@@ -179,8 +129,7 @@ func AssertTestGrantToken(t *testing.T, checkQueryParam, testContext bool) {
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
 
-	//expectedBody := "{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{\"channel\":1},\"groups\":{\"cg\":5,\"cg2\":1},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":{},\"groups\":{},\"users\":{},\"spaces\":{}},\"meta\":{}}}" //{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{\"channel\":7},\"groups\":{\"cg\":23,\"cg2\":19},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":null,\"groups\":null,\"users\":null,\"spaces\":null},\"meta\":null}}"
-	expectedBody := "{\"ttl\":100,\"permissions\":{\"resources\":{\"channels\":{},\"groups\":{},\"users\":{\"users\":15},\"spaces\":{\"spaces\":31}},\"patterns\":{\"channels\":{},\"groups\":{},\"users\":{},\"spaces\":{}},\"meta\":{}}}"
+	expectedBody := `{"ttl":100,"permissions":{"resources":{"channels":{"channel":1},"groups":{"cg":5,"cg2":1},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"meta":{}}}`
 	assert.Equal(expectedBody, string(body))
 
 	if checkQueryParam {

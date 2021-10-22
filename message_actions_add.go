@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyPNAddMessageActionsResponse *PNAddMessageActionsResponse
@@ -178,6 +178,10 @@ func (o *addMessageActionsOpts) operationType() OperationType {
 
 func (o *addMessageActionsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *addMessageActionsOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNMessageActionsResponse Message Actions response.

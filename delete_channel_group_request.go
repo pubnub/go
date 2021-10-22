@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const deleteChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s/remove"
@@ -148,4 +148,8 @@ func (o *deleteChannelGroupOpts) operationType() OperationType {
 
 func (o *deleteChannelGroupOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *deleteChannelGroupOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }

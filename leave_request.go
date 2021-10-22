@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const leavePath = "/v2/presence/sub-key/%s/channel/%s/leave"
@@ -145,4 +145,8 @@ func (o *leaveOpts) operationType() OperationType {
 
 func (o *leaveOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *leaveOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }

@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const listChannelsOfPushPath = "/v1/push/sub-key/%s/devices/%s"
@@ -219,4 +219,8 @@ func (o *listPushProvisionsRequestOpts) operationType() OperationType {
 
 func (o *listPushProvisionsRequestOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *listPushProvisionsRequestOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }

@@ -3,9 +3,6 @@ package pubnub
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
-	"math/bits"
-	"strconv"
 	"strings"
 
 	cbor "github.com/brianolson/cbor_go"
@@ -25,6 +22,12 @@ const (
 	PNDelete = 8
 	// PNCreate Create Perms
 	PNCreate = 16
+	// PNGet Get Perms
+	PNGet = 32
+	// PNUpdate Update Perms
+	PNUpdate = 64
+	// PNJoin Join Perms
+	PNJoin = 128
 )
 
 // PNGrantType grant types
@@ -58,9 +61,7 @@ const (
 	// PNGroups for groups
 	PNGroups
 	// PNUsers for users
-	PNUsers
-	// PNSpaces for spaces
-	PNSpaces
+	PNUUIDs
 )
 
 // ChannelPermissions contains all the acceptable perms for channels
@@ -68,6 +69,10 @@ type ChannelPermissions struct {
 	Read   bool
 	Write  bool
 	Delete bool
+	Get    bool
+	Manage bool
+	Update bool
+	Join   bool
 }
 
 // GroupPermissions contains all the acceptable perms for groups
@@ -76,22 +81,10 @@ type GroupPermissions struct {
 	Manage bool
 }
 
-// UserSpacePermissions contains all the acceptable perms for Users and Spaces
-type UserSpacePermissions struct {
-	Read   bool
-	Write  bool
-	Manage bool
+type UUIDPermissions struct {
+	Get    bool
+	Update bool
 	Delete bool
-	Create bool
-}
-
-// ResourcePermissions contains all the applicable perms for bitmask translations.
-type ResourcePermissions struct {
-	Read   bool
-	Write  bool
-	Manage bool
-	Delete bool
-	Create bool
 }
 
 // PNPAMEntityData is the struct containing the access details of the channels.
@@ -143,53 +136,59 @@ func GetPermissions(token string) (PNGrantTokenDecoded, error) {
 	return cborObject, nil
 }
 
-func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
-	b := fmt.Sprintf("%08b\n", bits.Reverse8(uint8(i)))
-	r := ResourcePermissions{
-		Read:   false,
-		Write:  false,
-		Manage: false,
-		Delete: false,
-		Create: false,
-	}
-	for k, v := range b {
-		i, _ := strconv.Atoi(string(v))
-		switch k {
-		case 0:
-			r.Read = (i == 1)
-		case 1:
-			r.Write = (i == 1)
-		case 2:
-			r.Manage = (i == 1)
-		case 3:
-			r.Delete = (i == 1)
-		case 4:
-			r.Create = (i == 1)
-		}
+type PNToken struct {
+	Version        int
+	Timestamp      int64
+	TTL            int
+	AuthorizedUUID string
+	Resources      PNTokenResources
+	Patterns       PNTokenResources
+	Meta           map[string]interface{}
+}
+
+type PNTokenResources struct {
+	Channels      map[string]ChannelPermissions
+	ChannelGroups map[string]GroupPermissions
+	UUIDs         map[string]UUIDPermissions
+}
+
+func ParseToken(token string) (*PNToken, error) {
+	permissions, err := GetPermissions(token)
+
+	if err != nil {
+		return nil, err
 	}
 
-	switch resourceType {
-	case PNChannels:
-		return ChannelPermissions{
-			Read:   r.Read,
-			Write:  r.Write,
-			Delete: r.Delete,
-		}
-	case PNGroups:
-		return GroupPermissions{
-			Read:   r.Read,
-			Manage: r.Manage,
-		}
-	default:
-		return UserSpacePermissions{
-			Read:   r.Read,
-			Write:  r.Write,
-			Delete: r.Delete,
-			Manage: r.Manage,
-			Create: r.Create,
-		}
+	resources := grantResourcesToPNTokenResources(permissions.Resources)
+	patterns := grantResourcesToPNTokenResources(permissions.Patterns)
 
+	return &PNToken{
+		Version:        permissions.Version,
+		Meta:           permissions.Meta,
+		TTL:            permissions.TTL,
+		Timestamp:      permissions.Timestamp,
+		AuthorizedUUID: permissions.AuthorizedUUID,
+		Resources:      resources,
+		Patterns:       patterns,
+	}, nil
+}
+
+func grantResourcesToPNTokenResources(grantResources GrantResources) PNTokenResources {
+	tokenResources := PNTokenResources{
+		Channels:      make(map[string]ChannelPermissions),
+		ChannelGroups: make(map[string]GroupPermissions),
+		UUIDs:         make(map[string]UUIDPermissions),
 	}
+	for k, v := range grantResources.Channels {
+		tokenResources.Channels[k] = parseGrantPerms(v, PNChannels).(ChannelPermissions)
+	}
+	for k, v := range grantResources.Groups {
+		tokenResources.ChannelGroups[k] = parseGrantPerms(v, PNGroups).(GroupPermissions)
+	}
+	for k, v := range grantResources.UUIDs {
+		tokenResources.UUIDs[k] = parseGrantPerms(v, PNUUIDs).(UUIDPermissions)
+	}
+	return tokenResources
 }
 
 // ParseGrantResources parses the token for permissions and adds them along the other values to the GrantResourcesWithPermissions struct
@@ -217,35 +216,45 @@ func ParseGrantResources(res GrantResources, token string, timetoken int64, ttl 
 		}
 	}
 
-	spaces := make(map[string]UserSpacePermissionsWithToken, len(res.Spaces))
-	for k, v := range res.Spaces {
-		spaces[k] = UserSpacePermissionsWithToken{
-			Permissions:  parseGrantPerms(v, PNSpaces).(UserSpacePermissions),
-			BitMaskPerms: v,
-			Token:        token,
-			Timestamp:    timetoken,
-			TTL:          ttl,
-		}
-	}
-
-	users := make(map[string]UserSpacePermissionsWithToken, len(res.Users))
-	for k, v := range res.Users {
-		users[k] = UserSpacePermissionsWithToken{
-			Permissions:  parseGrantPerms(v, PNUsers).(UserSpacePermissions),
-			BitMaskPerms: v,
-			Token:        token,
-			Timestamp:    timetoken,
-			TTL:          ttl,
-		}
-	}
-
 	g := GrantResourcesWithPermissions{
 		Channels: channels,
-		Users:    users,
 		Groups:   groups,
-		Spaces:   spaces,
 	}
 	return &g
+}
+
+func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
+	read := i&int64(PNRead) != 0
+	write := i&int64(PNWrite) != 0
+	manage := i&int64(PNManage) != 0
+	delete := i&int64(PNDelete) != 0
+	get := i&int64(PNGet) != 0
+	update := i&int64(PNUpdate) != 0
+	join := i&int64(PNJoin) != 0
+
+	switch resourceType {
+	case PNChannels:
+		return ChannelPermissions{
+			Read:   read,
+			Write:  write,
+			Delete: delete,
+			Update: update,
+			Get:    get,
+			Join:   join,
+			Manage: manage,
+		}
+	case PNGroups:
+		return GroupPermissions{
+			Read:   read,
+			Manage: manage,
+		}
+	default:
+		return UUIDPermissions{
+			Get:    get,
+			Update: update,
+			Delete: delete,
+		}
+	}
 }
 
 // ChannelPermissionsWithToken is used for channels resource type permissions
@@ -266,49 +275,39 @@ type GroupPermissionsWithToken struct {
 	TTL          int
 }
 
-// UserSpacePermissionsWithToken is used for users/spaces resource type permissions
-type UserSpacePermissionsWithToken struct {
-	Permissions  UserSpacePermissions
-	BitMaskPerms int64
-	Token        string
-	Timestamp    int64
-	TTL          int
-}
-
 // GrantResourcesWithPermissions is used as a common struct to store all resource type permissions
 type GrantResourcesWithPermissions struct {
 	Channels        map[string]ChannelPermissionsWithToken
 	Groups          map[string]GroupPermissionsWithToken
-	Users           map[string]UserSpacePermissionsWithToken
-	Spaces          map[string]UserSpacePermissionsWithToken
 	ChannelsPattern map[string]ChannelPermissionsWithToken
 	GroupsPattern   map[string]GroupPermissionsWithToken
-	UsersPattern    map[string]UserSpacePermissionsWithToken
-	SpacesPattern   map[string]UserSpacePermissionsWithToken
 }
 
 // PermissionsBody is the struct used to decode the server response
 type PermissionsBody struct {
-	Resources GrantResources         `json:"resources"`
-	Patterns  GrantResources         `json:"patterns"`
-	Meta      map[string]interface{} `json:"meta"`
+	Resources      GrantResources         `json:"resources"`
+	Patterns       GrantResources         `json:"patterns"`
+	Meta           map[string]interface{} `json:"meta"`
+	AuthorizedUUID string                 `json:"uuid,omitempty"`
 }
 
 // GrantResources is the struct used to decode the server response
 type GrantResources struct {
 	Channels map[string]int64 `json:"channels" cbor:"chan"`
 	Groups   map[string]int64 `json:"groups" cbor:"grp"`
+	UUIDs    map[string]int64 `json:"uuids" cbor:"uuid"`
 	Users    map[string]int64 `json:"users" cbor:"usr"`
 	Spaces   map[string]int64 `json:"spaces" cbor:"spc"`
 }
 
 // PNGrantTokenDecoded is the struct used to decode the server response
 type PNGrantTokenDecoded struct {
-	Resources GrantResources         `cbor:"res"`
-	Patterns  GrantResources         `cbor:"pat"`
-	Meta      map[string]interface{} `cbor:"meta"`
-	Signature []byte                 `cbor:"sig"`
-	Version   int                    `cbor:"v"`
-	Timestamp int64                  `cbor:"t"`
-	TTL       int                    `cbor:"ttl"`
+	Resources      GrantResources         `cbor:"res"`
+	Patterns       GrantResources         `cbor:"pat"`
+	Meta           map[string]interface{} `cbor:"meta"`
+	Signature      []byte                 `cbor:"sig"`
+	Version        int                    `cbor:"v"`
+	Timestamp      int64                  `cbor:"t"`
+	TTL            int                    `cbor:"ttl"`
+	AuthorizedUUID string                 `cbor:"uuid"`
 }

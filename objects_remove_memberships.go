@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyRemoveMembershipsResponse *PNRemoveMembershipsResponse
@@ -256,6 +256,10 @@ func (o *removeMembershipsOpts) operationType() OperationType {
 
 func (o *removeMembershipsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *removeMembershipsOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNRemoveMembershipsResponse is the Objects API Response for RemoveMemberships

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 const grantPath = "/v2/auth/grant/sub-key/%s"
@@ -334,6 +334,10 @@ func (o *grantOpts) operationType() OperationType {
 
 func (o *grantOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *grantOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // GrantResponse is the struct returned when the Execute function of Grant is called.

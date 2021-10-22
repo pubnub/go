@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/utils"
 )
 
 var emptyDownloadFileResponse *PNDownloadFileResponse
@@ -226,6 +226,10 @@ func (o *downloadFileOpts) operationType() OperationType {
 
 func (o *downloadFileOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *downloadFileOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNDownloadFileResponse is the File Upload API Response for Get Spaces

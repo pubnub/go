@@ -10,8 +10,8 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 
 	"net/http"
 	"net/url"
@@ -276,6 +276,10 @@ func (o *fetchOpts) operationType() OperationType {
 
 func (o *fetchOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *fetchOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistoryMessageActionsTypeMap {

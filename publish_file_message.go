@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 
 	"net/http"
 	"net/url"
@@ -319,6 +319,10 @@ func (o *publishFileMessageOpts) operationType() OperationType {
 
 func (o *publishFileMessageOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *publishFileMessageOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PublishFileMessageResponse is the response to PublishFileMessage request.

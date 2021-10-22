@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyPNRemoveChannelMetadataResponse *PNRemoveChannelMetadataResponse
@@ -152,6 +152,10 @@ func (o *removeChannelMetadataOpts) operationType() OperationType {
 
 func (o *removeChannelMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *removeChannelMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNRemoveChannelMetadataResponse is the Objects API Response for delete space

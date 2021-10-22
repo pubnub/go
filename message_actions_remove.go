@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyPNRemoveMessageActionsResponse *PNRemoveMessageActionsResponse
@@ -166,6 +166,10 @@ func (o *removeMessageActionsOpts) operationType() OperationType {
 
 func (o *removeMessageActionsOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *removeMessageActionsOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNRemoveMessageActionsResponse is the Objects API Response for create space

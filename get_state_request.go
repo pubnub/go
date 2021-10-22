@@ -11,8 +11,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const getStatePath = "/v2/presence/sub-key/%s/channel/%s/uuid/%s"
@@ -196,6 +196,10 @@ func (o *getStateOpts) operationType() OperationType {
 
 func (o *getStateOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *getStateOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // GetStateResponse is the struct returned when the Execute function of GetState is called.

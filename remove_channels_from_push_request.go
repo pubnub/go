@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const removeChannelsFromPushPath = "/v1/push/sub-key/%s/devices/%s"
@@ -206,4 +206,8 @@ func (o *removeChannelsFromPushOpts) operationType() OperationType {
 
 func (o *removeChannelsFromPushOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *removeChannelsFromPushOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }

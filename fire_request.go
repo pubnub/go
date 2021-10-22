@@ -7,8 +7,8 @@ import (
 	"mime/multipart"
 	"strconv"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 
 	"net/http"
 	"net/url"
@@ -283,4 +283,8 @@ func (o *fireOpts) operationType() OperationType {
 
 func (o *fireOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *fireOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }

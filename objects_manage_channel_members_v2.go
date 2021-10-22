@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyManageMembersResponse *PNManageMembersResponse
@@ -258,6 +258,10 @@ func (o *manageMembersOptsV2) operationType() OperationType {
 
 func (o *manageMembersOptsV2) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *manageMembersOptsV2) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNManageMembersResponse is the Objects API Response for ManageMembers

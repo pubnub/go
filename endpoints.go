@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 )
 
 type endpointOpts interface {
@@ -28,6 +28,7 @@ type endpointOpts interface {
 	httpMethod() string
 	operationType() OperationType
 	telemetryManager() *TelemetryManager
+	tokenManager() *TokenManager
 }
 
 // SetQueryParam appends the query params map to the query string
@@ -95,7 +96,9 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 		return &url.URL{}, err
 	}
 
-	if v := o.config().AuthKey; v != "" && query.Get("auth") == "" {
+	if v := o.tokenManager().GetToken(); v != "" && query.Get("auth") == "" {
+		query.Set("auth", v)
+	} else if v := o.config().AuthKey; v != "" && query.Get("auth") == "" {
 		query.Set("auth", v)
 	}
 

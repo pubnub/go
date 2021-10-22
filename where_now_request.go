@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var whereNowPath = "/v2/presence/sub-key/%s/uuid/%s"
@@ -147,6 +147,10 @@ func (o *whereNowOpts) operationType() OperationType {
 
 func (o *whereNowOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *whereNowOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // WhereNowResponse is the response of the WhereNow request. Contains channels info.

@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptySendFileResponse *PNSendFileResponse
@@ -224,6 +224,10 @@ func (o *sendFileOpts) operationType() OperationType {
 
 func (o *sendFileOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *sendFileOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNSendFileResponseForS3 is the File Upload API Response for SendFile.

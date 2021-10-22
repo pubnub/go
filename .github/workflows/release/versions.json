@@ -1,10 +1,9 @@
 {
   ".pubnub.yml": [
     { "pattern": "^version: (.+)$", "cleared": false },
-    { "pattern": "\/releases\/tag\/v([0-9]+\\.[0-9]+\\.[0-9]+(\\.[0-9]+)?)", "cleared": true }
+    { "pattern": "\/releases\/tag\/(v?(\\d+\\.?){2,}([a-zA-Z-]+(\\.?\\d+)?)?)", "cleared": false }
   ],
   "pubnub.go": [
     { "pattern": "Version = \"(.*)\"", "cleared": true }
   ]
-
 }

@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
-	"github.com/pubnub/go/v5/utils"
+	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const setStatePath = "/v2/presence/sub-key/%s/channel/%s/uuid/%s/data"
@@ -203,6 +203,10 @@ func (o *setStateOpts) operationType() OperationType {
 
 func (o *setStateOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *setStateOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 func newSetStateResponse(jsonBytes []byte, status StatusResponse) (

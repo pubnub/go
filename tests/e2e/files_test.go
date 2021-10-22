@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,12 +12,11 @@ import (
 	"math/rand"
 	"os"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
-	pubnub "github.com/pubnub/go/v5"
-	"github.com/pubnub/go/v5/utils"
+	pubnub "github.com/pubnub/go/v6"
+	"github.com/pubnub/go/v6/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,6 +49,10 @@ func TestFileUploadWithCustomCipher(t *testing.T) {
 	FileUploadCommon(t, true, "enigma2", "file_upload_test.txt", "file_upload_test_output.txt")
 }
 
+type FileData struct {
+	id, url, name, message string
+}
+
 func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepathInput, filepathOutput string) {
 	assert := assert.New(t)
 
@@ -69,230 +73,218 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 
 	file, err := os.Open(filepathInput)
 
-	var mut sync.RWMutex
-
 	defer file.Close()
 	if err != nil {
 		fmt.Println("File open error : ", err)
 		assert.Fail("File open error")
+	}
+
+	fileDataChannel := make(chan FileData)
+	r := GenRandom()
+	rno := r.Intn(99999)
+	id := ""
+	retURL := ""
+	ch := fmt.Sprintf("test_file_upload_channel_%d", rno)
+	name := fmt.Sprintf("test_file_upload_name_%d.txt", rno)
+	message := fmt.Sprintf("test file %s", name)
+
+	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
+	go func() {
+	ExitLabel:
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.PNConnectedCategory:
+					break
+				default:
+				}
+
+			case file := <-listener.File:
+				if enableDebuggingInTests {
+
+					fmt.Println(" --- File: ")
+					fmt.Println(fmt.Sprintf("%v", file))
+					fmt.Println(fmt.Sprintf("file.File.PNMessage.Text: %s", file.File.PNMessage.Text))
+					fmt.Println(fmt.Sprintf("file.File.PNFile.Name: %s", file.File.PNFile.Name))
+					fmt.Println(fmt.Sprintf("file.File.PNFile.ID: %s", file.File.PNFile.ID))
+					fmt.Println(fmt.Sprintf("file.File.PNFile.URL: %s", file.File.PNFile.URL))
+					fmt.Println(fmt.Sprintf("file.Channel: %s", file.Channel))
+					fmt.Println(fmt.Sprintf("file.Timetoken: %d", file.Timetoken))
+					fmt.Println(fmt.Sprintf("file.SubscribedChannel: %s", file.SubscribedChannel))
+					fmt.Println(fmt.Sprintf("file.Publisher: %s", file.Publisher))
+				}
+				fileDataChannel <- FileData{file.File.PNFile.ID, file.File.PNFile.URL, file.File.PNFile.Name, file.File.PNMessage.Text}
+
+			case <-exitListener:
+				break ExitLabel
+
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe().Channels([]string{ch}).Execute()
+
+	resSendFile, statusSendFile, _ := pn.SendFile().Channel(ch).Message(message).CipherKey(cipherKey).Name(name).File(file).Execute()
+	assert.Equal(200, statusSendFile.StatusCode)
+	if enableDebuggingInTests {
+		fmt.Println("statusSendFile.AdditionalData:", statusSendFile.AdditionalData)
+	}
+
+	if resSendFile == nil {
+		close(fileDataChannel)
+		assert.Fail("resSendFile nil")
+		return
+	}
+
+	id = resSendFile.Data.ID
+
+	timer := time.NewTimer(3 * time.Second)
+	var fileData FileData
+	select {
+	case fileData = <-fileDataChannel:
+	case <-timer.C:
+		assert.Fail("Timeout when waiting on file event")
+		return
+	}
+	retURL = fileData.url
+
+	if enableDebuggingInTests {
+		fmt.Println("resSendFile.Data.ID ==>", resSendFile.Data.ID)
+	}
+
+	resGetFile, statusGetFile, errGetFile := pn.GetFileURL().Channel(ch).ID(id).Name(name).Execute()
+	if enableDebuggingInTests {
+		fmt.Println(statusGetFile)
+	}
+	assert.Equal(200, statusGetFile.StatusCode)
+	assert.Nil(errGetFile)
+
+	if resGetFile == nil {
+		assert.Fail("resGetFile nil")
+		return
+	}
+
+	location := resGetFile.URL
+
+	secure := ""
+	if pn.Config.Secure {
+		secure = "s"
+	}
+
+	i1 := strings.Index(retURL, "?")
+	i2 := strings.Index(location, "?")
+	retURL = retURL[:i1]
+	location = location[:i2]
+
+	path := fmt.Sprintf("v1/files/%s/channels/%s/files/%s/%s", pn.Config.SubscribeKey, ch, id, name)
+	locationTest := fmt.Sprintf("http%s://%s/%s", secure, pn.Config.Origin, path)
+	if enableDebuggingInTests {
+		fmt.Println("location:", location)
+	}
+	assert.Contains(location, locationTest)
+
+	assert.Equal(name, fileData.name)
+	assert.Equal(id, fileData.id)
+	assert.Equal(message, fileData.message)
+	assert.Equal(retURL, location)
+
+	out, errDL := os.Create(filepathOutput)
+	defer out.Close()
+	if errDL != nil {
+		if enableDebuggingInTests {
+			fmt.Println(errDL)
+		}
 	} else {
 
-		r := GenRandom()
-		rno := r.Intn(99999)
-		id := ""
-		retURL := ""
-		ch := fmt.Sprintf("test_file_upload_channel_%d", rno)
-		name := fmt.Sprintf("test_file_upload_name_%d.txt", rno)
-		message := fmt.Sprintf("test file %s", name)
-
-		listener := pubnub.NewListener()
-		exitListener := make(chan bool)
-		messageMatch := false
-		idMatch := false
-		nameMatch := false
-		urlMatch := false
-		go func() {
-		ExitLabel:
-			for {
-				select {
-				case status := <-listener.Status:
-					switch status.Category {
-					case pubnub.PNConnectedCategory:
-						break
-					default:
-					}
-
-				case file := <-listener.File:
-					if enableDebuggingInTests {
-
-						fmt.Println(" --- File: ")
-						fmt.Println(fmt.Sprintf("%v", file))
-						fmt.Println(fmt.Sprintf("file.File.PNMessage.Text: %s", file.File.PNMessage.Text))
-						fmt.Println(fmt.Sprintf("file.File.PNFile.Name: %s", file.File.PNFile.Name))
-						fmt.Println(fmt.Sprintf("file.File.PNFile.ID: %s", file.File.PNFile.ID))
-						fmt.Println(fmt.Sprintf("file.File.PNFile.URL: %s", file.File.PNFile.URL))
-						fmt.Println(fmt.Sprintf("file.Channel: %s", file.Channel))
-						fmt.Println(fmt.Sprintf("file.Timetoken: %d", file.Timetoken))
-						fmt.Println(fmt.Sprintf("file.SubscribedChannel: %s", file.SubscribedChannel))
-						fmt.Println(fmt.Sprintf("file.Publisher: %s", file.Publisher))
-					}
-					mut.Lock()
-					messageMatch = message == file.File.PNMessage.Text
-					idMatch = id == file.File.PNFile.ID
-					nameMatch = name == file.File.PNFile.Name
-					retURL = file.File.PNFile.URL
-					if enableDebuggingInTests {
-						fmt.Println("messageMatch:", messageMatch, message, file.File.PNMessage.Text)
-						fmt.Println("idMatch:", idMatch, id, file.File.PNFile.ID)
-						fmt.Println("nameMatch:", nameMatch, name, file.File.PNFile.Name)
-					}
-					mut.Unlock()
-
-				case <-exitListener:
-					break ExitLabel
-
-				}
-			}
-		}()
-
-		pn.AddListener(listener)
-
-		pn.Subscribe().Channels([]string{ch}).Execute()
-
-		resSendFile, statusSendFile, _ := pn.SendFile().Channel(ch).Message(message).CipherKey(cipherKey).Name(name).File(file).Execute()
-		assert.Equal(200, statusSendFile.StatusCode)
+		resDLFile, statusDLFile, errDLFile := pn.DownloadFile().Channel(ch).CipherKey(cipherKey).ID(id).Name(name).Execute()
+		assert.Nil(errDLFile)
 		if enableDebuggingInTests {
-			fmt.Println("statusSendFile.AdditionalData:", statusSendFile.AdditionalData)
+			fmt.Println("statusDLFile.StatusCode ===>", statusDLFile.StatusCode)
 		}
+		if resDLFile != nil {
+			_, err := io.Copy(out, resDLFile.File)
 
-		if resSendFile != nil {
-			mut.Lock()
-			id = resSendFile.Data.ID
-			mut.Unlock()
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fileText, _ := ioutil.ReadFile(filepathInput)
+				fileTextOut, _ := ioutil.ReadFile(filepathOutput)
+				assert.Equal(fileText, fileTextOut)
+			}
+		}
+	}
+
+	fetchCall := func() error {
+		ret1, _, _ := pn.FetchWithContext(backgroundContext).
+			Channels([]string{ch}).
+			Count(25).
+			IncludeMessageType(true).
+			IncludeUUID(true).
+			Reverse(true).
+			Execute()
+		chMessages := ret1.Messages[ch]
+		bFoundInFetch := false
+		//{"status": 200, "error": false, "error_message": "", "channels": {"test_file_upload_channnel_86621":[{"message": {"message": {"text": "test file test_file_upload_name_86621"}, "file": {"name": "test_file_upload_name_86621", "id": "4c5644d4-4e18-48a1-924f-932252acea74"}}, "timetoken": "15935884935043935"}]}}
+		for i := 0; i < len(chMessages); i++ {
+
+			m := chMessages[i].Message
+			file := chMessages[i].File
 			if enableDebuggingInTests {
-				fmt.Println("resSendFile.Data.ID ==>", resSendFile.Data.ID)
+				fmt.Println("pubnub.PNFileDetails", file.ID)
+				fmt.Println("pubnub.PNFileDetails", file.Name)
 			}
-			assert.NotEqual(0, resSendFile.Timestamp)
-			time.Sleep(2 * time.Second)
-
-			resGetFile, statusGetFile, errGetFile := pn.GetFileURL().Channel(ch).ID(id).Name(name).Execute()
-			if enableDebuggingInTests {
-				fmt.Println(statusGetFile)
-			}
-			assert.Equal(200, statusGetFile.StatusCode)
-			assert.Nil(errGetFile)
-
-			if resGetFile != nil {
-				location := resGetFile.URL
-
-				secure := ""
-				if pn.Config.Secure {
-					secure = "s"
-				}
+			if msg, ok := m.(pubnub.PNPublishMessage); !ok {
 				if enableDebuggingInTests {
-					fmt.Println("urlMatch:", urlMatch, retURL, location)
-				}
-				mut.Lock()
-				i1 := strings.Index(retURL, "?")
-				i2 := strings.Index(location, "?")
-				retURL = retURL[:i1]
-				location = location[:i2]
-				urlMatch = retURL == location
-
-				if enableDebuggingInTests {
-					fmt.Println("urlMatch:", urlMatch, retURL, location)
-				}
-
-				path := fmt.Sprintf("v1/files/%s/channels/%s/files/%s/%s", pn.Config.SubscribeKey, ch, id, name)
-				locationTest := fmt.Sprintf("http%s://%s/%s", secure, pn.Config.Origin, path)
-				if enableDebuggingInTests {
-					fmt.Println("location:", location)
-				}
-				assert.Contains(location, locationTest)
-				mut.Unlock()
-			}
-
-			mut.Lock()
-			if enableDebuggingInTests {
-				fmt.Println("2 messageMatch:", messageMatch)
-				fmt.Println("2 idMatch:", idMatch)
-				fmt.Println("2 nameMatch:", nameMatch)
-				fmt.Println("2 urlMatch:", urlMatch)
-			}
-			assert.True(nameMatch && idMatch && messageMatch && urlMatch)
-			mut.Unlock()
-
-			out, errDL := os.Create(filepathOutput)
-			defer out.Close()
-			if errDL != nil {
-				if enableDebuggingInTests {
-					fmt.Println(errDL)
+					fmt.Println("!pubnub.PNPublishMessage")
 				}
 			} else {
-
-				resDLFile, statusDLFile, errDLFile := pn.DownloadFile().Channel(ch).CipherKey(cipherKey).ID(id).Name(name).Execute()
-				assert.Nil(errDLFile)
 				if enableDebuggingInTests {
-					fmt.Println("statusDLFile.StatusCode ===>", statusDLFile.StatusCode)
+					fmt.Println("pubnub.PNPublishMessage", msg.Text)
 				}
-				if resDLFile != nil {
-					_, err := io.Copy(out, resDLFile.File)
-
-					if err != nil {
-						fmt.Println(err)
-					} else {
-						fileText, _ := ioutil.ReadFile(filepathInput)
-						fileTextOut, _ := ioutil.ReadFile(filepathOutput)
-						assert.Equal(fileText, fileTextOut)
-					}
+				if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
+					bFoundInFetch = true
+					break
 				}
 			}
 
-			ret1, _, _ := pn.FetchWithContext(backgroundContext).
-				Channels([]string{ch}).
-				Count(25).
-				IncludeMessageType(true).
-				IncludeUUID(true).
-				Reverse(true).
-				Execute()
-			chMessages := ret1.Messages[ch]
-			bFoundInFetch := false
-			//{"status": 200, "error": false, "error_message": "", "channels": {"test_file_upload_channnel_86621":[{"message": {"message": {"text": "test file test_file_upload_name_86621"}, "file": {"name": "test_file_upload_name_86621", "id": "4c5644d4-4e18-48a1-924f-932252acea74"}}, "timetoken": "15935884935043935"}]}}
-			for i := 0; i < len(chMessages); i++ {
-
-				m := chMessages[i].Message
-				file := chMessages[i].File
-				if enableDebuggingInTests {
-					fmt.Println("pubnub.PNFileDetails", file.ID)
-					fmt.Println("pubnub.PNFileDetails", file.Name)
-				}
-				if msg, ok := m.(pubnub.PNPublishMessage); !ok {
-					if enableDebuggingInTests {
-						fmt.Println("!pubnub.PNPublishMessage")
-					}
-				} else {
-					if enableDebuggingInTests {
-						fmt.Println("pubnub.PNPublishMessage", msg.Text)
-					}
-					if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
-						bFoundInFetch = true
-						break
-					}
-				}
-
-			}
-			assert.True(bFoundInFetch)
-
-			resListFile, statusListFile, errListFile := pn.ListFiles().Channel(ch).Execute()
-			assert.Nil(errListFile)
-			assert.Equal(200, statusListFile.StatusCode)
-
-			if resListFile != nil {
-				bFound := false
-				for _, m := range resListFile.Data {
-					if enableDebuggingInTests {
-						fmt.Println("file =====> ", m.ID, m.Created, m.Name, m.Size)
-					}
-					if m.ID == id && m.Name == name {
-						bFound = true
-					}
-				}
-				assert.True(resListFile.Count > 0)
-				assert.True(bFound)
-			}
-
-			_, statusDelFile, errDelFile := pn.DeleteFile().Channel(ch).ID(id).Name(name).Execute()
-			assert.Nil(errDelFile)
-			assert.Equal(200, statusDelFile.StatusCode)
-
-			// _, statusGetFile2, _ := pn.DownloadFile().Channel(ch).ID(id).Name(name).Execute()
-			// assert.Equal(404, statusGetFile2.StatusCode)
-
-		} else {
-			assert.Fail("resSendFile nil")
 		}
-
+		if !bFoundInFetch {
+			return errors.New("bFoundInFetch is false")
+		}
+		return nil
 	}
+
+	checkFor(assert, time.Second*3, time.Millisecond*500, fetchCall)
+
+	resListFile, statusListFile, errListFile := pn.ListFiles().Channel(ch).Execute()
+	assert.Nil(errListFile)
+	assert.Equal(200, statusListFile.StatusCode)
+
+	if resListFile != nil {
+		bFound := false
+		for _, m := range resListFile.Data {
+			if enableDebuggingInTests {
+				fmt.Println("file =====> ", m.ID, m.Created, m.Name, m.Size)
+			}
+			if m.ID == id && m.Name == name {
+				bFound = true
+			}
+		}
+		assert.True(resListFile.Count > 0)
+		assert.True(bFound)
+	}
+
+	_, statusDelFile, errDelFile := pn.DeleteFile().Channel(ch).ID(id).Name(name).Execute()
+	assert.Nil(errDelFile)
+	assert.Equal(200, statusDelFile.StatusCode)
+
+	// _, statusGetFile2, _ := pn.DownloadFile().Channel(ch).ID(id).Name(name).Execute()
+	// assert.Equal(404, statusGetFile2.StatusCode)
+
 }
 
 func TestFileEncryptionDecryption(t *testing.T) {

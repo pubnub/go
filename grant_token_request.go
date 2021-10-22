@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 const grantTokenPath = "/v3/pam/%s/grant"
@@ -56,60 +56,48 @@ func (b *grantTokenBuilder) TTL(ttl int) *grantTokenBuilder {
 	return b
 }
 
-// Uncomment when PAMv3 is fully functional.
+func (b *grantTokenBuilder) AuthorizedUUID(uuid string) *grantTokenBuilder {
+	b.opts.AuthorizedUUID = uuid
+
+	return b
+}
+
+//Channels sets the Channels for the Grant request.
+func (b *grantTokenBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenBuilder {
+	b.opts.Channels = channels
+
+	return b
+}
+
+// ChannelGroups sets the ChannelGroups for the Grant request.
+func (b *grantTokenBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantTokenBuilder {
+	b.opts.ChannelGroups = groups
+
+	return b
+}
+
+func (b *grantTokenBuilder) UUIDs(uuids map[string]UUIDPermissions) *grantTokenBuilder {
+	b.opts.UUIDs = uuids
+
+	return b
+}
+
 // Channels sets the Channels for the Grant request.
-// func (b *grantTokenBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenBuilder {
-// 	b.opts.Channels = channels
-
-// 	return b
-// }
-
-// // ChannelGroups sets the ChannelGroups for the Grant request.
-// func (b *grantTokenBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantTokenBuilder {
-// 	b.opts.ChannelGroups = groups
-
-// 	return b
-// }
-
-// Users sets the Users for the Grant request.
-func (b *grantTokenBuilder) Users(users map[string]UserSpacePermissions) *grantTokenBuilder {
-	b.opts.Users = users
+func (b *grantTokenBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenBuilder {
+	b.opts.ChannelsPattern = channels
 
 	return b
 }
 
-// Spaces sets the Spaces for the Grant request.
-func (b *grantTokenBuilder) Spaces(spaces map[string]UserSpacePermissions) *grantTokenBuilder {
-	b.opts.Spaces = spaces
+// ChannelGroups sets the ChannelGroups for the Grant request.
+func (b *grantTokenBuilder) ChannelGroupsPattern(groups map[string]GroupPermissions) *grantTokenBuilder {
+	b.opts.ChannelGroupsPattern = groups
 
 	return b
 }
 
-// Uncomment when PAMv3 is fully functional.
-// // Channels sets the Channels for the Grant request.
-// func (b *grantTokenBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenBuilder {
-// 	b.opts.ChannelsPattern = channels
-
-// 	return b
-// }
-
-// // ChannelGroups sets the ChannelGroups for the Grant request.
-// func (b *grantTokenBuilder) ChannelGroupsPattern(groups map[string]GroupPermissions) *grantTokenBuilder {
-// 	b.opts.ChannelGroupsPattern = groups
-
-// 	return b
-// }
-
-// Users sets the Users for the Grant request.
-func (b *grantTokenBuilder) UsersPattern(users map[string]UserSpacePermissions) *grantTokenBuilder {
-	b.opts.UsersPattern = users
-
-	return b
-}
-
-// Spaces sets the Spaces for the Grant request.
-func (b *grantTokenBuilder) SpacesPattern(spaces map[string]UserSpacePermissions) *grantTokenBuilder {
-	b.opts.SpacesPattern = spaces
+func (b *grantTokenBuilder) UUIDsPattern(uuids map[string]UUIDPermissions) *grantTokenBuilder {
+	b.opts.UUIDsPattern = uuids
 
 	return b
 }
@@ -145,14 +133,13 @@ type grantTokenOpts struct {
 	AuthKeys             []string
 	Channels             map[string]ChannelPermissions
 	ChannelGroups        map[string]GroupPermissions
-	Spaces               map[string]UserSpacePermissions
-	Users                map[string]UserSpacePermissions
+	UUIDs                map[string]UUIDPermissions
 	ChannelsPattern      map[string]ChannelPermissions
 	ChannelGroupsPattern map[string]GroupPermissions
-	SpacesPattern        map[string]UserSpacePermissions
-	UsersPattern         map[string]UserSpacePermissions
+	UUIDsPattern         map[string]UUIDPermissions
 	QueryParam           map[string]string
 	Meta                 map[string]interface{}
+	AuthorizedUUID       string
 
 	// Max: 525600
 	// Min: 1
@@ -226,6 +213,10 @@ func (o *grantTokenOpts) parseResourcePermissions(resource interface{}, resource
 				bmVal = o.setBitmask(v.Read, PNRead, bmVal)
 				bmVal = o.setBitmask(v.Write, PNWrite, bmVal)
 				bmVal = o.setBitmask(v.Delete, PNDelete, bmVal)
+				bmVal = o.setBitmask(v.Join, PNJoin, bmVal)
+				bmVal = o.setBitmask(v.Update, PNUpdate, bmVal)
+				bmVal = o.setBitmask(v.Manage, PNManage, bmVal)
+				bmVal = o.setBitmask(v.Get, PNGet, bmVal)
 				o.pubnub.Config.Log.Println("bmVal ChannelPermissions:", bmVal)
 				r[k] = bmVal
 			}
@@ -249,25 +240,23 @@ func (o *grantTokenOpts) parseResourcePermissions(resource interface{}, resource
 		}
 		return make(map[string]int64)
 
-	default:
-		//case PNUsers:
-		//case PNSpaces:
-		resourceWithPerms := resource.(map[string]UserSpacePermissions)
+	case PNUUIDs:
+		resourceWithPerms := resource.(map[string]UUIDPermissions)
 		resourceWithPermsLen := len(resourceWithPerms)
 		if resourceWithPermsLen > 0 {
 			r := make(map[string]int64, resourceWithPermsLen)
 			for k, v := range resourceWithPerms {
 				bmVal = int64(0)
-				bmVal = o.setBitmask(v.Read, PNRead, bmVal)
-				bmVal = o.setBitmask(v.Write, PNWrite, bmVal)
-				bmVal = o.setBitmask(v.Manage, PNManage, bmVal)
+				bmVal = o.setBitmask(v.Get, PNGet, bmVal)
+				bmVal = o.setBitmask(v.Update, PNUpdate, bmVal)
 				bmVal = o.setBitmask(v.Delete, PNDelete, bmVal)
-				bmVal = o.setBitmask(v.Create, PNCreate, bmVal)
-				o.pubnub.Config.Log.Println("bmVal UserSpacePermissions:", bmVal)
+				o.pubnub.Config.Log.Println("bmVal UUIDPermissions:", bmVal)
 				r[k] = bmVal
 			}
 			return r
 		}
+		return make(map[string]int64)
+	default:
 		return make(map[string]int64)
 	}
 
@@ -297,16 +286,19 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 		Resources: GrantResources{
 			Channels: o.parseResourcePermissions(o.Channels, PNChannels),
 			Groups:   o.parseResourcePermissions(o.ChannelGroups, PNGroups),
-			Users:    o.parseResourcePermissions(o.Users, PNUsers),
-			Spaces:   o.parseResourcePermissions(o.Spaces, PNSpaces),
+			UUIDs:    o.parseResourcePermissions(o.UUIDs, PNUUIDs),
+			Users:    make(map[string]int64),
+			Spaces:   make(map[string]int64),
 		},
 		Patterns: GrantResources{
 			Channels: o.parseResourcePermissions(o.ChannelsPattern, PNChannels),
 			Groups:   o.parseResourcePermissions(o.ChannelGroupsPattern, PNGroups),
-			Users:    o.parseResourcePermissions(o.UsersPattern, PNUsers),
-			Spaces:   o.parseResourcePermissions(o.SpacesPattern, PNSpaces),
+			UUIDs:    o.parseResourcePermissions(o.UUIDsPattern, PNUUIDs),
+			Users:    make(map[string]int64),
+			Spaces:   make(map[string]int64),
 		},
-		Meta: meta,
+		Meta:           meta,
+		AuthorizedUUID: o.AuthorizedUUID,
 	}
 
 	o.pubnub.Config.Log.Println("permissions: ", permissions)
@@ -358,6 +350,10 @@ func (o *grantTokenOpts) operationType() OperationType {
 
 func (o *grantTokenOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *grantTokenOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNGrantTokenData is the struct used to decode the server response

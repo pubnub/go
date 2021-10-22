@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyPNRemoveUUIDMetadataResponse *PNRemoveUUIDMetadataResponse
@@ -154,6 +154,10 @@ func (o *removeUUIDMetadataOpts) operationType() OperationType {
 
 func (o *removeUUIDMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *removeUUIDMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNRemoveUUIDMetadataResponse is the Objects API Response for delete user

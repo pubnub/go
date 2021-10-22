@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyPNSetChannelMetadataResponse *PNSetChannelMetadataResponse
@@ -205,6 +205,10 @@ func (o *setChannelMetadataOpts) operationType() OperationType {
 
 func (o *setChannelMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *setChannelMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNSetChannelMetadataResponse is the Objects API Response for Update Space

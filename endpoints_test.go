@@ -69,6 +69,10 @@ func (o *fakeEndpointOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
 }
 
+func (o *fakeEndpointOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
 func TestSignatureV2(t *testing.T) {
 	assert := assert.New(t)
 	httpMethod := "POST"

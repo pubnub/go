@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyPNGetUUIDMetadataResponse *PNGetUUIDMetadataResponse
@@ -164,6 +164,10 @@ func (o *getUUIDMetadataOpts) operationType() OperationType {
 
 func (o *getUUIDMetadataOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *getUUIDMetadataOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNGetUUIDMetadataResponse is the Objects API Response for Get User

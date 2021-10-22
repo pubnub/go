@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 const timePath = "/time/0"
@@ -132,6 +132,10 @@ func (o *timeOpts) operationType() OperationType {
 
 func (o *timeOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *timeOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // TimeResponse is the response when Time call is executed.

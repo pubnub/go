@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyGetChannelMembersResponse *PNGetChannelMembersResponse
@@ -233,6 +233,10 @@ func (o *getChannelMembersOptsV2) operationType() OperationType {
 
 func (o *getChannelMembersOptsV2) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *getChannelMembersOptsV2) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNGetChannelMembersResponse is the Objects API Response for Get Members

@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v5/pnerr"
+	"github.com/pubnub/go/v6/pnerr"
 )
 
 var emptyDeleteFileResponse *PNDeleteFileResponse
@@ -177,6 +177,10 @@ func (o *deleteFileOpts) operationType() OperationType {
 
 func (o *deleteFileOpts) telemetryManager() *TelemetryManager {
 	return o.pubnub.telemetryManager
+}
+
+func (o *deleteFileOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
 }
 
 // PNDeleteFileResponse is the File Upload API Response for Delete file operation
