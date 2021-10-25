@@ -27,3 +27,7 @@ coverage.txt
 *.out
 
 vendor/golang.org/
+
+# GitHub Actions #
+##################
+.github/.release
