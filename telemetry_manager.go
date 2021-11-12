@@ -177,6 +177,8 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 		endpoint = "pam"
 		break
 	case PNAccessManagerGrantToken:
+		fallthrough
+	case PNAccessManagerRevokeToken:
 		endpoint = "pamv3"
 		break
 	case PNSignalOperation:

@@ -50,6 +50,8 @@ const (
 	StrMissingFileID = "Missing File ID"
 	// StrMissingFileName shows `Missing File Name` message
 	StrMissingFileName = "Missing File Name"
+	// StrMissingToken shows `Missing PAMv3 token` message
+	StrMissingToken = "Missing PAMv3 token"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.
@@ -325,6 +327,16 @@ func (pn *PubNub) GrantToken() *grantTokenBuilder {
 // GrantTokenWithContext Use the Grant Token method to generate an auth token with embedded access control lists. The client sends the auth token to PubNub along with each request.
 func (pn *PubNub) GrantTokenWithContext(ctx Context) *grantTokenBuilder {
 	return newGrantTokenBuilderWithContext(pn, ctx)
+}
+
+// GrantToken Use the Grant Token method to generate an auth token with embedded access control lists. The client sends the auth token to PubNub along with each request.
+func (pn *PubNub) RevokeToken() *revokeTokenBuilder {
+	return newRevokeTokenBuilder(pn)
+}
+
+// GrantTokenWithContext Use the Grant Token method to generate an auth token with embedded access control lists. The client sends the auth token to PubNub along with each request.
+func (pn *PubNub) RevokeTokenWithContext(ctx Context) *revokeTokenBuilder {
+	return newRevokeTokenBuilderWithContext(pn, ctx)
 }
 
 // AddMessageAction Add an action on a published message. Returns the added action in the response.
