@@ -48,12 +48,6 @@ func (b *revokeTokenBuilder) Token(token string) *revokeTokenBuilder {
 	return b
 }
 
-func (b *revokeTokenBuilder) UUID(uuid string) *revokeTokenBuilder {
-	b.opts.UUID = uuid
-
-	return b
-}
-
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *revokeTokenBuilder) QueryParam(queryParam map[string]string) *revokeTokenBuilder {
 	b.opts.QueryParam = queryParam
@@ -77,7 +71,6 @@ type revokeTokenOpts struct {
 
 	QueryParam map[string]string
 	Token      string
-	UUID       string
 }
 
 func (o *revokeTokenOpts) config() Config {
@@ -117,10 +110,6 @@ func (o *revokeTokenOpts) buildPath() (string, error) {
 
 func (o *revokeTokenOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
-
-	if o.UUID != "" {
-		q.Set("uuid", o.UUID)
-	}
 
 	SetQueryParam(q, o.QueryParam)
 

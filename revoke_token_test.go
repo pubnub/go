@@ -26,10 +26,8 @@ func AssertRevokeToken(t *testing.T, checkQueryParam, testContext bool) {
 		o = newRevokeTokenBuilderWithContext(pn, backgroundContext)
 	}
 
-	uuid := "uuid"
 	token := "token"
 	o.QueryParam(queryParam)
-	o.UUID(uuid)
 	o.Token(token)
 
 	path, err := o.opts.buildPath()
