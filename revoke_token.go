@@ -11,6 +11,7 @@ import (
 	"net/url"
 
 	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v6/utils"
 )
 
 const revokeTokenPath = "/v3/pam/%s/grant/%s"
@@ -105,7 +106,7 @@ func (o *revokeTokenOpts) validate() error {
 }
 
 func (o *revokeTokenOpts) buildPath() (string, error) {
-	return fmt.Sprintf(revokeTokenPath, o.pubnub.Config.SubscribeKey, o.Token), nil
+	return fmt.Sprintf(revokeTokenPath, o.pubnub.Config.SubscribeKey, utils.URLEncode(o.Token)), nil
 }
 
 func (o *revokeTokenOpts) buildQuery() (*url.Values, error) {
