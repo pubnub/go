@@ -36,7 +36,6 @@ jobs:
         continue-on-error: true
       - name: Run acceptance tests (required)
         run: |
-          ./gradlew cucumber --tests RunMainCucumberTest  -Dcucumber.features="sdk-specifications/features/" -i
           cd tests/contract
           go test -path ../../sdk-specifications/features -tagsFilter "~@skip && ~@na=go && ~@beta" -format "junit:main.xml"
       - name: Expose acceptance tests reports
