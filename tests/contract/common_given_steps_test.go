@@ -23,7 +23,6 @@ func iHaveAKeysetWithAccessManagerEnabledWithoutSecretKey(ctx context.Context) e
 	config := pubnub.NewConfig()
 	config.PublishKey = state.contractTestConfig.publishKey
 	config.SubscribeKey = state.contractTestConfig.subscribeKey
-	config.Log = log.Default()
 	config.Origin = state.contractTestConfig.hostPort
 	config.Secure = state.contractTestConfig.secure
 	state.pubNub = pubnub.NewPubNub(config)
