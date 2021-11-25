@@ -41,4 +41,18 @@ func MapSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the error status code is (\d+)$`, theErrorStatusCodeIs)
 	ctx.Step(`^an error is returned$`, anErrorIsReturned)
 	ctx.Step(`^I attempt to grant a token specifying those permissions$`, iAttemptToGrantATokenSpecifyingThosePermissions)
+
+	ctx.Step(`^a token$`, aToken)
+	ctx.Step(`^a valid token with permissions to publish with channel \'channel-(\d+)\'$`, aValidTokenWithPermissionsToPublishWithChannelChannel)
+	ctx.Step(`^an auth error is returned$`, anErrorIsReturned)
+	ctx.Step(`^an expired token with permissions to publish with channel \'channel-(\d+)\'$`, anExpiredTokenWithPermissionsToPublishWithChannelChannel)
+	ctx.Step(`^I attempt to publish a message using that auth token with channel \'(.*)\'$`, iPublishAMessageUsingThatAuthTokenWithChannelChannel)
+	ctx.Step(`^I get confirmation that token has been revoked$`, iGetConfirmationThatTokenHasBeenRevoked)
+	ctx.Step(`^I have a keyset with access manager enabled - without secret key$`, iHaveAKeysetWithAccessManagerEnabledWithoutSecretKey)
+	ctx.Step(`^I publish a message using that auth token with channel \'(.*)\'$`, iPublishAMessageUsingThatAuthTokenWithChannelChannel)
+	ctx.Step(`^I revoke a token$`, iRevokeAToken)
+	ctx.Step(`^the auth error message is \'(.*)\'$`, theErrorContains)
+	ctx.Step(`^the error detail message is not empty$`, theErrorDetailMessageIsNotEmpty)
+	ctx.Step(`^the result is successful$`, theResultIsSuccessful)
+	ctx.Step(`^the token string \'(.*)\'$`, theTokenString)
 }

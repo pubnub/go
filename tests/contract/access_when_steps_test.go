@@ -2,7 +2,6 @@ package contract
 
 import (
 	"context"
-
 	pubnub "github.com/pubnub/go/v6"
 )
 
@@ -103,6 +102,30 @@ func iParseTheToken(ctx context.Context) error {
 		return nil
 	}
 	aState.ParsedToken = parsedToken
+
+	return nil
+}
+
+func iRevokeAToken(ctx context.Context) error {
+	aState := getAccessState(ctx)
+	cState := getCommonState(ctx)
+
+	_, status, err := cState.pubNub.RevokeToken().Token(aState.TokenString).Execute()
+
+	cState.statusResponse = status
+	cState.err = err
+
+	return nil
+}
+
+func iPublishAMessageUsingThatAuthTokenWithChannelChannel(ctx context.Context, channel string) error {
+	aState := getAccessState(ctx)
+	cState := getCommonState(ctx)
+
+	cState.pubNub.SetToken(aState.TokenString)
+	_, status, err := cState.pubNub.Publish().Channel(channel).Message("Message").Execute()
+	cState.statusResponse = status
+	cState.err = err
 
 	return nil
 }

@@ -18,6 +18,7 @@ type accessState struct {
 	GrantTokenResult               pubnub.PNGrantTokenResponse
 	ParsedToken                    *pubnub.PNToken
 	ResourcePermissions            interface{}
+	RevokeTokenResult              pubnub.PNRevokeTokenResponse
 }
 
 func newAccessState(pn *pubnub.PubNub) *accessState {

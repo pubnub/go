@@ -5,19 +5,16 @@ import pubnub "github.com/pubnub/go/v6"
 type commonStateKey struct{}
 
 type commonState struct {
-	pubNub *pubnub.PubNub
-	err    error
+	contractTestConfig         contractTestConfig
+	pubNub         *pubnub.PubNub
+	err            error
+	statusResponse pubnub.StatusResponse
 }
 
 func newCommonState(contractTestConfig contractTestConfig) *commonState {
-	config := pubnub.NewConfig()
-	config.PublishKey = contractTestConfig.publishKey
-	config.SubscribeKey = contractTestConfig.subscribeKey
-	config.SecretKey = contractTestConfig.secretKey
-	config.Origin = contractTestConfig.hostPort
-	config.Secure = contractTestConfig.secure
+
 
 	return &commonState{
-		pubNub: pubnub.NewPubNub(config),
+		contractTestConfig: contractTestConfig,
 	}
 }

@@ -9,11 +9,13 @@ import (
 )
 
 var path string
-var tags string
+var tagsFilter string
+var format string
 
 func TestMain(m *testing.M) {
 	flag.StringVar(&path, "path", "", "Path to feature files")
-	flag.StringVar(&tags, "tags", "@feature=access", "Tags filter")
+	flag.StringVar(&tagsFilter, "tagsFilter", "~@skip && ~@na=go && ~@beta", "Tags filter")
+	flag.StringVar(&format, "format", "pretty", "Output formatter")
 	flag.Parse()
 	if path == "" {
 		flag.Usage()
@@ -26,9 +28,9 @@ func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: InitializeScenario,
 		Options: &godog.Options{
-			Format: "junit:Cucumber.xml",
+			Format: format,
 			Paths:  []string{path},
-			Tags:   tags,
+			Tags:   tagsFilter,
 			TestingT: t, // Testing instance that will run subtests.
 		},
 	}

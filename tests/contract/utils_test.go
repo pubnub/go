@@ -32,8 +32,8 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	MapSteps(ctx)
 }
 
-const initialize_contract_url = "http://%s/init?__contract__script__=%s"
-const expect_contract_url = "http://%s/expect"
+const initializeContractUrl = "http://%s/init?__contract__script__=%s"
+const expectContractUrl = "http://%s/expect"
 
 func before(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 	contractTestConfig, err := newContractTestConfig()
@@ -61,7 +61,7 @@ func before(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 
 	if len(contractName) != 0 {
 
-		_, err := http.Get(fmt.Sprintf(initialize_contract_url, contractTestConfig.hostPort, contractName))
+		_, err := http.Get(fmt.Sprintf(initializeContractUrl, contractTestConfig.hostPort, contractName))
 		if err != nil {
 			return newCtx, err
 		}
@@ -78,7 +78,7 @@ func after(ctx context.Context, sc *godog.Scenario, err error) (context.Context,
 	contractName := ctx.Value(contractNameKey{}).(string)
 
 	if len(contractName) != 0 {
-		resp, err := http.Get(fmt.Sprintf(expect_contract_url, contractTestConfig.hostPort))
+		resp, err := http.Get(fmt.Sprintf(expectContractUrl, contractTestConfig.hostPort))
 		if err != nil {
 			return ctx, err
 		}

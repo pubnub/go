@@ -329,12 +329,12 @@ func (pn *PubNub) GrantTokenWithContext(ctx Context) *grantTokenBuilder {
 	return newGrantTokenBuilderWithContext(pn, ctx)
 }
 
-// GrantToken Use the Grant Token method to generate an auth token with embedded access control lists. The client sends the auth token to PubNub along with each request.
+// RevokeToken Use the Grant Token method to generate an auth token with embedded access control lists. The client sends the auth token to PubNub along with each request.
 func (pn *PubNub) RevokeToken() *revokeTokenBuilder {
 	return newRevokeTokenBuilder(pn)
 }
 
-// GrantTokenWithContext Use the Grant Token method to generate an auth token with embedded access control lists. The client sends the auth token to PubNub along with each request.
+// RevokeTokenWithContext Use the Grant Token method to generate an auth token with embedded access control lists. The client sends the auth token to PubNub along with each request.
 func (pn *PubNub) RevokeTokenWithContext(ctx Context) *revokeTokenBuilder {
 	return newRevokeTokenBuilderWithContext(pn, ctx)
 }
