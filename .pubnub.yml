@@ -1,6 +1,11 @@
 ---
-version: v6.0.1 
-changelog: 
+version: v6.0.2
+changelog:
+  - date: 2021-11-24
+    version: v6.0.2
+    changes:
+      - type: bug
+        text: "Fix edge case in Fetch response when filesPayload message is nil." 
   -
     changes:
       -
@@ -680,7 +685,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub release
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v5.0.0
+            location: https://github.com/pubnub/go/releases/tag/v6.0.2
             requires:
               -
                 name: "Go"

@@ -65,18 +65,22 @@ func ParseFileInfo(filesPayload map[string]interface{}) (PNFileDetails, PNPublis
 
 	//"message":{"text":"test file"},"file":{"name":"test_file_upload_name_32899","id":"9076246e-5036-42af-b3a3-767b514c93c8"}}
 	if o, ok := filesPayload["file"]; ok {
-		data = o.(map[string]interface{})
-		if d, ok := data["id"]; ok {
-			resp.PNFile.ID = d.(string)
-		}
-		if d, ok := data["name"]; ok {
-			resp.PNFile.Name = d.(string)
+		if o != nil {
+			data = o.(map[string]interface{})
+			if d, ok := data["id"]; ok {
+				resp.PNFile.ID = d.(string)
+			}
+			if d, ok := data["name"]; ok {
+				resp.PNFile.Name = d.(string)
+			}
 		}
 	}
 	if m, ok := filesPayload["message"]; ok {
-		data = m.(map[string]interface{})
-		if d, ok := data["text"]; ok {
-			resp.PNMessage.Text = d.(string)
+		if m != nil {
+			data = m.(map[string]interface{})
+			if d, ok := data["text"]; ok {
+				resp.PNMessage.Text = d.(string)
+			}
 		}
 	}
 	return resp.PNFile, resp.PNMessage
