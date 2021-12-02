@@ -1,0 +1,40 @@
+---
+name: Tests
+
+on: push
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest]
+        go: [ '1.16', '1.15', '1.14']
+    name: Go ${{ matrix.go }} Unit Testing on ${{ matrix.os }}  
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup go
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Unit Tests
+        run: go test -mod=mod -v   
+      - name: Utils Tests
+        run: |
+          cd utils
+          go test -mod=mod -v -race
+      - name: Helper Tests
+        run: |
+          cd tests/helpers
+          go test -mod=mod -v -race
+      - name: Integration Tests
+        run: |
+          cd tests/e2e
+          go test -mod=mod -v -race 
+      - name: Destory Tests
+        run: |
+          cd tests/e2e
+          go test -mod=mod -v -race -run "TestDestroy\b" -count 20
+      - name: Destory Tests 2
+        run: |
+          cd tests/e2e
+          go test -mod=mod -v -race -run "TestDestroy2\b" -count 20
