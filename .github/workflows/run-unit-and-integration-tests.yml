@@ -26,10 +26,6 @@ jobs:
         run: |
           cd tests/helpers
           go test -mod=mod -v -race
-      - name: Integration Tests
-        run: |
-          cd tests/e2e
-          go test -mod=mod -v -race 
       - name: Destory Tests
         run: |
           cd tests/e2e
@@ -38,3 +34,7 @@ jobs:
         run: |
           cd tests/e2e
           go test -mod=mod -v -race -run "TestDestroy2\b" -count 20
+      - name: Integration Tests
+        run: |
+          cd tests/e2e
+          go test -mod=mod -v -race 
