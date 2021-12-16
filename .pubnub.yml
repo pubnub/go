@@ -1,6 +1,11 @@
 ---
-version: v6.0.2
+version: v6.1.0
 changelog:
+  - date: 2021-12-16
+    version: v6.1.0
+    changes:
+      - type: feature
+        text: "Add revoke token feature."
   - date: 2021-11-24
     version: v6.0.2
     changes:
@@ -686,7 +691,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub release
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v6.0.2
+            location: https://github.com/pubnub/go/releases/tag/v6.1.0
             requires:
               -
                 name: "Go"
