@@ -29,12 +29,21 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Run acceptance tests
+      - name: Run acceptance tests (optional)
         run: |
           cd tests/contract
-          go test -path ../../sdk-specifications/features
-      - name: Upload acceptance tests reports
+          go test -path ../../sdk-specifications/features -tagsFilter "~@skip && ~@na=go && @beta" -format "junit:beta.xml"
+        continue-on-error: true
+      - name: Run acceptance tests (required)
+        run: |
+          cd tests/contract
+          go test -path ../../sdk-specifications/features -tagsFilter "~@skip && ~@na=go && ~@beta" -format "junit:main.xml"
+      - name: Expose acceptance tests reports
         uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: acceptance-test-reports
-          path: ./tests/contract/Cucumber.xml
+          path: |
+            ./tests/contract/beta.xml
+            ./tests/contract/main.xml
+          retention-days: 7

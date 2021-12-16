@@ -308,6 +308,8 @@ const (
 	PNSendFileToS3Operation
 	// PNPublishFileMessageOperation is the enum used for PublishFileMessage requests.
 	PNPublishFileMessageOperation
+	// PNAccessManagerRevokeToken is the enum used for Grant Token remove requests.
+	PNAccessManagerRevokeToken
 )
 
 const (

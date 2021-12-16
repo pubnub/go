@@ -3,7 +3,7 @@ package contract
 import (
 	"context"
 	"fmt"
-
+	"github.com/cucumber/godog"
 	pubnub "github.com/pubnub/go/v6"
 )
 
@@ -175,10 +175,22 @@ func theTokenHasUUIDResourceAccessPermissions(ctx context.Context, id string) er
 	state := getAccessState(ctx)
 	permissions, ok := state.ParsedToken.Resources.UUIDs[id]
 	if !ok {
-		return fmt.Errorf("Expected uuid %s in ParsedToken", id)
+		return fmt.Errorf("expected uuid %s in ParsedToken", id)
 	}
 
 	state.ResourcePermissions = permissions
 
 	return nil
+}
+
+func iGetConfirmationThatTokenHasBeenRevoked(ctx context.Context) error {
+	state := getCommonState(ctx)
+	if state.statusResponse.StatusCode != 200 {
+		return fmt.Errorf("expected status code %d in statusResponse", state.statusResponse.StatusCode)
+	}
+	return nil
+}
+
+func theAuthErrorMessageIs(errorMessage string) error {
+	return godog.ErrPending
 }
