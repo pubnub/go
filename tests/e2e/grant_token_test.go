@@ -19,7 +19,7 @@ func TestGrantToken(t *testing.T) {
 	pcc.SubscribeKey = "sub-c-78c27be6-001a-11ec-b0c0-62dfa3a98328"
 	pcc.PublishKey = "pub-c-668e1ce9-5f2b-4c51-980f-26e16ff3698e"
 	pcc.SecretKey = "sec-c-NWUyYmRhZjMtNTZlNC00ZDNiLTkyMmEtN2NmMmU2MjY3Y2Rm"
-	pcc.Origin = "aws-hnd-1-ingress-tls10.pubnub.com"
+	// pcc.Origin = "aws-hnd-1-ingress-tls10.pubnub.com"
 	pn := pubnub.NewPubNub(pcc)
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
@@ -73,7 +73,7 @@ func TestGrantToken(t *testing.T) {
 		cc := configCopy()
 		cc.SubscribeKey = "sub-c-78c27be6-001a-11ec-b0c0-62dfa3a98328"
 		cc.PublishKey = "pub-c-668e1ce9-5f2b-4c51-980f-26e16ff3698e"
-		cc.Origin = "aws-hnd-1-ingress-tls10.pubnub.com"
+		// cc.Origin = "aws-hnd-1-ingress-tls10.pubnub.com"
 
 		cc.AuthKey = token
 		pnClient := pubnub.NewPubNub(cc)
