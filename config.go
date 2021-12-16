@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-
-	"github.com/pubnub/go/v6/utils"
 )
 
 const (
@@ -82,8 +80,6 @@ func NewConfig() *Config {
 		FileMessagePublishRetryLimit:  5,
 		UseRandomInitializationVector: true,
 	}
-
-	c.UUID = fmt.Sprintf("pn-%s", utils.UUID())
 
 	return &c
 }
