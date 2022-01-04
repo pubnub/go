@@ -133,6 +133,7 @@ func TestPublishMissingPublishKey(t *testing.T) {
 	cfg := pubnub.NewConfig()
 	cfg.SubscribeKey = "demo"
 	cfg.PublishKey = ""
+	cfg.UUID = pubnub.GenerateUUID()
 
 	pn := pubnub.NewPubNub(cfg)
 
@@ -145,6 +146,7 @@ func TestPublishMissingMessage(t *testing.T) {
 	assert := assert.New(t)
 
 	cfg := pubnub.NewConfig()
+	cfg.UUID = pubnub.GenerateUUID()
 	cfg.PublishKey = "0a5c823c-c1fd-4c3f-b31a-8a0b545fa463"
 	cfg.SubscribeKey = "sub-c-d69e3958-1528-11e7-bc52-02ee2ddab7fe"
 
@@ -159,6 +161,7 @@ func TestPublishMissingChannel(t *testing.T) {
 	assert := assert.New(t)
 
 	cfg := pubnub.NewConfig()
+	cfg.UUID = pubnub.GenerateUUID()
 	cfg.PublishKey = "0a5c823c-c1fd-4c3f-b31a-8a0b545fa463"
 	cfg.SubscribeKey = "sub-c-d69e3958-1528-11e7-bc52-02ee2ddab7fe"
 

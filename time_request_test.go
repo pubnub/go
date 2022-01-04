@@ -14,6 +14,8 @@ func TestTimeRequestHTTP2(t *testing.T) {
 	config := NewConfig()
 	config.Origin = "ssp.pubnub.com"
 	config.UseHTTP2 = true
+	config.UUID = GenerateUUID()
+
 	pn := NewPubNub(config)
 
 	_, s, err := pn.Time().Execute()
@@ -43,6 +45,7 @@ func TestNewTimeResponseQueryParam(t *testing.T) {
 		"q2": "v2",
 	}
 	config := NewConfig()
+	config.UUID = GenerateUUID()
 	pn := NewPubNub(config)
 
 	opts := &timeOpts{}

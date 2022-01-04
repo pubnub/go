@@ -21,12 +21,14 @@ func TestExponentialExhaustion(t *testing.T) {
 	})
 
 	config := NewConfig()
+	config.UUID = GenerateUUID()
 
 	pn := NewPubNub(config)
 	pn.Config.MaximumReconnectionRetries = 2
 	pn.Config.NonSubscribeRequestTimeout = 2
 	pn.Config.ConnectTimeout = 2
 	pn.Config.PNReconnectionPolicy = PNExponentialPolicy
+
 	pn.SetClient(interceptor.GetClient())
 	t1 := time.Now()
 	r := newReconnectionManager(pn)
@@ -56,6 +58,7 @@ func TestLinearExhaustion(t *testing.T) {
 	})
 
 	config := NewConfig()
+	config.UUID = GenerateUUID()
 
 	pn := NewPubNub(config)
 	pn.Config.MaximumReconnectionRetries = 1
@@ -80,7 +83,7 @@ func TestReconnect(t *testing.T) {
 	assert := assert.New(t)
 
 	config := NewConfig()
-
+	config.UUID = GenerateUUID()
 	pn := NewPubNub(config)
 	pn.Config.MaximumReconnectionRetries = 1
 	pn.Config.PNReconnectionPolicy = PNLinearPolicy

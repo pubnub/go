@@ -45,11 +45,13 @@ func init() {
 	config = pubnub.NewConfig()
 	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"
 	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3"
+	config.UUID = pubnub.GenerateUUID()
 
 	pamConfig = pubnub.NewConfig()
 	pamConfig.PublishKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
 	pamConfig.SubscribeKey = "sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306"
 	pamConfig.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
+	pamConfig.UUID = pubnub.GenerateUUID()
 
 }
 
