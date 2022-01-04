@@ -3,7 +3,7 @@ package contract
 import (
 	"context"
 
-	pubnub "github.com/pubnub/go/v6"
+  pubnub "github.com/pubnub/go/v6"
 )
 
 func iHaveAKeysetWithAccessManagerEnabled(ctx context.Context) error {
@@ -15,7 +15,8 @@ func iHaveAKeysetWithAccessManagerEnabled(ctx context.Context) error {
 	config.Origin = state.contractTestConfig.hostPort
 	config.Secure = state.contractTestConfig.secure
 	config.UUID = pubnub.GenerateUUID()
-	state.pubNub = pubnub.NewPubNub(config)
+
+  state.pubNub = pubnub.NewPubNub(config)
 	return nil
 }
 
@@ -27,6 +28,7 @@ func iHaveAKeysetWithAccessManagerEnabledWithoutSecretKey(ctx context.Context) e
 	config.Origin = state.contractTestConfig.hostPort
 	config.Secure = state.contractTestConfig.secure
 	config.UUID = pubnub.GenerateUUID()
-	state.pubNub = pubnub.NewPubNub(config)
+
+  state.pubNub = pubnub.NewPubNub(config)
 	return nil
 }

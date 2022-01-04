@@ -1,3 +1,15 @@
+## v6.1.0
+December 16 2021
+
+#### Added
+- Add revoke token feature.
+
+## v6.0.2
+November 24 2021
+
+#### Fixed
+- Fix edge case in Fetch response when filesPayload message is nil.
+
 ## [v6.0.1](https://github.com/pubnub/go/releases/tag/v6.0.1)
 October-13-2021
 
