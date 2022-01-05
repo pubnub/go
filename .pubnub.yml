@@ -689,7 +689,7 @@ sdks:
         distributions:
           -
             distribution-type: package
-            distribution-repository: GitHub release
+            distribution-repository: GitHub
             package-name: Go
             location: https://github.com/pubnub/go/releases/tag/v6.1.0
             requires:
