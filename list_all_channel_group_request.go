@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v6/pnerr"
-	"github.com/pubnub/go/v6/utils"
+	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v7/utils"
 )
 
 const allChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s"

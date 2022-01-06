@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 )
 
 func operationLevel() {

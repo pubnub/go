@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 
-	"github.com/pubnub/go/v6/pnerr"
-	"github.com/pubnub/go/v6/utils"
+	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v7/utils"
 
 	"net/http"
 	"net/url"

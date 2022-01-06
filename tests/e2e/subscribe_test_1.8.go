@@ -1,3 +1,4 @@
+//go:build go1.8
 // +build go1.8
 
 package e2e
@@ -7,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 	"github.com/stretchr/testify/assert"
 )
 

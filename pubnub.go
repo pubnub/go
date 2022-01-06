@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/pubnub/go/v6/utils"
+	"github.com/pubnub/go/v7/utils"
 )
 
 // Default constants

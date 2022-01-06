@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 
 	"net/http"
 	_ "net/http/pprof"
@@ -1474,7 +1474,6 @@ func granttoken(args []string) {
 			Delete: true,
 		}
 	}
-
 
 	cgPat := make(map[string]pubnub.GroupPermissions, len(groupsPat))
 	for _, k := range groupsPat {

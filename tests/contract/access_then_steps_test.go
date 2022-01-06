@@ -3,8 +3,9 @@ package contract
 import (
 	"context"
 	"fmt"
+
 	"github.com/cucumber/godog"
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 )
 
 func theTokenContainsTheTTL(ctx context.Context, expectedTTL int) error {

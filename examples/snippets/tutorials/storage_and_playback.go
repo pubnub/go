@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 )
 
 func getAllMessages(startTT int64) {
