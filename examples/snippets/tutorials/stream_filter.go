@@ -3,7 +3,7 @@ package main
 import pubnub "github.com/pubnub/go/v7"
 
 func main() {
-	config := pubnub.NewConfig()
+	config := pubnub.NewConfig(pubnub.GenerateUUID())
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
 	config.UUID = "my_uuid"

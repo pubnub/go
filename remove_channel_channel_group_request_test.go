@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	pnconfig = NewConfig()
+	pnconfig = NewConfig(GenerateUUID())
 
 	pnconfig.PublishKey = "pub_key"
 	pnconfig.SubscribeKey = "sub_key"

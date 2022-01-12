@@ -8,7 +8,7 @@ import (
 
 func iHaveAKeysetWithAccessManagerEnabled(ctx context.Context) error {
 	state := getCommonState(ctx)
-	config := pubnub.NewConfig()
+	config := pubnub.NewConfig(pubnub.GenerateUUID())
 	config.PublishKey = state.contractTestConfig.publishKey
 	config.SubscribeKey = state.contractTestConfig.subscribeKey
 	config.SecretKey = state.contractTestConfig.secretKey
@@ -22,7 +22,7 @@ func iHaveAKeysetWithAccessManagerEnabled(ctx context.Context) error {
 
 func iHaveAKeysetWithAccessManagerEnabledWithoutSecretKey(ctx context.Context) error {
 	state := getCommonState(ctx)
-	config := pubnub.NewConfig()
+	config := pubnub.NewConfig(pubnub.GenerateUUID())
 	config.PublishKey = state.contractTestConfig.publishKey
 	config.SubscribeKey = state.contractTestConfig.subscribeKey
 	config.Origin = state.contractTestConfig.hostPort

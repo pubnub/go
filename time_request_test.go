@@ -11,7 +11,7 @@ import (
 func TestTimeRequestHTTP2(t *testing.T) {
 	assert := assert.New(t)
 
-	config := NewConfig()
+	config := NewConfig(GenerateUUID())
 	config.Origin = "ssp.pubnub.com"
 	config.UseHTTP2 = true
 	config.UUID = GenerateUUID()
@@ -44,7 +44,7 @@ func TestNewTimeResponseQueryParam(t *testing.T) {
 		"q1": "v1",
 		"q2": "v2",
 	}
-	config := NewConfig()
+	config := NewConfig(GenerateUUID())
 	config.UUID = GenerateUUID()
 	pn := NewPubNub(config)
 

@@ -10,7 +10,7 @@ import (
 var pn *pubnub.PubNub
 
 func init() {
-	config := pubnub.NewConfig()
+	config := pubnub.NewConfig(pubnub.GenerateUUID())
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
 
@@ -181,7 +181,7 @@ func presence() {
 	errChan := make(chan string)
 	ch := "my-channel"
 
-	configPresenceListener := pubnub.NewConfig()
+	configPresenceListener := pubnub.NewConfig(pubnub.GenerateUUID())
 	configPresenceListener.SubscribeKey = "demo"
 	configPresenceListener.PublishKey = "demo"
 

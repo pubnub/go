@@ -20,7 +20,7 @@ func TestExponentialExhaustion(t *testing.T) {
 		ResponseStatusCode: 200,
 	})
 
-	config := NewConfig()
+	config := NewConfig(GenerateUUID())
 	config.UUID = GenerateUUID()
 
 	pn := NewPubNub(config)
@@ -57,7 +57,7 @@ func TestLinearExhaustion(t *testing.T) {
 		ResponseStatusCode: 200,
 	})
 
-	config := NewConfig()
+	config := NewConfig(GenerateUUID())
 	config.UUID = GenerateUUID()
 
 	pn := NewPubNub(config)
@@ -82,7 +82,7 @@ func TestLinearExhaustion(t *testing.T) {
 func TestReconnect(t *testing.T) {
 	assert := assert.New(t)
 
-	config := NewConfig()
+	config := NewConfig(GenerateUUID())
 	config.UUID = GenerateUUID()
 	pn := NewPubNub(config)
 	pn.Config.MaximumReconnectionRetries = 1
