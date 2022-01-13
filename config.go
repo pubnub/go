@@ -53,7 +53,6 @@ func NewDemoConfig() *Config {
 	demoConfig.PublishKey = "demo"
 	demoConfig.SubscribeKey = "demo"
 	demoConfig.SecretKey = "demo"
-	demoConfig.UUID = GenerateUUID()
 
 	return demoConfig
 
