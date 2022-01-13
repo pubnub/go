@@ -3,9 +3,10 @@ package e2e
 import (
 	"fmt"
 	"testing"
+	"time"
 
-	pubnub "github.com/pubnub/go/v6"
-	"github.com/pubnub/go/v6/tests/stubs"
+	pubnub "github.com/pubnub/go/v7"
+	"github.com/pubnub/go/v7/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -53,6 +54,7 @@ func TestWhereNowNoUUID(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 	pn.Subscribe().Channels([]string{"ch1"}).Execute()
+	time.Sleep(2 * time.Second)
 
 	res, _, err := pn.WhereNow().
 		Execute()
@@ -67,7 +69,7 @@ func TestWhereNowNoUUIDContext(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 	pn.Subscribe().Channels([]string{"ch1"}).Execute()
-
+	time.Sleep(2 * time.Second)
 	res, _, err := pn.WhereNowWithContext(backgroundContext).
 		Execute()
 

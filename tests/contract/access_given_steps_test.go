@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 )
 
 func theTTL(ctx context.Context, arg1 int) error {
@@ -220,4 +220,3 @@ func theTokenString(ctx context.Context, token string) error {
 	state.TokenString = token
 	return nil
 }
-

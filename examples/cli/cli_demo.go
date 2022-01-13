@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	//"io/ioutil"
 	"encoding/json"
 	"log"
 	"os"
@@ -15,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 
 	"net/http"
 	_ "net/http/pprof"
@@ -30,15 +29,13 @@ const outputSuffix = "\x1b[32;2m Example <<<< \x1b[0m"
 
 func main() {
 	connect()
-	// go pubnub.NewPubNub(pubnub.NewConfig())
-	// pubnub.NewPubNub(pubnub.NewConfig())
 }
 
 func connect() {
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
-	config = pubnub.NewConfig()
+	config = pubnub.NewConfig(pubnub.GenerateUUID())
 	config.UseHTTP2 = false
 
 	config.PNReconnectionPolicy = pubnub.PNExponentialPolicy
@@ -60,7 +57,6 @@ func connect() {
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
-
 	config.CipherKey = "enigma"
 	config.UseRandomInitializationVector = true
 
@@ -594,14 +590,6 @@ func readCommand(cmd string) {
 		manageMembers(command[1:])
 	case "settoken":
 		setToken(command[1:])
-	case "settokens":
-		setTokens(command[1:])
-	case "gettoken":
-		getToken(command[1:])
-	case "gettokens":
-		getTokens(command[1:])
-	case "gettokenres":
-		getTokenRes(command[1:])
 	case "addaction":
 		addMessageAction(command[1:])
 	case "addactions":
@@ -800,7 +788,6 @@ func addMessageActions(args []string) {
 		showAddActionHelp()
 		return
 	}
-	// addaction my-channel 15210190573608384 reaction smiley_face
 	channel := args[0]
 	tt := args[1]
 	actionType := args[2]
@@ -831,7 +818,6 @@ func addMessageAction(args []string) {
 		showAddActionHelp()
 		return
 	}
-	// addaction my-channel 15210190573608384 reaction smiley_face
 	channel := args[0]
 	tt := args[1]
 	actionType := args[2]
@@ -851,29 +837,6 @@ func setToken(args []string) {
 	pn.SetToken(args[0])
 }
 
-func setTokens(args []string) {
-	var tokens []string
-	tokens = strings.Split(args[0], ",")
-
-	pn.SetTokens(tokens)
-}
-
-func getToken(args []string) {
-	res := pn.GetTokens()
-	fmt.Println(res)
-}
-
-func getTokens(args []string) {
-	res := pn.GetTokens()
-	fmt.Println(res)
-}
-
-func getTokenRes(args []string) {
-	res := pn.GetTokens()
-	fmt.Println(res)
-
-}
-
 func manageMembers(args []string) {
 	if len(args) < 5 {
 		showEditMembershipsHelp()
@@ -881,8 +844,6 @@ func manageMembers(args []string) {
 	}
 	channelMetadataID := args[0]
 	id0 := args[1]
-	//id1 := args[2]
-	//id2 := args[3]
 	action := args[2]
 	var limit int
 
@@ -966,8 +927,6 @@ func manageMemberships(args []string) {
 	}
 	userID := args[0]
 	id0 := args[1]
-	//id1 := args[2]
-	//id2 := args[3]
 	action := args[2]
 	var limit int
 
@@ -1471,14 +1430,6 @@ func granttoken(args []string) {
 	if len(args) > 1 {
 		groups = strings.Split(args[1], ",")
 	}
-	var users []string
-	if len(args) > 2 {
-		users = strings.Split(args[2], ",")
-	}
-	var channelMetadatas []string
-	if len(args) > 3 {
-		channelMetadatas = strings.Split(args[3], ",")
-	}
 	var channelsPat []string
 	if len(args) > 0 {
 		channelsPat = strings.Split(args[4], ",")
@@ -1486,14 +1437,6 @@ func granttoken(args []string) {
 	var groupsPat []string
 	if len(args) > 1 {
 		groupsPat = strings.Split(args[5], ",")
-	}
-	var usersPat []string
-	if len(args) > 2 {
-		usersPat = strings.Split(args[6], ",")
-	}
-	var channelMetadatasPat []string
-	if len(args) > 3 {
-		channelMetadatasPat = strings.Split(args[7], ",")
 	}
 	var ttl int
 	if len(args) > 4 {
@@ -1505,40 +1448,12 @@ func granttoken(args []string) {
 		}
 	}
 
-	// ch1 := randomnized("ch1")
-	// cg1 := "cg"
-	// cg2 := "cg1"
-	// u1 := "u"
-	// s1 := "s"
-
 	ch := make(map[string]pubnub.ChannelPermissions, len(channels))
 	for _, k := range channels {
 		ch[k] = pubnub.ChannelPermissions{
 			Read:   true,
 			Write:  true,
 			Delete: false,
-		}
-	}
-
-	s := make(map[string]pubnub.UserSpacePermissions, len(channelMetadatas))
-	for _, k := range channelMetadatas {
-		s[k] = pubnub.UserSpacePermissions{
-			Read:   true,
-			Write:  true,
-			Manage: true,
-			Delete: true,
-			Create: true,
-		}
-	}
-
-	u := make(map[string]pubnub.UserSpacePermissions, len(users))
-	for _, k := range users {
-		u[k] = pubnub.UserSpacePermissions{
-			Read:   true,
-			Write:  true,
-			Manage: true,
-			Delete: false,
-			Create: false,
 		}
 	}
 
@@ -1559,28 +1474,6 @@ func granttoken(args []string) {
 		}
 	}
 
-	sPat := make(map[string]pubnub.UserSpacePermissions, len(channelMetadatasPat))
-	for _, k := range channelMetadatasPat {
-		sPat[k] = pubnub.UserSpacePermissions{
-			Read:   true,
-			Write:  true,
-			Manage: false,
-			Delete: true,
-			Create: true,
-		}
-	}
-
-	uPat := make(map[string]pubnub.UserSpacePermissions, len(usersPat))
-	for _, k := range usersPat {
-		uPat[k] = pubnub.UserSpacePermissions{
-			Read:   true,
-			Write:  true,
-			Manage: true,
-			Delete: true,
-			Create: false,
-		}
-	}
-
 	cgPat := make(map[string]pubnub.GroupPermissions, len(groupsPat))
 	for _, k := range groupsPat {
 		cgPat[k] = pubnub.GroupPermissions{
@@ -1589,52 +1482,7 @@ func granttoken(args []string) {
 		}
 	}
 
-	// u := map[string]pubnub.ResourcePermissions{
-	// 	u1: pubnub.ResourcePermissions{
-	// 		Read:   true,
-	// 		Write:  true,
-	// 		Manage: true,
-	// 		Delete: true,
-	// 		Create: false,
-	// 	},
-	// }
-
-	// s := map[string]pubnub.ResourcePermissions{
-	// 	s1: pubnub.ResourcePermissions{
-	// 		Read:   true,
-	// 		Write:  true,
-	// 		Manage: true,
-	// 		Delete: true,
-	// 		Create: true,
-	// 	},
-	// }
-
-	// cg := map[string]pubnub.ResourcePermissions{
-	// 	cg1: pubnub.ResourcePermissions{
-	// 		Read:   true,
-	// 		Write:  true,
-	// 		Manage: true,
-	// 		Delete: false,
-	// 		Create: true,
-	// 	},
-	// 	cg2: pubnub.ResourcePermissions{
-	// 		Read:   true,
-	// 		Write:  true,
-	// 		Manage: false,
-	// 		Delete: false,
-	// 		Create: true,
-	// 	},
-	// }
-
 	res, _, err := pn.GrantToken().TTL(ttl).
-		//Channels(ch).
-		//ChannelGroups(cg).
-		Users(u).
-		Spaces(s).
-		//ChannelsPattern(chPat).
-		//ChannelGroupsPattern(cgPat).
-		UsersPattern(uPat).
-		SpacesPattern(sPat).
 		Execute()
 
 	fmt.Println(res)

@@ -6,12 +6,11 @@ import (
 	"runtime/pprof"
 	"time"
 
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 )
 
 func main() {
-	config := pubnub.NewConfig()
-
+	config := pubnub.NewConfig(pubnub.GenerateUUID())
 	pn := pubnub.NewPubNub(config)
 
 	fmt.Println("vim-go")

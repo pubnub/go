@@ -18,7 +18,7 @@ func TestStringAsString(t *testing.T) {
 func TestUUID(t *testing.T) {
 	assert := assert.New(t)
 
-	assert.Len(UUID(), 36)
+	assert.Len(UUID(), 39)
 }
 
 func TestURLEncode(t *testing.T) {

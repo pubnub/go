@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pubnub/go/v6/tests/stubs"
+	"github.com/pubnub/go/v7/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,13 +20,14 @@ func TestExponentialExhaustion(t *testing.T) {
 		ResponseStatusCode: 200,
 	})
 
-	config := NewConfig()
+	config := NewConfig(GenerateUUID())
 
 	pn := NewPubNub(config)
 	pn.Config.MaximumReconnectionRetries = 2
 	pn.Config.NonSubscribeRequestTimeout = 2
 	pn.Config.ConnectTimeout = 2
 	pn.Config.PNReconnectionPolicy = PNExponentialPolicy
+
 	pn.SetClient(interceptor.GetClient())
 	t1 := time.Now()
 	r := newReconnectionManager(pn)
@@ -55,7 +56,7 @@ func TestLinearExhaustion(t *testing.T) {
 		ResponseStatusCode: 200,
 	})
 
-	config := NewConfig()
+	config := NewConfig(GenerateUUID())
 
 	pn := NewPubNub(config)
 	pn.Config.MaximumReconnectionRetries = 1
@@ -79,8 +80,7 @@ func TestLinearExhaustion(t *testing.T) {
 func TestReconnect(t *testing.T) {
 	assert := assert.New(t)
 
-	config := NewConfig()
-
+	config := NewConfig(GenerateUUID())
 	pn := NewPubNub(config)
 	pn.Config.MaximumReconnectionRetries = 1
 	pn.Config.PNReconnectionPolicy = PNLinearPolicy

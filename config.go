@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-
-	"github.com/pubnub/go/v6/utils"
 )
 
 const (
@@ -22,7 +20,7 @@ type Config struct {
 	SecretKey                     string             // SecretKey (only required for modifying/revealing access permissions).
 	AuthKey                       string             // AuthKey If Access Manager is utilized, client will use this AuthKey in all restricted requests.
 	Origin                        string             // Custom Origin if needed
-	UUID                          string             // UUID to be used as a device identifier, a default uuid is generated if not passed.
+	UUID                          string             // UUID to be used as a device identifier.
 	CipherKey                     string             // If CipherKey is passed, all communications to/from PubNub will be encrypted.
 	Secure                        bool               // True to use TLS
 	ConnectTimeout                int                // net.Dialer.Timeout
@@ -50,7 +48,7 @@ type Config struct {
 
 // NewDemoConfig initiates the config with demo keys, for tests only.
 func NewDemoConfig() *Config {
-	demoConfig := NewConfig()
+	demoConfig := NewConfig(GenerateUUID())
 
 	demoConfig.PublishKey = "demo"
 	demoConfig.SubscribeKey = "demo"
@@ -61,8 +59,9 @@ func NewDemoConfig() *Config {
 }
 
 // NewConfig initiates the config with default values.
-func NewConfig() *Config {
+func NewConfig(uuid string) *Config {
 	c := Config{
+		UUID:                          uuid,
 		Origin:                        "ps.pndsn.com",
 		Secure:                        true,
 		ConnectTimeout:                10,
@@ -82,8 +81,6 @@ func NewConfig() *Config {
 		FileMessagePublishRetryLimit:  5,
 		UseRandomInitializationVector: true,
 	}
-
-	c.UUID = fmt.Sprintf("pn-%s", utils.UUID())
 
 	return &c
 }

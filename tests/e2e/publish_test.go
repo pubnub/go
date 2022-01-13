@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	pubnub "github.com/pubnub/go/v6"
-	"github.com/pubnub/go/v6/pnerr"
-	"github.com/pubnub/go/v6/tests/stubs"
+	pubnub "github.com/pubnub/go/v7"
+	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v7/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -130,7 +130,7 @@ func XTestPublishTimeout(t *testing.T) {
 func TestPublishMissingPublishKey(t *testing.T) {
 	assert := assert.New(t)
 
-	cfg := pubnub.NewConfig()
+	cfg := pubnub.NewConfig(pubnub.GenerateUUID())
 	cfg.SubscribeKey = "demo"
 	cfg.PublishKey = ""
 
@@ -144,7 +144,7 @@ func TestPublishMissingPublishKey(t *testing.T) {
 func TestPublishMissingMessage(t *testing.T) {
 	assert := assert.New(t)
 
-	cfg := pubnub.NewConfig()
+	cfg := pubnub.NewConfig(pubnub.GenerateUUID())
 	cfg.PublishKey = "0a5c823c-c1fd-4c3f-b31a-8a0b545fa463"
 	cfg.SubscribeKey = "sub-c-d69e3958-1528-11e7-bc52-02ee2ddab7fe"
 
@@ -158,7 +158,7 @@ func TestPublishMissingMessage(t *testing.T) {
 func TestPublishMissingChannel(t *testing.T) {
 	assert := assert.New(t)
 
-	cfg := pubnub.NewConfig()
+	cfg := pubnub.NewConfig(pubnub.GenerateUUID())
 	cfg.PublishKey = "0a5c823c-c1fd-4c3f-b31a-8a0b545fa463"
 	cfg.SubscribeKey = "sub-c-d69e3958-1528-11e7-bc52-02ee2ddab7fe"
 

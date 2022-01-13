@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,11 +42,11 @@ func seedRand() {
 
 func init() {
 	seedRand()
-	config = pubnub.NewConfig()
+	config = pubnub.NewConfig(pubnub.GenerateUUID())
 	config.PublishKey = "pub-c-3ed95c83-12e6-4cda-9d69-c47ba2abb57e"
 	config.SubscribeKey = "sub-c-26a73b0a-c3f2-11e9-8b24-569e8a5c3af3"
 
-	pamConfig = pubnub.NewConfig()
+	pamConfig = pubnub.NewConfig(pubnub.GenerateUUID())
 	pamConfig.PublishKey = "pub-c-cdea0ef1-c571-4b72-b43f-ff1dc8aa4c5d"
 	pamConfig.SubscribeKey = "sub-c-4757f09c-c3f2-11e9-9d00-8a58a5558306"
 	pamConfig.SecretKey = "sec-c-YTYxNzVjYzctNDY2MS00N2NmLTg2NjYtNGRlNWY1NjMxMDBm"
@@ -56,12 +56,14 @@ func init() {
 func configCopy() *pubnub.Config {
 	cfg := new(pubnub.Config)
 	*cfg = *config
+	cfg.UUID = pubnub.GenerateUUID()
 	return cfg
 }
 
 func pamConfigCopy() *pubnub.Config {
 	config := new(pubnub.Config)
 	*config = *pamConfig
+	config.UUID = pubnub.GenerateUUID()
 	return config
 }
 

@@ -7,12 +7,14 @@ import (
 	"net/http"
 	"runtime"
 	"sync"
+
+	"github.com/pubnub/go/v7/utils"
 )
 
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "6.1.0"
+	Version = "7.0.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -738,6 +740,10 @@ func (pn *PubNub) getPublishSequence() int {
 	return pn.nextPublishSequence
 }
 
+func GenerateUUID() string {
+	return utils.UUID()
+}
+
 // NewPubNub instantiates a PubNub instance with default values.
 func NewPubNub(pnconf *Config) *PubNub {
 	ctx, cancel := contextWithCancel(backgroundContext)
@@ -747,6 +753,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	}
 	pnconf.Log.Println(fmt.Sprintf("PubNub Go v4 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
 
+	utils.CheckUUID(pnconf.UUID)
 	pn := &PubNub{
 		Config:              pnconf,
 		nextPublishSequence: 0,

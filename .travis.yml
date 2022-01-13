@@ -1,4 +1,4 @@
-go_import_path: github.com/pubnub/go/v6
+go_import_path: github.com/pubnub/go/v7
 dist: xenial
 language: go
 os: linux
@@ -20,16 +20,16 @@ stages:
 jobs:
   include:
     - stage: "test"
-      name: 'Go 1.14.6'
-      go: 1.14.6
+      name: 'Go 1.15.15'
+      go: 1.15.15
       script: 
         - bash ./scripts/run-tests.sh -mod=mod
-    - name: 'Go 1.15.12'
-      go: 1.15.12
+    - name: 'Go 1.16.12'
+      go: 1.16.12
       script: 
         - bash ./scripts/run-tests.sh -mod=mod
-    - name: 'Go 1.16.4'
-      go: 1.16.4
+    - name: 'Go 1.17.5'
+      go: 1.17.5
       script: 
         - bash ./scripts/run-tests.sh -mod=mod
     - name: 'Go "master"'
@@ -41,7 +41,7 @@ jobs:
       script: bash ./scripts/run-tests.sh -mod=mod
     - stage: "code coverage"
       name: 'Test & Code coverage'
-      go: 1.16.4
+      go: 1.17.5
       script: bash ./scripts/run-tests.sh -mod=mod
       after_success:
         - bash <(curl -s https://codecov.io/bash)

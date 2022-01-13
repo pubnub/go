@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v6/pnerr"
+	"github.com/pubnub/go/v7/pnerr"
 )
 
 const timePath = "/time/0"

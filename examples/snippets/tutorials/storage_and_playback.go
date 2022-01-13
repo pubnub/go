@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 )
 
 func getAllMessages(startTT int64) {
-	config := pubnub.NewConfig()
+	config := pubnub.NewConfig(pubnub.GenerateUUID())
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
 	config.SecretKey = "my-secret"
@@ -37,7 +37,7 @@ func getAllMessages(startTT int64) {
 }
 
 func main() {
-	config := pubnub.NewConfig()
+	config := pubnub.NewConfig(pubnub.GenerateUUID())
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
 	config.SecretKey = "my-secret"

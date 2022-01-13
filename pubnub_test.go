@@ -9,11 +9,10 @@ import (
 func TestInitializer(t *testing.T) {
 	assert := assert.New(t)
 
-	pnconfig := NewConfig()
+	pnconfig := NewConfig(GenerateUUID())
 	pnconfig.PublishKey = "my_pub_key"
 	pnconfig.SubscribeKey = "my_sub_key"
 	pnconfig.SecretKey = "my_secret_key"
-
 	pubnub := NewPubNub(pnconfig)
 
 	assert.Equal("my_pub_key", pubnub.Config.PublishKey)
@@ -32,6 +31,8 @@ func TestDemoInitializer(t *testing.T) {
 }
 
 func TestMultipleConcurrentInit(t *testing.T) {
-	go NewPubNub(NewConfig())
-	NewPubNub(NewConfig())
+	c1 := NewConfig(GenerateUUID())
+	go NewPubNub(c1)
+	c2 := NewConfig(GenerateUUID())
+	NewPubNub(c2)
 }

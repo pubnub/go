@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	uuid "github.com/google/uuid"
-	pnerr "github.com/pubnub/go/v6/pnerr"
+	pnerr "github.com/pubnub/go/v7/pnerr"
 )
 
 // JoinChannels encodes and joins channels
@@ -102,7 +102,13 @@ func ValueAsString(value interface{}) ([]byte, error) {
 
 // Generate a random uuid string
 func UUID() string {
-	return uuid.New().String()
+	return fmt.Sprintf("pn-%s", uuid.New().String())
+}
+
+func CheckUUID(uuid string) {
+	if strings.TrimSpace(uuid) == "" {
+		panic(pnerr.NewBuildRequestError("uuid: UUID misisng, please set it in the PNConfig."))
+	}
 }
 
 func sortQueries(params *url.Values) []string {

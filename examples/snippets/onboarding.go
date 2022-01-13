@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 
-	pubnub "github.com/pubnub/go/v6"
+	pubnub "github.com/pubnub/go/v7"
 )
 
 func main() {
 
 	// Config
-	config := pubnub.NewConfig()
+	config := pubnub.NewConfig(pubnub.GenerateUUID())
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	// End Config

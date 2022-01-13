@@ -4,16 +4,17 @@ import (
 	"net/url"
 	"testing"
 
-	h "github.com/pubnub/go/v6/tests/helpers"
+	h "github.com/pubnub/go/v7/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTimeRequestHTTP2(t *testing.T) {
 	assert := assert.New(t)
 
-	config := NewConfig()
+	config := NewConfig(GenerateUUID())
 	config.Origin = "ssp.pubnub.com"
 	config.UseHTTP2 = true
+
 	pn := NewPubNub(config)
 
 	_, s, err := pn.Time().Execute()
@@ -42,7 +43,7 @@ func TestNewTimeResponseQueryParam(t *testing.T) {
 		"q1": "v1",
 		"q2": "v2",
 	}
-	config := NewConfig()
+	config := NewConfig(GenerateUUID())
 	pn := NewPubNub(config)
 
 	opts := &timeOpts{}

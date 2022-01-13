@@ -16,7 +16,9 @@ func newTokenManager(pubnub *PubNub, ctx Context) *TokenManager {
 
 // CleanUp resets the token manager
 func (m *TokenManager) CleanUp() {
+	m.Lock()
 	m.Token = ""
+	m.Unlock()
 }
 
 func (m *TokenManager) GetToken() string {
