@@ -11,7 +11,6 @@ import (
 
 func main() {
 	config := pubnub.NewConfig(pubnub.GenerateUUID())
-	config.UUID = pubnub.GenerateUUID()
 	pn := pubnub.NewPubNub(config)
 
 	fmt.Println("vim-go")

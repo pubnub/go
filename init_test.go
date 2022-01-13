@@ -9,7 +9,6 @@ func init() {
 	pnconfig.PublishKey = "pub_key"
 	pnconfig.SubscribeKey = "sub_key"
 	pnconfig.SecretKey = "secret_key"
-	pnconfig.UUID = GenerateUUID()
 
 	pubnub = NewPubNub(pnconfig)
 }

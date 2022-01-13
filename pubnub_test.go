@@ -13,7 +13,6 @@ func TestInitializer(t *testing.T) {
 	pnconfig.PublishKey = "my_pub_key"
 	pnconfig.SubscribeKey = "my_sub_key"
 	pnconfig.SecretKey = "my_secret_key"
-	pnconfig.UUID = GenerateUUID()
 	pubnub := NewPubNub(pnconfig)
 
 	assert.Equal("my_pub_key", pubnub.Config.PublishKey)
@@ -33,9 +32,7 @@ func TestDemoInitializer(t *testing.T) {
 
 func TestMultipleConcurrentInit(t *testing.T) {
 	c1 := NewConfig(GenerateUUID())
-	c1.UUID = GenerateUUID()
 	go NewPubNub(c1)
 	c2 := NewConfig(GenerateUUID())
-	c2.UUID = GenerateUUID()
 	NewPubNub(c2)
 }

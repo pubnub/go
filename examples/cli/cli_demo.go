@@ -57,7 +57,6 @@ func connect() {
 	config.Log.SetPrefix("PubNub :->  ")
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
-	config.UUID = pubnub.GenerateUUID()
 	config.CipherKey = "enigma"
 	config.UseRandomInitializationVector = true
 
