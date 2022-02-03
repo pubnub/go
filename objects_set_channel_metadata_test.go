@@ -65,6 +65,30 @@ func AssertSetChannelMetadata(t *testing.T, checkQueryParam, testContext bool) {
 
 }
 
+func TestExcludeInChannelMetadataBodyNotSetFields(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetChannelMetadataBuilder(pn)
+
+	o.Channel("id0")
+	o.Name("name")
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/objects/%s/channels/%s", pn.Config.SubscribeKey, "id0"),
+		path, []int{})
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+
+	expectedBody := "{\"name\":\"name\"}"
+
+	assert.Equal(expectedBody, string(body))
+}
+
 func TestSetChannelMetadata(t *testing.T) {
 	AssertSetChannelMetadata(t, true, false)
 }

@@ -45,9 +45,9 @@ func newSetChannelMetadataBuilderWithContext(pubnub *PubNub,
 
 // SetChannelMetadataBody is the input to update space
 type SetChannelMetadataBody struct {
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Custom      map[string]interface{} `json:"custom"`
+	Name        string                 `json:"name,omitempty"`
+	Description string                 `json:"description,omitempty"`
+	Custom      map[string]interface{} `json:"custom,omitempty"`
 }
 
 func (b *setChannelMetadataBuilder) Include(include []PNChannelMetadataInclude) *setChannelMetadataBuilder {
