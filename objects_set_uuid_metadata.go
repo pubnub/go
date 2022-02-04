@@ -45,11 +45,11 @@ func newSetUUIDMetadataBuilderWithContext(pubnub *PubNub,
 
 // SetUUIDMetadataBody is the input to update user
 type SetUUIDMetadataBody struct {
-	Name       string                 `json:"name,omitEmpty"`
-	ExternalID string                 `json:"externalId,omitEmpty"`
-	ProfileURL string                 `json:"profileUrl,omitEmpty"`
-	Email      string                 `json:"email,omitEmpty"`
-	Custom     map[string]interface{} `json:"custom,omitEmpty"`
+	Name       string                 `json:"name,omitempty"`
+	ExternalID string                 `json:"externalId,omitempty"`
+	ProfileURL string                 `json:"profileUrl,omitempty"`
+	Email      string                 `json:"email,omitempty"`
+	Custom     map[string]interface{} `json:"custom,omitempty"`
 }
 
 func (b *setUUIDMetadataBuilder) UUID(uuid string) *setUUIDMetadataBuilder {
