@@ -1,4 +1,3 @@
-*         @eng-sdk
-.github/* @eng-sdk
-README.md @docs-engineering-members
+*         @pubnub/eng-sdk
+README.md @pubnub/docs-engineering-members
 
