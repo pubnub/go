@@ -1,6 +1,11 @@
 ---
-version: v7.0.0
+version: v7.0.1
 changelog:
+  - date: 2022-02-08
+    version: v7.0.1
+    changes:
+      - type: bug
+        text: "Omit empty optional parameters for UUID or channel metadata."
   - date: 2022-01-06
     version: v7.0.0
     changes:
@@ -696,7 +701,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.0.0
+            location: https://github.com/pubnub/go/releases/tag/v7.0.1
             requires:
               -
                 name: "Go"

@@ -1,3 +1,9 @@
+## v7.0.1
+February 08 2022
+
+#### Fixed
+- Omit empty optional parameters for UUID or channel metadata.
+
 ## v7.0.0
 January 06 2022
 
