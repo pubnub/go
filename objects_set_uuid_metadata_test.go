@@ -67,6 +67,35 @@ func AssertSetUUIDMetadata(t *testing.T, checkQueryParam, testContext bool) {
 
 }
 
+func TestExcludeInUUIDMetadataBodyNotSetFields(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	custom := map[string]interface{}{
+		"a": "b",
+		"c": "d",
+	}
+
+	o := newSetUUIDMetadataBuilder(pn)
+	o.UUID("id0")
+	o.Name("name")
+	o.ExternalID("exturl")
+	o.Custom(custom)
+
+	path, err := o.opts.buildPath()
+	assert.Nil(err)
+
+	h.AssertPathsEqual(t,
+		fmt.Sprintf("/v2/objects/%s/uuids/%s", pn.Config.SubscribeKey, "id0"),
+		path, []int{})
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+
+	expectedBody := "{\"name\":\"name\",\"externalId\":\"exturl\",\"custom\":{\"a\":\"b\",\"c\":\"d\"}}"
+
+	assert.Equal(expectedBody, string(body))
+}
+
 func TestSetUUIDMetadata(t *testing.T) {
 	AssertSetUUIDMetadata(t, true, false)
 }
