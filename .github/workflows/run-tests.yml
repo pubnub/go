@@ -1,11 +1,55 @@
+name: Tests
 
-name: run_acceptance_tests
-
-on: [push]
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
-  build:
-    name: Perform Acceptance BDD tests
+  tests:
+    name: Integration and Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      - name: Setup Go 1.15.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15.15
+      - name: Build and run tests
+        run: |
+          ./scripts/run-tests.sh -mod=mod
+      - name: Setup Go 1.16.12
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.12'
+      - name: Build and run tests
+        run: |
+          ./scripts/run-tests.sh -mod=mod
+      - name: Setup Go 1.17.5
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.17.5'
+      - name: Build and run tests
+        run: |
+          ./scripts/run-tests.sh -mod=mod
+      - name: "Setup Go 'master'"
+        uses: actions/setup-go@v2
+        with:
+          go-version: 'master'
+      - name: Build and run tests
+        run: |
+          ./scripts/run-tests.sh -mod=mod
+      - name: "Setup Go 'tip'"
+        uses: actions/setup-go@v2
+        with:
+          go-version: 'tip'
+      - name: Build and run tests
+        run: |
+          ./scripts/run-tests.sh -mod=mod
+  acceptance:
+    name: Acceptance tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
@@ -16,9 +60,9 @@ jobs:
           repository: pubnub/client-engineering-deployment-tools
           ref: github-actions
           token: ${{ secrets.GH_TOKEN }}
-          path: client-engineering-deployment-tools
+          path: deployment-tools
       - name: Run mock server action
-        uses: ./client-engineering-deployment-tools/actions/mock-server
+        uses: ./deployment-tools/actions/mock-server
         with:
           token: ${{ secrets.GH_TOKEN }}
       - uses: actions/cache@v2
