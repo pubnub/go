@@ -7,8 +7,14 @@ go env
 set -e
 echo "" > coverage.txt
 
-[[ -n "$GOPATH" && ! -d "$GOPATH/src/github.com/pubnub" ]] && \
-  mkdir -p "$GOPATH/src/github.com/pubnub"
+if [[ -n "$GOPATH" ]]; then
+  echo "Create module folder if required: $GOPATH/src/github.com/pubnub"
+  ! [[ -d "$GOPATH/src/github.com/pubnub" ]] && mkdir -p "$GOPATH/src/github.com/pubnub"
+else
+  echo "'GOPATH' not defined."
+fi
+
+echo "Go version: $(go version)"
 
 # Install 'gocovmerge' module.
 go get -u github.com/wadey/gocovmerge
