@@ -17,35 +17,35 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.15.15
-      - name: Build and run tests
-        run: |
+      - name: Build and run tests for Go 1.15.15
+        run:
           ./scripts/run-tests.sh -mod=mod
       - name: Setup Go 1.16.12
         uses: actions/setup-go@v2
         with:
           go-version: '1.16.12'
-      - name: Build and run tests
+      - name: Build and run tests for Go 1.16.12
         run: |
           ./scripts/run-tests.sh -mod=mod
       - name: Setup Go 1.17.5
         uses: actions/setup-go@v2
         with:
           go-version: '1.17.5'
-      - name: Build and run tests
+      - name: Build and run tests for Go 1.17.5
         run: |
           ./scripts/run-tests.sh -mod=mod
       - name: "Setup Go 'master'"
         uses: actions/setup-go@v2
         with:
           go-version: 'master'
-      - name: Build and run tests
+      - name: "Build and run tests for Go 'master'"
         run: |
           ./scripts/run-tests.sh -mod=mod
       - name: "Setup Go 'tip'"
         uses: actions/setup-go@v2
         with:
           go-version: 'tip'
-      - name: Build and run tests
+      - name: "Build and run tests for Go 'tip'"
         run: |
           ./scripts/run-tests.sh -mod=mod
   acceptance:
