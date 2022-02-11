@@ -7,6 +7,9 @@ go env
 set -e
 echo "" > coverage.txt
 
+# Set GOPATH environment if it is missing.
+[[ -z "$GOPATH" ]] && GOPATH="$(go env GOPATH)"
+
 if [[ -n "$GOPATH" ]]; then
   echo "Create module folder if required: $GOPATH/src/github.com/pubnub"
   ! [[ -d "$GOPATH/src/github.com/pubnub" ]] && mkdir -p "$GOPATH/src/github.com/pubnub"
