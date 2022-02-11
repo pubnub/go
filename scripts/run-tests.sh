@@ -17,8 +17,6 @@ else
   echo "'GOPATH' not defined."
 fi
 
-echo "Go version: $(go version)"
-
 # Install 'gocovmerge' module.
 go get -u github.com/wadey/gocovmerge
 

@@ -190,8 +190,7 @@ func TestPublishServerError(t *testing.T) {
 	assert.Contains(err.Error(), "403")
 }
 
-// Disabled for the time, when reason for different message will be identifier.
-func _TestPublishNetworkError(t *testing.T) {
+func TestPublishNetworkError(t *testing.T) {
 	assert := assert.New(t)
 
 	cfg := pamConfigCopy()

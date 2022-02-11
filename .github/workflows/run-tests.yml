@@ -34,20 +34,6 @@ jobs:
       - name: Build and run tests for Go 1.17.5
         run: |
           ./scripts/run-tests.sh -mod=mod
-      - name: "Setup Go 'master'"
-        uses: actions/setup-go@v2
-        with:
-          go-version: 'master'
-      - name: "Build and run tests for Go 'master'"
-        run: |
-          ./scripts/run-tests.sh -mod=mod
-      - name: "Setup Go 'tip'"
-        uses: actions/setup-go@v2
-        with:
-          go-version: 'tip'
-      - name: "Build and run tests for Go 'tip'"
-        run: |
-          ./scripts/run-tests.sh -mod=mod
   acceptance:
     name: Acceptance tests
     runs-on: ubuntu-latest
