@@ -1,6 +1,13 @@
 ---
-version: v7.0.1
+version: v7.0.2
 changelog:
+  - date: 2022-03-17
+    version: v7.0.2
+    changes:
+      - type: bug
+        text: "Send region on subscribe calls."
+      - type: bug
+        text: "Close idle connections to free up goroutines when closing PubNub."
   - date: 2022-02-08
     version: v7.0.1
     changes:
@@ -701,7 +708,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.0.1
+            location: https://github.com/pubnub/go/releases/tag/v7.0.2
             requires:
               -
                 name: "Go"

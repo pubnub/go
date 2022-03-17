@@ -1,3 +1,10 @@
+## v7.0.2
+March 17 2022
+
+#### Fixed
+- Send region on subscribe calls.
+- Close idle connections to free up goroutines when closing PubNub.
+
 ## v7.0.1
 February 08 2022
 
