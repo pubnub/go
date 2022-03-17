@@ -724,6 +724,7 @@ func (pn *PubNub) Destroy() {
 	pn.requestWorkers.Close()
 	pn.Config.Log.Println("after close requestWorkers")
 	pn.tokenManager.CleanUp()
+	pn.client.CloseIdleConnections()
 
 }
 

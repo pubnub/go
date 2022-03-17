@@ -273,6 +273,9 @@ func newRequest(method string, u *url.URL, body io.Reader, useHTTP2 bool) (*http
 
 func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusResponse, error) {
 	status := StatusResponse{}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	if (resp.StatusCode != 200) && (resp.StatusCode != 204) {
 		// Errors like 400, 403, 500
