@@ -25,14 +25,7 @@ type removeMembershipsBuilder struct {
 }
 
 func newRemoveMembershipsBuilder(pubnub *PubNub) *removeMembershipsBuilder {
-	builder := removeMembershipsBuilder{
-		opts: &removeMembershipsOpts{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.Limit = removeMembershipsLimit
-
-	return &builder
+	return newRemoveMembershipsBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newRemoveMembershipsBuilderWithContext(pubnub *PubNub,
@@ -43,6 +36,7 @@ func newRemoveMembershipsBuilderWithContext(pubnub *PubNub,
 			ctx:    context,
 		},
 	}
+	builder.opts.Limit = removeMembershipsLimit
 
 	return &builder
 }

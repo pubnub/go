@@ -25,14 +25,7 @@ type removeChannelMembersBuilder struct {
 }
 
 func newRemoveChannelMembersBuilder(pubnub *PubNub) *removeChannelMembersBuilder {
-	builder := removeChannelMembersBuilder{
-		opts: &removeChannelMembersOpts{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.Limit = removeChannelMembersLimit
-
-	return &builder
+	return newRemoveChannelMembersBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newRemoveChannelMembersBuilderWithContext(pubnub *PubNub,
@@ -43,6 +36,7 @@ func newRemoveChannelMembersBuilderWithContext(pubnub *PubNub,
 			ctx:    context,
 		},
 	}
+	builder.opts.Limit = removeChannelMembersLimit
 
 	return &builder
 }

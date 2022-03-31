@@ -25,14 +25,7 @@ type manageChannelMembersBuilderV2 struct {
 }
 
 func newManageChannelMembersBuilderV2(pubnub *PubNub) *manageChannelMembersBuilderV2 {
-	builder := manageChannelMembersBuilderV2{
-		opts: &manageMembersOptsV2{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.Limit = manageMembersLimitV2
-
-	return &builder
+	return newManageChannelMembersBuilderV2WithContext(pubnub, pubnub.ctx)
 }
 
 func newManageChannelMembersBuilderV2WithContext(pubnub *PubNub,
@@ -43,6 +36,7 @@ func newManageChannelMembersBuilderV2WithContext(pubnub *PubNub,
 			ctx:    context,
 		},
 	}
+	builder.opts.Limit = manageMembersLimitV2
 
 	return &builder
 }
