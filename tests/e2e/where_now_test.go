@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -54,14 +55,22 @@ func TestWhereNowNoUUID(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 	pn.Subscribe().Channels([]string{"ch1"}).Execute()
-	time.Sleep(2 * time.Second)
+	time.Sleep(500 * time.Millisecond)
 
-	res, _, err := pn.WhereNow().
-		Execute()
+	checkFor(assert, 4*time.Second, 500*time.Millisecond, func() error {
+		res, _, err := pn.WhereNow().
+			Execute()
 
-	assert.Nil(err)
+		if err != nil {
+			return err
+		}
 
-	assert.NotEqual(0, len(res.Channels))
+		if len(res.Channels) == 0 {
+			return errors.New("res.Channels can't be empty")
+		}
+
+		return nil
+	})
 }
 
 func TestWhereNowNoUUIDContext(t *testing.T) {
@@ -69,11 +78,20 @@ func TestWhereNowNoUUIDContext(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 	pn.Subscribe().Channels([]string{"ch1"}).Execute()
-	time.Sleep(2 * time.Second)
-	res, _, err := pn.WhereNowWithContext(backgroundContext).
-		Execute()
+	time.Sleep(1 * time.Millisecond)
 
-	assert.Nil(err)
+	checkFor(assert, 4*time.Second, 500*time.Millisecond, func() error {
+		res, _, err := pn.WhereNowWithContext(backgroundContext).
+			Execute()
 
-	assert.NotEqual(0, len(res.Channels))
+		if err != nil {
+			return err
+		}
+
+		if len(res.Channels) == 0 {
+			return errors.New("res.Channels can't be empty")
+		}
+
+		return nil
+	})
 }
