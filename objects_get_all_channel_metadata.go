@@ -25,14 +25,7 @@ type getAllChannelMetadataBuilder struct {
 }
 
 func newGetAllChannelMetadataBuilder(pubnub *PubNub) *getAllChannelMetadataBuilder {
-	builder := getAllChannelMetadataBuilder{
-		opts: &getAllChannelMetadataOpts{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.Limit = getAllChannelMetadataLimitV2
-
-	return &builder
+	return newGetAllChannelMetadataBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newGetAllChannelMetadataBuilderWithContext(pubnub *PubNub,
@@ -43,6 +36,7 @@ func newGetAllChannelMetadataBuilderWithContext(pubnub *PubNub,
 			ctx:    context,
 		},
 	}
+	builder.opts.Limit = getAllChannelMetadataLimitV2
 
 	return &builder
 }

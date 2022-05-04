@@ -25,14 +25,7 @@ type getAllUUIDMetadataBuilder struct {
 }
 
 func newGetAllUUIDMetadataBuilder(pubnub *PubNub) *getAllUUIDMetadataBuilder {
-	builder := getAllUUIDMetadataBuilder{
-		opts: &getAllUUIDMetadataOpts{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.Limit = getAllUUIDMetadataLimitV2
-
-	return &builder
+	return newGetAllUUIDMetadataBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newGetAllUUIDMetadataBuilderWithContext(pubnub *PubNub,
@@ -43,6 +36,7 @@ func newGetAllUUIDMetadataBuilderWithContext(pubnub *PubNub,
 			ctx:    context,
 		},
 	}
+	builder.opts.Limit = getAllUUIDMetadataLimitV2
 
 	return &builder
 }

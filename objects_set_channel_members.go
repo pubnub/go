@@ -25,14 +25,7 @@ type setChannelMembersBuilder struct {
 }
 
 func newSetChannelMembersBuilder(pubnub *PubNub) *setChannelMembersBuilder {
-	builder := setChannelMembersBuilder{
-		opts: &setChannelMembersOpts{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.Limit = setChannelMembersLimit
-
-	return &builder
+	return newSetChannelMembersBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newSetChannelMembersBuilderWithContext(pubnub *PubNub,
@@ -43,6 +36,7 @@ func newSetChannelMembersBuilderWithContext(pubnub *PubNub,
 			ctx:    context,
 		},
 	}
+	builder.opts.Limit = setChannelMembersLimit
 
 	return &builder
 }
