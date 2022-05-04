@@ -17,15 +17,13 @@ func ActivateWithPAMV2() *pubnub.PubNub {
 	return pn
 }
 
-func RunGrantV2(pn *pubnub.PubNub, users, spaces []string, read, write, manage, del, create, createPattern bool) []string {
-	r := GenRandom()
-
-	authkey := fmt.Sprintf("authkey_%d", r.Intn(99999))
+func RunGrantV2(pn *pubnub.PubNub, users, channels []string, read, write, manage, del, create, createPattern bool) []string {
+	authkey := randomized("authkey")
 
 	res, _, _ := pn.Grant().
 		Read(true).Write(true).Manage(true).
 		Get(true).Update(true).Join(true).
-		UUIDs(append(users, spaces...)).AuthKeys([]string{authkey}).
+		UUIDs(append(users, channels...)).AuthKeys([]string{authkey}).
 		Execute()
 
 	if res != nil {
@@ -62,9 +60,7 @@ func ObjectsCreateUpdateGetDeleteUUIDCommon(t *testing.T, withPAM, runWithoutSec
 
 	pn := pubnub.NewPubNub(configCopy())
 
-	r := GenRandom()
-
-	id := fmt.Sprintf("testuser_%d", r.Intn(99999))
+	id := randomized("testuser")
 	if withPAM {
 		pn2 := ActivateWithPAMV2()
 		if runWithoutSecretKey {
@@ -81,7 +77,7 @@ func ObjectsCreateUpdateGetDeleteUUIDCommon(t *testing.T, withPAM, runWithoutSec
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	name := fmt.Sprintf("name_%d", r.Intn(99999))
+	name := randomized("name")
 	extid := "extid"
 	purl := "profileurl"
 	email := "email"
@@ -229,10 +225,7 @@ func ObjectsCreateUpdateGetDeleteChannelCommon(t *testing.T, withPAM, runWithout
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
-
-	r := GenRandom()
-
-	id := fmt.Sprintf("testspace_%d", r.Intn(99999))
+	id := randomized("testchannel")
 
 	if withPAM {
 		pn2 := ActivateWithPAMV2()
@@ -249,7 +242,7 @@ func ObjectsCreateUpdateGetDeleteChannelCommon(t *testing.T, withPAM, runWithout
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	name := fmt.Sprintf("name_%d", r.Intn(99999))
+	name := randomized("name")
 	desc := "desc"
 
 	custom := make(map[string]interface{})
@@ -393,16 +386,16 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	pn := pubnub.NewPubNub(configCopy())
 
 	userid := randomized("testuser1")
-	spaceid := randomized("testspace")
+	channelid := randomized("testchannel")
 
 	if withPAM {
 		pn2 := ActivateWithPAMV2()
 		if runWithoutSecretKey {
-			tokens := RunGrantV2(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, true)
+			tokens := RunGrantV2(pn2, []string{userid}, []string{channelid}, true, true, true, true, true, true)
 			SetPNV2(pn, pn2, tokens)
 		} else {
 			pn = pn2
-			RunGrantV2(pn, []string{userid}, []string{spaceid}, true, true, true, true, true, false)
+			RunGrantV2(pn, []string{userid}, []string{channelid}, true, true, true, true, true, false)
 		}
 
 	}
@@ -448,12 +441,12 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 		pubnub.PNChannelMetadataIncludeCustom,
 	}
 
-	res2, st2, err2 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid).Name(name).Description(desc).Custom(custom2).Execute()
+	res2, st2, err2 := pn.SetChannelMetadata().Include(inclChannel).Channel(channelid).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(err2)
 	assert.Equal(200, st2.StatusCode)
 	//fmt.Println("res2-->", res2)
 	if res2 != nil {
-		assert.Equal(spaceid, res2.Data.ID)
+		assert.Equal(channelid, res2.Data.ID)
 		assert.Equal(name, res2.Data.Name)
 		assert.Equal(desc, res2.Data.Description)
 		// assert.NotNil(res2.Data.Created)
@@ -469,9 +462,9 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	assert.Nil(err3)
 	assert.Equal(200, st3.StatusCode)
 
-	spaceid2 := randomized("testspace")
+	channelid2 := randomized("testchannel")
 
-	_, st4, err4 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid2).Name(name).Description(desc).Custom(custom2).Execute()
+	_, st4, err4 := pn.SetChannelMetadata().Include(inclChannel).Channel(channelid2).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(err4)
 	assert.Equal(200, st4.StatusCode)
 
@@ -481,11 +474,11 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	assert.Nil(erruser3)
 	assert.Equal(200, stuser3.StatusCode)
 
-	spaceid3 := randomized("testspace")
+	channelid3 := randomized("testchannel")
 
-	_, stspace3, errspace3 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid3).Name(name).Description(desc).Custom(custom2).Execute()
-	assert.Nil(errspace3)
-	assert.Equal(200, stspace3.StatusCode)
+	_, stchannel3, errchannel33 := pn.SetChannelMetadata().Include(inclChannel).Channel(channelid3).Name(name).Description(desc).Custom(custom2).Execute()
+	assert.Nil(errchannel33)
+	assert.Equal(200, stchannel3.StatusCode)
 
 	inclSm := []pubnub.PNChannelMembersInclude{
 		pubnub.PNChannelMembersIncludeUUIDCustom,
@@ -519,11 +512,11 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 		inUser3,
 	}
 
-	//Add Space Memberships
+	//Add Channel Memberships
 	sortSetChannelMembers := []string{"uuid.id:desc"}
 	sort := []string{"updated:desc"}
 
-	resAdd, stAdd, errAdd := pn.SetChannelMembers().Channel(spaceid).Sort(sortSetChannelMembers).Set(inArr).Include(inclSm).Limit(limit).Count(count).Execute()
+	resAdd, stAdd, errAdd := pn.SetChannelMembers().Channel(channelid).Sort(sortSetChannelMembers).Set(inArr).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errAdd)
 	assert.Equal(200, stAdd.StatusCode)
 	if errAdd == nil {
@@ -565,7 +558,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 		}
 	}
 
-	//Update Space Memberships
+	//Update Channel Memberships
 	if !withPAM {
 
 		custom4 := make(map[string]interface{})
@@ -581,7 +574,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 			up,
 		}
 
-		resUp, stUp, errUp := pn.SetChannelMembers().Channel(spaceid).Sort(sort).Set(upArr).Include(inclSm).Limit(limit).Count(count).Execute()
+		resUp, stUp, errUp := pn.SetChannelMembers().Channel(channelid).Sort(sort).Set(upArr).Include(inclSm).Limit(limit).Count(count).Execute()
 		assert.Nil(errUp)
 		assert.Equal(200, stUp.StatusCode)
 		if errUp == nil {
@@ -610,7 +603,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 			}
 		}
 	}
-	//Get Space Memberships
+	//Get Channel Memberships
 
 	inclMemberships := []pubnub.PNMembershipsInclude{
 		pubnub.PNMembershipsIncludeCustom,
@@ -625,7 +618,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	assert.Nil(errGetMem)
 	if errGetMem == nil {
 		for i := range resGetMem.Data {
-			if resGetMem.Data[i].Channel.ID == spaceid {
+			if resGetMem.Data[i].Channel.ID == channelid {
 				foundGetMem = true
 				assert.Equal(name, resGetMem.Data[i].Channel.Name)
 				assert.Equal(desc, resGetMem.Data[i].Channel.Description)
@@ -658,7 +651,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	assert.Nil(errGetMemF)
 	if errGetMemF == nil {
 		for i := range resGetMemF.Data {
-			if resGetMemF.Data[i].Channel.ID == spaceid {
+			if resGetMemF.Data[i].Channel.ID == channelid {
 				foundGetMemF = true
 				assert.Equal(name, resGetMemF.Data[i].Channel.Name)
 				assert.Equal(desc, resGetMemF.Data[i].Channel.Description)
@@ -682,7 +675,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 		}
 	}
 
-	//Remove Space Memberships
+	//Remove Channel Memberships
 	re := pubnub.PNChannelMembersRemove{
 		UUID: uuid,
 	}
@@ -690,7 +683,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	reArr := []pubnub.PNChannelMembersRemove{
 		re,
 	}
-	resRem, stRem, errRem := pn.RemoveChannelMembers().Channel(spaceid).Remove(reArr).Include(inclSm).Limit(limit).Count(count).Execute()
+	resRem, stRem, errRem := pn.RemoveChannelMembers().Channel(channelid).Remove(reArr).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errRem)
 	assert.Equal(200, stRem.StatusCode)
 	//fmt.Println("====>stRem.StatusCode", stRem.StatusCode)
@@ -721,7 +714,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	}
 
 	channel2 := pubnub.PNMembershipsChannel{
-		ID: spaceid2,
+		ID: channelid2,
 	}
 
 	inMem := pubnub.PNMembershipsSet{
@@ -730,17 +723,17 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	}
 
 	channel3 := pubnub.PNMembershipsChannel{
-		ID: spaceid3,
+		ID: channelid3,
 	}
 
-	inMemSpace3 := pubnub.PNMembershipsSet{
+	inMemChannel3 := pubnub.PNMembershipsSet{
 		Channel: channel3,
 		Custom:  custom3,
 	}
 
 	inArrMem := []pubnub.PNMembershipsSet{
 		inMem,
-		inMemSpace3,
+		inMemChannel3,
 	}
 
 	//Add user memberships
@@ -751,8 +744,8 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	if errManageMemAdd == nil {
 		foundManageMembers := false
 		for i := range resManageMemAdd.Data {
-			if resManageMemAdd.Data[i].Channel.ID == spaceid2 {
-				assert.Equal(spaceid2, resManageMemAdd.Data[i].Channel.ID)
+			if resManageMemAdd.Data[i].Channel.ID == channelid2 {
+				assert.Equal(channelid2, resManageMemAdd.Data[i].Channel.ID)
 				assert.Equal(name, resManageMemAdd.Data[i].Channel.Name)
 				assert.Equal(desc, resManageMemAdd.Data[i].Channel.Description)
 				assert.Equal(custom2["a1"], resManageMemAdd.Data[i].Channel.Custom["a1"])
@@ -795,9 +788,9 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 		foundManageMembersUp := false
 
 		for i := range resManageMemUp.Data {
-			//fmt.Println("resManageMemUp.Data[i].ID == spaceid2-->", resRem.Data[i].UUID.ID, spaceid2)
-			if resManageMemUp.Data[i].Channel.ID == spaceid2 {
-				assert.Equal(spaceid2, resManageMemUp.Data[i].Channel.ID)
+			//fmt.Println("resManageMemUp.Data[i].ID == channelid2-->", resRem.Data[i].UUID.ID, channelid2)
+			if resManageMemUp.Data[i].Channel.ID == channelid2 {
+				assert.Equal(channelid2, resManageMemUp.Data[i].Channel.ID)
 				assert.Equal(name, resManageMemUp.Data[i].Channel.Name)
 				assert.Equal(desc, resManageMemUp.Data[i].Channel.Description)
 				assert.Equal(custom2["a1"], resManageMemAdd.Data[i].Channel.Custom["a1"])
@@ -808,8 +801,8 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 			}
 		}
 		if (resManageMemUp.Data != nil) && (len(resManageMemUp.Data) > 1) {
-			sortMemberships1 = (resManageMemUp.Data[0].Channel.ID == spaceid2)
-			sortMemberships2 = (resManageMemUp.Data[1].Channel.ID == spaceid3)
+			sortMemberships1 = (resManageMemUp.Data[0].Channel.ID == channelid2)
+			sortMemberships2 = (resManageMemUp.Data[1].Channel.ID == channelid3)
 			assert.True(sortMemberships1)
 			assert.True(sortMemberships2)
 		} else {
@@ -825,7 +818,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	}
 
 	// //Get members
-	resGetMembers, stGetMembers, errGetMembers := pn.GetChannelMembers().Channel(spaceid2).Include(inclSm).Limit(limit).Count(count).Execute()
+	resGetMembers, stGetMembers, errGetMembers := pn.GetChannelMembers().Channel(channelid2).Include(inclSm).Limit(limit).Count(count).Execute()
 	//fmt.Println("resGetMembers -->", resGetMembers)
 	assert.Nil(errGetMembers)
 	assert.Equal(200, stGetMembers.StatusCode)
@@ -857,7 +850,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	filterExp2 := fmt.Sprintf("uuid.name == '%s'", name)
 	//fmt.Println("GetMembers ====>", filterExp2)
 
-	resGetMembersF, stGetMembersF, errGetMembersF := pn.GetChannelMembers().Channel(spaceid2).Include(inclSm).Filter(filterExp2).Limit(limit).Count(count).Execute()
+	resGetMembersF, stGetMembersF, errGetMembersF := pn.GetChannelMembers().Channel(channelid2).Include(inclSm).Filter(filterExp2).Limit(limit).Count(count).Execute()
 	//fmt.Println("resGetMembers -->", resGetMembersF)
 	assert.Nil(errGetMembersF)
 	assert.Equal(200, stGetMembersF.StatusCode)
@@ -901,7 +894,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 
 		foundManageMemRem := false
 		for i := range resManageMemRem.Data {
-			if resManageMemRem.Data[i].Channel.ID == spaceid2 {
+			if resManageMemRem.Data[i].Channel.ID == channelid2 {
 				foundManageMemRem = true
 			}
 		}
@@ -921,7 +914,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	assert.Nil(res5.Data)
 
 	//delete
-	res6, st6, err6 := pn.RemoveChannelMetadata().Channel(spaceid).Execute()
+	res6, st6, err6 := pn.RemoveChannelMetadata().Channel(channelid).Execute()
 	assert.Nil(err6)
 	assert.Equal(200, st6.StatusCode)
 	assert.Nil(res6.Data)
@@ -935,7 +928,7 @@ func ObjectsSetRemoveMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecret
 	}
 
 	//delete
-	res62, st62, err62 := pn.RemoveChannelMetadata().Channel(spaceid2).Execute()
+	res62, st62, err62 := pn.RemoveChannelMetadata().Channel(channelid2).Execute()
 	assert.Nil(err62)
 	assert.Equal(200, st62.StatusCode)
 	if res62 != nil {
@@ -966,16 +959,16 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	pn := pubnub.NewPubNub(configCopy())
 
 	userid := randomized("testuser1")
-	spaceid := randomized("testspace1")
+	channelid := randomized("testchannel1")
 
 	if withPAM {
 		pn2 := ActivateWithPAMV2()
 		if runWithoutSecretKey {
-			tokens := RunGrantV2(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, true)
+			tokens := RunGrantV2(pn2, []string{userid}, []string{channelid}, true, true, true, true, true, true)
 			SetPNV2(pn, pn2, tokens)
 		} else {
 			pn = pn2
-			RunGrantV2(pn, []string{userid}, []string{spaceid}, true, true, true, true, true, false)
+			RunGrantV2(pn, []string{userid}, []string{channelid}, true, true, true, true, true, false)
 		}
 
 	}
@@ -1021,12 +1014,12 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 		pubnub.PNChannelMetadataIncludeCustom,
 	}
 
-	res2, st2, err2 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid).Name(name).Description(desc).Custom(custom2).Execute()
+	res2, st2, err2 := pn.SetChannelMetadata().Include(inclChannel).Channel(channelid).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(err2)
 	assert.Equal(200, st2.StatusCode)
 	//fmt.Println("res2-->", res2)
 	if res2 != nil {
-		assert.Equal(spaceid, res2.Data.ID)
+		assert.Equal(channelid, res2.Data.ID)
 		assert.Equal(name, res2.Data.Name)
 		assert.Equal(desc, res2.Data.Description)
 		// assert.NotNil(res2.Data.Created)
@@ -1042,9 +1035,9 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	assert.Nil(err3)
 	assert.Equal(200, st3.StatusCode)
 
-	spaceid2 := randomized("testspace2")
+	channelid2 := randomized("testchannel2")
 
-	_, st4, err4 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid2).Name(name).Description(desc).Custom(custom2).Execute()
+	_, st4, err4 := pn.SetChannelMetadata().Include(inclChannel).Channel(channelid2).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(err4)
 	assert.Equal(200, st4.StatusCode)
 
@@ -1054,11 +1047,11 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	assert.Nil(erruser3)
 	assert.Equal(200, stuser3.StatusCode)
 
-	spaceid3 := randomized("testspace3")
+	channelid3 := randomized("testchannel3")
 
-	_, stspace3, errspace3 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid3).Name(name).Description(desc).Custom(custom2).Execute()
-	assert.Nil(errspace3)
-	assert.Equal(200, stspace3.StatusCode)
+	_, stchannel3, errchannel3 := pn.SetChannelMetadata().Include(inclChannel).Channel(channelid3).Name(name).Description(desc).Custom(custom2).Execute()
+	assert.Nil(errchannel3)
+	assert.Equal(200, stchannel3.StatusCode)
 
 	inclSm := []pubnub.PNChannelMembersInclude{
 		pubnub.PNChannelMembersIncludeUUIDCustom,
@@ -1092,11 +1085,11 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 		inUser3,
 	}
 
-	//Add Space Memberships
+	//Add Channel Memberships
 	sortManageChannelMembers := []string{"uuid.id:desc"}
 	sort := []string{"updated:desc"}
 
-	resAdd, stAdd, errAdd := pn.ManageChannelMembers().Channel(spaceid).Sort(sortManageChannelMembers).Set(inArr).Remove([]pubnub.PNChannelMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+	resAdd, stAdd, errAdd := pn.ManageChannelMembers().Channel(channelid).Sort(sortManageChannelMembers).Set(inArr).Remove([]pubnub.PNChannelMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errAdd)
 	assert.Equal(200, stAdd.StatusCode)
 	if errAdd == nil {
@@ -1138,7 +1131,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 		}
 	}
 
-	//Update Space Memberships
+	//Update Channel Memberships
 	if !withPAM {
 
 		custom4 := make(map[string]interface{})
@@ -1154,7 +1147,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 			up,
 		}
 
-		resUp, stUp, errUp := pn.ManageChannelMembers().Channel(spaceid).Sort(sort).Set(upArr).Remove([]pubnub.PNChannelMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+		resUp, stUp, errUp := pn.ManageChannelMembers().Channel(channelid).Sort(sort).Set(upArr).Remove([]pubnub.PNChannelMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 		assert.Nil(errUp)
 		assert.Equal(200, stUp.StatusCode)
 		if errUp == nil {
@@ -1183,7 +1176,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 			}
 		}
 	}
-	//Get Space Memberships
+	//Get Channel Memberships
 
 	inclMemberships := []pubnub.PNMembershipsInclude{
 		pubnub.PNMembershipsIncludeCustom,
@@ -1198,7 +1191,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	assert.Nil(errGetMem)
 	if errGetMem == nil {
 		for i := range resGetMem.Data {
-			if resGetMem.Data[i].Channel.ID == spaceid {
+			if resGetMem.Data[i].Channel.ID == channelid {
 				foundGetMem = true
 				assert.Equal(name, resGetMem.Data[i].Channel.Name)
 				assert.Equal(desc, resGetMem.Data[i].Channel.Description)
@@ -1231,7 +1224,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	assert.Nil(errGetMemF)
 	if errGetMemF == nil {
 		for i := range resGetMemF.Data {
-			if resGetMemF.Data[i].Channel.ID == spaceid {
+			if resGetMemF.Data[i].Channel.ID == channelid {
 				foundGetMemF = true
 				assert.Equal(name, resGetMemF.Data[i].Channel.Name)
 				assert.Equal(desc, resGetMemF.Data[i].Channel.Description)
@@ -1255,7 +1248,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 		}
 	}
 
-	//Remove Space Memberships
+	//Remove Channel Memberships
 	re := pubnub.PNChannelMembersRemove{
 		UUID: uuid,
 	}
@@ -1263,7 +1256,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	reArr := []pubnub.PNChannelMembersRemove{
 		re,
 	}
-	resRem, stRem, errRem := pn.ManageChannelMembers().Channel(spaceid).Set([]pubnub.PNChannelMembersSet{}).Remove(reArr).Include(inclSm).Limit(limit).Count(count).Execute()
+	resRem, stRem, errRem := pn.ManageChannelMembers().Channel(channelid).Set([]pubnub.PNChannelMembersSet{}).Remove(reArr).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errRem)
 	assert.Equal(200, stRem.StatusCode)
 	if errRem == nil {
@@ -1293,7 +1286,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	}
 
 	channel2 := pubnub.PNMembershipsChannel{
-		ID: spaceid2,
+		ID: channelid2,
 	}
 
 	inMem := pubnub.PNMembershipsSet{
@@ -1302,17 +1295,17 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	}
 
 	channel3 := pubnub.PNMembershipsChannel{
-		ID: spaceid3,
+		ID: channelid3,
 	}
 
-	inMemSpace3 := pubnub.PNMembershipsSet{
+	inMemChannel3 := pubnub.PNMembershipsSet{
 		Channel: channel3,
 		Custom:  custom3,
 	}
 
 	inArrMem := []pubnub.PNMembershipsSet{
 		inMem,
-		inMemSpace3,
+		inMemChannel3,
 	}
 
 	//Add user memberships
@@ -1323,8 +1316,8 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	if errManageMemAdd == nil {
 		foundManageMembers := false
 		for i := range resManageMemAdd.Data {
-			if resManageMemAdd.Data[i].Channel.ID == spaceid2 {
-				assert.Equal(spaceid2, resManageMemAdd.Data[i].Channel.ID)
+			if resManageMemAdd.Data[i].Channel.ID == channelid2 {
+				assert.Equal(channelid2, resManageMemAdd.Data[i].Channel.ID)
 				assert.Equal(name, resManageMemAdd.Data[i].Channel.Name)
 				assert.Equal(desc, resManageMemAdd.Data[i].Channel.Description)
 				assert.Equal(custom2["a1"], resManageMemAdd.Data[i].Channel.Custom["a1"])
@@ -1367,9 +1360,9 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 		foundManageMembersUp := false
 
 		for i := range resManageMemUp.Data {
-			//fmt.Println("resManageMemUp.Data[i].ID == spaceid2-->", resRem.Data[i].UUID.ID, spaceid2)
-			if resManageMemUp.Data[i].Channel.ID == spaceid2 {
-				assert.Equal(spaceid2, resManageMemUp.Data[i].Channel.ID)
+			//fmt.Println("resManageMemUp.Data[i].ID == channelid2-->", resRem.Data[i].UUID.ID, channelid2)
+			if resManageMemUp.Data[i].Channel.ID == channelid2 {
+				assert.Equal(channelid2, resManageMemUp.Data[i].Channel.ID)
 				assert.Equal(name, resManageMemUp.Data[i].Channel.Name)
 				assert.Equal(desc, resManageMemUp.Data[i].Channel.Description)
 				assert.Equal(custom2["a1"], resManageMemAdd.Data[i].Channel.Custom["a1"])
@@ -1380,8 +1373,8 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 			}
 		}
 		if (resManageMemUp.Data != nil) && (len(resManageMemUp.Data) > 1) {
-			sortMemberships1 = (resManageMemUp.Data[0].Channel.ID == spaceid2)
-			sortMemberships2 = (resManageMemUp.Data[1].Channel.ID == spaceid3)
+			sortMemberships1 = (resManageMemUp.Data[0].Channel.ID == channelid2)
+			sortMemberships2 = (resManageMemUp.Data[1].Channel.ID == channelid3)
 			assert.True(sortMemberships1)
 			assert.True(sortMemberships2)
 		} else {
@@ -1397,7 +1390,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	}
 
 	// //Get members
-	resGetMembers, stGetMembers, errGetMembers := pn.GetChannelMembers().Channel(spaceid2).Include(inclSm).Limit(limit).Count(count).Execute()
+	resGetMembers, stGetMembers, errGetMembers := pn.GetChannelMembers().Channel(channelid2).Include(inclSm).Limit(limit).Count(count).Execute()
 	//fmt.Println("resGetMembers -->", resGetMembers)
 	assert.Nil(errGetMembers)
 	assert.Equal(200, stGetMembers.StatusCode)
@@ -1429,7 +1422,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	filterExp2 := fmt.Sprintf("uuid.name == '%s'", name)
 	//fmt.Println("GetMembers ====>", filterExp2)
 
-	resGetMembersF, stGetMembersF, errGetMembersF := pn.GetChannelMembers().Channel(spaceid2).Include(inclSm).Filter(filterExp2).Limit(limit).Count(count).Execute()
+	resGetMembersF, stGetMembersF, errGetMembersF := pn.GetChannelMembers().Channel(channelid2).Include(inclSm).Filter(filterExp2).Limit(limit).Count(count).Execute()
 	//fmt.Println("resGetMembers -->", resGetMembersF)
 	assert.Nil(errGetMembersF)
 	assert.Equal(200, stGetMembersF.StatusCode)
@@ -1473,7 +1466,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 
 		foundManageMemRem := false
 		for i := range resManageMemRem.Data {
-			if resManageMemRem.Data[i].Channel.ID == spaceid2 {
+			if resManageMemRem.Data[i].Channel.ID == channelid2 {
 				foundManageMemRem = true
 			}
 		}
@@ -1493,7 +1486,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	assert.Nil(res5.Data)
 
 	//delete
-	res6, st6, err6 := pn.RemoveChannelMetadata().Channel(spaceid).Execute()
+	res6, st6, err6 := pn.RemoveChannelMetadata().Channel(channelid).Execute()
 	assert.Nil(err6)
 	assert.Equal(200, st6.StatusCode)
 	assert.Nil(res6.Data)
@@ -1507,7 +1500,7 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 	}
 
 	//delete
-	res62, st62, err62 := pn.RemoveChannelMetadata().Channel(spaceid2).Execute()
+	res62, st62, err62 := pn.RemoveChannelMetadata().Channel(channelid2).Execute()
 	assert.Nil(err62)
 	assert.Equal(200, st62.StatusCode)
 	if res62 != nil {
@@ -1529,7 +1522,7 @@ func TestObjectsV2ListenersV2WithPAM(t *testing.T) {
 // }
 
 func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
-	//Create channel names for Space and User
+	//Create channel names for Channel and User
 	eventWaitTime := 2
 	assert := assert.New(t)
 
@@ -1539,24 +1532,22 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	pn := pubnub.NewPubNub(configCopy())
 	pnSub := pubnub.NewPubNub(configCopy())
 
-	r := GenRandom()
-
-	userid := fmt.Sprintf("testlistuser_%d", r.Intn(99999))
-	spaceid := fmt.Sprintf("testlistspace_%d", r.Intn(99999))
+	userid := randomized("testlistuser")
+	channelid := randomized("testlistchannel")
 	if withPAM {
 		pn2 := ActivateWithPAMV2()
 		if runWithoutSecretKey {
 			if enableDebuggingInTests {
 				pn2.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			}
-			tokens := RunGrantV2(pn2, []string{userid}, []string{spaceid}, true, true, true, true, true, true)
+			tokens := RunGrantV2(pn2, []string{userid}, []string{channelid}, true, true, true, true, true, true)
 			SetPNV2(pn, pn2, tokens)
 			SetPNV2(pnSub, pn2, tokens)
 			//You have to use Grant v2 to subscribe
 			pnSub.Config.AuthKey = "authKey"
 			pn2.Grant().
 				Read(true).Write(true).Manage(true).
-				Channels([]string{userid, spaceid}).
+				Channels([]string{userid, channelid}).
 				AuthKeys([]string{pnSub.Config.AuthKey}).
 				Execute()
 		} else {
@@ -1565,7 +1556,7 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 			if enableDebuggingInTests {
 				pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 			}
-			RunGrantV2(pn, []string{userid}, []string{spaceid}, true, true, true, true, true, false)
+			RunGrantV2(pn, []string{userid}, []string{channelid}, true, true, true, true, true, false)
 		}
 	}
 	if enableDebuggingInTests {
@@ -1579,14 +1570,14 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	var mut sync.RWMutex
 
-	addUserToSpace := false
-	addUserToSpace2 := false
+	addUserToChannel := false
+	addUserToChannel2 := false
 	updateUserMem := false
 	updateUser := false
-	updateSpace := false
-	removeUserFromSpace := false
+	updateChannel := false
+	removeUserFromChannel := false
 	deleteUser := false
-	deleteSpace := false
+	deleteChannel := false
 
 	doneConnected := make(chan bool)
 	exitListener := make(chan bool)
@@ -1639,31 +1630,31 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 					updateUser = true
 					mut.Unlock()
 				}
-			case spaceEvent := <-listener.ChannelEvent:
+			case channelEvent := <-listener.ChannelEvent:
 
 				if enableDebuggingInTests {
 
-					fmt.Println(" --- SpaceEvent: ")
-					fmt.Println(fmt.Sprintf("%s", spaceEvent))
-					fmt.Println(fmt.Sprintf("spaceEvent.SubscribedChannel: %s", spaceEvent.SubscribedChannel))
-					fmt.Println(fmt.Sprintf("spaceEvent.Event: %s", spaceEvent.Event))
-					fmt.Println(fmt.Sprintf("spaceEvent.ChannelID: %s", spaceEvent.ChannelID))
-					fmt.Println(fmt.Sprintf("spaceEvent.Channel: %s", spaceEvent.Channel))
-					fmt.Println(fmt.Sprintf("spaceEvent.Description: %s", spaceEvent.Description))
-					fmt.Println(fmt.Sprintf("spaceEvent.Timestamp: %s", spaceEvent.Timestamp))
-					// fmt.Println(fmt.Sprintf("spaceEvent.Created: %s", spaceEvent.Created))
-					fmt.Println(fmt.Sprintf("spaceEvent.Updated: %s", spaceEvent.Updated))
-					fmt.Println(fmt.Sprintf("spaceEvent.ETag: %s", spaceEvent.ETag))
-					fmt.Println(fmt.Sprintf("spaceEvent.Custom: %v", spaceEvent.Custom))
+					fmt.Println(" --- ChannelEvent: ")
+					fmt.Println(fmt.Sprintf("%s", channelEvent))
+					fmt.Println(fmt.Sprintf("channelEvent.SubscribedChannel: %s", channelEvent.SubscribedChannel))
+					fmt.Println(fmt.Sprintf("channelEvent.Event: %s", channelEvent.Event))
+					fmt.Println(fmt.Sprintf("channelEvent.ChannelID: %s", channelEvent.ChannelID))
+					fmt.Println(fmt.Sprintf("channelEvent.Channel: %s", channelEvent.Channel))
+					fmt.Println(fmt.Sprintf("channelEvent.Description: %s", channelEvent.Description))
+					fmt.Println(fmt.Sprintf("channelEvent.Timestamp: %s", channelEvent.Timestamp))
+					// fmt.Println(fmt.Sprintf("channelEvent.Created: %s", channelEvent.Created))
+					fmt.Println(fmt.Sprintf("channelEvent.Updated: %s", channelEvent.Updated))
+					fmt.Println(fmt.Sprintf("channelEvent.ETag: %s", channelEvent.ETag))
+					fmt.Println(fmt.Sprintf("channelEvent.Custom: %v", channelEvent.Custom))
 				}
-				if (spaceEvent.Event == pubnub.PNObjectsEventRemove) && (spaceEvent.ChannelID == spaceid) {
+				if (channelEvent.Event == pubnub.PNObjectsEventRemove) && (channelEvent.ChannelID == channelid) {
 					mut.Lock()
-					deleteSpace = true
+					deleteChannel = true
 					mut.Unlock()
 				}
-				if (spaceEvent.Event == pubnub.PNObjectsEventSet) && (spaceEvent.ChannelID == spaceid) {
+				if (channelEvent.Event == pubnub.PNObjectsEventSet) && (channelEvent.ChannelID == channelid) {
 					mut.Lock()
-					updateSpace = true
+					updateChannel = true
 					mut.Unlock()
 				}
 
@@ -1681,29 +1672,29 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 					fmt.Println(fmt.Sprintf("membershipEvent.Timestamp: %s", membershipEvent.Timestamp))
 					fmt.Println(fmt.Sprintf("membershipEvent.Custom: %v", membershipEvent.Custom))
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventSet) && (membershipEvent.ChannelID == spaceid) && (membershipEvent.UUID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventSet) && (membershipEvent.ChannelID == channelid) && (membershipEvent.UUID == userid) && ((membershipEvent.Channel == channelid) || (membershipEvent.Channel == userid)) {
 					mut.Lock()
-					addUserToSpace = true
+					addUserToChannel = true
 					mut.Unlock()
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventSet) && (membershipEvent.ChannelID == spaceid) && (membershipEvent.UUID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventSet) && (membershipEvent.ChannelID == channelid) && (membershipEvent.UUID == userid) && ((membershipEvent.Channel == channelid) || (membershipEvent.Channel == userid)) {
 					mut.Lock()
-					addUserToSpace2 = true
+					addUserToChannel2 = true
 					mut.Unlock()
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventSet) && (membershipEvent.ChannelID == spaceid) && (membershipEvent.UUID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventSet) && (membershipEvent.ChannelID == channelid) && (membershipEvent.UUID == userid) && ((membershipEvent.Channel == channelid) || (membershipEvent.Channel == userid)) {
 					mut.Lock()
 					updateUserMem = true
 					mut.Unlock()
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventSet) && (membershipEvent.ChannelID == spaceid) && (membershipEvent.UUID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventSet) && (membershipEvent.ChannelID == channelid) && (membershipEvent.UUID == userid) && ((membershipEvent.Channel == channelid) || (membershipEvent.Channel == userid)) {
 					mut.Lock()
 					updateUserMem = true
 					mut.Unlock()
 				}
-				if (membershipEvent.Event == pubnub.PNObjectsEventRemove) && (membershipEvent.ChannelID == spaceid) && (membershipEvent.UUID == userid) && ((membershipEvent.Channel == spaceid) || (membershipEvent.Channel == userid)) {
+				if (membershipEvent.Event == pubnub.PNObjectsEventRemove) && (membershipEvent.ChannelID == channelid) && (membershipEvent.UUID == userid) && ((membershipEvent.Channel == channelid) || (membershipEvent.Channel == userid)) {
 					mut.Lock()
-					removeUserFromSpace = true
+					removeUserFromChannel = true
 					mut.Unlock()
 				}
 			case <-exitListener:
@@ -1719,7 +1710,7 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	pnSub.AddListener(listener)
 
-	pnSub.Subscribe().Channels([]string{userid, spaceid}).Execute()
+	pnSub.Subscribe().Channels([]string{userid, channelid}).Execute()
 	tic := time.NewTicker(time.Duration(eventWaitTime) * time.Second)
 	select {
 	case <-doneConnected:
@@ -1747,16 +1738,16 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert.Nil(err)
 	assert.Equal(200, st.StatusCode)
 
-	//Create Space
-	customSpace := make(map[string]interface{})
-	customSpace["as"] = "bs"
-	customSpace["cs"] = "ds"
+	//Create Channel
+	customChannel := make(map[string]interface{})
+	customChannel["as"] = "bs"
+	customChannel["cs"] = "ds"
 
 	inclChannel := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
 	}
 
-	_, st4, err4 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid).Name(name).Description(desc).Custom(customSpace).Execute()
+	_, st4, err4 := pn.SetChannelMetadata().Include(inclChannel).Channel(channelid).Name(name).Description(desc).Custom(customChannel).Execute()
 	assert.Nil(err4)
 	assert.Equal(200, st4.StatusCode)
 
@@ -1777,19 +1768,19 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	desc = "desc2"
 
-	//fmt.Println("SetChannelMetadata, Update ===> ", spaceid)
+	//fmt.Println("SetChannelMetadata, Update ===> ", channelid)
 
-	//Update Space
-	_, st3, err3 := pn.SetChannelMetadata().Include(inclChannel).Channel(spaceid).Name(name).Description(desc).Custom(customSpace).Execute()
+	//Update Channel
+	_, st3, err3 := pn.SetChannelMetadata().Include(inclChannel).Channel(channelid).Name(name).Description(desc).Custom(customChannel).Execute()
 	assert.Nil(err3)
 	assert.Equal(200, st3.StatusCode)
 
 	time.Sleep(1 * time.Second)
 	mut.Lock()
-	assert.True(updateSpace)
+	assert.True(updateChannel)
 	mut.Unlock()
 
-	//Add user to space
+	//Add user to channel
 	inclSm := []pubnub.PNChannelMembersInclude{
 		pubnub.PNChannelMembersIncludeCustom,
 		pubnub.PNChannelMembersIncludeUUID,
@@ -1821,7 +1812,7 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 		in,
 	}
 
-	_, stAdd, errAdd := pn.ManageChannelMembers().Channel(spaceid).Set(inArr).Remove([]pubnub.PNChannelMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
+	_, stAdd, errAdd := pn.ManageChannelMembers().Channel(channelid).Set(inArr).Remove([]pubnub.PNChannelMembersRemove{}).Include(inclSm).Limit(limit).Count(count).Execute()
 	assert.Nil(errAdd)
 	if enableDebuggingInTests {
 
@@ -1833,7 +1824,7 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	time.Sleep(1 * time.Second)
 	mut.Lock()
-	assert.True(addUserToSpace && addUserToSpace2)
+	assert.True(addUserToChannel && addUserToChannel2)
 	mut.Unlock()
 
 	//Update user membership
@@ -1845,7 +1836,7 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	custom5["c5"] = "d5"
 
 	channel := pubnub.PNMembershipsChannel{
-		ID: spaceid,
+		ID: channelid,
 	}
 
 	upMem := pubnub.PNMembershipsSet{
@@ -1880,7 +1871,7 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert.True(updateUserMem)
 	mut.Unlock()
 
-	//Remove user from space
+	//Remove user from channel
 	reMem := pubnub.PNMembershipsRemove{
 		Channel: channel,
 	}
@@ -1900,7 +1891,7 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 
 	time.Sleep(1 * time.Second)
 	mut.Lock()
-	assert.True(removeUserFromSpace)
+	assert.True(removeUserFromChannel)
 	mut.Unlock()
 
 	//Delete user
@@ -1914,15 +1905,15 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	assert.True(deleteUser)
 	mut.Unlock()
 
-	//Delete Space
-	res62, st62, err62 := pn.RemoveChannelMetadata().Channel(spaceid).Execute()
+	//Delete Channel
+	res62, st62, err62 := pn.RemoveChannelMetadata().Channel(channelid).Execute()
 	assert.Nil(err62)
 	assert.Equal(200, st62.StatusCode)
 	assert.Nil(res62.Data)
 
 	time.Sleep(1 * time.Second)
 	mut.Lock()
-	assert.True(deleteSpace)
+	assert.True(deleteChannel)
 	mut.Unlock()
 
 	exitListener <- true
