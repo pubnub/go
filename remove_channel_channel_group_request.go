@@ -127,7 +127,7 @@ func (o *removeChannelOpts) buildQuery() (*url.Values, error) {
 	var channels []string
 
 	for _, ch := range o.Channels {
-		channels = append(channels, utils.URLEncode(ch))
+		channels = append(channels, ch)
 	}
 
 	q.Set("remove", strings.Join(channels, ","))
