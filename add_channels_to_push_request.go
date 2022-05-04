@@ -161,7 +161,7 @@ func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
 	var channels []string
 
 	for _, v := range o.Channels {
-		channels = append(channels, utils.URLEncode(v))
+		channels = append(channels, v)
 	}
 
 	q.Set("add", strings.Join(channels, ","))
