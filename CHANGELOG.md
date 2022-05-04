@@ -1,3 +1,10 @@
+## v7.0.3
+May 04 2022
+
+#### Fixed
+- Set default limit for object calls with context.
+- All channel groups management operations could double escape some  characters which could cause signature problems.
+
 ## v7.0.2
 March 17 2022
 

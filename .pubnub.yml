@@ -1,6 +1,13 @@
 ---
-version: v7.0.2
+version: v7.0.3
 changelog:
+  - date: 2022-05-04
+    version: v7.0.3
+    changes:
+      - type: bug
+        text: "Set default limit for object calls with context."
+      - type: bug
+        text: "All channel groups management operations could double escape some  characters which could cause signature problems."
   - date: 2022-03-17
     version: v7.0.2
     changes:
@@ -707,7 +714,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.0.2
+            location: https://github.com/pubnub/go/releases/tag/v7.0.3
             requires:
               -
                 name: "Go"
