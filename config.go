@@ -27,7 +27,6 @@ type Config struct {
 	//
 	//Deprecated: please use SetUserId/GetUserId
 	UUID                          string
-	userId                        UserId             // userId TODO
 	CipherKey                     string             // If CipherKey is passed, all communications to/from PubNub will be encrypted.
 	Secure                        bool               // True to use TLS
 	ConnectTimeout                int                // net.Dialer.Timeout
@@ -86,7 +85,6 @@ func NewConfigWithUserId(userId UserId) *Config {
 		StoreTokensOnGrant:            true,
 		FileMessagePublishRetryLimit:  5,
 		UseRandomInitializationVector: true,
-		userId:                        userId,
 	}
 
 	return &c
@@ -129,12 +127,13 @@ func (c *Config) SetPresenceTimeout(timeout int) *Config {
 	return c.SetPresenceTimeoutWithCustomInterval(timeout, (timeout/2)-1)
 }
 
+// SetUserId sets userId
 func (c *Config) SetUserId(userId UserId) *Config {
-	c.userId = userId
 	c.UUID = string(userId)
 	return c
 }
 
+// GetUserId gets value of userId
 func (c *Config) GetUserId() UserId {
-	return c.userId
+	return UserId(c.UUID)
 }
