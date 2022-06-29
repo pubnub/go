@@ -10,9 +10,6 @@ const (
 	presenceTimeout = 0
 )
 
-type UserIdInterface interface {
-}
-
 type UserId string
 
 // Config instance is storage for user-provided information which describe further
