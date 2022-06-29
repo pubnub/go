@@ -316,7 +316,7 @@ func TestGrantSucccessNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	pn.Config.UUID = "asd,|//&aqwe"
+	pn.Config.SetUserId(pubnub.UserId("asd,|//&aqwe"))
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
@@ -339,7 +339,7 @@ func TestGrantSucccessAppLevelFalse(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	pn.Config.UUID = "asd,|//&aqwe"
+	pn.Config.SetUserId(pubnub.UserId("asd,|//&aqwe"))
 
 	res, _, err := pn.Grant().
 		Read(false).Write(false).Manage(false).Delete(false).
@@ -361,7 +361,7 @@ func TestGrantSucccessAppLevelMixed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	pn.Config.UUID = "asd,|//&aqwe"
+	pn.Config.SetUserId(pubnub.UserId("asd,|//&aqwe"))
 
 	res, _, err := pn.Grant().
 		Read(false).Write(true).Manage(false).Delete(true).
@@ -383,7 +383,7 @@ func TestGrantSucccessAppLevelMixed2(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	pn.Config.UUID = "asd,|//&aqwe"
+	pn.Config.SetUserId(pubnub.UserId("asd,|//&aqwe"))
 
 	res, _, err := pn.Grant().
 		Read(true).Write(false).Manage(true).Delete(false).
@@ -405,7 +405,7 @@ func TestGrantSucccessNotStubbedContext(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	pn.Config.UUID = "asd,|//&aqwe"
+	pn.Config.SetUserId(pubnub.UserId("asd,|//&aqwe"))
 
 	res, _, err := pn.GrantWithContext(backgroundContext).
 		Read(true).Write(true).Manage(true).

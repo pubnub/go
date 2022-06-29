@@ -56,14 +56,14 @@ func init() {
 func configCopy() *pubnub.Config {
 	cfg := new(pubnub.Config)
 	*cfg = *config
-	cfg.UUID = pubnub.GenerateUUID()
+	cfg.SetUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	return cfg
 }
 
 func pamConfigCopy() *pubnub.Config {
 	config := new(pubnub.Config)
 	*config = *pamConfig
-	config.UUID = pubnub.GenerateUUID()
+	config.SetUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	return config
 }
 

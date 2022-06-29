@@ -56,7 +56,7 @@ func TestHistoryDeleteSuperCall(t *testing.T) {
 	// Not allowed characters: /?#,
 	validCharacters := "-._~:[]@!$&'()*+;=`|"
 
-	config.UUID = validCharacters
+	config.SetUserId(pubnub.UserId(validCharacters))
 
 	pn := pubnub.NewPubNub(config)
 
