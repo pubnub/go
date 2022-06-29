@@ -12,7 +12,7 @@ import (
 func TestNewGetStateResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.UUID = "my-custom-uuid"
+	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
 	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": {"k": "v"}, "uuid": "my-custom-uuid", "channel": "my-channel", "service": "Presence"}`)
 
@@ -29,7 +29,7 @@ func TestNewGetStateResponse(t *testing.T) {
 func TestNewGetStateResponse2(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.UUID = "my-custom-uuid"
+	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
 	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": {"channels": {"my-channel3": {"k": "v4"}, "my-channel2": {"k": "v3"}, "my-channel": {"k": "v3"}}}, "uuid": "my-custom-uuid", "service": "Presence"}`)
 
@@ -55,7 +55,7 @@ func TestNewGetStateResponse2(t *testing.T) {
 func TestNewGetStateResponseErr(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.UUID = "my-custom-uuid"
+	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
 	jsonBytes := []byte(`{"status": 400, "error": 1, "message": "Invalid JSON specified.", "service": "Presence"}`)
 
@@ -66,7 +66,7 @@ func TestNewGetStateResponseErr(t *testing.T) {
 func TestGetStateBasicRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.UUID = "my-custom-uuid"
+	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
 	opts := &getStateOpts{
 		Channels:      []string{"ch"},
@@ -131,7 +131,7 @@ func TestGetStateBasicRequestWithUUID(t *testing.T) {
 func TestNewGetStateBuilder(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.UUID = "my-custom-uuid"
+	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
 	o := newGetStateBuilder(pubnub)
 	o.Channels([]string{"ch"})
@@ -161,7 +161,7 @@ func TestNewGetStateBuilder(t *testing.T) {
 func TestNewGetStateBuilderQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.UUID = "my-custom-uuid"
+	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
 	o := newGetStateBuilder(pubnub)
 	o.Channels([]string{"ch"})
@@ -203,7 +203,7 @@ func TestNewGetStateBuilderQueryParam(t *testing.T) {
 func TestNewGetStateBuilderContext(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.UUID = "my-custom-uuid"
+	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
 	o := newGetStateBuilderWithContext(pubnub, backgroundContext)
 	o.Channels([]string{"ch"})
@@ -233,7 +233,7 @@ func TestNewGetStateBuilderContext(t *testing.T) {
 func TestGetStateMultipleChannelsChannelGroups(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.UUID = "my-custom-uuid"
+	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
 	opts := &getStateOpts{
 		Channels:      []string{"ch1", "ch2", "ch3"},

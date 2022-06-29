@@ -72,7 +72,7 @@ func TestNewSetStateBuilderContext(t *testing.T) {
 func TestNewSetStateResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	pubnub.Config.UUID = "my-custom-uuid"
+	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
 	jsonBytes := []byte(`{"status": 200, "message": "OK", "payload": {"k": "v"}, "uuid": "my-custom-uuid", "service": "Presence"}`)
 

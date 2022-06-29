@@ -187,8 +187,8 @@ func presence() {
 
 	pnPresenceListener := pubnub.NewPubNub(configPresenceListener)
 
-	pn.Config.UUID = "my-emitter"
-	pnPresenceListener.Config.UUID = "my-listener"
+	pn.Config.SetUserId(UserId("my-emitter"))
+	pnPresenceListener.Config.SetUserId(UserId("my-listener"))
 
 	listenerEmitter := pubnub.NewListener()
 	listenerPresenceListener := pubnub.NewListener()

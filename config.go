@@ -131,7 +131,7 @@ func (c *Config) SetPresenceTimeout(timeout int) *Config {
 
 func (c *Config) SetUserId(userId UserId) *Config {
 	c.userId = userId
-	c.setUserId(UserId(string(userId)))
+	c.UUID = string(userId)
 	return c
 }
 

@@ -34,7 +34,7 @@ You will need the publish and subscribe keys to authenticate your app. Get your 
         config := pubnub.NewConfigWithUserId(UserId("userId"))
         config.SubscribeKey = "mySubscribeKey"
         config.PublishKey = "myPublishKey"
-        config.UUID = "myUniqueUUID"
+        config.SetUserId(UserId("myUniqueUUID"))
 
         pn := pubnub.NewPubNub(config)
     }
