@@ -10,17 +10,27 @@ const (
 	presenceTimeout = 0
 )
 
+type UserIdInterface interface {
+}
+
+type UserId string
+
 // Config instance is storage for user-provided information which describe further
 // PubNub client behaviour. Configuration instance contain additional set of
 // properties which allow to perform precise PubNub client configuration.
 type Config struct {
 	sync.RWMutex
-	PublishKey                    string             // PublishKey you can get it from admin panel (only required if publishing).
-	SubscribeKey                  string             // SubscribeKey you can get it from admin panel.
-	SecretKey                     string             // SecretKey (only required for modifying/revealing access permissions).
-	AuthKey                       string             // AuthKey If Access Manager is utilized, client will use this AuthKey in all restricted requests.
-	Origin                        string             // Custom Origin if needed
-	UUID                          string             // UUID to be used as a device identifier.
+	PublishKey   string // PublishKey you can get it from admin panel (only required if publishing).
+	SubscribeKey string // SubscribeKey you can get it from admin panel.
+	SecretKey    string // SecretKey (only required for modifying/revealing access permissions).
+	AuthKey      string // AuthKey If Access Manager is utilized, client will use this AuthKey in all restricted requests.
+	Origin       string // Custom Origin if needed
+
+	// UUID to be used as a device identifier.
+	//
+	//Deprecated: please use SetUserId/GetUserId
+	UUID                          string
+	userId                        UserId             // userId TODO
 	CipherKey                     string             // If CipherKey is passed, all communications to/from PubNub will be encrypted.
 	Secure                        bool               // True to use TLS
 	ConnectTimeout                int                // net.Dialer.Timeout
@@ -48,7 +58,7 @@ type Config struct {
 
 // NewDemoConfig initiates the config with demo keys, for tests only.
 func NewDemoConfig() *Config {
-	demoConfig := NewConfig(GenerateUUID())
+	demoConfig := NewConfigWithUserId(UserId(GenerateUUID()))
 
 	demoConfig.PublishKey = "demo"
 	demoConfig.SubscribeKey = "demo"
@@ -58,10 +68,9 @@ func NewDemoConfig() *Config {
 
 }
 
-// NewConfig initiates the config with default values.
-func NewConfig(uuid string) *Config {
+func NewConfigWithUserId(userId UserId) *Config {
 	c := Config{
-		UUID:                          uuid,
+		UUID:                          string(userId),
 		Origin:                        "ps.pndsn.com",
 		Secure:                        true,
 		ConnectTimeout:                10,
@@ -80,9 +89,15 @@ func NewConfig(uuid string) *Config {
 		StoreTokensOnGrant:            true,
 		FileMessagePublishRetryLimit:  5,
 		UseRandomInitializationVector: true,
+		userId:                        userId,
 	}
 
 	return &c
+}
+
+//Deprecated: Please use NewConfigWithUserId
+func NewConfig(uuid string) *Config {
+	return NewConfigWithUserId(UserId(uuid))
 }
 
 func (c *Config) checkMinTimeout(timeout int) int {
@@ -115,4 +130,14 @@ var minTimeout = 20
 func (c *Config) SetPresenceTimeout(timeout int) *Config {
 	timeout = c.checkMinTimeout(timeout)
 	return c.SetPresenceTimeoutWithCustomInterval(timeout, (timeout/2)-1)
+}
+
+func (c *Config) SetUserId(userId UserId) *Config {
+	c.userId = userId
+	c.setUserId(UserId(string(userId)))
+	return c
+}
+
+func (c *Config) GetUserId() UserId {
+	return c.userId
 }
