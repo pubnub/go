@@ -21,6 +21,12 @@ type grantTokenBuilder struct {
 	opts *grantTokenOpts
 }
 
+type SpaceId string
+
+type grantTokenSumBuilder grantTokenBuilder
+
+type grantTokenObjectsBuilder grantTokenBuilder
+
 func newGrantTokenBuilder(pubnub *PubNub) *grantTokenBuilder {
 	builder := grantTokenBuilder{
 		opts: &grantTokenOpts{
@@ -29,6 +35,14 @@ func newGrantTokenBuilder(pubnub *PubNub) *grantTokenBuilder {
 	}
 
 	return &builder
+}
+
+func newGrantTokenObjectsBuilder(opts *grantTokenOpts) *grantTokenObjectsBuilder {
+	return &grantTokenObjectsBuilder{opts}
+}
+
+func newGrantTokenSumBuilder(opts *grantTokenOpts) *grantTokenSumBuilder {
+	return &grantTokenSumBuilder{opts}
 }
 
 func newGrantTokenBuilderWithContext(pubnub *PubNub, context Context) *grantTokenBuilder {
@@ -56,57 +70,47 @@ func (b *grantTokenBuilder) TTL(ttl int) *grantTokenBuilder {
 	return b
 }
 
-func (b *grantTokenBuilder) AuthorizedUUID(uuid string) *grantTokenBuilder {
-	b.opts.AuthorizedUUID = uuid
-
-	return b
-}
-
-//Channels sets the Channels for the Grant request.
-func (b *grantTokenBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenBuilder {
-	b.opts.Channels = channels
-
-	return b
-}
-
-// ChannelGroups sets the ChannelGroups for the Grant request.
-func (b *grantTokenBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantTokenBuilder {
-	b.opts.ChannelGroups = groups
-
-	return b
-}
-
-func (b *grantTokenBuilder) UUIDs(uuids map[string]UUIDPermissions) *grantTokenBuilder {
-	b.opts.UUIDs = uuids
-
-	return b
-}
-
-// Channels sets the Channels for the Grant request.
-func (b *grantTokenBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenBuilder {
-	b.opts.ChannelsPattern = channels
-
-	return b
-}
-
-// ChannelGroups sets the ChannelGroups for the Grant request.
-func (b *grantTokenBuilder) ChannelGroupsPattern(groups map[string]GroupPermissions) *grantTokenBuilder {
-	b.opts.ChannelGroupsPattern = groups
-
-	return b
-}
-
-func (b *grantTokenBuilder) UUIDsPattern(uuids map[string]UUIDPermissions) *grantTokenBuilder {
-	b.opts.UUIDsPattern = uuids
-
-	return b
-}
-
 // Meta sets the Meta for the Grant request.
 func (b *grantTokenBuilder) Meta(meta map[string]interface{}) *grantTokenBuilder {
 	b.opts.Meta = meta
 
 	return b
+}
+
+func (b *grantTokenBuilder) AuthorizedUUID(uuid string) *grantTokenObjectsBuilder {
+	return newGrantTokenObjectsBuilder(b.opts).AuthorizedUUID(uuid)
+}
+
+func (b *grantTokenBuilder) AuthorizedUserId(userId UserId) *grantTokenSumBuilder {
+	return newGrantTokenSumBuilder(b.opts).AuthorizedUserId(userId)
+}
+
+//Channels sets the Channels for the Grant request.
+func (b *grantTokenBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenObjectsBuilder {
+	return newGrantTokenObjectsBuilder(b.opts).Channels(channels)
+}
+
+// ChannelGroups sets the ChannelGroups for the Grant request.
+func (b *grantTokenBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantTokenObjectsBuilder {
+	return newGrantTokenObjectsBuilder(b.opts).ChannelGroups(groups)
+}
+
+func (b *grantTokenBuilder) UUIDs(uuids map[string]UUIDPermissions) *grantTokenObjectsBuilder {
+	return newGrantTokenObjectsBuilder(b.opts).UUIDs(uuids)
+}
+
+// Channels sets the Channels for the Grant request.
+func (b *grantTokenBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenObjectsBuilder {
+	return newGrantTokenObjectsBuilder(b.opts).ChannelsPattern(channels)
+}
+
+// ChannelGroups sets the ChannelGroups for the Grant request.
+func (b *grantTokenBuilder) ChannelGroupsPattern(groups map[string]GroupPermissions) *grantTokenObjectsBuilder {
+	return newGrantTokenObjectsBuilder(b.opts).ChannelGroupsPattern(groups)
+}
+
+func (b *grantTokenBuilder) UUIDsPattern(uuids map[string]UUIDPermissions) *grantTokenObjectsBuilder {
+	return newGrantTokenObjectsBuilder(b.opts).UUIDsPattern(uuids)
 }
 
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
@@ -122,8 +126,190 @@ func (b *grantTokenBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, er
 	if err != nil {
 		return emptyPNGrantTokenResponse, status, err
 	}
+	resp, status, e := newGrantTokenResponse(rawJSON, status)
+	if e != nil {
+		b.opts.pubnub.tokenManager.StoreToken(resp.Data.Token)
+	}
 
-	return newGrantTokenResponse(b, rawJSON, status)
+	return resp, status, e
+}
+
+func (b *grantTokenBuilder) SpacesPermissions(spacesPermissions map[SpaceId]SpacePermissions) *grantTokenSumBuilder {
+	return newGrantTokenSumBuilder(b.opts).SpacesPermissions(spacesPermissions)
+}
+
+func (b *grantTokenBuilder) UsersPermissions(usersPermissions map[UserId]UserPermissions) *grantTokenSumBuilder {
+	return newGrantTokenSumBuilder(b.opts).UsersPermissions(usersPermissions)
+}
+
+func (b *grantTokenBuilder) SpacePatternsPermissions(spacePatternsPermissions map[SpaceId]SpacePermissions) *grantTokenSumBuilder {
+	return newGrantTokenSumBuilder(b.opts).SpacePatternsPermissions(spacePatternsPermissions)
+}
+
+func (b *grantTokenBuilder) UserPatternsPermissions(userPatternsPermissions map[UserId]UserPermissions) *grantTokenSumBuilder {
+	return newGrantTokenSumBuilder(b.opts).UserPatternsPermissions(userPatternsPermissions)
+}
+
+// TTL in minutes for which granted permissions are valid.
+//
+// Min: 1
+// Max: 525600
+// Default: 1440
+//
+// Setting value to 0 will apply the grant indefinitely (forever grant).
+func (b *grantTokenObjectsBuilder) TTL(ttl int) *grantTokenObjectsBuilder {
+	b.opts.TTL = ttl
+	b.opts.setTTL = true
+
+	return b
+}
+
+// Meta sets the Meta for the Grant request.
+func (b *grantTokenObjectsBuilder) Meta(meta map[string]interface{}) *grantTokenObjectsBuilder {
+	b.opts.Meta = meta
+
+	return b
+}
+
+func (b *grantTokenObjectsBuilder) AuthorizedUUID(uuid string) *grantTokenObjectsBuilder {
+	b.opts.AuthorizedUUID = uuid
+
+	return b
+}
+
+//Channels sets the Channels for the Grant request.
+func (b *grantTokenObjectsBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenObjectsBuilder {
+	b.opts.Channels = channels
+
+	return b
+}
+
+// ChannelGroups sets the ChannelGroups for the Grant request.
+func (b *grantTokenObjectsBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantTokenObjectsBuilder {
+	b.opts.ChannelGroups = groups
+
+	return b
+}
+
+func (b *grantTokenObjectsBuilder) UUIDs(uuids map[string]UUIDPermissions) *grantTokenObjectsBuilder {
+	b.opts.UUIDs = uuids
+
+	return b
+}
+
+// Channels sets the Channels for the Grant request.
+func (b *grantTokenObjectsBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenObjectsBuilder {
+	b.opts.ChannelsPattern = channels
+
+	return b
+}
+
+// ChannelGroups sets the ChannelGroups for the Grant request.
+func (b *grantTokenObjectsBuilder) ChannelGroupsPattern(groups map[string]GroupPermissions) *grantTokenObjectsBuilder {
+	b.opts.ChannelGroupsPattern = groups
+
+	return b
+}
+
+func (b *grantTokenObjectsBuilder) UUIDsPattern(uuids map[string]UUIDPermissions) *grantTokenObjectsBuilder {
+	b.opts.UUIDsPattern = uuids
+
+	return b
+}
+
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *grantTokenObjectsBuilder) QueryParam(queryParam map[string]string) *grantTokenObjectsBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
+// Execute runs the Grant request.
+func (b *grantTokenObjectsBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
+	rawJSON, status, err := executeRequest(b.opts)
+	if err != nil {
+		return emptyPNGrantTokenResponse, status, err
+	}
+	resp, status, e := newGrantTokenResponse(rawJSON, status)
+	if e != nil {
+		b.opts.pubnub.tokenManager.StoreToken(resp.Data.Token)
+	}
+
+	return resp, status, e
+}
+
+// TTL in minutes for which granted permissions are valid.
+//
+// Min: 1
+// Max: 525600
+// Default: 1440
+//
+// Setting value to 0 will apply the grant indefinitely (forever grant).
+func (b *grantTokenSumBuilder) TTL(ttl int) *grantTokenSumBuilder {
+	b.opts.TTL = ttl
+	b.opts.setTTL = true
+
+	return b
+}
+
+func (b *grantTokenSumBuilder) AuthorizedUserId(userId UserId) *grantTokenSumBuilder {
+	b.opts.AuthorizedUUID = string(userId)
+
+	return b
+}
+
+//SpacesPermissions sets the Spaces for the Grant request.
+func (b *grantTokenSumBuilder) SpacesPermissions(spaces map[SpaceId]SpacePermissions) *grantTokenSumBuilder {
+	b.opts.Channels = toChannelsPermissionsMap(spaces)
+
+	return b
+}
+
+func (b *grantTokenSumBuilder) UsersPermissions(users map[UserId]UserPermissions) *grantTokenSumBuilder {
+	b.opts.UUIDs = toUUIDsPermissionsMap(users)
+
+	return b
+}
+
+// SpacePatternsPermissions sets the Channels for the Grant request.
+func (b *grantTokenSumBuilder) SpacePatternsPermissions(spaces map[SpaceId]SpacePermissions) *grantTokenSumBuilder {
+	b.opts.ChannelsPattern = toChannelsPermissionsMap(spaces)
+
+	return b
+}
+
+func (b *grantTokenSumBuilder) UserPatternsPermissions(users map[UserId]UserPermissions) *grantTokenSumBuilder {
+	b.opts.UUIDsPattern = toUUIDsPermissionsMap(users)
+
+	return b
+}
+
+// Meta sets the Meta for the Grant request.
+func (b *grantTokenSumBuilder) Meta(meta map[string]interface{}) *grantTokenSumBuilder {
+	b.opts.Meta = meta
+
+	return b
+}
+
+// QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+func (b *grantTokenSumBuilder) QueryParam(queryParam map[string]string) *grantTokenSumBuilder {
+	b.opts.QueryParam = queryParam
+
+	return b
+}
+
+// Execute runs the Grant request.
+func (b *grantTokenSumBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
+	rawJSON, status, err := executeRequest(b.opts)
+	if err != nil {
+		return emptyPNGrantTokenResponse, status, err
+	}
+	resp, status, e := newGrantTokenResponse(rawJSON, status)
+	if e != nil {
+		b.opts.pubnub.tokenManager.StoreToken(resp.Data.Token)
+	}
+
+	return resp, status, e
 }
 
 type grantTokenOpts struct {
@@ -369,7 +555,7 @@ type PNGrantTokenResponse struct {
 	service string           `json:"service"`
 }
 
-func newGrantTokenResponse(b *grantTokenBuilder, jsonBytes []byte, status StatusResponse) (*PNGrantTokenResponse, StatusResponse, error) {
+func newGrantTokenResponse(jsonBytes []byte, status StatusResponse) (*PNGrantTokenResponse, StatusResponse, error) {
 	resp := &PNGrantTokenResponse{}
 
 	err := json.Unmarshal(jsonBytes, &resp)
@@ -379,8 +565,6 @@ func newGrantTokenResponse(b *grantTokenBuilder, jsonBytes []byte, status Status
 
 		return emptyPNGrantTokenResponse, status, e
 	}
-
-	b.opts.pubnub.tokenManager.StoreToken(resp.Data.Token)
 
 	return resp, status, nil
 }

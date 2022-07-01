@@ -75,6 +75,27 @@ type ChannelPermissions struct {
 	Join   bool
 }
 
+type SpacePermissions ChannelPermissions
+
+func toChannelsPermissionsMap(spacesPermissions map[SpaceId]SpacePermissions) map[string]ChannelPermissions {
+	var channelsPermissions = make(map[string]ChannelPermissions)
+
+	for name, p := range spacesPermissions {
+		channelsPermissions[string(name)] = ChannelPermissions{
+			Read:   p.Read,
+			Write:  p.Write,
+			Delete: p.Delete,
+			Get:    p.Get,
+			Manage: p.Manage,
+			Update: p.Update,
+			Join:   p.Join,
+		}
+
+	}
+
+	return channelsPermissions
+}
+
 // GroupPermissions contains all the acceptable perms for groups
 type GroupPermissions struct {
 	Read   bool
@@ -85,6 +106,23 @@ type UUIDPermissions struct {
 	Get    bool
 	Update bool
 	Delete bool
+}
+
+type UserPermissions UUIDPermissions
+
+func toUUIDsPermissionsMap(usersPermissions map[UserId]UserPermissions) map[string]UUIDPermissions {
+	var channelsPermissions = make(map[string]UUIDPermissions)
+
+	for name, p := range usersPermissions {
+		channelsPermissions[string(name)] = UUIDPermissions{
+			Delete: p.Delete,
+			Get:    p.Get,
+			Update: p.Update,
+		}
+
+	}
+
+	return channelsPermissions
 }
 
 // PNPAMEntityData is the struct containing the access details of the channels.
