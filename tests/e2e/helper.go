@@ -43,11 +43,11 @@ func seedRand() {
 
 func init() {
 	seedRand()
-	config = pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config = pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.PublishKey = os.Getenv("PUBLISH_KEY")
 	config.SubscribeKey = os.Getenv("SUBSCRIBE_KEY")
 
-	pamConfig = pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	pamConfig = pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	pamConfig.PublishKey = os.Getenv("PAM_PUBLISH_KEY")
 	pamConfig.SubscribeKey = os.Getenv("PAM_SUBSCRIBE_KEY")
 	pamConfig.SecretKey = os.Getenv("PAM_SECRET_KEY")
