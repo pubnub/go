@@ -36,7 +36,7 @@ func TestMessageCounts(t *testing.T) {
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	ch1 := randomized("testChannel_sub_%d")
+	ch1 := randomized("testChannel_sub")
 	ch2 := ch1 + "_2"
 
 	timestamp1 := GetTimetoken(pn)
