@@ -121,7 +121,7 @@ func TestSetStateSuperCall(t *testing.T) {
 	config := pamConfigCopy()
 
 	// Not allowed characters: /
-	config.UUID = validCharacters
+	config.SetUserId(pubnub.UserId(validCharacters))
 
 	pn := pubnub.NewPubNub(config)
 	state := make(map[string]interface{})

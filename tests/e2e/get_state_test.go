@@ -47,7 +47,7 @@ func TestGetStateSuperCall(t *testing.T) {
 	// Not allowed characters: /?#,
 	validCharacters := "-._~:[]@!$&'()*+;=`|"
 
-	config.UUID = validCharacters
+	config.SetUserId(pubnub.UserId(validCharacters))
 	config.AuthKey = SPECIAL_CHARACTERS
 
 	_, _, err := pn.GetState().

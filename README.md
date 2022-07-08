@@ -31,10 +31,9 @@ You will need the publish and subscribe keys to authenticate your app. Get your 
 
     ```go
     func main() {
-        config := pubnub.NewConfig()
+        config := pubnub.NewConfigWithUserId("userId")
         config.SubscribeKey = "mySubscribeKey"
         config.PublishKey = "myPublishKey"
-        config.UUID = "myUniqueUUID"
 
         pn := pubnub.NewPubNub(config)
     }

@@ -1447,7 +1447,7 @@ func TestSubscribePublishPartialUnsubscribe(t *testing.T) {
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-	pn.Config.UUID = randomized("sub-partialu-uuid")
+	pn.Config.SetUserId(pubnub.UserId(randomized("sub-partialu-uuid")))
 
 	listener := pubnub.NewListener()
 	exitListener := make(chan bool)
@@ -1529,8 +1529,8 @@ func JoinLeaveChannel(t *testing.T) {
 	configEmitter := configCopy()
 	configPresenceListener := configCopy()
 
-	configEmitter.UUID = randomized("sub-lj-emitter")
-	configPresenceListener.UUID = randomized("sub-lj-listener")
+	configEmitter.SetUserId(pubnub.UserId(randomized("sub-lj-emitter")))
+	configPresenceListener.SetUserId(pubnub.UserId(randomized("sub-lj-listener")))
 
 	pn := pubnub.NewPubNub(configEmitter)
 	pnPresenceListener := pubnub.NewPubNub(configPresenceListener)
@@ -1665,8 +1665,8 @@ func SubscribeJoinLeaveGroup(t *testing.T) {
 	configEmitter := configCopy()
 	configPresenceListener := configCopy()
 
-	configEmitter.UUID = randomized("emitter")
-	configPresenceListener.UUID = randomized("listener")
+	configEmitter.SetUserId(pubnub.UserId(randomized("emitter")))
+	configPresenceListener.SetUserId(pubnub.UserId(randomized("listener")))
 
 	pn := pubnub.NewPubNub(configEmitter)
 	pnPresenceListener := pubnub.NewPubNub(configPresenceListener)
@@ -2308,7 +2308,7 @@ func TestSubscribeSuperCall(t *testing.T) {
 	// Not allowed characters:
 	// .,:*
 	validCharacters := "-_~?#[]@!$&'()+;=`|"
-	config.UUID = validCharacters
+	config.SetUserId(pubnub.UserId(validCharacters))
 	//config.AuthKey = validCharacters
 	//config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 

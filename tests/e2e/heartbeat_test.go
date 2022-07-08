@@ -32,8 +32,8 @@ func HeartbeatTimeoutEvent(t *testing.T) {
 
 	configPresenceListener := configCopy()
 
-	configEmitter.UUID = emitterUUID
-	configPresenceListener.UUID = randomized("listener")
+	configEmitter.SetUserId(pubnub.UserId(emitterUUID))
+	configPresenceListener.SetUserId(pubnub.UserId(randomized("listener")))
 
 	pn := pubnub.NewPubNub(configEmitter)
 	pnPresenceListener := pubnub.NewPubNub(configPresenceListener)
@@ -349,7 +349,7 @@ func xTestHeartbeatRandomizedBehaviour(t *testing.T) {
 	configEmitter := configCopy()
 	configEmitter.SetPresenceTimeout(6)
 
-	configEmitter.UUID = emitterUUID
+	configEmitter.SetUserId(pubnub.UserId(emitterUUID))
 
 	pn := pubnub.NewPubNub(configEmitter)
 

@@ -151,14 +151,14 @@ func (o *messageCountsOpts) buildQuery() (*url.Values, error) {
 
 	if (o.ChannelsTimetoken != nil) && (len(o.ChannelsTimetoken) == 1) {
 		q.Set("timetoken", strconv.FormatInt(o.ChannelsTimetoken[0], 10))
-		q.Set("channelsTimetoken", "")
+		//q.Set("channelsTimetoken", "")
 	} else if o.ChannelsTimetoken != nil {
-		q.Set("timetoken", "")
+		//q.Set("timetoken", "")
 		q.Set("channelsTimetoken", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(o.ChannelsTimetoken)), ","), "[]"))
 	} else {
 		// TODO: Remove in next major version bump
 		q.Set("timetoken", strconv.FormatInt(o.Timetoken, 10))
-		q.Set("channelsTimetoken", "")
+		//q.Set("channelsTimetoken", "")
 	}
 
 	SetQueryParam(q, o.QueryParam)

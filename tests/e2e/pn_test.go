@@ -30,7 +30,7 @@ func TestDestroy(t *testing.T) {
 	}
 	config.PNReconnectionPolicy = pubnub.PNExponentialPolicy
 	config.MaximumReconnectionRetries = -1
-	config.UUID = testSerial
+	config.SetUserId(pubnub.UserId(testSerial))
 	config.SuppressLeaveEvents = true
 	config.SetPresenceTimeoutWithCustomInterval(330, 300)
 	config.MaxWorkers = 0
@@ -74,7 +74,7 @@ func TestDestroy2(t *testing.T) {
 	}
 	config.PNReconnectionPolicy = pubnub.PNExponentialPolicy
 	config.MaximumReconnectionRetries = -1
-	config.UUID = testSerial
+	config.SetUserId(pubnub.UserId(testSerial))
 	config.SuppressLeaveEvents = true
 	config.SetPresenceTimeoutWithCustomInterval(330, 300)
 	config.MaxWorkers = 0

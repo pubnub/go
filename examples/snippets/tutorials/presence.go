@@ -7,10 +7,10 @@ import (
 )
 
 func subscribe() {
-	config := pubnub.NewConfig(pubnub.GenerateUUID())
+	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.UUID = "Stephen"
+	config.SetUserId(UserId("Stephen"))
 
 	pn := pubnub.NewPubNub(config)
 
@@ -43,10 +43,10 @@ func subscribe() {
 }
 
 func hereNow() {
-	config := pubnub.NewConfig(pubnub.GenerateUUID())
+	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.UUID = "Stephen"
+	config.SetUserId(UserId("Stephen"))
 
 	pn := pubnub.NewPubNub(config)
 
@@ -67,10 +67,10 @@ func hereNow() {
 }
 
 func globalHereNow() {
-	config := pubnub.NewConfig(pubnub.GenerateUUID())
+	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.UUID = "Stephen"
+	config.SetUserId(UserId("Stephen"))
 
 	pn := pubnub.NewPubNub(config)
 
@@ -83,10 +83,10 @@ func globalHereNow() {
 }
 
 func whereNow() {
-	config := pubnub.NewConfig(pubnub.GenerateUUID())
+	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.UUID = "Stephen"
+	config.SetUserId(UserId("Stephen"))
 
 	pn := pubnub.NewPubNub(config)
 
@@ -98,10 +98,10 @@ func whereNow() {
 }
 
 func getState() {
-	config := pubnub.NewConfig(pubnub.GenerateUUID())
+	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.UUID = "Stephen"
+	config.SetUserId(UserId("Stephen"))
 
 	pn := pubnub.NewPubNub(config)
 
