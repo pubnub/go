@@ -101,7 +101,7 @@ func Test_GrantToken(t *testing.T) {
 			}).opts,
 		want: `{"ttl":100,"permissions":{"resources":{"channels":{"channel":1},"groups":{"cg":5,"cg2":1},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"meta":{}}}`},
 		{
-			name: "GrantToken SUM",
+			name: "GrantToken Entities",
 			have: pn.GrantToken().
 				TTL(100).
 				SpacesPermissions(map[SpaceId]SpacePermissions{

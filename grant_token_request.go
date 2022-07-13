@@ -23,7 +23,7 @@ type grantTokenBuilder struct {
 
 type SpaceId string
 
-type grantTokenSumBuilder grantTokenBuilder
+type grantTokenEntitiesBuilder grantTokenBuilder
 
 type grantTokenObjectsBuilder grantTokenBuilder
 
@@ -41,8 +41,8 @@ func newGrantTokenObjectsBuilder(opts *grantTokenOpts) *grantTokenObjectsBuilder
 	return &grantTokenObjectsBuilder{opts}
 }
 
-func newGrantTokenSumBuilder(opts *grantTokenOpts) *grantTokenSumBuilder {
-	return &grantTokenSumBuilder{opts}
+func newGrantTokenEntitiesBuilder(opts *grantTokenOpts) *grantTokenEntitiesBuilder {
+	return &grantTokenEntitiesBuilder{opts}
 }
 
 func newGrantTokenBuilderWithContext(pubnub *PubNub, context Context) *grantTokenBuilder {
@@ -82,8 +82,8 @@ func (b *grantTokenBuilder) AuthorizedUUID(uuid string) *grantTokenObjectsBuilde
 	return newGrantTokenObjectsBuilder(b.opts).AuthorizedUUID(uuid)
 }
 
-func (b *grantTokenBuilder) AuthorizedUserId(userId UserId) *grantTokenSumBuilder {
-	return newGrantTokenSumBuilder(b.opts).AuthorizedUserId(userId)
+func (b *grantTokenBuilder) AuthorizedUserId(userId UserId) *grantTokenEntitiesBuilder {
+	return newGrantTokenEntitiesBuilder(b.opts).AuthorizedUserId(userId)
 }
 
 // Channels sets the Channels for the Grant request.
@@ -141,20 +141,20 @@ func (b *grantTokenBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, er
 	return resp, status, e
 }
 
-func (b *grantTokenBuilder) SpacesPermissions(spacesPermissions map[SpaceId]SpacePermissions) *grantTokenSumBuilder {
-	return newGrantTokenSumBuilder(b.opts).SpacesPermissions(spacesPermissions)
+func (b *grantTokenBuilder) SpacesPermissions(spacesPermissions map[SpaceId]SpacePermissions) *grantTokenEntitiesBuilder {
+	return newGrantTokenEntitiesBuilder(b.opts).SpacesPermissions(spacesPermissions)
 }
 
-func (b *grantTokenBuilder) UsersPermissions(usersPermissions map[UserId]UserPermissions) *grantTokenSumBuilder {
-	return newGrantTokenSumBuilder(b.opts).UsersPermissions(usersPermissions)
+func (b *grantTokenBuilder) UsersPermissions(usersPermissions map[UserId]UserPermissions) *grantTokenEntitiesBuilder {
+	return newGrantTokenEntitiesBuilder(b.opts).UsersPermissions(usersPermissions)
 }
 
-func (b *grantTokenBuilder) SpacePatternsPermissions(spacePatternsPermissions map[SpaceId]SpacePermissions) *grantTokenSumBuilder {
-	return newGrantTokenSumBuilder(b.opts).SpacePatternsPermissions(spacePatternsPermissions)
+func (b *grantTokenBuilder) SpacePatternsPermissions(spacePatternsPermissions map[SpaceId]SpacePermissions) *grantTokenEntitiesBuilder {
+	return newGrantTokenEntitiesBuilder(b.opts).SpacePatternsPermissions(spacePatternsPermissions)
 }
 
-func (b *grantTokenBuilder) UserPatternsPermissions(userPatternsPermissions map[UserId]UserPermissions) *grantTokenSumBuilder {
-	return newGrantTokenSumBuilder(b.opts).UserPatternsPermissions(userPatternsPermissions)
+func (b *grantTokenBuilder) UserPatternsPermissions(userPatternsPermissions map[UserId]UserPermissions) *grantTokenEntitiesBuilder {
+	return newGrantTokenEntitiesBuilder(b.opts).UserPatternsPermissions(userPatternsPermissions)
 }
 
 // TTL in minutes for which granted permissions are valid.
@@ -252,61 +252,61 @@ func (b *grantTokenObjectsBuilder) Execute() (*PNGrantTokenResponse, StatusRespo
 // Default: 1440
 //
 // Setting value to 0 will apply the grant indefinitely (forever grant).
-func (b *grantTokenSumBuilder) TTL(ttl int) *grantTokenSumBuilder {
+func (b *grantTokenEntitiesBuilder) TTL(ttl int) *grantTokenEntitiesBuilder {
 	b.opts.TTL = ttl
 	b.opts.setTTL = true
 
 	return b
 }
 
-func (b *grantTokenSumBuilder) AuthorizedUserId(userId UserId) *grantTokenSumBuilder {
+func (b *grantTokenEntitiesBuilder) AuthorizedUserId(userId UserId) *grantTokenEntitiesBuilder {
 	b.opts.AuthorizedUUID = string(userId)
 
 	return b
 }
 
 //SpacesPermissions sets the Spaces for the Grant request.
-func (b *grantTokenSumBuilder) SpacesPermissions(spaces map[SpaceId]SpacePermissions) *grantTokenSumBuilder {
+func (b *grantTokenEntitiesBuilder) SpacesPermissions(spaces map[SpaceId]SpacePermissions) *grantTokenEntitiesBuilder {
 	b.opts.Channels = toChannelsPermissionsMap(spaces)
 
 	return b
 }
 
-func (b *grantTokenSumBuilder) UsersPermissions(users map[UserId]UserPermissions) *grantTokenSumBuilder {
+func (b *grantTokenEntitiesBuilder) UsersPermissions(users map[UserId]UserPermissions) *grantTokenEntitiesBuilder {
 	b.opts.UUIDs = toUUIDsPermissionsMap(users)
 
 	return b
 }
 
 // SpacePatternsPermissions sets the Channels for the Grant request.
-func (b *grantTokenSumBuilder) SpacePatternsPermissions(spaces map[SpaceId]SpacePermissions) *grantTokenSumBuilder {
+func (b *grantTokenEntitiesBuilder) SpacePatternsPermissions(spaces map[SpaceId]SpacePermissions) *grantTokenEntitiesBuilder {
 	b.opts.ChannelsPattern = toChannelsPermissionsMap(spaces)
 
 	return b
 }
 
-func (b *grantTokenSumBuilder) UserPatternsPermissions(users map[UserId]UserPermissions) *grantTokenSumBuilder {
+func (b *grantTokenEntitiesBuilder) UserPatternsPermissions(users map[UserId]UserPermissions) *grantTokenEntitiesBuilder {
 	b.opts.UUIDsPattern = toUUIDsPermissionsMap(users)
 
 	return b
 }
 
 // Meta sets the Meta for the Grant request.
-func (b *grantTokenSumBuilder) Meta(meta map[string]interface{}) *grantTokenSumBuilder {
+func (b *grantTokenEntitiesBuilder) Meta(meta map[string]interface{}) *grantTokenEntitiesBuilder {
 	b.opts.Meta = meta
 
 	return b
 }
 
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
-func (b *grantTokenSumBuilder) QueryParam(queryParam map[string]string) *grantTokenSumBuilder {
+func (b *grantTokenEntitiesBuilder) QueryParam(queryParam map[string]string) *grantTokenEntitiesBuilder {
 	b.opts.QueryParam = queryParam
 
 	return b
 }
 
 // Execute runs the Grant request.
-func (b *grantTokenSumBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
+func (b *grantTokenEntitiesBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGrantTokenResponse, status, err

@@ -64,7 +64,7 @@ func TestGrantToken(t *testing.T) {
 
 }
 
-func TestGrantTokenSum(t *testing.T) {
+func TestGrantTokenEntities(t *testing.T) {
 
 	assert := assert.New(t)
 
