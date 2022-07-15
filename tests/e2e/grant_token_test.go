@@ -123,14 +123,14 @@ func TestGrantTokenEntities(t *testing.T) {
 				Update: true,
 			},
 		}).
-		SpacePatternsPermissions(map[pubnub.SpaceId]pubnub.SpacePermissions{
-			pubnub.SpaceId(spacePattern): {
+		SpacePatternsPermissions(map[string]pubnub.SpacePermissions{
+			spacePattern: {
 				Read:  true,
 				Write: true,
 			},
 		}).
-		UserPatternsPermissions(map[pubnub.UserId]pubnub.UserPermissions{
-			pubnub.UserId(userPattern): {
+		UserPatternsPermissions(map[string]pubnub.UserPermissions{
+			userPattern: {
 				Get:    true,
 				Delete: false,
 				Update: true,

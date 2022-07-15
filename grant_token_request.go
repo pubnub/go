@@ -149,11 +149,11 @@ func (b *grantTokenBuilder) UsersPermissions(usersPermissions map[UserId]UserPer
 	return newGrantTokenEntitiesBuilder(b.opts).UsersPermissions(usersPermissions)
 }
 
-func (b *grantTokenBuilder) SpacePatternsPermissions(spacePatternsPermissions map[SpaceId]SpacePermissions) *grantTokenEntitiesBuilder {
+func (b *grantTokenBuilder) SpacePatternsPermissions(spacePatternsPermissions map[string]SpacePermissions) *grantTokenEntitiesBuilder {
 	return newGrantTokenEntitiesBuilder(b.opts).SpacePatternsPermissions(spacePatternsPermissions)
 }
 
-func (b *grantTokenBuilder) UserPatternsPermissions(userPatternsPermissions map[UserId]UserPermissions) *grantTokenEntitiesBuilder {
+func (b *grantTokenBuilder) UserPatternsPermissions(userPatternsPermissions map[string]UserPermissions) *grantTokenEntitiesBuilder {
 	return newGrantTokenEntitiesBuilder(b.opts).UserPatternsPermissions(userPatternsPermissions)
 }
 
@@ -279,14 +279,14 @@ func (b *grantTokenEntitiesBuilder) UsersPermissions(users map[UserId]UserPermis
 }
 
 // SpacePatternsPermissions sets the Channels for the Grant request.
-func (b *grantTokenEntitiesBuilder) SpacePatternsPermissions(spaces map[SpaceId]SpacePermissions) *grantTokenEntitiesBuilder {
-	b.opts.ChannelsPattern = toChannelsPermissionsMap(spaces)
+func (b *grantTokenEntitiesBuilder) SpacePatternsPermissions(spaces map[string]SpacePermissions) *grantTokenEntitiesBuilder {
+	b.opts.ChannelsPattern = toChannelPatternsPermissionsMap(spaces)
 
 	return b
 }
 
-func (b *grantTokenEntitiesBuilder) UserPatternsPermissions(users map[UserId]UserPermissions) *grantTokenEntitiesBuilder {
-	b.opts.UUIDsPattern = toUUIDsPermissionsMap(users)
+func (b *grantTokenEntitiesBuilder) UserPatternsPermissions(users map[string]UserPermissions) *grantTokenEntitiesBuilder {
+	b.opts.UUIDsPattern = toUUIDPatternsPermissionsMap(users)
 
 	return b
 }

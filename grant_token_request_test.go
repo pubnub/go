@@ -111,7 +111,7 @@ func Test_GrantToken(t *testing.T) {
 						Delete: false,
 					},
 				}).
-				SpacePatternsPermissions(map[SpaceId]SpacePermissions{
+				SpacePatternsPermissions(map[string]SpacePermissions{
 					"channel": {
 						Write:  true,
 						Read:   true,
@@ -125,7 +125,7 @@ func Test_GrantToken(t *testing.T) {
 						Delete: true,
 					},
 				}).
-				UserPatternsPermissions(map[UserId]UserPermissions{
+				UserPatternsPermissions(map[string]UserPermissions{
 					"users*": {
 						Get:    true,
 						Update: false,
