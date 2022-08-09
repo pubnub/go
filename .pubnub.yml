@@ -1,6 +1,13 @@
 ---
-version: v7.0.3
+version: v7.1.0
 changelog:
+  - date: 2022-08-09
+    version: v7.1.0
+    changes:
+      - type: feature
+        text: "Add support for spaces and users permissions in GrantToken."
+      - type: feature
+        text: "Add new Get/SetUserId and NewConfigWithUserId factory method for Config. Deprecate UUID."
   - date: 2022-05-04
     version: v7.0.3
     changes:
@@ -714,7 +721,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.0.3
+            location: https://github.com/pubnub/go/releases/tag/v7.1.0
             requires:
               -
                 name: "Go"

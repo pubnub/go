@@ -1,10 +1,8 @@
 package pubnub
 
 import (
-	"fmt"
 	"testing"
 
-	h "github.com/pubnub/go/v7/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -73,68 +71,77 @@ func TestGrantTokenParseResourcePermissions3(t *testing.T) {
 	assert.Equal(int64(5), r["channel2"])
 }
 
-func TestGrantToken(t *testing.T) {
-	AssertTestGrantToken(t, true, false)
-}
-
-func AssertTestGrantToken(t *testing.T, checkQueryParam, testContext bool) {
-	assert := assert.New(t)
+func Test_GrantToken(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 
-	o := newGrantTokenBuilder(pn)
-	if testContext {
-		o = newGrantTokenBuilderWithContext(pn, backgroundContext)
+	tests := []struct {
+		name string
+		have endpointOpts
+		want string
+	}{{
+		name: "GrantToken objects v2",
+		have: pn.GrantToken().
+			TTL(100).
+			Channels(map[string]ChannelPermissions{
+				"channel": {
+					Write:  false,
+					Read:   true,
+					Delete: false,
+				},
+			}).
+			ChannelGroups(map[string]GroupPermissions{
+				"cg": {
+					Read:   true,
+					Manage: true,
+				},
+				"cg2": {
+					Read:   true,
+					Manage: false,
+				},
+			}).opts,
+		want: `{"ttl":100,"permissions":{"resources":{"channels":{"channel":1},"groups":{"cg":5,"cg2":1},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"meta":{}}}`},
+		{
+			name: "GrantToken Entities",
+			have: pn.GrantToken().
+				TTL(100).
+				SpacesPermissions(map[SpaceId]SpacePermissions{
+					"channel": {
+						Write:  false,
+						Read:   true,
+						Delete: false,
+					},
+				}).
+				SpacePatternsPermissions(map[string]SpacePermissions{
+					"channel": {
+						Write:  true,
+						Read:   true,
+						Delete: false,
+					},
+				}).
+				UsersPermissions(map[UserId]UserPermissions{
+					"user": {
+						Get:    true,
+						Update: true,
+						Delete: true,
+					},
+				}).
+				UserPatternsPermissions(map[string]UserPermissions{
+					"users*": {
+						Get:    true,
+						Update: false,
+						Delete: true,
+					},
+				}).opts,
+			want: `{"ttl":100,"permissions":{"resources":{"channels":{"channel":1},"groups":{},"uuids":{"user":104},"users":{},"spaces":{}},"patterns":{"channels":{"channel":3},"groups":{},"uuids":{"users*":40},"users":{},"spaces":{}},"meta":{}}}`},
 	}
 
-	queryParam := map[string]string{
-		"q1": "v1",
-		"q2": "v2",
-	}
-
-	if !checkQueryParam {
-		queryParam = nil
-	}
-
-	ch := map[string]ChannelPermissions{
-		"channel": {
-			Write:  false,
-			Read:   true,
-			Delete: false,
-		},
-	}
-
-	cg := map[string]GroupPermissions{
-		"cg": {
-			Read:   true,
-			Manage: true,
-		},
-		"cg2": {
-			Read:   true,
-			Manage: false,
-		},
-	}
-
-	o.TTL(100)
-	o.Channels(ch)
-	o.ChannelGroups(cg)
-	o.QueryParam(queryParam)
-
-	path, err := o.opts.buildPath()
-	assert.Nil(err)
-
-	h.AssertPathsEqual(t,
-		fmt.Sprintf(grantTokenPath, pn.Config.SubscribeKey),
-		path, []int{})
-
-	body, err := o.opts.buildBody()
-	assert.Nil(err)
-
-	expectedBody := `{"ttl":100,"permissions":{"resources":{"channels":{"channel":1},"groups":{"cg":5,"cg2":1},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"meta":{}}}`
-	assert.Equal(expectedBody, string(body))
-
-	if checkQueryParam {
-		u, _ := o.opts.buildQuery()
-		assert.Equal("v1", u.Get("q1"))
-		assert.Equal("v2", u.Get("q2"))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := tt.have.buildBody()
+			assert.Nil(t, err)
+			_, err = tt.have.buildPath()
+			assert.Nil(t, err)
+			assert.Equalf(t, tt.want, string(body), "GrantToken(%v)", tt.have)
+		})
 	}
 }

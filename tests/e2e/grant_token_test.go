@@ -63,3 +63,88 @@ func TestGrantToken(t *testing.T) {
 	}
 
 }
+
+func TestGrantTokenEntities(t *testing.T) {
+
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+	space := "space"
+	user := "user"
+	spacePattern := "space*"
+	userPattern := "user*"
+
+	expectedTokenResourcePermissions := pubnub.PNTokenResources{
+		Channels: map[string]pubnub.ChannelPermissions{
+			space: {
+				Read:  true,
+				Write: true,
+			},
+		},
+		ChannelGroups: map[string]pubnub.GroupPermissions{},
+		UUIDs: map[string]pubnub.UUIDPermissions{
+			user: {
+				Get:    true,
+				Update: true,
+			},
+		},
+	}
+
+	expectedTokenPatternPermissions := pubnub.PNTokenResources{
+		Channels: map[string]pubnub.ChannelPermissions{
+			spacePattern: {
+				Read:  true,
+				Write: true,
+			},
+		},
+		ChannelGroups: map[string]pubnub.GroupPermissions{},
+		UUIDs: map[string]pubnub.UUIDPermissions{
+			userPattern: {
+				Get:    true,
+				Update: true,
+			},
+		},
+	}
+
+	res, _, err := pn.GrantToken().TTL(10).
+		SpacesPermissions(map[pubnub.SpaceId]pubnub.SpacePermissions{
+			pubnub.SpaceId(space): {
+				Read:  true,
+				Write: true,
+			},
+		}).
+		UsersPermissions(map[pubnub.UserId]pubnub.UserPermissions{
+			pubnub.UserId(user): {
+				Get:    true,
+				Delete: false,
+				Update: true,
+			},
+		}).
+		SpacePatternsPermissions(map[string]pubnub.SpacePermissions{
+			spacePattern: {
+				Read:  true,
+				Write: true,
+			},
+		}).
+		UserPatternsPermissions(map[string]pubnub.UserPermissions{
+			userPattern: {
+				Get:    true,
+				Delete: false,
+				Update: true,
+			},
+		}).
+		Execute()
+
+	assert.Nil(err)
+
+	assert.NotNil(res)
+	parsedToken, err := pubnub.ParseToken(res.Data.Token)
+
+	assert.Nil(err)
+
+	assert.Equal(expectedTokenResourcePermissions, parsedToken.Resources)
+	assert.Equal(expectedTokenPatternPermissions, parsedToken.Patterns)
+}
