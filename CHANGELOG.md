@@ -1,3 +1,10 @@
+## v7.1.0
+August 09 2022
+
+#### Added
+- Add support for spaces and users permissions in GrantToken.
+- Add new Get/SetUserId and NewConfigWithUserId factory method for Config. Deprecate UUID.
+
 ## v7.0.3
 May 04 2022
 
