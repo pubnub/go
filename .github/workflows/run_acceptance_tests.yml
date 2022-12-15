@@ -5,30 +5,27 @@ on: [push]
 
 jobs:
   build:
-    name: Perform Acceptance BDD tests
+    name: Acceptance tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Checkout mock-server action
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: pubnub/client-engineering-deployment-tools
-          ref: github-actions
+          ref: v1
           token: ${{ secrets.GH_TOKEN }}
-          path: client-engineering-deployment-tools
+          path: .github/.release/actions
       - name: Run mock server action
-        uses: ./client-engineering-deployment-tools/actions/mock-server
+        uses: ./.github/.release/actions/actions/mock-server
         with:
           token: ${{ secrets.GH_TOKEN }}
-      - uses: actions/cache@v2
+      - name: Setup Go 1.19.4
+        uses: actions/setup-go@v3
         with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          go-version: 1.19.4
+          cache: true
       - name: Run acceptance tests (optional)
         run: |
           cd tests/contract
@@ -39,7 +36,7 @@ jobs:
           cd tests/contract
           go test -path ../../sdk-specifications/features -tagsFilter "~@skip && ~@na=go && ~@beta" -format "junit:main.xml"
       - name: Expose acceptance tests reports
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: acceptance-test-reports
