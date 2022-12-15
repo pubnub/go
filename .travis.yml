@@ -22,15 +22,23 @@ jobs:
     - stage: "test"
       name: 'Go 1.15.15'
       go: 1.15.15
+      script:
+        - bash ./scripts/run-tests.sh -mod=mod
+    - name: 'Go 1.16.15'
+      go: 1.16.15
       script: 
         - bash ./scripts/run-tests.sh -mod=mod
-    - name: 'Go 1.16.12'
-      go: 1.16.12
+    - name: 'Go 1.17.13'
+      go: 1.17.13
       script: 
         - bash ./scripts/run-tests.sh -mod=mod
-    - name: 'Go 1.17.5'
-      go: 1.17.5
-      script: 
+    - name: 'Go 1.18.9'
+      go: 1.18.9
+      script:
+        - bash ./scripts/run-tests.sh -mod=mod
+    - name: 'Go 1.19.4'
+      go: 1.19.4
+      script:
         - bash ./scripts/run-tests.sh -mod=mod
     - name: 'Go "master"'
       go: master
