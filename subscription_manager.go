@@ -311,6 +311,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		m.Lock()
 		tt := m.timetoken
 		ctx := m.ctx
+		tr := m.region
 		m.Unlock()
 
 		opts := &subscribeOpts{
@@ -318,6 +319,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 			Channels:         combinedChannels,
 			ChannelGroups:    combinedGroups,
 			Timetoken:        tt,
+			Region:           strconv.Itoa(int(tr)),
 			Heartbeat:        m.pubnub.Config.PresenceTimeout,
 			FilterExpression: m.pubnub.Config.FilterExpression,
 			ctx:              ctx,

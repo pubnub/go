@@ -9,7 +9,7 @@ import (
 func main() {
 
 	// Config
-	config := pubnub.NewConfig(pubnub.GenerateUUID())
+	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
 	config.PublishKey = "demo"
 	config.SubscribeKey = "demo"
 	// End Config

@@ -25,14 +25,7 @@ type getMembershipsBuilderV2 struct {
 }
 
 func newGetMembershipsBuilderV2(pubnub *PubNub) *getMembershipsBuilderV2 {
-	builder := getMembershipsBuilderV2{
-		opts: &getMembershipsOptsV2{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.Limit = membershipsLimitV2
-
-	return &builder
+	return newGetMembershipsBuilderV2WithContext(pubnub, pubnub.ctx)
 }
 
 func newGetMembershipsBuilderV2WithContext(pubnub *PubNub,
@@ -43,6 +36,7 @@ func newGetMembershipsBuilderV2WithContext(pubnub *PubNub,
 			ctx:    context,
 		},
 	}
+	builder.opts.Limit = membershipsLimitV2
 
 	return &builder
 }

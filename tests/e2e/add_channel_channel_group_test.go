@@ -68,7 +68,7 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 
 	channelCharacters := "-_~"
 
-	config.UUID = validCharacters
+	config.SetUserId(pubnub.UserId(validCharacters))
 
 	pn := pubnub.NewPubNub(config)
 
@@ -83,6 +83,16 @@ func TestAddChannelToChannelGroupSuperCall(t *testing.T) {
 		QueryParam(queryParam).
 		Execute()
 	assert.Nil(err)
+}
+
+func TestAddChannelWithCharacterToEscape(t *testing.T) {
+	assert := assert.New(t)
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	randomChannel := randomized("ch")
+	randomGroup := randomized("cg")
+
+	_, _, err := pn.AddChannelToChannelGroup().Channels([]string{randomChannel}).ChannelGroup(randomGroup).Execute()
+	assert.NoError(err)
 }
 
 func TestAddChannelToChannelGroupSuccessAdded(t *testing.T) {

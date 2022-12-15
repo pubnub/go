@@ -75,6 +75,40 @@ type ChannelPermissions struct {
 	Join   bool
 }
 
+type SpacePermissions ChannelPermissions
+
+func toChannelsPermissionsMap(spacesPermissions map[SpaceId]SpacePermissions) map[string]ChannelPermissions {
+	var channelsPermissions = make(map[string]ChannelPermissions)
+
+	for name, p := range spacesPermissions {
+		channelsPermissions[string(name)] = p.toChannelPermissions()
+	}
+
+	return channelsPermissions
+}
+
+func toChannelPatternsPermissionsMap(spacesPermissions map[string]SpacePermissions) map[string]ChannelPermissions {
+	var channelsPermissions = make(map[string]ChannelPermissions)
+
+	for name, p := range spacesPermissions {
+		channelsPermissions[name] = p.toChannelPermissions()
+	}
+
+	return channelsPermissions
+}
+
+func (p SpacePermissions) toChannelPermissions() ChannelPermissions {
+	return ChannelPermissions{
+		Read:   p.Read,
+		Write:  p.Write,
+		Delete: p.Delete,
+		Get:    p.Get,
+		Manage: p.Manage,
+		Update: p.Update,
+		Join:   p.Join,
+	}
+}
+
 // GroupPermissions contains all the acceptable perms for groups
 type GroupPermissions struct {
 	Read   bool
@@ -85,6 +119,36 @@ type UUIDPermissions struct {
 	Get    bool
 	Update bool
 	Delete bool
+}
+
+type UserPermissions UUIDPermissions
+
+func toUUIDsPermissionsMap(usersPermissions map[UserId]UserPermissions) map[string]UUIDPermissions {
+	var channelsPermissions = make(map[string]UUIDPermissions)
+
+	for name, p := range usersPermissions {
+		channelsPermissions[string(name)] = p.toUUIDPermissions()
+	}
+
+	return channelsPermissions
+}
+
+func toUUIDPatternsPermissionsMap(usersPermissions map[string]UserPermissions) map[string]UUIDPermissions {
+	var channelsPermissions = make(map[string]UUIDPermissions)
+
+	for name, p := range usersPermissions {
+		channelsPermissions[name] = p.toUUIDPermissions()
+	}
+
+	return channelsPermissions
+}
+
+func (p UserPermissions) toUUIDPermissions() UUIDPermissions {
+	return UUIDPermissions{
+		Delete: p.Delete,
+		Get:    p.Get,
+		Update: p.Update,
+	}
 }
 
 // PNPAMEntityData is the struct containing the access details of the channels.

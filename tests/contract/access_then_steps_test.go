@@ -20,7 +20,7 @@ func theTokenContainsTheTTL(ctx context.Context, expectedTTL int) error {
 func theTokenDoesNotContainAnAuthorizedUuid(ctx context.Context) error {
 	state := getAccessState(ctx)
 	if state.ParsedToken.AuthorizedUUID != "" {
-		return fmt.Errorf("Expected empty AuthorizedUUID but found %s", state.ParsedToken.AuthorizedUUID)
+		return fmt.Errorf("Expected empty AuthorizedUserId but found %s", state.ParsedToken.AuthorizedUUID)
 	}
 
 	return nil

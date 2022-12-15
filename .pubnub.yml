@@ -1,6 +1,27 @@
 ---
-version: v7.0.1
+version: v7.1.0
 changelog:
+  - date: 2022-08-09
+    version: v7.1.0
+    changes:
+      - type: feature
+        text: "Add support for spaces and users permissions in GrantToken."
+      - type: feature
+        text: "Add new Get/SetUserId and NewConfigWithUserId factory method for Config. Deprecate UUID."
+  - date: 2022-05-04
+    version: v7.0.3
+    changes:
+      - type: bug
+        text: "Set default limit for object calls with context."
+      - type: bug
+        text: "All channel groups management operations could double escape some  characters which could cause signature problems."
+  - date: 2022-03-17
+    version: v7.0.2
+    changes:
+      - type: bug
+        text: "Send region on subscribe calls."
+      - type: bug
+        text: "Close idle connections to free up goroutines when closing PubNub."
   - date: 2022-02-08
     version: v7.0.1
     changes:
@@ -592,7 +613,6 @@ features:
     - PUSH-TYPE-APNS
     - PUSH-TYPE-APNS2
     - PUSH-TYPE-FCM
-    - PUSH-TYPE-MPNS
   storage: 
     - STORAGE-REVERSE
     - STORAGE-INCLUDE-TIMETOKEN
@@ -701,7 +721,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.0.1
+            location: https://github.com/pubnub/go/releases/tag/v7.1.0
             requires:
               -
                 name: "Go"

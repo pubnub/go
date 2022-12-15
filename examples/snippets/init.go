@@ -3,7 +3,7 @@ package main
 var pn *PubNub
 
 func Init() {
-	pnconfig = NewConfig()
+	pnconfig = NewConfigWithUserId(UserId())
 
 	pnconfig.PublishKey = "demo"
 	pnconfig.SubscribeKey = "demo"

@@ -1,3 +1,24 @@
+## v7.1.0
+August 09 2022
+
+#### Added
+- Add support for spaces and users permissions in GrantToken.
+- Add new Get/SetUserId and NewConfigWithUserId factory method for Config. Deprecate UUID.
+
+## v7.0.3
+May 04 2022
+
+#### Fixed
+- Set default limit for object calls with context.
+- All channel groups management operations could double escape some  characters which could cause signature problems.
+
+## v7.0.2
+March 17 2022
+
+#### Fixed
+- Send region on subscribe calls.
+- Close idle connections to free up goroutines when closing PubNub.
+
 ## v7.0.1
 February 08 2022
 

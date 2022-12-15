@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	config := pubnub.NewConfig(pubnub.GenerateUUID())
+	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
 	pn := pubnub.NewPubNub(config)
 
 	fmt.Println("vim-go")

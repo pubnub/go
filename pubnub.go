@@ -14,7 +14,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "7.0.1"
+	Version = "7.1.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -724,6 +724,7 @@ func (pn *PubNub) Destroy() {
 	pn.requestWorkers.Close()
 	pn.Config.Log.Println("after close requestWorkers")
 	pn.tokenManager.CleanUp()
+	pn.client.CloseIdleConnections()
 
 }
 
