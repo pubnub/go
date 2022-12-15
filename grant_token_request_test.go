@@ -76,7 +76,7 @@ func Test_GrantToken(t *testing.T) {
 
 	tests := []struct {
 		name string
-		have endpointOpts
+		have endpoint
 		want string
 	}{{
 		name: "GrantToken objects v2",

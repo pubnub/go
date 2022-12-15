@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"reflect"
 	"strconv"
 
@@ -31,22 +29,14 @@ type fetchBuilder struct {
 }
 
 func newFetchBuilder(pubnub *PubNub) *fetchBuilder {
-	builder := fetchBuilder{
-		opts: &fetchOpts{
-			pubnub:          pubnub,
-			WithUUID:        true,
-			WithMessageType: true,
-		},
-	}
-
-	return &builder
+	return newFetchBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newFetchBuilderWithContext(pubnub *PubNub,
 	context Context) *fetchBuilder {
 	builder := fetchBuilder{
 		opts: &fetchOpts{
-			pubnub:          pubnub,
+			endpointOpts:    endpointOpts{pubnub: pubnub, ctx: context},
 			ctx:             context,
 			WithUUID:        true,
 			WithMessageType: true,
@@ -136,7 +126,7 @@ func (b *fetchBuilder) Execute() (*FetchResponse, StatusResponse, error) {
 }
 
 type fetchOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channels []string
 
@@ -162,18 +152,6 @@ type fetchOpts struct {
 	Transport http.RoundTripper
 
 	ctx Context
-}
-
-func (o *fetchOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *fetchOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *fetchOpts) context() Context {
-	return o.ctx
 }
 
 func (o *fetchOpts) validate() error {
@@ -242,44 +220,8 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *fetchOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *fetchOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *fetchOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *fetchOpts) httpMethod() string {
-	return "GET"
-}
-
-func (o *fetchOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *fetchOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *fetchOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *fetchOpts) operationType() OperationType {
 	return PNFetchMessagesOperation
-}
-
-func (o *fetchOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *fetchOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistoryMessageActionsTypeMap {
