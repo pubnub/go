@@ -19,11 +19,6 @@ stages:
 
 jobs:
   include:
-    - stage: "test"
-      name: 'Go 1.15.15'
-      go: 1.15.15
-      script:
-        - bash ./scripts/run-tests.sh -mod=mod
     - name: 'Go 1.16.15'
       go: 1.16.15
       script: 
@@ -40,16 +35,9 @@ jobs:
       go: 1.19.4
       script:
         - bash ./scripts/run-tests.sh -mod=mod
-    - name: 'Go "master"'
-      go: master
-      script: 
-        - bash ./scripts/run-tests.sh -mod=mod
-    - name: 'Go "tip"'
-      go: tip
-      script: bash ./scripts/run-tests.sh -mod=mod
     - stage: "code coverage"
       name: 'Test & Code coverage'
-      go: 1.17.5
+      go: 1.18.9
       script: bash ./scripts/run-tests.sh -mod=mod
       after_success:
         - bash <(curl -s https://codecov.io/bash)
