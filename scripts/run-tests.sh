@@ -3,7 +3,8 @@ WITH_MOD=$1
 
 go version
 go env
-
+echo $PATH
+ls -la /home/travis/gopath/bin
 set -e
 echo "" > coverage.txt
 
