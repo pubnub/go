@@ -94,10 +94,6 @@ func (o *timeOpts) operationType() OperationType {
 	return PNTimeOperation
 }
 
-func (o *timeOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *timeOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

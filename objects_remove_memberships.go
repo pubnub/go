@@ -230,10 +230,6 @@ func (o *removeMembershipsOpts) operationType() OperationType {
 	return PNRemoveMembershipsOperation
 }
 
-func (o *removeMembershipsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *removeMembershipsOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

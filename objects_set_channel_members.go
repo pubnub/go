@@ -230,10 +230,6 @@ func (o *setChannelMembersOpts) operationType() OperationType {
 	return PNSetChannelMembersOperation
 }
 
-func (o *setChannelMembersOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *setChannelMembersOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

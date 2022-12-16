@@ -128,10 +128,6 @@ func (o *removeMessageActionsOpts) operationType() OperationType {
 	return PNRemoveMessageActionsOperation
 }
 
-func (o *removeMessageActionsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *removeMessageActionsOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

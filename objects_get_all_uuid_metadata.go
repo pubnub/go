@@ -196,10 +196,6 @@ func (o *getAllUUIDMetadataOpts) operationType() OperationType {
 	return PNGetAllUUIDMetadataOperation
 }
 
-func (o *getAllUUIDMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *getAllUUIDMetadataOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

@@ -166,10 +166,6 @@ func (o *setStateOpts) operationType() OperationType {
 	return PNSetStateOperation
 }
 
-func (o *setStateOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *setStateOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

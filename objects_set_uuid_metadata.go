@@ -190,10 +190,6 @@ func (o *setUUIDMetadataOpts) operationType() OperationType {
 	return PNSetUUIDMetadataOperation
 }
 
-func (o *setUUIDMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *setUUIDMetadataOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

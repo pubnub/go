@@ -377,10 +377,6 @@ func (o *publishOpts) operationType() OperationType {
 	return PNPublishOperation
 }
 
-func (o *publishOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *publishOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

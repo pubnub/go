@@ -171,10 +171,6 @@ func (o *setChannelMetadataOpts) operationType() OperationType {
 	return PNSetChannelMetadataOperation
 }
 
-func (o *setChannelMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *setChannelMetadataOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

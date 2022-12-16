@@ -231,10 +231,6 @@ func (o *manageMembershipsOptsV2) operationType() OperationType {
 	return PNManageMembershipsOperation
 }
 
-func (o *manageMembershipsOptsV2) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *manageMembershipsOptsV2) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

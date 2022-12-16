@@ -120,10 +120,6 @@ func (o *removeUUIDMetadataOpts) operationType() OperationType {
 	return PNRemoveUUIDMetadataOperation
 }
 
-func (o *removeUUIDMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *removeUUIDMetadataOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

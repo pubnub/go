@@ -56,10 +56,6 @@ func (o *fakeEndpointOpts) operationType() OperationType {
 	return PNSubscribeOperation
 }
 
-func (o *fakeEndpointOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *fakeEndpointOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

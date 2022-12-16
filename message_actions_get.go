@@ -147,10 +147,6 @@ func (o *getMessageActionsOpts) operationType() OperationType {
 	return PNGetMessageActionsOperation
 }
 
-func (o *getMessageActionsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *getMessageActionsOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

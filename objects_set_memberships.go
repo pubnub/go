@@ -230,10 +230,6 @@ func (o *setMembershipsOpts) operationType() OperationType {
 	return PNSetMembershipsOperation
 }
 
-func (o *setMembershipsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *setMembershipsOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

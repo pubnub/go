@@ -109,10 +109,6 @@ func (o *whereNowOpts) operationType() OperationType {
 	return PNWhereNowOperation
 }
 
-func (o *whereNowOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *whereNowOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

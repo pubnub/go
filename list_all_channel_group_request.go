@@ -111,10 +111,6 @@ func (o *allChannelGroupOpts) operationType() OperationType {
 	return PNChannelsForGroupOperation
 }
 
-func (o *allChannelGroupOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *allChannelGroupOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

@@ -194,10 +194,6 @@ func (o *historyOpts) operationType() OperationType {
 	return PNHistoryOperation
 }
 
-func (o *historyOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *historyOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

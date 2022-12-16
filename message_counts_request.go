@@ -161,10 +161,6 @@ func (o *messageCountsOpts) operationType() OperationType {
 	return PNMessageCountsOperation
 }
 
-func (o *messageCountsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *messageCountsOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

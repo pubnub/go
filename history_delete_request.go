@@ -145,10 +145,6 @@ func (o *historyDeleteOpts) operationType() OperationType {
 	return PNDeleteMessagesOperation
 }
 
-func (o *historyDeleteOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *historyDeleteOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

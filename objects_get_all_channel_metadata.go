@@ -194,10 +194,6 @@ func (o *getAllChannelMetadataOpts) operationType() OperationType {
 	return PNGetAllChannelMetadataOperation
 }
 
-func (o *getAllChannelMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *getAllChannelMetadataOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

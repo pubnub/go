@@ -118,10 +118,6 @@ func (o *removeChannelMetadataOpts) operationType() OperationType {
 	return PNRemoveChannelMetadataOperation
 }
 
-func (o *removeChannelMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *removeChannelMetadataOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

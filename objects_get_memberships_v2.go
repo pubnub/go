@@ -206,10 +206,6 @@ func (o *getMembershipsOptsV2) operationType() OperationType {
 	return PNGetMembershipsOperation
 }
 
-func (o *getMembershipsOptsV2) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *getMembershipsOptsV2) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

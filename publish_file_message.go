@@ -284,10 +284,6 @@ func (o *publishFileMessageOpts) operationType() OperationType {
 	return PNPublishFileMessageOperation
 }
 
-func (o *publishFileMessageOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *publishFileMessageOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

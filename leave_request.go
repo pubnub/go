@@ -105,10 +105,6 @@ func (o *leaveOpts) operationType() OperationType {
 	return PNUnsubscribeOperation
 }
 
-func (o *leaveOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *leaveOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }

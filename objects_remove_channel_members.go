@@ -227,10 +227,6 @@ func (o *removeChannelMembersOpts) operationType() OperationType {
 	return PNRemoveChannelMembersOperation
 }
 
-func (o *removeChannelMembersOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
 func (o *removeChannelMembersOpts) tokenManager() *TokenManager {
 	return o.pubnub.tokenManager
 }
