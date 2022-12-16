@@ -11,13 +11,12 @@ import (
 func TestHereNowChannelsGroups(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &hereNowOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		ChannelGroups:   []string{"cg1", "cg2", "cg3"},
-		pubnub:          pubnub,
-		IncludeUUIDs:    true,
-		SetIncludeUUIDs: true,
-	}
+	opts := newHereNowOpts(pubnub, pubnub.ctx)
+
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
+	opts.IncludeUUIDs = true
+	opts.SetIncludeUUIDs = true
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -45,10 +44,9 @@ func TestHereNowChannelsGroups(t *testing.T) {
 func TestHereNowNoChannel(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &hereNowOpts{
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pubnub,
-	}
+	opts := newHereNowOpts(pubnub, pubnub.ctx)
+
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -80,15 +78,13 @@ func TestNewHereNowBuilderContext(t *testing.T) {
 func TestHereNowMultipleWithOpts(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &hereNowOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		ChannelGroups:   []string{"cg1", "cg2", "cg3"},
-		IncludeUUIDs:    false,
-		IncludeState:    true,
-		SetIncludeState: true,
-		SetIncludeUUIDs: true,
-		pubnub:          pubnub,
-	}
+	opts := newHereNowOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
+	opts.IncludeUUIDs = false
+	opts.IncludeState = true
+	opts.SetIncludeState = true
+	opts.SetIncludeUUIDs = true
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -116,15 +112,14 @@ func TestHereNowMultipleWithOpts(t *testing.T) {
 func TestHereNowMultipleWithOptsQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &hereNowOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		ChannelGroups:   []string{"cg1", "cg2", "cg3"},
-		IncludeUUIDs:    false,
-		IncludeState:    true,
-		SetIncludeState: true,
-		SetIncludeUUIDs: true,
-		pubnub:          pubnub,
-	}
+	opts := newHereNowOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
+	opts.IncludeUUIDs = false
+	opts.IncludeState = true
+	opts.SetIncludeState = true
+	opts.SetIncludeUUIDs = true
+
 	queryParam := map[string]string{
 		"q1": "v1",
 		"q2": "v2",
@@ -152,9 +147,7 @@ func TestHereNowMultipleWithOptsQueryParam(t *testing.T) {
 func TestHereNowGlobal(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &hereNowOpts{
-		pubnub: pubnub,
-	}
+	opts := newHereNowOpts(pubnub, pubnub.ctx)
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -180,18 +173,14 @@ func TestHereNowValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &hereNowOpts{
-		pubnub: pn,
-	}
+	opts := newHereNowOpts(pn, pn.ctx)
 
 	assert.Equal("pubnub/validation: pubnub: Here Now: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestHereNowBuildPath(t *testing.T) {
 	assert := assert.New(t)
-	opts := &hereNowOpts{
-		pubnub: pubnub,
-	}
+	opts := newHereNowOpts(pubnub, pubnub.ctx)
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -201,15 +190,15 @@ func TestHereNowBuildPath(t *testing.T) {
 
 func TestHereNowBuildQuery(t *testing.T) {
 	assert := assert.New(t)
-	opts := &hereNowOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		ChannelGroups:   []string{"cg1", "cg2", "cg3"},
-		IncludeUUIDs:    false,
-		IncludeState:    true,
-		SetIncludeState: true,
-		SetIncludeUUIDs: false,
-		pubnub:          pubnub,
-	}
+
+	opts := newHereNowOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
+	opts.IncludeUUIDs = false
+	opts.IncludeState = true
+	opts.SetIncludeState = true
+	opts.SetIncludeUUIDs = false
+
 	query, err := opts.buildQuery()
 	assert.Nil(err)
 	expected := &url.Values{}

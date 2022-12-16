@@ -3,11 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
-	"net/http"
 	"net/url"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -45,16 +42,14 @@ func newGrantTokenEntitiesBuilder(opts *grantTokenOpts) *grantTokenEntitiesBuild
 	return &grantTokenEntitiesBuilder{opts}
 }
 
+func newGrantTokenOpts(pubnub *PubNub, ctx Context) *grantTokenOpts {
+return &grantTokenOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newGrantTokenBuilderWithContext(pubnub *PubNub, context Context) *grantTokenBuilder {
 	builder := grantTokenBuilder{
-		opts: &grantTokenOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newGrantTokenOpts(pubnub, context)}
 	return &builder
 }
+
 
 // TTL in minutes for which granted permissions are valid.
 //
@@ -320,6 +315,7 @@ func (b *grantTokenEntitiesBuilder) Execute() (*PNGrantTokenResponse, StatusResp
 }
 
 type grantTokenOpts struct {
+	endpointOpts
 	pubnub *PubNub
 	ctx    Context
 
@@ -342,18 +338,6 @@ type grantTokenOpts struct {
 
 	// nil hacks
 	setTTL bool
-}
-
-func (o *grantTokenOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *grantTokenOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *grantTokenOpts) context() Context {
-	return o.ctx
 }
 
 func (o *grantTokenOpts) validate() error {
@@ -463,10 +447,6 @@ func (o *grantTokenOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *grantTokenOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *grantTokenOpts) buildBody() ([]byte, error) {
 
 	meta := o.Meta
@@ -517,36 +497,12 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 	return jsonEncBytes, nil
 }
 
-func (o *grantTokenOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *grantTokenOpts) httpMethod() string {
 	return "POST"
 }
 
-func (o *grantTokenOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *grantTokenOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *grantTokenOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *grantTokenOpts) operationType() OperationType {
 	return PNAccessManagerGrantToken
-}
-
-func (o *grantTokenOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *grantTokenOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNGrantTokenData is the struct used to decode the server response

@@ -22,26 +22,18 @@ type removeUUIDMetadataBuilder struct {
 }
 
 func newRemoveUUIDMetadataBuilder(pubnub *PubNub) *removeUUIDMetadataBuilder {
-	builder := removeUUIDMetadataBuilder{
-		opts: &removeUUIDMetadataOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRemoveUUIDMetadataBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newRemoveUUIDMetadataOpts(pubnub *PubNub, ctx Context) *removeUUIDMetadataOpts {
+return &removeUUIDMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newRemoveUUIDMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *removeUUIDMetadataBuilder {
 	builder := removeUUIDMetadataBuilder{
-		opts: &removeUUIDMetadataOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newRemoveUUIDMetadataOpts(pubnub, context)}
 	return &builder
 }
+
 
 func (b *removeUUIDMetadataBuilder) UUID(uuid string) *removeUUIDMetadataBuilder {
 	b.opts.UUID = uuid
@@ -77,17 +69,11 @@ func (b *removeUUIDMetadataBuilder) Execute() (*PNRemoveUUIDMetadataResponse, St
 }
 
 type removeUUIDMetadataOpts struct {
-	pubnub     *PubNub
+	endpointOpts
 	UUID       string
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeUUIDMetadataOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *removeUUIDMetadataOpts) client() *http.Client {

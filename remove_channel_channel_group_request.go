@@ -22,22 +22,16 @@ type removeChannelFromChannelGroupBuilder struct {
 
 func newRemoveChannelFromChannelGroupBuilder(
 	pubnub *PubNub) *removeChannelFromChannelGroupBuilder {
-	builder := removeChannelFromChannelGroupBuilder{
-		opts: &removeChannelOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRemoveChannelFromChannelGroupBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newRemoveChannelFromChannelGroupBuilderWithContext(
 	pubnub *PubNub, context Context) *removeChannelFromChannelGroupBuilder {
 	builder := removeChannelFromChannelGroupBuilder{
-		opts: &removeChannelOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newRemoveChannelOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -75,20 +69,21 @@ func (b *removeChannelFromChannelGroupBuilder) Execute() (
 	return newRemoveChannelFromChannelGroupResponse(rawJSON, status)
 }
 
+func newRemoveChannelOpts(pubnub *PubNub, ctx Context) *removeChannelOpts {
+	return &removeChannelOpts{endpointOpts: endpointOpts{
+		pubnub: pubnub,
+		ctx:    ctx,
+	}}
+}
+
 type removeChannelOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channels     []string
 	QueryParam   map[string]string
 	ChannelGroup string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeChannelOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *removeChannelOpts) client() *http.Client {

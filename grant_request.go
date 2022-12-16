@@ -3,11 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -25,21 +22,15 @@ type grantBuilder struct {
 }
 
 func newGrantBuilder(pubnub *PubNub) *grantBuilder {
-	builder := grantBuilder{
-		opts: &grantOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newGrantBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newGrantBuilderWithContext(pubnub *PubNub, context Context) *grantBuilder {
 	builder := grantBuilder{
-		opts: &grantOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newGrantOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -155,9 +146,17 @@ func (b *grantBuilder) Execute() (*GrantResponse, StatusResponse, error) {
 	return newGrantResponse(rawJSON, status)
 }
 
+func newGrantOpts(pubnub *PubNub, ctx Context) *grantOpts {
+	return &grantOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type grantOpts struct {
-	pubnub *PubNub
-	ctx    Context
+	endpointOpts
 
 	AuthKeys      []string
 	Channels      []string
@@ -186,18 +185,6 @@ type grantOpts struct {
 	isGetSet    bool
 	isUpdateSet bool
 	isJoinSet   bool
-}
-
-func (o *grantOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *grantOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *grantOpts) context() Context {
-	return o.ctx
 }
 
 func (o *grantOpts) validate() error {
@@ -300,44 +287,12 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *grantOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *grantOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *grantOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *grantOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *grantOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *grantOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *grantOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *grantOpts) operationType() OperationType {
 	return PNAccessManagerGrant
-}
-
-func (o *grantOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *grantOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // GrantResponse is the struct returned when the Execute function of Grant is called.

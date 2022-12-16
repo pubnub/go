@@ -1,10 +1,8 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
+	"context"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -23,25 +21,13 @@ type addPushNotificationsOnChannelsBuilder struct {
 }
 
 func newAddPushNotificationsOnChannelsBuilder(pubnub *PubNub) *addPushNotificationsOnChannelsBuilder {
-	builder := addPushNotificationsOnChannelsBuilder{
-		opts: &addChannelsToPushOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newAddPushNotificationsOnChannelsBuilderWithContext(pubnub, pubnub.ctx)
 }
 
-func newAddPushNotificationsOnChannelsBuilderWithContext(
-	pubnub *PubNub, context Context) *addPushNotificationsOnChannelsBuilder {
-	builder := addPushNotificationsOnChannelsBuilder{
-		opts: &addChannelsToPushOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+func newAddPushNotificationsOnChannelsBuilderWithContext(pubnub *PubNub, context Context) *addPushNotificationsOnChannelsBuilder {
+	return &addPushNotificationsOnChannelsBuilder{
+		opts: newAddChannelsToPushOpts(pubnub, context, addChannelsToPushOpts{}),
 	}
-
-	return &builder
 }
 
 // Channels sets the channels to enable Push Notifications
@@ -92,20 +78,20 @@ func (b *addPushNotificationsOnChannelsBuilder) Execute() (*AddPushNotifications
 	return emptyAddPushNotificationsOnChannelsResponse, status, nil
 }
 
+func newAddChannelsToPushOpts(pubnub *PubNub, ctx context.Context, opts addChannelsToPushOpts) *addChannelsToPushOpts {
+	opts.endpointOpts = endpointOpts{pubnub: pubnub, ctx: ctx}
+	return &opts
+}
+
 type addChannelsToPushOpts struct {
-	pubnub          *PubNub
+	endpointOpts
 	Channels        []string
 	PushType        PNPushType
 	DeviceIDForPush string
 	QueryParam      map[string]string
 	Transport       http.RoundTripper
-	ctx             Context
 	Topic           string
 	Environment     PNPushEnvironment
-}
-
-func (o *addChannelsToPushOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *addChannelsToPushOpts) client() *http.Client {
@@ -173,42 +159,10 @@ func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *addChannelsToPushOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *addChannelsToPushOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *addChannelsToPushOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *addChannelsToPushOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *addChannelsToPushOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *addChannelsToPushOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *addChannelsToPushOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *addChannelsToPushOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
-}
-
-func (o *addChannelsToPushOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *addChannelsToPushOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }

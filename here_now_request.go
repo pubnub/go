@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -24,22 +22,15 @@ type hereNowBuilder struct {
 }
 
 func newHereNowBuilder(pubnub *PubNub) *hereNowBuilder {
-	builder := hereNowBuilder{
-		opts: &hereNowOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newHereNowBuilderWithContext(pubnub, pubnub.ctx)
 }
 
-func newHereNowBuilderWithContext(pubnub *PubNub,
-	context Context) *hereNowBuilder {
+func newHereNowBuilderWithContext(pubnub *PubNub, context Context) *hereNowBuilder {
 	builder := hereNowBuilder{
-		opts: &hereNowOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newHereNowOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -92,8 +83,17 @@ func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
 	return newHereNowResponse(rawJSON, b.opts.Channels, status)
 }
 
+func newHereNowOpts(pubnub *PubNub, ctx Context) *hereNowOpts {
+	return &hereNowOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type hereNowOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channels        []string
 	ChannelGroups   []string
@@ -104,20 +104,6 @@ type hereNowOpts struct {
 	QueryParam      map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *hereNowOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *hereNowOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *hereNowOpts) context() Context {
-	return o.ctx
 }
 
 func (o *hereNowOpts) validate() error {
@@ -169,44 +155,12 @@ func (o *hereNowOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *hereNowOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *hereNowOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *hereNowOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *hereNowOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *hereNowOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *hereNowOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *hereNowOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *hereNowOpts) operationType() OperationType {
 	return PNHereNowOperation
-}
-
-func (o *hereNowOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *hereNowOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // HereNowResponse is the struct returned when the Execute function of HereNow is called.

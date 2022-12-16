@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"mime/multipart"
 	"strconv"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -14,8 +11,18 @@ import (
 	"net/url"
 )
 
+func newFireOpts(pubnub *PubNub, ctx Context) *fireOpts {
+	return &fireOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+		Serialize: true,
+	}
+}
+
 type fireOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	TTL            int
 	Channel        string
@@ -26,7 +33,6 @@ type fireOpts struct {
 	ShouldStore    bool
 	DoNotReplicate bool
 	Transport      http.RoundTripper
-	ctx            Context
 	QueryParam     map[string]string
 	// nil hacks
 	setTTL         bool
@@ -38,25 +44,16 @@ type fireBuilder struct {
 }
 
 func newFireBuilder(pubnub *PubNub) *fireBuilder {
-	builder := fireBuilder{
-		opts: &fireOpts{
-			pubnub:    pubnub,
-			Serialize: true,
-		},
-	}
-
-	return &builder
+	return newFireBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newFireBuilderWithContext(pubnub *PubNub, context Context) *fireBuilder {
-	builder := fireBuilder{
-		opts: &fireOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+	return &fireBuilder{
+		opts: newFireOpts(
+			pubnub,
+			context,
+		),
 	}
-
-	return &builder
 }
 
 // TTL sets the TTL (hours) for the Fire request.
@@ -126,18 +123,6 @@ func (b *fireBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	}
 
 	return newPublishResponse(rawJSON, status)
-}
-
-func (o *fireOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *fireOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *fireOpts) context() Context {
-	return o.ctx
 }
 
 func (o *fireOpts) validate() error {
@@ -218,10 +203,6 @@ func (o *fireOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *fireOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *fireOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		var msg []byte
@@ -254,10 +235,6 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *fireOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *fireOpts) httpMethod() string {
 	if o.UsePost {
 		return "POST"
@@ -265,26 +242,6 @@ func (o *fireOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *fireOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *fireOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *fireOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *fireOpts) operationType() OperationType {
 	return PNFireOperation
-}
-
-func (o *fireOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *fireOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }

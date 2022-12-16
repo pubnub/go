@@ -22,26 +22,18 @@ type addMessageActionsBuilder struct {
 }
 
 func newAddMessageActionsBuilder(pubnub *PubNub) *addMessageActionsBuilder {
-	builder := addMessageActionsBuilder{
-		opts: &addMessageActionsOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newAddMessageActionsBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newAddMessageActionsOpts(pubnub *PubNub, ctx Context) *addMessageActionsOpts {
+return &addMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newAddMessageActionsBuilderWithContext(pubnub *PubNub,
 	context Context) *addMessageActionsBuilder {
 	builder := addMessageActionsBuilder{
-		opts: &addMessageActionsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newAddMessageActionsOpts(pubnub, context),}
 	return &builder
 }
+
 
 // MessageAction struct is used to create a Message Action
 type MessageAction struct {
@@ -91,7 +83,7 @@ func (b *addMessageActionsBuilder) Execute() (*PNAddMessageActionsResponse, Stat
 }
 
 type addMessageActionsOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channel          string
 	MessageTimetoken string
@@ -99,12 +91,6 @@ type addMessageActionsOpts struct {
 	QueryParam       map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *addMessageActionsOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *addMessageActionsOpts) client() *http.Client {

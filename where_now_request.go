@@ -22,24 +22,16 @@ type whereNowBuilder struct {
 }
 
 func newWhereNowBuilder(pubnub *PubNub) *whereNowBuilder {
-	builder := whereNowBuilder{
-		opts: &whereNowOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newWhereNowBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newWhereNowOpts(pubnub *PubNub, ctx Context) *whereNowOpts {
+	return &whereNowOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newWhereNowBuilderWithContext(pubnub *PubNub,
 	context Context) *whereNowBuilder {
 	builder := whereNowBuilder{
-		opts: &whereNowOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newWhereNowOpts(pubnub, context)}
 	return &builder
 }
 
@@ -72,17 +64,11 @@ func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
 }
 
 type whereNowOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	UUID       string
 	QueryParam map[string]string
 	Transport  http.RoundTripper
-
-	ctx Context
-}
-
-func (o *whereNowOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *whereNowOpts) client() *http.Client {

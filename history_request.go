@@ -26,26 +26,18 @@ type historyBuilder struct {
 }
 
 func newHistoryBuilder(pubnub *PubNub) *historyBuilder {
-	builder := historyBuilder{
-		opts: &historyOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newHistoryBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newHistoryOpts(pubnub *PubNub, ctx Context) *historyOpts {
+return &historyOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newHistoryBuilderWithContext(pubnub *PubNub,
 	context Context) *historyBuilder {
 	builder := historyBuilder{
-		opts: &historyOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newHistoryOpts(pubnub, context)}
 	return &builder
 }
+
 
 // Channel sets the Channel for the History request.
 func (b *historyBuilder) Channel(ch string) *historyBuilder {
@@ -115,7 +107,7 @@ func (b *historyBuilder) Execute() (*HistoryResponse, StatusResponse, error) {
 }
 
 type historyOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channel string
 
@@ -138,12 +130,6 @@ type historyOpts struct {
 	setEnd   bool
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *historyOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *historyOpts) client() *http.Client {

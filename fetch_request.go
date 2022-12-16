@@ -32,15 +32,9 @@ func newFetchBuilder(pubnub *PubNub) *fetchBuilder {
 	return newFetchBuilderWithContext(pubnub, pubnub.ctx)
 }
 
-func newFetchBuilderWithContext(pubnub *PubNub,
-	context Context) *fetchBuilder {
+func newFetchBuilderWithContext(pubnub *PubNub, context Context) *fetchBuilder {
 	builder := fetchBuilder{
-		opts: &fetchOpts{
-			endpointOpts:    endpointOpts{pubnub: pubnub, ctx: context},
-			ctx:             context,
-			WithUUID:        true,
-			WithMessageType: true,
-		},
+		opts: newFetchOpts(pubnub, context, fetchOpts{}),
 	}
 
 	return &builder
@@ -125,9 +119,18 @@ func (b *fetchBuilder) Execute() (*FetchResponse, StatusResponse, error) {
 	return newFetchResponse(rawJSON, b.opts, status)
 }
 
+func newFetchOpts(pubnub *PubNub, ctx Context, opts fetchOpts) *fetchOpts {
+	opts.endpointOpts = endpointOpts{
+		pubnub: pubnub,
+		ctx:    ctx,
+	}
+	opts.WithUUID = true
+	opts.WithMessageType = true
+	return &opts
+}
+
 type fetchOpts struct {
 	endpointOpts
-
 	Channels []string
 
 	Start              int64
@@ -150,8 +153,6 @@ type fetchOpts struct {
 	setEnd   bool
 
 	Transport http.RoundTripper
-
-	ctx Context
 }
 
 func (o *fetchOpts) validate() error {

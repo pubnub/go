@@ -22,26 +22,18 @@ type removeMessageActionsBuilder struct {
 }
 
 func newRemoveMessageActionsBuilder(pubnub *PubNub) *removeMessageActionsBuilder {
-	builder := removeMessageActionsBuilder{
-		opts: &removeMessageActionsOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRemoveMessageActionsBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newRemoveMessageActionsOpts(pubnub *PubNub, ctx Context) *removeMessageActionsOpts {
+return &removeMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newRemoveMessageActionsBuilderWithContext(pubnub *PubNub,
 	context Context) *removeMessageActionsBuilder {
 	builder := removeMessageActionsBuilder{
-		opts: &removeMessageActionsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newRemoveMessageActionsOpts(pubnub, context)}
 	return &builder
 }
+
 
 func (b *removeMessageActionsBuilder) Channel(channel string) *removeMessageActionsBuilder {
 	b.opts.Channel = channel
@@ -85,7 +77,7 @@ func (b *removeMessageActionsBuilder) Execute() (*PNRemoveMessageActionsResponse
 }
 
 type removeMessageActionsOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channel          string
 	MessageTimetoken string
@@ -94,12 +86,6 @@ type removeMessageActionsOpts struct {
 	QueryParam       map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeMessageActionsOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *removeMessageActionsOpts) client() *http.Client {

@@ -30,15 +30,12 @@ func newSetMembershipsBuilder(pubnub *PubNub) *setMembershipsBuilder {
 
 func newSetMembershipsBuilderWithContext(pubnub *PubNub,
 	context Context) *setMembershipsBuilder {
-	builder := setMembershipsBuilder{
-		opts: &setMembershipsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+	return &setMembershipsBuilder{
+		opts: newSetMembershipsOpts(
+			pubnub,
+			context,
+		),
 	}
-	builder.opts.Limit = setMembershipsLimit
-
-	return &builder
 }
 
 func (b *setMembershipsBuilder) Include(include []PNMembershipsInclude) *setMembershipsBuilder {
@@ -122,8 +119,17 @@ func (b *setMembershipsBuilder) Execute() (*PNSetMembershipsResponse, StatusResp
 	return newPNSetMembershipsResponse(rawJSON, b.opts, status)
 }
 
+func newSetMembershipsOpts(pubnub *PubNub, ctx Context) *setMembershipsOpts {
+	return &setMembershipsOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+		Limit: setMembershipsLimit}
+}
+
 type setMembershipsOpts struct {
-	pubnub         *PubNub
+	endpointOpts
 	UUID           string
 	Limit          int
 	Include        []string
@@ -135,12 +141,6 @@ type setMembershipsOpts struct {
 	QueryParam     map[string]string
 	MembershipsSet []PNMembershipsSet
 	Transport      http.RoundTripper
-
-	ctx Context
-}
-
-func (o *setMembershipsOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *setMembershipsOpts) client() *http.Client {

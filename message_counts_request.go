@@ -28,26 +28,18 @@ type messageCountsBuilder struct {
 }
 
 func newMessageCountsBuilder(pubnub *PubNub) *messageCountsBuilder {
-	builder := messageCountsBuilder{
-		opts: &messageCountsOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newMessageCountsBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newMessageCountsOpts(pubnub *PubNub, ctx Context) *messageCountsOpts {
+return &messageCountsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newMessageCountsBuilderWithContext(pubnub *PubNub,
 	context Context) *messageCountsBuilder {
 	builder := messageCountsBuilder{
-		opts: &messageCountsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newMessageCountsOpts(pubnub, context)}
 	return &builder
 }
+
 
 // Channels sets the Channels for the MessageCounts request.
 func (b *messageCountsBuilder) Channels(channels []string) *messageCountsBuilder {
@@ -92,7 +84,7 @@ func (b *messageCountsBuilder) Execute() (*MessageCountsResponse, StatusResponse
 }
 
 type messageCountsOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channels          []string
 	Timetoken         int64
@@ -102,12 +94,6 @@ type messageCountsOpts struct {
 
 	// nil hacks
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *messageCountsOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *messageCountsOpts) client() *http.Client {

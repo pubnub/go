@@ -31,10 +31,7 @@ func newRemoveChannelMembersBuilder(pubnub *PubNub) *removeChannelMembersBuilder
 func newRemoveChannelMembersBuilderWithContext(pubnub *PubNub,
 	context Context) *removeChannelMembersBuilder {
 	builder := removeChannelMembersBuilder{
-		opts: &removeChannelMembersOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newRemoveChannelMembersOpts(pubnub, context),
 	}
 	builder.opts.Limit = removeChannelMembersLimit
 
@@ -118,8 +115,17 @@ func (b *removeChannelMembersBuilder) Execute() (*PNRemoveChannelMembersResponse
 	return newPNRemoveChannelMembersResponse(rawJSON, b.opts, status)
 }
 
+func newRemoveChannelMembersOpts(pubnub *PubNub, ctx Context) *removeChannelMembersOpts {
+	return &removeChannelMembersOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type removeChannelMembersOpts struct {
-	pubnub               *PubNub
+	endpointOpts
 	Channel              string
 	Limit                int
 	Include              []string
@@ -131,12 +137,6 @@ type removeChannelMembersOpts struct {
 	QueryParam           map[string]string
 	ChannelMembersRemove []PNChannelMembersRemove
 	Transport            http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeChannelMembersOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *removeChannelMembersOpts) client() *http.Client {

@@ -31,10 +31,10 @@ func newGetChannelMembersBuilderV2(pubnub *PubNub) *getChannelMembersBuilderV2 {
 func newGetChannelMembersBuilderV2WithContext(pubnub *PubNub,
 	context Context) *getChannelMembersBuilderV2 {
 	builder := getChannelMembersBuilderV2{
-		opts: &getChannelMembersOptsV2{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newGetChannelMembersOptsV2(
+			pubnub,
+			context,
+		),
 	}
 	builder.opts.Limit = membersLimitV2
 
@@ -112,8 +112,17 @@ func (b *getChannelMembersBuilderV2) Execute() (*PNGetChannelMembersResponse, St
 	return newPNGetChannelMembersResponse(rawJSON, b.opts, status)
 }
 
+func newGetChannelMembersOptsV2(pubnub *PubNub, ctx Context) *getChannelMembersOptsV2 {
+	return &getChannelMembersOptsV2{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type getChannelMembersOptsV2 struct {
-	pubnub     *PubNub
+	endpointOpts
 	Channel    string
 	Limit      int
 	Include    []string
@@ -125,12 +134,6 @@ type getChannelMembersOptsV2 struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getChannelMembersOptsV2) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *getChannelMembersOptsV2) client() *http.Client {

@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -31,17 +29,15 @@ func newDeleteFileBuilder(pubnub *PubNub) *deleteFileBuilder {
 	return &builder
 }
 
+func newDeleteFileOpts(pubnub *PubNub, ctx Context) *deleteFileOpts {
+return &deleteFileOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newDeleteFileBuilderWithContext(pubnub *PubNub,
 	context Context) *deleteFileBuilder {
 	builder := deleteFileBuilder{
-		opts: &deleteFileOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newDeleteFileOpts(pubnub, context)}
 	return &builder
 }
+
 
 func (b *deleteFileBuilder) Channel(channel string) *deleteFileBuilder {
 	b.opts.Channel = channel
@@ -85,6 +81,7 @@ func (b *deleteFileBuilder) Execute() (*PNDeleteFileResponse, StatusResponse, er
 }
 
 type deleteFileOpts struct {
+	endpointOpts
 	pubnub *PubNub
 
 	Channel    string
@@ -95,10 +92,6 @@ type deleteFileOpts struct {
 	Transport http.RoundTripper
 
 	ctx Context
-}
-
-func (o *deleteFileOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *deleteFileOpts) client() *http.Client {
@@ -143,44 +136,12 @@ func (o *deleteFileOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *deleteFileOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *deleteFileOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *deleteFileOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *deleteFileOpts) httpMethod() string {
 	return "DELETE"
 }
 
-func (o *deleteFileOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *deleteFileOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *deleteFileOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *deleteFileOpts) operationType() OperationType {
 	return PNDeleteFileOperation
-}
-
-func (o *deleteFileOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *deleteFileOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNDeleteFileResponse is the File Upload API Response for Delete file operation

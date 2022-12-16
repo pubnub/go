@@ -21,23 +21,15 @@ type timeBuilder struct {
 }
 
 func newTimeBuilder(pubnub *PubNub) *timeBuilder {
-	builder := timeBuilder{
-		opts: &timeOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newTimeBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newTimeOpts(pubnub *PubNub, ctx Context) *timeOpts {
+	return &timeOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newTimeBuilderWithContext(pubnub *PubNub, context Context) *timeBuilder {
 	builder := timeBuilder{
-		opts: &timeOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newTimeOpts(pubnub, context)}
 	return &builder
 }
 
@@ -65,15 +57,9 @@ func (b *timeBuilder) Execute() (*TimeResponse, StatusResponse, error) {
 }
 
 type timeOpts struct {
-	pubnub     *PubNub
+	endpointOpts
 	QueryParam map[string]string
 	Transport  http.RoundTripper
-
-	ctx Context
-}
-
-func (o *timeOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *timeOpts) client() *http.Client {

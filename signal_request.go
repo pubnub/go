@@ -26,25 +26,16 @@ type signalBuilder struct {
 }
 
 func newSignalBuilder(pubnub *PubNub) *signalBuilder {
-	builder := signalBuilder{
-		opts: &signalOpts{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.UsePost = false
-
-	return &builder
+	return newSignalBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newSignalOpts(pubnub *PubNub, ctx Context) *signalOpts {
+	return &signalOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newSignalBuilderWithContext(pubnub *PubNub,
 	context Context) *signalBuilder {
 	builder := signalBuilder{
-		opts: &signalOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newSignalOpts(pubnub, context)}
 	return &builder
 }
 
@@ -92,17 +83,12 @@ func (b *signalBuilder) Execute() (*SignalResponse, StatusResponse, error) {
 }
 
 type signalOpts struct {
-	pubnub     *PubNub
+	endpointOpts
 	Message    interface{}
 	Channel    string
 	UsePost    bool
 	QueryParam map[string]string
 	Transport  http.RoundTripper
-	ctx        Context
-}
-
-func (o *signalOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *signalOpts) client() *http.Client {

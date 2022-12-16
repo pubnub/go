@@ -31,10 +31,10 @@ func newGetAllChannelMetadataBuilder(pubnub *PubNub) *getAllChannelMetadataBuild
 func newGetAllChannelMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *getAllChannelMetadataBuilder {
 	builder := getAllChannelMetadataBuilder{
-		opts: &getAllChannelMetadataOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newGetAllChannelMetadataOpts(
+			pubnub,
+			context,
+		),
 	}
 	builder.opts.Limit = getAllChannelMetadataLimitV2
 
@@ -106,8 +106,15 @@ func (b *getAllChannelMetadataBuilder) Execute() (*PNGetAllChannelMetadataRespon
 	return newPNGetAllChannelMetadataResponse(rawJSON, b.opts, status)
 }
 
+func newGetAllChannelMetadataOpts(pubnub *PubNub, ctx Context) *getAllChannelMetadataOpts {
+	return &getAllChannelMetadataOpts{endpointOpts: endpointOpts{
+		pubnub: pubnub,
+		ctx:    ctx,
+	}}
+}
+
 type getAllChannelMetadataOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Limit      int
 	Include    []string
@@ -119,12 +126,6 @@ type getAllChannelMetadataOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getAllChannelMetadataOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *getAllChannelMetadataOpts) client() *http.Client {

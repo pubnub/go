@@ -9,36 +9,27 @@ type presenceBuilder struct {
 }
 
 type presenceOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	channels      []string
 	channelGroups []string
 	connected     bool
-	ctx           Context
 	queryParam    map[string]string
 	state         map[string]interface{}
 }
 
 func newPresenceBuilder(pubnub *PubNub) *presenceBuilder {
-	builder := presenceBuilder{
-		opts: &presenceOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newPresenceBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newPresenceOpts(pubnub *PubNub, ctx Context) *presenceOpts {
+return &presenceOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newPresenceBuilderWithContext(pubnub *PubNub, context Context) *presenceBuilder {
 	builder := presenceBuilder{
-		opts: &presenceOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newPresenceOpts(pubnub, context)}
 	return &builder
 }
+
 
 // Channels sets the Channels for the Presence request.
 func (b *presenceBuilder) Channels(ch []string) *presenceBuilder {

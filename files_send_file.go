@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -32,17 +30,15 @@ func newSendFileBuilder(pubnub *PubNub) *sendFileBuilder {
 	return &builder
 }
 
+func newSendFileOpts(pubnub *PubNub, ctx Context) *sendFileOpts {
+return &sendFileOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newSendFileBuilderWithContext(pubnub *PubNub,
 	context Context) *sendFileBuilder {
 	builder := sendFileBuilder{
-		opts: &sendFileOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newSendFileOpts(pubnub, context)}
 	return &builder
 }
+
 
 // TTL sets the TTL (hours) for the Publish request.
 func (b *sendFileBuilder) TTL(ttl int) *sendFileBuilder {
@@ -118,6 +114,7 @@ func (b *sendFileBuilder) Execute() (*PNSendFileResponse, StatusResponse, error)
 }
 
 type sendFileOpts struct {
+	endpointOpts
 	pubnub *PubNub
 
 	Channel     string
@@ -133,18 +130,6 @@ type sendFileOpts struct {
 	Transport http.RoundTripper
 
 	ctx Context
-}
-
-func (o *sendFileOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *sendFileOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *sendFileOpts) context() Context {
-	return o.ctx
 }
 
 func (o *sendFileOpts) validate() error {
@@ -176,10 +161,6 @@ func (o *sendFileOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *sendFileOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 // PNSendFileBody is used to create the body of the request
 type PNSendFileBody struct {
 	Name string `json:"name"`
@@ -198,36 +179,12 @@ func (o *sendFileOpts) buildBody() ([]byte, error) {
 	return jsonEncBytes, nil
 }
 
-func (o *sendFileOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *sendFileOpts) httpMethod() string {
 	return "POST"
 }
 
-func (o *sendFileOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *sendFileOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *sendFileOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *sendFileOpts) operationType() OperationType {
 	return PNSendFileOperation
-}
-
-func (o *sendFileOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *sendFileOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNSendFileResponseForS3 is the File Upload API Response for SendFile.

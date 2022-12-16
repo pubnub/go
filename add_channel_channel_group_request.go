@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -21,24 +18,13 @@ type addChannelToChannelGroupBuilder struct {
 	opts *addChannelOpts
 }
 
-func newAddChannelToChannelGroupBuilder(
-	pubnub *PubNub) *addChannelToChannelGroupBuilder {
-	builder := addChannelToChannelGroupBuilder{
-		opts: &addChannelOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+func newAddChannelToChannelGroupBuilder(pubnub *PubNub) *addChannelToChannelGroupBuilder {
+	return newAddChannelToChannelGroupBuilderWithContext(pubnub, pubnub.ctx)
 }
 
-func newAddChannelToChannelGroupBuilderWithContext(
-	pubnub *PubNub, context Context) *addChannelToChannelGroupBuilder {
+func newAddChannelToChannelGroupBuilderWithContext(pubnub *PubNub, context Context) *addChannelToChannelGroupBuilder {
 	builder := addChannelToChannelGroupBuilder{
-		opts: &addChannelOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newAddChannelOpts(pubnub, context, addChannelOpts{}),
 	}
 
 	return &builder
@@ -87,25 +73,20 @@ func (b *addChannelToChannelGroupBuilder) Execute() (
 	return newAddChannelToChannelGroupsResponse(rawJSON, status)
 }
 
+func newAddChannelOpts(pubnub *PubNub, context Context, opts addChannelOpts) *addChannelOpts {
+	opts.endpointOpts = endpointOpts{
+		pubnub: pubnub,
+		ctx:    context,
+	}
+	return &opts
+}
+
 type addChannelOpts struct {
-	pubnub       *PubNub
+	endpointOpts
 	Channels     []string
 	ChannelGroup string
 	QueryParam   map[string]string
 	Transport    http.RoundTripper
-	ctx          Context
-}
-
-func (o *addChannelOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *addChannelOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *addChannelOpts) context() Context {
-	return o.ctx
 }
 
 func (o *addChannelOpts) validate() error {
@@ -145,44 +126,12 @@ func (o *addChannelOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *addChannelOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *addChannelOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *addChannelOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *addChannelOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *addChannelOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *addChannelOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *addChannelOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *addChannelOpts) operationType() OperationType {
 	return PNAddChannelsToChannelGroupOperation
-}
-
-func (o *addChannelOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *addChannelOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // AddChannelToChannelGroupResponse is the struct returned when the Execute function of AddChannelToChannelGroup is called.

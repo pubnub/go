@@ -23,7 +23,7 @@ const publishPostPath = "/publish/%s/%s/0/%s/%s"
 var emptyPublishResponse *PublishResponse
 
 type publishOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	TTL     int
 	Channel string
@@ -37,8 +37,6 @@ type publishOpts struct {
 	QueryParam     map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
 
 	// nil hacks
 	setTTL         bool
@@ -82,25 +80,15 @@ func newPublishResponse(jsonBytes []byte, status StatusResponse) (
 }
 
 func newPublishBuilder(pubnub *PubNub) *publishBuilder {
-	builder := publishBuilder{
-		opts: &publishOpts{
-			pubnub:    pubnub,
-			Serialize: true,
-		},
-	}
-
-	return &builder
+	return newPublishBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newPublishOpts(pubnub *PubNub, ctx Context) *publishOpts {
+	return &publishOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newPublishBuilderWithContext(pubnub *PubNub, context Context) *publishBuilder {
 	builder := publishBuilder{
-		opts: &publishOpts{
-			pubnub:    pubnub,
-			ctx:       context,
-			Serialize: true,
-		},
-	}
-
+		opts: newPublishOpts(pubnub, context)}
 	return &builder
 }
 
@@ -184,10 +172,6 @@ func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	}
 
 	return newPublishResponse(rawJSON, status)
-}
-
-func (o *publishOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *publishOpts) client() *http.Client {

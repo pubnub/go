@@ -31,10 +31,10 @@ func newGetAllUUIDMetadataBuilder(pubnub *PubNub) *getAllUUIDMetadataBuilder {
 func newGetAllUUIDMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *getAllUUIDMetadataBuilder {
 	builder := getAllUUIDMetadataBuilder{
-		opts: &getAllUUIDMetadataOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newGetAllUUIDMetadataOpts(
+			pubnub,
+			context,
+		),
 	}
 	builder.opts.Limit = getAllUUIDMetadataLimitV2
 
@@ -106,8 +106,17 @@ func (b *getAllUUIDMetadataBuilder) Execute() (*PNGetAllUUIDMetadataResponse, St
 	return newPNGetAllUUIDMetadataResponse(rawJSON, b.opts, status)
 }
 
+func newGetAllUUIDMetadataOpts(pubnub *PubNub, ctx Context) *getAllUUIDMetadataOpts {
+	return &getAllUUIDMetadataOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type getAllUUIDMetadataOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Limit      int
 	Include    []string
@@ -119,12 +128,6 @@ type getAllUUIDMetadataOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getAllUUIDMetadataOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *getAllUUIDMetadataOpts) client() *http.Client {

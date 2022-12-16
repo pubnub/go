@@ -23,7 +23,7 @@ type endpointOpts struct {
 
 type endpoint interface {
 	jobQueue() chan *JobQItem
-	config() Config
+	config() *Config
 	client() *http.Client
 	context() Context
 	validate() error
@@ -37,8 +37,8 @@ type endpoint interface {
 	tokenManager() *TokenManager
 }
 
-func (o *endpointOpts) config() Config {
-	return *o.pubnub.Config
+func (o *endpointOpts) config() *Config {
+	return o.pubnub.Config
 }
 
 func (o *endpointOpts) client() *http.Client {

@@ -31,10 +31,7 @@ func newManageChannelMembersBuilderV2(pubnub *PubNub) *manageChannelMembersBuild
 func newManageChannelMembersBuilderV2WithContext(pubnub *PubNub,
 	context Context) *manageChannelMembersBuilderV2 {
 	builder := manageChannelMembersBuilderV2{
-		opts: &manageMembersOptsV2{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newManageMembersOptsV2(pubnub, context),
 	}
 	builder.opts.Limit = manageMembersLimitV2
 
@@ -124,8 +121,17 @@ func (b *manageChannelMembersBuilderV2) Execute() (*PNManageMembersResponse, Sta
 	return newPNManageMembersResponse(rawJSON, b.opts, status)
 }
 
+func newManageMembersOptsV2(pubnub *PubNub, ctx Context) *manageMembersOptsV2 {
+	return &manageMembersOptsV2{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type manageMembersOptsV2 struct {
-	pubnub        *PubNub
+	endpointOpts
 	Channel       string
 	Limit         int
 	Include       []string
@@ -138,12 +144,6 @@ type manageMembersOptsV2 struct {
 	MembersRemove []PNChannelMembersRemove
 	MembersSet    []PNChannelMembersSet
 	Transport     http.RoundTripper
-
-	ctx Context
-}
-
-func (o *manageMembersOptsV2) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *manageMembersOptsV2) client() *http.Client {

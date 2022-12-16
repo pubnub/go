@@ -21,22 +21,16 @@ type removeAllPushChannelsForDeviceBuilder struct {
 }
 
 func newRemoveAllPushChannelsForDeviceBuilder(pubnub *PubNub) *removeAllPushChannelsForDeviceBuilder {
-	builder := removeAllPushChannelsForDeviceBuilder{
-		opts: &removeAllPushChannelsForDeviceOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRemoveAllPushChannelsForDeviceBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newRemoveAllPushChannelsForDeviceBuilderWithContext(
 	pubnub *PubNub, context Context) *removeAllPushChannelsForDeviceBuilder {
 	builder := removeAllPushChannelsForDeviceBuilder{
-		opts: &removeAllPushChannelsForDeviceOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newRemoveAllPushCHannelsForDeviceOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -85,8 +79,7 @@ func (b *removeAllPushChannelsForDeviceBuilder) Execute() (
 }
 
 type removeAllPushChannelsForDeviceOpts struct {
-	pubnub *PubNub
-
+	endpointOpts
 	PushType        PNPushType
 	QueryParam      map[string]string
 	DeviceIDForPush string
@@ -94,12 +87,6 @@ type removeAllPushChannelsForDeviceOpts struct {
 	Environment     PNPushEnvironment
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeAllPushChannelsForDeviceOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *removeAllPushChannelsForDeviceOpts) client() *http.Client {

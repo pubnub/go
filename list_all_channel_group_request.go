@@ -23,26 +23,18 @@ type allChannelGroupBuilder struct {
 }
 
 func newAllChannelGroupBuilder(pubnub *PubNub) *allChannelGroupBuilder {
-	builder := allChannelGroupBuilder{
-		opts: &allChannelGroupOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newAllChannelGroupBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newAllChannelGroupOpts(pubnub *PubNub, ctx Context) *allChannelGroupOpts {
+return &allChannelGroupOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newAllChannelGroupBuilderWithContext(pubnub *PubNub,
 	context Context) *allChannelGroupBuilder {
 	builder := allChannelGroupBuilder{
-		opts: &allChannelGroupOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newAllChannelGroupOpts(pubnub, context)}
 	return &builder
 }
+
 
 // ChannelGroup sets the channel group to list channels.
 func (b *allChannelGroupBuilder) ChannelGroup(
@@ -70,17 +62,11 @@ func (b *allChannelGroupBuilder) Execute() (
 }
 
 type allChannelGroupOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	ChannelGroup string
 	QueryParam   map[string]string
 	Transport    http.RoundTripper
-
-	ctx Context
-}
-
-func (o *allChannelGroupOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *allChannelGroupOpts) client() *http.Client {

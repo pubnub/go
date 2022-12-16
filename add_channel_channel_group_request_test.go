@@ -12,11 +12,12 @@ import (
 func TestAddChannelRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &addChannelOpts{
-		Channels:     []string{"ch1", "ch2", "ch3"},
-		ChannelGroup: "cg",
-		pubnub:       pubnub,
-	}
+	opts := newAddChannelOpts(pubnub, pubnub.ctx,
+		addChannelOpts{
+			Channels:     []string{"ch1", "ch2", "ch3"},
+			ChannelGroup: "cg",
+		},
+	)
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -44,11 +45,13 @@ func TestAddChannelRequestBasic(t *testing.T) {
 func TestAddChannelRequestBasicQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &addChannelOpts{
-		Channels:     []string{"ch1", "ch2", "ch3"},
-		ChannelGroup: "cg",
-		pubnub:       pubnub,
-	}
+	opts := newAddChannelOpts(pubnub, pubnub.ctx,
+		addChannelOpts{
+			Channels:     []string{"ch1", "ch2", "ch3"},
+			ChannelGroup: "cg",
+		},
+	)
+
 	queryParam := map[string]string{
 		"q1": "v1",
 		"q2": "v2",
@@ -141,10 +144,12 @@ func TestAddChannelOptsValidateSub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &addChannelOpts{
-		Channels:     []string{"ch1", "ch2", "ch3"},
-		ChannelGroup: "cg",
-		pubnub:       pn,
-	}
+	opts := newAddChannelOpts(pn, pn.ctx,
+		addChannelOpts{
+			Channels:     []string{"ch1", "ch2", "ch3"},
+			ChannelGroup: "cg",
+		},
+	)
+
 	assert.Equal("pubnub/validation: pubnub: Add Channel To Channel Group: Missing Subscribe Key", opts.validate().Error())
 }

@@ -1,12 +1,8 @@
 package pubnub
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"mime/multipart"
-	"net/http"
 	"net/url"
 	"strconv"
 
@@ -16,7 +12,7 @@ import (
 const subscribePath = "/v2/subscribe/%s/%s/0"
 
 type subscribeOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channels         []string
 	ChannelGroups    []string
@@ -28,8 +24,6 @@ type subscribeOpts struct {
 	WithPresence     bool
 	State            map[string]interface{}
 	stringState      string
-
-	ctx Context
 }
 
 type subscribeBuilder struct {
@@ -101,18 +95,6 @@ func (b *subscribeBuilder) Execute() {
 	b.opts.pubnub.subscriptionManager.adaptSubscribe(b.operation)
 }
 
-func (o *subscribeOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *subscribeOpts) client() *http.Client {
-	return o.pubnub.GetSubscribeClient()
-}
-
-func (o *subscribeOpts) context() Context {
-	return o.ctx
-}
-
 func (o *subscribeOpts) validate() error {
 
 	if o.config().SubscribeKey == "" {
@@ -177,42 +159,14 @@ func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *subscribeOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *subscribeOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *subscribeOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *subscribeOpts) httpMethod() string {
 	return "GET"
-}
-
-func (o *subscribeOpts) isAuthRequired() bool {
-	return true
 }
 
 func (o *subscribeOpts) requestTimeout() int {
 	return o.pubnub.Config.SubscribeRequestTimeout
 }
 
-func (o *subscribeOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *subscribeOpts) operationType() OperationType {
 	return PNSubscribeOperation
-}
-
-func (o *subscribeOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *subscribeOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }

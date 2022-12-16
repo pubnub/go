@@ -18,25 +18,17 @@ type leaveBuilder struct {
 }
 
 func newLeaveBuilder(pubnub *PubNub) *leaveBuilder {
-	builder := leaveBuilder{
-		opts: &leaveOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newLeaveBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newLeaveOpts(pubnub *PubNub, ctx Context) *leaveOpts {
+return &leaveOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newLeaveBuilderWithContext(pubnub *PubNub, context Context) *leaveBuilder {
 	builder := leaveBuilder{
-		opts: &leaveOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newLeaveOpts(pubnub, context)}
 	return &builder
 }
+
 
 // Channels sets the channel names in the Unsubscribe request.
 func (b *leaveBuilder) Channels(channels []string) *leaveBuilder {
@@ -68,12 +60,10 @@ func (b *leaveBuilder) Execute() (StatusResponse, error) {
 }
 
 type leaveOpts struct {
+	endpointOpts
 	Channels      []string
 	ChannelGroups []string
 	QueryParam    map[string]string
-
-	pubnub *PubNub
-	ctx    Context
 }
 
 func (o *leaveOpts) buildBody() ([]byte, error) {
@@ -117,10 +107,6 @@ func (o *leaveOpts) buildQuery() (*url.Values, error) {
 
 func (o *leaveOpts) client() *http.Client {
 	return o.pubnub.GetClient()
-}
-
-func (o *leaveOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *leaveOpts) context() Context {

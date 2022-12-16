@@ -24,22 +24,16 @@ type listPushProvisionsRequestBuilder struct {
 }
 
 func newListPushProvisionsRequestBuilder(pubnub *PubNub) *listPushProvisionsRequestBuilder {
-	builder := listPushProvisionsRequestBuilder{
-		opts: &listPushProvisionsRequestOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newListPushProvisionsRequestBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newListPushProvisionsRequestBuilderWithContext(
 	pubnub *PubNub, context Context) *listPushProvisionsRequestBuilder {
 	builder := listPushProvisionsRequestBuilder{
-		opts: &listPushProvisionsRequestOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newListPushProvisionsRequestOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -112,8 +106,17 @@ func newListPushProvisionsRequestResponse(jsonBytes []byte, status StatusRespons
 	return resp, status, nil
 }
 
+func newListPushProvisionsRequestOpts(pubnub *PubNub, ctx Context) *listPushProvisionsRequestOpts {
+	return &listPushProvisionsRequestOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type listPushProvisionsRequestOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	PushType PNPushType
 
@@ -122,12 +125,6 @@ type listPushProvisionsRequestOpts struct {
 	Transport       http.RoundTripper
 	Topic           string
 	Environment     PNPushEnvironment
-
-	ctx Context
-}
-
-func (o *listPushProvisionsRequestOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *listPushProvisionsRequestOpts) client() *http.Client {

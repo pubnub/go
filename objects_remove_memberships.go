@@ -31,10 +31,7 @@ func newRemoveMembershipsBuilder(pubnub *PubNub) *removeMembershipsBuilder {
 func newRemoveMembershipsBuilderWithContext(pubnub *PubNub,
 	context Context) *removeMembershipsBuilder {
 	builder := removeMembershipsBuilder{
-		opts: &removeMembershipsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newRemoveMembershipsOpts(pubnub, context),
 	}
 	builder.opts.Limit = removeMembershipsLimit
 
@@ -122,8 +119,17 @@ func (b *removeMembershipsBuilder) Execute() (*PNRemoveMembershipsResponse, Stat
 	return newPNRemoveMembershipsResponse(rawJSON, b.opts, status)
 }
 
+func newRemoveMembershipsOpts(pubnub *PubNub, ctx Context) *removeMembershipsOpts {
+	return &removeMembershipsOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type removeMembershipsOpts struct {
-	pubnub            *PubNub
+	endpointOpts
 	UUID              string
 	Limit             int
 	Include           []string
@@ -135,12 +141,6 @@ type removeMembershipsOpts struct {
 	QueryParam        map[string]string
 	MembershipsRemove []PNMembershipsRemove
 	Transport         http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeMembershipsOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *removeMembershipsOpts) client() *http.Client {

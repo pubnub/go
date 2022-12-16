@@ -31,10 +31,10 @@ func newGetMembershipsBuilderV2(pubnub *PubNub) *getMembershipsBuilderV2 {
 func newGetMembershipsBuilderV2WithContext(pubnub *PubNub,
 	context Context) *getMembershipsBuilderV2 {
 	builder := getMembershipsBuilderV2{
-		opts: &getMembershipsOptsV2{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newGetMembershipsOptsV2(
+			pubnub,
+			context,
+		),
 	}
 	builder.opts.Limit = membershipsLimitV2
 
@@ -116,8 +116,17 @@ func (b *getMembershipsBuilderV2) Execute() (*PNGetMembershipsResponse, StatusRe
 	return newPNGetMembershipsResponse(rawJSON, b.opts, status)
 }
 
+func newGetMembershipsOptsV2(pubnub *PubNub, ctx Context) *getMembershipsOptsV2 {
+	return &getMembershipsOptsV2{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type getMembershipsOptsV2 struct {
-	pubnub     *PubNub
+	endpointOpts
 	UUID       string
 	Limit      int
 	Include    []string
@@ -129,12 +138,6 @@ type getMembershipsOptsV2 struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getMembershipsOptsV2) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *getMembershipsOptsV2) client() *http.Client {

@@ -31,10 +31,10 @@ func newSetChannelMembersBuilder(pubnub *PubNub) *setChannelMembersBuilder {
 func newSetChannelMembersBuilderWithContext(pubnub *PubNub,
 	context Context) *setChannelMembersBuilder {
 	builder := setChannelMembersBuilder{
-		opts: &setChannelMembersOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newSetChannelMembersOpts(
+			pubnub,
+			context,
+		),
 	}
 	builder.opts.Limit = setChannelMembersLimit
 
@@ -118,8 +118,17 @@ func (b *setChannelMembersBuilder) Execute() (*PNSetChannelMembersResponse, Stat
 	return newPNSetChannelMembersResponse(rawJSON, b.opts, status)
 }
 
+func newSetChannelMembersOpts(pubnub *PubNub, ctx Context) *setChannelMembersOpts {
+	return &setChannelMembersOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+		Limit: setChannelMembersLimit}
+}
+
 type setChannelMembersOpts struct {
-	pubnub            *PubNub
+	endpointOpts
 	Channel           string
 	Limit             int
 	Include           []string
@@ -131,12 +140,6 @@ type setChannelMembersOpts struct {
 	QueryParam        map[string]string
 	ChannelMembersSet []PNChannelMembersSet
 	Transport         http.RoundTripper
-
-	ctx Context
-}
-
-func (o *setChannelMembersOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *setChannelMembersOpts) client() *http.Client {

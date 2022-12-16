@@ -22,25 +22,17 @@ type setUUIDMetadataBuilder struct {
 }
 
 func newSetUUIDMetadataBuilder(pubnub *PubNub) *setUUIDMetadataBuilder {
-	builder := setUUIDMetadataBuilder{
-		opts: &setUUIDMetadataOpts{
-			pubnub: pubnub,
-		},
-	}
+	return newSetUUIDMetadataBuilderWithContext(pubnub, pubnub.ctx)
+}
 
-	return &builder
+func newSetUUIDMetadataOpts(pubnub *PubNub, ctx Context) *setUUIDMetadataOpts {
+	return &setUUIDMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
 }
 
 func newSetUUIDMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *setUUIDMetadataBuilder {
-	builder := setUUIDMetadataBuilder{
-		opts: &setUUIDMetadataOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
-	return &builder
+	return &setUUIDMetadataBuilder{
+		opts: newSetUUIDMetadataOpts(pubnub, context)}
 }
 
 // SetUUIDMetadataBody is the input to update user
@@ -122,7 +114,7 @@ func (b *setUUIDMetadataBuilder) Execute() (*PNSetUUIDMetadataResponse, StatusRe
 }
 
 type setUUIDMetadataOpts struct {
-	pubnub     *PubNub
+	endpointOpts
 	Include    []string
 	UUID       string
 	Name       string
@@ -133,12 +125,6 @@ type setUUIDMetadataOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *setUUIDMetadataOpts) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *setUUIDMetadataOpts) client() *http.Client {

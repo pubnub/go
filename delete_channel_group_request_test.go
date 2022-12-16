@@ -12,10 +12,9 @@ import (
 func TestDeleteChannelGroupRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &deleteChannelGroupOpts{
+	opts := newDeleteChannelGroupOpts(pubnub, pubnub.ctx, deleteChannelGroupOpts{
 		ChannelGroup: "cg",
-		pubnub:       pubnub,
-	}
+	})
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -45,11 +44,10 @@ func TestDeleteChannelGroupRequestBasicQueryParam(t *testing.T) {
 		"q2": "v2",
 	}
 
-	opts := &deleteChannelGroupOpts{
+	opts := newDeleteChannelGroupOpts(pubnub, pubnub.ctx, deleteChannelGroupOpts{
 		ChannelGroup: "cg",
-		pubnub:       pubnub,
 		QueryParam:   queryParam,
-	}
+	})
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -130,10 +128,9 @@ func TestDeleteChannelGroupOptsValidateSub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &deleteChannelGroupOpts{
+	opts := newDeleteChannelGroupOpts(pn, pn.ctx, deleteChannelGroupOpts{
 		ChannelGroup: "cg",
-		pubnub:       pn,
-	}
+	})
 
 	assert.Equal("pubnub/validation: pubnub: Remove Channel Group: Missing Subscribe Key", opts.validate().Error())
 }

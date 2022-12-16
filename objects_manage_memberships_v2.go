@@ -31,10 +31,7 @@ func newManageMembershipsBuilderV2(pubnub *PubNub) *manageMembershipsBuilderV2 {
 func newManageMembershipsBuilderV2WithContext(pubnub *PubNub,
 	context Context) *manageMembershipsBuilderV2 {
 	builder := manageMembershipsBuilderV2{
-		opts: &manageMembershipsOptsV2{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newManageMembershipsOptsV2(pubnub, context),
 	}
 	builder.opts.Limit = manageMembershipsLimitV2
 
@@ -128,8 +125,17 @@ func (b *manageMembershipsBuilderV2) Execute() (*PNManageMembershipsResponse, St
 	return newPNManageMembershipsResponse(rawJSON, b.opts, status)
 }
 
+func newManageMembershipsOptsV2(pubnub *PubNub, ctx Context) *manageMembershipsOptsV2 {
+	return &manageMembershipsOptsV2{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type manageMembershipsOptsV2 struct {
-	pubnub            *PubNub
+	endpointOpts
 	UUID              string
 	Limit             int
 	Include           []string
@@ -142,12 +148,6 @@ type manageMembershipsOptsV2 struct {
 	MembershipsRemove []PNMembershipsRemove
 	MembershipsSet    []PNMembershipsSet
 	Transport         http.RoundTripper
-
-	ctx Context
-}
-
-func (o *manageMembershipsOptsV2) config() Config {
-	return *o.pubnub.Config
 }
 
 func (o *manageMembershipsOptsV2) client() *http.Client {
