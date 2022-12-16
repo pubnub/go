@@ -96,10 +96,6 @@ type messageCountsOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *messageCountsOpts) context() Context {
-	return o.ctx
-}
-
 func (o *messageCountsOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

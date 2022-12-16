@@ -107,10 +107,6 @@ type removeAllPushChannelsForDeviceOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *removeAllPushChannelsForDeviceOpts) context() Context {
-	return o.ctx
-}
-
 func (o *removeAllPushChannelsForDeviceOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

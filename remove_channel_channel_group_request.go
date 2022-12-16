@@ -86,10 +86,6 @@ type removeChannelOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *removeChannelOpts) context() Context {
-	return o.ctx
-}
-
 func (o *removeChannelOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

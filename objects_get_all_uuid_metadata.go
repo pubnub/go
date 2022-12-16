@@ -130,10 +130,6 @@ type getAllUUIDMetadataOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *getAllUUIDMetadataOpts) context() Context {
-	return o.ctx
-}
-
 func (o *getAllUUIDMetadataOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

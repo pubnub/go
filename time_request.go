@@ -62,10 +62,6 @@ type timeOpts struct {
 	Transport  http.RoundTripper
 }
 
-func (o *timeOpts) context() Context {
-	return o.ctx
-}
-
 func (o *timeOpts) validate() error {
 	return nil
 }

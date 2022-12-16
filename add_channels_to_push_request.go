@@ -94,10 +94,6 @@ type addChannelsToPushOpts struct {
 	Environment     PNPushEnvironment
 }
 
-func (o *addChannelsToPushOpts) context() Context {
-	return o.ctx
-}
-
 func (o *addChannelsToPushOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

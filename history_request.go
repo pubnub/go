@@ -132,10 +132,6 @@ type historyOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *historyOpts) context() Context {
-	return o.ctx
-}
-
 func (o *historyOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

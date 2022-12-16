@@ -63,14 +63,14 @@ func newPublishPushHelperBuilder(pubnub *PubNub) *publishPushHelperBuilder {
 }
 
 func newPublishPushHelperOpts(pubnub *PubNub, ctx Context) *publishPushHelperOpts {
-return &publishPushHelperOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &publishPushHelperOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newPublishPushHelperBuilderWithContext(pubnub *PubNub,
 	context Context) *publishPushHelperBuilder {
 	builder := publishPushHelperBuilder{
 		opts: newPublishPushHelperOpts(pubnub, context)}
 	return &builder
 }
-
 
 // BuildPayload builds the push payload and returns an map of interface
 func (b *publishPushHelperBuilder) BuildPayload() map[string]interface{} {
@@ -245,8 +245,4 @@ type publishPushHelperOpts struct {
 	PushFCMData    *PNFCMData
 	CommonPayload  map[string]interface{}
 	PushCustomData map[string]interface{}
-}
-
-func (o *publishPushHelperOpts) context() Context {
-	return o.ctx
 }

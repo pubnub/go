@@ -93,10 +93,6 @@ type setStateOpts struct {
 	stringState   string
 }
 
-func (o *setStateOpts) context() Context {
-	return o.ctx
-}
-
 func (o *setStateOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

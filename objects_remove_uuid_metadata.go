@@ -76,10 +76,6 @@ type removeUUIDMetadataOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *removeUUIDMetadataOpts) context() Context {
-	return o.ctx
-}
-
 func (o *removeUUIDMetadataOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

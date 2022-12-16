@@ -71,10 +71,6 @@ type whereNowOpts struct {
 	Transport  http.RoundTripper
 }
 
-func (o *whereNowOpts) context() Context {
-	return o.ctx
-}
-
 func (o *whereNowOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

@@ -95,10 +95,6 @@ type getMessageActionsOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *getMessageActionsOpts) context() Context {
-	return o.ctx
-}
-
 func (o *getMessageActionsOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

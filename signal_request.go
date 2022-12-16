@@ -91,10 +91,6 @@ type signalOpts struct {
 	Transport  http.RoundTripper
 }
 
-func (o *signalOpts) context() Context {
-	return o.ctx
-}
-
 func (o *signalOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

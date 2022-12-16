@@ -174,10 +174,6 @@ func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	return newPublishResponse(rawJSON, status)
 }
 
-func (o *publishOpts) context() Context {
-	return o.ctx
-}
-
 func (o *publishOpts) validate() error {
 	if o.config().PublishKey == "" {
 		return newValidationError(o, StrMissingPubKey)

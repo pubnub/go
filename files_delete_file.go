@@ -86,10 +86,6 @@ type deleteFileOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *deleteFileOpts) context() Context {
-	return o.ctx
-}
-
 func (o *deleteFileOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

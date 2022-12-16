@@ -69,10 +69,6 @@ type allChannelGroupOpts struct {
 	Transport    http.RoundTripper
 }
 
-func (o *allChannelGroupOpts) context() Context {
-	return o.ctx
-}
-
 func (o *allChannelGroupOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

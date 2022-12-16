@@ -107,10 +107,6 @@ type setChannelMetadataOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *setChannelMetadataOpts) context() Context {
-	return o.ctx
-}
-
 func (o *setChannelMetadataOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

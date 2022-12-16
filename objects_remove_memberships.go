@@ -143,10 +143,6 @@ type removeMembershipsOpts struct {
 	Transport         http.RoundTripper
 }
 
-func (o *removeMembershipsOpts) context() Context {
-	return o.ctx
-}
-
 func (o *removeMembershipsOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

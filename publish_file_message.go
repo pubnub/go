@@ -142,10 +142,6 @@ type publishFileMessageOpts struct {
 	Transport      http.RoundTripper
 }
 
-func (o *publishFileMessageOpts) context() Context {
-	return o.ctx
-}
-
 func (o *publishFileMessageOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

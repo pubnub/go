@@ -136,10 +136,6 @@ type getChannelMembersOptsV2 struct {
 	Transport http.RoundTripper
 }
 
-func (o *getChannelMembersOptsV2) context() Context {
-	return o.ctx
-}
-
 func (o *getChannelMembersOptsV2) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

@@ -88,10 +88,6 @@ type removeMessageActionsOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *removeMessageActionsOpts) context() Context {
-	return o.ctx
-}
-
 func (o *removeMessageActionsOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

@@ -127,10 +127,6 @@ type listPushProvisionsRequestOpts struct {
 	Environment     PNPushEnvironment
 }
 
-func (o *listPushProvisionsRequestOpts) context() Context {
-	return o.ctx
-}
-
 func (o *listPushProvisionsRequestOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

@@ -150,10 +150,6 @@ type manageMembershipsOptsV2 struct {
 	Transport         http.RoundTripper
 }
 
-func (o *manageMembershipsOptsV2) context() Context {
-	return o.ctx
-}
-
 func (o *manageMembershipsOptsV2) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)

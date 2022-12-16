@@ -100,10 +100,6 @@ func (o *leaveOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *leaveOpts) context() Context {
-	return o.ctx
-}
-
 func (o *leaveOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)
