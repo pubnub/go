@@ -130,10 +130,6 @@ type getAllUUIDMetadataOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *getAllUUIDMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *getAllUUIDMetadataOpts) context() Context {
 	return o.ctx
 }

@@ -62,10 +62,6 @@ type timeOpts struct {
 	Transport  http.RoundTripper
 }
 
-func (o *timeOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *timeOpts) context() Context {
 	return o.ctx
 }

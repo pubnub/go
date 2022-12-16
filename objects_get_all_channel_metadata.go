@@ -128,10 +128,6 @@ type getAllChannelMetadataOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *getAllChannelMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *getAllChannelMetadataOpts) context() Context {
 	return o.ctx
 }

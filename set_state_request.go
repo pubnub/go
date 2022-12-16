@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"mime/multipart"
-	"net/http"
 	"net/url"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -92,10 +91,6 @@ type setStateOpts struct {
 	UUID          string
 	QueryParam    map[string]string
 	stringState   string
-}
-
-func (o *setStateOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *setStateOpts) context() Context {

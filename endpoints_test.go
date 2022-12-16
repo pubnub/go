@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"mime/multipart"
-	"net/http"
 	"net/url"
 	"testing"
 
@@ -43,10 +42,6 @@ func (o *fakeEndpointOpts) jobQueue() chan *JobQItem {
 
 func (o *fakeEndpointOpts) config() Config {
 	return *o.pubnub.Config
-}
-
-func (o *fakeEndpointOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *fakeEndpointOpts) validate() error {

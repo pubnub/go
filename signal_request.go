@@ -91,10 +91,6 @@ type signalOpts struct {
 	Transport  http.RoundTripper
 }
 
-func (o *signalOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *signalOpts) context() Context {
 	return o.ctx
 }

@@ -94,10 +94,6 @@ type addChannelsToPushOpts struct {
 	Environment     PNPushEnvironment
 }
 
-func (o *addChannelsToPushOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *addChannelsToPushOpts) context() Context {
 	return o.ctx
 }

@@ -26,14 +26,14 @@ func newGetChannelMetadataBuilder(pubnub *PubNub) *getChannelMetadataBuilder {
 }
 
 func newGetChannelMetadataOpts(pubnub *PubNub, ctx Context) *getChannelMetadataOpts {
-return &getChannelMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &getChannelMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newGetChannelMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *getChannelMetadataBuilder {
 	builder := getChannelMetadataBuilder{
 		opts: newGetChannelMetadataOpts(pubnub, context)}
 	return &builder
 }
-
 
 func (b *getChannelMetadataBuilder) Include(include []PNChannelMetadataInclude) *getChannelMetadataBuilder {
 	b.opts.Include = EnumArrayToStringArray(include)
@@ -77,10 +77,6 @@ type getChannelMetadataOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-}
-
-func (o *getChannelMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *getChannelMetadataOpts) context() Context {

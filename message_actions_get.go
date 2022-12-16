@@ -27,14 +27,14 @@ func newGetMessageActionsBuilder(pubnub *PubNub) *getMessageActionsBuilder {
 }
 
 func newGetMessageActionsOpts(pubnub *PubNub, ctx Context) *getMessageActionsOpts {
-return &getMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &getMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newGetMessageActionsBuilderWithContext(pubnub *PubNub,
 	context Context) *getMessageActionsBuilder {
 	builder := getMessageActionsBuilder{
 		opts: newGetMessageActionsOpts(pubnub, context)}
 	return &builder
 }
-
 
 func (b *getMessageActionsBuilder) Channel(channel string) *getMessageActionsBuilder {
 	b.opts.Channel = channel
@@ -93,10 +93,6 @@ type getMessageActionsOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-}
-
-func (o *getMessageActionsOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *getMessageActionsOpts) context() Context {

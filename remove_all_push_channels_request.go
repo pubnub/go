@@ -107,10 +107,6 @@ type removeAllPushChannelsForDeviceOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *removeAllPushChannelsForDeviceOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *removeAllPushChannelsForDeviceOpts) context() Context {
 	return o.ctx
 }

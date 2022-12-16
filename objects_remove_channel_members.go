@@ -139,10 +139,6 @@ type removeChannelMembersOpts struct {
 	Transport            http.RoundTripper
 }
 
-func (o *removeChannelMembersOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *removeChannelMembersOpts) context() Context {
 	return o.ctx
 }

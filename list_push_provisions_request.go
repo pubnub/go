@@ -127,10 +127,6 @@ type listPushProvisionsRequestOpts struct {
 	Environment     PNPushEnvironment
 }
 
-func (o *listPushProvisionsRequestOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *listPushProvisionsRequestOpts) context() Context {
 	return o.ctx
 }

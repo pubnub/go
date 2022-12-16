@@ -26,14 +26,14 @@ func newSetChannelMetadataBuilder(pubnub *PubNub) *setChannelMetadataBuilder {
 }
 
 func newSetChannelMetadataOpts(pubnub *PubNub, ctx Context) *setChannelMetadataOpts {
-return &setChannelMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &setChannelMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newSetChannelMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *setChannelMetadataBuilder {
 	builder := setChannelMetadataBuilder{
 		opts: newSetChannelMetadataOpts(pubnub, context)}
 	return &builder
 }
-
 
 // SetChannelMetadataBody is the input to update space
 type SetChannelMetadataBody struct {
@@ -105,10 +105,6 @@ type setChannelMetadataOpts struct {
 	QueryParam  map[string]string
 
 	Transport http.RoundTripper
-}
-
-func (o *setChannelMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *setChannelMetadataOpts) context() Context {

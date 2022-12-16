@@ -26,14 +26,14 @@ func newRemoveChannelMetadataBuilder(pubnub *PubNub) *removeChannelMetadataBuild
 }
 
 func newRemoveChannelMetadataOpts(pubnub *PubNub, ctx Context) *removeChannelMetadataOpts {
-return &removeChannelMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &removeChannelMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newRemoveChannelMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *removeChannelMetadataBuilder {
 	builder := removeChannelMetadataBuilder{
 		opts: newRemoveChannelMetadataOpts(pubnub, context)}
 	return &builder
 }
-
 
 func (b *removeChannelMetadataBuilder) Channel(channel string) *removeChannelMetadataBuilder {
 	b.opts.Channel = channel
@@ -69,10 +69,6 @@ type removeChannelMetadataOpts struct {
 	Channel    string
 	QueryParam map[string]string
 	Transport  http.RoundTripper
-}
-
-func (o *removeChannelMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *removeChannelMetadataOpts) context() Context {

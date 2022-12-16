@@ -146,10 +146,6 @@ type manageMembersOptsV2 struct {
 	Transport     http.RoundTripper
 }
 
-func (o *manageMembersOptsV2) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *manageMembersOptsV2) context() Context {
 	return o.ctx
 }

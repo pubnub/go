@@ -26,14 +26,14 @@ func newAddMessageActionsBuilder(pubnub *PubNub) *addMessageActionsBuilder {
 }
 
 func newAddMessageActionsOpts(pubnub *PubNub, ctx Context) *addMessageActionsOpts {
-return &addMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &addMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newAddMessageActionsBuilderWithContext(pubnub *PubNub,
 	context Context) *addMessageActionsBuilder {
 	builder := addMessageActionsBuilder{
-		opts: newAddMessageActionsOpts(pubnub, context),}
+		opts: newAddMessageActionsOpts(pubnub, context)}
 	return &builder
 }
-
 
 // MessageAction struct is used to create a Message Action
 type MessageAction struct {
@@ -91,10 +91,6 @@ type addMessageActionsOpts struct {
 	QueryParam       map[string]string
 
 	Transport http.RoundTripper
-}
-
-func (o *addMessageActionsOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *addMessageActionsOpts) context() Context {

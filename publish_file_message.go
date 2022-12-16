@@ -30,14 +30,14 @@ func newPublishFileMessageBuilder(pubnub *PubNub) *publishFileMessageBuilder {
 }
 
 func newPublishFileMessageOpts(pubnub *PubNub, ctx Context) *publishFileMessageOpts {
-return &publishFileMessageOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &publishFileMessageOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newPublishFileMessageBuilderWithContext(pubnub *PubNub,
 	context Context) *publishFileMessageBuilder {
 	builder := publishFileMessageBuilder{
 		opts: newPublishFileMessageOpts(pubnub, context)}
 	return &builder
 }
-
 
 // TTL sets the TTL (hours) for the Publish request.
 func (b *publishFileMessageBuilder) TTL(ttl int) *publishFileMessageBuilder {
@@ -140,10 +140,6 @@ type publishFileMessageOpts struct {
 	FileName       string
 	QueryParam     map[string]string
 	Transport      http.RoundTripper
-}
-
-func (o *publishFileMessageOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *publishFileMessageOpts) context() Context {

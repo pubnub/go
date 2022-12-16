@@ -26,14 +26,14 @@ func newGetUUIDMetadataBuilder(pubnub *PubNub) *getUUIDMetadataBuilder {
 }
 
 func newGetUUIDMetadataOpts(pubnub *PubNub, ctx Context) *getUUIDMetadataOpts {
-return &getUUIDMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &getUUIDMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newGetUUIDMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *getUUIDMetadataBuilder {
 	builder := getUUIDMetadataBuilder{
 		opts: newGetUUIDMetadataOpts(pubnub, context)}
 	return &builder
 }
-
 
 func (b *getUUIDMetadataBuilder) Include(include []PNUUIDMetadataInclude) *getUUIDMetadataBuilder {
 	b.opts.Include = EnumArrayToStringArray(include)
@@ -81,10 +81,6 @@ type getUUIDMetadataOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-}
-
-func (o *getUUIDMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *getUUIDMetadataOpts) context() Context {

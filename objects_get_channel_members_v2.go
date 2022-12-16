@@ -136,10 +136,6 @@ type getChannelMembersOptsV2 struct {
 	Transport http.RoundTripper
 }
 
-func (o *getChannelMembersOptsV2) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *getChannelMembersOptsV2) context() Context {
 	return o.ctx
 }

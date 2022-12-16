@@ -86,10 +86,6 @@ type deleteFileOpts struct {
 	Transport http.RoundTripper
 }
 
-func (o *deleteFileOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *deleteFileOpts) context() Context {
 	return o.ctx
 }

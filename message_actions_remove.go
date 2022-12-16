@@ -26,14 +26,14 @@ func newRemoveMessageActionsBuilder(pubnub *PubNub) *removeMessageActionsBuilder
 }
 
 func newRemoveMessageActionsOpts(pubnub *PubNub, ctx Context) *removeMessageActionsOpts {
-return &removeMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &removeMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newRemoveMessageActionsBuilderWithContext(pubnub *PubNub,
 	context Context) *removeMessageActionsBuilder {
 	builder := removeMessageActionsBuilder{
 		opts: newRemoveMessageActionsOpts(pubnub, context)}
 	return &builder
 }
-
 
 func (b *removeMessageActionsBuilder) Channel(channel string) *removeMessageActionsBuilder {
 	b.opts.Channel = channel
@@ -86,10 +86,6 @@ type removeMessageActionsOpts struct {
 	QueryParam       map[string]string
 
 	Transport http.RoundTripper
-}
-
-func (o *removeMessageActionsOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *removeMessageActionsOpts) context() Context {

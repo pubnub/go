@@ -25,13 +25,13 @@ func newHistoryDeleteBuilder(pubnub *PubNub) *historyDeleteBuilder {
 }
 
 func newHistoryDeleteOpts(pubnub *PubNub, ctx Context) *historyDeleteOpts {
-return &historyDeleteOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &historyDeleteOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newHistoryDeleteBuilderWithContext(pubnub *PubNub, context Context) *historyDeleteBuilder {
 	builder := historyDeleteBuilder{
 		opts: newHistoryDeleteOpts(pubnub, context)}
 	return &builder
 }
-
 
 // Channel sets the Channel for the DeleteMessages request.
 func (b *historyDeleteBuilder) Channel(ch string) *historyDeleteBuilder {
@@ -88,10 +88,6 @@ type historyDeleteOpts struct {
 	SetEnd   bool
 
 	Transport http.RoundTripper
-}
-
-func (o *historyDeleteOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *historyDeleteOpts) context() Context {

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"mime/multipart"
-	"net/http"
 	"net/url"
 
 	"github.com/pubnub/go/v7/utils"
@@ -22,13 +21,13 @@ func newLeaveBuilder(pubnub *PubNub) *leaveBuilder {
 }
 
 func newLeaveOpts(pubnub *PubNub, ctx Context) *leaveOpts {
-return &leaveOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &leaveOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newLeaveBuilderWithContext(pubnub *PubNub, context Context) *leaveBuilder {
 	builder := leaveBuilder{
 		opts: newLeaveOpts(pubnub, context)}
 	return &builder
 }
-
 
 // Channels sets the channel names in the Unsubscribe request.
 func (b *leaveBuilder) Channels(channels []string) *leaveBuilder {
@@ -103,10 +102,6 @@ func (o *leaveOpts) buildQuery() (*url.Values, error) {
 	}
 	SetQueryParam(q, o.QueryParam)
 	return q, nil
-}
-
-func (o *leaveOpts) client() *http.Client {
-	return o.pubnub.GetClient()
 }
 
 func (o *leaveOpts) context() Context {

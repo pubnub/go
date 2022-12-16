@@ -174,10 +174,6 @@ func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	return newPublishResponse(rawJSON, status)
 }
 
-func (o *publishOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *publishOpts) context() Context {
 	return o.ctx
 }

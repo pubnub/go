@@ -71,10 +71,6 @@ type whereNowOpts struct {
 	Transport  http.RoundTripper
 }
 
-func (o *whereNowOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
 func (o *whereNowOpts) context() Context {
 	return o.ctx
 }
