@@ -1,9 +1,6 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
-	"mime/multipart"
 	"net/url"
 	"testing"
 
@@ -28,24 +25,8 @@ func (o *fakeEndpointOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *fakeEndpointOpts) buildBody() ([]byte, error) {
-	return []byte("myBody"), nil
-}
-
-func (o *fakeEndpointOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *fakeEndpointOpts) config() Config {
-	return *o.pubnub.Config
-}
-
 func (o *fakeEndpointOpts) validate() error {
 	return nil
-}
-
-func (o *fakeEndpointOpts) context() Context {
-	return o.context()
 }
 
 func (o *fakeEndpointOpts) httpMethod() string {

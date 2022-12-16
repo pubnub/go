@@ -95,11 +95,6 @@ func (o *removeUUIDMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeUUIDMetadataOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-
-}
-
 func (o *removeUUIDMetadataOpts) httpMethod() string {
 	return "DELETE"
 }

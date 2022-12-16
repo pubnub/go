@@ -93,11 +93,6 @@ func (o *removeChannelMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeChannelMetadataOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-
-}
-
 func (o *removeChannelMetadataOpts) httpMethod() string {
 	return "DELETE"
 }
