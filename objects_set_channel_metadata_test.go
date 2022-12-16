@@ -100,9 +100,7 @@ func TestSetChannelMetadataContext(t *testing.T) {
 func TestSetChannelMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &setChannelMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newSetChannelMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNSetChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
@@ -112,9 +110,7 @@ func TestSetChannelMetadataResponseValueError(t *testing.T) {
 func TestSetChannelMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &setChannelMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newSetChannelMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","description":"desc","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T14:48:11.675743Z","eTag":"AYKH2s7ZlYKoJA"}}`)
 
 	r, _, err := newPNSetChannelMetadataResponse(jsonBytes, opts, StatusResponse{})

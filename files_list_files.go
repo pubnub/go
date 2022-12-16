@@ -23,25 +23,21 @@ type listFilesBuilder struct {
 }
 
 func newListFilesBuilder(pubnub *PubNub) *listFilesBuilder {
-	builder := listFilesBuilder{
-		opts: &listFilesOpts{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.Limit = listFilesLimit
-
-	return &builder
+	return newListFilesBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newListFilesOpts(pubnub *PubNub, ctx Context) *listFilesOpts {
-return &listFilesOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &listFilesOpts{
+		endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx},
+		Limit:        listFilesLimit,
+	}
+}
 func newListFilesBuilderWithContext(pubnub *PubNub,
 	context Context) *listFilesBuilder {
 	builder := listFilesBuilder{
 		opts: newListFilesOpts(pubnub, context)}
 	return &builder
 }
-
 
 func (b *listFilesBuilder) Limit(limit int) *listFilesBuilder {
 	b.opts.Limit = limit
@@ -86,7 +82,6 @@ func (b *listFilesBuilder) Execute() (*PNListFilesResponse, StatusResponse, erro
 
 type listFilesOpts struct {
 	endpointOpts
-	pubnub *PubNub
 
 	Limit      int
 	Next       string
@@ -94,8 +89,6 @@ type listFilesOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
 }
 
 func (o *listFilesOpts) validate() error {

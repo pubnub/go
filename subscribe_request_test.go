@@ -10,10 +10,8 @@ import (
 
 func TestSubscribeSingleChannel(t *testing.T) {
 	assert := assert.New(t)
-	opts := &subscribeOpts{
-		Channels: []string{"ch"},
-		pubnub:   pubnub,
-	}
+	opts := newSubscribeOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -26,10 +24,8 @@ func TestSubscribeSingleChannel(t *testing.T) {
 
 func TestSubscribeMultipleChannels(t *testing.T) {
 	assert := assert.New(t)
-	opts := &subscribeOpts{
-		Channels: []string{"ch-1", "ch-2", "ch-3"},
-		pubnub:   pubnub,
-	}
+	opts := newSubscribeOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch-1", "ch-2", "ch-3"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -43,10 +39,8 @@ func TestSubscribeMultipleChannels(t *testing.T) {
 
 func TestSubscribeChannelGroups(t *testing.T) {
 	assert := assert.New(t)
-	opts := &subscribeOpts{
-		ChannelGroups: []string{"cg-1", "cg-2", "cg-3"},
-		pubnub:        pubnub,
-	}
+	opts := newSubscribeOpts(pubnub, pubnub.ctx)
+	opts.ChannelGroups = []string{"cg-1", "cg-2", "cg-3"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -69,14 +63,12 @@ func TestSubscribeChannelGroups(t *testing.T) {
 func TestSubscribeMixedParams(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &subscribeOpts{
-		Channels:         []string{"ch"},
-		ChannelGroups:    []string{"cg"},
-		Region:           "us-east-1",
-		Timetoken:        123,
-		FilterExpression: "abc",
-		pubnub:           pubnub,
-	}
+	opts := newSubscribeOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch"}
+	opts.ChannelGroups = []string{"cg"}
+	opts.Region = "us-east-1"
+	opts.Timetoken = 123
+	opts.FilterExpression = "abc"
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -104,14 +96,12 @@ func TestSubscribeMixedParams(t *testing.T) {
 func TestSubscribeMixedQueryParams(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &subscribeOpts{
-		Channels:         []string{"ch"},
-		ChannelGroups:    []string{"cg"},
-		Region:           "us-east-1",
-		Timetoken:        123,
-		FilterExpression: "abc",
-		pubnub:           pubnub,
-	}
+	opts := newSubscribeOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch"}
+	opts.ChannelGroups = []string{"cg"}
+	opts.Region = "us-east-1"
+	opts.Timetoken = 123
+	opts.FilterExpression = "abc"
 	queryParam := map[string]string{
 		"q1": "v1",
 		"q2": "v2",
@@ -138,14 +128,12 @@ func TestSubscribeValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &subscribeOpts{
-		Channels:         []string{"ch"},
-		ChannelGroups:    []string{"cg"},
-		Region:           "us-east-1",
-		Timetoken:        123,
-		FilterExpression: "abc",
-		pubnub:           pn,
-	}
+	opts := newSubscribeOpts(pn, pn.ctx)
+	opts.Channels = []string{"ch"}
+	opts.ChannelGroups = []string{"cg"}
+	opts.Region = "us-east-1"
+	opts.Timetoken = 123
+	opts.FilterExpression = "abc"
 
 	assert.Equal("pubnub/validation: pubnub: Subscribe: Missing Subscribe Key", opts.validate().Error())
 }
@@ -154,14 +142,12 @@ func TestSubscribeValidatePublishKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.PublishKey = ""
-	opts := &subscribeOpts{
-		Channels:         []string{"ch"},
-		ChannelGroups:    []string{"cg"},
-		Region:           "us-east-1",
-		Timetoken:        123,
-		FilterExpression: "abc",
-		pubnub:           pn,
-	}
+	opts := newSubscribeOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch"}
+	opts.ChannelGroups = []string{"cg"}
+	opts.Region = "us-east-1"
+	opts.Timetoken = 123
+	opts.FilterExpression = "abc"
 
 	assert.Nil(opts.validate())
 }
@@ -169,12 +155,10 @@ func TestSubscribeValidatePublishKey(t *testing.T) {
 func TestSubscribeValidateCHAndCG(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &subscribeOpts{
-		Region:           "us-east-1",
-		Timetoken:        123,
-		FilterExpression: "abc",
-		pubnub:           pn,
-	}
+	opts := newSubscribeOpts(pn, pn.ctx)
+	opts.Region = "us-east-1"
+	opts.Timetoken = 123
+	opts.FilterExpression = "abc"
 
 	assert.Equal("pubnub/validation: pubnub: Subscribe: Missing Channel", opts.validate().Error())
 }
@@ -182,14 +166,12 @@ func TestSubscribeValidateCHAndCG(t *testing.T) {
 func TestSubscribeValidateState(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &subscribeOpts{
-		Channels:         []string{"ch"},
-		ChannelGroups:    []string{"cg"},
-		Region:           "us-east-1",
-		Timetoken:        123,
-		FilterExpression: "abc",
-		pubnub:           pn,
-	}
+	opts := newSubscribeOpts(pn, pn.ctx)
+	opts.Channels = []string{"ch"}
+	opts.ChannelGroups = []string{"cg"}
+	opts.Region = "us-east-1"
+	opts.Timetoken = 123
+	opts.FilterExpression = "abc"
 	opts.State = map[string]interface{}{"a": "a"}
 
 	assert.Nil(opts.validate())

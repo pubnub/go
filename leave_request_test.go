@@ -12,10 +12,8 @@ import (
 func TestLeaveRequestSingleChannel(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &leaveOpts{
-		Channels: []string{"ch"},
-		pubnub:   pubnub,
-	}
+	opts := newLeaveOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -31,10 +29,8 @@ func TestLeaveRequestSingleChannel(t *testing.T) {
 func TestLeaveRequestMultipleChannels(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &leaveOpts{
-		Channels: []string{"ch1", "ch2", "ch3"},
-		pubnub:   pubnub,
-	}
+	opts := newLeaveOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -49,10 +45,8 @@ func TestLeaveRequestMultipleChannels(t *testing.T) {
 func TestLeaveRequestSingleChannelGroup(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &leaveOpts{
-		ChannelGroups: []string{"cg"},
-		pubnub:        pubnub,
-	}
+	opts := newLeaveOpts(pubnub, pubnub.ctx)
+	opts.ChannelGroups = []string{"cg"}
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
@@ -66,10 +60,9 @@ func TestLeaveRequestSingleChannelGroup(t *testing.T) {
 func TestLeaveRequestSingleChannelGroupQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &leaveOpts{
-		ChannelGroups: []string{"cg"},
-		pubnub:        pubnub,
-	}
+	opts := newLeaveOpts(pubnub, pubnub.ctx)
+	opts.ChannelGroups = []string{"cg"}
+
 	queryParam := map[string]string{
 		"q1": "v1",
 		"q2": "v2",
@@ -92,10 +85,8 @@ func TestLeaveRequestSingleChannelGroupQueryParam(t *testing.T) {
 func TestLeaveRequestMultipleChannelGroups(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &leaveOpts{
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pubnub,
-	}
+	opts := newLeaveOpts(pubnub, pubnub.ctx)
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
@@ -109,11 +100,9 @@ func TestLeaveRequestMultipleChannelGroups(t *testing.T) {
 func TestLeaveRequestChannelsAndGroups(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &leaveOpts{
-		Channels:      []string{"ch1", "ch2", "ch3"},
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pubnub,
-	}
+	opts := newLeaveOpts(pubnub, pubnub.ctx)
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -135,11 +124,10 @@ func TestLeaveRequestChannelsAndGroups(t *testing.T) {
 
 func TestLeaveRequestBuildQuery(t *testing.T) {
 	assert := assert.New(t)
-	opts := &leaveOpts{
-		Channels:      []string{"ch1", "ch2", "ch3"},
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pubnub,
-	}
+	opts := newLeaveOpts(pubnub, pubnub.ctx)
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+
 	query, err := opts.buildQuery()
 	assert.NotNil(query)
 	assert.Nil(err)
@@ -148,9 +136,7 @@ func TestLeaveRequestBuildQuery(t *testing.T) {
 
 func TestLeaveRequestBuildPath(t *testing.T) {
 	assert := assert.New(t)
-	opts := &leaveOpts{
-		pubnub: pubnub,
-	}
+	opts := newLeaveOpts(pubnub, pubnub.ctx)
 	path, err := opts.buildPath()
 	assert.Nil(err)
 	u := &url.URL{
@@ -196,9 +182,7 @@ func TestLeaveOptsValidateSub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &leaveOpts{
-		pubnub: pn,
-	}
+	opts := newLeaveOpts(pn, pn.ctx)
 
 	assert.Equal("pubnub/validation: pubnub: Unsubscribe: Missing Subscribe Key", opts.validate().Error())
 }
@@ -206,9 +190,7 @@ func TestLeaveOptsValidateSub(t *testing.T) {
 func TestLeaveOptsValidateCH(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &leaveOpts{
-		pubnub: pn,
-	}
+	opts := newLeaveOpts(pn, pn.ctx)
 
 	assert.Equal("pubnub/validation: pubnub: Unsubscribe: Missing Channel or Channel Group", opts.validate().Error())
 }

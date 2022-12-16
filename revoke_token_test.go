@@ -60,9 +60,7 @@ func TestRevokeTokenContext(t *testing.T) {
 func TestRevokeTokenResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &revokeTokenOpts{
-		pubnub: pn,
-	}
+	opts := newRevokeTokenOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNRevokeTokenResponse(jsonBytes, opts, StatusResponse{})
@@ -72,9 +70,7 @@ func TestRevokeTokenResponseValueError(t *testing.T) {
 func TestRevokeTokenResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &revokeTokenOpts{
-		pubnub: pn,
-	}
+	opts := newRevokeTokenOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200}`)
 
 	_, s, err := newPNRevokeTokenResponse(jsonBytes, opts, StatusResponse{StatusCode: 200})

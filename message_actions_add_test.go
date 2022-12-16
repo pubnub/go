@@ -71,9 +71,7 @@ func TestAddMessageActionsContext(t *testing.T) {
 func TestAddMessageActionsResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &addMessageActionsOpts{
-		pubnub: pn,
-	}
+	opts := newAddMessageActionsOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNAddMessageActionsResponse(jsonBytes, opts, StatusResponse{})
@@ -83,9 +81,7 @@ func TestAddMessageActionsResponseValueError(t *testing.T) {
 func TestAddMessageActionsResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &addMessageActionsOpts{
-		pubnub: pn,
-	}
+	opts := newAddMessageActionsOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status": 200, "data": {"messageTimetoken": "15210190573608384", "type": "reaction", "uuid": "pn-871b8325-a11f-48cb-9c15-64984790703e", "value": "smiley_face", "actionTimetoken": "15692384791344400"}}`)
 
 	r, _, err := newPNAddMessageActionsResponse(jsonBytes, opts, StatusResponse{})

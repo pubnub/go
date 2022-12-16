@@ -16,26 +16,23 @@ var (
 )
 
 func initHistoryOpts() *historyOpts {
-	return &historyOpts{
-		Channel:          "ch",
-		Start:            int64(100000),
-		End:              int64(200000),
-		setStart:         true,
-		setEnd:           true,
-		Reverse:          false,
-		Count:            3,
-		IncludeTimetoken: true,
-		pubnub:           pubnub,
-	}
+	opts := newHistoryOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Start = int64(100000)
+	opts.End = int64(200000)
+	opts.setStart = true
+	opts.setEnd = true
+	opts.Reverse = false
+	opts.Count = 3
+	opts.IncludeTimetoken = true
+	return opts
 }
 
 func TestHistoryRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &historyOpts{
-		Channel: "ch",
-		pubnub:  pubnub,
-	}
+	opts := newHistoryOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -124,17 +121,15 @@ func TestNewHistoryBuilderContext(t *testing.T) {
 func TestHistoryRequestAllParams(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &historyOpts{
-		Channel:          "ch",
-		Start:            int64(100000),
-		End:              int64(200000),
-		setStart:         true,
-		setEnd:           true,
-		Reverse:          false,
-		Count:            3,
-		IncludeTimetoken: true,
-		pubnub:           pubnub,
-	}
+	opts := newHistoryOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Start = int64(100000)
+	opts.End = int64(200000)
+	opts.setStart = true
+	opts.setEnd = true
+	opts.Reverse = false
+	opts.Count = 3
+	opts.IncludeTimetoken = true
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -160,17 +155,15 @@ func TestHistoryRequestAllParams(t *testing.T) {
 func HistoryRequestWithMetaCommon(t *testing.T, withMeta bool) {
 	assert := assert.New(t)
 
-	opts := &historyOpts{
-		Channel:          "ch",
-		Start:            int64(100000),
-		End:              int64(200000),
-		setStart:         true,
-		setEnd:           true,
-		Reverse:          false,
-		Count:            3,
-		IncludeTimetoken: true,
-		pubnub:           pubnub,
-	}
+	opts := newHistoryOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Start = int64(100000)
+	opts.End = int64(200000)
+	opts.setStart = true
+	opts.setEnd = true
+	opts.Reverse = false
+	opts.Count = 3
+	opts.IncludeTimetoken = true
 	opts.WithMeta = withMeta
 
 	path, err := opts.buildPath()

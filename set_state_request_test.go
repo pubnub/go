@@ -91,12 +91,10 @@ func TestSetStateRequestBasic(t *testing.T) {
 	state["name"] = "Alex"
 	state["count"] = 5
 
-	opts := &setStateOpts{
-		Channels:      []string{"ch"},
-		ChannelGroups: []string{"cg"},
-		State:         state,
-		pubnub:        pubnub,
-	}
+	opts := newSetStateOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch"}
+	opts.ChannelGroups = []string{"cg"}
+	opts.State = state
 
 	err := opts.validate()
 	assert.Nil(err)
@@ -129,10 +127,9 @@ func TestSetStateRequestBasic(t *testing.T) {
 func TestSetStateMultipleChannels(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &setStateOpts{
-		Channels: []string{"ch1", "ch2", "ch3"},
-		pubnub:   pubnub,
-	}
+	opts := newSetStateOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.ChannelGroups = []string{"cg"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -150,10 +147,8 @@ func TestSetStateMultipleChannels(t *testing.T) {
 func TestSetStateMultipleChannelGroups(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &setStateOpts{
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pubnub,
-	}
+	opts := newSetStateOpts(pubnub, pubnub.ctx)
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
@@ -166,10 +161,9 @@ func TestSetStateMultipleChannelGroups(t *testing.T) {
 func TestSetStateMultipleChannelGroupsQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &setStateOpts{
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pubnub,
-	}
+	opts := newSetStateOpts(pubnub, pubnub.ctx)
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
+
 	queryParam := map[string]string{
 		"q1": "v1",
 		"q2": "v2",
@@ -192,10 +186,8 @@ func TestSetStateValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &setStateOpts{
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pn,
-	}
+	opts := newSetStateOpts(pn, pn.ctx)
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
 
 	assert.Equal("pubnub/validation: pubnub: Set State: Missing Subscribe Key", opts.validate().Error())
 }
@@ -203,9 +195,7 @@ func TestSetStateValidateSubscribeKey(t *testing.T) {
 func TestSetStateValidateCG(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &setStateOpts{
-		pubnub: pn,
-	}
+	opts := newSetStateOpts(pn, pn.ctx)
 
 	assert.Equal("pubnub/validation: pubnub: Set State: Missing Channel or Channel Group", opts.validate().Error())
 }
@@ -213,10 +203,8 @@ func TestSetStateValidateCG(t *testing.T) {
 func TestSetStateValidateState(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &setStateOpts{
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pn,
-	}
+	opts := newSetStateOpts(pn, pn.ctx)
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
 
 	assert.Equal("pubnub/validation: pubnub: Set State: Missing State", opts.validate().Error())
 }

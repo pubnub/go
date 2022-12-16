@@ -314,17 +314,14 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 		tr := m.region
 		m.Unlock()
 
-		opts := &subscribeOpts{
-			pubnub:           m.pubnub,
-			Channels:         combinedChannels,
-			ChannelGroups:    combinedGroups,
-			Timetoken:        tt,
-			Region:           strconv.Itoa(int(tr)),
-			Heartbeat:        m.pubnub.Config.PresenceTimeout,
-			FilterExpression: m.pubnub.Config.FilterExpression,
-			ctx:              ctx,
-			QueryParam:       m.queryParam,
-		}
+		opts := newSubscribeOpts(m.pubnub, ctx)
+		opts.Channels = combinedChannels
+		opts.ChannelGroups = combinedGroups
+		opts.Timetoken = tt
+		opts.Region = strconv.Itoa(int(tr))
+		opts.Heartbeat = m.pubnub.Config.PresenceTimeout
+		opts.FilterExpression = m.pubnub.Config.FilterExpression
+		opts.QueryParam = m.queryParam
 
 		if s := m.stateManager.createStatePayload(); len(s) > 0 {
 			opts.State = s

@@ -150,9 +150,7 @@ func TestSetMembershipsWithFilterWithSortContext(t *testing.T) {
 func TestSetMembershipsResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &setMembershipsOpts{
-		pubnub: pn,
-	}
+	opts := newSetMembershipsOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNSetMembershipsResponse(jsonBytes, opts, StatusResponse{})
@@ -162,9 +160,7 @@ func TestSetMembershipsResponseValueError(t *testing.T) {
 func TestSetMembershipsResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &setMembershipsOpts{
-		pubnub: pn,
-	}
+	opts := newSetMembershipsOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200,"data":[{"id":"spaceid3","custom":{"a3":"b3","c3":"d3"},"channel":{"id":"spaceid3","name":"spaceid3name","description":"spaceid3desc","custom":{"a":"b"},"created":"2019-08-23T10:34:43.985248Z","updated":"2019-08-23T10:34:43.985248Z","eTag":"Aazjn7vC3oDDYw"},"created":"2019-08-23T10:41:17.156491Z","updated":"2019-08-23T10:41:17.156491Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ"}`)
 
 	r, _, err := newPNSetMembershipsResponse(jsonBytes, opts, StatusResponse{})

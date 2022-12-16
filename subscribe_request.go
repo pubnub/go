@@ -11,6 +11,15 @@ import (
 
 const subscribePath = "/v2/subscribe/%s/%s/0"
 
+func newSubscribeOpts(pubnub *PubNub, ctx Context) *subscribeOpts {
+	return &subscribeOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type subscribeOpts struct {
 	endpointOpts
 
@@ -33,9 +42,7 @@ type subscribeBuilder struct {
 
 func newSubscribeBuilder(pubnub *PubNub) *subscribeBuilder {
 	builder := subscribeBuilder{
-		opts: &subscribeOpts{
-			pubnub: pubnub,
-		},
+		opts:      newSubscribeOpts(pubnub, pubnub.ctx),
 		operation: &SubscribeOperation{},
 	}
 

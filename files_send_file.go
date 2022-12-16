@@ -21,24 +21,18 @@ type sendFileBuilder struct {
 }
 
 func newSendFileBuilder(pubnub *PubNub) *sendFileBuilder {
-	builder := sendFileBuilder{
-		opts: &sendFileOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newSendFileBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newSendFileOpts(pubnub *PubNub, ctx Context) *sendFileOpts {
-return &sendFileOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &sendFileOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newSendFileBuilderWithContext(pubnub *PubNub,
 	context Context) *sendFileBuilder {
 	builder := sendFileBuilder{
 		opts: newSendFileOpts(pubnub, context)}
 	return &builder
 }
-
 
 // TTL sets the TTL (hours) for the Publish request.
 func (b *sendFileBuilder) TTL(ttl int) *sendFileBuilder {
@@ -115,7 +109,6 @@ func (b *sendFileBuilder) Execute() (*PNSendFileResponse, StatusResponse, error)
 
 type sendFileOpts struct {
 	endpointOpts
-	pubnub *PubNub
 
 	Channel     string
 	Name        string
@@ -128,8 +121,6 @@ type sendFileOpts struct {
 	QueryParam  map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
 }
 
 func (o *sendFileOpts) validate() error {

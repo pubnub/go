@@ -78,6 +78,24 @@ func (b *removeAllPushChannelsForDeviceBuilder) Execute() (
 	return emptyRemoveAllPushChannelsForDeviceResponse, status, err
 }
 
+func newRemoveAllPushChannelsForDeviceOpts(pubnub *PubNub, ctx Context) *removeAllPushChannelsForDeviceOpts {
+	return &removeAllPushChannelsForDeviceOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
+func newRemoveAllPushCHannelsForDeviceOpts(pubnub *PubNub, ctx Context) *removeAllPushChannelsForDeviceOpts {
+	return &removeAllPushChannelsForDeviceOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type removeAllPushChannelsForDeviceOpts struct {
 	endpointOpts
 	PushType        PNPushType

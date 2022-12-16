@@ -22,11 +22,9 @@ func init() {
 func TestRemoveChannelRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &removeChannelOpts{
-		Channels:     []string{"ch1", "ch2", "ch3"},
-		ChannelGroup: "cg",
-		pubnub:       pubnub,
-	}
+	opts := newRemoveChannelOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.ChannelGroup = "cg"
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -57,12 +55,10 @@ func TestRemoveChannelRequestBasicQueryParam(t *testing.T) {
 		"q2": "v2",
 	}
 
-	opts := &removeChannelOpts{
-		Channels:     []string{"ch1", "ch2", "ch3"},
-		ChannelGroup: "cg",
-		pubnub:       pubnub,
-		QueryParam:   queryParam,
-	}
+	opts := newRemoveChannelOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.ChannelGroup = "cg"
+	opts.QueryParam = queryParam
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
@@ -140,9 +136,7 @@ func TestRemChannelsFromCGValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &removeChannelOpts{
-		pubnub: pn,
-	}
+	opts := newRemoveChannelOpts(pn, pn.ctx)
 
 	assert.Equal("pubnub/validation: pubnub: Remove Channel From Channel Group: Missing Subscribe Key", opts.validate().Error())
 }

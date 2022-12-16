@@ -72,9 +72,7 @@ func TestGetUUIDMetadataContext(t *testing.T) {
 func TestGetUUIDMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getUUIDMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newGetUUIDMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNGetUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})
@@ -84,9 +82,7 @@ func TestGetUUIDMetadataResponseValueError(t *testing.T) {
 func TestGetUUIDMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getUUIDMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newGetUUIDMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:19.140324Z","updated":"2019-08-20T13:26:19.140324Z","eTag":"AbyT4v2p6K7fpQE"}}`)
 
 	r, _, err := newPNGetUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})

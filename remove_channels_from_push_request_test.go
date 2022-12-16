@@ -9,40 +9,32 @@ import (
 func TestRemoveChannelsFromPushRequestValidate(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &removeChannelsFromPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	opts := newRemoveChannelsFromPushOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	err := opts.validate()
 	assert.Nil(err)
 
-	opts1 := &removeChannelsFromPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeNone,
-		pubnub:          pubnub,
-	}
+	opts1 := newRemoveChannelsFromPushOpts(pubnub, pubnub.ctx)
+	opts1.Channels = []string{"ch1", "ch2", "ch3"}
+	opts1.DeviceIDForPush = "deviceId"
+	opts1.PushType = PNPushTypeNone
 
 	err1 := opts1.validate()
 	assert.Contains(err1.Error(), "Missing Push Type")
 
-	opts2 := &removeChannelsFromPushOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	opts2 := newRemoveChannelsFromPushOpts(pubnub, pubnub.ctx)
+	opts2.DeviceIDForPush = "deviceId"
+	opts2.PushType = PNPushTypeAPNS
 
 	err2 := opts2.validate()
 	assert.Contains(err2.Error(), "Missing Channel")
 
-	opts3 := &removeChannelsFromPushOpts{
-		Channels: []string{"ch1", "ch2", "ch3"},
-		PushType: PNPushTypeAPNS,
-		pubnub:   pubnub,
-	}
+	opts3 := newRemoveChannelsFromPushOpts(pubnub, pubnub.ctx)
+	opts3.Channels = []string{"ch1", "ch2", "ch3"}
+	opts3.PushType = PNPushTypeAPNS
 
 	err3 := opts3.validate()
 	assert.Contains(err3.Error(), "Missing Device ID")
@@ -51,12 +43,10 @@ func TestRemoveChannelsFromPushRequestValidate(t *testing.T) {
 func TestRemoveChannelsFromPushRequestBuildPath(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &removeChannelsFromPushOpts{
-		DeviceIDForPush: "deviceId",
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	opts := newRemoveChannelsFromPushOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	str, err := opts.buildPath()
 	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId", str)
@@ -71,13 +61,11 @@ func TestRemoveChannelsFromPushRequestBuildQueryParam(t *testing.T) {
 		"q2": "v2",
 	}
 
-	opts := &removeChannelsFromPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-		QueryParam:      queryParam,
-	}
+	opts := newRemoveChannelsFromPushOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
+	opts.QueryParam = queryParam
 
 	u, err := opts.buildQuery()
 	assert.Equal("ch1,ch2,ch3", u.Get("remove"))
@@ -95,15 +83,13 @@ func TestRemoveChannelsFromPushRequestBuildQueryParamTopicAndEnv(t *testing.T) {
 		"q2": "v2",
 	}
 
-	opts := &removeChannelsFromPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-		QueryParam:      queryParam,
-		Topic:           "a",
-		Environment:     PNPushEnvironmentProduction,
-	}
+	opts := newRemoveChannelsFromPushOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
+	opts.QueryParam = queryParam
+	opts.Topic = "a"
+	opts.Environment = PNPushEnvironmentProduction
 
 	u, err := opts.buildQuery()
 	assert.Equal("ch1,ch2,ch3", u.Get("remove"))
@@ -119,12 +105,10 @@ func TestRemoveChannelsFromPushRequestBuildQueryParamTopicAndEnv(t *testing.T) {
 func TestRemoveChannelsFromPushRequestBuildQuery(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &removeChannelsFromPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	opts := newRemoveChannelsFromPushOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	u, err := opts.buildQuery()
 	assert.Equal("ch1,ch2,ch3", u.Get("remove"))
@@ -136,12 +120,10 @@ func TestRemoveChannelsFromPushRequestBuildQuery(t *testing.T) {
 func TestRemoveChannelsFromPushRequestBuildBody(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &removeChannelsFromPushOpts{
-		Channels:        []string{"ch1", "ch2", "ch3"},
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	opts := newRemoveChannelsFromPushOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	_, err := opts.buildBody()
 	assert.Nil(err)
@@ -179,11 +161,10 @@ func TestRemChannelsFromPushValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &removeChannelsFromPushOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pn,
-	}
+
+	opts := newRemoveChannelsFromPushOpts(pn, pn.ctx)
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	assert.Equal("pubnub/validation: pubnub: Remove Channel Group: Missing Subscribe Key", opts.validate().Error())
 }

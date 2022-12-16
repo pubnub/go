@@ -60,9 +60,7 @@ func TestListFilesContext(t *testing.T) {
 func TestListFilesResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &listFilesOpts{
-		pubnub: pn,
-	}
+	opts := newListFilesOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNListFilesResponse(jsonBytes, opts, StatusResponse{})
@@ -72,9 +70,7 @@ func TestListFilesResponseValueError(t *testing.T) {
 func TestListFilesResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &listFilesOpts{
-		pubnub: pn,
-	}
+	opts := newListFilesOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200,"data":[{"name":"test_file_upload_name_42893.txt","id":"9ef0e123-1e4a-40b9-89d5-f4be0e8b1f2c","size":21904,"created":"2020-07-21T09:10:55Z"}],"next":null,"count":1}`)
 
 	r, _, err := newPNListFilesResponse(jsonBytes, opts, StatusResponse{})

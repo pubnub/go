@@ -20,24 +20,19 @@ type deleteFileBuilder struct {
 }
 
 func newDeleteFileBuilder(pubnub *PubNub) *deleteFileBuilder {
-	builder := deleteFileBuilder{
-		opts: &deleteFileOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newDeleteFileBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newDeleteFileOpts(pubnub *PubNub, ctx Context) *deleteFileOpts {
-return &deleteFileOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &deleteFileOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
+
 func newDeleteFileBuilderWithContext(pubnub *PubNub,
 	context Context) *deleteFileBuilder {
 	builder := deleteFileBuilder{
 		opts: newDeleteFileOpts(pubnub, context)}
 	return &builder
 }
-
 
 func (b *deleteFileBuilder) Channel(channel string) *deleteFileBuilder {
 	b.opts.Channel = channel
@@ -82,7 +77,6 @@ func (b *deleteFileBuilder) Execute() (*PNDeleteFileResponse, StatusResponse, er
 
 type deleteFileOpts struct {
 	endpointOpts
-	pubnub *PubNub
 
 	Channel    string
 	ID         string
@@ -90,8 +84,6 @@ type deleteFileOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
 }
 
 func (o *deleteFileOpts) client() *http.Client {

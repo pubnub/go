@@ -71,9 +71,7 @@ func TestGetChannelMetadataContext(t *testing.T) {
 func TestGetChannelMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getChannelMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newGetChannelMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNGetChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
@@ -83,9 +81,7 @@ func TestGetChannelMetadataResponseValueError(t *testing.T) {
 func TestGetChannelMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getChannelMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newGetChannelMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"}}`)
 
 	r, _, err := newPNGetChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
