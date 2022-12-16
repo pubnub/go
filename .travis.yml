@@ -19,10 +19,10 @@ stages:
 
 jobs:
   include:
-#    - name: 'Go 1.16.15'
-#      go: 1.16.15
-#      script:
-#        - bash ./scripts/run-tests.sh -mod=mod
+    - name: 'Go 1.16.15'
+      go: 1.16.15
+      script:
+        - bash ./scripts/run-tests.sh -mod=mod
     - name: 'Go 1.17.13'
       go: 1.17.13
       script:
