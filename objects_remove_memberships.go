@@ -230,10 +230,6 @@ func (o *removeMembershipsOpts) operationType() OperationType {
 	return PNRemoveMembershipsOperation
 }
 
-func (o *removeMembershipsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNRemoveMembershipsResponse is the Objects API Response for RemoveMemberships
 type PNRemoveMembershipsResponse struct {
 	status     int             `json:"status"`

@@ -232,10 +232,6 @@ func (o *manageMembersOptsV2) operationType() OperationType {
 	return PNManageMembersOperation
 }
 
-func (o *manageMembersOptsV2) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNManageMembersResponse is the Objects API Response for ManageMembers
 type PNManageMembersResponse struct {
 	status     int                `json:"status"`

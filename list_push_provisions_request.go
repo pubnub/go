@@ -191,7 +191,3 @@ func (o *listPushProvisionsRequestOpts) connectTimeout() int {
 func (o *listPushProvisionsRequestOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
 }
-
-func (o *listPushProvisionsRequestOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}

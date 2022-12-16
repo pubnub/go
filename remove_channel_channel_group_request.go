@@ -139,10 +139,6 @@ func (o *removeChannelOpts) operationType() OperationType {
 	return PNRemoveChannelFromChannelGroupOperation
 }
 
-func (o *removeChannelOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // RemoveChannelFromChannelGroupResponse is the struct returned when the Execute function of RemoveChannelFromChannelGroup is called.
 type RemoveChannelFromChannelGroupResponse struct {
 }

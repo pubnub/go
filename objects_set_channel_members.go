@@ -230,10 +230,6 @@ func (o *setChannelMembersOpts) operationType() OperationType {
 	return PNSetChannelMembersOperation
 }
 
-func (o *setChannelMembersOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNSetChannelMembersResponse is the Objects API Response for SetChannelMembers
 type PNSetChannelMembersResponse struct {
 	status     int                `json:"status"`

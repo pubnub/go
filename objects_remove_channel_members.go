@@ -227,10 +227,6 @@ func (o *removeChannelMembersOpts) operationType() OperationType {
 	return PNRemoveChannelMembersOperation
 }
 
-func (o *removeChannelMembersOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNRemoveChannelMembersResponse is the Objects API Response for RemoveChannelMembers
 type PNRemoveChannelMembersResponse struct {
 	status     int                `json:"status"`

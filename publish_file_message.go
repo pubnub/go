@@ -284,10 +284,6 @@ func (o *publishFileMessageOpts) operationType() OperationType {
 	return PNPublishFileMessageOperation
 }
 
-func (o *publishFileMessageOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PublishFileMessageResponse is the response to PublishFileMessage request.
 type PublishFileMessageResponse struct {
 	Timestamp int64

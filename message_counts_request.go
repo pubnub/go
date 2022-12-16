@@ -161,10 +161,6 @@ func (o *messageCountsOpts) operationType() OperationType {
 	return PNMessageCountsOperation
 }
 
-func (o *messageCountsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // MessageCountsResponse is the response to MessageCounts request. It contains a map of type MessageCountsResponseItem
 type MessageCountsResponse struct {
 	Channels map[string]int

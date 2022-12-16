@@ -104,7 +104,3 @@ func (o *leaveOpts) validate() error {
 func (o *leaveOpts) operationType() OperationType {
 	return PNUnsubscribeOperation
 }
-
-func (o *leaveOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}

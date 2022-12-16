@@ -171,6 +171,3 @@ func (o *removeChannelsFromPushOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
 }
 
-func (o *removeChannelsFromPushOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}

@@ -166,10 +166,6 @@ func (o *setStateOpts) operationType() OperationType {
 	return PNSetStateOperation
 }
 
-func (o *setStateOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 func newSetStateResponse(jsonBytes []byte, status StatusResponse) (
 	*SetStateResponse, StatusResponse, error) {
 	resp := &SetStateResponse{}

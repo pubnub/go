@@ -128,10 +128,6 @@ func (o *removeMessageActionsOpts) operationType() OperationType {
 	return PNRemoveMessageActionsOperation
 }
 
-func (o *removeMessageActionsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNRemoveMessageActionsResponse is the Objects API Response for create space
 type PNRemoveMessageActionsResponse struct {
 	status int         `json:"status"`

@@ -171,10 +171,6 @@ func (o *setChannelMetadataOpts) operationType() OperationType {
 	return PNSetChannelMetadataOperation
 }
 
-func (o *setChannelMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNSetChannelMetadataResponse is the Objects API Response for Update Space
 type PNSetChannelMetadataResponse struct {
 	status int       `json:"status"`

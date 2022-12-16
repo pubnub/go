@@ -126,10 +126,6 @@ func (o *getChannelMetadataOpts) operationType() OperationType {
 	return PNGetChannelMetadataOperation
 }
 
-func (o *getChannelMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNGetChannelMetadataResponse is the Objects API Response for Get Space
 type PNGetChannelMetadataResponse struct {
 	status int       `json:"status"`

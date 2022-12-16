@@ -118,10 +118,6 @@ func (o *removeChannelMetadataOpts) operationType() OperationType {
 	return PNRemoveChannelMetadataOperation
 }
 
-func (o *removeChannelMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNRemoveChannelMetadataResponse is the Objects API Response for delete space
 type PNRemoveChannelMetadataResponse struct {
 	status int         `json:"status"`

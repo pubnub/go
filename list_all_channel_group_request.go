@@ -111,10 +111,6 @@ func (o *allChannelGroupOpts) operationType() OperationType {
 	return PNChannelsForGroupOperation
 }
 
-func (o *allChannelGroupOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // AllChannelGroupResponse is the struct returned when the Execute function of List All Channel Groups is called.
 type AllChannelGroupResponse struct {
 	Channels     []string

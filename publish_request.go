@@ -376,7 +376,3 @@ func (o *publishOpts) connectTimeout() int {
 func (o *publishOpts) operationType() OperationType {
 	return PNPublishOperation
 }
-
-func (o *publishOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}

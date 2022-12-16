@@ -127,10 +127,6 @@ func (o *getUUIDMetadataOpts) operationType() OperationType {
 	return PNGetUUIDMetadataOperation
 }
 
-func (o *getUUIDMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNGetUUIDMetadataResponse is the Objects API Response for Get User
 type PNGetUUIDMetadataResponse struct {
 	status int    `json:"status"`

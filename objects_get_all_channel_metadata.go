@@ -194,10 +194,6 @@ func (o *getAllChannelMetadataOpts) operationType() OperationType {
 	return PNGetAllChannelMetadataOperation
 }
 
-func (o *getAllChannelMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNGetAllChannelMetadataResponse is the Objects API Response for Get Spaces
 type PNGetAllChannelMetadataResponse struct {
 	status     int         `json:"status"`

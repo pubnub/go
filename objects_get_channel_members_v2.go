@@ -206,10 +206,6 @@ func (o *getChannelMembersOptsV2) operationType() OperationType {
 	return PNGetChannelMembersOperation
 }
 
-func (o *getChannelMembersOptsV2) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNGetChannelMembersResponse is the Objects API Response for Get Members
 type PNGetChannelMembersResponse struct {
 	status     int                `json:"status"`

@@ -169,7 +169,3 @@ func (o *removeAllPushChannelsForDeviceOpts) connectTimeout() int {
 func (o *removeAllPushChannelsForDeviceOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
 }
-
-func (o *removeAllPushChannelsForDeviceOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}

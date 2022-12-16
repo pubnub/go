@@ -206,10 +206,6 @@ func (o *getMembershipsOptsV2) operationType() OperationType {
 	return PNGetMembershipsOperation
 }
 
-func (o *getMembershipsOptsV2) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNGetMembershipsResponse is the Objects API Response for Get Memberships
 type PNGetMembershipsResponse struct {
 	status     int             `json:"status"`

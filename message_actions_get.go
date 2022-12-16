@@ -147,10 +147,6 @@ func (o *getMessageActionsOpts) operationType() OperationType {
 	return PNGetMessageActionsOperation
 }
 
-func (o *getMessageActionsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNGetMessageActionsMore is the struct used when the PNGetMessageActionsResponse has more link
 type PNGetMessageActionsMore struct {
 	URL   string `json:"url"`

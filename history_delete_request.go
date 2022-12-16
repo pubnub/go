@@ -145,10 +145,6 @@ func (o *historyDeleteOpts) operationType() OperationType {
 	return PNDeleteMessagesOperation
 }
 
-func (o *historyDeleteOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // HistoryDeleteResponse is the struct returned when Delete Messages is called.
 type HistoryDeleteResponse struct {
 }

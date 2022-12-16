@@ -94,10 +94,6 @@ func (o *timeOpts) operationType() OperationType {
 	return PNTimeOperation
 }
 
-func (o *timeOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // TimeResponse is the response when Time call is executed.
 type TimeResponse struct {
 	Timetoken int64

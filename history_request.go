@@ -194,10 +194,6 @@ func (o *historyOpts) operationType() OperationType {
 	return PNHistoryOperation
 }
 
-func (o *historyOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // HistoryResponse is used to store the response from the History request.
 type HistoryResponse struct {
 	Messages       []HistoryResponseItem

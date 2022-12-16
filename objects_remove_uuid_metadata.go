@@ -120,10 +120,6 @@ func (o *removeUUIDMetadataOpts) operationType() OperationType {
 	return PNRemoveUUIDMetadataOperation
 }
 
-func (o *removeUUIDMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNRemoveUUIDMetadataResponse is the Objects API Response for delete user
 type PNRemoveUUIDMetadataResponse struct {
 	status int         `json:"status"`

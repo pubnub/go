@@ -230,10 +230,6 @@ func (o *setMembershipsOpts) operationType() OperationType {
 	return PNSetMembershipsOperation
 }
 
-func (o *setMembershipsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNSetMembershipsResponse is the Objects API Response for SetMemberships
 type PNSetMembershipsResponse struct {
 	status     int             `json:"status"`

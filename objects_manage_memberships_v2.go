@@ -231,10 +231,6 @@ func (o *manageMembershipsOptsV2) operationType() OperationType {
 	return PNManageMembershipsOperation
 }
 
-func (o *manageMembershipsOptsV2) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNManageMembershipsResponse is the Objects API Response for ManageMemberships
 type PNManageMembershipsResponse struct {
 	status     int             `json:"status"`

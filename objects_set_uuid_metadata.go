@@ -190,10 +190,6 @@ func (o *setUUIDMetadataOpts) operationType() OperationType {
 	return PNSetUUIDMetadataOperation
 }
 
-func (o *setUUIDMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
-}
-
 // PNSetUUIDMetadataResponse is the Objects API Response for Update user
 type PNSetUUIDMetadataResponse struct {
 	status int    `json:"status"`
