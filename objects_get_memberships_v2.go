@@ -186,10 +186,6 @@ func (o *getMembershipsOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getMembershipsOptsV2) httpMethod() string {
-	return "GET"
-}
-
 func (o *getMembershipsOptsV2) isAuthRequired() bool {
 	return true
 }

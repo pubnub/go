@@ -151,10 +151,6 @@ func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *addChannelsToPushOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *addChannelsToPushOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
 }

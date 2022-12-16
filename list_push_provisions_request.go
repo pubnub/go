@@ -172,10 +172,6 @@ func (o *listPushProvisionsRequestOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *listPushProvisionsRequestOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *listPushProvisionsRequestOpts) isAuthRequired() bool {
 	return true
 }

@@ -101,10 +101,6 @@ func (o *deleteChannelGroupOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *deleteChannelGroupOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *deleteChannelGroupOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
 }

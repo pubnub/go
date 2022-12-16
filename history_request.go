@@ -174,10 +174,6 @@ func (o *historyOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *historyOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *historyOpts) isAuthRequired() bool {
 	return true
 }

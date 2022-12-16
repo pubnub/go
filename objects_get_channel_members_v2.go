@@ -186,10 +186,6 @@ func (o *getChannelMembersOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getChannelMembersOptsV2) httpMethod() string {
-	return "GET"
-}
-
 func (o *getChannelMembersOptsV2) isAuthRequired() bool {
 	return true
 }

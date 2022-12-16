@@ -126,10 +126,6 @@ func (o *addChannelOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *addChannelOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *addChannelOpts) operationType() OperationType {
 	return PNAddChannelsToChannelGroupOperation
 }

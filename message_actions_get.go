@@ -127,10 +127,6 @@ func (o *getMessageActionsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getMessageActionsOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *getMessageActionsOpts) isAuthRequired() bool {
 	return true
 }

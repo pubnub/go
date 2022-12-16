@@ -146,10 +146,6 @@ func (o *setStateOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *setStateOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *setStateOpts) isAuthRequired() bool {
 	return true
 }

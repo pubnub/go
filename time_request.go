@@ -74,10 +74,6 @@ func (o *timeOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *timeOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *timeOpts) isAuthRequired() bool {
 	return false
 }

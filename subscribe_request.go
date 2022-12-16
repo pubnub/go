@@ -166,10 +166,6 @@ func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *subscribeOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *subscribeOpts) requestTimeout() int {
 	return o.pubnub.Config.SubscribeRequestTimeout
 }

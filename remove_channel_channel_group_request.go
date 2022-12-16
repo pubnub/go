@@ -119,10 +119,6 @@ func (o *removeChannelOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeChannelOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *removeChannelOpts) isAuthRequired() bool {
 	return true
 }

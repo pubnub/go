@@ -140,10 +140,6 @@ func (o *heartbeatOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *heartbeatOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *heartbeatOpts) operationType() OperationType {
 	return PNHeartBeatOperation
 }

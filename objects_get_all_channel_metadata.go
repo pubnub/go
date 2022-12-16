@@ -174,10 +174,6 @@ func (o *getAllChannelMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getAllChannelMetadataOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *getAllChannelMetadataOpts) isAuthRequired() bool {
 	return true
 }

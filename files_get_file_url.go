@@ -131,10 +131,6 @@ func (o *getFileURLOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getFileURLOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *getFileURLOpts) operationType() OperationType {
 	return PNGetFileURLOperation
 }

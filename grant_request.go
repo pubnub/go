@@ -287,10 +287,6 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *grantOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *grantOpts) operationType() OperationType {
 	return PNAccessManagerGrant
 }

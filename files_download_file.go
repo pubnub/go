@@ -31,14 +31,14 @@ func newDownloadFileBuilder(pubnub *PubNub) *downloadFileBuilder {
 }
 
 func newDownloadFileOpts(pubnub *PubNub, ctx Context) *downloadFileOpts {
-return &downloadFileOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &downloadFileOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newDownloadFileBuilderWithContext(pubnub *PubNub,
 	context Context) *downloadFileBuilder {
 	builder := downloadFileBuilder{
 		opts: newDownloadFileOpts(pubnub, context)}
 	return &builder
 }
-
 
 func (b *downloadFileBuilder) Channel(channel string) *downloadFileBuilder {
 	b.opts.Channel = channel
@@ -174,10 +174,6 @@ func (o *downloadFileOpts) buildQuery() (*url.Values, error) {
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
-}
-
-func (o *downloadFileOpts) httpMethod() string {
-	return "GET"
 }
 
 func (o *downloadFileOpts) operationType() OperationType {

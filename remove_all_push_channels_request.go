@@ -150,10 +150,6 @@ func (o *removeAllPushChannelsForDeviceOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeAllPushChannelsForDeviceOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *removeAllPushChannelsForDeviceOpts) isAuthRequired() bool {
 	return true
 }

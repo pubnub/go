@@ -151,10 +151,6 @@ func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeChannelsFromPushOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *removeChannelsFromPushOpts) isAuthRequired() bool {
 	return true
 }
@@ -170,4 +166,3 @@ func (o *removeChannelsFromPushOpts) connectTimeout() int {
 func (o *removeChannelsFromPushOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
 }
-

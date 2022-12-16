@@ -155,10 +155,6 @@ func (o *hereNowOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *hereNowOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *hereNowOpts) operationType() OperationType {
 	return PNHereNowOperation
 }

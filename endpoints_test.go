@@ -29,10 +29,6 @@ func (o *fakeEndpointOpts) validate() error {
 	return nil
 }
 
-func (o *fakeEndpointOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *fakeEndpointOpts) operationType() OperationType {
 	return PNSubscribeOperation
 }

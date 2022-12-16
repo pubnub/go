@@ -119,10 +119,6 @@ func (o *listFilesOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *listFilesOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *listFilesOpts) operationType() OperationType {
 	return PNListFilesOperation
 }

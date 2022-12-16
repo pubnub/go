@@ -141,10 +141,6 @@ func (o *messageCountsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *messageCountsOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *messageCountsOpts) isAuthRequired() bool {
 	return true
 }

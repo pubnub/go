@@ -107,10 +107,6 @@ func (o *getUUIDMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getUUIDMetadataOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *getUUIDMetadataOpts) isAuthRequired() bool {
 	return true
 }

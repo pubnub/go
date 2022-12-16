@@ -149,10 +149,6 @@ func (o *getStateOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getStateOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *getStateOpts) operationType() OperationType {
 	return PNGetStateOperation
 }

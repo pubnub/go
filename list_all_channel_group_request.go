@@ -91,10 +91,6 @@ func (o *allChannelGroupOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *allChannelGroupOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *allChannelGroupOpts) isAuthRequired() bool {
 	return true
 }

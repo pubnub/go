@@ -62,10 +62,6 @@ type leaveOpts struct {
 	QueryParam    map[string]string
 }
 
-func (o *leaveOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *leaveOpts) buildPath() (string, error) {
 	channels := utils.JoinChannels(o.Channels)
 

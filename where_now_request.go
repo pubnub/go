@@ -89,10 +89,6 @@ func (o *whereNowOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *whereNowOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *whereNowOpts) isAuthRequired() bool {
 	return true
 }
