@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -126,10 +123,6 @@ func (o *historyDeleteOpts) buildQuery() (*url.Values, error) {
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
-}
-
-func (o *historyDeleteOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *historyDeleteOpts) httpMethod() string {

@@ -3,9 +3,7 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -74,10 +72,6 @@ func (o *timeOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 	SetQueryParam(q, o.QueryParam)
 	return q, nil
-}
-
-func (o *timeOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *timeOpts) httpMethod() string {

@@ -3,13 +3,10 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"mime/multipart"
-
 	"github.com/pubnub/go/v7/pnerr"
 	"github.com/pubnub/go/v7/utils"
+	"io/ioutil"
 
 	"net/http"
 	"net/url"
@@ -262,10 +259,6 @@ func (o *publishFileMessageOpts) buildBody() ([]byte, error) {
 		return jsonEncBytes, nil
 	}
 	return []byte{}, nil
-}
-
-func (o *publishFileMessageOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *publishFileMessageOpts) httpMethod() string {

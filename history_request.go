@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"strconv"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -174,10 +172,6 @@ func (o *historyOpts) buildQuery() (*url.Values, error) {
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
-}
-
-func (o *historyOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *historyOpts) httpMethod() string {

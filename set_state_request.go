@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/url"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -145,10 +144,6 @@ func (o *setStateOpts) buildQuery() (*url.Values, error) {
 	}
 	SetQueryParam(q, o.QueryParam)
 	return q, nil
-}
-
-func (o *setStateOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *setStateOpts) httpMethod() string {

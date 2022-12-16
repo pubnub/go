@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -212,10 +210,6 @@ func (o *manageMembersOptsV2) buildBody() ([]byte, error) {
 	}
 	return jsonEncBytes, nil
 
-}
-
-func (o *manageMembersOptsV2) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *manageMembersOptsV2) httpMethod() string {

@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"reflect"
 	"strconv"
 
@@ -354,10 +352,6 @@ func (o *publishOpts) buildBody() ([]byte, error) {
 		return []byte{}, pnerr.NewBuildRequestError("buildBody: Message is not JSON serialized.")
 	}
 	return []byte{}, nil
-}
-
-func (o *publishOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *publishOpts) httpMethod() string {

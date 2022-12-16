@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -152,10 +149,6 @@ func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
 	SetPushTopic(q, o.Topic)
 	SetQueryParam(q, o.QueryParam)
 	return q, nil
-}
-
-func (o *removeChannelsFromPushOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *removeChannelsFromPushOpts) httpMethod() string {
