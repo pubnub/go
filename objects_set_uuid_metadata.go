@@ -157,10 +157,6 @@ func (o *setUUIDMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *setUUIDMetadataOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *setUUIDMetadataOpts) buildBody() ([]byte, error) {
 	b := &SetUUIDMetadataBody{
 		Name:       o.Name,

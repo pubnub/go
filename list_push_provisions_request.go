@@ -178,10 +178,6 @@ func (o *listPushProvisionsRequestOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *listPushProvisionsRequestOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *listPushProvisionsRequestOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

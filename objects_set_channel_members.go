@@ -197,10 +197,6 @@ func (o *setChannelMembersOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *setChannelMembersOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 // PNChannelMembersSetChangeset is the Objects API input to add, remove or update membership
 type PNChannelMembersSetChangeset struct {
 	Set []PNChannelMembersSet `json:"set"`

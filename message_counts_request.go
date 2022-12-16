@@ -148,10 +148,6 @@ func (o *messageCountsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *messageCountsOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *messageCountsOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

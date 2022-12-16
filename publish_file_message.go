@@ -256,10 +256,6 @@ func (o *publishFileMessageOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *publishFileMessageOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *publishFileMessageOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		jsonEncBytes, errEnc := json.Marshal(o.Message)

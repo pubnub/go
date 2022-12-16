@@ -95,10 +95,6 @@ func (o *whereNowOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *whereNowOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *whereNowOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

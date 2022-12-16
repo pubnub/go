@@ -140,10 +140,6 @@ func (o *signalOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *signalOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *signalOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		jsonEncBytes, errEnc := json.Marshal(o.Message)

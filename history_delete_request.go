@@ -110,10 +110,6 @@ func (o *historyDeleteOpts) validate() error {
 	return nil
 }
 
-func (o *historyDeleteOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *historyDeleteOpts) buildPath() (string, error) {
 	return fmt.Sprintf(historyDeletePath,
 		o.pubnub.Config.SubscribeKey,

@@ -140,10 +140,6 @@ func (o *setChannelMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *setChannelMetadataOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *setChannelMetadataOpts) buildBody() ([]byte, error) {
 	b := &SetChannelMetadataBody{
 		Name:        o.Name,

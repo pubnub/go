@@ -202,10 +202,6 @@ func (o *manageMembersOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *manageMembersOptsV2) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *manageMembersOptsV2) buildBody() ([]byte, error) {
 	b := &PNManageChannelMembersBody{
 		Set:    o.MembersSet,

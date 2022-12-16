@@ -192,10 +192,6 @@ func (o *getChannelMembersOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getChannelMembersOptsV2) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *getChannelMembersOptsV2) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

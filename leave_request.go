@@ -89,10 +89,6 @@ func (o *leaveOpts) buildPath() (string, error) {
 		channels), nil
 }
 
-func (o *leaveOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *leaveOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 

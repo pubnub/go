@@ -113,10 +113,6 @@ func (o *getUUIDMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getUUIDMetadataOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *getUUIDMetadataOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }

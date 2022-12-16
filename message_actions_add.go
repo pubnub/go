@@ -119,10 +119,6 @@ func (o *addMessageActionsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *addMessageActionsOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *addMessageActionsOpts) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(o.Action)
 

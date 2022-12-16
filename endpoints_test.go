@@ -36,10 +36,6 @@ func (o *fakeEndpointOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multip
 	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
-func (o *fakeEndpointOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *fakeEndpointOpts) config() Config {
 	return *o.pubnub.Config
 }

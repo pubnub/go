@@ -99,10 +99,6 @@ func (o *removeChannelMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeChannelMetadataOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *removeChannelMetadataOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 

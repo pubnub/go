@@ -194,10 +194,6 @@ func (o *removeChannelMembersOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeChannelMembersOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 // PNChannelMembersRemoveChangeset is the Objects API input to add, remove or update membership
 type PNChannelMembersRemoveChangeset struct {
 	Remove []PNChannelMembersRemove `json:"delete"`

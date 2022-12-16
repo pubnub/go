@@ -97,10 +97,6 @@ func (o *allChannelGroupOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *allChannelGroupOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *allChannelGroupOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
