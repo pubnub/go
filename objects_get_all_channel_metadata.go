@@ -176,10 +176,6 @@ func (o *getAllChannelMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getAllChannelMetadataOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
 func (o *getAllChannelMetadataOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
 	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }

@@ -153,10 +153,6 @@ func (o *removeAllPushChannelsForDeviceOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeAllPushChannelsForDeviceOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
 func (o *removeAllPushChannelsForDeviceOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
 	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }

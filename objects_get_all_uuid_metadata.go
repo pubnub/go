@@ -178,10 +178,6 @@ func (o *getAllUUIDMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getAllUUIDMetadataOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
 func (o *getAllUUIDMetadataOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
 	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
