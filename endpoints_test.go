@@ -1,37 +1,10 @@
 package pubnub
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-type fakeEndpointOpts struct {
-	pubnub *PubNub
-}
-
-func (o *fakeEndpointOpts) buildPath() (string, error) {
-	return "/my/path", nil
-}
-
-func (o *fakeEndpointOpts) buildQuery() (*url.Values, error) {
-	q := &url.Values{}
-
-	q.Set("a", "2")
-
-	q.Set("b", "hey")
-
-	return q, nil
-}
-
-func (o *fakeEndpointOpts) validate() error {
-	return nil
-}
-
-func (o *fakeEndpointOpts) operationType() OperationType {
-	return PNSubscribeOperation
-}
 
 func TestSignatureV2(t *testing.T) {
 	assert := assert.New(t)

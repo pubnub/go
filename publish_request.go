@@ -82,7 +82,13 @@ func newPublishBuilder(pubnub *PubNub) *publishBuilder {
 }
 
 func newPublishOpts(pubnub *PubNub, ctx Context) *publishOpts {
-	return &publishOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+	return &publishOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+		Serialize: true,
+	}
 }
 func newPublishBuilderWithContext(pubnub *PubNub, context Context) *publishBuilder {
 	builder := publishBuilder{
@@ -359,18 +365,6 @@ func (o *publishOpts) httpMethod() string {
 		return "POST"
 	}
 	return "GET"
-}
-
-func (o *publishOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *publishOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *publishOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
 }
 
 func (o *publishOpts) operationType() OperationType {
