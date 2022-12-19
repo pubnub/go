@@ -80,7 +80,6 @@ func TestGetStateSucess(t *testing.T) {
 		ResponseStatusCode: 200,
 	})
 
-	ch := randomized("ch")
 	pn := pubnub.NewPubNub(config)
 	pn.SetClient(interceptor.GetClient())
 
@@ -90,17 +89,17 @@ func TestGetStateSucess(t *testing.T) {
 
 	_, _, err := pn.SetState().
 		State(state).
-		Channels([]string{ch}).
+		Channels([]string{"ch"}).
 		Execute()
 
 	assert.Nil(err)
 
 	res, _, err := pn.GetState().
-		Channels([]string{ch}).
+		Channels([]string{"ch"}).
 		Execute()
 
 	assert.Nil(err)
-	if s, ok := res.State[ch].(map[string]interface{}); ok {
+	if s, ok := res.State["ch"].(map[string]interface{}); ok {
 		assert.Equal("20", s["age"])
 		assert.Equal("John Doe", s["name"])
 
