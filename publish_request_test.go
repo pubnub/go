@@ -405,9 +405,11 @@ func TestPublishStore(t *testing.T) {
 func TestPublishEncrypt(t *testing.T) {
 	assert := assert.New(t)
 
-	pnconfig.CipherKey = "testCipher"
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.UseRandomInitializationVector = false
+	pn.Config.CipherKey = "testCipher"
 
-	opts := newPublishOpts(pubnub, pubnub.ctx)
+	opts := newPublishOpts(pn, pn.ctx)
 	opts.Channel = "ch"
 	opts.Message = "hey"
 
@@ -415,7 +417,7 @@ func TestPublishEncrypt(t *testing.T) {
 	assert.Nil(err)
 
 	assert.Equal(
-		"/publish/pub_key/sub_key/0/ch/0/%22%2Bc52pEK3TCTpuEjEFzukRw%3D%3D%22", path)
+		"/publish/demo/demo/0/ch/0/%22MnwzPGdVgz2osQCIQJviGg%3D%3D%22", path)
 
 	pnconfig.CipherKey = ""
 }
