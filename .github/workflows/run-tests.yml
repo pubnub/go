@@ -6,6 +6,12 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+env:
+  PAM_PUBLISH_KEY: ${{ secrets.PAM_PUBLISH_KEY }}
+  PAM_SUBSCRIBE_KEY: ${{ secrets.PAM_SUBSCRIBE_KEY }}
+  PAM_SECRET_KEY: ${{ secrets.PAM_SECRET_KEY }}
+  PUBLISH_KEY: ${{ secrets.PUBLISH_KEY }}
+  SUBSCRIBE_KEY: ${{ secrets.SUBSCRIBE_KEY }}
 defaults:
   run:
     shell: bash
