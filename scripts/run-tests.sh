@@ -17,32 +17,58 @@ else
   echo "'GOPATH' not defined."
 fi
 
+clean_coverage_output () {
+   find . -type f -name "*.out" | xargs -r rm -rf
+}
+
 # Install 'gocovmerge' module.
-go get -u github.com/wadey/gocovmerge
+go install github.com/wadey/gocovmerge@latest
 
 echo "Run functional tests"
-go test $WITH_MOD -v -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./ ./
+if ! test_run="$(go test $WITH_MOD -v -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./ ./ 2>&1)"; then
+  echo "::error title=test::Functional tests failed: $test_run"
+  clean_coverage_output
+  exit 1
+fi
 
 echo "Run utils tests"
-go test $WITH_MOD -v -race -coverprofile=utils_tests.out -covermode=atomic -coverpkg=./ ./utils/
+if ! test_run="$(go test $WITH_MOD -v -race -coverprofile=utils_tests.out -covermode=atomic -coverpkg=./ ./utils/ 2>&1)"; then
+  echo "::error title=test::Unit tests failed: $test_run"
+  clean_coverage_output
+  exit 1
+fi
 
 echo "Run helpers tests"
-go test $WITH_MOD -v -race -coverprofile=helpers_tests.out -covermode=atomic -coverpkg=./ ./tests/helpers/
+if ! test_run="$(go test $WITH_MOD -v -race -coverprofile=helpers_tests.out -covermode=atomic -coverpkg=./ ./tests/helpers/ 2>&1)"; then
+  echo "::error title=test::Helpers tests failed: $test_run"
+  clean_coverage_output
+  exit 1
+fi
 
 echo "Run integration tests"
-go test $WITH_MOD -v -race -coverprofile=integration_tests.out \
--covermode=atomic -coverpkg=./ ./tests/e2e/
+if ! test_run="$(go test $WITH_MOD -v -race -coverprofile=integration_tests.out -covermode=atomic -coverpkg=./ ./tests/e2e/ 2>&1)"; then
+  echo "::error title=test::Integration tests failed: $test_run"
+  clean_coverage_output
+  exit 1
+fi
 
 echo "Run deadlock tests #1"
-go test $WITH_MOD -v -race -run "TestDestroy\b" -count 20 -coverprofile=deadlock_tests.out
+if ! test_run="$(go test $WITH_MOD -v -race -run "TestDestroy\b" -count 20 -coverprofile=deadlock_tests.out 2>&1)"; then
+  echo "::error title=test::Deadlock tests #1 failed: $test_run"
+  clean_coverage_output
+  exit 1
+fi
 
 echo "Run deadlock tests #2"
-go test $WITH_MOD -v -race -run "TestDestroy2\b" -count 20 -coverprofile=deadlock2_tests.out \
--covermode=atomic -coverpkg=./ ./tests/e2e/
+if ! test_run="$(go test $WITH_MOD -v -race -run "TestDestroy2\b" -count 20 -coverprofile=deadlock2_tests.out -covermode=atomic -coverpkg=./ ./tests/e2e/ 2>&1)"; then
+  echo "::error title=test::Deadlock tests #2 failed: $test_run"
+  clean_coverage_output
+  exit 1
+fi
 
 echo "Upload coverage results"
 # Send test results for analysis.
 gocovmerge functional_tests.out integration_tests.out utils_tests.out helpers_tests.out deadlock_tests.out deadlock2_tests.out > coverage.txt
 
 echo "Clean up test artifacts"
-rm integration_tests.out functional_tests.out utils_tests.out helpers_tests.out deadlock_tests.out deadlock2_tests.out
+clean_coverage_output
