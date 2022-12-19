@@ -25,13 +25,7 @@ type grantTokenEntitiesBuilder grantTokenBuilder
 type grantTokenObjectsBuilder grantTokenBuilder
 
 func newGrantTokenBuilder(pubnub *PubNub) *grantTokenBuilder {
-	builder := grantTokenBuilder{
-		opts: &grantTokenOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newGrantTokenBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newGrantTokenObjectsBuilder(opts *grantTokenOpts) *grantTokenObjectsBuilder {
@@ -42,14 +36,11 @@ func newGrantTokenEntitiesBuilder(opts *grantTokenOpts) *grantTokenEntitiesBuild
 	return &grantTokenEntitiesBuilder{opts}
 }
 
-func newGrantTokenOpts(pubnub *PubNub, ctx Context) *grantTokenOpts {
-return &grantTokenOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
 func newGrantTokenBuilderWithContext(pubnub *PubNub, context Context) *grantTokenBuilder {
 	builder := grantTokenBuilder{
 		opts: newGrantTokenOpts(pubnub, context)}
 	return &builder
 }
-
 
 // TTL in minutes for which granted permissions are valid.
 //
@@ -314,11 +305,17 @@ func (b *grantTokenEntitiesBuilder) Execute() (*PNGrantTokenResponse, StatusResp
 	return resp, status, e
 }
 
+func newGrantTokenOpts(pubnub *PubNub, ctx Context) *grantTokenOpts {
+	return &grantTokenOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type grantTokenOpts struct {
 	endpointOpts
-	pubnub *PubNub
-	ctx    Context
-
 	AuthKeys             []string
 	Channels             map[string]ChannelPermissions
 	ChannelGroups        map[string]GroupPermissions

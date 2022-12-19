@@ -24,7 +24,7 @@ func newAddChannelToChannelGroupBuilder(pubnub *PubNub) *addChannelToChannelGrou
 
 func newAddChannelToChannelGroupBuilderWithContext(pubnub *PubNub, context Context) *addChannelToChannelGroupBuilder {
 	builder := addChannelToChannelGroupBuilder{
-		opts: newAddChannelOpts(pubnub, context, addChannelOpts{}),
+		opts: newAddChannelOpts(pubnub, context),
 	}
 
 	return &builder
@@ -73,12 +73,13 @@ func (b *addChannelToChannelGroupBuilder) Execute() (
 	return newAddChannelToChannelGroupsResponse(rawJSON, status)
 }
 
-func newAddChannelOpts(pubnub *PubNub, context Context, opts addChannelOpts) *addChannelOpts {
-	opts.endpointOpts = endpointOpts{
-		pubnub: pubnub,
-		ctx:    context,
+func newAddChannelOpts(pubnub *PubNub, context Context) *addChannelOpts {
+	return &addChannelOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    context,
+		},
 	}
-	return &opts
 }
 
 type addChannelOpts struct {
