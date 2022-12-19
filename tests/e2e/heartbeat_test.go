@@ -3,7 +3,6 @@ package e2e
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"strings"
 	"sync"
 	"testing"
@@ -225,7 +224,6 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 	ch := randomized("ch-hrwe")
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
-	config.Log = log.Default()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/"+ch+"/heartbeat", config.SubscribeKey),
