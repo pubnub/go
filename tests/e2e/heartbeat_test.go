@@ -163,7 +163,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/", config.SubscribeKey) + ch + "/heartbeat",
-		Query:              "heartbeat=6",
+		Query:              "heartbeat=20",
 		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
 		ResponseStatusCode: 200,
@@ -171,25 +171,37 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
-		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/", config.SubscribeKey) + ch + "/leave",
+		Path:               fmt.Sprintf("/v2/subscribe/%s/%s/0", config.SubscribeKey, ch),
 		Query:              "",
-		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\", \"action\": \"leave\"}",
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseBody:       "{\"m\":[],\"t\":{\"t\":\"42\",\"r\":\"r42\"}}",
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "tr", "heartbeat"},
 		ResponseStatusCode: 200,
+		Hang:               false,
 	})
 
-	doneConnect := make(chan bool)
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/v2/subscribe/%s/%s/0", config.SubscribeKey, ch),
+		Query:              "tt=42",
+		ResponseBody:       "{\"m\":[],\"t\":{\"t\":\"42\",\"r\":\"r42\"}}",
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "tr", "heartbeat"},
+		ResponseStatusCode: 200,
+		Hang:               true,
+	})
+
 	doneHeartbeat := make(chan bool)
 	errChan := make(chan string)
 
 	config := configCopy()
-	config.SetPresenceTimeout(6)
+	config.SetPresenceTimeout(20)
 
 	pn := pubnub.NewPubNub(config)
 
 	listener := pubnub.NewListener()
 	pn.AddListener(listener)
 	exitListener := make(chan bool)
+
+	defer func() { exitListener <- true }()
 
 	go func() {
 	ExitLabel:
@@ -198,12 +210,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 			case status := <-listener.Status:
 				switch status.Operation {
 				case pubnub.PNHeartBeatOperation:
-					doneHeartbeat <- true
-				}
-
-				switch status.Category {
-				case pubnub.PNConnectedCategory:
-					doneConnect <- true
+					go func() { doneHeartbeat <- true }()
 				}
 			case <-listener.Message:
 				errChan <- "Got message while awaiting for a status event"
@@ -217,29 +224,17 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 		}
 	}()
 
+	pn.SetClient(interceptor.GetClient())
+
 	pn.Subscribe().
 		Channels([]string{ch}).
 		Execute()
 
 	select {
-	case <-doneConnect:
-	case err := <-errChan:
-		assert.Fail(err)
-	}
-
-	pn.SetClient(interceptor.GetClient())
-
-	select {
 	case <-doneHeartbeat:
-	case <-time.After(10 * time.Second):
+	case <-time.After(20 * time.Second):
 		assert.Fail("Heartbeat status was expected")
 	}
-
-	pn.Unsubscribe().
-		Channels([]string{ch}).
-		Execute()
-
-	exitListener <- true
 }
 
 // Test triggers BadRequestCategory in subscription.Status channel
