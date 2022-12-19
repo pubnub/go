@@ -17,47 +17,42 @@ defaults:
     shell: bash
 
 jobs:
-  tests:
+  tests-matrix:
     name: Integration and Unit tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix: 
+        go: [1.16.15, 1.17.13, 1.18.9, 1.19.4]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GH_TOKEN }}
-      - name: Setup Go 1.16.15
+      - name: Setup Go ${{ matrix.go }}
         uses: actions/setup-go@v3
         with:
-          go-version: 1.16.15
+          go-version: ${{ matrix.go }}
           cache: true
-      - name: Build and run tests for Go 1.16.15
+      - name: Build and run tests for Go ${{ matrix.go }}
         run: |
           go install github.com/wadey/gocovmerge@latest
           ./scripts/run-tests.sh -mod=mod
-      - name: Setup Go 1.17.13
+  tests:
+    name: Integration and Unit tests
+    runs-on: ubuntu-latest
+    needs: tests-matrix
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      - name: Setup Go ${{ matrix.go }}
         uses: actions/setup-go@v3
         with:
-          go-version: 1.17.13
+          go-version: ${{ matrix.go }}
           cache: true
-      - name: Build and run tests for Go 1.17.13
-        run: |
-          go install github.com/wadey/gocovmerge@latest
-          ./scripts/run-tests.sh -mod=mod
-      - name: Setup Go 1.18.9
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.18.9
-          cache: true
-      - name: Build and run tests for Go 1.18.9
-        run: |
-          go install github.com/wadey/gocovmerge@latest
-          ./scripts/run-tests.sh -mod=mod
-      - name: Setup Go 1.19.4
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.19.4
-          cache: true
-      - name: Build and run tests for Go 1.19.4
+      - name: Build and run tests for Go ${{ matrix.go }}
         run: |
           go install github.com/wadey/gocovmerge@latest
           ./scripts/run-tests.sh -mod=mod

@@ -425,14 +425,6 @@ func TestPublishEncrypt(t *testing.T) {
 	path, err := opts.buildPath()
 	assert.Nil(err)
 
-	fmt.Printf("Cipher key is: %s", opts.pubnub.Config.CipherKey)
-	if opts.pubnub.Config.UseRandomInitializationVector {
-		fmt.Printf("Use random IV? %s", "YES")
-	} else {
-		fmt.Printf("Use random IV? %s", "NO")
-	}
-	fmt.Printf("Path is: %s", path)
-
 	assert.Equal(
 		"/publish/pub_key/sub_key/0/ch/0/%22%2Bc52pEK3TCTpuEjEFzukRw%3D%3D%22", path)
 
