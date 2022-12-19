@@ -1077,11 +1077,13 @@ func (m *SubscriptionManager) Disconnect() {
 func (m *SubscriptionManager) stopSubscribeLoop() {
 	m.log("loop stop")
 
+	m.Lock()
 	if m.ctx != nil && m.subscribeCancel != nil {
 		m.subscribeCancel()
 		m.ctx = nil
 		m.subscribeCancel = nil
 	}
+	m.Unlock()
 
 }
 

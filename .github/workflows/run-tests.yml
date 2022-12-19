@@ -25,28 +25,36 @@ jobs:
           go-version: 1.16.15
           cache: true
       - name: Build and run tests for Go 1.16.15
-        run: ./scripts/run-tests.sh -mod=mod
-      - name: Setup Go 1.17.12
+        run: |
+          go install github.com/wadey/gocovmerge@latest
+          ./scripts/run-tests.sh -mod=mod
+      - name: Setup Go 1.17.13
         uses: actions/setup-go@v3
         with:
-          go-version: 1.17.12
+          go-version: 1.17.13
           cache: true
-      - name: Build and run tests for Go 1.17.12
-        run: ./scripts/run-tests.sh -mod=mod
+      - name: Build and run tests for Go 1.17.13
+        run: |
+          go install github.com/wadey/gocovmerge@latest
+          ./scripts/run-tests.sh -mod=mod
       - name: Setup Go 1.18.9
         uses: actions/setup-go@v3
         with:
           go-version: 1.18.9
           cache: true
       - name: Build and run tests for Go 1.18.9
-        run: ./scripts/run-tests.sh -mod=mod
+        run: |
+          go install github.com/wadey/gocovmerge@latest
+          ./scripts/run-tests.sh -mod=mod
       - name: Setup Go 1.19.4
         uses: actions/setup-go@v3
         with:
           go-version: 1.19.4
           cache: true
       - name: Build and run tests for Go 1.19.4
-        run: ./scripts/run-tests.sh -mod=mod
+        run: |
+          go install github.com/wadey/gocovmerge@latest
+          ./scripts/run-tests.sh -mod=mod
   acceptance:
     name: Acceptance tests
     runs-on: ubuntu-latest
