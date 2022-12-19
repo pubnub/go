@@ -96,7 +96,7 @@ parse_test_utput () {
       
       [[ -z $TEST_RESULTS ]] && TEST_RESULTS="$FORMATTED_OUTPUT" || TEST_RESULTS="$TEST_RESULTS\n$FORMATTED_OUTPUT"
     fi
-  done <<< "$0"
+  done <<< "$1"
 
   echo -e "$TEST_RESULTS"
 }
