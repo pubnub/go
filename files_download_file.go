@@ -21,13 +21,7 @@ type downloadFileBuilder struct {
 }
 
 func newDownloadFileBuilder(pubnub *PubNub) *downloadFileBuilder {
-	builder := downloadFileBuilder{
-		opts: &downloadFileOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newDownloadFileBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newDownloadFileOpts(pubnub *PubNub, ctx Context) *downloadFileOpts {
@@ -130,8 +124,6 @@ func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse
 
 type downloadFileOpts struct {
 	endpointOpts
-	pubnub *PubNub
-
 	Channel    string
 	CipherKey  string
 	ID         string
@@ -139,8 +131,6 @@ type downloadFileOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
 }
 
 func (o *downloadFileOpts) validate() error {

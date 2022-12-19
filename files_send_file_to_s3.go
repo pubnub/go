@@ -21,24 +21,18 @@ type sendFileToS3Builder struct {
 }
 
 func newSendFileToS3Builder(pubnub *PubNub) *sendFileToS3Builder {
-	builder := sendFileToS3Builder{
-		opts: &sendFileToS3Opts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newSendFileToS3BuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newSendFileToS3Opts(pubnub *PubNub, ctx Context) *sendFileToS3Opts {
-return &sendFileToS3Opts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &sendFileToS3Opts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newSendFileToS3BuilderWithContext(pubnub *PubNub,
 	context Context) *sendFileToS3Builder {
 	builder := sendFileToS3Builder{
 		opts: newSendFileToS3Opts(pubnub, context)}
 	return &builder
 }
-
 
 func (b *sendFileToS3Builder) CipherKey(cipherKey string) *sendFileToS3Builder {
 	b.opts.CipherKey = cipherKey
@@ -83,15 +77,12 @@ func (b *sendFileToS3Builder) Execute() (*PNSendFileToS3Response, StatusResponse
 
 type sendFileToS3Opts struct {
 	endpointOpts
-	pubnub *PubNub
 
 	File                  *os.File
 	FileUploadRequestData PNFileUploadRequest
 	QueryParam            map[string]string
 	CipherKey             string
 	Transport             http.RoundTripper
-
-	ctx Context
 }
 
 func (o *sendFileToS3Opts) validate() error {
