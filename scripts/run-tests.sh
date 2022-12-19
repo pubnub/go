@@ -111,65 +111,73 @@ clean_coverage_output () {
 # Install 'gocovmerge' module.
 go install github.com/wadey/gocovmerge@latest
 
+TESTS_RUN_OUTPUT=""
+
 echo "::notice title=test::Run functional tests"
-if ! test_run="$(go test $WITH_MOD -v -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./ ./ 2>&1)"; then
-  echo "::error title=test::Functional tests failed: $test_run"
+if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./ ./ 2>&1)"; then
+  echo "::error title=test::Functional tests failed: $TESTS_RUN_OUTPUT"
   clean_coverage_output
   exit 1
-else
-  [[ -n $test_run ]] && echo -e "$(parse_test_utput "$test_run")"
-  test_run=""
 fi
+
+[[ -n $TESTS_RUN_OUTPUT ]] && echo "THERE IS DATA TO PARSE" || echo "NOTHING TO PARSE"
+[[ -n $TESTS_RUN_OUTPUT ]] && echo -e "$(parse_test_utput "$TESTS_RUN_OUTPUT")"
+TESTS_RUN_OUTPUT=""
 
 echo "::notice title=test::Run utils tests"
-if ! test_run="$(go test $WITH_MOD -v -race -coverprofile=utils_tests.out -covermode=atomic -coverpkg=./ ./utils/ 2>&1)"; then
-  echo "::error title=test::Unit tests failed: $test_run"
+if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=utils_tests.out -covermode=atomic -coverpkg=./ ./utils/ 2>&1)"; then
+  echo "::error title=test::Unit tests failed: $TESTS_RUN_OUTPUT"
   clean_coverage_output
   exit 1
-else
-  [[ -n $test_run ]] && echo -e "$(parse_test_utput "$test_run")"
-  test_run=""
 fi
+
+[[ -n $TESTS_RUN_OUTPUT ]] && echo "THERE IS DATA TO PARSE" || echo "NOTHING TO PARSE"
+[[ -n $TESTS_RUN_OUTPUT ]] && echo -e "$(parse_test_utput "$TESTS_RUN_OUTPUT")"
+TESTS_RUN_OUTPUT=""
 
 echo "::notice title=test::Run helpers tests"
-if ! test_run="$(go test $WITH_MOD -v -race -coverprofile=helpers_tests.out -covermode=atomic -coverpkg=./ ./tests/helpers/ 2>&1)"; then
-  echo "::error title=test::Helpers tests failed: $test_run"
+if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=helpers_tests.out -covermode=atomic -coverpkg=./ ./tests/helpers/ 2>&1)"; then
+  echo "::error title=test::Helpers tests failed: $TESTS_RUN_OUTPUT"
   clean_coverage_output
   exit 1
-else
-  [[ -n $test_run ]] && echo -e "$(parse_test_utput "$test_run")"
-  test_run=""
 fi
+
+[[ -n $TESTS_RUN_OUTPUT ]] && echo "THERE IS DATA TO PARSE" || echo "NOTHING TO PARSE"
+[[ -n $TESTS_RUN_OUTPUT ]] && echo -e "$(parse_test_utput "$TESTS_RUN_OUTPUT")"
+TESTS_RUN_OUTPUT=""
 
 echo "::notice title=test::Run integration tests"
-if ! test_run="$(go test $WITH_MOD -v -race -coverprofile=integration_tests.out -covermode=atomic -coverpkg=./ ./tests/e2e/ 2>&1)"; then
-  echo "::error title=test::Integration tests failed: $test_run"
+if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=integration_tests.out -covermode=atomic -coverpkg=./ ./tests/e2e/ 2>&1)"; then
+  echo "::error title=test::Integration tests failed: $TESTS_RUN_OUTPUT"
   clean_coverage_output
   exit 1
-else
-  [[ -n $test_run ]] && echo -e "$(parse_test_utput "$test_run")"
-  test_run=""
 fi
+
+[[ -n $TESTS_RUN_OUTPUT ]] && echo "THERE IS DATA TO PARSE" || echo "NOTHING TO PARSE"
+[[ -n $TESTS_RUN_OUTPUT ]] && echo -e "$(parse_test_utput "$TESTS_RUN_OUTPUT")"
+TESTS_RUN_OUTPUT=""
 
 echo "::notice title=test::Run deadlock tests #1"
-if ! test_run="$(go test $WITH_MOD -v -race -run "TestDestroy\b" -count 20 -coverprofile=deadlock_tests.out 2>&1)"; then
-  echo "::error title=test::Deadlock tests #1 failed: $test_run"
+if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -run "TestDestroy\b" -count 20 -coverprofile=deadlock_tests.out 2>&1)"; then
+  echo "::error title=test::Deadlock tests #1 failed: $TESTS_RUN_OUTPUT"
   clean_coverage_output
   exit 1
-else
-  [[ -n $test_run ]] && echo -e "$(parse_test_utput "$test_run")"
-  test_run=""
 fi
 
+[[ -n $TESTS_RUN_OUTPUT ]] && echo "THERE IS DATA TO PARSE" || echo "NOTHING TO PARSE"
+[[ -n $TESTS_RUN_OUTPUT ]] && echo -e "$(parse_test_utput "$TESTS_RUN_OUTPUT")"
+TESTS_RUN_OUTPUT=""
+
 echo "::notice title=test::Run deadlock tests #2"
-if ! test_run="$(go test $WITH_MOD -v -race -run "TestDestroy2\b" -count 20 -coverprofile=deadlock2_tests.out -covermode=atomic -coverpkg=./ ./tests/e2e/ 2>&1)"; then
-  echo "::error title=test::Deadlock tests #2 failed: $test_run"
+if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -run "TestDestroy2\b" -count 20 -coverprofile=deadlock2_tests.out -covermode=atomic -coverpkg=./ ./tests/e2e/ 2>&1)"; then
+  echo "::error title=test::Deadlock tests #2 failed: $TESTS_RUN_OUTPUT"
   clean_coverage_output
   exit 1
-else
-  [[ -n $test_run ]] && echo -e "$(parse_test_utput "$test_run")"
-  test_run=""
 fi
+
+[[ -n $TESTS_RUN_OUTPUT ]] && echo "THERE IS DATA TO PARSE" || echo "NOTHING TO PARSE"
+[[ -n $TESTS_RUN_OUTPUT ]] && echo -e "$(parse_test_utput "$TESTS_RUN_OUTPUT")"
+TESTS_RUN_OUTPUT=""
 
 if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then
   echo "::notice title=coverage::Upload coverage results"
