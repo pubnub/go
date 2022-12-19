@@ -23,7 +23,7 @@ func TestPublishSuccessNotStubbed(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 
 	res, _, err := pn.Publish().
-		Channel("ch").Message("hey").UsePost(true).Serialize(true).Execute()
+		Channel(randomized("ch")).Message("hey").UsePost(true).Serialize(true).Execute()
 
 	assert.Nil(err)
 	if res != nil {
@@ -37,7 +37,7 @@ func TestPublishSuccess(t *testing.T) {
 	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.Publish().
-		Channel("ch").
+		Channel(randomized("ch")).
 		Message("hey").
 		ShouldStore(false).
 		Execute()
@@ -50,7 +50,7 @@ func TestPublishSuccessSlice(t *testing.T) {
 	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.Publish().
-		Channel("ch").
+		Channel(randomized("ch")).
 		Message([]string{"hey1", "hey2", "hey3"}).
 		ShouldStore(false).
 		Execute()
@@ -70,7 +70,7 @@ func TestPublishContextTimeout(t *testing.T) {
 	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.PublishWithContext(ctx).
-		Channel("ch").
+		Channel(randomized("ch")).
 		Message("hey").
 		Execute()
 
@@ -99,7 +99,7 @@ func TestPublishContextCancel(t *testing.T) {
 	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.PublishWithContext(ctx).
-		Channel("ch").
+		Channel(randomized("ch")).
 		Message("hey").
 		Execute()
 
@@ -118,7 +118,7 @@ func XTestPublishTimeout(t *testing.T) {
 	pn := pubnub.NewPubNub(config)
 
 	_, _, err := pn.Publish().
-		Channel("ch").
+		Channel(randomized("ch")).
 		Message("hey").
 		UsePost(false).
 		Execute()
@@ -136,7 +136,7 @@ func TestPublishMissingPublishKey(t *testing.T) {
 
 	pn := pubnub.NewPubNub(cfg)
 
-	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
+	_, _, err := pn.Publish().Channel(randomized("ch")).Message("hey").Execute()
 
 	assert.Contains(err.Error(), "Missing Publish Key")
 }
@@ -145,8 +145,8 @@ func TestPublishMissingMessage(t *testing.T) {
 	assert := assert.New(t)
 
 	cfg := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
-	cfg.PublishKey = "0a5c823c-c1fd-4c3f-b31a-8a0b545fa463"
-	cfg.SubscribeKey = "sub-c-d69e3958-1528-11e7-bc52-02ee2ddab7fe"
+	cfg.PublishKey = "demo"
+	cfg.SubscribeKey = "demo"
 
 	pn := pubnub.NewPubNub(cfg)
 
@@ -159,8 +159,8 @@ func TestPublishMissingChannel(t *testing.T) {
 	assert := assert.New(t)
 
 	cfg := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
-	cfg.PublishKey = "0a5c823c-c1fd-4c3f-b31a-8a0b545fa463"
-	cfg.SubscribeKey = "sub-c-d69e3958-1528-11e7-bc52-02ee2ddab7fe"
+	cfg.PublishKey = "demo"
+	cfg.SubscribeKey = "demo"
 
 	pn := pubnub.NewPubNub(cfg)
 
@@ -198,7 +198,7 @@ func _TestPublishNetworkError(t *testing.T) {
 	cfg.Origin = "foo.bar"
 	pn := pubnub.NewPubNub(cfg)
 
-	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
+	_, _, err := pn.Publish().Channel(randomized("ch")).Message("hey").Execute()
 
 	assert.Contains(err.Error(), fmt.Sprintf(connectionErrorTemplate,
 		"Failed to execute request"))
@@ -221,7 +221,7 @@ func TestPublishSigned(t *testing.T) {
 
 	pn := pubnub.NewPubNub(config)
 
-	_, _, err := pn.Publish().Channel("ch").
+	_, _, err := pn.Publish().Channel(randomized("ch")).
 		Message([]string{"hey", "hey2", "hey3"}).Execute()
 
 	assert.Nil(err)
