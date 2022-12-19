@@ -3,6 +3,7 @@ package e2e
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"strings"
 	"sync"
 	"testing"
@@ -169,26 +170,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 		ResponseStatusCode: 200,
 	})
 
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               fmt.Sprintf("/v2/subscribe/%s/%s/0", config.SubscribeKey, ch),
-		Query:              "",
-		ResponseBody:       "{\"m\":[],\"t\":{\"t\":\"42\",\"r\":\"r42\"}}",
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "tr", "heartbeat"},
-		ResponseStatusCode: 200,
-		Hang:               false,
-	})
-
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               fmt.Sprintf("/v2/subscribe/%s/%s/0", config.SubscribeKey, ch),
-		Query:              "tt=42",
-		ResponseBody:       "{\"m\":[],\"t\":{\"t\":\"42\",\"r\":\"r42\"}}",
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "tr", "heartbeat"},
-		ResponseStatusCode: 200,
-		Hang:               true,
-	})
-
+	stubSubscribe(interceptor, ch, config)
 	doneHeartbeat := make(chan bool)
 	errChan := make(chan string)
 
@@ -232,7 +214,7 @@ func TestHeartbeatStubbedRequest(t *testing.T) {
 
 	select {
 	case <-doneHeartbeat:
-	case <-time.After(20 * time.Second):
+	case <-time.After(10 * time.Second):
 		assert.Fail("Heartbeat status was expected")
 	}
 }
@@ -243,30 +225,23 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 	ch := randomized("ch-hrwe")
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
+	config.Log = log.Default()
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/"+ch+"/heartbeat", config.SubscribeKey),
-		Query:              "heartbeat=6",
+		Query:              "heartbeat=20",
 		ResponseBody:       "{\"status\": 404, \"message\": \"Not Found\", \"error\": \"1\", \"service\": \"Presence\"}",
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
 		ResponseStatusCode: 404,
 	})
 
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/"+ch+"/leave", config.SubscribeKey),
-		Query:              "",
-		ResponseBody:       "{\"status\": 200, \"message\": \"OK\", \"service\": \"Presence\", \"action\": \"leave\"}",
-		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
-		ResponseStatusCode: 200,
-	})
+	stubSubscribe(interceptor, ch, config)
 
-	doneConnect := make(chan bool)
 	doneHeartbeat := make(chan bool)
 	errChan := make(chan string)
 
 	config := configCopy()
-	config.SetPresenceTimeout(6)
+	config.SetPresenceTimeout(20)
 
 	pn := pubnub.NewPubNub(config)
 
@@ -279,10 +254,7 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 		for {
 			select {
 			case status := <-listener.Status:
-				switch status.Category {
-				case pubnub.PNConnectedCategory:
-					doneConnect <- true
-				case pubnub.PNBadRequestCategory:
+				if status.Operation == pubnub.PNHeartBeatOperation && status.Category == pubnub.PNBadRequestCategory {
 					doneHeartbeat <- true
 				}
 			case <-listener.Message:
@@ -296,18 +268,11 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 			}
 		}
 	}()
+	pn.SetClient(interceptor.GetClient())
 
 	pn.Subscribe().
 		Channels([]string{ch}).
 		Execute()
-
-	select {
-	case <-doneConnect:
-	case err := <-errChan:
-		assert.Fail(err)
-	}
-
-	pn.SetClient(interceptor.GetClient())
 
 	select {
 	case <-doneHeartbeat:
@@ -320,6 +285,28 @@ func TestHeartbeatRequestWithError(t *testing.T) {
 		Execute()
 
 	exitListener <- true
+}
+
+func stubSubscribe(interceptor *stubs.Interceptor, ch string, config *pubnub.Config) {
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/v2/subscribe/%s/%s/0", config.SubscribeKey, ch),
+		Query:              "",
+		ResponseBody:       "{\"m\":[],\"t\":{\"t\":\"42\",\"r\":42}}",
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "tr", "heartbeat"},
+		ResponseStatusCode: 200,
+		Hang:               false,
+	})
+
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/v2/subscribe/%s/%s/0", config.SubscribeKey, ch),
+		Query:              "tt=42",
+		ResponseBody:       "{\"m\":[],\"t\":{\"t\":\"42\",\"r\":42}}",
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "tr", "heartbeat"},
+		ResponseStatusCode: 200,
+		Hang:               true,
+	})
 }
 
 // NOTICE: snippet for manual hb testing
