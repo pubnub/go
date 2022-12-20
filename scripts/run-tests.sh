@@ -15,7 +15,6 @@ CLEAR="\033[0m"
 WITH_MOD=$1
 
 go version
-go env
 
 set -e
 echo "" > coverage.txt
@@ -28,6 +27,7 @@ if [[ -n "$GOPATH" ]]; then
   ! [[ -d "$GOPATH/src/github.com/pubnub" ]] && mkdir -p "$GOPATH/src/github.com/pubnub"
 else
   echo "::error title=coverage::'GOPATH' not defined."
+  go env
   exit 1
 fi
 
@@ -109,7 +109,7 @@ clean_coverage_output () {
 
 
 # Install 'gocovmerge' module.
-go install github.com/wadey/gocovmerge@latest
+go install github.com/wadey/gocovmerge@latest > /dev/null 2>&1
 
 TESTS_RUN_OUTPUT=""
 
