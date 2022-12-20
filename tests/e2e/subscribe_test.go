@@ -46,7 +46,7 @@ func SubscribesLogsForQueryParams(t *testing.T) {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 	pn.Subscribe().
-		Channels([]string{"ch1", "ch2"}).
+		Channels([]string{randomized("ch1"), randomized("ch2")}).
 		QueryParam(queryParam).
 		Execute()
 

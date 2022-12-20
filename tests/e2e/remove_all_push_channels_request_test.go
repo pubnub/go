@@ -13,7 +13,7 @@ func TestRemoveAllPushNotifications(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 
 	_, _, err := pn.RemoveAllPushNotifications().
-		DeviceIDForPush("cg").
+		DeviceIDForPush(randomized("di")).
 		PushType(pubnub.PNPushTypeGCM).
 		Execute()
 	assert.Nil(err)
@@ -25,7 +25,7 @@ func TestRemoveAllPushNotificationsContext(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 
 	_, _, err := pn.RemoveAllPushNotificationsWithContext(backgroundContext).
-		DeviceIDForPush("cg").
+		DeviceIDForPush(randomized("di")).
 		PushType(pubnub.PNPushTypeGCM).
 		Execute()
 	assert.Nil(err)

@@ -15,7 +15,7 @@ func TestListAllChannelGroupNotStubbed(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 	_, _, err := pn.ListChannelsInChannelGroup().
-		ChannelGroup("cg").
+		ChannelGroup(randomized("cg")).
 		Execute()
 
 	assert.Nil(err)
@@ -26,7 +26,7 @@ func TestListAllChannelGroupNotStubbedContext(t *testing.T) {
 
 	pn := pubnub.NewPubNub(configCopy())
 	_, _, err := pn.ListChannelsInChannelGroupWithContext(backgroundContext).
-		ChannelGroup("cg1").
+		ChannelGroup(randomized("cg")).
 		Execute()
 
 	assert.Nil(err)

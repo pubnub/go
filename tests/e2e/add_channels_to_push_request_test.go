@@ -14,7 +14,7 @@ func TestAddChannelToPushNotStubbed(t *testing.T) {
 
 	_, _, err := pn.AddPushNotificationsOnChannels().
 		Channels([]string{"ch"}).
-		DeviceIDForPush("cg").
+		DeviceIDForPush(randomized("di")).
 		PushType(pubnub.PNPushTypeGCM).
 		Execute()
 	assert.Nil(err)
@@ -27,7 +27,7 @@ func TestAddChannelToPushNotStubbedContext(t *testing.T) {
 
 	_, _, err := pn.AddPushNotificationsOnChannelsWithContext(backgroundContext).
 		Channels([]string{"ch1"}).
-		DeviceIDForPush("cg1").
+		DeviceIDForPush(randomized("di")).
 		PushType(pubnub.PNPushTypeGCM).
 		Execute()
 	assert.Nil(err)
@@ -45,7 +45,7 @@ func TestAddChannelToPushNotStubbedContextWithQueryParam(t *testing.T) {
 
 	_, _, err := pn.AddPushNotificationsOnChannelsWithContext(backgroundContext).
 		Channels([]string{"ch1"}).
-		DeviceIDForPush("cg1").
+		DeviceIDForPush(randomized("di")).
 		PushType(pubnub.PNPushTypeGCM).
 		QueryParam(queryParam).
 		Execute()
@@ -59,7 +59,7 @@ func TestAddChannelToPushTopicAndEnvNotStubbed(t *testing.T) {
 
 	_, _, err := pn.AddPushNotificationsOnChannels().
 		Channels([]string{"ch"}).
-		DeviceIDForPush("cg").
+		DeviceIDForPush(randomized("di")).
 		PushType(pubnub.PNPushTypeGCM).
 		Topic("a").
 		Environment(pubnub.PNPushEnvironmentDevelopment).
@@ -74,7 +74,7 @@ func TestAddChannelToPushTopicAndEnvNotStubbedContext(t *testing.T) {
 
 	_, _, err := pn.AddPushNotificationsOnChannelsWithContext(backgroundContext).
 		Channels([]string{"ch1"}).
-		DeviceIDForPush("cg1").
+		DeviceIDForPush(randomized("di")).
 		PushType(pubnub.PNPushTypeGCM).
 		Topic("a").
 		Environment(pubnub.PNPushEnvironmentDevelopment).
@@ -94,7 +94,7 @@ func TestAddChannelToPushTopicAndEnvNotStubbedContextWithQueryParam(t *testing.T
 
 	_, _, err := pn.AddPushNotificationsOnChannelsWithContext(backgroundContext).
 		Channels([]string{"ch1"}).
-		DeviceIDForPush("cg1").
+		DeviceIDForPush(randomized("di")).
 		PushType(pubnub.PNPushTypeGCM).
 		QueryParam(queryParam).
 		Topic("a").

@@ -105,15 +105,15 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 				if enableDebuggingInTests {
 
 					fmt.Println(" --- File: ")
-					fmt.Println(fmt.Sprintf("%v", file))
-					fmt.Println(fmt.Sprintf("file.File.PNMessage.Text: %s", file.File.PNMessage.Text))
-					fmt.Println(fmt.Sprintf("file.File.PNFile.Name: %s", file.File.PNFile.Name))
-					fmt.Println(fmt.Sprintf("file.File.PNFile.ID: %s", file.File.PNFile.ID))
-					fmt.Println(fmt.Sprintf("file.File.PNFile.URL: %s", file.File.PNFile.URL))
-					fmt.Println(fmt.Sprintf("file.Channel: %s", file.Channel))
-					fmt.Println(fmt.Sprintf("file.Timetoken: %d", file.Timetoken))
-					fmt.Println(fmt.Sprintf("file.SubscribedChannel: %s", file.SubscribedChannel))
-					fmt.Println(fmt.Sprintf("file.Publisher: %s", file.Publisher))
+					fmt.Printf("%v\n", file)
+					fmt.Printf("file.File.PNMessage.Text: %s\n", file.File.PNMessage.Text)
+					fmt.Printf("file.File.PNFile.Name: %s\n", file.File.PNFile.Name)
+					fmt.Printf("file.File.PNFile.ID: %s\n", file.File.PNFile.ID)
+					fmt.Printf("file.File.PNFile.URL: %s\n", file.File.PNFile.URL)
+					fmt.Printf("file.Channel: %s\n", file.Channel)
+					fmt.Printf("file.Timetoken: %d\n", file.Timetoken)
+					fmt.Printf("file.SubscribedChannel: %s\n", file.SubscribedChannel)
+					fmt.Printf("file.Publisher: %s\n", file.Publisher)
 				}
 				fileDataChannel <- FileData{file.File.PNFile.ID, file.File.PNFile.URL, file.File.PNFile.Name, file.File.PNMessage.Text}
 
@@ -127,6 +127,8 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	pn.AddListener(listener)
 
 	pn.Subscribe().Channels([]string{ch}).Execute()
+	// Sleep a bit, to give client some time to subscribe on channels firs.
+	time.Sleep(100 * time.Millisecond)
 
 	resSendFile, statusSendFile, _ := pn.SendFile().Channel(ch).Message(message).CipherKey(cipherKey).Name(name).File(file).Execute()
 	assert.Equal(200, statusSendFile.StatusCode)
@@ -142,7 +144,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 
 	id = resSendFile.Data.ID
 
-	timer := time.NewTimer(3 * time.Second)
+	timer := time.NewTimer(5 * time.Second)
 	var fileData FileData
 	select {
 	case fileData = <-fileDataChannel:

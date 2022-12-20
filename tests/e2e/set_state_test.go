@@ -12,13 +12,14 @@ import (
 func TestSetStateSucessNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
+	cg := randomized("cg")
 	pn := pubnub.NewPubNub(configCopy())
 
 	state := make(map[string]interface{})
 	state["age"] = "20"
 
 	setStateRes, _, err := pn.SetState().State(state).Channels([]string{"ch"}).
-		ChannelGroups([]string{"cg"}).Execute()
+		ChannelGroups([]string{cg}).Execute()
 
 	assert.Nil(err)
 	if s, ok := setStateRes.State.(map[string]interface{}); ok {
@@ -31,7 +32,7 @@ func TestSetStateSucessNotStubbed(t *testing.T) {
 
 	getStateRes, _, err := pn.GetState().
 		Channels([]string{"ch"}).
-		ChannelGroups([]string{"cg"}).
+		ChannelGroups([]string{cg}).
 		Execute()
 
 	assert.Nil(err)
@@ -45,6 +46,7 @@ func TestSetStateSucessNotStubbed(t *testing.T) {
 func TestSetStateSucessNotStubbedWithUUID(t *testing.T) {
 	assert := assert.New(t)
 
+	cg := randomized("cg")
 	pn := pubnub.NewPubNub(configCopy())
 	uuid := "nuuid"
 
@@ -52,7 +54,7 @@ func TestSetStateSucessNotStubbedWithUUID(t *testing.T) {
 	state["age"] = "20"
 
 	setStateRes, _, err := pn.SetState().State(state).UUID(uuid).Channels([]string{"ch"}).
-		ChannelGroups([]string{"cg"}).Execute()
+		ChannelGroups([]string{cg}).Execute()
 
 	assert.Nil(err)
 	if s, ok := setStateRes.State.(map[string]interface{}); ok {
@@ -65,7 +67,7 @@ func TestSetStateSucessNotStubbedWithUUID(t *testing.T) {
 
 	getStateRes, _, err := pn.GetState().
 		Channels([]string{"ch"}).
-		ChannelGroups([]string{"cg"}).
+		ChannelGroups([]string{cg}).
 		UUID(uuid).
 		Execute()
 
@@ -81,13 +83,14 @@ func TestSetStateSucessNotStubbedWithUUID(t *testing.T) {
 func TestSetStateSucessNotStubbedContext(t *testing.T) {
 	assert := assert.New(t)
 
+	cg := randomized("cg")
 	pn := pubnub.NewPubNub(configCopy())
 
 	state := make(map[string]interface{})
 	state["age"] = "20"
 
 	setStateRes, _, err := pn.SetStateWithContext(backgroundContext).State(state).Channels([]string{"ch"}).
-		ChannelGroups([]string{"cg"}).Execute()
+		ChannelGroups([]string{cg}).Execute()
 
 	assert.Nil(err)
 	if s, ok := setStateRes.State.(map[string]interface{}); ok {
@@ -100,7 +103,7 @@ func TestSetStateSucessNotStubbedContext(t *testing.T) {
 
 	getStateRes, _, err := pn.GetStateWithContext(backgroundContext).
 		Channels([]string{"ch"}).
-		ChannelGroups([]string{"cg"}).
+		ChannelGroups([]string{cg}).
 		Execute()
 
 	assert.Nil(err)

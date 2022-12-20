@@ -16,7 +16,7 @@ func TestAddChannelToChannelGroupNotStubbed(t *testing.T) {
 
 	_, _, err := pn.AddChannelToChannelGroup().
 		Channels([]string{"ch"}).
-		ChannelGroup("cg").
+		ChannelGroup(randomized("cg")).
 		Execute()
 	assert.Nil(err)
 }
@@ -28,7 +28,7 @@ func TestAddChannelToChannelGroupNotStubbedContext(t *testing.T) {
 
 	_, _, err := pn.AddChannelToChannelGroupWithContext(backgroundContext).
 		Channels([]string{"ch"}).
-		ChannelGroup("cg").
+		ChannelGroup(randomized("cg")).
 		Execute()
 	assert.Nil(err)
 }
