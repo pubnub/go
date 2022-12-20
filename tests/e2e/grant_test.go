@@ -42,7 +42,7 @@ func TestGrantObjectsUUIDGetTTLFailure(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	channel := "channel"
+	channel := randomized("channel")
 
 	res, _, err := pn.Grant().
 		Get(true).TTL(9999999999999999).
@@ -66,7 +66,7 @@ func TestGrantObjectsUUIDGetUpdateManJoinWithAuthSucccess(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	channel := "channel"
+	channel := randomized("channel")
 
 	res, _, err := pn.Grant().
 		Get(true).Update(true).Manage(true).Join(true).
@@ -90,7 +90,7 @@ func TestGrantObjectsUUIDGetUpdateManJoinSucccess(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	channel := "channel"
+	channel := randomized("channel")
 
 	res, _, err := pn.Grant().
 		Get(true).Update(true).Manage(true).Join(true).
@@ -114,7 +114,7 @@ func TestGrantObjectsUUIDGetUpdateDelSucccess(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	channel := "channel"
+	channel := randomized("channel")
 
 	res, _, err := pn.Grant().
 		Get(true).Update(true).Delete(true).
@@ -138,7 +138,7 @@ func TestGrantObjectsUUIDGetUpdateDelWithAuthSucccess(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	channel := "channel"
+	channel := randomized("channel")
 
 	res, _, err := pn.Grant().
 		Get(true).Update(true).Delete(true).
@@ -162,7 +162,7 @@ func TestGrantObjectsChannelSucccess(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	channel := "channel"
+	channel := randomized("channel")
 
 	res, _, err := pn.Grant().
 		Get(true).Read(true).Join(true).
@@ -186,7 +186,7 @@ func TestGrantObjectsChannelWithAuthSucccess(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
-	channel := "channel"
+	channel := randomized("channel")
 
 	res, _, err := pn.Grant().
 		Get(true).Read(true).Join(true).
@@ -209,32 +209,36 @@ func TestGrantObjectsChannelWithAuthSucccess(t *testing.T) {
 func TestGrantObjectsUUIDSucccessNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
+	ch1 := randomized("ch1")
+	ch2 := randomized("ch2")
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
 	res, _, err := pn.Grant().
 		Get(true).Update(true).Join(true).
-		AuthKeys([]string{"uuid-key"}).UUIDs([]string{"ch1", "ch2"}).
+		AuthKeys([]string{"uuid-key"}).UUIDs([]string{ch1, ch2}).
 		Execute()
 
 	assert.Nil(err)
 	assert.NotNil(res)
 
-	assert.True(res.UUIDs["ch1"].AuthKeys["uuid-key"].GetEnabled)
-	assert.True(res.UUIDs["ch1"].AuthKeys["uuid-key"].UpdateEnabled)
-	assert.True(res.UUIDs["ch1"].AuthKeys["uuid-key"].JoinEnabled)
-	assert.True(res.UUIDs["ch2"].AuthKeys["uuid-key"].GetEnabled)
-	assert.True(res.UUIDs["ch2"].AuthKeys["uuid-key"].UpdateEnabled)
-	assert.True(res.UUIDs["ch2"].AuthKeys["uuid-key"].JoinEnabled)
+	assert.True(res.UUIDs[ch1].AuthKeys["uuid-key"].GetEnabled)
+	assert.True(res.UUIDs[ch1].AuthKeys["uuid-key"].UpdateEnabled)
+	assert.True(res.UUIDs[ch1].AuthKeys["uuid-key"].JoinEnabled)
+	assert.True(res.UUIDs[ch2].AuthKeys["uuid-key"].GetEnabled)
+	assert.True(res.UUIDs[ch2].AuthKeys["uuid-key"].UpdateEnabled)
+	assert.True(res.UUIDs[ch2].AuthKeys["uuid-key"].JoinEnabled)
 }
 
 func TestGrantChannelsAndUUIDsFailureNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
+	ch1 := randomized("ch1")
+	ch2 := randomized("ch2")
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
-	res, _, err := pn.Grant().Channels([]string{"ch1", "ch2"}).
+	res, _, err := pn.Grant().Channels([]string{ch1, ch2}).
 		Get(true).Update(true).Join(true).Read(true).
-		AuthKeys([]string{"uuid-key"}).UUIDs([]string{"ch1", "ch2"}).
+		AuthKeys([]string{"uuid-key"}).UUIDs([]string{ch1, ch2}).
 		Execute()
 
 	assert.NotNil(err)
@@ -256,7 +260,7 @@ func TestGrantParseLogsForAuthKey(t *testing.T) {
 
 	pn.Grant().
 		Read(true).Write(true).Manage(true).
-		Channels([]string{"ch1", "ch2"}).
+		Channels([]string{randomized("ch1"), randomized("ch2")}).
 		Execute()
 
 	tic := time.NewTicker(time.Duration(timeout) * time.Second)
@@ -293,7 +297,7 @@ func TestGrantParseLogsForMultipleAuthKeys(t *testing.T) {
 	pn.Grant().
 		Read(true).Write(true).Manage(true).
 		AuthKeys([]string{"authkey1", "authkey2"}).
-		Channels([]string{"ch1", "ch2"}).
+		Channels([]string{randomized("ch1"), randomized("ch1")}).
 		Execute()
 
 	tic := time.NewTicker(time.Duration(timeout) * time.Second)
@@ -314,23 +318,25 @@ func TestGrantParseLogsForMultipleAuthKeys(t *testing.T) {
 func TestGrantSucccessNotStubbed(t *testing.T) {
 	assert := assert.New(t)
 
+	ch1 := randomized("ch1")
+	ch2 := randomized("ch2")
 	pn := pubnub.NewPubNub(pamConfigCopy())
 
 	pn.Config.SetUserId(pubnub.UserId("asd,|//&aqwe"))
 
 	res, _, err := pn.Grant().
 		Read(true).Write(true).Manage(true).
-		AuthKeys([]string{"pam-key"}).Channels([]string{"ch1", "ch2"}).
+		AuthKeys([]string{"pam-key"}).Channels([]string{ch1, ch2}).
 		Execute()
 
 	assert.Nil(err)
 	log.Println(res)
 	assert.NotNil(res)
 
-	assert.True(res.Channels["ch2"].AuthKeys["pam-key"].WriteEnabled)
-	assert.True(res.Channels["ch2"].AuthKeys["pam-key"].ReadEnabled)
-	assert.True(res.Channels["ch2"].AuthKeys["pam-key"].ManageEnabled)
-	assert.True(!res.Channels["ch2"].AuthKeys["pam-key"].DeleteEnabled)
+	assert.True(res.Channels[ch2].AuthKeys["pam-key"].WriteEnabled)
+	assert.True(res.Channels[ch2].AuthKeys["pam-key"].ReadEnabled)
+	assert.True(res.Channels[ch2].AuthKeys["pam-key"].ManageEnabled)
+	assert.True(!res.Channels[ch2].AuthKeys["pam-key"].DeleteEnabled)
 
 }
 
@@ -409,7 +415,7 @@ func TestGrantSucccessNotStubbedContext(t *testing.T) {
 
 	res, _, err := pn.GrantWithContext(backgroundContext).
 		Read(true).Write(true).Manage(true).
-		AuthKeys([]string{"pam-key"}).Channels([]string{"ch1", "ch2"}).
+		AuthKeys([]string{"pam-key"}).Channels([]string{randomized("ch1"), randomized("ch2")}).
 		Execute()
 
 	assert.Nil(err)

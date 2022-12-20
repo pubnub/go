@@ -16,7 +16,7 @@ func TestGetStateNotStubbed(t *testing.T) {
 
 	_, _, err := pn.GetState().
 		Channels([]string{"ch"}).
-		ChannelGroups([]string{"cg"}).
+		ChannelGroups([]string{randomized("cg")}).
 		UUID("my-custom-uuid").
 		Execute()
 
@@ -30,7 +30,7 @@ func TestGetStateNotStubbedContext(t *testing.T) {
 
 	_, _, err := pn.GetStateWithContext(backgroundContext).
 		Channels([]string{"ch"}).
-		ChannelGroups([]string{"cg"}).
+		ChannelGroups([]string{randomized("cg")}).
 		UUID("my-custom-uuid").
 		Execute()
 

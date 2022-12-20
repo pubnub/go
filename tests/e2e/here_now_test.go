@@ -16,7 +16,7 @@ func TestHereNowNotStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 
 	_, _, err := pn.HereNow().
-		Channels([]string{"ch"}).
+		Channels([]string{randomized("ch")}).
 		Execute()
 
 	assert.Nil(err)

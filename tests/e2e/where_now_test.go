@@ -54,7 +54,7 @@ func TestWhereNowNoUUID(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(config)
-	pn.Subscribe().Channels([]string{"ch1"}).Execute()
+	pn.Subscribe().Channels([]string{randomized("ch")}).Execute()
 	time.Sleep(500 * time.Millisecond)
 
 	checkFor(assert, 5*time.Second, 500*time.Millisecond, func() error {
@@ -77,7 +77,7 @@ func TestWhereNowNoUUIDContext(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(config)
-	pn.Subscribe().Channels([]string{"ch1"}).Execute()
+	pn.Subscribe().Channels([]string{randomized("ch")}).Execute()
 	time.Sleep(500 * time.Millisecond)
 
 	checkFor(assert, 5*time.Second, 500*time.Millisecond, func() error {
