@@ -20,3 +20,15 @@ jobs:
         uses: ./.github/.release/actions/actions/validators/pubnub-yml
         with:
           token: ${{ secrets.GH_TOKEN }}
+      - name: Simulate delayed
+        shell: bash
+        run: sleep 15
+      - name: Simulate failure
+        shell: bash
+        run: exit 1
+      - name: Some debug output attempt
+        shell: bash
+        run: echo "Woohoo"
+      - name: Cancel workflow runs for commit on error
+        if: ${{ failure() }}
+        uses: ./.github/.release/actions/actions/fast-jobs-failure
