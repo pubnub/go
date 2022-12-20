@@ -31,4 +31,4 @@ jobs:
         run: echo "Woohoo"
       - name: Cancel workflow runs for commit on error
         if: ${{ failure() }}
-        uses: ./.github/.release/actions/actions/fast-jobs-failure
+        uses: ./.github/.release/actions/actions/utils/fast-jobs-failure
