@@ -20,7 +20,7 @@ jobs:
         uses: ./.github/.release/actions/actions/validators/pubnub-yml
         with:
           token: ${{ secrets.GH_TOKEN }}
-      - name: Simulate delayed
+      - name: Simulate delay
         shell: bash
         run: sleep 15
       - name: Simulate failure
