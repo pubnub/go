@@ -12,12 +12,7 @@ import (
 func TestHistoryDeleteRequestAllParams(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := newHistoryDeleteOpts(pubnub, pubnub.ctx)
-	opts.Channel = "ch"
-	opts.SetStart = true
-	opts.SetEnd = true
-	opts.Start = int64(123)
-	opts.End = int64(456)
+	opts := optsWithDefaultTestValues(pubnub)
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -45,12 +40,7 @@ func TestHistoryDeleteRequestAllParams(t *testing.T) {
 func TestHistoryDeleteRequestQueryParams(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := newHistoryDeleteOpts(pubnub, pubnub.ctx)
-	opts.Channel = "ch"
-	opts.SetStart = true
-	opts.SetEnd = true
-	opts.Start = int64(123)
-	opts.End = int64(456)
+	opts := optsWithDefaultTestValues(pubnub)
 
 	queryParam := map[string]string{
 		"q1": "v1",
@@ -120,12 +110,7 @@ func TestHistoryDeleteOptsValidateSub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := newHistoryDeleteOpts(pn, pn.ctx)
-	opts.Channel = "ch"
-	opts.SetStart = true
-	opts.SetEnd = true
-	opts.Start = int64(123)
-	opts.End = int64(456)
+	opts := optsWithDefaultTestValues(pn)
 
 	assert.Equal("pubnub/validation: pubnub: Delete messages: Missing Subscribe Key", opts.validate().Error())
 }
@@ -134,12 +119,17 @@ func TestHistoryDeleteOptsValidateSec(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SecretKey = ""
+	opts := optsWithDefaultTestValues(pn)
+
+	assert.Equal("pubnub/validation: pubnub: Delete messages: Missing Secret Key", opts.validate().Error())
+}
+
+func optsWithDefaultTestValues(pn *PubNub) *historyDeleteOpts {
 	opts := newHistoryDeleteOpts(pn, pn.ctx)
 	opts.Channel = "ch"
 	opts.SetStart = true
 	opts.SetEnd = true
 	opts.Start = int64(123)
 	opts.End = int64(456)
-
-	assert.Equal("pubnub/validation: pubnub: Delete messages: Missing Secret Key", opts.validate().Error())
+	return opts
 }
