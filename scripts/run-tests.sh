@@ -23,7 +23,7 @@ echo "" > coverage.txt
 [[ -z "$GOPATH" ]] && GOPATH="$(go env GOPATH)"
 
 if [[ -n "$GOPATH" ]]; then
-  echo "::notice title=setup::Create module folder if required: $GOPATH/src/github.com/pubnub"
+  echo "Create module folder if required: $GOPATH/src/github.com/pubnub"
   ! [[ -d "$GOPATH/src/github.com/pubnub" ]] && mkdir -p "$GOPATH/src/github.com/pubnub"
 else
   echo "::error title=coverage::'GOPATH' not defined."
@@ -103,7 +103,7 @@ parse_test_utput () {
 
 # Clean up after codecoverage tool.
 clean_coverage_output () {
-  echo "::notice title=coverage::Clean up test artifacts"
+  echo "Clean up test artifacts"
   find . -type f -name "*.out" | xargs -r rm -rf
 }
 
@@ -113,7 +113,7 @@ go install github.com/wadey/gocovmerge@latest > /dev/null 2>&1
 
 TESTS_RUN_OUTPUT=""
 
-echo "::notice title=test::Run functional tests"
+echo "Run functional tests"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./ ./ 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
@@ -121,7 +121,7 @@ if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -coverprofile=functional_tests.out
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
-echo "::notice title=test::Run utils tests"
+echo "Run utils tests"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=utils_tests.out -covermode=atomic -coverpkg=./ ./utils/ 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
@@ -129,7 +129,7 @@ if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=utils_tests.ou
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
-echo "::notice title=test::Run helpers tests"
+echo "Run helpers tests"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=helpers_tests.out -covermode=atomic -coverpkg=./ ./tests/helpers/ 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
@@ -137,7 +137,7 @@ if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=helpers_tests.
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
-echo "::notice title=test::Run integration tests"
+echo "Run integration tests"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=integration_tests.out -covermode=atomic -coverpkg=./ ./tests/e2e/ 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
@@ -145,7 +145,7 @@ if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=integration_te
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
-echo "::notice title=test::Run deadlock tests #1"
+echo "Run deadlock tests #1"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -run "TestDestroy\b" -count 20 -coverprofile=deadlock_tests.out 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
@@ -153,7 +153,7 @@ if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -run "TestDestroy\b" -count 
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
-echo "::notice title=test::Run deadlock tests #2"
+echo "Run deadlock tests #2"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -run "TestDestroy2\b" -count 20 -coverprofile=deadlock2_tests.out -covermode=atomic -coverpkg=./ ./tests/e2e/ 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
@@ -162,7 +162,7 @@ fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
 if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then
-  echo "::notice title=coverage::Upload coverage results"
+  echo "Upload coverage results"
   # Send test results for analysis.
   gocovmerge functional_tests.out integration_tests.out utils_tests.out helpers_tests.out deadlock_tests.out deadlock2_tests.out > coverage.txt
 else

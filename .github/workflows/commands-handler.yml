@@ -10,7 +10,7 @@ defaults:
 jobs:
   process:
     name: Process command
-    if: ${{ github.event.issue.pull_request && endsWith(github.repository, '-private') != true
+    if: github.event.issue.pull_request && endsWith(github.repository, '-private') != true
     runs-on: ubuntu-latest
     steps:
       - name: Check referred user

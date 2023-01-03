@@ -10,7 +10,7 @@ jobs:
   check-release:
     name: Check release required
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.merged && endsWith(github.repository, '-private') != true }}
+    if: github.event.pull_request.merged && endsWith(github.repository, '-private') != true
     outputs:
       release: ${{ steps.check.outputs.ready }}
     steps:
@@ -30,14 +30,14 @@ jobs:
     name: Publish package
     runs-on: macos-11
     needs: check-release
-    if: ${{ needs.check-release.outputs.release == 'true' }}
+    if: needs.check-release.outputs.release == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           # This should be the same as the one specified for on.pull_request.branches
           ref: master
-      - name: heckout release actions
+      - name: Checkout release actions
         uses: actions/checkout@v3
         with:
           repository: pubnub/client-engineering-deployment-tools
