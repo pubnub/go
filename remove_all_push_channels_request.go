@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -21,22 +18,16 @@ type removeAllPushChannelsForDeviceBuilder struct {
 }
 
 func newRemoveAllPushChannelsForDeviceBuilder(pubnub *PubNub) *removeAllPushChannelsForDeviceBuilder {
-	builder := removeAllPushChannelsForDeviceBuilder{
-		opts: &removeAllPushChannelsForDeviceOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRemoveAllPushChannelsForDeviceBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newRemoveAllPushChannelsForDeviceBuilderWithContext(
 	pubnub *PubNub, context Context) *removeAllPushChannelsForDeviceBuilder {
 	builder := removeAllPushChannelsForDeviceBuilder{
-		opts: &removeAllPushChannelsForDeviceOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newRemoveAllPushCHannelsForDeviceOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -84,9 +75,26 @@ func (b *removeAllPushChannelsForDeviceBuilder) Execute() (
 	return emptyRemoveAllPushChannelsForDeviceResponse, status, err
 }
 
-type removeAllPushChannelsForDeviceOpts struct {
-	pubnub *PubNub
+func newRemoveAllPushChannelsForDeviceOpts(pubnub *PubNub, ctx Context) *removeAllPushChannelsForDeviceOpts {
+	return &removeAllPushChannelsForDeviceOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
 
+func newRemoveAllPushCHannelsForDeviceOpts(pubnub *PubNub, ctx Context) *removeAllPushChannelsForDeviceOpts {
+	return &removeAllPushChannelsForDeviceOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
+type removeAllPushChannelsForDeviceOpts struct {
+	endpointOpts
 	PushType        PNPushType
 	QueryParam      map[string]string
 	DeviceIDForPush string
@@ -94,20 +102,6 @@ type removeAllPushChannelsForDeviceOpts struct {
 	Environment     PNPushEnvironment
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeAllPushChannelsForDeviceOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *removeAllPushChannelsForDeviceOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *removeAllPushChannelsForDeviceOpts) context() Context {
-	return o.ctx
 }
 
 func (o *removeAllPushChannelsForDeviceOpts) validate() error {
@@ -156,22 +150,6 @@ func (o *removeAllPushChannelsForDeviceOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeAllPushChannelsForDeviceOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *removeAllPushChannelsForDeviceOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *removeAllPushChannelsForDeviceOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *removeAllPushChannelsForDeviceOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *removeAllPushChannelsForDeviceOpts) isAuthRequired() bool {
 	return true
 }
@@ -186,12 +164,4 @@ func (o *removeAllPushChannelsForDeviceOpts) connectTimeout() int {
 
 func (o *removeAllPushChannelsForDeviceOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
-}
-
-func (o *removeAllPushChannelsForDeviceOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *removeAllPushChannelsForDeviceOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }

@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -22,24 +20,16 @@ type removeChannelMetadataBuilder struct {
 }
 
 func newRemoveChannelMetadataBuilder(pubnub *PubNub) *removeChannelMetadataBuilder {
-	builder := removeChannelMetadataBuilder{
-		opts: &removeChannelMetadataOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRemoveChannelMetadataBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newRemoveChannelMetadataOpts(pubnub *PubNub, ctx Context) *removeChannelMetadataOpts {
+	return &removeChannelMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newRemoveChannelMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *removeChannelMetadataBuilder {
 	builder := removeChannelMetadataBuilder{
-		opts: &removeChannelMetadataOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newRemoveChannelMetadataOpts(pubnub, context)}
 	return &builder
 }
 
@@ -73,24 +63,10 @@ func (b *removeChannelMetadataBuilder) Execute() (*PNRemoveChannelMetadataRespon
 }
 
 type removeChannelMetadataOpts struct {
-	pubnub     *PubNub
+	endpointOpts
 	Channel    string
 	QueryParam map[string]string
 	Transport  http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeChannelMetadataOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *removeChannelMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *removeChannelMetadataOpts) context() Context {
-	return o.ctx
 }
 
 func (o *removeChannelMetadataOpts) validate() error {
@@ -117,19 +93,6 @@ func (o *removeChannelMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeChannelMetadataOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *removeChannelMetadataOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-
-}
-
-func (o *removeChannelMetadataOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *removeChannelMetadataOpts) httpMethod() string {
 	return "DELETE"
 }
@@ -148,14 +111,6 @@ func (o *removeChannelMetadataOpts) connectTimeout() int {
 
 func (o *removeChannelMetadataOpts) operationType() OperationType {
 	return PNRemoveChannelMetadataOperation
-}
-
-func (o *removeChannelMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *removeChannelMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNRemoveChannelMetadataResponse is the Objects API Response for delete space

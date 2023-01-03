@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -22,24 +20,16 @@ type setChannelMetadataBuilder struct {
 }
 
 func newSetChannelMetadataBuilder(pubnub *PubNub) *setChannelMetadataBuilder {
-	builder := setChannelMetadataBuilder{
-		opts: &setChannelMetadataOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newSetChannelMetadataBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newSetChannelMetadataOpts(pubnub *PubNub, ctx Context) *setChannelMetadataOpts {
+	return &setChannelMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newSetChannelMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *setChannelMetadataBuilder {
 	builder := setChannelMetadataBuilder{
-		opts: &setChannelMetadataOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newSetChannelMetadataOpts(pubnub, context)}
 	return &builder
 }
 
@@ -104,7 +94,7 @@ func (b *setChannelMetadataBuilder) Execute() (*PNSetChannelMetadataResponse, St
 }
 
 type setChannelMetadataOpts struct {
-	pubnub      *PubNub
+	endpointOpts
 	Include     []string
 	Channel     string
 	Name        string
@@ -113,20 +103,6 @@ type setChannelMetadataOpts struct {
 	QueryParam  map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *setChannelMetadataOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *setChannelMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *setChannelMetadataOpts) context() Context {
-	return o.ctx
 }
 
 func (o *setChannelMetadataOpts) validate() error {
@@ -158,10 +134,6 @@ func (o *setChannelMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *setChannelMetadataOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *setChannelMetadataOpts) buildBody() ([]byte, error) {
 	b := &SetChannelMetadataBody{
 		Name:        o.Name,
@@ -177,10 +149,6 @@ func (o *setChannelMetadataOpts) buildBody() ([]byte, error) {
 	}
 	return jsonEncBytes, nil
 
-}
-
-func (o *setChannelMetadataOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *setChannelMetadataOpts) httpMethod() string {
@@ -201,14 +169,6 @@ func (o *setChannelMetadataOpts) connectTimeout() int {
 
 func (o *setChannelMetadataOpts) operationType() OperationType {
 	return PNSetChannelMetadataOperation
-}
-
-func (o *setChannelMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *setChannelMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNSetChannelMetadataResponse is the Objects API Response for Update Space

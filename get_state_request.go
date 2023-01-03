@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -24,22 +23,16 @@ type getStateBuilder struct {
 }
 
 func newGetStateBuilder(pubnub *PubNub) *getStateBuilder {
-	builder := getStateBuilder{
-		opts: &getStateOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newGetStateBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newGetStateBuilderWithContext(pubnub *PubNub,
 	context Context) *getStateBuilder {
 	builder := getStateBuilder{
-		opts: &getStateOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newGetStateOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -93,28 +86,22 @@ func (b *getStateBuilder) Execute() (
 	return newGetStateResponse(rawJSON, status)
 }
 
+func newGetStateOpts(pubnub *PubNub, ctx Context) *getStateOpts {
+	return &getStateOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx},
+	}
+}
+
 type getStateOpts struct {
-	pubnub        *PubNub
+	endpointOpts
 	Channels      []string
 	ChannelGroups []string
 	UUID          string
 	QueryParam    map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getStateOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *getStateOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *getStateOpts) context() Context {
-	return o.ctx
 }
 
 func (o *getStateOpts) validate() error {
@@ -162,44 +149,8 @@ func (o *getStateOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getStateOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *getStateOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *getStateOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *getStateOpts) httpMethod() string {
-	return "GET"
-}
-
-func (o *getStateOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *getStateOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *getStateOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *getStateOpts) operationType() OperationType {
 	return PNGetStateOperation
-}
-
-func (o *getStateOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *getStateOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // GetStateResponse is the struct returned when the Execute function of GetState is called.

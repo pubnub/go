@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -23,24 +21,16 @@ type getMessageActionsBuilder struct {
 }
 
 func newGetMessageActionsBuilder(pubnub *PubNub) *getMessageActionsBuilder {
-	builder := getMessageActionsBuilder{
-		opts: &getMessageActionsOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newGetMessageActionsBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newGetMessageActionsOpts(pubnub *PubNub, ctx Context) *getMessageActionsOpts {
+	return &getMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newGetMessageActionsBuilderWithContext(pubnub *PubNub,
 	context Context) *getMessageActionsBuilder {
 	builder := getMessageActionsBuilder{
-		opts: &getMessageActionsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newGetMessageActionsOpts(pubnub, context)}
 	return &builder
 }
 
@@ -92,7 +82,7 @@ func (b *getMessageActionsBuilder) Execute() (*PNGetMessageActionsResponse, Stat
 }
 
 type getMessageActionsOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channel    string
 	Start      string
@@ -101,20 +91,6 @@ type getMessageActionsOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getMessageActionsOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *getMessageActionsOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *getMessageActionsOpts) context() Context {
-	return o.ctx
 }
 
 func (o *getMessageActionsOpts) validate() error {
@@ -151,22 +127,6 @@ func (o *getMessageActionsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getMessageActionsOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *getMessageActionsOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *getMessageActionsOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *getMessageActionsOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *getMessageActionsOpts) isAuthRequired() bool {
 	return true
 }
@@ -181,14 +141,6 @@ func (o *getMessageActionsOpts) connectTimeout() int {
 
 func (o *getMessageActionsOpts) operationType() OperationType {
 	return PNGetMessageActionsOperation
-}
-
-func (o *getMessageActionsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *getMessageActionsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNGetMessageActionsMore is the struct used when the PNGetMessageActionsResponse has more link

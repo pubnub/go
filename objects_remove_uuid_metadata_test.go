@@ -59,9 +59,7 @@ func TestRemoveUUIDMetadataContext(t *testing.T) {
 func TestRemoveUUIDMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &removeUUIDMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newRemoveUUIDMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNRemoveUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})
@@ -71,9 +69,7 @@ func TestRemoveUUIDMetadataResponseValueError(t *testing.T) {
 func TestRemoveUUIDMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &removeUUIDMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newRemoveUUIDMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200,"data":null}`)
 
 	r, _, err := newPNRemoveUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})

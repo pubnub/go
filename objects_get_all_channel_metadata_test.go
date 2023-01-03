@@ -121,9 +121,7 @@ func TestGetAllChannelMetadataWithFilterWithSortContext(t *testing.T) {
 func TestGetAllChannelMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getAllChannelMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newGetAllChannelMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNGetAllChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
@@ -133,9 +131,7 @@ func TestGetAllChannelMetadataResponseValueError(t *testing.T) {
 func TestGetAllChannelMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getAllChannelMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newGetAllChannelMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200,"data":[{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"},{"id":"id01","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T14:44:52.799969Z","updated":"2019-08-20T14:44:52.799969Z","eTag":"Aee9zsKNndXlHw"}],"totalCount":2,"next":"Mg","prev":"Nd"}`)
 
 	r, _, err := newPNGetAllChannelMetadataResponse(jsonBytes, opts, StatusResponse{})

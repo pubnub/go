@@ -9,40 +9,36 @@ import (
 func TestAddChannelsToPushOptsValidate(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &addChannelsToPushOpts{
+	opts := newAddChannelsToPushOpts(pubnub, pubnub.ctx, addChannelsToPushOpts{
 		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	})
 
 	err := opts.validate()
 	assert.Nil(err)
 
-	opts1 := &addChannelsToPushOpts{
+	opts1 := newAddChannelsToPushOpts(pubnub, pubnub.ctx, addChannelsToPushOpts{
 		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeNone,
-		pubnub:          pubnub,
-	}
+	})
 
 	err1 := opts1.validate()
 	assert.Contains(err1.Error(), "Missing Push Type")
 
-	opts2 := &addChannelsToPushOpts{
+	opts2 := newAddChannelsToPushOpts(pubnub, pubnub.ctx, addChannelsToPushOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	})
 
 	err2 := opts2.validate()
 	assert.Contains(err2.Error(), "Missing Channel")
 
-	opts3 := &addChannelsToPushOpts{
+	opts3 := newAddChannelsToPushOpts(pubnub, pubnub.ctx, addChannelsToPushOpts{
 		Channels: []string{"ch1", "ch2", "ch3"},
 		PushType: PNPushTypeAPNS,
-		pubnub:   pubnub,
-	}
+	})
 
 	err3 := opts3.validate()
 	assert.Contains(err3.Error(), "Missing Device ID")
@@ -52,12 +48,11 @@ func TestAddChannelsToPushOptsValidate(t *testing.T) {
 func TestAddChannelsToPushOptsBuildPath(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &addChannelsToPushOpts{
+	opts := newAddChannelsToPushOpts(pubnub, pubnub.ctx, addChannelsToPushOpts{
 		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	})
 
 	str, err := opts.buildPath()
 	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId", str)
@@ -68,12 +63,11 @@ func TestAddChannelsToPushOptsBuildPath(t *testing.T) {
 func TestAddChannelsToPushOptsBuildQuery(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &addChannelsToPushOpts{
+	opts := newAddChannelsToPushOpts(pubnub, pubnub.ctx, addChannelsToPushOpts{
 		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	})
 
 	u, err := opts.buildQuery()
 	assert.Equal("ch1,ch2,ch3", u.Get("add"))
@@ -88,13 +82,12 @@ func TestAddChannelsToPushOptsBuildQueryParams(t *testing.T) {
 		"q2": "v2",
 	}
 
-	opts := &addChannelsToPushOpts{
+	opts := newAddChannelsToPushOpts(pubnub, pubnub.ctx, addChannelsToPushOpts{
 		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
 		QueryParam:      queryParam,
-	}
+	})
 
 	u, err := opts.buildQuery()
 	assert.Equal("ch1,ch2,ch3", u.Get("add"))
@@ -111,15 +104,14 @@ func TestAddChannelsToPushOptsBuildQueryParamsTopicAndEnv(t *testing.T) {
 		"q2": "v2",
 	}
 
-	opts := &addChannelsToPushOpts{
+	opts := newAddChannelsToPushOpts(pubnub, pubnub.ctx, addChannelsToPushOpts{
 		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
 		QueryParam:      queryParam,
 		Topic:           "a",
 		Environment:     PNPushEnvironmentProduction,
-	}
+	})
 
 	u, err := opts.buildQuery()
 	assert.Equal("ch1,ch2,ch3", u.Get("add"))
@@ -134,12 +126,11 @@ func TestAddChannelsToPushOptsBuildQueryParamsTopicAndEnv(t *testing.T) {
 func TestAddChannelsToPushOptsBuildBody(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &addChannelsToPushOpts{
+	opts := newAddChannelsToPushOpts(pubnub, pubnub.ctx, addChannelsToPushOpts{
 		Channels:        []string{"ch1", "ch2", "ch3"},
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	})
 
 	_, err := opts.buildBody()
 
@@ -177,11 +168,10 @@ func TestAddChannelsToPushValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &addChannelsToPushOpts{
+	opts := newAddChannelsToPushOpts(pn, pn.ctx, addChannelsToPushOpts{
 		DeviceIDForPush: "deviceId",
 		PushType:        PNPushTypeAPNS,
-		pubnub:          pn,
-	}
+	})
 
 	assert.Equal("pubnub/validation: pubnub: Remove Channel Group: Missing Subscribe Key", opts.validate().Error())
 }

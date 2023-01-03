@@ -3,9 +3,7 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -21,23 +19,15 @@ type timeBuilder struct {
 }
 
 func newTimeBuilder(pubnub *PubNub) *timeBuilder {
-	builder := timeBuilder{
-		opts: &timeOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newTimeBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newTimeOpts(pubnub *PubNub, ctx Context) *timeOpts {
+	return &timeOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newTimeBuilderWithContext(pubnub *PubNub, context Context) *timeBuilder {
 	builder := timeBuilder{
-		opts: &timeOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newTimeOpts(pubnub, context)}
 	return &builder
 }
 
@@ -65,23 +55,9 @@ func (b *timeBuilder) Execute() (*TimeResponse, StatusResponse, error) {
 }
 
 type timeOpts struct {
-	pubnub     *PubNub
+	endpointOpts
 	QueryParam map[string]string
 	Transport  http.RoundTripper
-
-	ctx Context
-}
-
-func (o *timeOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *timeOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *timeOpts) context() Context {
-	return o.ctx
 }
 
 func (o *timeOpts) validate() error {
@@ -98,22 +74,6 @@ func (o *timeOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *timeOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *timeOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *timeOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *timeOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *timeOpts) isAuthRequired() bool {
 	return false
 }
@@ -128,14 +88,6 @@ func (o *timeOpts) connectTimeout() int {
 
 func (o *timeOpts) operationType() OperationType {
 	return PNTimeOperation
-}
-
-func (o *timeOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *timeOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // TimeResponse is the response when Time call is executed.

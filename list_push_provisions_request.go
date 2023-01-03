@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -24,22 +22,16 @@ type listPushProvisionsRequestBuilder struct {
 }
 
 func newListPushProvisionsRequestBuilder(pubnub *PubNub) *listPushProvisionsRequestBuilder {
-	builder := listPushProvisionsRequestBuilder{
-		opts: &listPushProvisionsRequestOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newListPushProvisionsRequestBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newListPushProvisionsRequestBuilderWithContext(
 	pubnub *PubNub, context Context) *listPushProvisionsRequestBuilder {
 	builder := listPushProvisionsRequestBuilder{
-		opts: &listPushProvisionsRequestOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newListPushProvisionsRequestOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -112,8 +104,17 @@ func newListPushProvisionsRequestResponse(jsonBytes []byte, status StatusRespons
 	return resp, status, nil
 }
 
+func newListPushProvisionsRequestOpts(pubnub *PubNub, ctx Context) *listPushProvisionsRequestOpts {
+	return &listPushProvisionsRequestOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type listPushProvisionsRequestOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	PushType PNPushType
 
@@ -122,20 +123,6 @@ type listPushProvisionsRequestOpts struct {
 	Transport       http.RoundTripper
 	Topic           string
 	Environment     PNPushEnvironment
-
-	ctx Context
-}
-
-func (o *listPushProvisionsRequestOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *listPushProvisionsRequestOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *listPushProvisionsRequestOpts) context() Context {
-	return o.ctx
 }
 
 func (o *listPushProvisionsRequestOpts) validate() error {
@@ -185,22 +172,6 @@ func (o *listPushProvisionsRequestOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *listPushProvisionsRequestOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *listPushProvisionsRequestOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *listPushProvisionsRequestOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *listPushProvisionsRequestOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *listPushProvisionsRequestOpts) isAuthRequired() bool {
 	return true
 }
@@ -215,12 +186,4 @@ func (o *listPushProvisionsRequestOpts) connectTimeout() int {
 
 func (o *listPushProvisionsRequestOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
-}
-
-func (o *listPushProvisionsRequestOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *listPushProvisionsRequestOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }

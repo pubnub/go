@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -31,10 +29,7 @@ func newManageMembershipsBuilderV2(pubnub *PubNub) *manageMembershipsBuilderV2 {
 func newManageMembershipsBuilderV2WithContext(pubnub *PubNub,
 	context Context) *manageMembershipsBuilderV2 {
 	builder := manageMembershipsBuilderV2{
-		opts: &manageMembershipsOptsV2{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newManageMembershipsOptsV2(pubnub, context),
 	}
 	builder.opts.Limit = manageMembershipsLimitV2
 
@@ -128,8 +123,17 @@ func (b *manageMembershipsBuilderV2) Execute() (*PNManageMembershipsResponse, St
 	return newPNManageMembershipsResponse(rawJSON, b.opts, status)
 }
 
+func newManageMembershipsOptsV2(pubnub *PubNub, ctx Context) *manageMembershipsOptsV2 {
+	return &manageMembershipsOptsV2{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type manageMembershipsOptsV2 struct {
-	pubnub            *PubNub
+	endpointOpts
 	UUID              string
 	Limit             int
 	Include           []string
@@ -142,20 +146,6 @@ type manageMembershipsOptsV2 struct {
 	MembershipsRemove []PNMembershipsRemove
 	MembershipsSet    []PNMembershipsSet
 	Transport         http.RoundTripper
-
-	ctx Context
-}
-
-func (o *manageMembershipsOptsV2) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *manageMembershipsOptsV2) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *manageMembershipsOptsV2) context() Context {
-	return o.ctx
 }
 
 func (o *manageMembershipsOptsV2) validate() error {
@@ -206,10 +196,6 @@ func (o *manageMembershipsOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *manageMembershipsOptsV2) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *manageMembershipsOptsV2) buildBody() ([]byte, error) {
 	b := &PNManageMembershipsBody{
 		Set:    o.MembershipsSet,
@@ -223,10 +209,6 @@ func (o *manageMembershipsOptsV2) buildBody() ([]byte, error) {
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil
-}
-
-func (o *manageMembershipsOptsV2) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *manageMembershipsOptsV2) httpMethod() string {
@@ -247,14 +229,6 @@ func (o *manageMembershipsOptsV2) connectTimeout() int {
 
 func (o *manageMembershipsOptsV2) operationType() OperationType {
 	return PNManageMembershipsOperation
-}
-
-func (o *manageMembershipsOptsV2) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *manageMembershipsOptsV2) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNManageMembershipsResponse is the Objects API Response for ManageMemberships

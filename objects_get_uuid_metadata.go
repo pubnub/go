@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -22,23 +20,16 @@ type getUUIDMetadataBuilder struct {
 }
 
 func newGetUUIDMetadataBuilder(pubnub *PubNub) *getUUIDMetadataBuilder {
-	builder := getUUIDMetadataBuilder{
-		opts: &getUUIDMetadataOpts{
-			pubnub: pubnub,
-		},
-	}
-	return &builder
+	return newGetUUIDMetadataBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newGetUUIDMetadataOpts(pubnub *PubNub, ctx Context) *getUUIDMetadataOpts {
+	return &getUUIDMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newGetUUIDMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *getUUIDMetadataBuilder {
 	builder := getUUIDMetadataBuilder{
-		opts: &getUUIDMetadataOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newGetUUIDMetadataOpts(pubnub, context)}
 	return &builder
 }
 
@@ -82,26 +73,12 @@ func (b *getUUIDMetadataBuilder) Execute() (*PNGetUUIDMetadataResponse, StatusRe
 }
 
 type getUUIDMetadataOpts struct {
-	pubnub     *PubNub
+	endpointOpts
 	UUID       string
 	Include    []string
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getUUIDMetadataOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *getUUIDMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *getUUIDMetadataOpts) context() Context {
-	return o.ctx
 }
 
 func (o *getUUIDMetadataOpts) validate() error {
@@ -130,22 +107,6 @@ func (o *getUUIDMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getUUIDMetadataOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *getUUIDMetadataOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *getUUIDMetadataOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *getUUIDMetadataOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *getUUIDMetadataOpts) isAuthRequired() bool {
 	return true
 }
@@ -160,14 +121,6 @@ func (o *getUUIDMetadataOpts) connectTimeout() int {
 
 func (o *getUUIDMetadataOpts) operationType() OperationType {
 	return PNGetUUIDMetadataOperation
-}
-
-func (o *getUUIDMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *getUUIDMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNGetUUIDMetadataResponse is the Objects API Response for Get User

@@ -1,11 +1,8 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -24,24 +21,16 @@ type downloadFileBuilder struct {
 }
 
 func newDownloadFileBuilder(pubnub *PubNub) *downloadFileBuilder {
-	builder := downloadFileBuilder{
-		opts: &downloadFileOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newDownloadFileBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newDownloadFileOpts(pubnub *PubNub, ctx Context) *downloadFileOpts {
+	return &downloadFileOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newDownloadFileBuilderWithContext(pubnub *PubNub,
 	context Context) *downloadFileBuilder {
 	builder := downloadFileBuilder{
-		opts: &downloadFileOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newDownloadFileOpts(pubnub, context)}
 	return &builder
 }
 
@@ -134,8 +123,7 @@ func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse
 }
 
 type downloadFileOpts struct {
-	pubnub *PubNub
-
+	endpointOpts
 	Channel    string
 	CipherKey  string
 	ID         string
@@ -143,20 +131,6 @@ type downloadFileOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *downloadFileOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *downloadFileOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *downloadFileOpts) context() Context {
-	return o.ctx
 }
 
 func (o *downloadFileOpts) validate() error {
@@ -192,44 +166,8 @@ func (o *downloadFileOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *downloadFileOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *downloadFileOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *downloadFileOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *downloadFileOpts) httpMethod() string {
-	return "GET"
-}
-
-func (o *downloadFileOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *downloadFileOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *downloadFileOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *downloadFileOpts) operationType() OperationType {
 	return PNDownloadFileOperation
-}
-
-func (o *downloadFileOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *downloadFileOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNDownloadFileResponse is the File Upload API Response for Get Spaces

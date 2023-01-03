@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -22,22 +19,16 @@ type removeChannelFromChannelGroupBuilder struct {
 
 func newRemoveChannelFromChannelGroupBuilder(
 	pubnub *PubNub) *removeChannelFromChannelGroupBuilder {
-	builder := removeChannelFromChannelGroupBuilder{
-		opts: &removeChannelOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRemoveChannelFromChannelGroupBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newRemoveChannelFromChannelGroupBuilderWithContext(
 	pubnub *PubNub, context Context) *removeChannelFromChannelGroupBuilder {
 	builder := removeChannelFromChannelGroupBuilder{
-		opts: &removeChannelOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newRemoveChannelOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -75,28 +66,21 @@ func (b *removeChannelFromChannelGroupBuilder) Execute() (
 	return newRemoveChannelFromChannelGroupResponse(rawJSON, status)
 }
 
+func newRemoveChannelOpts(pubnub *PubNub, ctx Context) *removeChannelOpts {
+	return &removeChannelOpts{endpointOpts: endpointOpts{
+		pubnub: pubnub,
+		ctx:    ctx,
+	}}
+}
+
 type removeChannelOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channels     []string
 	QueryParam   map[string]string
 	ChannelGroup string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeChannelOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *removeChannelOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *removeChannelOpts) context() Context {
-	return o.ctx
 }
 
 func (o *removeChannelOpts) validate() error {
@@ -135,22 +119,6 @@ func (o *removeChannelOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeChannelOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *removeChannelOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *removeChannelOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *removeChannelOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *removeChannelOpts) isAuthRequired() bool {
 	return true
 }
@@ -165,14 +133,6 @@ func (o *removeChannelOpts) connectTimeout() int {
 
 func (o *removeChannelOpts) operationType() OperationType {
 	return PNRemoveChannelFromChannelGroupOperation
-}
-
-func (o *removeChannelOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *removeChannelOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // RemoveChannelFromChannelGroupResponse is the struct returned when the Execute function of RemoveChannelFromChannelGroup is called.

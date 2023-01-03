@@ -12,10 +12,8 @@ import (
 func TestListAllChannelGroupRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &allChannelGroupOpts{
-		ChannelGroup: "cg",
-		pubnub:       pubnub,
-	}
+	opts := newAllChannelGroupOpts(pubnub, pubnub.ctx)
+	opts.ChannelGroup = "cg"
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -41,10 +39,8 @@ func TestListAllChannelGroupRequestBasic(t *testing.T) {
 func TestListAllChannelGroupRequestBasicQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &allChannelGroupOpts{
-		ChannelGroup: "cg",
-		pubnub:       pubnub,
-	}
+	opts := newAllChannelGroupOpts(pubnub, pubnub.ctx)
+	opts.ChannelGroup = "cg"
 	queryParam := map[string]string{
 		"q1": "v1",
 		"q2": "v2",
@@ -130,10 +126,8 @@ func TestListAllChannelsValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &allChannelGroupOpts{
-		ChannelGroup: "cg",
-		pubnub:       pn,
-	}
+	opts := newAllChannelGroupOpts(pn, pn.ctx)
+	opts.ChannelGroup = "cg"
 
 	assert.Equal("pubnub/validation: pubnub: List Channels In Channel Group: Missing Subscribe Key", opts.validate().Error())
 }
@@ -141,9 +135,7 @@ func TestListAllChannelsValidateSubscribeKey(t *testing.T) {
 func TestListAllChannelsValidateChannelGrp(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &allChannelGroupOpts{
-		pubnub: pn,
-	}
+	opts := newAllChannelGroupOpts(pn, pn.ctx)
 
 	assert.Equal("pubnub/validation: pubnub: List Channels In Channel Group: Missing Channel Group", opts.validate().Error())
 }

@@ -64,9 +64,7 @@ func TestDeleteFileContext(t *testing.T) {
 func TestDeleteFileResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &deleteFileOpts{
-		pubnub: pn,
-	}
+	opts := newDeleteFileOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNDeleteFileResponse(jsonBytes, opts, StatusResponse{})
@@ -76,9 +74,7 @@ func TestDeleteFileResponseValueError(t *testing.T) {
 func TestDeleteFileResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &deleteFileOpts{
-		pubnub: pn,
-	}
+	opts := newDeleteFileOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200}`)
 
 	_, s, err := newPNDeleteFileResponse(jsonBytes, opts, StatusResponse{StatusCode: 200})

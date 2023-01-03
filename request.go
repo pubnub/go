@@ -41,7 +41,7 @@ type ResponseInfo struct {
 	OriginalResponse *http.Response
 }
 
-func fillJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan *JobQResponse) {
+func fillJobQ(req *http.Request, client *http.Client, opts endpoint, j chan *JobQResponse) {
 	jqi := &JobQItem{
 		Req:         req,
 		Client:      client,
@@ -50,7 +50,7 @@ func fillJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan 
 	opts.jobQueue() <- jqi
 }
 
-func addToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan *JobQResponse, ctx Context) {
+func addToJobQ(req *http.Request, client *http.Client, opts endpoint, j chan *JobQResponse, ctx Context) {
 	if ctx != nil {
 		select {
 		case <-ctx.Done():
@@ -63,7 +63,7 @@ func addToJobQ(req *http.Request, client *http.Client, opts endpointOpts, j chan
 	}
 }
 
-func buildBody(opts endpointOpts, url *url.URL) (io.Reader, error) {
+func buildBody(opts endpoint, url *url.URL) (io.Reader, error) {
 
 	b, err := opts.buildBody()
 	if err != nil {
@@ -75,7 +75,7 @@ func buildBody(opts endpointOpts, url *url.URL) (io.Reader, error) {
 	return bytes.NewReader(b), nil
 }
 
-func executeRequest(opts endpointOpts) ([]byte, StatusResponse, error) {
+func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	err := opts.validate()
 
 	if err != nil {
@@ -271,7 +271,7 @@ func newRequest(method string, u *url.URL, body io.Reader, useHTTP2 bool) (*http
 
 }
 
-func parseResponse(resp *http.Response, opts endpointOpts) ([]byte, StatusResponse, error) {
+func parseResponse(resp *http.Response, opts endpoint) ([]byte, StatusResponse, error) {
 	status := StatusResponse{}
 	defer func(Body io.ReadCloser) {
 		_ = Body.Close()

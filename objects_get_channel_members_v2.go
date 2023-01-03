@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -31,10 +29,10 @@ func newGetChannelMembersBuilderV2(pubnub *PubNub) *getChannelMembersBuilderV2 {
 func newGetChannelMembersBuilderV2WithContext(pubnub *PubNub,
 	context Context) *getChannelMembersBuilderV2 {
 	builder := getChannelMembersBuilderV2{
-		opts: &getChannelMembersOptsV2{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newGetChannelMembersOptsV2(
+			pubnub,
+			context,
+		),
 	}
 	builder.opts.Limit = membersLimitV2
 
@@ -112,8 +110,17 @@ func (b *getChannelMembersBuilderV2) Execute() (*PNGetChannelMembersResponse, St
 	return newPNGetChannelMembersResponse(rawJSON, b.opts, status)
 }
 
+func newGetChannelMembersOptsV2(pubnub *PubNub, ctx Context) *getChannelMembersOptsV2 {
+	return &getChannelMembersOptsV2{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type getChannelMembersOptsV2 struct {
-	pubnub     *PubNub
+	endpointOpts
 	Channel    string
 	Limit      int
 	Include    []string
@@ -125,20 +132,6 @@ type getChannelMembersOptsV2 struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getChannelMembersOptsV2) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *getChannelMembersOptsV2) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *getChannelMembersOptsV2) context() Context {
-	return o.ctx
 }
 
 func (o *getChannelMembersOptsV2) validate() error {
@@ -193,22 +186,6 @@ func (o *getChannelMembersOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getChannelMembersOptsV2) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *getChannelMembersOptsV2) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *getChannelMembersOptsV2) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *getChannelMembersOptsV2) httpMethod() string {
-	return "GET"
-}
-
 func (o *getChannelMembersOptsV2) isAuthRequired() bool {
 	return true
 }
@@ -223,14 +200,6 @@ func (o *getChannelMembersOptsV2) connectTimeout() int {
 
 func (o *getChannelMembersOptsV2) operationType() OperationType {
 	return PNGetChannelMembersOperation
-}
-
-func (o *getChannelMembersOptsV2) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *getChannelMembersOptsV2) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNGetChannelMembersResponse is the Objects API Response for Get Members

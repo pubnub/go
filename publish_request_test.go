@@ -194,13 +194,11 @@ func AssertSuccessPublishGetMeta(t *testing.T, expectedString string, message in
 func AssertSuccessPublishPost(t *testing.T, expectedBody string, message interface{}) {
 	assert := assert.New(t)
 
-	opts := &publishOpts{
-		Channel:   "ch",
-		Message:   message,
-		pubnub:    pubnub,
-		UsePost:   true,
-		Serialize: true,
-	}
+	opts := newPublishOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Message = message
+	opts.UsePost = true
+	opts.Serialize = true
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -303,12 +301,10 @@ func TestPublishDoNotSerializePost(t *testing.T) {
 
 	message := "{\"one\":\"hey\"}"
 
-	opts := &publishOpts{
-		Channel: "ch",
-		Message: message,
-		pubnub:  pubnub,
-		UsePost: true,
-	}
+	opts := newPublishOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Message = message
+	opts.UsePost = true
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -333,13 +329,11 @@ func TestPublishDoNotSerializeInvalidPost(t *testing.T) {
 	msgMap["two"] = "hey2"
 	msgMap["three"] = "hey3"
 
-	opts := &publishOpts{
-		Channel:   "ch",
-		Message:   msgMap,
-		pubnub:    pubnub,
-		UsePost:   true,
-		Serialize: false,
-	}
+	opts := newPublishOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Message = msgMap
+	opts.UsePost = true
+	opts.Serialize = false
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -364,12 +358,11 @@ func TestPublishMeta(t *testing.T) {
 	meta["two"] = "hey2"
 	meta["three"] = "hey3"
 
-	opts := &publishOpts{
-		Channel: "ch",
-		Message: "hey",
-		pubnub:  pubnub,
-		Meta:    meta,
-	}
+	opts := newPublishOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Message = "hey"
+	opts.pubnub = pubnub
+	opts.Meta = meta
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
@@ -389,13 +382,11 @@ func TestPublishMeta(t *testing.T) {
 func TestPublishStore(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &publishOpts{
-		Channel:        "ch",
-		Message:        "hey",
-		pubnub:         pubnub,
-		ShouldStore:    true,
-		setShouldStore: true,
-	}
+	opts := newPublishOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Message = "hey"
+	opts.ShouldStore = true
+	opts.setShouldStore = true
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
@@ -414,19 +405,19 @@ func TestPublishStore(t *testing.T) {
 func TestPublishEncrypt(t *testing.T) {
 	assert := assert.New(t)
 
-	pnconfig.CipherKey = "testCipher"
+	pn := NewPubNub(NewDemoConfig())
+	pn.Config.UseRandomInitializationVector = false
+	pn.Config.CipherKey = "testCipher"
 
-	opts := &publishOpts{
-		Channel: "ch",
-		Message: "hey",
-		pubnub:  pubnub,
-	}
+	opts := newPublishOpts(pn, pn.ctx)
+	opts.Channel = "ch"
+	opts.Message = "hey"
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
 
 	assert.Equal(
-		"/publish/pub_key/sub_key/0/ch/0/%22%2Bc52pEK3TCTpuEjEFzukRw%3D%3D%22", path)
+		"/publish/demo/demo/0/ch/0/%22MnwzPGdVgz2osQCIQJviGg%3D%3D%22", path)
 
 	pnconfig.CipherKey = ""
 }
@@ -442,12 +433,10 @@ func TestPublishEncryptPNOther(t *testing.T) {
 		"pn_other":  "yay!",
 	}
 
-	opts := &publishOpts{
-		Channel:   "ch",
-		Message:   s,
-		pubnub:    pn,
-		Serialize: true,
-	}
+	opts := newPublishOpts(pn, pn.ctx)
+	opts.Channel = "ch"
+	opts.Message = s
+	opts.Serialize = true
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -470,12 +459,10 @@ func TestPublishEncryptPNOtherDisable(t *testing.T) {
 		"pn_other":  "yay!",
 	}
 
-	opts := &publishOpts{
-		Channel:   "ch",
-		Message:   s,
-		pubnub:    pn,
-		Serialize: true,
-	}
+	opts := newPublishOpts(pn, pn.ctx)
+	opts.Channel = "ch"
+	opts.Message = s
+	opts.Serialize = true
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -494,12 +481,11 @@ func TestPublishSequenceCounter(t *testing.T) {
 	meta["two"] = "hey2"
 	meta["three"] = "hey3"
 
-	opts := &publishOpts{
-		Channel: "ch",
-		Message: "hey",
-		pubnub:  pubnub,
-		Meta:    meta,
-	}
+	opts := newPublishOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Message = "hey"
+	opts.Meta = meta
+
 	for i := 1; i <= MaxSequence; i++ {
 		counter := opts.pubnub.getPublishSequence()
 		if counter == MaxSequence {
@@ -537,9 +523,7 @@ func TestPublishValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &publishOpts{
-		pubnub: pn,
-	}
+	opts := newPublishOpts(pn, pn.ctx)
 
 	assert.Equal("pubnub/validation: pubnub: Publish: Missing Subscribe Key", opts.validate().Error())
 }

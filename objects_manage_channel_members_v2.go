@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -31,10 +29,7 @@ func newManageChannelMembersBuilderV2(pubnub *PubNub) *manageChannelMembersBuild
 func newManageChannelMembersBuilderV2WithContext(pubnub *PubNub,
 	context Context) *manageChannelMembersBuilderV2 {
 	builder := manageChannelMembersBuilderV2{
-		opts: &manageMembersOptsV2{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newManageMembersOptsV2(pubnub, context),
 	}
 	builder.opts.Limit = manageMembersLimitV2
 
@@ -124,8 +119,17 @@ func (b *manageChannelMembersBuilderV2) Execute() (*PNManageMembersResponse, Sta
 	return newPNManageMembersResponse(rawJSON, b.opts, status)
 }
 
+func newManageMembersOptsV2(pubnub *PubNub, ctx Context) *manageMembersOptsV2 {
+	return &manageMembersOptsV2{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type manageMembersOptsV2 struct {
-	pubnub        *PubNub
+	endpointOpts
 	Channel       string
 	Limit         int
 	Include       []string
@@ -138,20 +142,6 @@ type manageMembersOptsV2 struct {
 	MembersRemove []PNChannelMembersRemove
 	MembersSet    []PNChannelMembersSet
 	Transport     http.RoundTripper
-
-	ctx Context
-}
-
-func (o *manageMembersOptsV2) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *manageMembersOptsV2) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *manageMembersOptsV2) context() Context {
-	return o.ctx
 }
 
 func (o *manageMembersOptsV2) validate() error {
@@ -206,10 +196,6 @@ func (o *manageMembersOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *manageMembersOptsV2) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *manageMembersOptsV2) buildBody() ([]byte, error) {
 	b := &PNManageChannelMembersBody{
 		Set:    o.MembersSet,
@@ -224,10 +210,6 @@ func (o *manageMembersOptsV2) buildBody() ([]byte, error) {
 	}
 	return jsonEncBytes, nil
 
-}
-
-func (o *manageMembersOptsV2) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *manageMembersOptsV2) httpMethod() string {
@@ -248,14 +230,6 @@ func (o *manageMembersOptsV2) connectTimeout() int {
 
 func (o *manageMembersOptsV2) operationType() OperationType {
 	return PNManageMembersOperation
-}
-
-func (o *manageMembersOptsV2) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *manageMembersOptsV2) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNManageMembersResponse is the Objects API Response for ManageMembers

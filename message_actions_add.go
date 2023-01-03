@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -22,24 +20,16 @@ type addMessageActionsBuilder struct {
 }
 
 func newAddMessageActionsBuilder(pubnub *PubNub) *addMessageActionsBuilder {
-	builder := addMessageActionsBuilder{
-		opts: &addMessageActionsOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newAddMessageActionsBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newAddMessageActionsOpts(pubnub *PubNub, ctx Context) *addMessageActionsOpts {
+	return &addMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newAddMessageActionsBuilderWithContext(pubnub *PubNub,
 	context Context) *addMessageActionsBuilder {
 	builder := addMessageActionsBuilder{
-		opts: &addMessageActionsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newAddMessageActionsOpts(pubnub, context)}
 	return &builder
 }
 
@@ -91,7 +81,7 @@ func (b *addMessageActionsBuilder) Execute() (*PNAddMessageActionsResponse, Stat
 }
 
 type addMessageActionsOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channel          string
 	MessageTimetoken string
@@ -99,20 +89,6 @@ type addMessageActionsOpts struct {
 	QueryParam       map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *addMessageActionsOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *addMessageActionsOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *addMessageActionsOpts) context() Context {
-	return o.ctx
 }
 
 func (o *addMessageActionsOpts) validate() error {
@@ -137,10 +113,6 @@ func (o *addMessageActionsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *addMessageActionsOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *addMessageActionsOpts) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(o.Action)
 
@@ -150,10 +122,6 @@ func (o *addMessageActionsOpts) buildBody() ([]byte, error) {
 	}
 	return jsonEncBytes, nil
 
-}
-
-func (o *addMessageActionsOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *addMessageActionsOpts) httpMethod() string {
@@ -174,14 +142,6 @@ func (o *addMessageActionsOpts) connectTimeout() int {
 
 func (o *addMessageActionsOpts) operationType() OperationType {
 	return PNAddMessageActionsOperation
-}
-
-func (o *addMessageActionsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *addMessageActionsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNMessageActionsResponse Message Actions response.

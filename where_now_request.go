@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -22,24 +20,16 @@ type whereNowBuilder struct {
 }
 
 func newWhereNowBuilder(pubnub *PubNub) *whereNowBuilder {
-	builder := whereNowBuilder{
-		opts: &whereNowOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newWhereNowBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newWhereNowOpts(pubnub *PubNub, ctx Context) *whereNowOpts {
+	return &whereNowOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newWhereNowBuilderWithContext(pubnub *PubNub,
 	context Context) *whereNowBuilder {
 	builder := whereNowBuilder{
-		opts: &whereNowOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newWhereNowOpts(pubnub, context)}
 	return &builder
 }
 
@@ -72,25 +62,11 @@ func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
 }
 
 type whereNowOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	UUID       string
 	QueryParam map[string]string
 	Transport  http.RoundTripper
-
-	ctx Context
-}
-
-func (o *whereNowOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *whereNowOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *whereNowOpts) context() Context {
-	return o.ctx
 }
 
 func (o *whereNowOpts) validate() error {
@@ -113,22 +89,6 @@ func (o *whereNowOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *whereNowOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *whereNowOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *whereNowOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *whereNowOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *whereNowOpts) isAuthRequired() bool {
 	return true
 }
@@ -143,14 +103,6 @@ func (o *whereNowOpts) connectTimeout() int {
 
 func (o *whereNowOpts) operationType() OperationType {
 	return PNWhereNowOperation
-}
-
-func (o *whereNowOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *whereNowOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // WhereNowResponse is the response of the WhereNow request. Contains channels info.

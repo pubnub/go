@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -21,24 +18,15 @@ type historyDeleteBuilder struct {
 }
 
 func newHistoryDeleteBuilder(pubnub *PubNub) *historyDeleteBuilder {
-	builder := historyDeleteBuilder{
-		opts: &historyDeleteOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newHistoryDeleteBuilderWithContext(pubnub, pubnub.ctx)
 }
 
-func newHistoryDeleteBuilderWithContext(pubnub *PubNub,
-	context Context) *historyDeleteBuilder {
+func newHistoryDeleteOpts(pubnub *PubNub, ctx Context) *historyDeleteOpts {
+	return &historyDeleteOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
+func newHistoryDeleteBuilderWithContext(pubnub *PubNub, context Context) *historyDeleteBuilder {
 	builder := historyDeleteBuilder{
-		opts: &historyDeleteOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newHistoryDeleteOpts(pubnub, context)}
 	return &builder
 }
 
@@ -86,7 +74,7 @@ func (b *historyDeleteBuilder) Execute() (*HistoryDeleteResponse, StatusResponse
 }
 
 type historyDeleteOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channel    string
 	Start      int64
@@ -97,20 +85,6 @@ type historyDeleteOpts struct {
 	SetEnd   bool
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *historyDeleteOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *historyDeleteOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *historyDeleteOpts) context() Context {
-	return o.ctx
 }
 
 func (o *historyDeleteOpts) validate() error {
@@ -127,10 +101,6 @@ func (o *historyDeleteOpts) validate() error {
 	}
 
 	return nil
-}
-
-func (o *historyDeleteOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
 }
 
 func (o *historyDeleteOpts) buildPath() (string, error) {
@@ -155,14 +125,6 @@ func (o *historyDeleteOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *historyDeleteOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *historyDeleteOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *historyDeleteOpts) httpMethod() string {
 	return "DELETE"
 }
@@ -181,14 +143,6 @@ func (o *historyDeleteOpts) connectTimeout() int {
 
 func (o *historyDeleteOpts) operationType() OperationType {
 	return PNDeleteMessagesOperation
-}
-
-func (o *historyDeleteOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *historyDeleteOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // HistoryDeleteResponse is the struct returned when Delete Messages is called.

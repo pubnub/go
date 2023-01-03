@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -23,24 +21,16 @@ type allChannelGroupBuilder struct {
 }
 
 func newAllChannelGroupBuilder(pubnub *PubNub) *allChannelGroupBuilder {
-	builder := allChannelGroupBuilder{
-		opts: &allChannelGroupOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newAllChannelGroupBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newAllChannelGroupOpts(pubnub *PubNub, ctx Context) *allChannelGroupOpts {
+	return &allChannelGroupOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newAllChannelGroupBuilderWithContext(pubnub *PubNub,
 	context Context) *allChannelGroupBuilder {
 	builder := allChannelGroupBuilder{
-		opts: &allChannelGroupOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newAllChannelGroupOpts(pubnub, context)}
 	return &builder
 }
 
@@ -70,25 +60,11 @@ func (b *allChannelGroupBuilder) Execute() (
 }
 
 type allChannelGroupOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	ChannelGroup string
 	QueryParam   map[string]string
 	Transport    http.RoundTripper
-
-	ctx Context
-}
-
-func (o *allChannelGroupOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *allChannelGroupOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *allChannelGroupOpts) context() Context {
-	return o.ctx
 }
 
 func (o *allChannelGroupOpts) validate() error {
@@ -115,22 +91,6 @@ func (o *allChannelGroupOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *allChannelGroupOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *allChannelGroupOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *allChannelGroupOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *allChannelGroupOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *allChannelGroupOpts) isAuthRequired() bool {
 	return true
 }
@@ -145,14 +105,6 @@ func (o *allChannelGroupOpts) connectTimeout() int {
 
 func (o *allChannelGroupOpts) operationType() OperationType {
 	return PNChannelsForGroupOperation
-}
-
-func (o *allChannelGroupOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *allChannelGroupOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // AllChannelGroupResponse is the struct returned when the Execute function of List All Channel Groups is called.

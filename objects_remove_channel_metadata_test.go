@@ -59,9 +59,7 @@ func TestRemoveChannelMetadataContext(t *testing.T) {
 func TestRemoveChannelMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &removeChannelMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newRemoveChannelMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNRemoveChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
@@ -71,9 +69,7 @@ func TestRemoveChannelMetadataResponseValueError(t *testing.T) {
 func TestRemoveChannelMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &removeChannelMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newRemoveChannelMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200,"data":null}`)
 
 	r, _, err := newPNRemoveChannelMetadataResponse(jsonBytes, opts, StatusResponse{})

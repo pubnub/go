@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -31,10 +29,10 @@ func newGetAllChannelMetadataBuilder(pubnub *PubNub) *getAllChannelMetadataBuild
 func newGetAllChannelMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *getAllChannelMetadataBuilder {
 	builder := getAllChannelMetadataBuilder{
-		opts: &getAllChannelMetadataOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newGetAllChannelMetadataOpts(
+			pubnub,
+			context,
+		),
 	}
 	builder.opts.Limit = getAllChannelMetadataLimitV2
 
@@ -106,8 +104,15 @@ func (b *getAllChannelMetadataBuilder) Execute() (*PNGetAllChannelMetadataRespon
 	return newPNGetAllChannelMetadataResponse(rawJSON, b.opts, status)
 }
 
+func newGetAllChannelMetadataOpts(pubnub *PubNub, ctx Context) *getAllChannelMetadataOpts {
+	return &getAllChannelMetadataOpts{endpointOpts: endpointOpts{
+		pubnub: pubnub,
+		ctx:    ctx,
+	}}
+}
+
 type getAllChannelMetadataOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Limit      int
 	Include    []string
@@ -119,20 +124,6 @@ type getAllChannelMetadataOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getAllChannelMetadataOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *getAllChannelMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *getAllChannelMetadataOpts) context() Context {
-	return o.ctx
 }
 
 func (o *getAllChannelMetadataOpts) validate() error {
@@ -183,22 +174,6 @@ func (o *getAllChannelMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getAllChannelMetadataOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *getAllChannelMetadataOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *getAllChannelMetadataOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *getAllChannelMetadataOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *getAllChannelMetadataOpts) isAuthRequired() bool {
 	return true
 }
@@ -213,14 +188,6 @@ func (o *getAllChannelMetadataOpts) connectTimeout() int {
 
 func (o *getAllChannelMetadataOpts) operationType() OperationType {
 	return PNGetAllChannelMetadataOperation
-}
-
-func (o *getAllChannelMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *getAllChannelMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNGetAllChannelMetadataResponse is the Objects API Response for Get Spaces

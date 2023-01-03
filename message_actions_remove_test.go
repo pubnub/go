@@ -64,9 +64,7 @@ func TestRemoveMessageActionsContext(t *testing.T) {
 func TestRemoveMessageActionsResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &removeMessageActionsOpts{
-		pubnub: pn,
-	}
+	opts := newRemoveMessageActionsOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNRemoveMessageActionsResponse(jsonBytes, opts, StatusResponse{})
@@ -76,9 +74,7 @@ func TestRemoveMessageActionsResponseValueError(t *testing.T) {
 func TestRemoveMessageActionsResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &removeMessageActionsOpts{
-		pubnub: pn,
-	}
+	opts := newRemoveMessageActionsOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status": 200, "data": {}}`)
 
 	r, _, err := newPNRemoveMessageActionsResponse(jsonBytes, opts, StatusResponse{})

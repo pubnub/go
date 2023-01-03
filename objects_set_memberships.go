@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -30,15 +28,12 @@ func newSetMembershipsBuilder(pubnub *PubNub) *setMembershipsBuilder {
 
 func newSetMembershipsBuilderWithContext(pubnub *PubNub,
 	context Context) *setMembershipsBuilder {
-	builder := setMembershipsBuilder{
-		opts: &setMembershipsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+	return &setMembershipsBuilder{
+		opts: newSetMembershipsOpts(
+			pubnub,
+			context,
+		),
 	}
-	builder.opts.Limit = setMembershipsLimit
-
-	return &builder
 }
 
 func (b *setMembershipsBuilder) Include(include []PNMembershipsInclude) *setMembershipsBuilder {
@@ -122,8 +117,17 @@ func (b *setMembershipsBuilder) Execute() (*PNSetMembershipsResponse, StatusResp
 	return newPNSetMembershipsResponse(rawJSON, b.opts, status)
 }
 
+func newSetMembershipsOpts(pubnub *PubNub, ctx Context) *setMembershipsOpts {
+	return &setMembershipsOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+		Limit: setMembershipsLimit}
+}
+
 type setMembershipsOpts struct {
-	pubnub         *PubNub
+	endpointOpts
 	UUID           string
 	Limit          int
 	Include        []string
@@ -135,20 +139,6 @@ type setMembershipsOpts struct {
 	QueryParam     map[string]string
 	MembershipsSet []PNMembershipsSet
 	Transport      http.RoundTripper
-
-	ctx Context
-}
-
-func (o *setMembershipsOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *setMembershipsOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *setMembershipsOpts) context() Context {
-	return o.ctx
 }
 
 func (o *setMembershipsOpts) validate() error {
@@ -200,10 +190,6 @@ func (o *setMembershipsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *setMembershipsOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 // PNMembersAddChangeSet is the Objects API input to add, remove or update members
 type PNMembersAddChangeSet struct {
 	Set []PNMembershipsSet `json:"set"`
@@ -224,10 +210,6 @@ func (o *setMembershipsOpts) buildBody() ([]byte, error) {
 
 }
 
-func (o *setMembershipsOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *setMembershipsOpts) httpMethod() string {
 	return "PATCH"
 }
@@ -246,14 +228,6 @@ func (o *setMembershipsOpts) connectTimeout() int {
 
 func (o *setMembershipsOpts) operationType() OperationType {
 	return PNSetMembershipsOperation
-}
-
-func (o *setMembershipsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *setMembershipsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNSetMembershipsResponse is the Objects API Response for SetMemberships

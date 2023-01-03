@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -31,10 +29,7 @@ func newRemoveMembershipsBuilder(pubnub *PubNub) *removeMembershipsBuilder {
 func newRemoveMembershipsBuilderWithContext(pubnub *PubNub,
 	context Context) *removeMembershipsBuilder {
 	builder := removeMembershipsBuilder{
-		opts: &removeMembershipsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newRemoveMembershipsOpts(pubnub, context),
 	}
 	builder.opts.Limit = removeMembershipsLimit
 
@@ -122,8 +117,17 @@ func (b *removeMembershipsBuilder) Execute() (*PNRemoveMembershipsResponse, Stat
 	return newPNRemoveMembershipsResponse(rawJSON, b.opts, status)
 }
 
+func newRemoveMembershipsOpts(pubnub *PubNub, ctx Context) *removeMembershipsOpts {
+	return &removeMembershipsOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type removeMembershipsOpts struct {
-	pubnub            *PubNub
+	endpointOpts
 	UUID              string
 	Limit             int
 	Include           []string
@@ -135,20 +139,6 @@ type removeMembershipsOpts struct {
 	QueryParam        map[string]string
 	MembershipsRemove []PNMembershipsRemove
 	Transport         http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeMembershipsOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *removeMembershipsOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *removeMembershipsOpts) context() Context {
-	return o.ctx
 }
 
 func (o *removeMembershipsOpts) validate() error {
@@ -200,10 +190,6 @@ func (o *removeMembershipsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeMembershipsOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 // PNMembershipsRemoveChangeSet is the Objects API input to add, remove or update members
 type PNMembershipsRemoveChangeSet struct {
 	Remove []PNMembershipsRemove `json:"delete"`
@@ -224,10 +210,6 @@ func (o *removeMembershipsOpts) buildBody() ([]byte, error) {
 
 }
 
-func (o *removeMembershipsOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *removeMembershipsOpts) httpMethod() string {
 	return "PATCH"
 }
@@ -246,14 +228,6 @@ func (o *removeMembershipsOpts) connectTimeout() int {
 
 func (o *removeMembershipsOpts) operationType() OperationType {
 	return PNRemoveMembershipsOperation
-}
-
-func (o *removeMembershipsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *removeMembershipsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNRemoveMembershipsResponse is the Objects API Response for RemoveMemberships

@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
-	"net/http"
 	"net/url"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -23,23 +21,15 @@ type setStateBuilder struct {
 }
 
 func newSetStateBuilder(pubnub *PubNub) *setStateBuilder {
-	builder := setStateBuilder{
-		opts: &setStateOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newSetStateBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newSetStateOpts(pubnub *PubNub, ctx Context) *setStateOpts {
+	return &setStateOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newSetStateBuilderWithContext(pubnub *PubNub, context Context) *setStateBuilder {
 	builder := setStateBuilder{
-		opts: &setStateOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newSetStateOpts(pubnub, context)}
 	return &builder
 }
 
@@ -93,26 +83,13 @@ func (b *setStateBuilder) Execute() (*SetStateResponse, StatusResponse, error) {
 }
 
 type setStateOpts struct {
+	endpointOpts
 	State         map[string]interface{}
 	Channels      []string
 	ChannelGroups []string
 	UUID          string
 	QueryParam    map[string]string
-	pubnub        *PubNub
 	stringState   string
-	ctx           Context
-}
-
-func (o *setStateOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *setStateOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *setStateOpts) context() Context {
-	return o.ctx
 }
 
 func (o *setStateOpts) validate() error {
@@ -169,22 +146,6 @@ func (o *setStateOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *setStateOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *setStateOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *setStateOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *setStateOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *setStateOpts) isAuthRequired() bool {
 	return true
 }
@@ -199,14 +160,6 @@ func (o *setStateOpts) connectTimeout() int {
 
 func (o *setStateOpts) operationType() OperationType {
 	return PNSetStateOperation
-}
-
-func (o *setStateOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *setStateOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 func newSetStateResponse(jsonBytes []byte, status StatusResponse) (

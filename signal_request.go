@@ -3,13 +3,10 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"mime/multipart"
-
 	"github.com/pubnub/go/v7/pnerr"
 	"github.com/pubnub/go/v7/utils"
+	"io/ioutil"
 
 	"net/http"
 	"net/url"
@@ -26,25 +23,16 @@ type signalBuilder struct {
 }
 
 func newSignalBuilder(pubnub *PubNub) *signalBuilder {
-	builder := signalBuilder{
-		opts: &signalOpts{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.UsePost = false
-
-	return &builder
+	return newSignalBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newSignalOpts(pubnub *PubNub, ctx Context) *signalOpts {
+	return &signalOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newSignalBuilderWithContext(pubnub *PubNub,
 	context Context) *signalBuilder {
 	builder := signalBuilder{
-		opts: &signalOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newSignalOpts(pubnub, context)}
 	return &builder
 }
 
@@ -92,25 +80,12 @@ func (b *signalBuilder) Execute() (*SignalResponse, StatusResponse, error) {
 }
 
 type signalOpts struct {
-	pubnub     *PubNub
+	endpointOpts
 	Message    interface{}
 	Channel    string
 	UsePost    bool
 	QueryParam map[string]string
 	Transport  http.RoundTripper
-	ctx        Context
-}
-
-func (o *signalOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *signalOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *signalOpts) context() Context {
-	return o.ctx
 }
 
 func (o *signalOpts) validate() error {
@@ -158,10 +133,6 @@ func (o *signalOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *signalOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *signalOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		jsonEncBytes, errEnc := json.Marshal(o.Message)
@@ -172,10 +143,6 @@ func (o *signalOpts) buildBody() ([]byte, error) {
 		return jsonEncBytes, nil
 	}
 	return []byte{}, nil
-}
-
-func (o *signalOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *signalOpts) httpMethod() string {
@@ -199,14 +166,6 @@ func (o *signalOpts) connectTimeout() int {
 
 func (o *signalOpts) operationType() OperationType {
 	return PNSignalOperation
-}
-
-func (o *signalOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *signalOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // SignalResponse is the response to Signal request.

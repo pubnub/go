@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -31,10 +29,7 @@ func newRemoveChannelMembersBuilder(pubnub *PubNub) *removeChannelMembersBuilder
 func newRemoveChannelMembersBuilderWithContext(pubnub *PubNub,
 	context Context) *removeChannelMembersBuilder {
 	builder := removeChannelMembersBuilder{
-		opts: &removeChannelMembersOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newRemoveChannelMembersOpts(pubnub, context),
 	}
 	builder.opts.Limit = removeChannelMembersLimit
 
@@ -118,8 +113,17 @@ func (b *removeChannelMembersBuilder) Execute() (*PNRemoveChannelMembersResponse
 	return newPNRemoveChannelMembersResponse(rawJSON, b.opts, status)
 }
 
+func newRemoveChannelMembersOpts(pubnub *PubNub, ctx Context) *removeChannelMembersOpts {
+	return &removeChannelMembersOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type removeChannelMembersOpts struct {
-	pubnub               *PubNub
+	endpointOpts
 	Channel              string
 	Limit                int
 	Include              []string
@@ -131,20 +135,6 @@ type removeChannelMembersOpts struct {
 	QueryParam           map[string]string
 	ChannelMembersRemove []PNChannelMembersRemove
 	Transport            http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeChannelMembersOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *removeChannelMembersOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *removeChannelMembersOpts) context() Context {
-	return o.ctx
 }
 
 func (o *removeChannelMembersOpts) validate() error {
@@ -198,10 +188,6 @@ func (o *removeChannelMembersOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeChannelMembersOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 // PNChannelMembersRemoveChangeset is the Objects API input to add, remove or update membership
 type PNChannelMembersRemoveChangeset struct {
 	Remove []PNChannelMembersRemove `json:"delete"`
@@ -219,10 +205,6 @@ func (o *removeChannelMembersOpts) buildBody() ([]byte, error) {
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil
-}
-
-func (o *removeChannelMembersOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *removeChannelMembersOpts) httpMethod() string {
@@ -243,14 +225,6 @@ func (o *removeChannelMembersOpts) connectTimeout() int {
 
 func (o *removeChannelMembersOpts) operationType() OperationType {
 	return PNRemoveChannelMembersOperation
-}
-
-func (o *removeChannelMembersOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *removeChannelMembersOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNRemoveChannelMembersResponse is the Objects API Response for RemoveChannelMembers

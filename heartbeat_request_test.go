@@ -17,12 +17,10 @@ func TestHeartbeatRequestBasic(t *testing.T) {
 	state["one"] = []string{"qwerty"}
 	state["two"] = 2
 
-	opts := &heartbeatOpts{
-		pubnub:        pubnub,
-		State:         state,
-		Channels:      []string{"ch"},
-		ChannelGroups: []string{"cg"},
-	}
+	opts := newHeartbeatOpts(pubnub, pubnub.ctx)
+	opts.State = state
+	opts.Channels = []string{"ch"}
+	opts.ChannelGroups = []string{"cg"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -105,9 +103,7 @@ func TestNewHeartbeatBuilderContext(t *testing.T) {
 func TestHeartbeatValidateChAndCg(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &heartbeatOpts{
-		pubnub: pubnub,
-	}
+	opts := newHeartbeatOpts(pubnub, pubnub.ctx)
 	err := opts.validate()
 	assert.Equal("pubnub/validation: pubnub: Heartbeat: Missing Channel or Channel Group", err.Error())
 }
@@ -116,9 +112,7 @@ func TestHeartbeatValidateSubKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &heartbeatOpts{
-		pubnub: pn,
-	}
+	opts := newHeartbeatOpts(pn, pn.ctx)
 	err := opts.validate()
 	assert.Equal("pubnub/validation: pubnub: Heartbeat: Missing Subscribe Key", err.Error())
 }

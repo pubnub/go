@@ -162,13 +162,11 @@ func AssertSuccessFireGetAllParameters(t *testing.T, expectedString string, mess
 func AssertSuccessFirePost(t *testing.T, expectedBody string, message interface{}) {
 	assert := assert.New(t)
 
-	opts := &fireOpts{
-		Channel:   "ch",
-		Message:   message,
-		pubnub:    pubnub,
-		UsePost:   true,
-		Serialize: true,
-	}
+	opts := newFireOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Message = message
+	opts.UsePost = true
+	opts.Serialize = true
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -188,11 +186,9 @@ func AssertSuccessFirePost(t *testing.T, expectedBody string, message interface{
 }
 
 func AssertSuccessFireQuery(t *testing.T, expectedString string, message interface{}) {
-	opts := &fireOpts{
-		Channel: "ch",
-		Message: "hey",
-		pubnub:  pubnub,
-	}
+	opts := newFireOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Message = "hey"
 
 	query, _ := opts.buildQuery()
 
@@ -210,13 +206,11 @@ func TestFireDoNotSerializePost(t *testing.T) {
 
 	message := "{\"one\":\"hey\"}"
 
-	opts := &fireOpts{
-		Channel:   "ch",
-		Message:   message,
-		pubnub:    pubnub,
-		UsePost:   true,
-		Serialize: false,
-	}
+	opts := newFireOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Message = message
+	opts.UsePost = true
+	opts.Serialize = false
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -241,12 +235,10 @@ func TestFireDoNotSerializeQueryParam(t *testing.T) {
 		"q2": "v2",
 	}
 
-	opts := &fireOpts{
-		Channel:    "ch",
-		Message:    message,
-		pubnub:     pubnub,
-		QueryParam: queryParam,
-	}
+	opts := newFireOpts(pubnub, pubnub.ctx)
+	opts.Channel = "ch"
+	opts.Message = message
+	opts.QueryParam = queryParam
 
 	b, err := opts.buildQuery()
 	assert.Nil(err)
@@ -259,9 +251,8 @@ func TestValidatePublishKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.PublishKey = ""
-	opts := &fireOpts{
-		pubnub: pn,
-	}
+	opts := newFireOpts(pn, pn.ctx)
+
 	assert.Equal("pubnub/validation: pubnub: Fire: Missing Publish Key", opts.validate().Error())
 }
 
@@ -269,39 +260,34 @@ func TestValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &fireOpts{
-		pubnub: pn,
-	}
+	opts := newFireOpts(pn, pn.ctx)
 	assert.Equal("pubnub/validation: pubnub: Fire: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestValidateChannel(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &fireOpts{
-		pubnub: pn,
-	}
+	opts := newFireOpts(pn, pn.ctx)
+
 	assert.Equal("pubnub/validation: pubnub: Fire: Missing Channel", opts.validate().Error())
 }
 
 func TestValidateMessage(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &fireOpts{
-		Channel: "ch",
-		pubnub:  pn,
-	}
+	opts := newFireOpts(pn, pn.ctx)
+	opts.Channel = "ch"
+
 	assert.Equal("pubnub/validation: pubnub: Fire: Missing Message", opts.validate().Error())
 }
 
 func TestValidate(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &fireOpts{
-		Channel: "ch",
-		Message: "a",
-		pubnub:  pn,
-	}
+	opts := newFireOpts(pn, pn.ctx)
+	opts.Channel = "ch"
+	opts.Message = "a"
+
 	err := opts.validate()
 	assert.Nil(err)
 }

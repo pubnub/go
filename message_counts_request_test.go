@@ -11,12 +11,10 @@ import (
 func AssertSuccessMessageCountsGet(t *testing.T, expectedString string, channels []string, timetoken int64, channelsTimetoken []int64) {
 	assert := assert.New(t)
 
-	opts := &messageCountsOpts{
-		Channels:          channels,
-		Timetoken:         timetoken,
-		ChannelsTimetoken: channelsTimetoken,
-		pubnub:            pubnub,
-	}
+	opts := newMessageCountsOpts(pubnub, pubnub.ctx)
+	opts.Channels = channels
+	opts.Timetoken = timetoken
+	opts.ChannelsTimetoken = channelsTimetoken
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -62,13 +60,11 @@ func AssertSuccessMessageCountsGetQuery(t *testing.T, expectedString1 string, ex
 		"q2": "v2",
 	}
 
-	opts := &messageCountsOpts{
-		Channels:          channels,
-		Timetoken:         timetoken,
-		ChannelsTimetoken: channelsTimetoken,
-		pubnub:            pubnub,
-		QueryParam:        queryParam,
-	}
+	opts := newMessageCountsOpts(pubnub, pubnub.ctx)
+	opts.Channels = channels
+	opts.Timetoken = timetoken
+	opts.ChannelsTimetoken = channelsTimetoken
+	opts.QueryParam = queryParam
 
 	u, err := opts.buildQuery()
 	assert.Nil(err)
@@ -145,9 +141,7 @@ func TestMessageCountsBuilderContextQP(t *testing.T) {
 func TestMessageCountsResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &messageCountsOpts{
-		pubnub: pn,
-	}
+	opts := newMessageCountsOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newMessageCountsResponse(jsonBytes, opts, StatusResponse{})
@@ -158,9 +152,7 @@ func TestMessageCountsResponseValueError(t *testing.T) {
 func TestMessageCountsResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &messageCountsOpts{
-		pubnub: pn,
-	}
+	opts := newMessageCountsOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"my-channel1":1,"my-channel":2}}`)
 
 	res, _, err := newMessageCountsResponse(jsonBytes, opts, StatusResponse{})

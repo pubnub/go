@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -31,10 +29,10 @@ func newSetChannelMembersBuilder(pubnub *PubNub) *setChannelMembersBuilder {
 func newSetChannelMembersBuilderWithContext(pubnub *PubNub,
 	context Context) *setChannelMembersBuilder {
 	builder := setChannelMembersBuilder{
-		opts: &setChannelMembersOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newSetChannelMembersOpts(
+			pubnub,
+			context,
+		),
 	}
 	builder.opts.Limit = setChannelMembersLimit
 
@@ -118,8 +116,17 @@ func (b *setChannelMembersBuilder) Execute() (*PNSetChannelMembersResponse, Stat
 	return newPNSetChannelMembersResponse(rawJSON, b.opts, status)
 }
 
+func newSetChannelMembersOpts(pubnub *PubNub, ctx Context) *setChannelMembersOpts {
+	return &setChannelMembersOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+		Limit: setChannelMembersLimit}
+}
+
 type setChannelMembersOpts struct {
-	pubnub            *PubNub
+	endpointOpts
 	Channel           string
 	Limit             int
 	Include           []string
@@ -131,20 +138,6 @@ type setChannelMembersOpts struct {
 	QueryParam        map[string]string
 	ChannelMembersSet []PNChannelMembersSet
 	Transport         http.RoundTripper
-
-	ctx Context
-}
-
-func (o *setChannelMembersOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *setChannelMembersOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *setChannelMembersOpts) context() Context {
-	return o.ctx
 }
 
 func (o *setChannelMembersOpts) validate() error {
@@ -198,10 +191,6 @@ func (o *setChannelMembersOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *setChannelMembersOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 // PNChannelMembersSetChangeset is the Objects API input to add, remove or update membership
 type PNChannelMembersSetChangeset struct {
 	Set []PNChannelMembersSet `json:"set"`
@@ -219,10 +208,6 @@ func (o *setChannelMembersOpts) buildBody() ([]byte, error) {
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil
-}
-
-func (o *setChannelMembersOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *setChannelMembersOpts) httpMethod() string {
@@ -243,14 +228,6 @@ func (o *setChannelMembersOpts) connectTimeout() int {
 
 func (o *setChannelMembersOpts) operationType() OperationType {
 	return PNSetChannelMembersOperation
-}
-
-func (o *setChannelMembersOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *setChannelMembersOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNSetChannelMembersResponse is the Objects API Response for SetChannelMembers

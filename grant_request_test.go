@@ -82,17 +82,7 @@ func TestNewGrantObjectsPremsBuilder(t *testing.T) {
 func TestGrantRequestBasic(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &grantOpts{
-		AuthKeys:      []string{"my-auth-key"},
-		Channels:      []string{"ch"},
-		ChannelGroups: []string{"cg"},
-		Read:          true,
-		Write:         true,
-		Manage:        true,
-		TTL:           5000,
-		setTTL:        true,
-		pubnub:        pubnub,
-	}
+	opts := setAuthKeysChannelsAndChannelGroupsFor(optsWithReadWriteManageAndProperTTL(pubnub))
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -128,17 +118,7 @@ func TestGrantRequestBasic(t *testing.T) {
 func TestGrantRequestBasicQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &grantOpts{
-		AuthKeys:      []string{"my-auth-key"},
-		Channels:      []string{"ch"},
-		ChannelGroups: []string{"cg"},
-		Read:          true,
-		Write:         true,
-		Manage:        true,
-		TTL:           5000,
-		setTTL:        true,
-		pubnub:        pubnub,
-	}
+	opts := setAuthKeysChannelsAndChannelGroupsFor(optsWithReadWriteManageAndProperTTL(pubnub))
 
 	queryParam := map[string]string{
 		"q1": "v1",
@@ -311,17 +291,7 @@ func TestGrantTokenOptsValidateSub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &grantOpts{
-		AuthKeys:      []string{"my-auth-key"},
-		Channels:      []string{"ch"},
-		ChannelGroups: []string{"cg"},
-		Read:          true,
-		Write:         true,
-		Manage:        true,
-		TTL:           5000,
-		setTTL:        true,
-		pubnub:        pn,
-	}
+	opts := setAuthKeysChannelsAndChannelGroupsFor(optsWithReadWriteManageAndProperTTL(pn))
 
 	assert.Equal("pubnub/validation: pubnub: Grant: Missing Subscribe Key", opts.validate().Error())
 }
@@ -330,17 +300,7 @@ func TestGrantTokenOptsValidateSec(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SecretKey = ""
-	opts := &grantOpts{
-		AuthKeys:      []string{"my-auth-key"},
-		Channels:      []string{"ch"},
-		ChannelGroups: []string{"cg"},
-		Read:          true,
-		Write:         true,
-		Manage:        true,
-		TTL:           5000,
-		setTTL:        true,
-		pubnub:        pn,
-	}
+	opts := setAuthKeysChannelsAndChannelGroupsFor(optsWithReadWriteManageAndProperTTL(pn))
 
 	assert.Equal("pubnub/validation: pubnub: Grant: Missing Secret Key", opts.validate().Error())
 }
@@ -349,17 +309,7 @@ func TestGrantTokenOptsValidatePub(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.PublishKey = ""
-	opts := &grantOpts{
-		AuthKeys:      []string{"my-auth-key"},
-		Channels:      []string{"ch"},
-		ChannelGroups: []string{"cg"},
-		Read:          true,
-		Write:         true,
-		Manage:        true,
-		TTL:           5000,
-		setTTL:        true,
-		pubnub:        pn,
-	}
+	opts := setAuthKeysChannelsAndChannelGroupsFor(optsWithReadWriteManageAndProperTTL(pn))
 
 	assert.Equal("pubnub/validation: pubnub: Grant: Missing Publish Key", opts.validate().Error())
 }
@@ -445,4 +395,21 @@ func TestGrantTTL(t *testing.T) {
 	gb := newGrantBuilder(pn)
 	gb.TTL(10)
 	assert.Equal(10, gb.opts.TTL)
+}
+
+func optsWithReadWriteManageAndProperTTL(pn *PubNub) *grantOpts {
+	opts := newGrantOpts(pn, pn.ctx)
+	opts.Read = true
+	opts.Write = true
+	opts.Manage = true
+	opts.TTL = 5000
+	opts.setTTL = true
+	return opts
+}
+
+func setAuthKeysChannelsAndChannelGroupsFor(opts *grantOpts) *grantOpts {
+	opts.AuthKeys = []string{"my-auth-key"}
+	opts.Channels = []string{"ch"}
+	opts.ChannelGroups = []string{"cg"}
+	return opts
 }

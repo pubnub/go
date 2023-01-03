@@ -89,9 +89,7 @@ func TestPublishFileMessageValidatePublishKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.PublishKey = ""
-	opts := &publishFileMessageOpts{
-		pubnub: pn,
-	}
+	opts := newPublishFileMessageOpts(pn, pn.ctx)
 	assert.Equal("pubnub/validation: pubnub: Publish File: Missing Publish Key", opts.validate().Error())
 }
 
@@ -99,29 +97,23 @@ func TestPublishFileMessageValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &publishFileMessageOpts{
-		pubnub: pn,
-	}
+	opts := newPublishFileMessageOpts(pn, pn.ctx)
 	assert.Equal("pubnub/validation: pubnub: Publish File: Missing Subscribe Key", opts.validate().Error())
 }
 
 func TestPublishFileMessageValidateFileID(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &publishFileMessageOpts{
-		pubnub: pn,
-	}
+	opts := newPublishFileMessageOpts(pn, pn.ctx)
 	assert.Equal("pubnub/validation: pubnub: Publish File: Missing File ID", opts.validate().Error())
 }
 
 func TestPublishFileMessageValidateFileName(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &publishFileMessageOpts{
-		Channel: "ch",
-		pubnub:  pn,
-		FileID:  "sdd",
-	}
+	opts := newPublishFileMessageOpts(pn, pn.ctx)
+	opts.Channel = "ch"
+	opts.FileID = "sdd"
 	assert.Equal("pubnub/validation: pubnub: Publish File: Missing File Name", opts.validate().Error())
 }
 
@@ -132,11 +124,9 @@ func TestPublishFileMessageValidateFileMessageNilFileID(t *testing.T) {
 		PNFile:    nil,
 		PNMessage: nil,
 	}
-	opts := &publishFileMessageOpts{
-		Channel: "ch",
-		pubnub:  pn,
-		Message: m1,
-	}
+	opts := newPublishFileMessageOpts(pn, pn.ctx)
+	opts.Channel = "ch"
+	opts.Message = m1
 	assert.Equal("pubnub/validation: pubnub: Publish File: Missing File ID", opts.validate().Error())
 }
 
@@ -151,22 +141,18 @@ func TestPublishFileMessageValidateFileMessageNilFileName(t *testing.T) {
 		PNFile:    file,
 		PNMessage: nil,
 	}
-	opts := &publishFileMessageOpts{
-		Channel: "ch",
-		pubnub:  pn,
-		Message: m1,
-	}
+	opts := newPublishFileMessageOpts(pn, pn.ctx)
+	opts.Channel = "ch"
+	opts.Message = m1
 	assert.Equal("pubnub/validation: pubnub: Publish File: Missing File Name", opts.validate().Error())
 }
 
 func TestPublishFileMessageValidate(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &publishFileMessageOpts{
-		Channel: "ch",
-		Message: "a",
-		pubnub:  pn,
-	}
+	opts := newPublishFileMessageOpts(pn, pn.ctx)
+	opts.Channel = "ch"
+	opts.Message = "a"
 	assert.Equal("pubnub/validation: pubnub: Publish File: Missing Message", opts.validate().Error())
 }
 
@@ -294,9 +280,7 @@ func TestPublishFileMessageContext(t *testing.T) {
 func TestPublishFileMessageResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &publishFileMessageOpts{
-		pubnub: pn,
-	}
+	opts := newPublishFileMessageOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPublishFileMessageResponse(jsonBytes, opts, StatusResponse{})
@@ -306,9 +290,7 @@ func TestPublishFileMessageResponseValueError(t *testing.T) {
 func TestPublishFileMessageResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &publishFileMessageOpts{
-		pubnub: pn,
-	}
+	opts := newPublishFileMessageOpts(pn, pn.ctx)
 	jsonBytes := []byte(`[1, "Sent", "12142342544254"]`)
 
 	r, _, err := newPublishFileMessageResponse(jsonBytes, opts, StatusResponse{})

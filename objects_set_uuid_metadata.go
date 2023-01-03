@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -22,25 +20,17 @@ type setUUIDMetadataBuilder struct {
 }
 
 func newSetUUIDMetadataBuilder(pubnub *PubNub) *setUUIDMetadataBuilder {
-	builder := setUUIDMetadataBuilder{
-		opts: &setUUIDMetadataOpts{
-			pubnub: pubnub,
-		},
-	}
+	return newSetUUIDMetadataBuilderWithContext(pubnub, pubnub.ctx)
+}
 
-	return &builder
+func newSetUUIDMetadataOpts(pubnub *PubNub, ctx Context) *setUUIDMetadataOpts {
+	return &setUUIDMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
 }
 
 func newSetUUIDMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *setUUIDMetadataBuilder {
-	builder := setUUIDMetadataBuilder{
-		opts: &setUUIDMetadataOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
-	return &builder
+	return &setUUIDMetadataBuilder{
+		opts: newSetUUIDMetadataOpts(pubnub, context)}
 }
 
 // SetUUIDMetadataBody is the input to update user
@@ -122,7 +112,7 @@ func (b *setUUIDMetadataBuilder) Execute() (*PNSetUUIDMetadataResponse, StatusRe
 }
 
 type setUUIDMetadataOpts struct {
-	pubnub     *PubNub
+	endpointOpts
 	Include    []string
 	UUID       string
 	Name       string
@@ -133,20 +123,6 @@ type setUUIDMetadataOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *setUUIDMetadataOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *setUUIDMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *setUUIDMetadataOpts) context() Context {
-	return o.ctx
 }
 
 func (o *setUUIDMetadataOpts) validate() error {
@@ -175,10 +151,6 @@ func (o *setUUIDMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *setUUIDMetadataOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *setUUIDMetadataOpts) buildBody() ([]byte, error) {
 	b := &SetUUIDMetadataBody{
 		Name:       o.Name,
@@ -196,10 +168,6 @@ func (o *setUUIDMetadataOpts) buildBody() ([]byte, error) {
 	}
 	return jsonEncBytes, nil
 
-}
-
-func (o *setUUIDMetadataOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *setUUIDMetadataOpts) httpMethod() string {
@@ -220,14 +188,6 @@ func (o *setUUIDMetadataOpts) connectTimeout() int {
 
 func (o *setUUIDMetadataOpts) operationType() OperationType {
 	return PNSetUUIDMetadataOperation
-}
-
-func (o *setUUIDMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *setUUIDMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNSetUUIDMetadataResponse is the Objects API Response for Update user

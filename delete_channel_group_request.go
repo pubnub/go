@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -20,22 +17,17 @@ type deleteChannelGroupBuilder struct {
 }
 
 func newDeleteChannelGroupBuilder(pubnub *PubNub) *deleteChannelGroupBuilder {
-	builder := deleteChannelGroupBuilder{
-		opts: &deleteChannelGroupOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newDeleteChannelGroupBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newDeleteChannelGroupBuilderWithContext(
 	pubnub *PubNub, context Context) *deleteChannelGroupBuilder {
 	builder := deleteChannelGroupBuilder{
-		opts: &deleteChannelGroupOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newDeleteChannelGroupOpts(
+			pubnub,
+			context,
+			deleteChannelGroupOpts{},
+		),
 	}
 
 	return &builder
@@ -67,24 +59,19 @@ func (b *deleteChannelGroupBuilder) Execute() (
 	return emptyDeleteChannelGroupResponse, status, nil
 }
 
+func newDeleteChannelGroupOpts(pubnub *PubNub, ctx Context, opts deleteChannelGroupOpts) *deleteChannelGroupOpts {
+	opts.endpointOpts = endpointOpts{
+		pubnub: pubnub,
+		ctx:    ctx,
+	}
+	return &opts
+}
+
 type deleteChannelGroupOpts struct {
-	pubnub       *PubNub
+	endpointOpts
 	ChannelGroup string
 	Transport    http.RoundTripper
 	QueryParam   map[string]string
-	ctx          Context
-}
-
-func (o *deleteChannelGroupOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *deleteChannelGroupOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *deleteChannelGroupOpts) context() Context {
-	return o.ctx
 }
 
 func (o *deleteChannelGroupOpts) validate() error {
@@ -114,42 +101,6 @@ func (o *deleteChannelGroupOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *deleteChannelGroupOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *deleteChannelGroupOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *deleteChannelGroupOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *deleteChannelGroupOpts) httpMethod() string {
-	return "GET"
-}
-
-func (o *deleteChannelGroupOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *deleteChannelGroupOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *deleteChannelGroupOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *deleteChannelGroupOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
-}
-
-func (o *deleteChannelGroupOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *deleteChannelGroupOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }

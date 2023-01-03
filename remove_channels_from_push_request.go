@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -22,23 +19,12 @@ type removeChannelsFromPushBuilder struct {
 }
 
 func newRemoveChannelsFromPushBuilder(pubnub *PubNub) *removeChannelsFromPushBuilder {
-	builder := removeChannelsFromPushBuilder{
-		opts: &removeChannelsFromPushOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRemoveChannelsFromPushBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newRemoveChannelsFromPushBuilderWithContext(pubnub *PubNub, context Context) *removeChannelsFromPushBuilder {
 	builder := removeChannelsFromPushBuilder{
-		opts: &removeChannelsFromPushOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newRemoveChannelsFromPushOpts(pubnub, context)}
 	return &builder
 }
 
@@ -89,8 +75,15 @@ func (b *removeChannelsFromPushBuilder) Execute() (*RemoveChannelsFromPushRespon
 	return emptyRemoveChannelsFromPushResponse, status, err
 }
 
+func newRemoveChannelsFromPushOpts(pubnub *PubNub, ctx Context) *removeChannelsFromPushOpts {
+	return &removeChannelsFromPushOpts{endpointOpts: endpointOpts{
+		pubnub: pubnub,
+		ctx:    ctx,
+	}}
+}
+
 type removeChannelsFromPushOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channels        []string
 	QueryParam      map[string]string
@@ -100,20 +93,6 @@ type removeChannelsFromPushOpts struct {
 	Environment     PNPushEnvironment
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeChannelsFromPushOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *removeChannelsFromPushOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *removeChannelsFromPushOpts) context() Context {
-	return o.ctx
 }
 
 func (o *removeChannelsFromPushOpts) validate() error {
@@ -172,22 +151,6 @@ func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeChannelsFromPushOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *removeChannelsFromPushOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *removeChannelsFromPushOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *removeChannelsFromPushOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *removeChannelsFromPushOpts) isAuthRequired() bool {
 	return true
 }
@@ -202,12 +165,4 @@ func (o *removeChannelsFromPushOpts) connectTimeout() int {
 
 func (o *removeChannelsFromPushOpts) operationType() OperationType {
 	return PNRemoveGroupOperation
-}
-
-func (o *removeChannelsFromPushOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *removeChannelsFromPushOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }

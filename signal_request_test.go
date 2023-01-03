@@ -22,12 +22,10 @@ func AssertSuccessSignalGet(t *testing.T, channel string, checkQueryParam bool) 
 
 	msgMap["one"] = "hey1"
 
-	opts := &signalOpts{
-		Channel:    channel,
-		Message:    msgMap,
-		pubnub:     pubnub,
-		QueryParam: queryParam,
-	}
+	opts := newSignalOpts(pubnub, pubnub.ctx)
+	opts.Channel = channel
+	opts.Message = msgMap
+	opts.QueryParam = queryParam
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -129,9 +127,7 @@ func TestSignalBuilderContextQP(t *testing.T) {
 func TestSignalResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &signalOpts{
-		pubnub: pn,
-	}
+	opts := newSignalOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newSignalResponse(jsonBytes, opts, StatusResponse{})
@@ -142,9 +138,7 @@ func TestSignalResponseValueError(t *testing.T) {
 func TestSignalResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &signalOpts{
-		pubnub: pn,
-	}
+	opts := newSignalOpts(pn, pn.ctx)
 	jsonBytes := []byte(`[1, "Sent", "1232423423423"]`)
 
 	_, _, err := newSignalResponse(jsonBytes, opts, StatusResponse{})

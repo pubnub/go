@@ -68,11 +68,9 @@ func TestGetStateBasicRequest(t *testing.T) {
 
 	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
-	opts := &getStateOpts{
-		Channels:      []string{"ch"},
-		ChannelGroups: []string{"cg"},
-		pubnub:        pubnub,
-	}
+	opts := newGetStateOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch"}
+	opts.ChannelGroups = []string{"cg"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -100,12 +98,10 @@ func TestGetStateBasicRequestWithUUID(t *testing.T) {
 
 	uuid := "customuuid"
 
-	opts := &getStateOpts{
-		Channels:      []string{"ch"},
-		ChannelGroups: []string{"cg"},
-		UUID:          uuid,
-		pubnub:        pubnub,
-	}
+	opts := newGetStateOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch"}
+	opts.ChannelGroups = []string{"cg"}
+	opts.UUID = uuid
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -235,11 +231,9 @@ func TestGetStateMultipleChannelsChannelGroups(t *testing.T) {
 
 	pubnub.Config.SetUserId(UserId("my-custom-uuid"))
 
-	opts := &getStateOpts{
-		Channels:      []string{"ch1", "ch2", "ch3"},
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pubnub,
-	}
+	opts := newGetStateOpts(pubnub, pubnub.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -265,9 +259,7 @@ func TestGetStateMultipleChannelsChannelGroups(t *testing.T) {
 func TestGetStateValidateChannel(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getStateOpts{
-		pubnub: pn,
-	}
+	opts := newGetStateOpts(pn, pn.ctx)
 	assert.Equal("pubnub/validation: pubnub: Get State: Missing Channel or Channel Group", opts.validate().Error())
 }
 
@@ -275,11 +267,9 @@ func TestGetStateValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &getStateOpts{
-		Channels:      []string{"ch1", "ch2", "ch3"},
-		ChannelGroups: []string{"cg1", "cg2", "cg3"},
-		pubnub:        pn,
-	}
+	opts := newGetStateOpts(pn, pn.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3"}
+	opts.ChannelGroups = []string{"cg1", "cg2", "cg3"}
 
 	assert.Equal("pubnub/validation: pubnub: Get State: Missing Subscribe Key", opts.validate().Error())
 }

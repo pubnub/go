@@ -1,12 +1,8 @@
 package pubnub
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"mime/multipart"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -21,22 +17,16 @@ type heartbeatBuilder struct {
 }
 
 func newHeartbeatBuilder(pubnub *PubNub) *heartbeatBuilder {
-	builder := heartbeatBuilder{
-		opts: &heartbeatOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newHeartbeatBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newHeartbeatBuilderWithContext(pubnub *PubNub,
 	context Context) *heartbeatBuilder {
 	builder := heartbeatBuilder{
-		opts: &heartbeatOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newHeartbeatOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -87,28 +77,23 @@ func (b *heartbeatBuilder) Execute() (interface{}, StatusResponse, error) {
 	return value, status, nil
 }
 
+func newHeartbeatOpts(pubnub *PubNub, ctx Context) *heartbeatOpts {
+	return &heartbeatOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type heartbeatOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	State interface{}
 
 	Channels      []string
 	ChannelGroups []string
 	QueryParam    map[string]string
-
-	ctx Context
-}
-
-func (o *heartbeatOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *heartbeatOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *heartbeatOpts) context() Context {
-	return o.ctx
 }
 
 func (o *heartbeatOpts) validate() error {
@@ -155,42 +140,6 @@ func (o *heartbeatOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *heartbeatOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *heartbeatOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *heartbeatOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *heartbeatOpts) httpMethod() string {
-	return "GET"
-}
-
-func (o *heartbeatOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *heartbeatOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *heartbeatOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *heartbeatOpts) operationType() OperationType {
 	return PNHeartBeatOperation
-}
-
-func (o *heartbeatOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *heartbeatOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }

@@ -3,13 +3,10 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"mime/multipart"
-
 	"github.com/pubnub/go/v7/pnerr"
 	"github.com/pubnub/go/v7/utils"
+	"io/ioutil"
 
 	"net/http"
 	"net/url"
@@ -26,25 +23,16 @@ type publishFileMessageBuilder struct {
 }
 
 func newPublishFileMessageBuilder(pubnub *PubNub) *publishFileMessageBuilder {
-	builder := publishFileMessageBuilder{
-		opts: &publishFileMessageOpts{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.UsePost = false
-
-	return &builder
+	return newPublishFileMessageBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newPublishFileMessageOpts(pubnub *PubNub, ctx Context) *publishFileMessageOpts {
+	return &publishFileMessageOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newPublishFileMessageBuilderWithContext(pubnub *PubNub,
 	context Context) *publishFileMessageBuilder {
 	builder := publishFileMessageBuilder{
-		opts: &publishFileMessageOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newPublishFileMessageOpts(pubnub, context)}
 	return &builder
 }
 
@@ -135,7 +123,7 @@ func (b *publishFileMessageBuilder) Execute() (*PublishFileMessageResponse, Stat
 }
 
 type publishFileMessageOpts struct {
-	pubnub         *PubNub
+	endpointOpts
 	Message        interface{}
 	Channel        string
 	UsePost        bool
@@ -149,19 +137,6 @@ type publishFileMessageOpts struct {
 	FileName       string
 	QueryParam     map[string]string
 	Transport      http.RoundTripper
-	ctx            Context
-}
-
-func (o *publishFileMessageOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *publishFileMessageOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *publishFileMessageOpts) context() Context {
-	return o.ctx
 }
 
 func (o *publishFileMessageOpts) validate() error {
@@ -274,10 +249,6 @@ func (o *publishFileMessageOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *publishFileMessageOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *publishFileMessageOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		jsonEncBytes, errEnc := json.Marshal(o.Message)
@@ -288,10 +259,6 @@ func (o *publishFileMessageOpts) buildBody() ([]byte, error) {
 		return jsonEncBytes, nil
 	}
 	return []byte{}, nil
-}
-
-func (o *publishFileMessageOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
 }
 
 func (o *publishFileMessageOpts) httpMethod() string {
@@ -315,14 +282,6 @@ func (o *publishFileMessageOpts) connectTimeout() int {
 
 func (o *publishFileMessageOpts) operationType() OperationType {
 	return PNPublishFileMessageOperation
-}
-
-func (o *publishFileMessageOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *publishFileMessageOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PublishFileMessageResponse is the response to PublishFileMessage request.

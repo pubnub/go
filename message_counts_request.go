@@ -3,11 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
-
 	"reflect"
 	"strconv"
 	"strings"
@@ -28,24 +25,16 @@ type messageCountsBuilder struct {
 }
 
 func newMessageCountsBuilder(pubnub *PubNub) *messageCountsBuilder {
-	builder := messageCountsBuilder{
-		opts: &messageCountsOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newMessageCountsBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newMessageCountsOpts(pubnub *PubNub, ctx Context) *messageCountsOpts {
+	return &messageCountsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newMessageCountsBuilderWithContext(pubnub *PubNub,
 	context Context) *messageCountsBuilder {
 	builder := messageCountsBuilder{
-		opts: &messageCountsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newMessageCountsOpts(pubnub, context)}
 	return &builder
 }
 
@@ -92,7 +81,7 @@ func (b *messageCountsBuilder) Execute() (*MessageCountsResponse, StatusResponse
 }
 
 type messageCountsOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channels          []string
 	Timetoken         int64
@@ -102,20 +91,6 @@ type messageCountsOpts struct {
 
 	// nil hacks
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *messageCountsOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *messageCountsOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *messageCountsOpts) context() Context {
-	return o.ctx
 }
 
 func (o *messageCountsOpts) validate() error {
@@ -166,22 +141,6 @@ func (o *messageCountsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *messageCountsOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *messageCountsOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *messageCountsOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *messageCountsOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *messageCountsOpts) isAuthRequired() bool {
 	return true
 }
@@ -196,14 +155,6 @@ func (o *messageCountsOpts) connectTimeout() int {
 
 func (o *messageCountsOpts) operationType() OperationType {
 	return PNMessageCountsOperation
-}
-
-func (o *messageCountsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *messageCountsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // MessageCountsResponse is the response to MessageCounts request. It contains a map of type MessageCountsResponseItem

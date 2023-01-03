@@ -59,24 +59,16 @@ type publishPushHelperBuilder struct {
 }
 
 func newPublishPushHelperBuilder(pubnub *PubNub) *publishPushHelperBuilder {
-	builder := publishPushHelperBuilder{
-		opts: &publishPushHelperOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newPublishPushHelperBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newPublishPushHelperOpts(pubnub *PubNub, ctx Context) *publishPushHelperOpts {
+	return &publishPushHelperOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newPublishPushHelperBuilderWithContext(pubnub *PubNub,
 	context Context) *publishPushHelperBuilder {
 	builder := publishPushHelperBuilder{
-		opts: &publishPushHelperOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newPublishPushHelperOpts(pubnub, context)}
 	return &builder
 }
 
@@ -245,7 +237,7 @@ func (b *publishPushHelperBuilder) SetFCMPayload(pnFCMData PNFCMData) *publishPu
 }
 
 type publishPushHelperOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	PushAPNS2Data  []PNAPNS2Data
 	PushAPNSData   *PNAPNSData
@@ -253,10 +245,4 @@ type publishPushHelperOpts struct {
 	PushFCMData    *PNFCMData
 	CommonPayload  map[string]interface{}
 	PushCustomData map[string]interface{}
-
-	ctx Context
-}
-
-func (o *publishPushHelperOpts) context() Context {
-	return o.ctx
 }

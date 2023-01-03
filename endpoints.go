@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log"
 	"mime/multipart"
@@ -15,9 +16,14 @@ import (
 	"github.com/pubnub/go/v7/utils"
 )
 
-type endpointOpts interface {
+type endpointOpts struct {
+	pubnub *PubNub
+	ctx    Context
+}
+
+type endpoint interface {
 	jobQueue() chan *JobQItem
-	config() Config
+	config() *Config
 	client() *http.Client
 	context() Context
 	validate() error
@@ -29,6 +35,54 @@ type endpointOpts interface {
 	operationType() OperationType
 	telemetryManager() *TelemetryManager
 	tokenManager() *TokenManager
+}
+
+func (o *endpointOpts) config() *Config {
+	return o.pubnub.Config
+}
+
+func (o *endpointOpts) client() *http.Client {
+	return o.pubnub.GetClient()
+}
+
+func (o *endpointOpts) context() Context {
+	return o.ctx
+}
+
+func (o *endpointOpts) jobQueue() chan *JobQItem {
+	return o.pubnub.jobQueue
+}
+
+func (o *endpointOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *endpointOpts) telemetryManager() *TelemetryManager {
+	return o.pubnub.telemetryManager
+}
+
+func (o *endpointOpts) tokenManager() *TokenManager {
+	return o.pubnub.tokenManager
+}
+
+func (o *endpointOpts) isAuthRequired() bool {
+	return true
+}
+
+func (o *endpointOpts) requestTimeout() int {
+	return o.pubnub.Config.NonSubscribeRequestTimeout
+}
+
+func (o *endpointOpts) connectTimeout() int {
+	return o.pubnub.Config.ConnectTimeout
+}
+
+func (o *endpointOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	return bytes.Buffer{}, nil, 0, errors.New("Not required")
+}
+
+func (o *endpointOpts) httpMethod() string {
+	return "GET"
 }
 
 // SetQueryParam appends the query params map to the query string
@@ -82,7 +136,7 @@ func defaultQuery(uuid string, telemetryManager *TelemetryManager) *url.Values {
 	return v
 }
 
-func buildURL(o endpointOpts) (*url.URL, error) {
+func buildURL(o endpoint) (*url.URL, error) {
 	var stringifiedQuery string
 	var signature string
 
@@ -199,7 +253,7 @@ func buildURL(o endpointOpts) (*url.URL, error) {
 	return retURL, nil
 }
 
-func createSignatureV2(o endpointOpts, path string, query *url.Values) string {
+func createSignatureV2(o endpoint, path string, query *url.Values) string {
 	bodyString := ""
 	b, err := o.buildBody()
 	if err == nil {
@@ -238,6 +292,6 @@ func createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body 
 	return signatureV2
 }
 
-func newValidationError(o endpointOpts, msg string) error {
+func newValidationError(o endpoint, msg string) error {
 	return pnerr.NewValidationError(o.operationType().String(), msg)
 }

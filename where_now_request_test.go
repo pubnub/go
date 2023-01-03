@@ -21,10 +21,9 @@ func init() {
 func TestWhereNowBasicRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &whereNowOpts{
-		UUID:   "my-custom-uuid",
-		pubnub: pubnub,
-	}
+	opts := newWhereNowOpts(pubnub, pubnub.ctx)
+	opts.UUID = "my-custom-uuid"
+
 	path, err := opts.buildPath()
 	assert.Nil(err)
 	u := &url.URL{
@@ -52,10 +51,9 @@ func TestWhereNowBasicRequestQueryParam(t *testing.T) {
 		"q1": "v1",
 		"q2": "v2",
 	}
-	opts := &whereNowOpts{
-		UUID:   "my-custom-uuid",
-		pubnub: pubnub,
-	}
+
+	opts := newWhereNowOpts(pubnub, pubnub.ctx)
+	opts.UUID = "my-custom-uuid"
 	opts.QueryParam = queryParam
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -126,10 +124,9 @@ func TestWhereNowValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &whereNowOpts{
-		UUID:   "my-custom-uuid",
-		pubnub: pn,
-	}
+
+	opts := newWhereNowOpts(pn, pn.ctx)
+	opts.UUID = "my-custom-uuid"
 
 	assert.Equal("pubnub/validation: pubnub: Where Now: Missing Subscribe Key", opts.validate().Error())
 }

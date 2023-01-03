@@ -3,11 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
-	"net/http"
 	"net/url"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -28,13 +25,7 @@ type grantTokenEntitiesBuilder grantTokenBuilder
 type grantTokenObjectsBuilder grantTokenBuilder
 
 func newGrantTokenBuilder(pubnub *PubNub) *grantTokenBuilder {
-	builder := grantTokenBuilder{
-		opts: &grantTokenOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newGrantTokenBuilderWithContext(pubnub, pubnub.ctx)
 }
 
 func newGrantTokenObjectsBuilder(opts *grantTokenOpts) *grantTokenObjectsBuilder {
@@ -47,12 +38,7 @@ func newGrantTokenEntitiesBuilder(opts *grantTokenOpts) *grantTokenEntitiesBuild
 
 func newGrantTokenBuilderWithContext(pubnub *PubNub, context Context) *grantTokenBuilder {
 	builder := grantTokenBuilder{
-		opts: &grantTokenOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newGrantTokenOpts(pubnub, context)}
 	return &builder
 }
 
@@ -319,10 +305,17 @@ func (b *grantTokenEntitiesBuilder) Execute() (*PNGrantTokenResponse, StatusResp
 	return resp, status, e
 }
 
-type grantTokenOpts struct {
-	pubnub *PubNub
-	ctx    Context
+func newGrantTokenOpts(pubnub *PubNub, ctx Context) *grantTokenOpts {
+	return &grantTokenOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
 
+type grantTokenOpts struct {
+	endpointOpts
 	AuthKeys             []string
 	Channels             map[string]ChannelPermissions
 	ChannelGroups        map[string]GroupPermissions
@@ -342,18 +335,6 @@ type grantTokenOpts struct {
 
 	// nil hacks
 	setTTL bool
-}
-
-func (o *grantTokenOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *grantTokenOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *grantTokenOpts) context() Context {
-	return o.ctx
 }
 
 func (o *grantTokenOpts) validate() error {
@@ -463,10 +444,6 @@ func (o *grantTokenOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *grantTokenOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *grantTokenOpts) buildBody() ([]byte, error) {
 
 	meta := o.Meta
@@ -517,36 +494,12 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 	return jsonEncBytes, nil
 }
 
-func (o *grantTokenOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *grantTokenOpts) httpMethod() string {
 	return "POST"
 }
 
-func (o *grantTokenOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *grantTokenOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *grantTokenOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *grantTokenOpts) operationType() OperationType {
 	return PNAccessManagerGrantToken
-}
-
-func (o *grantTokenOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *grantTokenOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNGrantTokenData is the struct used to decode the server response

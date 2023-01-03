@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -25,25 +23,19 @@ type listFilesBuilder struct {
 }
 
 func newListFilesBuilder(pubnub *PubNub) *listFilesBuilder {
-	builder := listFilesBuilder{
-		opts: &listFilesOpts{
-			pubnub: pubnub,
-		},
-	}
-	builder.opts.Limit = listFilesLimit
-
-	return &builder
+	return newListFilesBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newListFilesOpts(pubnub *PubNub, ctx Context) *listFilesOpts {
+	return &listFilesOpts{
+		endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx},
+		Limit:        listFilesLimit,
+	}
+}
 func newListFilesBuilderWithContext(pubnub *PubNub,
 	context Context) *listFilesBuilder {
 	builder := listFilesBuilder{
-		opts: &listFilesOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newListFilesOpts(pubnub, context)}
 	return &builder
 }
 
@@ -89,7 +81,7 @@ func (b *listFilesBuilder) Execute() (*PNListFilesResponse, StatusResponse, erro
 }
 
 type listFilesOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Limit      int
 	Next       string
@@ -97,20 +89,6 @@ type listFilesOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *listFilesOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *listFilesOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *listFilesOpts) context() Context {
-	return o.ctx
 }
 
 func (o *listFilesOpts) validate() error {
@@ -141,44 +119,8 @@ func (o *listFilesOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *listFilesOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *listFilesOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *listFilesOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *listFilesOpts) httpMethod() string {
-	return "GET"
-}
-
-func (o *listFilesOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *listFilesOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *listFilesOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *listFilesOpts) operationType() OperationType {
 	return PNListFilesOperation
-}
-
-func (o *listFilesOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *listFilesOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNListFilesResponse is the File Upload API Response for Get Spaces

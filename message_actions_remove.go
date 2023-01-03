@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -22,24 +20,16 @@ type removeMessageActionsBuilder struct {
 }
 
 func newRemoveMessageActionsBuilder(pubnub *PubNub) *removeMessageActionsBuilder {
-	builder := removeMessageActionsBuilder{
-		opts: &removeMessageActionsOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRemoveMessageActionsBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newRemoveMessageActionsOpts(pubnub *PubNub, ctx Context) *removeMessageActionsOpts {
+	return &removeMessageActionsOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newRemoveMessageActionsBuilderWithContext(pubnub *PubNub,
 	context Context) *removeMessageActionsBuilder {
 	builder := removeMessageActionsBuilder{
-		opts: &removeMessageActionsOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newRemoveMessageActionsOpts(pubnub, context)}
 	return &builder
 }
 
@@ -85,7 +75,7 @@ func (b *removeMessageActionsBuilder) Execute() (*PNRemoveMessageActionsResponse
 }
 
 type removeMessageActionsOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channel          string
 	MessageTimetoken string
@@ -94,20 +84,6 @@ type removeMessageActionsOpts struct {
 	QueryParam       map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeMessageActionsOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *removeMessageActionsOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *removeMessageActionsOpts) context() Context {
-	return o.ctx
 }
 
 func (o *removeMessageActionsOpts) validate() error {
@@ -132,18 +108,6 @@ func (o *removeMessageActionsOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeMessageActionsOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *removeMessageActionsOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *removeMessageActionsOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *removeMessageActionsOpts) httpMethod() string {
 	return "DELETE"
 }
@@ -162,14 +126,6 @@ func (o *removeMessageActionsOpts) connectTimeout() int {
 
 func (o *removeMessageActionsOpts) operationType() OperationType {
 	return PNRemoveMessageActionsOperation
-}
-
-func (o *removeMessageActionsOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *removeMessageActionsOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNRemoveMessageActionsResponse is the Objects API Response for create space

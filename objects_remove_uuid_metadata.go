@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -22,24 +20,16 @@ type removeUUIDMetadataBuilder struct {
 }
 
 func newRemoveUUIDMetadataBuilder(pubnub *PubNub) *removeUUIDMetadataBuilder {
-	builder := removeUUIDMetadataBuilder{
-		opts: &removeUUIDMetadataOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRemoveUUIDMetadataBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newRemoveUUIDMetadataOpts(pubnub *PubNub, ctx Context) *removeUUIDMetadataOpts {
+	return &removeUUIDMetadataOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newRemoveUUIDMetadataBuilderWithContext(pubnub *PubNub,
 	context Context) *removeUUIDMetadataBuilder {
 	builder := removeUUIDMetadataBuilder{
-		opts: &removeUUIDMetadataOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newRemoveUUIDMetadataOpts(pubnub, context)}
 	return &builder
 }
 
@@ -77,25 +67,11 @@ func (b *removeUUIDMetadataBuilder) Execute() (*PNRemoveUUIDMetadataResponse, St
 }
 
 type removeUUIDMetadataOpts struct {
-	pubnub     *PubNub
+	endpointOpts
 	UUID       string
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *removeUUIDMetadataOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *removeUUIDMetadataOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *removeUUIDMetadataOpts) context() Context {
-	return o.ctx
 }
 
 func (o *removeUUIDMetadataOpts) validate() error {
@@ -119,19 +95,6 @@ func (o *removeUUIDMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *removeUUIDMetadataOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *removeUUIDMetadataOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-
-}
-
-func (o *removeUUIDMetadataOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *removeUUIDMetadataOpts) httpMethod() string {
 	return "DELETE"
 }
@@ -150,14 +113,6 @@ func (o *removeUUIDMetadataOpts) connectTimeout() int {
 
 func (o *removeUUIDMetadataOpts) operationType() OperationType {
 	return PNRemoveUUIDMetadataOperation
-}
-
-func (o *removeUUIDMetadataOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *removeUUIDMetadataOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNRemoveUUIDMetadataResponse is the Objects API Response for delete user

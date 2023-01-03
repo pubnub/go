@@ -21,24 +21,16 @@ type sendFileToS3Builder struct {
 }
 
 func newSendFileToS3Builder(pubnub *PubNub) *sendFileToS3Builder {
-	builder := sendFileToS3Builder{
-		opts: &sendFileToS3Opts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newSendFileToS3BuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newSendFileToS3Opts(pubnub *PubNub, ctx Context) *sendFileToS3Opts {
+	return &sendFileToS3Opts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newSendFileToS3BuilderWithContext(pubnub *PubNub,
 	context Context) *sendFileToS3Builder {
 	builder := sendFileToS3Builder{
-		opts: &sendFileToS3Opts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newSendFileToS3Opts(pubnub, context)}
 	return &builder
 }
 
@@ -84,27 +76,13 @@ func (b *sendFileToS3Builder) Execute() (*PNSendFileToS3Response, StatusResponse
 }
 
 type sendFileToS3Opts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	File                  *os.File
 	FileUploadRequestData PNFileUploadRequest
 	QueryParam            map[string]string
 	CipherKey             string
 	Transport             http.RoundTripper
-
-	ctx Context
-}
-
-func (o *sendFileToS3Opts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *sendFileToS3Opts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *sendFileToS3Opts) context() Context {
-	return o.ctx
 }
 
 func (o *sendFileToS3Opts) validate() error {
@@ -121,14 +99,6 @@ func (o *sendFileToS3Opts) buildPath() (string, error) {
 
 func (o *sendFileToS3Opts) buildQuery() (*url.Values, error) {
 	return &url.Values{}, nil
-}
-
-func (o *sendFileToS3Opts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *sendFileToS3Opts) buildBody() ([]byte, error) {
-	return []byte{}, nil
 }
 
 func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
@@ -188,28 +158,8 @@ func (o *sendFileToS3Opts) httpMethod() string {
 	return "POSTFORM"
 }
 
-func (o *sendFileToS3Opts) isAuthRequired() bool {
-	return true
-}
-
-func (o *sendFileToS3Opts) requestTimeout() int {
-	return o.pubnub.Config.FileUploadRequestTimeout
-}
-
-func (o *sendFileToS3Opts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *sendFileToS3Opts) operationType() OperationType {
 	return PNSendFileToS3Operation
-}
-
-func (o *sendFileToS3Opts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *sendFileToS3Opts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNSendFileToS3Response is the File Upload API Response for Get Spaces

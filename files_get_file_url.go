@@ -1,10 +1,7 @@
 package pubnub
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 )
@@ -18,22 +15,15 @@ type getFileURLBuilder struct {
 }
 
 func newGetFileURLBuilder(pubnub *PubNub) *getFileURLBuilder {
-	builder := getFileURLBuilder{
-		opts: &getFileURLOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newGetFileURLBuilderWithContext(pubnub, pubnub.ctx)
 }
 
-func newGetFileURLBuilderWithContext(pubnub *PubNub,
-	context Context) *getFileURLBuilder {
+func newGetFileURLBuilderWithContext(pubnub *PubNub, context Context) *getFileURLBuilder {
 	builder := getFileURLBuilder{
-		opts: &getFileURLOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newGetFileURLOpts(
+			pubnub,
+			context,
+		),
 	}
 
 	return &builder
@@ -90,8 +80,15 @@ func (b *getFileURLBuilder) Execute() (*PNGetFileURLResponse, StatusResponse, er
 	return resp, stat, nil
 }
 
+func newGetFileURLOpts(pubnub *PubNub, ctx Context) *getFileURLOpts {
+	return &getFileURLOpts{endpointOpts: endpointOpts{
+		pubnub: pubnub,
+		ctx:    ctx,
+	}}
+}
+
 type getFileURLOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channel    string
 	ID         string
@@ -99,20 +96,6 @@ type getFileURLOpts struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getFileURLOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *getFileURLOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *getFileURLOpts) context() Context {
-	return o.ctx
 }
 
 func (o *getFileURLOpts) validate() error {
@@ -148,44 +131,8 @@ func (o *getFileURLOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getFileURLOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *getFileURLOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *getFileURLOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *getFileURLOpts) httpMethod() string {
-	return "GET"
-}
-
-func (o *getFileURLOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *getFileURLOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *getFileURLOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *getFileURLOpts) operationType() OperationType {
 	return PNGetFileURLOperation
-}
-
-func (o *getFileURLOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *getFileURLOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNGetFileURLResponse is the File Upload API Response for Get Spaces

@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"reflect"
 	"strconv"
 
@@ -23,7 +21,7 @@ const publishPostPath = "/publish/%s/%s/0/%s/%s"
 var emptyPublishResponse *PublishResponse
 
 type publishOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	TTL     int
 	Channel string
@@ -37,8 +35,6 @@ type publishOpts struct {
 	QueryParam     map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
 
 	// nil hacks
 	setTTL         bool
@@ -82,25 +78,21 @@ func newPublishResponse(jsonBytes []byte, status StatusResponse) (
 }
 
 func newPublishBuilder(pubnub *PubNub) *publishBuilder {
-	builder := publishBuilder{
-		opts: &publishOpts{
-			pubnub:    pubnub,
-			Serialize: true,
-		},
-	}
-
-	return &builder
+	return newPublishBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newPublishOpts(pubnub *PubNub, ctx Context) *publishOpts {
+	return &publishOpts{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+		Serialize: true,
+	}
+}
 func newPublishBuilderWithContext(pubnub *PubNub, context Context) *publishBuilder {
 	builder := publishBuilder{
-		opts: &publishOpts{
-			pubnub:    pubnub,
-			ctx:       context,
-			Serialize: true,
-		},
-	}
-
+		opts: newPublishOpts(pubnub, context)}
 	return &builder
 }
 
@@ -184,18 +176,6 @@ func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	}
 
 	return newPublishResponse(rawJSON, status)
-}
-
-func (o *publishOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *publishOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *publishOpts) context() Context {
-	return o.ctx
 }
 
 func (o *publishOpts) validate() error {
@@ -354,10 +334,6 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *publishOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
 func (o *publishOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
@@ -384,10 +360,6 @@ func (o *publishOpts) buildBody() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (o *publishOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *publishOpts) httpMethod() string {
 	if o.UsePost {
 		return "POST"
@@ -395,26 +367,6 @@ func (o *publishOpts) httpMethod() string {
 	return "GET"
 }
 
-func (o *publishOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *publishOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *publishOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *publishOpts) operationType() OperationType {
 	return PNPublishOperation
-}
-
-func (o *publishOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *publishOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }

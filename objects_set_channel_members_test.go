@@ -150,9 +150,7 @@ func TestSetChannelMembersWithFilterWithSortContext(t *testing.T) {
 func TestSetChannelMembersResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &setChannelMembersOpts{
-		pubnub: pn,
-	}
+	opts := newSetChannelMembersOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNSetChannelMembersResponse(jsonBytes, opts, StatusResponse{})
@@ -162,9 +160,7 @@ func TestSetChannelMembersResponseValueError(t *testing.T) {
 func TestSetChannelMembersResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &setChannelMembersOpts{
-		pubnub: pn,
-	}
+	opts := newSetChannelMembersOpts(pn, pn.ctx)
 
 	jsonBytes := []byte(`{"status":200,"data":[{"id":"userid4","custom":{"a1":"b1","c1":"d1"},"uuid":{"id":"userid4","name":"userid4name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-23T10:36:27.083453Z","updated":"2019-08-23T10:36:27.083453Z","eTag":"AbuLvdnC9JnYEA"},"created":"2019-08-23T10:41:35.503214Z","updated":"2019-08-23T10:41:35.503214Z","eTag":"AZK3l4nQsrWG9gE"}],"totalCount":1,"next":"MQ"}`)
 

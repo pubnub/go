@@ -3,11 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
-	"net/http"
 	"net/url"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -23,23 +20,15 @@ type revokeTokenBuilder struct {
 }
 
 func newRevokeTokenBuilder(pubnub *PubNub) *revokeTokenBuilder {
-	builder := revokeTokenBuilder{
-		opts: &revokeTokenOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newRevokeTokenBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newRevokeTokenOpts(pubnub *PubNub, ctx Context) *revokeTokenOpts {
+	return &revokeTokenOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newRevokeTokenBuilderWithContext(pubnub *PubNub, context Context) *revokeTokenBuilder {
 	builder := revokeTokenBuilder{
-		opts: &revokeTokenOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newRevokeTokenOpts(pubnub, context)}
 	return &builder
 }
 
@@ -67,23 +56,10 @@ func (b *revokeTokenBuilder) Execute() (*PNRevokeTokenResponse, StatusResponse, 
 }
 
 type revokeTokenOpts struct {
-	pubnub *PubNub
-	ctx    Context
+	endpointOpts
 
 	QueryParam map[string]string
 	Token      string
-}
-
-func (o *revokeTokenOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *revokeTokenOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *revokeTokenOpts) context() Context {
-	return o.ctx
 }
 
 func (o *revokeTokenOpts) validate() error {
@@ -117,44 +93,12 @@ func (o *revokeTokenOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *revokeTokenOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *revokeTokenOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *revokeTokenOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
 func (o *revokeTokenOpts) httpMethod() string {
 	return "DELETE"
 }
 
-func (o *revokeTokenOpts) isAuthRequired() bool {
-	return true
-}
-
-func (o *revokeTokenOpts) requestTimeout() int {
-	return o.pubnub.Config.NonSubscribeRequestTimeout
-}
-
-func (o *revokeTokenOpts) connectTimeout() int {
-	return o.pubnub.Config.ConnectTimeout
-}
-
 func (o *revokeTokenOpts) operationType() OperationType {
 	return PNAccessManagerRevokeToken
-}
-
-func (o *revokeTokenOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *revokeTokenOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNRevokeTokenResponse is the struct returned when the Execute function of Grant Token is called.

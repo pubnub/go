@@ -60,9 +60,7 @@ func TestSendFileContext(t *testing.T) {
 func TestSendFileResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &sendFileOpts{
-		pubnub: pn,
-	}
+	opts := newSendFileOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNSendFileResponse(jsonBytes, opts, StatusResponse{})

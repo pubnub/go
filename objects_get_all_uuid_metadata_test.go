@@ -120,9 +120,7 @@ func TestGetAllUUIDMetadataWithFilterWithSortContext(t *testing.T) {
 func TestGetAllUUIDMetadataResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getAllUUIDMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newGetAllUUIDMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPNGetAllUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})
@@ -132,9 +130,7 @@ func TestGetAllUUIDMetadataResponseValueError(t *testing.T) {
 func TestGetAllUUIDMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &getAllUUIDMetadataOpts{
-		pubnub: pn,
-	}
+	opts := newGetAllUUIDMetadataOpts(pn, pn.ctx)
 	jsonBytes := []byte(`{"status":200,"data":[{"id":"id2","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-19T14:44:54.837392Z","updated":"2019-08-19T14:44:54.837392Z","eTag":"AbyT4v2p6K7fpQE"},{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:19.140324Z","updated":"2019-08-20T13:26:19.140324Z","eTag":"AbyT4v2p6K7fpQE"}],"totalCount":2,"next":"Mg","prev":"Nd"}`)
 
 	r, _, err := newPNGetAllUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})

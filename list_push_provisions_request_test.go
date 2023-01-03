@@ -9,28 +9,22 @@ import (
 func TestListPushProvisionsRequestValidate(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	opts := newListPushProvisionsRequestOpts(pubnub, pubnub.ctx)
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	err := opts.validate()
 	assert.Nil(err)
 
-	opts1 := &listPushProvisionsRequestOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeNone,
-		pubnub:          pubnub,
-	}
+	opts1 := newListPushProvisionsRequestOpts(pubnub, pubnub.ctx)
+	opts1.DeviceIDForPush = "deviceId"
+	opts1.PushType = PNPushTypeNone
 
 	err1 := opts1.validate()
 	assert.Contains(err1.Error(), "Missing Push Type")
 
-	opts3 := &listPushProvisionsRequestOpts{
-		PushType: PNPushTypeAPNS,
-		pubnub:   pubnub,
-	}
+	opts3 := newListPushProvisionsRequestOpts(pubnub, pubnub.ctx)
+	opts3.PushType = PNPushTypeAPNS
 
 	err3 := opts3.validate()
 
@@ -41,11 +35,9 @@ func TestListPushProvisionsRequestValidate(t *testing.T) {
 func TestListPushProvisionsRequestBuildPath(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	opts := newListPushProvisionsRequestOpts(pubnub, pubnub.ctx)
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	str, err := opts.buildPath()
 	assert.Equal("/v1/push/sub-key/sub_key/devices/deviceId", str)
@@ -80,11 +72,9 @@ func TestNewListPushProvisionsRequestBuilderContext(t *testing.T) {
 func TestListPushProvisionsRequestBuildQuery(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	opts := newListPushProvisionsRequestOpts(pubnub, pubnub.ctx)
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	u, err := opts.buildQuery()
 	assert.Equal("apns", u.Get("type"))
@@ -94,11 +84,9 @@ func TestListPushProvisionsRequestBuildQuery(t *testing.T) {
 func TestListPushProvisionsRequestBuildQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	opts := newListPushProvisionsRequestOpts(pubnub, pubnub.ctx)
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	queryParam := map[string]string{
 		"q1": "v1",
@@ -117,13 +105,11 @@ func TestListPushProvisionsRequestBuildQueryParam(t *testing.T) {
 func TestListPushProvisionsRequestBuildQueryParamTopicAndEnv(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-		Topic:           "a",
-		Environment:     PNPushEnvironmentDevelopment,
-	}
+	opts := newListPushProvisionsRequestOpts(pubnub, pubnub.ctx)
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
+	opts.Topic = "a"
+	opts.Environment = PNPushEnvironmentDevelopment
 
 	queryParam := map[string]string{
 		"q1": "v1",
@@ -145,11 +131,9 @@ func TestListPushProvisionsRequestBuildQueryParamTopicAndEnv(t *testing.T) {
 func TestListPushProvisionsRequestBuildBody(t *testing.T) {
 	assert := assert.New(t)
 
-	opts := &listPushProvisionsRequestOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pubnub,
-	}
+	opts := newListPushProvisionsRequestOpts(pubnub, pubnub.ctx)
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	_, err := opts.buildBody()
 	assert.Nil(err)
@@ -168,11 +152,9 @@ func TestListPushProvisionsValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &listPushProvisionsRequestOpts{
-		DeviceIDForPush: "deviceId",
-		PushType:        PNPushTypeAPNS,
-		pubnub:          pn,
-	}
+	opts := newListPushProvisionsRequestOpts(pn, pn.ctx)
+	opts.DeviceIDForPush = "deviceId"
+	opts.PushType = PNPushTypeAPNS
 
 	assert.Equal("pubnub/validation: pubnub: Remove Channel Group: Missing Subscribe Key", opts.validate().Error())
 }

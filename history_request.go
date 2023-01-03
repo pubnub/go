@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"strconv"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -26,24 +24,16 @@ type historyBuilder struct {
 }
 
 func newHistoryBuilder(pubnub *PubNub) *historyBuilder {
-	builder := historyBuilder{
-		opts: &historyOpts{
-			pubnub: pubnub,
-		},
-	}
-
-	return &builder
+	return newHistoryBuilderWithContext(pubnub, pubnub.ctx)
 }
 
+func newHistoryOpts(pubnub *PubNub, ctx Context) *historyOpts {
+	return &historyOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newHistoryBuilderWithContext(pubnub *PubNub,
 	context Context) *historyBuilder {
 	builder := historyBuilder{
-		opts: &historyOpts{
-			pubnub: pubnub,
-			ctx:    context,
-		},
-	}
-
+		opts: newHistoryOpts(pubnub, context)}
 	return &builder
 }
 
@@ -115,7 +105,7 @@ func (b *historyBuilder) Execute() (*HistoryResponse, StatusResponse, error) {
 }
 
 type historyOpts struct {
-	pubnub *PubNub
+	endpointOpts
 
 	Channel string
 
@@ -138,20 +128,6 @@ type historyOpts struct {
 	setEnd   bool
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *historyOpts) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *historyOpts) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *historyOpts) context() Context {
-	return o.ctx
 }
 
 func (o *historyOpts) validate() error {
@@ -198,22 +174,6 @@ func (o *historyOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *historyOpts) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *historyOpts) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *historyOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *historyOpts) httpMethod() string {
-	return "GET"
-}
-
 func (o *historyOpts) isAuthRequired() bool {
 	return true
 }
@@ -228,14 +188,6 @@ func (o *historyOpts) connectTimeout() int {
 
 func (o *historyOpts) operationType() OperationType {
 	return PNHistoryOperation
-}
-
-func (o *historyOpts) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *historyOpts) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // HistoryResponse is used to store the response from the History request.

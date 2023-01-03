@@ -3,10 +3,8 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -31,10 +29,10 @@ func newGetMembershipsBuilderV2(pubnub *PubNub) *getMembershipsBuilderV2 {
 func newGetMembershipsBuilderV2WithContext(pubnub *PubNub,
 	context Context) *getMembershipsBuilderV2 {
 	builder := getMembershipsBuilderV2{
-		opts: &getMembershipsOptsV2{
-			pubnub: pubnub,
-			ctx:    context,
-		},
+		opts: newGetMembershipsOptsV2(
+			pubnub,
+			context,
+		),
 	}
 	builder.opts.Limit = membershipsLimitV2
 
@@ -116,8 +114,17 @@ func (b *getMembershipsBuilderV2) Execute() (*PNGetMembershipsResponse, StatusRe
 	return newPNGetMembershipsResponse(rawJSON, b.opts, status)
 }
 
+func newGetMembershipsOptsV2(pubnub *PubNub, ctx Context) *getMembershipsOptsV2 {
+	return &getMembershipsOptsV2{
+		endpointOpts: endpointOpts{
+			pubnub: pubnub,
+			ctx:    ctx,
+		},
+	}
+}
+
 type getMembershipsOptsV2 struct {
-	pubnub     *PubNub
+	endpointOpts
 	UUID       string
 	Limit      int
 	Include    []string
@@ -129,20 +136,6 @@ type getMembershipsOptsV2 struct {
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
-
-	ctx Context
-}
-
-func (o *getMembershipsOptsV2) config() Config {
-	return *o.pubnub.Config
-}
-
-func (o *getMembershipsOptsV2) client() *http.Client {
-	return o.pubnub.GetClient()
-}
-
-func (o *getMembershipsOptsV2) context() Context {
-	return o.ctx
 }
 
 func (o *getMembershipsOptsV2) validate() error {
@@ -193,22 +186,6 @@ func (o *getMembershipsOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
-func (o *getMembershipsOptsV2) jobQueue() chan *JobQItem {
-	return o.pubnub.jobQueue
-}
-
-func (o *getMembershipsOptsV2) buildBody() ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (o *getMembershipsOptsV2) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	return bytes.Buffer{}, nil, 0, errors.New("Not required")
-}
-
-func (o *getMembershipsOptsV2) httpMethod() string {
-	return "GET"
-}
-
 func (o *getMembershipsOptsV2) isAuthRequired() bool {
 	return true
 }
@@ -223,14 +200,6 @@ func (o *getMembershipsOptsV2) connectTimeout() int {
 
 func (o *getMembershipsOptsV2) operationType() OperationType {
 	return PNGetMembershipsOperation
-}
-
-func (o *getMembershipsOptsV2) telemetryManager() *TelemetryManager {
-	return o.pubnub.telemetryManager
-}
-
-func (o *getMembershipsOptsV2) tokenManager() *TokenManager {
-	return o.pubnub.tokenManager
 }
 
 // PNGetMembershipsResponse is the Objects API Response for Get Memberships

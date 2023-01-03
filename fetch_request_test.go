@@ -14,11 +14,10 @@ import (
 func AssertSuccessFetchGet(t *testing.T, expectedString string, channels []string) {
 	assert := assert.New(t)
 
-	opts := &fetchOpts{
+	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels: channels,
 		Reverse:  false,
-		pubnub:   pubnub,
-	}
+	})
 	path, err := opts.buildPath()
 	assert.Nil(err)
 
@@ -104,12 +103,11 @@ func AssertSuccessFetchGetMetaAndActions(t *testing.T, expectedString string, ch
 		"q2": "v2",
 	}
 
-	opts := &fetchOpts{
+	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels:   channels,
 		Reverse:    false,
-		pubnub:     pubnub,
 		QueryParam: queryParam,
-	}
+	})
 	opts.WithMeta = withMeta
 	opts.WithMessageActions = withMessageActions
 	if withUUID {
@@ -172,12 +170,11 @@ func AssertSuccessFetchGetQueryParam(t *testing.T, expectedString string, channe
 		"q2": "v2",
 	}
 
-	opts := &fetchOpts{
+	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels:   channels,
 		Reverse:    false,
-		pubnub:     pubnub,
 		QueryParam: queryParam,
-	}
+	})
 
 	u, err := opts.buildQuery()
 	assert.Nil(err)
@@ -188,11 +185,10 @@ func AssertSuccessFetchGetQueryParam(t *testing.T, expectedString string, channe
 }
 
 func TestSuccessFetchQueryOneChannel(t *testing.T) {
-	opts := &fetchOpts{
+	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels: []string{"ch"},
 		Reverse:  false,
-		pubnub:   pubnub,
-	}
+	})
 
 	query, _ := opts.buildQuery()
 
@@ -202,12 +198,11 @@ func TestSuccessFetchQueryOneChannel(t *testing.T) {
 }
 
 func TestSuccessFetchQueryOneChannelWithMessageActions(t *testing.T) {
-	opts := &fetchOpts{
+	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels:           []string{"ch"},
 		Reverse:            false,
-		pubnub:             pubnub,
 		WithMessageActions: true,
-	}
+	})
 
 	query, _ := opts.buildQuery()
 
@@ -217,11 +212,10 @@ func TestSuccessFetchQueryOneChannelWithMessageActions(t *testing.T) {
 }
 
 func AssertSuccessFetchQuery(t *testing.T, expectedString string, channels []string) {
-	opts := &fetchOpts{
+	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels: channels,
 		Reverse:  false,
-		pubnub:   pubnub,
-	}
+	})
 
 	query, _ := opts.buildQuery()
 
@@ -278,11 +272,10 @@ func initFetchOpts(cipher string) *fetchOpts {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = cipher
 	pn.Config.UseRandomInitializationVector = false
-	return &fetchOpts{
+	return newFetchOpts(pn, pn.ctx, fetchOpts{
 		Channels: []string{"test1,test2"},
 		Reverse:  false,
-		pubnub:   pn,
-	}
+	})
 }
 
 func TestFetchResponseWithoutCipher(t *testing.T) {
@@ -379,11 +372,10 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.DisablePNOtherProcessing = true
 	pn.Config.UseRandomInitializationVector = false
-	f := &fetchOpts{
+	f := newFetchOpts(pn, pn.ctx, fetchOpts{
 		Channels: []string{"test1,test2"},
 		Reverse:  false,
-		pubnub:   pn,
-	}
+	})
 
 	jsonString := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"test":[{"message":"{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}","timetoken":"15229448184080121"}],"my-channel":[{"message":{"not_other":"1234", "pn_other":"Wi24KS4pcTzvyuGOHubiXg=="},"timetoken":"15229448086016618"},{"message":"bCC/kQbGdScQ0teYcawUsunrJLoUdp3Mwb/24ifa87QDBWv5aTkXkkjVMMXizEDb","timetoken":"15229448126438499"},{"message":"my-message","timetoken":"15229450607090584"}]}}`)
 
@@ -588,10 +580,9 @@ func TestFireValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := &fetchOpts{
+	opts := newFetchOpts(pn, pn.ctx, fetchOpts{
 		Reverse: false,
-		pubnub:  pn,
-	}
+	})
 
 	assert.Equal("pubnub/validation: pubnub: Fetch Messages: Missing Subscribe Key", opts.validate().Error())
 }
@@ -599,20 +590,18 @@ func TestFireValidateSubscribeKey(t *testing.T) {
 func TestFireValidateCH(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &fetchOpts{
+	opts := newFetchOpts(pn, pn.ctx, fetchOpts{
 		Reverse: false,
-		pubnub:  pn,
-	}
+	})
 	assert.Equal("pubnub/validation: pubnub: Fetch Messages: Missing Channel", opts.validate().Error())
 }
 
 func TestNewFetchResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := &fetchOpts{
+	opts := newFetchOpts(pn, pn.ctx, fetchOpts{
 		Reverse: false,
-		pubnub:  pn,
-	}
+	})
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newFetchResponse(jsonBytes, opts, StatusResponse{})
