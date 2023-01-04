@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"testing"
 	"time"
 
 	pubnub "github.com/pubnub/go/v7"
@@ -94,6 +95,30 @@ func logInTest(format string, a ...interface{}) (n int, err error) {
 		return fmt.Printf(format, a...)
 	}
 	return 0, nil
+}
+
+func subscribeWithATimeout(t *testing.T, pn *pubnub.PubNub, channel string, duration time.Duration) error {
+	listener := pubnub.NewListener()
+	pn.AddListener(listener)
+	pn.Subscribe().Channels([]string{channel}).Execute()
+	timer := time.NewTimer(duration)
+	select {
+	case s := <-listener.Status:
+		timer.Stop()
+		if s.Category == pubnub.PNConnectedCategory {
+			pn.RemoveListener(listener)
+			return nil
+		} else {
+			errMsg := fmt.Sprintf("didn't receive connected but %s", s.Category)
+			t.Error(errMsg)
+			return errors.New(errMsg)
+		}
+	case <-timer.C:
+		timer.Stop()
+		errMsg := "connected didn't came in desired time"
+		t.Error(errMsg)
+		return errors.New(errMsg)
+	}
 }
 
 func checkFor(assert *assert.Assertions, maxTime, intervalTime time.Duration, fun func() error) {

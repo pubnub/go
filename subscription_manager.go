@@ -482,6 +482,8 @@ type subscribeMessage struct {
 	UserMetadata      interface{}   `json:"u"`
 	MessageType       PNMessageType `json:"e"`
 	SequenceNumber    int           `json:"s"`
+	SpaceId           SpaceId       `json:"si"`
+	CustomMessageType MessageType   `json:"mt"`
 
 	PublishMetaData publishMetadata `json:"p"`
 }
@@ -637,9 +639,15 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 	}
 	var messagePayload interface{}
 
+	messageType := payload.CustomMessageType
+
+	if messageType == "" {
+		messageType = payload.MessageType.toMessageType()
+	}
+
 	switch payload.MessageType {
 	case PNMessageTypeSignal:
-		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, messageType, payload.SpaceId)
 		m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
 		m.listenerManager.announceSignal(pnMessageResult)
 	case PNMessageTypeObjects:
@@ -694,7 +702,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 			m.listenerManager.announceStatus(pnStatus)
 
 		}
-		pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+		pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, messageType, payload.SpaceId)
 		m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
 		m.listenerManager.announceMessage(pnMessageResult)
 	}
@@ -934,7 +942,7 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	return pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType
 }
 
-func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64) *PNMessage {
+func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, messageType MessageType, spaceId SpaceId) *PNMessage {
 
 	pnMessageResult := &PNMessage{
 		Message:           messagePayload,
@@ -945,6 +953,8 @@ func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, c
 		Timetoken:         timetoken,
 		Publisher:         issuingClientID,
 		UserMetadata:      userMetadata,
+		MessageType:       messageType,
+		SpaceId:           spaceId,
 	}
 
 	return pnMessageResult

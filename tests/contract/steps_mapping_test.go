@@ -55,4 +55,10 @@ func MapSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the error detail message is not empty$`, theErrorDetailMessageIsNotEmpty)
 	ctx.Step(`^the result is successful$`, theResultIsSuccessful)
 	ctx.Step(`^the token string \'(.*)\'$`, theTokenString)
+
+	ctx.Step(`^the demo keyset$`, theDemoKeyset)
+
+	ctx.Step(`^I publish message with \'(.*)\' space id and \'(.*)\' message type$`, iPublishMessageWithSpaceIdAndMessageType)
+	ctx.Step(`^I receive a successful response$`, iReceiveASuccessfulResponse)
+	ctx.Step(`^I receive error response$`, iReceiveErrorResponse)
 }

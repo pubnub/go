@@ -61,3 +61,11 @@ func theResultIsSuccessful(ctx context.Context) error {
 
 	return nil
 }
+
+func iReceiveASuccessfulResponse(ctx context.Context) error {
+	return theResultIsSuccessful(ctx)
+}
+
+func iReceiveErrorResponse(ctx context.Context) error {
+	return anErrorIsReturned(ctx)
+}

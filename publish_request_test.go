@@ -2,15 +2,15 @@ package pubnub
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"net/url"
 	"testing"
 
 	h "github.com/pubnub/go/v7/tests/helpers"
-	"github.com/stretchr/testify/assert"
 )
 
 func AssertSuccessPublishGet(t *testing.T, expectedString string, message interface{}) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
 
@@ -22,7 +22,7 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 	o.DoNotReplicate(true)
 
 	path, err := o.opts.buildPath()
-	assert.Nil(err)
+	a.Nil(err)
 
 	h.AssertPathsEqual(t,
 		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
@@ -30,15 +30,15 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 
 	body, err := o.opts.buildBody()
 
-	assert.Nil(err)
-	assert.Empty(body)
-	assert.Equal(10, o.opts.TTL)
-	assert.Equal(true, o.opts.ShouldStore)
-	assert.Equal(true, o.opts.DoNotReplicate)
+	a.Nil(err)
+	a.Empty(body)
+	a.Equal(10, o.opts.TTL)
+	a.Equal(true, o.opts.ShouldStore)
+	a.Equal(true, o.opts.DoNotReplicate)
 }
 
 func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message interface{}) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
 
@@ -50,7 +50,7 @@ func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message
 	o.DoNotReplicate(true)
 
 	path, err := o.opts.buildPath()
-	assert.Nil(err)
+	a.Nil(err)
 
 	h.AssertPathsEqual(t,
 		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
@@ -58,15 +58,15 @@ func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message
 
 	body, err := o.opts.buildBody()
 
-	assert.Nil(err)
-	assert.Empty(body)
-	assert.Equal(10, o.opts.TTL)
-	assert.Equal(true, o.opts.ShouldStore)
-	assert.Equal(true, o.opts.DoNotReplicate)
+	a.Nil(err)
+	a.Empty(body)
+	a.Equal(10, o.opts.TTL)
+	a.Equal(true, o.opts.ShouldStore)
+	a.Equal(true, o.opts.DoNotReplicate)
 }
 
 func AssertSuccessPublishGet2(t *testing.T, expectedString string, message interface{}) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.AuthKey = "a"
@@ -79,7 +79,7 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 	o.DoNotReplicate(true)
 
 	path, err := o.opts.buildPath()
-	assert.Nil(err)
+	a.Nil(err)
 
 	h.AssertPathsEqual(t,
 		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
@@ -88,7 +88,7 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 	query, err := o.opts.buildQuery()
 	//log.Println(query)
 
-	assert.Nil(err)
+	a.Nil(err)
 	expected := &url.Values{}
 	expected.Set("seqn", "1")
 	expected.Set("uuid", pn.Config.UUID)
@@ -103,7 +103,7 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 }
 
 func AssertSuccessPublishGet3(t *testing.T, expectedString string, message interface{}) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.AuthKey = "a"
@@ -124,7 +124,7 @@ func AssertSuccessPublishGet3(t *testing.T, expectedString string, message inter
 	query, err := o.opts.buildQuery()
 	//log.Println(query)
 
-	assert.Nil(err)
+	a.Nil(err)
 	expected := &url.Values{}
 	expected.Set("seqn", "1")
 	expected.Set("uuid", pn.Config.UUID)
@@ -142,7 +142,7 @@ func AssertSuccessPublishGet3(t *testing.T, expectedString string, message inter
 
 func AssertSuccessPublishGetAuth(t *testing.T, expectedString string, message interface{}) {
 
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.AuthKey = "PubAuthKey"
@@ -155,7 +155,7 @@ func AssertSuccessPublishGetAuth(t *testing.T, expectedString string, message in
 	o.DoNotReplicate(true)
 
 	path, err := o.opts.buildPath()
-	assert.Nil(err)
+	a.Nil(err)
 
 	h.AssertPathsEqual(t,
 		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
@@ -163,36 +163,16 @@ func AssertSuccessPublishGetAuth(t *testing.T, expectedString string, message in
 
 	body, err := o.opts.buildBody()
 
-	assert.Nil(err)
-	assert.Empty(body)
-	assert.Equal(10, o.opts.TTL)
-	assert.Equal(true, o.opts.ShouldStore)
-	assert.Equal(true, o.opts.DoNotReplicate)
+	a.Nil(err)
+	a.Empty(body)
+	a.Equal(10, o.opts.TTL)
+	a.Equal(true, o.opts.ShouldStore)
+	a.Equal(true, o.opts.DoNotReplicate)
 
-}
-
-func AssertSuccessPublishGetMeta(t *testing.T, expectedString string, message interface{}) {
-	assert := assert.New(t)
-
-	pn := NewPubNub(NewDemoConfig())
-
-	o := newPublishBuilder(pn)
-	o.Meta(nil)
-
-	path, err := o.opts.buildPath()
-	assert.Nil(err)
-
-	h.AssertPathsEqual(t,
-		fmt.Sprintf("/publish/demo/demo/0/ch/0/%s", expectedString),
-		path, []int{})
-
-	_, err1 := o.opts.buildQuery()
-
-	assert.Nil(err1)
 }
 
 func AssertSuccessPublishPost(t *testing.T, expectedBody string, message interface{}) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	opts := newPublishOpts(pubnub, pubnub.ctx)
 	opts.Channel = "ch"
@@ -201,7 +181,7 @@ func AssertSuccessPublishPost(t *testing.T, expectedBody string, message interfa
 	opts.Serialize = true
 
 	path, err := opts.buildPath()
-	assert.Nil(err)
+	a.Nil(err)
 	u := &url.URL{
 		Path: path,
 	}
@@ -210,8 +190,8 @@ func AssertSuccessPublishPost(t *testing.T, expectedBody string, message interfa
 		u.EscapedPath(), []int{})
 
 	body, err := opts.buildBody()
-	assert.Nil(err)
-	assert.Equal(expectedBody, string(body))
+	a.Nil(err)
+	a.Equal(expectedBody, string(body))
 }
 
 func TestPublishMixedGet(t *testing.T) {
@@ -297,7 +277,7 @@ func TestPublishMixedPost(t *testing.T) {
 }
 
 func TestPublishDoNotSerializePost(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	message := "{\"one\":\"hey\"}"
 
@@ -307,7 +287,7 @@ func TestPublishDoNotSerializePost(t *testing.T) {
 	opts.UsePost = true
 
 	path, err := opts.buildPath()
-	assert.Nil(err)
+	a.Nil(err)
 	u := &url.URL{
 		Path: path,
 	}
@@ -316,12 +296,12 @@ func TestPublishDoNotSerializePost(t *testing.T) {
 		u.EscapedPath(), []int{})
 
 	body, err := opts.buildBody()
-	assert.Nil(err)
-	assert.NotEmpty(body)
+	a.Nil(err)
+	a.NotEmpty(body)
 }
 
 func TestPublishDoNotSerializeInvalidPost(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	msgMap := make(map[string]string)
 
@@ -336,7 +316,7 @@ func TestPublishDoNotSerializeInvalidPost(t *testing.T) {
 	opts.Serialize = false
 
 	path, err := opts.buildPath()
-	assert.Nil(err)
+	a.Nil(err)
 	u := &url.URL{
 		Path: path,
 	}
@@ -345,12 +325,12 @@ func TestPublishDoNotSerializeInvalidPost(t *testing.T) {
 		u.EscapedPath(), []int{})
 
 	body, err := opts.buildBody()
-	assert.Contains(err.Error(), "Message is not JSON serialized.")
-	assert.Empty(body)
+	a.Contains(err.Error(), "Message is not JSON serialized.")
+	a.Empty(body)
 }
 
 func TestPublishMeta(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	meta := make(map[string]string)
 
@@ -365,7 +345,7 @@ func TestPublishMeta(t *testing.T) {
 	opts.Meta = meta
 
 	query, err := opts.buildQuery()
-	assert.Nil(err)
+	a.Nil(err)
 
 	expected := &url.Values{}
 	expected.Set("meta",
@@ -375,12 +355,12 @@ func TestPublishMeta(t *testing.T) {
 		[]string{"seqn", "pnsdk", "uuid", "store"}, []string{})
 
 	body, err := opts.buildBody()
-	assert.Nil(err)
-	assert.Empty(body)
+	a.Nil(err)
+	a.Empty(body)
 }
 
 func TestPublishStore(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	opts := newPublishOpts(pubnub, pubnub.ctx)
 	opts.Channel = "ch"
@@ -389,7 +369,7 @@ func TestPublishStore(t *testing.T) {
 	opts.setShouldStore = true
 
 	query, err := opts.buildQuery()
-	assert.Nil(err)
+	a.Nil(err)
 
 	expected := &url.Values{}
 	expected.Set("store", "1")
@@ -398,12 +378,12 @@ func TestPublishStore(t *testing.T) {
 		[]string{"seqn", "pnsdk", "uuid"}, []string{})
 
 	body, err := opts.buildBody()
-	assert.Nil(err)
-	assert.Empty(body)
+	a.Nil(err)
+	a.Empty(body)
 }
 
 func TestPublishEncrypt(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.UseRandomInitializationVector = false
@@ -414,16 +394,16 @@ func TestPublishEncrypt(t *testing.T) {
 	opts.Message = "hey"
 
 	path, err := opts.buildPath()
-	assert.Nil(err)
+	a.Nil(err)
 
-	assert.Equal(
+	a.Equal(
 		"/publish/demo/demo/0/ch/0/%22MnwzPGdVgz2osQCIQJviGg%3D%3D%22", path)
 
 	pnconfig.CipherKey = ""
 }
 
 func TestPublishEncryptPNOther(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.UseRandomInitializationVector = false
@@ -439,16 +419,16 @@ func TestPublishEncryptPNOther(t *testing.T) {
 	opts.Serialize = true
 
 	path, err := opts.buildPath()
-	assert.Nil(err)
+	a.Nil(err)
 
-	assert.Equal(
+	a.Equal(
 		"/publish/demo/demo/0/ch/0/%7B%22not_other%22%3A%221234%22%2C%22pn_other%22%3A%22Wi24KS4pcTzvyuGOHubiXg%3D%3D%22%7D", path)
 
 	pn.Config.CipherKey = ""
 }
 
 func TestPublishEncryptPNOtherDisable(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.UseRandomInitializationVector = false
 	pn.Config.CipherKey = "enigma"
@@ -465,15 +445,15 @@ func TestPublishEncryptPNOtherDisable(t *testing.T) {
 	opts.Serialize = true
 
 	path, err := opts.buildPath()
-	assert.Nil(err)
+	a.Nil(err)
 
-	assert.Equal(
+	a.Equal(
 		"/publish/demo/demo/0/ch/0/%22bCC%2FkQbGdScQ0teYcawUsnASfRpUioutNKQfUAQNc46gWR%2FJnz8Ks5n%2FvfKnDkE6%22", path)
 	pn.Config.CipherKey = ""
 }
 
 func TestPublishSequenceCounter(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	meta := make(map[string]string)
 
@@ -489,41 +469,75 @@ func TestPublishSequenceCounter(t *testing.T) {
 	for i := 1; i <= MaxSequence; i++ {
 		counter := opts.pubnub.getPublishSequence()
 		if counter == MaxSequence {
-			assert.Equal(1, opts.pubnub.getPublishSequence())
+			a.Equal(1, opts.pubnub.getPublishSequence())
 			break
 		}
 	}
 }
 
 func TestNewPublishResponse(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newPublishResponse(jsonBytes, StatusResponse{})
-	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+	a.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
 func TestNewPublishResponseTimestamp(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 	jsonBytes := []byte(`[1, Sent, "a"]`)
 
 	_, _, err := newPublishResponse(jsonBytes, StatusResponse{})
-	assert.Equal("pubnub/parsing: Error unmarshalling response: {[1, Sent, \"a\"]}", err.Error())
+	a.Equal("pubnub/parsing: Error unmarshalling response: {[1, Sent, \"a\"]}", err.Error())
 }
 
 func TestNewPublishResponseTimestamp2(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 	jsonBytes := []byte(`[1, "Sent", "a"]`)
 
 	_, _, err := newPublishResponse(jsonBytes, StatusResponse{})
-	assert.Contains(err.Error(), "parsing \"a\": invalid syntax")
+	a.Contains(err.Error(), "parsing \"a\": invalid syntax")
 }
 
 func TestPublishValidateSubscribeKey(t *testing.T) {
-	assert := assert.New(t)
+	a := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
 	opts := newPublishOpts(pn, pn.ctx)
 
-	assert.Equal("pubnub/validation: pubnub: Publish: Missing Subscribe Key", opts.validate().Error())
+	a.Equal("pubnub/validation: pubnub: Publish: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestSpaceIdQueryParamIsPassedInPublish(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	expectedSpaceId := SpaceId("spaceId")
+	queryValues, _ := pn.Publish().SpaceId(expectedSpaceId).opts.buildQuery()
+
+	a.Equal(expectedSpaceId, SpaceId(queryValues.Get(publish_space_id_query_param)))
+}
+
+func TestMissingSpaceIdQueryParamIsNotSet(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	queryValues, _ := pn.Publish().opts.buildQuery()
+
+	a.False(queryValues.Has(publish_space_id_query_param))
+}
+
+func TestMessageTypeQueryParamIsPassedInPublish(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	expectedMessageType := MessageType("customMessageType")
+	queryValues, _ := pn.Publish().MessageType(expectedMessageType).opts.buildQuery()
+
+	a.Equal(expectedMessageType, MessageType(queryValues.Get(publish_message_type_query_param)))
+}
+
+func TestMissingMessageTypeQueryParamIsNotSet(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	queryValues, _ := pn.Publish().opts.buildQuery()
+
+	a.False(queryValues.Has(publish_message_type_query_param))
 }
