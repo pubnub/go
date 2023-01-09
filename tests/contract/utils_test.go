@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	pubnub "github.com/pubnub/go/v7"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cucumber/godog"
 )
@@ -42,10 +44,12 @@ func before(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 		return ctx, err
 	}
 	commonState := newCommonState(contractTestConfig)
-	accessState := newAccessState(commonState.pubNub)
+	accessState := newAccessState()
+	subscribeState := newSubscribeState()
 
 	newCtx = context.WithValue(newCtx, commonStateKey{}, commonState)
 	newCtx = context.WithValue(newCtx, accessStateKey{}, accessState)
+	newCtx = context.WithValue(newCtx, subscribeStateKey{}, subscribeState)
 
 	if !contractTestConfig.serverMock {
 		return newCtx, nil
@@ -107,6 +111,10 @@ func getCommonState(ctx context.Context) *commonState {
 	return ctx.Value(commonStateKey{}).(*commonState)
 }
 
+func getSubscribeState(ctx context.Context) *subscribeState {
+	return ctx.Value(subscribeStateKey{}).(*subscribeState)
+}
+
 type contractTestConfigKey struct{}
 
 type contractTestConfig struct {
@@ -159,4 +167,37 @@ func getenvBoolWithDefault(name string, defaultValue bool) (bool, error) {
 	}
 
 	return value, nil
+}
+
+func checkFor(maxTime, intervalTime time.Duration, fun func() error) error {
+	maxTimeout := time.NewTimer(maxTime)
+	interval := time.NewTicker(intervalTime)
+	lastErr := fun()
+ForLoop:
+	for {
+		select {
+		case <-interval.C:
+			lastErr := fun()
+			if lastErr != nil {
+				continue
+			} else {
+				break ForLoop
+			}
+		case <-maxTimeout.C:
+			return lastErr
+		}
+	}
+	return nil
+}
+
+func allMessagesMatch(msgs []interface{}, predicate func(t pubnub.PNMessage) error) error {
+	for _, item := range msgs {
+		switch t := item.(type) {
+		case pubnub.PNMessage:
+			if err := predicate(t); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

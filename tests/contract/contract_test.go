@@ -28,9 +28,9 @@ func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: InitializeScenario,
 		Options: &godog.Options{
-			Format: format,
-			Paths:  []string{path},
-			Tags:   tagsFilter,
+			Format:   format,
+			Paths:    []string{path},
+			Tags:     tagsFilter,
 			TestingT: t, // Testing instance that will run subtests.
 		},
 	}

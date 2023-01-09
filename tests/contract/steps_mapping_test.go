@@ -61,4 +61,10 @@ func MapSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I publish message with \'(.*)\' space id and \'(.*)\' message type$`, iPublishMessageWithSpaceIdAndMessageType)
 	ctx.Step(`^I receive a successful response$`, iReceiveASuccessfulResponse)
 	ctx.Step(`^I receive error response$`, iReceiveErrorResponse)
+
+	ctx.Step(`^I receive the message in my subscribe response$`, iReceiveTheMessageInMySubscribeResponse)
+	ctx.Step(`^I subscribe to \'(.*)\' channel$`, iSubscribeToChannel)
+	ctx.Step(`^subscribe response contains messages with \'(.*)\' and \'(.*)\' message types$`, subscribeResponseContainsMessagesWithMessageTypes)
+	ctx.Step(`^subscribe response contains messages with space ids$`, subscribeResponseContainsMessagesWithSpaceIds)
+	ctx.Step(`^subscribe response contains messages without space ids$`, subscribeResponseContainsMessagesWithoutSpaceIds)
 }

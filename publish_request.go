@@ -22,8 +22,8 @@ var emptyPublishResponse *PublishResponse
 
 type MessageType string
 
-const publish_space_id_query_param = "space-id"
-const publish_message_type_query_param = "type"
+const publishSpaceIdQueryParam = "space-id"
+const publishMessageTypeQueryParam = "type"
 
 type publishOpts struct {
 	endpointOpts
@@ -326,11 +326,11 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 	}
 
 	if o.MessageType != "" {
-		q.Set(publish_message_type_query_param, string(o.MessageType))
+		q.Set(publishMessageTypeQueryParam, string(o.MessageType))
 	}
 
 	if o.SpaceId != "" {
-		q.Set(publish_space_id_query_param, string(o.SpaceId))
+		q.Set(publishSpaceIdQueryParam, string(o.SpaceId))
 	}
 
 	if o.setShouldStore {

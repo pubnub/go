@@ -69,6 +69,18 @@ func (b *signalBuilder) QueryParam(queryParam map[string]string) *signalBuilder 
 	return b
 }
 
+func (b *signalBuilder) SpaceId(id SpaceId) *signalBuilder {
+	b.opts.SpaceId = id
+
+	return b
+}
+
+func (b *signalBuilder) MessageType(messageType MessageType) *signalBuilder {
+	b.opts.MessageType = messageType
+
+	return b
+}
+
 // Execute runs the Signal request.
 func (b *signalBuilder) Execute() (*SignalResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -81,11 +93,13 @@ func (b *signalBuilder) Execute() (*SignalResponse, StatusResponse, error) {
 
 type signalOpts struct {
 	endpointOpts
-	Message    interface{}
-	Channel    string
-	UsePost    bool
-	QueryParam map[string]string
-	Transport  http.RoundTripper
+	Message     interface{}
+	Channel     string
+	UsePost     bool
+	QueryParam  map[string]string
+	SpaceId     SpaceId
+	MessageType MessageType
+	Transport   http.RoundTripper
 }
 
 func (o *signalOpts) validate() error {
@@ -129,6 +143,14 @@ func (o *signalOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	SetQueryParam(q, o.QueryParam)
+
+	if o.MessageType != "" {
+		q.Set(publishMessageTypeQueryParam, string(o.MessageType))
+	}
+
+	if o.SpaceId != "" {
+		q.Set(publishSpaceIdQueryParam, string(o.SpaceId))
+	}
 
 	return q, nil
 }

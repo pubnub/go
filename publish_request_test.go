@@ -508,36 +508,36 @@ func TestPublishValidateSubscribeKey(t *testing.T) {
 	a.Equal("pubnub/validation: pubnub: Publish: Missing Subscribe Key", opts.validate().Error())
 }
 
-func TestSpaceIdQueryParamIsPassedInPublish(t *testing.T) {
+func TestPublishSpaceIdQueryParamIsPassed(t *testing.T) {
 	a := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	expectedSpaceId := SpaceId("spaceId")
 	queryValues, _ := pn.Publish().SpaceId(expectedSpaceId).opts.buildQuery()
 
-	a.Equal(expectedSpaceId, SpaceId(queryValues.Get(publish_space_id_query_param)))
+	a.Equal(expectedSpaceId, SpaceId(queryValues.Get(publishSpaceIdQueryParam)))
 }
 
-func TestMissingSpaceIdQueryParamIsNotSet(t *testing.T) {
+func TestPublishMissingSpaceIdQueryParamIsNotSet(t *testing.T) {
 	a := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	queryValues, _ := pn.Publish().opts.buildQuery()
 
-	a.False(queryValues.Has(publish_space_id_query_param))
+	a.False(queryValues.Has(publishSpaceIdQueryParam))
 }
 
-func TestMessageTypeQueryParamIsPassedInPublish(t *testing.T) {
+func TestPublishMessageTypeQueryParamIsPassed(t *testing.T) {
 	a := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	expectedMessageType := MessageType("customMessageType")
 	queryValues, _ := pn.Publish().MessageType(expectedMessageType).opts.buildQuery()
 
-	a.Equal(expectedMessageType, MessageType(queryValues.Get(publish_message_type_query_param)))
+	a.Equal(expectedMessageType, MessageType(queryValues.Get(publishMessageTypeQueryParam)))
 }
 
-func TestMissingMessageTypeQueryParamIsNotSet(t *testing.T) {
+func TestPublishMissingMessageTypeQueryParamIsNotSet(t *testing.T) {
 	a := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	queryValues, _ := pn.Publish().opts.buildQuery()
 
-	a.False(queryValues.Has(publish_message_type_query_param))
+	a.False(queryValues.Has(publishMessageTypeQueryParam))
 }
