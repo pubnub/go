@@ -21,8 +21,8 @@ jobs:
     name: Integration and Unit tests
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
-      matrix: 
+      fail-fast: false
+      matrix:
         go: [1.16.15, 1.17.13, 1.18.9, 1.19.4]
     steps:
       - name: Checkout repository
