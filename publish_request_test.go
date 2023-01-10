@@ -522,7 +522,7 @@ func TestPublishMissingSpaceIdQueryParamIsNotSet(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	queryValues, _ := pn.Publish().opts.buildQuery()
 
-	a.False(queryValues.Has(publishSpaceIdQueryParam))
+	a.Equal("", queryValues.Get(publishSpaceIdQueryParam))
 }
 
 func TestPublishMessageTypeQueryParamIsPassed(t *testing.T) {
@@ -539,5 +539,5 @@ func TestPublishMissingMessageTypeQueryParamIsNotSet(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	queryValues, _ := pn.Publish().opts.buildQuery()
 
-	a.False(queryValues.Has(publishMessageTypeQueryParam))
+	a.Equal("", queryValues.Get(publishMessageTypeQueryParam))
 }
