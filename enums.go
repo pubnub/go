@@ -134,9 +134,10 @@ func (pnMessageType PNMessageType) toMessageType() MessageType {
 	case PNMessageTypeMessageActions:
 		return "messageAction"
 	case PNMessageTypeMessage:
+	        fallthrough
+	default:
 		return "message"
 	}
-	return "message"
 }
 
 const (
