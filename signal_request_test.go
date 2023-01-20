@@ -134,7 +134,7 @@ func TestSignalResponseValueError(t *testing.T) {
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-//[1, "Sent", "1232423423423"]
+// [1, "Sent", "1232423423423"]
 func TestSignalResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
@@ -143,4 +143,38 @@ func TestSignalResponseValuePass(t *testing.T) {
 
 	_, _, err := newSignalResponse(jsonBytes, opts, StatusResponse{})
 	assert.Nil(err)
+}
+
+func TestSignalSpaceIdQueryParamIsPassed(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	expectedSpaceId := SpaceId("spaceId")
+	queryValues, _ := pn.Signal().SpaceId(expectedSpaceId).opts.buildQuery()
+
+	a.Equal(expectedSpaceId, SpaceId(queryValues.Get(publishSpaceIdQueryParam)))
+}
+
+func TestSignalMissingSpaceIdQueryParamIsNotSet(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	queryValues, _ := pn.Signal().opts.buildQuery()
+
+	a.Equal("", queryValues.Get(publishSpaceIdQueryParam))
+}
+
+func TestSignalMessageTypeQueryParamIsPassed(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	expectedMessageType := MessageType("customMessageType")
+	queryValues, _ := pn.Signal().MessageType(expectedMessageType).opts.buildQuery()
+
+	a.Equal(expectedMessageType, MessageType(queryValues.Get(publishMessageTypeQueryParam)))
+}
+
+func TestSignalMissingMessageTypeQueryParamIsNotSet(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	queryValues, _ := pn.Signal().opts.buildQuery()
+
+	a.Equal("", queryValues.Get(publishMessageTypeQueryParam))
 }

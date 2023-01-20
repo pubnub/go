@@ -569,3 +569,93 @@ func TestProcessSubscribePayloadCipherErr(t *testing.T) {
 	<-done
 	//pn.Destroy()
 }
+
+func Test_processNonPresencePayload_messageType(t *testing.T) {
+	type messageTypes struct {
+		customMessageType MessageType
+		pnMessageType     PNMessageType
+	}
+	tests := []struct {
+		name                string
+		args                messageTypes
+		expectedMessageType MessageType
+	}{
+		{
+			name:                "If custom message type is not set the default is pnMessageType",
+			args:                messageTypes{pnMessageType: PNMessageTypeMessage},
+			expectedMessageType: "message",
+		},
+		{
+			name:                "If custom message type is set it's the value of messageType",
+			args:                messageTypes{customMessageType: "customOne", pnMessageType: PNMessageTypeMessage},
+			expectedMessageType: "customOne",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pn := NewPubNubDemo()
+
+			payload := payload()
+			payload.MessageType = tt.args.pnMessageType
+			payload.CustomMessageType = tt.args.customMessageType
+			msg := pn.payloadToMsg(payload)
+
+			assert.Equal(t, tt.expectedMessageType, msg.MessageType)
+		})
+	}
+}
+
+func Test_processNonPresencePayload_spaceId(t *testing.T) {
+	tests := []struct {
+		name            string
+		inputSpaceId    SpaceId
+		expectedSpaceId SpaceId
+	}{
+		{
+			name:            "If SpaceId is not set the default is empty SpaceId",
+			inputSpaceId:    "",
+			expectedSpaceId: "",
+		},
+		{
+			name:            "If SpaceId is set it's value of SpaceId",
+			inputSpaceId:    "spaceId",
+			expectedSpaceId: "spaceId",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pn := NewPubNubDemo()
+
+			payload := payload()
+			payload.SpaceId = tt.inputSpaceId
+			msg := pn.payloadToMsg(payload)
+
+			assert.Equal(t, tt.expectedSpaceId, msg.SpaceId)
+		})
+	}
+}
+
+func payload() subscribeMessage {
+	return subscribeMessage{
+		Shard:             "shard",
+		SubscriptionMatch: "subscriptionMatch",
+		Channel:           "channel",
+		IssuingClientID:   "issueClientId",
+		SubscribeKey:      "sub",
+		Flags:             0,
+		Payload:           nil,
+		UserMetadata:      nil,
+		MessageType:       0,
+		SequenceNumber:    42,
+		SpaceId:           "",
+		CustomMessageType: "",
+		PublishMetaData:   publishMetadata{PublishTimetoken: "10", Region: 42},
+	}
+}
+
+func (pn *PubNub) payloadToMsg(payload subscribeMessage) *PNMessage {
+	listener := NewListener()
+	pn.AddListener(listener)
+	processNonPresencePayload(pn.subscriptionManager, payload, "channel", "subscriptionMatch", payload.PublishMetaData)
+	return <-listener.Message
+}

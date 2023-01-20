@@ -21,7 +21,7 @@ type accessState struct {
 	RevokeTokenResult              pubnub.PNRevokeTokenResponse
 }
 
-func newAccessState(pn *pubnub.PubNub) *accessState {
+func newAccessState() *accessState {
 	return &accessState{
 		TTL:                            0,
 		ChannelPermissions:             make(map[string]*pubnub.ChannelPermissions),

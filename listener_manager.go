@@ -270,6 +270,8 @@ type PNMessage struct {
 	Subscription      string
 	Publisher         string
 	Timetoken         int64
+	MessageType       MessageType
+	SpaceId           SpaceId
 }
 
 // PNPresence is the Message Response for Presence

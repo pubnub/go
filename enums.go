@@ -123,6 +123,23 @@ func (s PNChannelMembersInclude) String() string {
 // PNMessageType is used as an enum to catgorize the Subscribe response.
 type PNMessageType int
 
+func (pnMessageType PNMessageType) toMessageType() MessageType {
+	switch pnMessageType {
+	case PNMessageTypeObjects:
+		return "object"
+	case PNMessageTypeFile:
+		return "file"
+	case PNMessageTypeSignal:
+		return "signal"
+	case PNMessageTypeMessageActions:
+		return "messageAction"
+	case PNMessageTypeMessage:
+	        fallthrough
+	default:
+		return "message"
+	}
+}
+
 const (
 	// PNNonePolicy is to be used when selecting the no Reconnection Policy
 	// ReconnectionPolicy is set in the config.
@@ -136,8 +153,9 @@ const (
 )
 
 const (
+	PNMessageTypeMessage PNMessageType = iota
 	// PNMessageTypeSignal is to identify Signal the Subscribe response
-	PNMessageTypeSignal PNMessageType = 1 + iota
+	PNMessageTypeSignal
 	// PNMessageTypeObjects is to identify Objects the Subscribe response
 	PNMessageTypeObjects
 	// PNMessageTypeMessageActions is to identify Actions the Subscribe response

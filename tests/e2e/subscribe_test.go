@@ -2360,83 +2360,45 @@ func TestSubscribeSuperCall(t *testing.T) {
 	exitListener <- true
 }
 
-func ReconnectionExhaustion(t *testing.T) {
-	assert := assert.New(t)
-	doneSubscribe := make(chan bool)
-	errChan := make(chan string)
+func TestPublishAndSubscribeWithSpaceIdAndMessageType(t *testing.T) {
+	pn := pubnub.NewPubNub(configCopy())
+	channel := randomized("channel")
+	expectedSpaceId := pubnub.SpaceId("spaceId")
+	expectedMessageType := pubnub.MessageType("messageType")
 
-	interceptor := stubs.NewInterceptor()
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               fmt.Sprintf("/v2/subscribe/%s/ch/0", config.SubscribeKey),
-		ResponseBody:       "",
-		Query:              "heartbeat=300",
-		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
-		ResponseStatusCode: 400,
-	})
-	interceptor.AddStub(&stubs.Stub{
-		Method:             "GET",
-		Path:               fmt.Sprintf("/v2/presence/sub-key/%s/channel/ch/leave", config.SubscribeKey),
-		ResponseBody:       `{"status": 200, "message": "OK", "action": "leave", "service": "Presence"}`,
-		Query:              "",
-		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
-		ResponseStatusCode: 200,
-	})
-	config.MaximumReconnectionRetries = 1
-	config.PNReconnectionPolicy = pubnub.PNLinearPolicy
+	err := subscribeWithATimeout(t, pn, channel, time.Second*1)
+	if err != nil {
+		return
+	}
 
-	pn := pubnub.NewPubNub(config)
-	//pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-	pn.Config.AuthKey = "myAuthKey"
-	pn.SetSubscribeClient(interceptor.GetClient())
 	listener := pubnub.NewListener()
-	count := 0
-	exitListener := make(chan bool)
-
-	go func() {
-	ExitLabel:
-		for {
-			select {
-			case status := <-listener.Status:
-
-				switch status.Category {
-				case pubnub.PNReconnectionAttemptsExhausted:
-					doneSubscribe <- true
-				default:
-					//if count > 1 {
-					//errChan <- fmt.Sprintf("Non PNReconnectedCategory event, %s", status)
-					//fmt.Println(status)
-					//}
-				}
-				count++
-			case <-listener.Message:
-				errChan <- "Got message while awaiting for a status event"
-				return
-			case <-listener.Presence:
-				errChan <- "Got presence while awaiting for a status event"
-				return
-			case <-exitListener:
-				break ExitLabel
-
-			}
-		}
-	}()
-
 	pn.AddListener(listener)
 
-	pn.Subscribe().
-		Channels([]string{"ch"}).
+	_, _, err = pn.Publish().
+		Channel(channel).
+		Message("msg").
+		SpaceId(expectedSpaceId).
+		MessageType(expectedMessageType).
 		Execute()
-	tic := time.NewTicker(time.Duration(timeout) * time.Second)
-	select {
-	case <-doneSubscribe:
-		fmt.Println("doneSubscribe")
-	case err := <-errChan:
-		assert.Fail(err)
-	case <-tic.C:
-		tic.Stop()
-		assert.Fail("timeout")
-
+	if err != nil {
+		t.Error("Publish failed", err)
+		return
 	}
-	exitListener <- true
+
+	timer := time.NewTimer(time.Second * 3)
+	stop := false
+	for !stop {
+		select {
+		case <-listener.Status:
+			//just ignore
+		case msg := <-listener.Message:
+			timer.Stop()
+			stop = true
+			assert.Equal(t, expectedSpaceId, msg.SpaceId)
+			assert.Equal(t, expectedMessageType, msg.MessageType)
+		case <-timer.C:
+			t.Error("Didn't receive message in expected time")
+			return
+		}
+	}
 }
