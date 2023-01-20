@@ -247,7 +247,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 				if enableDebuggingInTests {
 					fmt.Println("pubnub.PNPublishMessage", msg.Text)
 				}
-				if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
+				if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == "file" && chMessages[i].UUID == pn.Config.UUID {
 					bFoundInFetch = true
 					break
 				}

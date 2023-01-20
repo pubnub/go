@@ -57,6 +57,7 @@ func MapSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the token string \'(.*)\'$`, theTokenString)
 
 	ctx.Step(`^the demo keyset$`, theDemoKeyset)
+	ctx.Step(`^the demo keyset with enabled storage$`, theDemoKeyset)
 
 	ctx.Step(`^I publish message with \'(.*)\' space id and \'(.*)\' message type$`, iPublishMessageWithSpaceIdAndMessageType)
 	ctx.Step(`^I receive a successful response$`, iReceiveASuccessfulResponse)
@@ -67,4 +68,13 @@ func MapSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^subscribe response contains messages with \'(.*)\' and \'(.*)\' message types$`, subscribeResponseContainsMessagesWithMessageTypes)
 	ctx.Step(`^subscribe response contains messages with space ids$`, subscribeResponseContainsMessagesWithSpaceIds)
 	ctx.Step(`^subscribe response contains messages without space ids$`, subscribeResponseContainsMessagesWithoutSpaceIds)
+
+	ctx.Step(`^history response contains messages with \'(.*)\' and \'(.*)\' message types$`, historyResponseContainsMessagesWithProvidedMessageTypes)
+	ctx.Step(`^history response contains messages with message types$`, historyResponseContainsMessagesWithMessageTypes)
+	ctx.Step(`^history response contains messages with space ids$`, historyResponseContainsMessagesWithSpaceIds)
+	ctx.Step(`^history response contains messages without message types$`, historyResponseContainsMessagesWithoutMessageTypes)
+	ctx.Step(`^history response contains messages without space ids$`, historyResponseContainsMessagesWithoutSpaceIds)
+	ctx.Step(`^I fetch message history for \'(.*)\' channel$`, iFetchMessageHistoryForChannel)
+	ctx.Step(`^I fetch message history with \'includeMessageType\' set to \'false\' for \'(.*)\' channel$`, iFetchMessageHistoryWithIncludeMessageTypeSetToFalseForChannel)
+	ctx.Step(`^I fetch message history with \'includeSpaceId\' set to \'true\' for \'(.*)\' channel$`, iFetchMessageHistoryWithIncludeSpaceIdSetToTrueForChannel)
 }

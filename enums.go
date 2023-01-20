@@ -120,7 +120,7 @@ func (s PNChannelMembersInclude) String() string {
 	return [...]string{"custom", "uuid", "uuid.custom"}[s-1]
 }
 
-// PNMessageType is used as an enum to catgorize the Subscribe response.
+// PNMessageType is used as an enum to categorize the Subscribe response.
 type PNMessageType int
 
 func (pnMessageType PNMessageType) toMessageType() MessageType {
@@ -134,7 +134,7 @@ func (pnMessageType PNMessageType) toMessageType() MessageType {
 	case PNMessageTypeMessageActions:
 		return "messageAction"
 	case PNMessageTypeMessage:
-	        fallthrough
+		fallthrough
 	default:
 		return "message"
 	}
