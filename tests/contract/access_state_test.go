@@ -1,6 +1,9 @@
 package contract
 
-import pubnub "github.com/pubnub/go/v7"
+import (
+	"context"
+	pubnub "github.com/pubnub/go/v7"
+)
 
 type accessStateKey struct{}
 
@@ -31,4 +34,8 @@ func newAccessState() *accessState {
 		UUIDPermissions:                make(map[string]*pubnub.UUIDPermissions),
 		UUIDPatternPermissions:         make(map[string]*pubnub.UUIDPermissions),
 		CurrentPermissions:             nil}
+}
+
+func getAccessState(ctx context.Context) *accessState {
+	return ctx.Value(accessStateKey{}).(*accessState)
 }

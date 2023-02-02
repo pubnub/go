@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 	"strconv"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -96,6 +95,12 @@ func (b *fetchBuilder) IncludeMessageType(withMessageType bool) *fetchBuilder {
 	return b
 }
 
+// IncludeSpaceId fetches the Space Id associated with the message
+func (b *fetchBuilder) IncludeSpaceId(withSpaceId bool) *fetchBuilder {
+	b.opts.WithSpaceId = withSpaceId
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *fetchBuilder) QueryParam(queryParam map[string]string) *fetchBuilder {
 	b.opts.QueryParam = queryParam
@@ -139,6 +144,7 @@ type fetchOpts struct {
 	WithMeta           bool
 	WithUUID           bool
 	WithMessageType    bool
+	WithSpaceId        bool
 
 	// default: 100
 	Count int
@@ -214,6 +220,8 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_meta", strconv.FormatBool(o.WithMeta))
 	q.Set("include_message_type", strconv.FormatBool(o.WithMessageType))
+	q.Set("include_type", strconv.FormatBool(o.WithMessageType))
+	q.Set("include_space_id", strconv.FormatBool(o.WithSpaceId))
 	q.Set("include_uuid", strconv.FormatBool(o.WithUUID))
 
 	SetQueryParam(q, o.QueryParam)
@@ -300,22 +308,24 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 					if d, ok := histResponse["message_type"]; ok {
 						switch v := d.(type) {
 						case float64:
-							histItem.MessageType = int(v)
+							histItem.MessageType = PNMessageType(int(v)).toMessageType()
 						case string:
 							t, err := strconv.ParseInt(v, 10, 64)
 							if err == nil {
-								histItem.MessageType = int(t)
+								histItem.MessageType = PNMessageType(int(t)).toMessageType()
 							} else {
 								o.pubnub.Config.Log.Printf("MessageType conversion error.")
 							}
 						default:
-							o.pubnub.Config.Log.Printf("histResponse message_type type %vv", d)
-							if v != nil {
-								o.pubnub.Config.Log.Printf("histResponse message_type type %vv", reflect.TypeOf(v).Kind())
+							if o.WithMessageType {
+								histItem.MessageType = PNMessageTypeMessage.toMessageType()
 							} else {
-								o.pubnub.Config.Log.Printf("histResponse message_type nil")
+								histItem.MessageType = ""
 							}
 						}
+					}
+					if sid, ok := histResponse["space_id"]; ok {
+						histItem.SpaceId = SpaceId(sid.(string))
 					}
 					if d, ok := histResponse["uuid"]; ok {
 						histItem.UUID = d.(string)
@@ -386,22 +396,23 @@ type FetchResponse struct {
 
 // FetchResponseItem contains the message and the associated timetoken.
 type FetchResponseItem struct {
-	Message        interface{}                               `json:"message"`
-	Meta           interface{}                               `json:"meta"`
-	MessageActions map[string]PNHistoryMessageActionsTypeMap `json:"actions"`
-	File           PNFileDetails                             `json:"file"`
-	Timetoken      string                                    `json:"timetoken"`
-	UUID           string                                    `json:"uuid"`
-	MessageType    int                                       `json:"message_type"`
+	Message        interface{}
+	Meta           interface{}
+	MessageActions map[string]PNHistoryMessageActionsTypeMap
+	File           PNFileDetails
+	Timetoken      string
+	UUID           string
+	MessageType    MessageType
+	SpaceId        SpaceId
 }
 
 // PNHistoryMessageActionsTypeMap is the struct used in the Fetch request that includes Message Actions
 type PNHistoryMessageActionsTypeMap struct {
-	ActionsTypeValues map[string][]PNHistoryMessageActionTypeVal `json:"-"`
+	ActionsTypeValues map[string][]PNHistoryMessageActionTypeVal
 }
 
 // PNHistoryMessageActionTypeVal is the struct used in the Fetch request that includes Message Actions
 type PNHistoryMessageActionTypeVal struct {
-	UUID            string `json:"uuid"`
-	ActionTimetoken string `json:"actionTimetoken"`
+	UUID            string
+	ActionTimetoken string
 }

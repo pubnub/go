@@ -470,7 +470,7 @@ func FetchResponseCommonForMessageTypeAndUUID(t *testing.T, withCipher bool) {
 		if m0 != nil {
 			assert.Equal("my-message", m0[0].Message)
 			assert.Equal("15959610984115342", m0[0].Timetoken)
-			assert.Equal(4, m0[0].MessageType)
+			assert.Equal(MessageType("file"), m0[0].MessageType)
 			assert.Equal("db9c5e39-7c95-40f5-8d71-125765b6f561", m0[0].UUID)
 		} else {
 			assert.Fail("m0 nil")

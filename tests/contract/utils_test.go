@@ -43,13 +43,10 @@ func before(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 	if err != nil {
 		return ctx, err
 	}
-	commonState := newCommonState(contractTestConfig)
-	accessState := newAccessState()
-	subscribeState := newSubscribeState()
-
-	newCtx = context.WithValue(newCtx, commonStateKey{}, commonState)
-	newCtx = context.WithValue(newCtx, accessStateKey{}, accessState)
-	newCtx = context.WithValue(newCtx, subscribeStateKey{}, subscribeState)
+	newCtx = context.WithValue(newCtx, commonStateKey{}, newCommonState(contractTestConfig))
+	newCtx = context.WithValue(newCtx, accessStateKey{}, newAccessState())
+	newCtx = context.WithValue(newCtx, subscribeStateKey{}, newSubscribeState())
+	newCtx = context.WithValue(newCtx, historyStateKey{}, newHistoryState())
 
 	if !contractTestConfig.serverMock {
 		return newCtx, nil
@@ -101,10 +98,6 @@ func after(ctx context.Context, sc *godog.Scenario, err error) (context.Context,
 	}
 
 	return ctx, nil
-}
-
-func getAccessState(ctx context.Context) *accessState {
-	return ctx.Value(accessStateKey{}).(*accessState)
 }
 
 func getCommonState(ctx context.Context) *commonState {
