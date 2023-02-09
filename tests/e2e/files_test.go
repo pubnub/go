@@ -1,15 +1,11 @@
 package e2e
 
 import (
-	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
 	"strings"
 	"testing"
@@ -19,23 +15,6 @@ import (
 	"github.com/pubnub/go/v7/utils"
 	"github.com/stretchr/testify/assert"
 )
-
-func processInterface(in interface{}) {
-	switch v := in.(type) {
-	case map[string]interface{}:
-		for s, b := range v {
-			fmt.Printf("%s: b=%v\n", s, b)
-		}
-	case map[string]*pubnub.PNFileMessageAndDetails:
-
-		fmt.Printf("*pubnub.PNFileMessageAndDetails")
-	case map[string]pubnub.PNFileMessageAndDetails:
-
-		fmt.Printf("pubnub.PNFileMessageAndDetails")
-	default:
-		fmt.Println("unknown type")
-	}
-}
 
 func TestFileUpload(t *testing.T) {
 	FileUploadCommon(t, false, "", "file_upload_test.txt", "file_upload_test_output.txt")
@@ -51,12 +30,15 @@ func TestFileUploadWithCustomCipher(t *testing.T) {
 
 type FileData struct {
 	id, url, name, message string
+	messageType            pubnub.MessageType
+	spaceId                pubnub.SpaceId
 }
 
 func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepathInput, filepathOutput string) {
 	assert := assert.New(t)
-
-	pn := pubnub.NewPubNub(pamConfigCopy())
+	config := pamConfigCopy()
+	config.Log = log.Default()
+	pn := pubnub.NewPubNub(config)
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -87,6 +69,8 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	ch := fmt.Sprintf("test_file_upload_channel_%d", rno)
 	name := fmt.Sprintf("test_file_upload_name_%d.txt", rno)
 	message := fmt.Sprintf("test file %s", name)
+	expectedMessageType := pubnub.MessageType("This_is_messageType")
+	expectedSpaceId := pubnub.SpaceId("This_is spaceId")
 
 	listener := pubnub.NewListener()
 	exitListener := make(chan bool)
@@ -115,7 +99,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 					fmt.Printf("file.SubscribedChannel: %s\n", file.SubscribedChannel)
 					fmt.Printf("file.Publisher: %s\n", file.Publisher)
 				}
-				fileDataChannel <- FileData{file.File.PNFile.ID, file.File.PNFile.URL, file.File.PNFile.Name, file.File.PNMessage.Text}
+				fileDataChannel <- FileData{file.File.PNFile.ID, file.File.PNFile.URL, file.File.PNFile.Name, file.File.PNMessage.Text, file.MessageType, file.SpaceId}
 
 			case <-exitListener:
 				break ExitLabel
@@ -130,14 +114,23 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	// Sleep a bit, to give client some time to subscribe on channels firs.
 	time.Sleep(100 * time.Millisecond)
 
-	resSendFile, statusSendFile, _ := pn.SendFile().Channel(ch).Message(message).CipherKey(cipherKey).Name(name).File(file).Execute()
+	resSendFile, statusSendFile, err := pn.SendFile().
+		Channel(ch).
+		Message(message).
+		CipherKey(cipherKey).
+		Name(name).
+		File(file).
+		MessageType(expectedMessageType).
+		SpaceId(expectedSpaceId).
+		Execute()
 	assert.Equal(200, statusSendFile.StatusCode)
 	if enableDebuggingInTests {
 		fmt.Println("statusSendFile.AdditionalData:", statusSendFile.AdditionalData)
 	}
 
-	if resSendFile == nil {
+	if err != nil {
 		close(fileDataChannel)
+		t.Error(err)
 		assert.Fail("resSendFile nil")
 		return
 	}
@@ -193,6 +186,8 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	assert.Equal(id, fileData.id)
 	assert.Equal(message, fileData.message)
 	assert.Equal(retURL, location)
+	assert.Equal(expectedMessageType, fileData.messageType)
+	assert.Equal(expectedSpaceId, fileData.spaceId)
 
 	out, errDL := os.Create(filepathOutput)
 	defer out.Close()
@@ -320,440 +315,5 @@ func TestFileEncryptionDecryption(t *testing.T) {
 	fileTextDec, _ := ioutil.ReadFile(filepathOutputDec)
 	fileTextIn, _ := ioutil.ReadFile(filepathInput)
 	assert.Equal(fileTextIn, fileTextDec)
-
-}
-
-func unpadPKCS7(data []byte) ([]byte, error) {
-	blocklen := 16
-	if len(data)%blocklen != 0 || len(data) == 0 {
-		return nil, fmt.Errorf("invalid data len %d", len(data))
-	}
-	padlen := int(data[len(data)-1])
-	if padlen > blocklen || padlen == 0 {
-		return nil, fmt.Errorf("padding is invalid")
-	}
-	// check padding
-	pad := data[len(data)-padlen:]
-	for i := 0; i < padlen; i++ {
-		if pad[i] != byte(padlen) {
-			return nil, fmt.Errorf("padding is invalid")
-		}
-	}
-
-	return data[:len(data)-padlen], nil
-}
-
-func FileEncryptDecryptWithoutBase64Test(t *testing.T) {
-	assert := assert.New(t)
-	filepathInput := "file_upload_test_enc.txt"
-	//filepathInput = "whoami_out.txt"
-	// filepathInput = "file_dec_3642342.png"
-	filepathInput = "tux.jpg"
-	// filepathInput = "gopher.jpg"
-	filepathInput = "Moth.jpg"
-	// filepathInput = "file_upload_test.txt"
-	filepathOutput := "file_upload_test_enc_out.txt"
-	out, _ := os.Create(filepathOutput)
-	file, err := os.Open(filepathInput)
-	key := utils.EncryptCipherKey("enigma")
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
-	}
-	iv := make([]byte, aes.BlockSize)
-
-	if _, err := rand.Read(iv); err != nil {
-		panic(err)
-	}
-	// IV that was breaking TEST
-	// iv = []byte{73, 187, 52, 211, 20, 183, 129, 64, 119, 12, 190, 93, 7, 15, 70, 7}
-	iv = []byte{133, 126, 158, 123, 43, 95, 96, 90, 215, 178, 17, 73, 166, 130, 79, 156}
-	fmt.Println("iv:=>>>", iv)
-	n, e := out.Write(iv)
-	fmt.Println(n)
-	if e != nil {
-		panic(e)
-	}
-
-	blockSize := 16
-	bufferSize := 16
-	p := make([]byte, bufferSize)
-	mode := cipher.NewCBCEncrypter(block, iv)
-	cryptoRan := false
-	fii, _ := file.Stat()
-	contentLenIn := fii.Size()
-	var contentRead int64
-
-	for {
-		n2, err2 := io.ReadFull(file, p)
-		contentRead += int64(n2)
-		if err2 != nil {
-			fmt.Println("\nerr2:", err2)
-			if err2 == io.EOF {
-				ciphertext := make([]byte, blockSize)
-				copy(ciphertext[:n2], p[:n2])
-				fmt.Println("Encrypt EOF EOF")
-				fmt.Println("ct2 EOF ", ciphertext, string(ciphertext), p[:n2], p)
-				out.Close()
-				break
-			}
-
-			if err2 == io.ErrUnexpectedEOF {
-				if !cryptoRan {
-					text := make([]byte, blockSize)
-					ciphertext := make([]byte, blockSize)
-					copy(text[:n2], p[:n2])
-					pad := bytes.Repeat([]byte{byte(blockSize - n2)}, blockSize-n2)
-					copy(text[n2:], pad)
-					// ciphertext = padWithPKCS7(text)
-					// fmt.Println(n2, padErr)
-
-					mode.CryptBlocks(ciphertext, text)
-					fmt.Println("ct1", ciphertext)
-					out.Write(ciphertext)
-					out.Close()
-				} else {
-					text := make([]byte, blockSize)
-					ciphertext := make([]byte, blockSize)
-					copy(text[:n2], p[:n2])
-					pad := bytes.Repeat([]byte{byte(blockSize - n2)}, blockSize-n2)
-
-					copy(text[n2:], pad)
-					fmt.Println("text[n2:]", text)
-					// ciphertext = padWithPKCS7(text)
-
-					mode.CryptBlocks(ciphertext, text)
-					fmt.Println("ct2", ciphertext, string(ciphertext))
-
-					out.Write(ciphertext)
-
-					out.Close()
-
-				}
-
-			}
-			fmt.Println("Exiting For")
-			break
-		}
-
-		ciphertext := make([]byte, blockSize)
-		cryptoRan = true
-		if contentRead >= contentLenIn {
-			// p, padErr := pkcs7Pad(p, blockSize)
-			pad := bytes.Repeat([]byte{byte(blockSize - n2)}, blockSize-n2)
-			copy(p[n2:], pad)
-
-			fmt.Println("n2, padErr, ciphertext, p, blockSize", n2, pad, ciphertext, p, blockSize)
-		}
-
-		mode.CryptBlocks(ciphertext, p)
-
-		fmt.Println("ct0 write", ciphertext, string(ciphertext))
-		out.Write(ciphertext)
-
-	}
-
-	out.Close()
-	filepathDecOutput := "file_upload_test_enc_dec.txt"
-	filepathDecOutput = "tux_out.jpg"
-	// filepathDecOutput = "gopher_out.jpg"
-	filepathDecOutput = "Moth_out.jpg"
-	// filepathDecOutput = "file_upload_test_out.txt"
-	out, _ = os.Open(filepathOutput)
-
-	blockSize = 16
-	bufferSize = 16
-	p = make([]byte, bufferSize)
-	ivBuff := make([]byte, blockSize)
-	emptyByteVar := make([]byte, blockSize)
-
-	iv2 := make([]byte, blockSize)
-	count := 0
-	r, w := io.Pipe()
-	done := make(chan bool)
-	cryptoRan = false
-
-	fi, _ := out.Stat()
-	contentLenEnc := fi.Size()
-	var contentDownloaded int64
-	fmt.Println("contentLenEnc", contentLenEnc)
-
-	go func() {
-	ExitReadLabel:
-		for {
-			n2, err2 := io.ReadFull(out, p)
-			fmt.Println("file contents ->", n2, len(p), p, contentDownloaded)
-			if err2 != nil {
-				fmt.Println("\nerr2:", err2)
-				if err2 == io.EOF {
-					ciphertext := make([]byte, blockSize)
-					copy(ciphertext, p[:n2])
-					ciphertext, _ = unpadPKCS7(ciphertext)
-					w.Write(ciphertext)
-					// fmt.Println("ct2 EOF ", ciphertext, string(ciphertext), p[:n2], p, diffLen)
-					w.Close()
-					break ExitReadLabel
-				}
-
-				if err2 == io.ErrUnexpectedEOF {
-					if bytes.Equal(iv2, emptyByteVar) {
-						copy(iv2, ivBuff[0:blockSize])
-						fmt.Println("string IV err2:", string(iv2), n2)
-						fmt.Println("Extracted IV err2:", iv2, len(iv2))
-						mode = cipher.NewCBCDecrypter(block, iv2)
-						done <- true
-					}
-					if !cryptoRan {
-						text := make([]byte, blockSize)
-						ciphertext := make([]byte, blockSize)
-						copy(text, p[:n2])
-						mode.CryptBlocks(ciphertext, text)
-						ciphertext, _ = unpadPKCS7(ciphertext)
-						w.Write(ciphertext)
-
-						w.Close()
-						break ExitReadLabel
-					} else {
-						// text := make([]byte, blockSize)
-						ciphertext := make([]byte, blockSize)
-						copy(ciphertext, p[:n2])
-						ciphertext, _ = unpadPKCS7(ciphertext)
-						w.Write(ciphertext)
-
-						// w.Write(ciphertextCopy)
-
-						w.Close()
-						break ExitReadLabel
-					}
-
-				}
-				fmt.Println("Exiting For")
-				break ExitReadLabel
-			} else {
-				contentDownloaded += int64(n2)
-				if count < blockSize/bufferSize {
-					fmt.Println(string(p[:n2]))
-
-					// If error is not nil then panics
-					if err != nil {
-						panic(err)
-					}
-					copy(ivBuff[bufferSize*count:], p)
-					fmt.Println(string(ivBuff), n2)
-				} else {
-
-					if bytes.Equal(iv2, emptyByteVar) {
-						copy(iv2, ivBuff[0:blockSize])
-						fmt.Println("string IV:", string(iv2), n2)
-						fmt.Println("Extracted IV:", iv2, len(iv2))
-						mode = cipher.NewCBCDecrypter(block, iv2)
-						done <- true
-					}
-
-					ciphertext := make([]byte, blockSize)
-
-					text := make([]byte, blockSize)
-					copy(text, p[:n2])
-					diffLen := contentDownloaded - contentLenEnc
-					fmt.Println("p===>", p, text, n2, diffLen, contentDownloaded, contentLenEnc)
-
-					mode.CryptBlocks(ciphertext, p)
-					cryptoRan = true
-					if contentDownloaded >= contentLenEnc {
-						ciphertext, _ = unpadPKCS7(ciphertext)
-						w.Write(ciphertext)
-					} else {
-						fmt.Println("ct0 read:", ciphertext, string(ciphertext), n2, p)
-
-						w.Write(ciphertext)
-					}
-				}
-			}
-			count++
-
-		}
-	}()
-	fmt.Println("before done")
-	<-done
-	fmt.Println("after done")
-
-	outD, _ := os.Create(filepathDecOutput)
-	io.Copy(outD, r)
-
-	fileText, _ := ioutil.ReadFile(filepathInput)
-	fileTextOut, _ := ioutil.ReadFile(filepathDecOutput)
-	fileOut, err := os.Open(filepathInput)
-	fio, _ := fileOut.Stat()
-	contentLenOut := fio.Size()
-	fmt.Println(contentLenIn, contentLenEnc, contentLenOut, contentRead)
-	assert.Equal(contentLenIn, contentLenOut)
-	assert.Equal(contentLenIn, contentRead)
-	// fileTextEncoded, _ := ioutil.ReadFile("file_upload_test_enc_out.txt")
-	// fileTextEncoded2, _ := ioutil.ReadFile("whoami_enc.txt")
-	// assert.Equal(fileTextEncoded2, fileTextEncoded)
-	// fmt.Println("---FileText---")
-	// fmt.Println(string(fileText))
-	// fmt.Println("---FileTextOut---")
-	// fmt.Println(string(fileTextOut))
-	assert.Equal(fileText, fileTextOut)
-}
-
-func FileDownload3Test(t *testing.T) {
-	//assert := assert.New(t)
-	b := []byte{136, 230, 36, 7, 53, 165, 35, 60, 127, 128, 184, 60, 131, 24, 6, 161, 41}
-	fmt.Println(string(b))
-
-	filepathInput := "video_enc.mp4"
-	filepathDecOutput := "video_enc_out.mp4"
-	filepathInput = "gif_test.gif"
-	filepathDecOutput = "gif_test_out.gif"
-	filepathInput = "file_test.png"
-	filepathDecOutput = "file_test_out.png"
-	filepathInput = "whoami.txt"
-	filepathDecOutput = "whoami_out.txt"
-	filepathInput = "file_upload_original_encrypted.txt"
-	filepathDecOutput = "file_upload_original_encrypted_out.txt"
-
-	key := utils.EncryptCipherKey("enigma")
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
-	}
-
-	out, err := os.Open(filepathInput)
-
-	blockSize := 16
-	bufferSize := 16
-	p := make([]byte, bufferSize)
-	ivBuff := make([]byte, blockSize)
-	emptyByteVar := make([]byte, blockSize)
-
-	iv2 := make([]byte, blockSize)
-	count := 0
-	r, w := io.Pipe()
-
-	var mode cipher.BlockMode
-
-	done := make(chan bool)
-	cryptoRan := false
-	fi, _ := out.Stat()
-	contentLenIn := fi.Size()
-	var contentDownloaded int64
-
-	go func() {
-	ExitReadLabel:
-		for {
-			n2, err2 := io.ReadFull(out, p)
-			fmt.Println("file contents ->", n2, len(p), p, contentDownloaded)
-			if err2 != nil {
-				fmt.Println("\nerr2:", err2)
-				if err2 == io.EOF {
-					ciphertext := make([]byte, blockSize)
-					copy(ciphertext, p)
-					fmt.Println("EOF EOF")
-					diffLen := int(contentDownloaded - contentLenIn)
-					fmt.Println("ct2 EOF ", ciphertext, string(ciphertext), p[:n2], p, diffLen)
-					w.Close()
-					break ExitReadLabel
-				}
-
-				if err2 == io.ErrUnexpectedEOF {
-					if bytes.Equal(iv2, emptyByteVar) {
-						copy(iv2, ivBuff[0:blockSize])
-						fmt.Println("string IV err2:", string(iv2), n2)
-						fmt.Println("Extracted IV err2:", iv2, len(iv2))
-						mode = cipher.NewCBCDecrypter(block, iv2)
-						done <- true
-					}
-					if !cryptoRan {
-						text := make([]byte, blockSize)
-						ciphertext := make([]byte, blockSize)
-						copy(text, p[:n2])
-						mode.CryptBlocks(ciphertext, text)
-						extra := contentLenIn % int64(bufferSize)
-						ciphertextCopy := make([]byte, extra)
-						copy(ciphertextCopy[:extra], ciphertext[:extra])
-						fmt.Println("ct1 ", ciphertextCopy)
-						w.Write(ciphertextCopy)
-						w.Close()
-						break ExitReadLabel
-					} else {
-						text := make([]byte, blockSize)
-						ciphertext := make([]byte, blockSize)
-						copy(text, p[:n2])
-						extra := contentLenIn % int64(bufferSize)
-						ciphertextCopy := make([]byte, extra)
-						copy(ciphertextCopy[:extra], ciphertext[:extra])
-						fmt.Println("ct2 ", ciphertextCopy)
-
-						fmt.Println("ct2 read", ciphertext, string(ciphertext))
-
-						w.Write(ciphertextCopy)
-
-						w.Close()
-						break ExitReadLabel
-					}
-
-				}
-				fmt.Println("Exiting For")
-				break ExitReadLabel
-			} else {
-				if count < blockSize/bufferSize {
-					fmt.Println(string(p[:n2]))
-
-					// If error is not nil then panics
-					if err != nil {
-						panic(err)
-					}
-					copy(ivBuff[bufferSize*count:], p)
-					fmt.Println(string(ivBuff), n2)
-				} else {
-					contentDownloaded += int64(n2)
-
-					if bytes.Equal(iv2, emptyByteVar) {
-						copy(iv2, ivBuff[0:blockSize])
-						fmt.Println("string IV:", string(iv2), n2)
-						fmt.Println("Extracted IV:", iv2, len(iv2))
-						mode = cipher.NewCBCDecrypter(block, iv2)
-						done <- true
-					}
-
-					ciphertext := make([]byte, blockSize)
-
-					text := make([]byte, blockSize)
-					copy(text, p[:n2])
-					diffLen := contentDownloaded - contentLenIn
-					fmt.Println("p===>", p, text, n2, diffLen, contentDownloaded, contentLenIn)
-
-					mode.CryptBlocks(ciphertext, p)
-					cryptoRan = true
-					if contentDownloaded > contentLenIn {
-						extra := contentLenIn % int64(bufferSize)
-						ciphertextCopy := make([]byte, extra)
-						copy(ciphertextCopy[:extra], ciphertext[:extra])
-						fmt.Println("ciphertext ct01", ciphertextCopy, string(ciphertextCopy))
-						fmt.Println("ct01 read:", ciphertext, string(ciphertext), n2, p)
-						w.Write(ciphertextCopy)
-					} else {
-						fmt.Println("ct0 read:", ciphertext, string(ciphertext), n2, p)
-
-						w.Write(ciphertext)
-					}
-				}
-			}
-			count++
-
-		}
-	}()
-	fmt.Println("before done")
-	<-done
-	fmt.Println("after done")
-
-	outD, _ := os.Create(filepathDecOutput)
-	io.Copy(outD, r)
-
-	fmt.Println("after reader")
-	fmt.Println("---FileTextOut---")
-	// fmt.Println(string(fileTextOut))
 
 }

@@ -134,7 +134,6 @@ func (b *publishBuilder) Meta(meta interface{}) *publishBuilder {
 
 func (b *publishBuilder) SpaceId(id SpaceId) *publishBuilder {
 	b.opts.SpaceId = id
-
 	return b
 }
 

@@ -298,3 +298,37 @@ func TestPublishFileMessageResponseValuePass(t *testing.T) {
 
 	assert.Nil(err)
 }
+
+func TestPublishFileMessageSpaceIdQueryParamIsPassed(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	expectedSpaceId := SpaceId("spaceId")
+	queryValues, _ := pn.PublishFileMessage().SpaceId(expectedSpaceId).opts.buildQuery()
+
+	a.Equal(expectedSpaceId, SpaceId(queryValues.Get(publishSpaceIdQueryParam)))
+}
+
+func TestPublishFileMessageMissingSpaceIdQueryParamIsNotSet(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	queryValues, _ := pn.PublishFileMessage().opts.buildQuery()
+
+	a.Equal("", queryValues.Get(publishSpaceIdQueryParam))
+}
+
+func TestPublishFileMessageMessageTypeQueryParamIsPassed(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	expectedMessageType := MessageType("customMessageType")
+	queryValues, _ := pn.PublishFileMessage().MessageType(expectedMessageType).opts.buildQuery()
+
+	a.Equal(expectedMessageType, MessageType(queryValues.Get(publishMessageTypeQueryParam)))
+}
+
+func TestPublishFileMessageMissingMessageTypeQueryParamIsNotSet(t *testing.T) {
+	a := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	queryValues, _ := pn.PublishFileMessage().opts.buildQuery()
+
+	a.Equal("", queryValues.Get(publishMessageTypeQueryParam))
+}

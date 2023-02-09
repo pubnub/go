@@ -48,6 +48,18 @@ func (b *sendFileBuilder) Meta(meta interface{}) *sendFileBuilder {
 	return b
 }
 
+func (b *sendFileBuilder) SpaceId(id SpaceId) *sendFileBuilder {
+	b.opts.SpaceId = id
+
+	return b
+}
+
+func (b *sendFileBuilder) MessageType(messageType MessageType) *sendFileBuilder {
+	b.opts.MessageType = messageType
+
+	return b
+}
+
 // ShouldStore if true the messages are stored in History
 func (b *sendFileBuilder) ShouldStore(store bool) *sendFileBuilder {
 	b.opts.ShouldStore = store
@@ -117,6 +129,8 @@ type sendFileOpts struct {
 	CipherKey   string
 	TTL         int
 	Meta        interface{}
+	SpaceId     SpaceId
+	MessageType MessageType
 	ShouldStore bool
 	QueryParam  map[string]string
 
@@ -236,7 +250,15 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 	maxCount := o.config().FileMessagePublishRetryLimit
 	for !sent && tryCount < maxCount {
 		tryCount++
-		pubFileMessageResponse, pubFileResponseStatus, errPubFileResponse := o.pubnub.PublishFileMessage().TTL(o.TTL).Meta(o.Meta).ShouldStore(o.ShouldStore).Channel(o.Channel).Message(message).Execute()
+		pubFileMessageResponse, pubFileResponseStatus, errPubFileResponse := o.pubnub.PublishFileMessage().
+			TTL(o.TTL).
+			Meta(o.Meta).
+			ShouldStore(o.ShouldStore).
+			Channel(o.Channel).
+			Message(message).
+			MessageType(o.MessageType).
+			SpaceId(o.SpaceId).
+			Execute()
 		if errPubFileResponse != nil {
 			if tryCount >= maxCount {
 				pubFileResponseStatus.AdditionalData = file

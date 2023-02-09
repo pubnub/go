@@ -684,7 +684,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 
 		}
 
-		pnFilesEvent := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+		pnFilesEvent := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, messageType, payload.SpaceId)
 		m.pubnub.Config.Log.Println("PNMessageTypeFile:", PNMessageTypeFile)
 		m.listenerManager.announceFile(pnFilesEvent)
 	default:
@@ -725,7 +725,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 	}
 }
 
-func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64) *PNFilesEvent {
+func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, messageType MessageType, spaceId SpaceId) *PNFilesEvent {
 	var filesPayload map[string]interface{}
 	var ok bool
 	if filesPayload, ok = filePayload.(map[string]interface{}); !ok {
@@ -756,6 +756,8 @@ func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualC
 		Timetoken:         timetoken,
 		Publisher:         issuingClientID,
 		UserMetadata:      userMetadata,
+		SpaceId:           spaceId,
+		MessageType:       messageType,
 	}
 	return pnFilesEvent
 }

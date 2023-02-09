@@ -51,6 +51,18 @@ func (b *publishFileMessageBuilder) Meta(meta interface{}) *publishFileMessageBu
 	return b
 }
 
+func (b *publishFileMessageBuilder) SpaceId(id SpaceId) *publishFileMessageBuilder {
+	b.opts.SpaceId = id
+
+	return b
+}
+
+func (b *publishFileMessageBuilder) MessageType(messageType MessageType) *publishFileMessageBuilder {
+	b.opts.MessageType = messageType
+
+	return b
+}
+
 // ShouldStore if true the messages are stored in History
 func (b *publishFileMessageBuilder) ShouldStore(store bool) *publishFileMessageBuilder {
 	b.opts.ShouldStore = store
@@ -129,6 +141,8 @@ type publishFileMessageOpts struct {
 	UsePost        bool
 	TTL            int
 	Meta           interface{}
+	SpaceId        SpaceId
+	MessageType    MessageType
 	ShouldStore    bool
 	setTTL         bool
 	setShouldStore bool
@@ -243,6 +257,14 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 
 func (o *publishFileMessageOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
+
+	if o.MessageType != "" {
+		q.Set(publishMessageTypeQueryParam, utils.URLEncode(string(o.MessageType)))
+	}
+
+	if o.SpaceId != "" {
+		q.Set(publishSpaceIdQueryParam, utils.URLEncode(string(o.SpaceId)))
+	}
 
 	SetQueryParam(q, o.QueryParam)
 
