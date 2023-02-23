@@ -259,11 +259,11 @@ func (o *publishFileMessageOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	if o.MessageType != "" {
-		q.Set(publishMessageTypeQueryParam, utils.URLEncode(string(o.MessageType)))
+		q.Set(publishMessageTypeQueryParam, string(o.MessageType))
 	}
 
 	if o.SpaceId != "" {
-		q.Set(publishSpaceIdQueryParam, utils.URLEncode(string(o.SpaceId)))
+		q.Set(publishSpaceIdQueryParam, string(o.SpaceId))
 	}
 
 	SetQueryParam(q, o.QueryParam)

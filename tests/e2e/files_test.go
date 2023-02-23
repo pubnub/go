@@ -70,7 +70,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	name := fmt.Sprintf("test_file_upload_name_%d.txt", rno)
 	message := fmt.Sprintf("test file %s", name)
 	expectedMessageType := pubnub.MessageType("This_is_messageType")
-	expectedSpaceId := pubnub.SpaceId("This_is spaceId")
+	expectedSpaceId := pubnub.SpaceId("This_is_spaceId")
 
 	listener := pubnub.NewListener()
 	exitListener := make(chan bool)
