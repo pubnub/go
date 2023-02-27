@@ -362,4 +362,6 @@ type PNFilesEvent struct {
 	Subscription      string
 	Publisher         string
 	Timetoken         int64
+	MessageType       MessageType
+	SpaceId           SpaceId
 }

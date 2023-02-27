@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	godotenv "github.com/joho/godotenv"
 	pubnub "github.com/pubnub/go/v7"
 	"github.com/stretchr/testify/assert"
 )
@@ -43,6 +44,8 @@ func seedRand() {
 }
 
 func init() {
+	godotenv.Load("../../.env")
+
 	seedRand()
 	config = pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.PublishKey = os.Getenv("PUBLISH_KEY")
