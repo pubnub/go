@@ -63,7 +63,6 @@ func (b *grantTokenBuilder) Meta(meta map[string]interface{}) *grantTokenBuilder
 	return b
 }
 
-// Deprecated: use AuthorizedUserId instead
 func (b *grantTokenBuilder) AuthorizedUUID(uuid string) *grantTokenObjectsBuilder {
 	return newGrantTokenObjectsBuilder(b.opts).AuthorizedUUID(uuid)
 }
@@ -73,35 +72,29 @@ func (b *grantTokenBuilder) AuthorizedUserId(userId UserId) *grantTokenEntitiesB
 }
 
 // Channels sets the Channels for the Grant request.
-// Deprecated: Use SpacesPermissions instead
 func (b *grantTokenBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenObjectsBuilder {
 	return newGrantTokenObjectsBuilder(b.opts).Channels(channels)
 }
 
 // ChannelGroups sets the ChannelGroups for the Grant request.
-// Deprecated
 func (b *grantTokenBuilder) ChannelGroups(groups map[string]GroupPermissions) *grantTokenObjectsBuilder {
 	return newGrantTokenObjectsBuilder(b.opts).ChannelGroups(groups)
 }
 
-// Deprecated: Use UsersPermissions instead
 func (b *grantTokenBuilder) UUIDs(uuids map[string]UUIDPermissions) *grantTokenObjectsBuilder {
 	return newGrantTokenObjectsBuilder(b.opts).UUIDs(uuids)
 }
 
 // ChannelsPattern sets the ChannelPermissions for the Grant request.
-// Deprecated: Use SpacePatternsPermissions instead
 func (b *grantTokenBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenObjectsBuilder {
 	return newGrantTokenObjectsBuilder(b.opts).ChannelsPattern(channels)
 }
 
 // ChannelGroupsPattern sets the GroupPermissions for the Grant request.
-// Deprecated
 func (b *grantTokenBuilder) ChannelGroupsPattern(groups map[string]GroupPermissions) *grantTokenObjectsBuilder {
 	return newGrantTokenObjectsBuilder(b.opts).ChannelGroupsPattern(groups)
 }
 
-// Deprecated: Use UserPatternsPermissions instead
 func (b *grantTokenBuilder) UUIDsPattern(uuids map[string]UUIDPermissions) *grantTokenObjectsBuilder {
 	return newGrantTokenObjectsBuilder(b.opts).UUIDsPattern(uuids)
 }
@@ -170,7 +163,7 @@ func (b *grantTokenObjectsBuilder) AuthorizedUUID(uuid string) *grantTokenObject
 	return b
 }
 
-//Channels sets the Channels for the Grant request.
+// Channels sets the Channels for the Grant request.
 func (b *grantTokenObjectsBuilder) Channels(channels map[string]ChannelPermissions) *grantTokenObjectsBuilder {
 	b.opts.Channels = channels
 
@@ -251,7 +244,7 @@ func (b *grantTokenEntitiesBuilder) AuthorizedUserId(userId UserId) *grantTokenE
 	return b
 }
 
-//SpacesPermissions sets the Spaces for the Grant request.
+// SpacesPermissions sets the Spaces for the Grant request.
 func (b *grantTokenEntitiesBuilder) SpacesPermissions(spaces map[SpaceId]SpacePermissions) *grantTokenEntitiesBuilder {
 	b.opts.Channels = toChannelsPermissionsMap(spaces)
 
