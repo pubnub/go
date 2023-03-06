@@ -77,4 +77,6 @@ func MapSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I fetch message history for \'(.*)\' channel$`, iFetchMessageHistoryForChannel)
 	ctx.Step(`^I fetch message history with \'includeMessageType\' set to \'false\' for \'(.*)\' channel$`, iFetchMessageHistoryWithIncludeMessageTypeSetToFalseForChannel)
 	ctx.Step(`^I fetch message history with \'includeSpaceId\' set to \'true\' for \'(.*)\' channel$`, iFetchMessageHistoryWithIncludeSpaceIdSetToTrueForChannel)
+
+	ctx.Step(`^I send a file with \'(.*)\' space id and \'(.*)\' message type$`, iSendAFileWithSpaceidAndMessageType)
 }
