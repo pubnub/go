@@ -1,3 +1,10 @@
+## v7.1.1
+March 07 2023
+
+#### Fixed
+- Undeprecate Grant Token methods.
+- Bump dependencies to avoid vulnerabilities.
+
 ## v7.1.0
 August 09 2022
 
