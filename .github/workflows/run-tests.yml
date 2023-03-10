@@ -7,11 +7,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 env:
-  PAM_PUBLISH_KEY: ${{ secrets.PAM_PUBLISH_KEY }}
-  PAM_SUBSCRIBE_KEY: ${{ secrets.PAM_SUBSCRIBE_KEY }}
-  PAM_SECRET_KEY: ${{ secrets.PAM_SECRET_KEY }}
-  PUBLISH_KEY: ${{ secrets.PUBLISH_KEY }}
-  SUBSCRIBE_KEY: ${{ secrets.SUBSCRIBE_KEY }}
+  PAM_PUBLISH_KEY: ${{ secrets.SDK_PAM_PUB_KEY }}
+  PAM_SUBSCRIBE_KEY: ${{ secrets.SDK_PAM_SUB_KEY }}
+  PAM_SECRET_KEY: ${{ secrets.SDK_PAM_SEC_KEY }}
+  PUBLISH_KEY: ${{ secrets.SDK_PUB_KEY }}
+  SUBSCRIBE_KEY: ${{ secrets.SDK_SUB_KEY }}
 defaults:
   run:
     shell: bash

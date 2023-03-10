@@ -126,17 +126,17 @@ type PNMessageType int
 func (pnMessageType PNMessageType) toMessageType() MessageType {
 	switch pnMessageType {
 	case PNMessageTypeObjects:
-		return "object"
+		return "pn_object"
 	case PNMessageTypeFile:
-		return "file"
+		return "pn_file"
 	case PNMessageTypeSignal:
-		return "signal"
+		return "pn_signal"
 	case PNMessageTypeMessageActions:
-		return "messageAction"
+		return "pn_messageAction"
 	case PNMessageTypeMessage:
 		fallthrough
 	default:
-		return "message"
+		return "pn_message"
 	}
 }
 

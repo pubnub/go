@@ -583,7 +583,7 @@ func Test_processNonPresencePayload_messageType(t *testing.T) {
 		{
 			name:                "If custom message type is not set the default is pnMessageType",
 			args:                messageTypes{pnMessageType: PNMessageTypeMessage},
-			expectedMessageType: "message",
+			expectedMessageType: "pn_message",
 		},
 		{
 			name:                "If custom message type is set it's the value of messageType",
