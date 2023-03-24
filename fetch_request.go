@@ -323,7 +323,7 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 							if err == nil {
 								histItem.MessageType = int(t)
 							} else {
-								o.pubnub.Config.Log.Printf("Type conversion error.")
+								o.pubnub.Config.Log.Printf("MessageType conversion error.")
 							}
 						default:
 							o.pubnub.Config.Log.Printf("histResponse message_type type %vv", d)
