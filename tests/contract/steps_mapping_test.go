@@ -59,24 +59,30 @@ func MapSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the demo keyset$`, theDemoKeyset)
 	ctx.Step(`^the demo keyset with enabled storage$`, theDemoKeyset)
 
-	ctx.Step(`^I publish message with \'(.*)\' space id and \'(.*)\' message type$`, iPublishMessageWithSpaceIdAndMessageType)
+	ctx.Step(`^I publish message with \'(.*)\' space id and \'(.*)\' type$`, iPublishMessageWithSpaceIdAndType)
+	ctx.Step(`^I send a signal with \'(.*)\' space id and \'(.*)\' type$`, iSendASignalWithSpaceidSpaceIdAndType)
 	ctx.Step(`^I receive a successful response$`, iReceiveASuccessfulResponse)
 	ctx.Step(`^I receive error response$`, iReceiveErrorResponse)
+	ctx.Step(`^I receive an error response$`, iReceiveErrorResponse)
 
 	ctx.Step(`^I receive the message in my subscribe response$`, iReceiveTheMessageInMySubscribeResponse)
 	ctx.Step(`^I subscribe to \'(.*)\' channel$`, iSubscribeToChannel)
-	ctx.Step(`^subscribe response contains messages with \'(.*)\' and \'(.*)\' message types$`, subscribeResponseContainsMessagesWithMessageTypes)
 	ctx.Step(`^subscribe response contains messages with space ids$`, subscribeResponseContainsMessagesWithSpaceIds)
 	ctx.Step(`^subscribe response contains messages without space ids$`, subscribeResponseContainsMessagesWithoutSpaceIds)
 
-	ctx.Step(`^history response contains messages with \'(.*)\' and \'(.*)\' message types$`, historyResponseContainsMessagesWithProvidedMessageTypes)
-	ctx.Step(`^history response contains messages with message types$`, historyResponseContainsMessagesWithMessageTypes)
+	ctx.Step(`^history response contains messages with \'(.*)\' and \'(.*)\' types$`, historyResponseContainsMessagesWithProvidedTypes)
+	ctx.Step(`^history response contains messages with \'(\d+)\' and \'(\d+)\' message types$`, historyResponseContainsMessagesWithProvidedMessageTypes)
 	ctx.Step(`^history response contains messages with space ids$`, historyResponseContainsMessagesWithSpaceIds)
-	ctx.Step(`^history response contains messages without message types$`, historyResponseContainsMessagesWithoutMessageTypes)
+	ctx.Step(`^history response contains messages without types$`, historyResponseContainsMessagesWithoutType)
 	ctx.Step(`^history response contains messages without space ids$`, historyResponseContainsMessagesWithoutSpaceIds)
 	ctx.Step(`^I fetch message history for \'(.*)\' channel$`, iFetchMessageHistoryForChannel)
-	ctx.Step(`^I fetch message history with \'includeMessageType\' set to \'false\' for \'(.*)\' channel$`, iFetchMessageHistoryWithIncludeMessageTypeSetToFalseForChannel)
+	ctx.Step(`^I fetch message history with \'includeType\' set to \'false\' for \'(.*)\' channel$`, iFetchMessageHistoryWithIncludeTypeSetToFalseForChannel)
 	ctx.Step(`^I fetch message history with \'includeSpaceId\' set to \'true\' for \'(.*)\' channel$`, iFetchMessageHistoryWithIncludeSpaceIdSetToTrueForChannel)
 
-	ctx.Step(`^I send a file with \'(.*)\' space id and \'(.*)\' message type$`, iSendAFileWithSpaceidAndMessageType)
+	ctx.Step(`^I send a file with \'(.*)\' space id and \'(.*)\' message type$`, iSendAFileWithSpaceidAndType)
+
+	ctx.Step(`^I receive (\d+) messages in my subscribe response$`, iReceiveMessagesInMySubscribeResponse)
+	ctx.Step(`^response contains messages with \'(.*)\' and \'(.*)\' types$`, responseContainsMessagesWithTypes)
+	ctx.Step(`^response contains messages with space ids$`, responseContainsMessagesWithSpaceIds)
+
 }

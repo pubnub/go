@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-func subscribeResponseContainsMessagesWithMessageTypes(ctx context.Context, messageType1 string, messageType2 string) error {
+func responseContainsMessagesWithTypes(ctx context.Context, firstType string, secondType string) error {
 	subscribeState := getSubscribeState(ctx)
 
 	return allMessagesMatch(subscribeState.readAllSubscribeMessages(), func(t pubnub.PNMessage) error {
-		if t.MessageType != pubnub.MessageType(messageType1) && t.MessageType != pubnub.MessageType(messageType2) {
-			return errors.New(fmt.Sprintf("expected %s or %s but found %s", messageType1, messageType2, t.MessageType))
+		if t.Type != firstType && t.Type != secondType {
+			return errors.New(fmt.Sprintf("expected %s or %s but found %s", firstType, secondType, t.Type))
 		}
 		return nil
 	})
@@ -42,15 +42,7 @@ func subscribeResponseContainsMessagesWithoutSpaceIds(ctx context.Context) error
 }
 
 func iReceiveTheMessageInMySubscribeResponse(ctx context.Context) error {
-	subscribeState := getSubscribeState(ctx)
-	err := checkFor(time.Millisecond*500, time.Millisecond*50, func() error {
-		if len(subscribeState.readAllSubscribeMessages()) < 1 {
-			return errors.New("received less messages than 1")
-		} else {
-			return nil
-		}
-	})
-	return err
+	return iReceiveMessagesInMySubscribeResponse(ctx, 1)
 }
 
 func iSubscribeToChannel(ctx context.Context, channel string) error {
@@ -88,4 +80,20 @@ func iSubscribeToChannel(ctx context.Context, channel string) error {
 	}()
 
 	return nil
+}
+
+func iReceiveMessagesInMySubscribeResponse(ctx context.Context, numberOfMessages int) error {
+	subscribeState := getSubscribeState(ctx)
+	err := checkFor(time.Millisecond*500, time.Millisecond*50, func() error {
+		if len(subscribeState.readAllSubscribeMessages()) < numberOfMessages {
+			return fmt.Errorf("received less messages than %d", numberOfMessages)
+		} else {
+			return nil
+		}
+	})
+	return err
+}
+
+func responseContainsMessagesWithSpaceIds(ctx context.Context) error {
+	return subscribeResponseContainsMessagesWithoutSpaceIds(ctx)
 }

@@ -483,7 +483,7 @@ type subscribeMessage struct {
 	MessageType       PNMessageType `json:"e"`
 	SequenceNumber    int           `json:"s"`
 	SpaceId           SpaceId       `json:"si"`
-	CustomMessageType MessageType   `json:"mt"`
+	Type              string        `json:"mt"`
 
 	PublishMetaData publishMetadata `json:"p"`
 }
@@ -639,15 +639,9 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 	}
 	var messagePayload interface{}
 
-	messageType := payload.CustomMessageType
-
-	if messageType == "" {
-		messageType = payload.MessageType.toMessageType()
-	}
-
 	switch payload.MessageType {
 	case PNMessageTypeSignal:
-		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, messageType, payload.SpaceId)
+		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, payload.Type, payload.SpaceId)
 		m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
 		m.listenerManager.announceSignal(pnMessageResult)
 	case PNMessageTypeObjects:
@@ -684,7 +678,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 
 		}
 
-		pnFilesEvent := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, messageType, payload.SpaceId)
+		pnFilesEvent := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, payload.Type, payload.SpaceId)
 		m.pubnub.Config.Log.Println("PNMessageTypeFile:", PNMessageTypeFile)
 		m.listenerManager.announceFile(pnFilesEvent)
 	default:
@@ -702,7 +696,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 			m.listenerManager.announceStatus(pnStatus)
 
 		}
-		pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, messageType, payload.SpaceId)
+		pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, payload.Type, payload.SpaceId)
 		m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
 		m.listenerManager.announceMessage(pnMessageResult)
 	}
@@ -725,7 +719,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 	}
 }
 
-func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, messageType MessageType, spaceId SpaceId) *PNFilesEvent {
+func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, typ string, spaceId SpaceId) *PNFilesEvent {
 	var filesPayload map[string]interface{}
 	var ok bool
 	if filesPayload, ok = filePayload.(map[string]interface{}); !ok {
@@ -757,7 +751,7 @@ func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualC
 		Publisher:         issuingClientID,
 		UserMetadata:      userMetadata,
 		SpaceId:           spaceId,
-		MessageType:       messageType,
+		Type:              typ,
 	}
 	return pnFilesEvent
 }
@@ -944,7 +938,7 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	return pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType
 }
 
-func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, messageType MessageType, spaceId SpaceId) *PNMessage {
+func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, typ string, spaceId SpaceId) *PNMessage {
 
 	pnMessageResult := &PNMessage{
 		Message:           messagePayload,
@@ -955,7 +949,7 @@ func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, c
 		Timetoken:         timetoken,
 		Publisher:         issuingClientID,
 		UserMetadata:      userMetadata,
-		MessageType:       messageType,
+		Type:              typ,
 		SpaceId:           spaceId,
 	}
 

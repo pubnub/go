@@ -57,8 +57,8 @@ func (b *publishFileMessageBuilder) SpaceId(id SpaceId) *publishFileMessageBuild
 	return b
 }
 
-func (b *publishFileMessageBuilder) MessageType(messageType MessageType) *publishFileMessageBuilder {
-	b.opts.MessageType = messageType
+func (b *publishFileMessageBuilder) Type(typ string) *publishFileMessageBuilder {
+	b.opts.Type = typ
 
 	return b
 }
@@ -142,7 +142,7 @@ type publishFileMessageOpts struct {
 	TTL            int
 	Meta           interface{}
 	SpaceId        SpaceId
-	MessageType    MessageType
+	Type           string
 	ShouldStore    bool
 	setTTL         bool
 	setShouldStore bool
@@ -258,8 +258,8 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 func (o *publishFileMessageOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
-	if o.MessageType != "" {
-		q.Set(publishMessageTypeQueryParam, string(o.MessageType))
+	if o.Type != "" {
+		q.Set(publishTypeQueryParam, o.Type)
 	}
 
 	if o.SpaceId != "" {

@@ -30,7 +30,7 @@ func TestFileUploadWithCustomCipher(t *testing.T) {
 
 type FileData struct {
 	id, url, name, message string
-	messageType            pubnub.MessageType
+	typ                    string
 	spaceId                pubnub.SpaceId
 }
 
@@ -69,7 +69,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	ch := fmt.Sprintf("test_file_upload_channel_%d", rno)
 	name := fmt.Sprintf("test_file_upload_name_%d.txt", rno)
 	message := fmt.Sprintf("test file %s", name)
-	expectedMessageType := pubnub.MessageType("This_is_messageType")
+	expectedType := "This_is_messageType"
 	expectedSpaceId := pubnub.SpaceId("This_is_spaceId")
 
 	listener := pubnub.NewListener()
@@ -99,7 +99,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 					fmt.Printf("file.SubscribedChannel: %s\n", file.SubscribedChannel)
 					fmt.Printf("file.Publisher: %s\n", file.Publisher)
 				}
-				fileDataChannel <- FileData{file.File.PNFile.ID, file.File.PNFile.URL, file.File.PNFile.Name, file.File.PNMessage.Text, file.MessageType, file.SpaceId}
+				fileDataChannel <- FileData{file.File.PNFile.ID, file.File.PNFile.URL, file.File.PNFile.Name, file.File.PNMessage.Text, file.Type, file.SpaceId}
 
 			case <-exitListener:
 				break ExitLabel
@@ -120,7 +120,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 		CipherKey(cipherKey).
 		Name(name).
 		File(file).
-		MessageType(expectedMessageType).
+		Type(expectedType).
 		SpaceId(expectedSpaceId).
 		Execute()
 	assert.Equal(200, statusSendFile.StatusCode)
@@ -186,7 +186,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	assert.Equal(id, fileData.id)
 	assert.Equal(message, fileData.message)
 	assert.Equal(retURL, location)
-	assert.Equal(expectedMessageType, fileData.messageType)
+	assert.Equal(expectedType, fileData.typ)
 	assert.Equal(expectedSpaceId, fileData.spaceId)
 
 	out, errDL := os.Create(filepathOutput)
@@ -242,7 +242,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 				if enableDebuggingInTests {
 					fmt.Println("pubnub.PNPublishMessage", msg.Text)
 				}
-				if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == "pn_file" && chMessages[i].UUID == pn.Config.UUID {
+				if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
 					bFoundInFetch = true
 					break
 				}

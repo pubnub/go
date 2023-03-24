@@ -270,7 +270,7 @@ type PNMessage struct {
 	Subscription      string
 	Publisher         string
 	Timetoken         int64
-	MessageType       MessageType
+	Type              string
 	SpaceId           SpaceId
 }
 
@@ -362,6 +362,6 @@ type PNFilesEvent struct {
 	Subscription      string
 	Publisher         string
 	Timetoken         int64
-	MessageType       MessageType
+	Type              string
 	SpaceId           SpaceId
 }

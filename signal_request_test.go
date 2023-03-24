@@ -165,10 +165,14 @@ func TestSignalMissingSpaceIdQueryParamIsNotSet(t *testing.T) {
 func TestSignalMessageTypeQueryParamIsPassed(t *testing.T) {
 	a := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	expectedMessageType := MessageType("customMessageType")
-	queryValues, _ := pn.Signal().MessageType(expectedMessageType).opts.buildQuery()
+	expectedType := "customMessageType"
+	queryValues, _ := pn.Signal().Type(expectedType).opts.buildQuery()
 
-	a.Equal(expectedMessageType, MessageType(queryValues.Get(publishMessageTypeQueryParam)))
+	a.Equal(expectedType, queryValues.Get(publishTypeQueryParam))
+}
+
+func MessageType(s string) {
+	panic("unimplemented")
 }
 
 func TestSignalMissingMessageTypeQueryParamIsNotSet(t *testing.T) {
@@ -176,5 +180,5 @@ func TestSignalMissingMessageTypeQueryParamIsNotSet(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	queryValues, _ := pn.Signal().opts.buildQuery()
 
-	a.Equal("", queryValues.Get(publishMessageTypeQueryParam))
+	a.Equal("", queryValues.Get(publishTypeQueryParam))
 }

@@ -3,29 +3,28 @@ package contract
 import (
 	"context"
 	"fmt"
-	pubnub "github.com/pubnub/go/v7"
 )
 
-func historyResponseContainsMessagesWithProvidedMessageTypes(ctx context.Context, firstMessageType string, secondMessageType string) error {
+func historyResponseContainsMessagesWithProvidedTypes(ctx context.Context, firstType string, secondType string) error {
 	historyState := getHistoryState(ctx)
 
 	for _, fetchResponseItems := range historyState.fetchResponse.Messages {
 		for _, item := range fetchResponseItems {
-			if item.MessageType != pubnub.MessageType(firstMessageType) && item.MessageType != pubnub.MessageType(secondMessageType) {
-				return fmt.Errorf("expected message type to be %s or %s, but found %s", firstMessageType, secondMessageType, item.MessageType)
+			if item.Type != firstType && item.Type != secondType {
+				return fmt.Errorf("expected type to be %s or %s, but found %s", firstType, secondType, item.Type)
 			}
 		}
 	}
 	return nil
 }
 
-func historyResponseContainsMessagesWithMessageTypes(ctx context.Context) error {
+func historyResponseContainsMessagesWithProvidedMessageTypes(ctx context.Context, firstType int, secondType int) error {
 	historyState := getHistoryState(ctx)
 
 	for _, fetchResponseItems := range historyState.fetchResponse.Messages {
 		for _, item := range fetchResponseItems {
-			if item.MessageType == "" {
-				return fmt.Errorf("expected non empty message type")
+			if item.MessageType != firstType && item.MessageType != secondType {
+				return fmt.Errorf("expected message type to be %d or %d, but found %d", firstType, secondType, item.MessageType)
 			}
 		}
 	}
@@ -46,13 +45,13 @@ func historyResponseContainsMessagesWithSpaceIds(ctx context.Context) error {
 
 }
 
-func historyResponseContainsMessagesWithoutMessageTypes(ctx context.Context) error {
+func historyResponseContainsMessagesWithoutType(ctx context.Context) error {
 	historyState := getHistoryState(ctx)
 
 	for _, fetchResponseItems := range historyState.fetchResponse.Messages {
 		for _, item := range fetchResponseItems {
-			if item.MessageType != "" {
-				return fmt.Errorf("expected empty message type, but found %s", item.MessageType)
+			if item.Type != "" {
+				return fmt.Errorf("expected empty message type, but found %s", item.Type)
 			}
 		}
 	}
@@ -83,11 +82,11 @@ func iFetchMessageHistoryForChannel(ctx context.Context, channel string) error {
 	return nil
 }
 
-func iFetchMessageHistoryWithIncludeMessageTypeSetToFalseForChannel(ctx context.Context, channel string) error {
+func iFetchMessageHistoryWithIncludeTypeSetToFalseForChannel(ctx context.Context, channel string) error {
 	commonState := getCommonState(ctx)
 	historyState := getHistoryState(ctx)
 
-	r, s, err := commonState.pubNub.Fetch().Channels([]string{channel}).IncludeMessageType(false).Execute()
+	r, s, err := commonState.pubNub.Fetch().Channels([]string{channel}).IncludeType(false).Execute()
 
 	commonState.err = err
 	commonState.statusResponse = s
