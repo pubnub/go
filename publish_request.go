@@ -20,20 +20,18 @@ const publishPostPath = "/publish/%s/%s/0/%s/%s"
 
 var emptyPublishResponse *PublishResponse
 
-type MessageType string
-
 const publishSpaceIdQueryParam = "space-id"
-const publishMessageTypeQueryParam = "type"
+const publishTypeQueryParam = "type"
 
 type publishOpts struct {
 	endpointOpts
 
-	TTL         int
-	Channel     string
-	Message     interface{}
-	Meta        interface{}
-	SpaceId     SpaceId
-	MessageType MessageType
+	TTL     int
+	Channel string
+	Message interface{}
+	Meta    interface{}
+	SpaceId SpaceId
+	Type    string
 
 	UsePost        bool
 	ShouldStore    bool
@@ -137,8 +135,8 @@ func (b *publishBuilder) SpaceId(id SpaceId) *publishBuilder {
 	return b
 }
 
-func (b *publishBuilder) MessageType(messageType MessageType) *publishBuilder {
-	b.opts.MessageType = messageType
+func (b *publishBuilder) Type(typ string) *publishBuilder {
+	b.opts.Type = typ
 
 	return b
 }
@@ -324,8 +322,8 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 		q.Set("meta", string(meta))
 	}
 
-	if o.MessageType != "" {
-		q.Set(publishMessageTypeQueryParam, string(o.MessageType))
+	if o.Type != "" {
+		q.Set(publishTypeQueryParam, o.Type)
 	}
 
 	if o.SpaceId != "" {

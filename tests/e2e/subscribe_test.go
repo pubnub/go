@@ -2360,11 +2360,11 @@ func TestSubscribeSuperCall(t *testing.T) {
 	exitListener <- true
 }
 
-func TestPublishAndSubscribeWithSpaceIdAndMessageType(t *testing.T) {
+func TestPublishAndSubscribeWithSpaceIdAndType(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 	channel := randomized("channel")
 	expectedSpaceId := pubnub.SpaceId("spaceId")
-	expectedMessageType := pubnub.MessageType("messageType")
+	expectedType := "typ"
 
 	err := subscribeWithATimeout(t, pn, channel, time.Second*1)
 	if err != nil {
@@ -2378,7 +2378,7 @@ func TestPublishAndSubscribeWithSpaceIdAndMessageType(t *testing.T) {
 		Channel(channel).
 		Message("msg").
 		SpaceId(expectedSpaceId).
-		MessageType(expectedMessageType).
+		Type(expectedType).
 		Execute()
 	if err != nil {
 		t.Error("Publish failed", err)
@@ -2395,7 +2395,7 @@ func TestPublishAndSubscribeWithSpaceIdAndMessageType(t *testing.T) {
 			timer.Stop()
 			stop = true
 			assert.Equal(t, expectedSpaceId, msg.SpaceId)
-			assert.Equal(t, expectedMessageType, msg.MessageType)
+			assert.Equal(t, expectedType, msg.Type)
 		case <-timer.C:
 			t.Error("Didn't receive message in expected time")
 			return

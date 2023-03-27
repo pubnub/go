@@ -570,41 +570,6 @@ func TestProcessSubscribePayloadCipherErr(t *testing.T) {
 	//pn.Destroy()
 }
 
-func Test_processNonPresencePayload_messageType(t *testing.T) {
-	type messageTypes struct {
-		customMessageType MessageType
-		pnMessageType     PNMessageType
-	}
-	tests := []struct {
-		name                string
-		args                messageTypes
-		expectedMessageType MessageType
-	}{
-		{
-			name:                "If custom message type is not set the default is pnMessageType",
-			args:                messageTypes{pnMessageType: PNMessageTypeMessage},
-			expectedMessageType: "pn_message",
-		},
-		{
-			name:                "If custom message type is set it's the value of messageType",
-			args:                messageTypes{customMessageType: "customOne", pnMessageType: PNMessageTypeMessage},
-			expectedMessageType: "customOne",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			pn := NewPubNubDemo()
-
-			payload := payload()
-			payload.MessageType = tt.args.pnMessageType
-			payload.CustomMessageType = tt.args.customMessageType
-			msg := pn.payloadToMsg(payload)
-
-			assert.Equal(t, tt.expectedMessageType, msg.MessageType)
-		})
-	}
-}
-
 func Test_processNonPresencePayload_spaceId(t *testing.T) {
 	tests := []struct {
 		name            string
@@ -648,7 +613,7 @@ func payload() subscribeMessage {
 		MessageType:       0,
 		SequenceNumber:    42,
 		SpaceId:           "",
-		CustomMessageType: "",
+		Type:              "",
 		PublishMetaData:   publishMetadata{PublishTimetoken: "10", Region: 42},
 	}
 }

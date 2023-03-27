@@ -75,8 +75,8 @@ func (b *signalBuilder) SpaceId(id SpaceId) *signalBuilder {
 	return b
 }
 
-func (b *signalBuilder) MessageType(messageType MessageType) *signalBuilder {
-	b.opts.MessageType = messageType
+func (b *signalBuilder) Type(typ string) *signalBuilder {
+	b.opts.Type = typ
 
 	return b
 }
@@ -93,13 +93,13 @@ func (b *signalBuilder) Execute() (*SignalResponse, StatusResponse, error) {
 
 type signalOpts struct {
 	endpointOpts
-	Message     interface{}
-	Channel     string
-	UsePost     bool
-	QueryParam  map[string]string
-	SpaceId     SpaceId
-	MessageType MessageType
-	Transport   http.RoundTripper
+	Message    interface{}
+	Channel    string
+	UsePost    bool
+	QueryParam map[string]string
+	SpaceId    SpaceId
+	Type       string
+	Transport  http.RoundTripper
 }
 
 func (o *signalOpts) validate() error {
@@ -144,8 +144,8 @@ func (o *signalOpts) buildQuery() (*url.Values, error) {
 
 	SetQueryParam(q, o.QueryParam)
 
-	if o.MessageType != "" {
-		q.Set(publishMessageTypeQueryParam, string(o.MessageType))
+	if o.Type != "" {
+		q.Set(publishTypeQueryParam, o.Type)
 	}
 
 	if o.SpaceId != "" {

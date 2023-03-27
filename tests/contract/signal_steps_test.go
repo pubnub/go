@@ -5,10 +5,10 @@ import (
 	pubnub "github.com/pubnub/go/v7"
 )
 
-func iPublishMessageWithSpaceIdAndType(ctx context.Context, spaceId string, typ string) error {
+func iSendASignalWithSpaceidSpaceIdAndType(ctx context.Context, spaceId string, typ string) error {
 	commonState := getCommonState(ctx)
 
-	_, s, err := commonState.pubNub.Publish().
+	_, s, err := commonState.pubNub.Signal().
 		Message("whatever").
 		Channel("whatever").
 		Type(typ).

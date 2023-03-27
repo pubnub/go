@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 	"strconv"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -95,6 +96,12 @@ func (b *fetchBuilder) IncludeMessageType(withMessageType bool) *fetchBuilder {
 	return b
 }
 
+// IncludeType fetches the Message Type associated with the message
+func (b *fetchBuilder) IncludeType(withType bool) *fetchBuilder {
+	b.opts.WithType = withType
+	return b
+}
+
 // IncludeSpaceId fetches the Space Id associated with the message
 func (b *fetchBuilder) IncludeSpaceId(withSpaceId bool) *fetchBuilder {
 	b.opts.WithSpaceId = withSpaceId
@@ -131,6 +138,7 @@ func newFetchOpts(pubnub *PubNub, ctx Context, opts fetchOpts) *fetchOpts {
 	}
 	opts.WithUUID = true
 	opts.WithMessageType = true
+	opts.WithType = true
 	return &opts
 }
 
@@ -144,6 +152,7 @@ type fetchOpts struct {
 	WithMeta           bool
 	WithUUID           bool
 	WithMessageType    bool
+	WithType           bool
 	WithSpaceId        bool
 
 	// default: 100
@@ -220,7 +229,7 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_meta", strconv.FormatBool(o.WithMeta))
 	q.Set("include_message_type", strconv.FormatBool(o.WithMessageType))
-	q.Set("include_type", strconv.FormatBool(o.WithMessageType))
+	q.Set("include_type", strconv.FormatBool(o.WithType))
 	q.Set("include_space_id", strconv.FormatBool(o.WithSpaceId))
 	q.Set("include_uuid", strconv.FormatBool(o.WithUUID))
 
@@ -286,7 +295,7 @@ func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistor
 	return resp
 }
 
-//{"status": 200, "error": false, "error_message": "", "channels": {"ch1":[{"message_type": "", "message": {"text": "hey"}, "timetoken": "15959610984115342", "meta": "", "uuid": "db9c5e39-7c95-40f5-8d71-125765b6f561"}]}}
+// {"status": 200, "error": false, "error_message": "", "channels": {"ch1":[{"message_type": "", "message": {"text": "hey"}, "timetoken": "15959610984115342", "meta": "", "uuid": "db9c5e39-7c95-40f5-8d71-125765b6f561"}]}}
 func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]FetchResponseItem {
 	messages := make(map[string][]FetchResponseItem, len(channels))
 
@@ -308,21 +317,25 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 					if d, ok := histResponse["message_type"]; ok {
 						switch v := d.(type) {
 						case float64:
-							histItem.MessageType = PNMessageType(int(v)).toMessageType()
+							histItem.MessageType = int(v)
 						case string:
 							t, err := strconv.ParseInt(v, 10, 64)
 							if err == nil {
-								histItem.MessageType = PNMessageType(int(t)).toMessageType()
+								histItem.MessageType = int(t)
 							} else {
 								o.pubnub.Config.Log.Printf("MessageType conversion error.")
 							}
 						default:
-							if o.WithMessageType {
-								histItem.MessageType = PNMessageTypeMessage.toMessageType()
+							o.pubnub.Config.Log.Printf("histResponse message_type type %vv", d)
+							if v != nil {
+								o.pubnub.Config.Log.Printf("histResponse message_type type %vv", reflect.TypeOf(v).Kind())
 							} else {
-								histItem.MessageType = ""
+								o.pubnub.Config.Log.Printf("histResponse message_type nil")
 							}
 						}
+					}
+					if t, ok := histResponse["type"]; ok {
+						histItem.Type = t.(string)
 					}
 					if sid, ok := histResponse["space_id"]; ok {
 						histItem.SpaceId = SpaceId(sid.(string))
@@ -402,7 +415,8 @@ type FetchResponseItem struct {
 	File           PNFileDetails
 	Timetoken      string
 	UUID           string
-	MessageType    MessageType
+	MessageType    int
+	Type           string
 	SpaceId        SpaceId
 }
 

@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func iSendAFileWithSpaceidAndMessageType(ctx context.Context, spaceId string, messageType string) error {
+func iSendAFileWithSpaceidAndType(ctx context.Context, spaceId string, typ string) error {
 	commonState := getCommonState(ctx)
 
 	file, err := os.Open("test_file.txt")
@@ -17,7 +17,7 @@ func iSendAFileWithSpaceidAndMessageType(ctx context.Context, spaceId string, me
 
 	_, s, err := commonState.pubNub.SendFile().
 		Message("This is a message").
-		MessageType(pubnub.MessageType(messageType)).
+		Type(typ).
 		SpaceId(pubnub.SpaceId(spaceId)).
 		File(file).
 		Name("name").

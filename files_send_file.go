@@ -54,8 +54,8 @@ func (b *sendFileBuilder) SpaceId(id SpaceId) *sendFileBuilder {
 	return b
 }
 
-func (b *sendFileBuilder) MessageType(messageType MessageType) *sendFileBuilder {
-	b.opts.MessageType = messageType
+func (b *sendFileBuilder) Type(typ string) *sendFileBuilder {
+	b.opts.Type = typ
 
 	return b
 }
@@ -130,7 +130,7 @@ type sendFileOpts struct {
 	TTL         int
 	Meta        interface{}
 	SpaceId     SpaceId
-	MessageType MessageType
+	Type        string
 	ShouldStore bool
 	QueryParam  map[string]string
 
@@ -256,7 +256,7 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 			ShouldStore(o.ShouldStore).
 			Channel(o.Channel).
 			Message(message).
-			MessageType(o.MessageType).
+			Type(o.Type).
 			SpaceId(o.SpaceId).
 			Execute()
 		if errPubFileResponse != nil {
