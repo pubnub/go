@@ -3,6 +3,7 @@ package pubnub
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 
@@ -164,6 +165,10 @@ func (o *subscribeOpts) buildQuery() (*url.Values, error) {
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
+}
+
+func (o *subscribeOpts) client() *http.Client {
+	return o.pubnub.GetSubscribeClient()
 }
 
 func (o *subscribeOpts) requestTimeout() int {

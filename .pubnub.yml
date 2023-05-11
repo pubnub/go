@@ -1,6 +1,11 @@
 ---
-version: v7.1.1
+version: v7.1.2
 changelog:
+  - date: 2023-05-11
+    version: v7.1.2
+    changes:
+      - type: bug
+        text: "Use http client configured for subscribe calls to make subscribe calls."
   - date: 2023-03-07
     version: v7.1.1
     changes:
@@ -728,7 +733,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.1.1
+            location: https://github.com/pubnub/go/releases/tag/v7.1.2
             requires:
               -
                 name: "Go"

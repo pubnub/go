@@ -1,3 +1,9 @@
+## v7.1.2
+May 11 2023
+
+#### Fixed
+- Use http client configured for subscribe calls to make subscribe calls.
+
 ## v7.1.1
 March 07 2023
 
