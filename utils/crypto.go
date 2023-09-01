@@ -29,10 +29,14 @@ var valIV = "0123456789012345"
 //
 // returns the base64 encoded encrypted string.
 func EncryptString(cipherKey string, message string, useRandomInitializationVector bool) string {
-	block, _ := aesCipher(cipherKey)
+	block, _ := legacyAesCipher(cipherKey)
 
 	message = encodeNonASCIIChars(message)
-	value := []byte(message)
+
+	return base64.StdEncoding.EncodeToString(encrypt(block, []byte(message), useRandomInitializationVector))
+}
+
+func encrypt(block cipher.Block, value []byte, useRandomInitializationVector bool) []byte {
 	value = padWithPKCS7(value)
 	iv := make([]byte, aes.BlockSize)
 	if useRandomInitializationVector {
@@ -45,9 +49,9 @@ func EncryptString(cipherKey string, message string, useRandomInitializationVect
 	cipherBytes := make([]byte, len(value))
 	blockmode.CryptBlocks(cipherBytes, value)
 	if useRandomInitializationVector {
-		return base64.StdEncoding.EncodeToString(append(iv, cipherBytes...))
+		return append(iv, cipherBytes...)
 	}
-	return base64.StdEncoding.EncodeToString(cipherBytes)
+	return cipherBytes
 }
 
 type A struct {
@@ -73,7 +77,7 @@ func DecryptString(cipherKey string, message string, useRandomInitializationVect
 		return "**decrypt error***", errors.New("message is empty")
 	}
 
-	block, aesErr := aesCipher(cipherKey)
+	block, aesErr := legacyAesCipher(cipherKey)
 	if aesErr != nil {
 		return "***decrypt error***", fmt.Errorf("decrypt error aes cipher: %s", aesErr)
 	}
@@ -82,6 +86,17 @@ func DecryptString(cipherKey string, message string, useRandomInitializationVect
 	if decodeErr != nil {
 		return "***decrypt error***", fmt.Errorf("decrypt error on decode: %s", decodeErr)
 	}
+
+	val, e := decrypt(block, value, useRandomInitializationVector)
+
+	if e != nil {
+		return "***decrypt error***", fmt.Errorf("decrypt error: %s", e)
+	}
+
+	return fmt.Sprintf("%s", string(val)), nil
+}
+
+func decrypt(block cipher.Block, value []byte, useRandomInitializationVector bool) (retVal []byte, err error) {
 	iv := make([]byte, aes.BlockSize)
 	if useRandomInitializationVector {
 		iv = value[:16]
@@ -94,27 +109,27 @@ func DecryptString(cipherKey string, message string, useRandomInitializationVect
 	//to handle decryption errors
 	defer func() {
 		if r := recover(); r != nil {
-			retVal, err = "***decrypt error***", fmt.Errorf("decrypt error: %s", r)
+			retVal, err = nil, fmt.Errorf("decrypt error: %s", r)
 		}
 	}()
 	decrypted := make([]byte, len(value))
 	decrypter.CryptBlocks(decrypted, value)
 	val, err := unpadPKCS7(decrypted)
 	if err != nil {
-		return "***decrypt error***", fmt.Errorf("decrypt error: %s", err)
+		return nil, fmt.Errorf("decrypt error: %s", err)
 	}
 
-	return fmt.Sprintf("%s", string(val)), nil
+	return val, nil
 }
 
-// aesCipher returns the cipher block
+// legacyAesCipher returns the cipher block
 //
 // It accepts the following parameters:
 // cipherKey: cipher key.
 //
 // returns the cipher block,
 // error if any.
-func aesCipher(cipherKey string) (cipher.Block, error) {
+func legacyAesCipher(cipherKey string) (cipher.Block, error) {
 	key := EncryptCipherKey(cipherKey)
 	block, err := aes.NewCipher(key)
 	if err != nil {
