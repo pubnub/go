@@ -13,15 +13,15 @@ func TestJust(t *testing.T) {
 		t.Errorf("error, %s, %s", e1, e2)
 	}
 
-	legacy := NewCrypto(legacyCryptor, []Cryptor{cbcCryptor}, legacyCryptor, Headless)
-	newC := NewCrypto(cbcCryptor, []Cryptor{cbcCryptor}, legacyCryptor, CryptoHeaderV1)
+	legacy := NewCrypto(legacyCryptor, []CryptoAlgorithm{cbcCryptor}, legacyCryptor, headless)
+	newC := NewCrypto(cbcCryptor, []CryptoAlgorithm{cbcCryptor}, legacyCryptor, CryptoHeaderV1)
 
-	r1, _ := legacy.Encrypt([]byte("aaaa"))
-	r2, _ := newC.Encrypt([]byte("aaaa"))
+	r1, _ := legacy.Encrypt([]byte("sure i can"))
+	r2, _ := newC.Encrypt([]byte("sure i can"))
 	r3, _ := newC.Decrypt(r1)
 	r4, _ := newC.Decrypt(r2)
 	println(base64.StdEncoding.EncodeToString(r1))
-	println(EncryptString("enigma", "aaaa", true))
+	println(EncryptString("enigma", "sure i can", true))
 	println(base64.StdEncoding.EncodeToString(r2))
 	println(string(r3))
 	println(string(r4))

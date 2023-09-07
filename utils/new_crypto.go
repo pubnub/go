@@ -1,20 +1,18 @@
 package utils
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"errors"
-	"fmt"
+	"io"
 )
 
 type Crypto struct {
-	encryptor           Cryptor
-	decryptors          []Cryptor
-	defaultDecryptor    Cryptor
+	encryptor           CryptoAlgorithm
+	decryptors          []CryptoAlgorithm
+	defaultDecryptor    CryptoAlgorithm
 	cryptoHeaderVersion CryptoHeaderVersion
 }
 
-func NewCrypto(encryptor Cryptor, decryptors []Cryptor, defaultDecryptor Cryptor, version CryptoHeaderVersion) *Crypto {
+func NewCrypto(encryptor CryptoAlgorithm, decryptors []CryptoAlgorithm, defaultDecryptor CryptoAlgorithm, version CryptoHeaderVersion) *Crypto {
 	return &Crypto{
 		encryptor:           encryptor,
 		decryptors:          decryptors,
@@ -24,25 +22,21 @@ func NewCrypto(encryptor Cryptor, decryptors []Cryptor, defaultDecryptor Cryptor
 }
 
 func (c *Crypto) Encrypt(message []byte) ([]byte, error) {
-	if c.cryptoHeaderVersion == Headless {
-		r, e := c.encryptor.Encrypt(message)
-		if e != nil {
-			return nil, e
-		}
+	r, e := c.encryptor.Encrypt(message)
+	if e != nil {
+		return nil, e
+	}
+	if c.encryptor.HeaderVersion() == headless {
 		return r.Data, nil
 	}
 	if c.cryptoHeaderVersion == CryptoHeaderV1 {
-		r, e := c.encryptor.Encrypt(message)
-		if e != nil {
-			return nil, e
-		}
 		return returnWithV1Header(c.encryptor.Id(), r)
 	}
 	return nil, errors.New("unsupported crypto header version")
 }
 
 func (c *Crypto) Decrypt(data []byte) ([]byte, error) {
-	cryptorId, encryptedData, err := parseHeader(data)
+	cryptorId, encryptedData, err := ParseHeader(data)
 	if err != nil {
 		return nil, err
 	}
@@ -52,109 +46,32 @@ func (c *Crypto) Decrypt(data []byte) ([]byte, error) {
 	}
 
 	return c.decryptors[0].Decrypt(*encryptedData)
-
 }
 
-type Cryptor interface {
-	Id() []byte
-	Encrypt(message []byte) (EncryptedData, error)
-	Decrypt(encryptedData EncryptedData) ([]byte, error)
-}
-
-type LegacyCryptor struct {
-	cipherKey   cipher.Block
-	useRandomIV bool
-}
-
-func NewLegacyCryptor(cipherKey string, useRandomIV bool) (*LegacyCryptor, error) {
-	block, e := legacyAesCipher(cipherKey)
+func (c *Crypto) EncryptStream(input io.Reader, output io.Writer) error {
+	_, e := c.encryptor.EncryptStream(input, output)
 	if e != nil {
-		return nil, e
+		return e
+	}
+	if c.encryptor.HeaderVersion() == headless {
+		return nil
 	}
 
-	return &LegacyCryptor{
-		cipherKey:   block,
-		useRandomIV: useRandomIV,
-	}, nil
+	if c.cryptoHeaderVersion == CryptoHeaderV1 {
+		return nil //TODO it's too late to add header now
+	}
+	return nil //TODO
 }
 
-func (c *LegacyCryptor) Id() []byte {
-	return []byte("lega")
-}
-
-func (c *LegacyCryptor) Encrypt(message []byte) (EncryptedData, error) {
-	d := encrypt(c.cipherKey, message, c.useRandomIV)
-
-	return EncryptedData{
-		CryptorData: nil,
-		Data:        d,
-	}, nil
-}
-
-func (c *LegacyCryptor) Decrypt(encryptedData EncryptedData) ([]byte, error) {
-	return decrypt(c.cipherKey, encryptedData.Data, c.useRandomIV)
-}
-
-type EncryptedData struct {
-	CryptorData []byte
-	Data        []byte
-}
-
-type CBCCryptor struct {
-	cipherKey cipher.Block
-}
-
-func aesCipher(cipherKey string) (cipher.Block, error) {
-	block, err := aes.NewCipher([]byte(cipherKey))
+func (c *Crypto) DecryptStream(input io.Reader, output io.Writer) error {
+	cryptorId, reader, metadata, err := ParseHeaderStream(input)
 	if err != nil {
-		return nil, err
-	}
-	return block, nil
-}
-
-func NewCBCCryptor(cipherKey string) (*CBCCryptor, error) {
-	block, e := aesCipher(cipherKey)
-	if e != nil {
-		return nil, e
+		return err
 	}
 
-	return &CBCCryptor{
-		cipherKey: block,
-	}, nil
-}
-
-func (c *CBCCryptor) Encrypt(message []byte) (EncryptedData, error) {
-	message = padWithPKCS7(message)
-	iv := generateIV(aes.BlockSize)
-	blockmode := cipher.NewCBCEncrypter(c.cipherKey, iv)
-
-	encryptedBytes := make([]byte, len(message))
-	blockmode.CryptBlocks(encryptedBytes, message)
-
-	return EncryptedData{
-		CryptorData: iv,
-		Data:        encryptedBytes,
-	}, nil
-}
-
-func (c *CBCCryptor) Decrypt(encryptedData EncryptedData) (r []byte, e error) {
-	decrypter := cipher.NewCBCDecrypter(c.cipherKey, encryptedData.CryptorData)
-	//to handle decryption errors
-	defer func() {
-		if rec := recover(); rec != nil {
-			r, e = nil, fmt.Errorf("decrypt error: %s", rec)
-		}
-	}()
-	decrypted := make([]byte, len(encryptedData.Data))
-	decrypter.CryptBlocks(decrypted, encryptedData.Data)
-	val, err := unpadPKCS7(decrypted)
-	if err != nil {
-		return nil, fmt.Errorf("decrypt error: %s", err)
+	if cryptorId == nil {
+		return c.defaultDecryptor.DecryptStream(reader, metadata, output)
 	}
 
-	return val, nil
-}
-
-func (c *CBCCryptor) Id() []byte {
-	return []byte("CRIV")
+	return c.decryptors[0].DecryptStream(reader, metadata, output)
 }
