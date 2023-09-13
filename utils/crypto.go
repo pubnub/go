@@ -6,14 +6,12 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"github.com/pubnub/go/v7/crypto"
 	"io"
 	"os"
 	"strconv"
 	"strings"
 )
-
-// 16 byte IV
-var valIV = "0123456789012345"
 
 // EncryptString DEPRECATED
 // EncryptString creates the base64 encoded encrypted string using the
@@ -25,15 +23,15 @@ var valIV = "0123456789012345"
 //
 // returns the base64 encoded encrypted string.
 func EncryptString(cipherKey string, message string, useRandomInitializationVector bool) string {
-	cryptor, e := NewLegacyCryptor(cipherKey, useRandomInitializationVector)
+	cryptoModule, e := crypto.NewLegacyCryptoModule(cipherKey, useRandomInitializationVector)
 	if e != nil {
 		panic(e)
 	}
-	encryptedData, e := cryptor.Encrypt([]byte(encodeNonASCIIChars(message)))
+	encryptedData, e := cryptoModule.Encrypt([]byte(encodeNonASCIIChars(message)))
 	if e != nil {
 		panic(e)
 	}
-	return base64.StdEncoding.EncodeToString(encryptedData.Data)
+	return base64.StdEncoding.EncodeToString(encryptedData)
 }
 
 // DecryptString DEPRECATED
@@ -52,11 +50,11 @@ func DecryptString(cipherKey string, message string, useRandomInitializationVect
 		return "***decrypt error***", fmt.Errorf("decrypt error on decode: %s", decodeErr)
 	}
 
-	cryptor, e := NewLegacyCryptor(cipherKey, useRandomInitializationVector)
+	cryptoModule, e := crypto.NewLegacyCryptoModule(cipherKey, useRandomInitializationVector)
 	if e != nil {
 		return nil, e
 	}
-	return cryptor.Decrypt(EncryptedData{Data: value, Metadata: nil})
+	return cryptoModule.Decrypt(value)
 }
 
 // encodeNonAsciiChars creates unicode string of the non-ascii chars.
@@ -102,11 +100,15 @@ func GetHmacSha256(secretKey string, input string) string {
 
 // EncryptFile DEPRECATED
 func EncryptFile(cipherKey string, _ []byte, filePart io.Writer, file *os.File) {
-	cryptor, e := NewLegacyCryptor(cipherKey, true)
+	cryptor, e := crypto.NewLegacyCryptoAlgorithm(cipherKey, true)
 	if e != nil {
 		panic(e)
 	}
-	_, e = cryptor.EncryptStream(file, filePart)
+	r, e := cryptor.EncryptStream(file)
+	if e != nil {
+		panic(e)
+	}
+	_, e = io.Copy(filePart, r.Reader)
 	if e != nil {
 		panic(e)
 	}
@@ -114,13 +116,29 @@ func EncryptFile(cipherKey string, _ []byte, filePart io.Writer, file *os.File) 
 
 // DecryptFile DEPRECATED
 func DecryptFile(cipherKey string, _ int64, reader io.Reader, w io.WriteCloser) {
-	cryptor, e := NewLegacyCryptor(cipherKey, true)
+	cryptoModule, e := crypto.NewLegacyCryptoModule(cipherKey, true)
 	if e != nil {
 		panic(e)
 	}
-	e = cryptor.DecryptStream(reader, nil, w)
+	encryptedReader, e := cryptoModule.DecryptStream(reader)
+	if e != nil {
+		panic(e)
+	}
+	_, e = io.Copy(w, encryptedReader)
 	if e != nil {
 		panic(e)
 	}
 	e = w.Close()
+}
+
+// EncryptCipherKey DEPRECATED
+// EncryptCipherKey creates the 256 bit hex of the cipher key
+//
+// It accepts the following parameters:
+// cipherKey: cipher key to use to decrypt.
+//
+// returns the 256 bit hex of the cipher key.
+
+func EncryptCipherKey(cipherKey string) []byte {
+	return crypto.EncryptCipherKey(cipherKey)
 }
