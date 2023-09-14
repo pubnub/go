@@ -13,8 +13,8 @@ var tagsFilter string
 var format string
 
 func TestMain(m *testing.M) {
-	flag.StringVar(&path, "path", "", "Path to feature files")
-	flag.StringVar(&tagsFilter, "tagsFilter", "~@skip && ~@na=go && ~@beta", "Tags filter")
+	flag.StringVar(&path, "path", "../../../sdk-specifications/features", "Path to feature files")
+	flag.StringVar(&tagsFilter, "tagsFilter", "~@skip && ~@na=go && @beta && @featureSet=cryptorModule && @whatever", "Tags filter")
 	flag.StringVar(&format, "format", "pretty", "Output formatter")
 	flag.Parse()
 	if path == "" {
@@ -28,9 +28,9 @@ func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: InitializeScenario,
 		Options: &godog.Options{
-			Format: format,
-			Paths:  []string{path},
-			Tags:   tagsFilter,
+			Format:   format,
+			Paths:    []string{path},
+			Tags:     tagsFilter,
 			TestingT: t, // Testing instance that will run subtests.
 		},
 	}

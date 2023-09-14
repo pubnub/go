@@ -14,8 +14,8 @@ import (
 var valIV = "0123456789012345"
 
 type LegacyCryptoAlgorithm struct {
-	block                cipher.Block
-	useRandomIvForSlices bool
+	block    cipher.Block
+	randomIv bool
 }
 
 func NewLegacyCryptoAlgorithm(cipherKey string, useRandomIV bool) (*LegacyCryptoAlgorithm, error) {
@@ -25,8 +25,8 @@ func NewLegacyCryptoAlgorithm(cipherKey string, useRandomIV bool) (*LegacyCrypto
 	}
 
 	return &LegacyCryptoAlgorithm{
-		block:                block,
-		useRandomIvForSlices: useRandomIV,
+		block:    block,
+		randomIv: useRandomIV,
 	}, nil
 }
 
@@ -39,7 +39,7 @@ func (c *LegacyCryptoAlgorithm) Id() string {
 func (c *LegacyCryptoAlgorithm) Encrypt(message []byte) (*EncryptedData, error) {
 	message = padWithPKCS7(message)
 	iv := make([]byte, aes.BlockSize)
-	if c.useRandomIvForSlices {
+	if c.randomIv {
 		iv = generateIV(aes.BlockSize)
 	} else {
 		iv = []byte(valIV)
@@ -49,7 +49,7 @@ func (c *LegacyCryptoAlgorithm) Encrypt(message []byte) (*EncryptedData, error) 
 	encryptedBytes := make([]byte, len(message))
 	blockmode.CryptBlocks(encryptedBytes, message)
 
-	if c.useRandomIvForSlices {
+	if c.randomIv {
 		return &EncryptedData{Data: append(iv, encryptedBytes...), Metadata: nil}, nil
 	}
 	return &EncryptedData{Data: encryptedBytes, Metadata: nil}, nil
@@ -57,11 +57,14 @@ func (c *LegacyCryptoAlgorithm) Encrypt(message []byte) (*EncryptedData, error) 
 
 func (c *LegacyCryptoAlgorithm) Decrypt(encryptedData *EncryptedData) (r []byte, e error) {
 	iv := make([]byte, aes.BlockSize)
-	if c.useRandomIvForSlices {
-		iv = generateIV(aes.BlockSize)
+	data := encryptedData.Data
+	if c.randomIv {
+		iv = data[:aes.BlockSize]
+		data = data[aes.BlockSize:]
 	} else {
 		iv = []byte(valIV)
 	}
+
 	decrypter := cipher.NewCBCDecrypter(c.block, iv)
 	//to handle decryption errors
 	defer func() {
@@ -70,8 +73,8 @@ func (c *LegacyCryptoAlgorithm) Decrypt(encryptedData *EncryptedData) (r []byte,
 		}
 	}()
 
-	decrypted := make([]byte, len(encryptedData.Data))
-	decrypter.CryptBlocks(decrypted, encryptedData.Data)
+	decrypted := make([]byte, len(data))
+	decrypter.CryptBlocks(decrypted, data)
 	val, err := unpadPKCS7(decrypted)
 	if err != nil {
 		return nil, fmt.Errorf("decrypt error: %s", err)

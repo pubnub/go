@@ -55,3 +55,7 @@ func unpadPKCS7(data []byte) ([]byte, error) {
 
 	return data[:len(data)-padlen], nil
 }
+
+func unsupportedHeaderVersion(version int) error {
+	return fmt.Errorf("unknown cryptor error: unsupported crypto header version %d", version)
+}

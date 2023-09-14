@@ -26,7 +26,7 @@ func legacyCanDecryptEncryptStreamResult(in []byte) bool {
 	if err != nil {
 		return false
 	}
-	return bytes.Equal(in, decrypted[16:])
+	return bytes.Equal(in, decrypted)
 }
 
 func legacyCanDecryptStreamEncryptResult(in []byte) bool {

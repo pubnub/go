@@ -1,7 +1,9 @@
 package crypto
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 )
 
@@ -10,7 +12,7 @@ type Cryptor interface {
 	Encrypt(input []byte) ([]byte, error)
 	Decrypt(input []byte) ([]byte, error)
 	EncryptStream(input io.Reader) (io.Reader, error)
-	DecryptStream(input io.Reader) (io.Reader, error)
+	DecryptStream(input *bufio.Reader) (io.Reader, error)
 }
 
 func NewCryptor(algorithm CryptoAlgorithm) Cryptor {
@@ -80,10 +82,18 @@ func (c *extendedCryptorV1) EncryptStream(input io.Reader) (io.Reader, error) {
 	return io.MultiReader(headerReader, encryptedStreamData.Reader), nil
 }
 
-func (c *extendedCryptorV1) DecryptStream(input io.Reader) (io.Reader, error) {
-	_, readerWithOnlyData, metadata, e := parseHeaderStream(input)
+func (c *extendedCryptorV1) DecryptStream(input *bufio.Reader) (io.Reader, error) {
+	id, readerWithOnlyData, metadata, e := parseHeaderStream(input)
 	if e != nil {
 		return nil, e
+	}
+
+	if id == nil {
+		return nil, fmt.Errorf("decryption error: expected id %s but got nil", c.Id())
+	}
+
+	if *id != c.Id() {
+		return nil, fmt.Errorf("decryption error: expected id %s but got invalid id: %s ", c.Id(), *id)
 	}
 	return c.algorithm.DecryptStream(&EncryptedStreamData{Reader: readerWithOnlyData, Metadata: metadata})
 }
@@ -136,7 +146,7 @@ func (c *cryptorV1) EncryptStream(input io.Reader) (io.Reader, error) {
 	return io.MultiReader(bytes.NewReader(header), bytes.NewReader(encryptedData.Data)), nil
 }
 
-func (c *cryptorV1) DecryptStream(input io.Reader) (io.Reader, error) {
+func (c *cryptorV1) DecryptStream(input *bufio.Reader) (io.Reader, error) {
 	inputBytes, e := io.ReadAll(input)
 	if e != nil {
 		return nil, e
@@ -185,6 +195,6 @@ func (c *legacyCryptor) EncryptStream(input io.Reader) (io.Reader, error) {
 	return encryptedStreamData.Reader, nil
 }
 
-func (c *legacyCryptor) DecryptStream(input io.Reader) (io.Reader, error) {
+func (c *legacyCryptor) DecryptStream(input *bufio.Reader) (io.Reader, error) {
 	return c.algorithm.DecryptStream(&EncryptedStreamData{Reader: input, Metadata: nil})
 }

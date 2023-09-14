@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -23,7 +24,7 @@ func NewAesCBCCryptoAlgorithm(cipherKey string) (*AesCBCCryptoAlgorithm, error) 
 	}, nil
 }
 
-var crivId = "CRIV"
+var crivId = "ACRH"
 
 func (c *AesCBCCryptoAlgorithm) Id() string {
 	return crivId
@@ -72,6 +73,9 @@ func (c *AesCBCCryptoAlgorithm) EncryptStream(reader io.Reader) (*EncryptedStrea
 }
 
 func (c *AesCBCCryptoAlgorithm) DecryptStream(encryptedData *EncryptedStreamData) (io.Reader, error) {
+	if encryptedData.Metadata == nil {
+		return nil, errors.New("missing metadata")
+	}
 	return NewBlockModeDecryptingReader(encryptedData.Reader, cipher.NewCBCDecrypter(c.block, encryptedData.Metadata)), nil
 }
 

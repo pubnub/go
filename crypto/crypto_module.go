@@ -86,5 +86,5 @@ func (c *Module) DecryptStream(input io.Reader) (io.Reader, error) {
 	if cryptorId == nil {
 		return c.fallbackDecryptor.DecryptStream(data)
 	}
-	return c.decryptors[*cryptorId].DecryptStream(input)
+	return c.decryptors[*cryptorId].DecryptStream(data)
 }

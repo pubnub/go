@@ -3,7 +3,7 @@ package crypto
 import (
 	"bufio"
 	"bytes"
-	"errors"
+	"fmt"
 	"io"
 	"strconv"
 )
@@ -93,7 +93,7 @@ func peekHeaderCryptorId(data []byte) (cryptorId *string, e error) {
 	}
 
 	if data[versionPosition] != versionV1 {
-		return nil, errors.New("unsupported crypto header version")
+		return nil, unsupportedHeaderVersion(int(data[versionPosition]))
 	}
 
 	id := string(data[cryptorIdPosition : cryptorIdPosition+cryptorIdLength])
@@ -101,20 +101,15 @@ func peekHeaderCryptorId(data []byte) (cryptorId *string, e error) {
 }
 
 func parseHeader(data []byte) (cryptorId *string, encryptedData *EncryptedData, e error) {
-	if !slicesEqual(data[:len(sentinel)], sentinel[:]) {
-		return nil, &EncryptedData{Metadata: nil, Data: data}, nil
+	id, err := peekHeaderCryptorId(data)
+	if err != nil {
+		return nil, nil, err
 	}
-
-	if data[versionPosition] != versionV1 {
-		return nil, nil, errors.New("unsupported crypto header version")
-	}
-
-	id := string(data[cryptorIdPosition : cryptorIdPosition+cryptorIdLength])
 	var headerSize int64
 	position := int64(sizePosition)
 	if data[sizePosition] == longSizeIndicator {
 		position += longSizeLength
-		var err error
+
 		headerSize, err = strconv.ParseInt(string(data[sizePosition:sizePosition+longSizeLength]), 10, 32)
 		if err != nil {
 			return nil, nil, err
@@ -127,44 +122,29 @@ func parseHeader(data []byte) (cryptorId *string, encryptedData *EncryptedData, 
 	metadata := data[position : position+headerSize]
 	position += int64(len(metadata))
 
-	return &id, &EncryptedData{Data: data[position:], Metadata: metadata}, nil
+	return id, &EncryptedData{Data: data[position:], Metadata: metadata}, nil
 }
 
 func peekHeaderStreamCryptorId(data *bufio.Reader) (cryptorId *string, e error) {
-	peeked, err := data.Peek(sentinelLength + 1 + cryptorIdLength + longSizeLength)
+	peeked, err := data.Peek(sentinelLength + 1 + cryptorIdLength)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decryption error: %w", err)
 	}
 
-	if !slicesEqual(peeked[:len(sentinel)], sentinel[:]) {
-		return nil, nil
-	}
-
-	if peeked[versionPosition] != versionV1 {
-		return nil, errors.New("unsupported crypto header version")
-	}
-
-	id := string(peeked[cryptorIdPosition : cryptorIdPosition+cryptorIdLength])
-	return &id, nil
+	return peekHeaderCryptorId(peeked)
 }
 
-func parseHeaderStream(data io.Reader) (cryptorId []byte, d io.Reader, metadata []byte, e error) {
-	bufData := bufio.NewReader(data)
-
+func parseHeaderStream(bufData *bufio.Reader) (cryptorId *string, d io.Reader, metadata []byte, e error) {
 	peeked, err := bufData.Peek(sentinelLength + 1 + cryptorIdLength + longSizeLength)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("decryption error: %w", err)
+	}
+
+	id, err := peekHeaderCryptorId(peeked)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	if !slicesEqual(peeked[:len(sentinel)], sentinel[:]) {
-		return nil, bufData, nil, nil
-	}
-
-	if peeked[versionPosition] != versionV1 {
-		return nil, nil, nil, errors.New("unsupported crypto header version")
-	}
-
-	id := peeked[cryptorIdPosition : cryptorIdPosition+cryptorIdLength]
 	var headerSize int64
 	position := int64(sizePosition)
 	if peeked[sizePosition] == longSizeIndicator {
