@@ -54,7 +54,8 @@ func DecryptString(cipherKey string, message string, useRandomInitializationVect
 	if e != nil {
 		return nil, e
 	}
-	return cryptoModule.Decrypt(value)
+	val, e := cryptoModule.Decrypt(value)
+	return fmt.Sprintf("%s", string(val)), e
 }
 
 // encodeNonAsciiChars creates unicode string of the non-ascii chars.
@@ -100,11 +101,11 @@ func GetHmacSha256(secretKey string, input string) string {
 
 // EncryptFile DEPRECATED
 func EncryptFile(cipherKey string, _ []byte, filePart io.Writer, file *os.File) {
-	cryptoModule, e := crypto.NewLegacyCryptoModule(cipherKey, true)
+	cryptor, e := crypto.NewLegacyCryptoModule(cipherKey, true)
 	if e != nil {
 		panic(e)
 	}
-	r, e := cryptoModule.EncryptStream(file)
+	r, e := cryptor.EncryptStream(file)
 	if e != nil {
 		panic(e)
 	}
