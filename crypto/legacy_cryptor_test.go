@@ -7,20 +7,19 @@ import (
 	"testing/quick"
 )
 
-func canDecryptEncryptStreamResult(in []byte) bool {
-	cryptoAlgorithm, e := NewAesCBCCryptoAlgorithm("enigma")
+func legacyCanDecryptEncryptStreamResult(in []byte) bool {
+	cryptor, e := NewLegacyCryptor("enigma", true)
 	if e != nil {
 		return false
 	}
-
-	output, err := cryptoAlgorithm.EncryptStream(bytes.NewReader(in))
+	output, err := cryptor.EncryptStream(bytes.NewReader(in))
 	if err != nil {
 		return false
 	}
 
 	encryptedData, err := io.ReadAll(output.Reader)
 
-	decrypted, err := cryptoAlgorithm.Decrypt(&EncryptedData{
+	decrypted, err := cryptor.Decrypt(&EncryptedData{
 		Data:     encryptedData,
 		Metadata: output.Metadata,
 	})
@@ -30,8 +29,8 @@ func canDecryptEncryptStreamResult(in []byte) bool {
 	return bytes.Equal(in, decrypted)
 }
 
-func canDecryptStreamEncryptResult(in []byte) bool {
-	cryptor, e := NewAesCBCCryptoAlgorithm("enigma")
+func legacyCanDecryptStreamEncryptResult(in []byte) bool {
+	cryptor, e := NewLegacyCryptor("enigma", true)
 	if e != nil {
 		return false
 	}
@@ -60,16 +59,17 @@ func canDecryptStreamEncryptResult(in []byte) bool {
 	return bytes.Equal(in, decrypted)
 }
 
-func Test_AesCBC_EncryptStream(t *testing.T) {
+func Test_Legacy_EncryptStream(t *testing.T) {
 	c := quick.Config{MaxCount: 10000}
-	if err := quick.Check(canDecryptEncryptStreamResult, &c); err != nil {
+
+	if err := quick.Check(legacyCanDecryptEncryptStreamResult, &c); err != nil {
 		t.Error(err)
 	}
 }
 
-func Test_AesCBC_DecryptStream(t *testing.T) {
+func Test_Legacy_DecryptStream(t *testing.T) {
 	c := quick.Config{MaxCount: 10000}
-	if err := quick.Check(canDecryptStreamEncryptResult, &c); err != nil {
+	if err := quick.Check(legacyCanDecryptStreamEncryptResult, &c); err != nil {
 		t.Error(err)
 	}
 }

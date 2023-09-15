@@ -13,30 +13,30 @@ import (
 // 16 byte constant legacy IV
 var valIV = "0123456789012345"
 
-type LegacyCryptoAlgorithm struct {
+type legacyCryptor struct {
 	block    cipher.Block
 	randomIv bool
 }
 
-func NewLegacyCryptoAlgorithm(cipherKey string, useRandomIV bool) (*LegacyCryptoAlgorithm, error) {
+func NewLegacyCryptor(cipherKey string, useRandomIV bool) (ExtendedCryptor, error) {
 	block, e := legacyAesCipher(cipherKey)
 	if e != nil {
 		return nil, e
 	}
 
-	return &LegacyCryptoAlgorithm{
+	return &legacyCryptor{
 		block:    block,
 		randomIv: useRandomIV,
 	}, nil
 }
 
-var legacyId = "1234"
+var legacyId = string([]byte{0x00, 0x00, 0x00, 0x00})
 
-func (c *LegacyCryptoAlgorithm) Id() string {
+func (c *legacyCryptor) Id() string {
 	return legacyId
 }
 
-func (c *LegacyCryptoAlgorithm) Encrypt(message []byte) (*EncryptedData, error) {
+func (c *legacyCryptor) Encrypt(message []byte) (*EncryptedData, error) {
 	message = padWithPKCS7(message)
 	iv := make([]byte, aes.BlockSize)
 	if c.randomIv {
@@ -55,7 +55,7 @@ func (c *LegacyCryptoAlgorithm) Encrypt(message []byte) (*EncryptedData, error) 
 	return &EncryptedData{Data: encryptedBytes, Metadata: nil}, nil
 }
 
-func (c *LegacyCryptoAlgorithm) Decrypt(encryptedData *EncryptedData) (r []byte, e error) {
+func (c *legacyCryptor) Decrypt(encryptedData *EncryptedData) (r []byte, e error) {
 	iv := make([]byte, aes.BlockSize)
 	data := encryptedData.Data
 	if c.randomIv {
@@ -83,7 +83,7 @@ func (c *LegacyCryptoAlgorithm) Decrypt(encryptedData *EncryptedData) (r []byte,
 	return val, nil
 }
 
-func (c *LegacyCryptoAlgorithm) EncryptStream(reader io.Reader) (*EncryptedStreamData, error) {
+func (c *legacyCryptor) EncryptStream(reader io.Reader) (*EncryptedStreamData, error) {
 	iv := generateIV(aes.BlockSize)
 
 	return &EncryptedStreamData{
@@ -92,7 +92,7 @@ func (c *LegacyCryptoAlgorithm) EncryptStream(reader io.Reader) (*EncryptedStrea
 	}, nil
 }
 
-func (c *LegacyCryptoAlgorithm) DecryptStream(encryptedData *EncryptedStreamData) (io.Reader, error) {
+func (c *legacyCryptor) DecryptStream(encryptedData *EncryptedStreamData) (io.Reader, error) {
 	iv := make([]byte, aes.BlockSize)
 	_, err := io.ReadFull(encryptedData.Reader, iv)
 	if err != nil {

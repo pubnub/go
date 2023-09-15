@@ -57,5 +57,5 @@ func unpadPKCS7(data []byte) ([]byte, error) {
 }
 
 func unsupportedHeaderVersion(version int) error {
-	return fmt.Errorf("unknown cryptor error: unsupported crypto header version %d", version)
+	return fmt.Errorf("unknown crypto error: unsupported crypto header version %d", version)
 }

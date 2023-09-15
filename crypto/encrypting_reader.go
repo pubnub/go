@@ -9,7 +9,7 @@ import (
 )
 
 func NewBlockModeEncryptingReader(r io.Reader, mode cipher.BlockMode) io.Reader {
-	return &BlockModeEncryptingReader{
+	return &blockModeEncryptingReader{
 		r:         bufio.NewReader(r),
 		blockMode: mode,
 		buffer:    bytes.NewBuffer(nil),
@@ -17,14 +17,14 @@ func NewBlockModeEncryptingReader(r io.Reader, mode cipher.BlockMode) io.Reader 
 	}
 }
 
-type BlockModeEncryptingReader struct {
+type blockModeEncryptingReader struct {
 	r         *bufio.Reader
 	blockMode cipher.BlockMode
 	buffer    *bytes.Buffer
 	err       error
 }
 
-func (encryptingReader *BlockModeEncryptingReader) readNextBlockPadded() (read []byte, err error) {
+func (encryptingReader *blockModeEncryptingReader) readNextBlockPadded() (read []byte, err error) {
 	output := make([]byte, encryptingReader.blockMode.BlockSize())
 	sizeOfCurrentlyRead, readErr := io.ReadFull(encryptingReader.r, output)
 	if readErr != nil && readErr != io.EOF && !errors.Is(readErr, io.ErrUnexpectedEOF) {
@@ -42,7 +42,7 @@ func (encryptingReader *BlockModeEncryptingReader) readNextBlockPadded() (read [
 	return output, nil
 }
 
-func (encryptingReader *BlockModeEncryptingReader) encryptUntilPFull(p []byte) (int, error) {
+func (encryptingReader *blockModeEncryptingReader) encryptUntilPFull(p []byte) (int, error) {
 	var alreadyWrote int
 	for alreadyWrote <= len(p) {
 		block, e := encryptingReader.readNextBlockPadded()
@@ -65,7 +65,7 @@ func (encryptingReader *BlockModeEncryptingReader) encryptUntilPFull(p []byte) (
 	return alreadyWrote, nil
 }
 
-func (encryptingReader *BlockModeEncryptingReader) Read(p []byte) (n int, err error) {
+func (encryptingReader *blockModeEncryptingReader) Read(p []byte) (n int, err error) {
 	if len(p) == 0 {
 		return 0, errors.New("cannot read into empty buffer")
 	}

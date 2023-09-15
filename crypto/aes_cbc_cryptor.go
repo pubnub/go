@@ -9,28 +9,28 @@ import (
 	"io"
 )
 
-type AesCBCCryptoAlgorithm struct {
+type aesCbcCryptor struct {
 	block cipher.Block
 }
 
-func NewAesCBCCryptoAlgorithm(cipherKey string) (*AesCBCCryptoAlgorithm, error) {
+func NewAesCbcCryptor(cipherKey string) (ExtendedCryptor, error) {
 	block, e := aesCipher(cipherKey)
 	if e != nil {
 		return nil, e
 	}
 
-	return &AesCBCCryptoAlgorithm{
+	return &aesCbcCryptor{
 		block: block,
 	}, nil
 }
 
 var crivId = "ACRH"
 
-func (c *AesCBCCryptoAlgorithm) Id() string {
+func (c *aesCbcCryptor) Id() string {
 	return crivId
 }
 
-func (c *AesCBCCryptoAlgorithm) Encrypt(message []byte) (*EncryptedData, error) {
+func (c *aesCbcCryptor) Encrypt(message []byte) (*EncryptedData, error) {
 	message = padWithPKCS7(message)
 	iv := generateIV(aes.BlockSize)
 	blockmode := cipher.NewCBCEncrypter(c.block, iv)
@@ -44,7 +44,7 @@ func (c *AesCBCCryptoAlgorithm) Encrypt(message []byte) (*EncryptedData, error) 
 	}, nil
 }
 
-func (c *AesCBCCryptoAlgorithm) Decrypt(encryptedData *EncryptedData) (r []byte, e error) {
+func (c *aesCbcCryptor) Decrypt(encryptedData *EncryptedData) (r []byte, e error) {
 	decrypter := cipher.NewCBCDecrypter(c.block, encryptedData.Metadata)
 	//to handle decryption errors
 	defer func() {
@@ -63,7 +63,7 @@ func (c *AesCBCCryptoAlgorithm) Decrypt(encryptedData *EncryptedData) (r []byte,
 	return val, nil
 }
 
-func (c *AesCBCCryptoAlgorithm) EncryptStream(reader io.Reader) (*EncryptedStreamData, error) {
+func (c *aesCbcCryptor) EncryptStream(reader io.Reader) (*EncryptedStreamData, error) {
 	iv := generateIV(aes.BlockSize)
 
 	return &EncryptedStreamData{
@@ -72,7 +72,7 @@ func (c *AesCBCCryptoAlgorithm) EncryptStream(reader io.Reader) (*EncryptedStrea
 	}, nil
 }
 
-func (c *AesCBCCryptoAlgorithm) DecryptStream(encryptedData *EncryptedStreamData) (io.Reader, error) {
+func (c *aesCbcCryptor) DecryptStream(encryptedData *EncryptedStreamData) (io.Reader, error) {
 	if encryptedData.Metadata == nil {
 		return nil, errors.New("missing metadata")
 	}

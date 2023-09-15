@@ -6,21 +6,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/cucumber/godog"
 	"github.com/pubnub/go/v7/crypto"
 	"io"
 	"os"
 	"strings"
 )
 
-func cryptoAlgorithm(ctx context.Context, cryptoAlgorithm string) error {
+func cryptor(ctx context.Context, cryptor string) error {
 	cryptoState := getCryptoState(ctx)
-	cryptoState.cryptoAlgorithm = cryptoAlgorithm
+	cryptoState.cryptorNames = append(cryptoState.cryptorNames, cryptor)
 	return nil
 }
 
-func cryptorModuleWithRegisteredCryptoAlgorithms() error {
-	return godog.ErrPending
+func cryptoModuleWithRegisteredcryptors(ctx context.Context, cryptor1 string, cryptor2 string) error {
+	cryptoState := getCryptoState(ctx)
+	cryptoState.cryptorNames = append(cryptoState.cryptorNames, cryptor1, cryptor2)
+	return nil
 }
 
 func decryptedFileContentEqualToFileContent(ctx context.Context, filename string) error {
@@ -58,18 +59,21 @@ func encryptedFileSuccessfullyDecryptedByLegacyCodeWithCipherKeyAndVector(ctx co
 	riv := randomIv(iv)
 	cryptoState := getCryptoState(ctx)
 
-	algorithm, e := createCryptoAlgorithm("legacy", cipherKey, riv)
+	cryptor, e := createCryptor("legacy", cipherKey, riv)
 	if e != nil {
 		return e
 	}
-	cryptor := crypto.NewCryptor(algorithm)
+	module := crypto.NewCryptoModule(cryptor, []crypto.Cryptor{cryptor})
+	if e != nil {
+		return e
+	}
 	if cryptoState.result != nil {
-		_, err := cryptor.Decrypt(cryptoState.result)
+		_, err := module.Decrypt(cryptoState.result)
 		if err != nil {
 			return err
 		}
 	} else if cryptoState.resultReader != nil {
-		_, err := cryptor.DecryptStream(bufio.NewReader(cryptoState.resultReader))
+		_, err := module.DecryptStream(bufio.NewReader(cryptoState.resultReader))
 		if err != nil {
 			return err
 		}
@@ -83,20 +87,17 @@ func encryptedFileSuccessfullyDecryptedByLegacyCodeWithCipherKeyAndVector(ctx co
 func iDecryptFileAs(ctx context.Context, filename string, decryptionType string) error {
 
 	cryptoState := getCryptoState(ctx)
-
-	algorithm, e := createCryptoAlgorithm(cryptoState.cryptoAlgorithm, cryptoState.cipherKey, cryptoState.randomIv)
+	module, e := cryptoState.createModule()
 	if e != nil {
 		return e
 	}
-
-	cryptor := crypto.NewCryptor(algorithm)
 	file, e := os.Open(cryptoState.cryptoFeaturePath + "/assets/" + filename)
 	if e != nil {
 		return e
 	}
 
 	if decryptionType == "stream" {
-		cryptoState.resultReader, e = cryptor.DecryptStream(bufio.NewReader(file))
+		cryptoState.resultReader, e = module.DecryptStream(bufio.NewReader(file))
 		if e != nil {
 			return e
 		}
@@ -106,12 +107,11 @@ func iDecryptFileAs(ctx context.Context, filename string, decryptionType string)
 		if e != nil {
 			return e
 		}
-		cryptoState.result, e = cryptor.Decrypt(fileContent)
+		cryptoState.result, e = module.Decrypt(fileContent)
 		if e != nil {
 			return e
 		}
 	}
-
 	return nil
 }
 
@@ -119,18 +119,16 @@ func iDecryptFile(ctx context.Context, filename string) error {
 
 	cryptoState := getCryptoState(ctx)
 
-	algorithm, e := createCryptoAlgorithm(cryptoState.cryptoAlgorithm, cryptoState.cipherKey, cryptoState.randomIv)
+	module, e := cryptoState.createModule()
+	if e != nil {
+		return e
+	}
+	file, e := cryptoState.openAssetFile(filename)
 	if e != nil {
 		return e
 	}
 
-	cryptor := crypto.NewCryptor(algorithm)
-	file, e := os.Open(cryptoState.cryptoFeaturePath + "/assets/" + filename)
-	if e != nil {
-		return e
-	}
-
-	_, e = cryptor.DecryptStream(bufio.NewReader(file))
+	_, e = module.DecryptStream(file)
 	if e != nil {
 		cryptoState.err = e
 	}
@@ -138,11 +136,11 @@ func iDecryptFile(ctx context.Context, filename string) error {
 	return nil
 }
 
-func createCryptoAlgorithm(name string, cipherKey string, randomIv bool) (crypto.CryptoAlgorithm, error) {
+func createCryptor(name string, cipherKey string, randomIv bool) (crypto.Cryptor, error) {
 	if name == "acrh" {
-		return crypto.NewAesCBCCryptoAlgorithm(cipherKey)
+		return crypto.NewAesCbcCryptor(cipherKey)
 	} else if name == "legacy" {
-		return crypto.NewLegacyCryptoAlgorithm(cipherKey, randomIv)
+		return crypto.NewLegacyCryptor(cipherKey, randomIv)
 	} else {
 		return nil, fmt.Errorf("unknown crypto algorithm %s", name)
 	}
@@ -150,18 +148,16 @@ func createCryptoAlgorithm(name string, cipherKey string, randomIv bool) (crypto
 
 func iEncryptFileAs(ctx context.Context, filename string, encryptionType string) error {
 	cryptoState := getCryptoState(ctx)
-	algorithm, e := createCryptoAlgorithm(cryptoState.cryptoAlgorithm, cryptoState.cipherKey, cryptoState.randomIv)
+	module, e := cryptoState.createModule()
 	if e != nil {
 		return e
 	}
-
-	cryptor := crypto.NewCryptor(algorithm)
-	file, e := os.Open(cryptoState.cryptoFeaturePath + "/assets/" + filename)
+	file, e := cryptoState.openAssetFile(filename)
 	if e != nil {
 		return e
 	}
 	if encryptionType == "stream" {
-		cryptoState.resultReader, e = cryptor.EncryptStream(bufio.NewReader(file))
+		cryptoState.resultReader, e = module.EncryptStream(bufio.NewReader(file))
 		if e != nil {
 			return e
 		}
@@ -170,12 +166,13 @@ func iEncryptFileAs(ctx context.Context, filename string, encryptionType string)
 		if e != nil {
 			return e
 		}
-		cryptoState.result, e = cryptor.Encrypt(content)
+		cryptoState.result, e = module.Encrypt(content)
 		if e != nil {
 			return e
 		}
 
 	}
+	_ = file.Close()
 	return nil
 }
 
@@ -203,7 +200,7 @@ func iReceiveSuccess(ctx context.Context) error {
 func iReceiveUnknownCryptorError(ctx context.Context) error {
 	cryptoState := getCryptoState(ctx)
 	if cryptoState.err != nil {
-		if strings.Contains(cryptoState.err.Error(), "unknown cryptor error") {
+		if strings.Contains(cryptoState.err.Error(), "unknown crypto error") {
 			return nil
 		} else {
 			return cryptoState.err

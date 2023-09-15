@@ -100,15 +100,15 @@ func GetHmacSha256(secretKey string, input string) string {
 
 // EncryptFile DEPRECATED
 func EncryptFile(cipherKey string, _ []byte, filePart io.Writer, file *os.File) {
-	cryptor, e := crypto.NewLegacyCryptoAlgorithm(cipherKey, true)
+	cryptoModule, e := crypto.NewLegacyCryptoModule(cipherKey, true)
 	if e != nil {
 		panic(e)
 	}
-	r, e := cryptor.EncryptStream(file)
+	r, e := cryptoModule.EncryptStream(file)
 	if e != nil {
 		panic(e)
 	}
-	_, e = io.Copy(filePart, r.Reader)
+	_, e = io.Copy(filePart, r)
 	if e != nil {
 		panic(e)
 	}

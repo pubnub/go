@@ -9,7 +9,7 @@ import (
 )
 
 func NewBlockModeDecryptingReader(r io.Reader, mode cipher.BlockMode) io.Reader {
-	return &BlockModeDecryptingReader{
+	return &blockModeDecryptingReader{
 		r:         bufio.NewReader(r),
 		blockMode: mode,
 		buffer:    bytes.NewBuffer(nil),
@@ -17,14 +17,14 @@ func NewBlockModeDecryptingReader(r io.Reader, mode cipher.BlockMode) io.Reader 
 	}
 }
 
-type BlockModeDecryptingReader struct {
+type blockModeDecryptingReader struct {
 	r         *bufio.Reader
 	blockMode cipher.BlockMode
 	buffer    *bytes.Buffer
 	err       error
 }
 
-func (decryptingReader *BlockModeDecryptingReader) readNextBlock() ([]byte, error) {
+func (decryptingReader *blockModeDecryptingReader) readNextBlock() ([]byte, error) {
 	reader := decryptingReader.r
 
 	output := make([]byte, decryptingReader.blockMode.BlockSize())
@@ -44,7 +44,7 @@ func (decryptingReader *BlockModeDecryptingReader) readNextBlock() ([]byte, erro
 	return output, nil
 }
 
-func (decryptingReader *BlockModeDecryptingReader) decryptUntilPFull(p []byte) (n int, err error) {
+func (decryptingReader *blockModeDecryptingReader) decryptUntilPFull(p []byte) (n int, err error) {
 	var copied int
 	var block []byte
 	var e error
@@ -100,7 +100,7 @@ func readFromBufferUntilEmpty(buffer *bytes.Buffer, p []byte) int {
 	return copy(p, buffered)
 }
 
-func (decryptingReader *BlockModeDecryptingReader) readFromBufferUntilEmpty(p []byte) (n int, err error) {
+func (decryptingReader *blockModeDecryptingReader) readFromBufferUntilEmpty(p []byte) (n int, err error) {
 	buffered := decryptingReader.buffer.Next(len(p))
 	var alreadyWrote int
 	if len(buffered) > 0 {
@@ -114,7 +114,7 @@ func (decryptingReader *BlockModeDecryptingReader) readFromBufferUntilEmpty(p []
 	return alreadyWrote, nil
 }
 
-func (decryptingReader *BlockModeDecryptingReader) Read(p []byte) (n int, err error) {
+func (decryptingReader *blockModeDecryptingReader) Read(p []byte) (n int, err error) {
 	if len(p) == 0 {
 		return 0, errors.New("cannot read into empty buffer")
 	}

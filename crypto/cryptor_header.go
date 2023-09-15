@@ -8,13 +8,6 @@ import (
 	"strconv"
 )
 
-type CryptoHeaderVersion int
-
-const (
-	headless CryptoHeaderVersion = iota
-	CryptoHeaderV1
-)
-
 const versionPosition = 4
 const versionV1 = 1
 const cryptorIdPosition = 5
@@ -89,7 +82,7 @@ func slicesEqual(a, b []byte) bool {
 
 func peekHeaderCryptorId(data []byte) (cryptorId *string, e error) {
 	if !slicesEqual(data[:len(sentinel)], sentinel[:]) {
-		return nil, nil
+		return &legacyId, nil
 	}
 
 	if data[versionPosition] != versionV1 {
@@ -104,6 +97,9 @@ func parseHeader(data []byte) (cryptorId *string, encryptedData *EncryptedData, 
 	id, err := peekHeaderCryptorId(data)
 	if err != nil {
 		return nil, nil, err
+	}
+	if (*id) == legacyId {
+		return id, &EncryptedData{Data: data, Metadata: nil}, nil
 	}
 	var headerSize int64
 	position := int64(sizePosition)
@@ -125,54 +121,55 @@ func parseHeader(data []byte) (cryptorId *string, encryptedData *EncryptedData, 
 	return id, &EncryptedData{Data: data[position:], Metadata: metadata}, nil
 }
 
-func peekHeaderStreamCryptorId(data *bufio.Reader) (cryptorId *string, e error) {
-	peeked, err := data.Peek(sentinelLength + 1 + cryptorIdLength)
-	if err != nil {
-		return nil, fmt.Errorf("decryption error: %w", err)
-	}
-
-	return peekHeaderCryptorId(peeked)
-}
-
-func parseHeaderStream(bufData *bufio.Reader) (cryptorId *string, d io.Reader, metadata []byte, e error) {
+func parseHeaderStream(bufData *bufio.Reader) (cryptorId *string, encrypted *EncryptedStreamData, e error) {
 	peeked, err := bufData.Peek(sentinelLength + 1 + cryptorIdLength + longSizeLength)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("decryption error: %w", err)
+		return nil, nil, fmt.Errorf("decryption error: %w", err)
 	}
 
 	id, err := peekHeaderCryptorId(peeked)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
-	var headerSize int64
+	if (*id) == legacyId {
+		return id, &EncryptedStreamData{
+			Reader:   bufData,
+			Metadata: nil,
+		}, nil
+	}
+
+	var metadataSize int64
 	position := int64(sizePosition)
 	if peeked[sizePosition] == longSizeIndicator {
 		position += longSizeLength
 		var e error
-		headerSize, e = strconv.ParseInt(string(peeked[sizePosition:sizePosition+longSizeLength]), 10, 32)
+		metadataSize, e = strconv.ParseInt(string(peeked[sizePosition:sizePosition+longSizeLength]), 10, 32)
 		if e != nil {
-			return nil, nil, nil, e
+			return nil, nil, e
 		}
 	} else {
 		position += shortSizeLength
-		headerSize = int64(peeked[sizePosition])
+		metadataSize = int64(peeked[sizePosition])
 	}
-	if headerSize > 254 {
+	if metadataSize > 254 {
 		_, e := bufData.Discard(sentinelLength + 1 + cryptorIdLength + longSizeLength)
 		if e != nil {
-			return nil, nil, nil, e
+			return nil, nil, e
 		}
 	} else {
 		_, e := bufData.Discard(sentinelLength + 1 + cryptorIdLength + shortSizeLength)
 		if e != nil {
-			return nil, nil, nil, e
+			return nil, nil, e
 		}
 	}
-	m := make([]byte, headerSize)
-	_, e = io.ReadFull(bufData, metadata)
+	m := make([]byte, metadataSize)
+	_, e = io.ReadFull(bufData, m)
 	if e != nil {
-		return nil, nil, nil, e
+		return nil, nil, e
 	}
-	return id, bufData, m, nil
+	return id, &EncryptedStreamData{
+		Reader:   bufData,
+		Metadata: m,
+	}, nil
 }
