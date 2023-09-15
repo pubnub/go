@@ -68,20 +68,8 @@ func headerV1(cryptorId string, metadata []byte) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func slicesEqual(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func peekHeaderCryptorId(data []byte) (cryptorId *string, e error) {
-	if !slicesEqual(data[:len(sentinel)], sentinel[:]) {
+	if len(data) < len(sentinel) || !bytes.Equal(data[:len(sentinel)], sentinel[:]) {
 		return &legacyId, nil
 	}
 
