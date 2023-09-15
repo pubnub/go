@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"github.com/pubnub/go/v7/crypto"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -74,6 +75,7 @@ type PubNub struct {
 	ctx                  Context
 	cancel               func()
 	tokenManager         *TokenManager
+	cryptoModule         crypto.CryptoModule
 }
 
 // Publish is used to send a message to all subscribers of a channel.
@@ -752,7 +754,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	if pnconf.Log == nil {
 		pnconf.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-	pnconf.Log.Println(fmt.Sprintf("PubNub Go v4 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
+	pnconf.Log.Println(fmt.Sprintf("PubNub Go v7 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
 
 	utils.CheckUUID(pnconf.UUID)
 	pn := &PubNub{
@@ -768,6 +770,15 @@ func NewPubNub(pnconf *Config) *PubNub {
 	pn.jobQueue = make(chan *JobQItem)
 	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers, ctx)
 	pn.tokenManager = newTokenManager(pn, ctx)
+	if pnconf.CryptoModule != nil {
+		pn.cryptoModule = pnconf.CryptoModule
+	} else if pnconf.CipherKey != "" {
+		module, err := crypto.NewLegacyCryptoModule(pnconf.CipherKey, pnconf.UseRandomInitializationVector)
+		if err != nil {
+			panic(err)
+		}
+		pn.cryptoModule = module
+	}
 
 	return pn
 }

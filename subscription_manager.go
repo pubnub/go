@@ -3,14 +3,13 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
+	"github.com/pubnub/go/v7/crypto"
 	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/pubnub/go/v7/utils"
 )
 
 // SubscriptionManager Events:
@@ -662,7 +661,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 		m.listenerManager.announceMessageActionsEvent(pnMessageActionsEvent)
 	case PNMessageTypeFile:
 		var err error
-		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
+		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config, m.pubnub.cryptoModule)
 		if err != nil {
 			pnStatus := &PNStatus{
 				Category:         PNBadRequestCategory,
@@ -681,7 +680,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 		m.listenerManager.announceFile(pnFilesEvent)
 	default:
 		var err error
-		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config)
+		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config, m.pubnub.cryptoModule)
 		if err != nil {
 			pnStatus := &PNStatus{
 				Category:         PNBadRequestCategory,
@@ -959,8 +958,8 @@ func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, c
 // cipherKey: cipher key to use to decrypt.
 //
 // returns the decrypted data as interface and error.
-func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error) {
-	if pnConf.CipherKey != "" {
+func parseCipherInterface(data interface{}, pnConf *Config, module crypto.CryptoModule) (interface{}, error) {
+	if module != nil {
 		pnConf.Log.Println("reflect.TypeOf(data).Kind()", reflect.TypeOf(data).Kind(), data)
 		switch v := data.(type) {
 		case map[string]interface{}:
@@ -970,7 +969,7 @@ func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error)
 				msg, ok := v["pn_other"].(string)
 				if ok {
 					pnConf.Log.Println("v[pn_other]", v["pn_other"], v, msg)
-					decrypted, errDecryption := utils.DecryptString(pnConf.CipherKey, msg, pnConf.UseRandomInitializationVector)
+					decrypted, errDecryption := decryptString(module, msg)
 					if errDecryption != nil {
 						pnConf.Log.Println(errDecryption, msg)
 						return v, errDecryption
@@ -993,7 +992,7 @@ func parseCipherInterface(data interface{}, pnConf *Config) (interface{}, error)
 			return v, nil
 		case string:
 			var intf interface{}
-			decrypted, errDecryption := utils.DecryptString(pnConf.CipherKey, data.(string), pnConf.UseRandomInitializationVector)
+			decrypted, errDecryption := decryptString(module, data.(string))
 			if errDecryption != nil {
 				pnConf.Log.Println(errDecryption, intf)
 				intf = data

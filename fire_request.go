@@ -157,8 +157,11 @@ func (o *fireOpts) buildPath() (string, error) {
 	var message []byte
 	var err error
 
-	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-		msg := utils.EncryptString(cipherKey, string(message), o.pubnub.Config.UseRandomInitializationVector)
+	if o.pubnub.cryptoModule != nil {
+		msg, e := encryptString(o.pubnub.cryptoModule, string(message))
+		if e != nil {
+			return "", e
+		}
 
 		o.Message = []byte(msg)
 	}
@@ -222,9 +225,12 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 			}
 		}
 
-		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-			enc := utils.EncryptString(cipherKey, string(msg), o.pubnub.Config.UseRandomInitializationVector)
-			msg, err := utils.ValueAsString(enc)
+		if o.pubnub.cryptoModule != nil {
+			enc, err := encryptString(o.pubnub.cryptoModule, string(msg))
+			if err != nil {
+				return []byte{}, err
+			}
+			msg, err := utils.ValueAsString(enc) //TODO WHAT?!
 			if err != nil {
 				return []byte{}, err
 			}

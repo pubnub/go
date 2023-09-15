@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"github.com/pubnub/go/v7/crypto"
 	"log"
 	"sync"
 )
@@ -27,29 +28,30 @@ type Config struct {
 	//
 	//Deprecated: please use SetUserId/GetUserId
 	UUID                          string
-	CipherKey                     string             // If CipherKey is passed, all communications to/from PubNub will be encrypted.
-	Secure                        bool               // True to use TLS
-	ConnectTimeout                int                // net.Dialer.Timeout
-	NonSubscribeRequestTimeout    int                // http.Client.Timeout for non-subscribe requests
-	SubscribeRequestTimeout       int                // http.Client.Timeout for subscribe requests only
-	FileUploadRequestTimeout      int                // http.Client.Timeout File Upload Request only
-	HeartbeatInterval             int                // The frequency of the pings to the server to state that the client is active
-	PresenceTimeout               int                // The time after which the server will send a timeout for the client
-	MaximumReconnectionRetries    int                // The config sets how many times to retry to reconnect before giving up.
-	MaximumLatencyDataAge         int                // Max time to store the latency data for telemetry
-	FilterExpression              string             // Feature to subscribe with a custom filter expression.
-	PNReconnectionPolicy          ReconnectionPolicy // Reconnection policy selection
-	Log                           *log.Logger        // Logger instance
-	SuppressLeaveEvents           bool               // When true the SDK doesn't send out the leave requests.
-	DisablePNOtherProcessing      bool               // PNOther processing looks for pn_other in the JSON on the recevied message
-	UseHTTP2                      bool               // HTTP2 Flag
-	MessageQueueOverflowCount     int                // When the limit is exceeded by the number of messages received in a single subscribe request, a status event PNRequestMessageCountExceededCategory is fired.
-	MaxIdleConnsPerHost           int                // Used to set the value of HTTP Transport's MaxIdleConnsPerHost.
-	MaxWorkers                    int                // Number of max workers for Publish and Grant requests
-	UsePAMV3                      bool               // Use PAM version 2, Objects requets would still use PAM v3
-	StoreTokensOnGrant            bool               // Will store grant v3 tokens in token manager for further use.
-	FileMessagePublishRetryLimit  int                // The number of tries made in case of Publish File Message failure.
-	UseRandomInitializationVector bool               // When true the IV will be random for all requests and not just file upload. When false the IV will be hardcoded for all requests except File Upload
+	CipherKey                     string              // If CipherKey is passed, all communications to/from PubNub will be encrypted.
+	Secure                        bool                // True to use TLS
+	ConnectTimeout                int                 // net.Dialer.Timeout
+	NonSubscribeRequestTimeout    int                 // http.Client.Timeout for non-subscribe requests
+	SubscribeRequestTimeout       int                 // http.Client.Timeout for subscribe requests only
+	FileUploadRequestTimeout      int                 // http.Client.Timeout File Upload Request only
+	HeartbeatInterval             int                 // The frequency of the pings to the server to state that the client is active
+	PresenceTimeout               int                 // The time after which the server will send a timeout for the client
+	MaximumReconnectionRetries    int                 // The config sets how many times to retry to reconnect before giving up.
+	MaximumLatencyDataAge         int                 // Max time to store the latency data for telemetry
+	FilterExpression              string              // Feature to subscribe with a custom filter expression.
+	PNReconnectionPolicy          ReconnectionPolicy  // Reconnection policy selection
+	Log                           *log.Logger         // Logger instance
+	SuppressLeaveEvents           bool                // When true the SDK doesn't send out the leave requests.
+	DisablePNOtherProcessing      bool                // PNOther processing looks for pn_other in the JSON on the recevied message
+	UseHTTP2                      bool                // HTTP2 Flag
+	MessageQueueOverflowCount     int                 // When the limit is exceeded by the number of messages received in a single subscribe request, a status event PNRequestMessageCountExceededCategory is fired.
+	MaxIdleConnsPerHost           int                 // Used to set the value of HTTP Transport's MaxIdleConnsPerHost.
+	MaxWorkers                    int                 // Number of max workers for Publish and Grant requests
+	UsePAMV3                      bool                // Use PAM version 2, Objects requets would still use PAM v3
+	StoreTokensOnGrant            bool                // Will store grant v3 tokens in token manager for further use.
+	FileMessagePublishRetryLimit  int                 // The number of tries made in case of Publish File Message failure.
+	UseRandomInitializationVector bool                // When true the IV will be random for all requests and not just file upload. When false the IV will be hardcoded for all requests except File Upload
+	CryptoModule                  crypto.CryptoModule //a cryptography module used for encryption and decryption
 }
 
 // NewDemoConfig initiates the config with demo keys, for tests only.
@@ -90,7 +92,7 @@ func NewConfigWithUserId(userId UserId) *Config {
 	return &c
 }
 
-//Deprecated: Please use NewConfigWithUserId
+// Deprecated: Please use NewConfigWithUserId
 func NewConfig(uuid string) *Config {
 	return NewConfigWithUserId(UserId(uuid))
 }
