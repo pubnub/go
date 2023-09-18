@@ -206,7 +206,7 @@ func AssertSuccessPublishPost(t *testing.T, pn *PubNub, expectedBody string, mes
 		Path: path,
 	}
 	h.AssertPathsEqual(t,
-		"/publish/pub_key/sub_key/0/ch/0",
+		"/publish/demo/demo/0/ch/0",
 		u.EscapedPath(), []int{})
 
 	body, err := opts.buildBody()
