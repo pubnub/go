@@ -94,7 +94,9 @@ func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse
 
 	var respDL *PNDownloadFileResponse
 	if b.opts.CipherKey == "" && b.opts.pubnub.cryptoModule == nil {
-
+		respDL = &PNDownloadFileResponse{
+			File: resp.Body,
+		}
 	} else {
 		var e error
 		cryptoModule := b.opts.pubnub.getCryptoModule()

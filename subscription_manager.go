@@ -661,7 +661,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 		m.listenerManager.announceMessageActionsEvent(pnMessageActionsEvent)
 	case PNMessageTypeFile:
 		var err error
-		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config, m.pubnub.cryptoModule)
+		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config, m.pubnub.getCryptoModule())
 		if err != nil {
 			pnStatus := &PNStatus{
 				Category:         PNBadRequestCategory,
@@ -680,7 +680,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 		m.listenerManager.announceFile(pnFilesEvent)
 	default:
 		var err error
-		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config, m.pubnub.cryptoModule)
+		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config, m.pubnub.getCryptoModule())
 		if err != nil {
 			pnStatus := &PNStatus{
 				Category:         PNBadRequestCategory,
