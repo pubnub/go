@@ -71,35 +71,6 @@ func legacyCodeWithCipherKeyAndRandomVector(ctx context.Context, cipherKey strin
 	return nil
 }
 
-func encryptedFileSuccessfullyDecryptedByLegacyCodeWithCipherKeyAndVector(ctx context.Context, cipherKey string, iv string) error {
-	riv := randomIv(iv)
-	cryptoState := getCryptoState(ctx)
-
-	cryptor, e := createCryptor("legacy", cipherKey, riv)
-	if e != nil {
-		return e
-	}
-	module := crypto.NewCryptoModule(cryptor, []crypto.Cryptor{cryptor})
-	if e != nil {
-		return e
-	}
-	if cryptoState.result != nil {
-		_, err := module.Decrypt(cryptoState.result)
-		if err != nil {
-			return err
-		}
-	} else if cryptoState.resultReader != nil {
-		_, err := module.DecryptStream(bufio.NewReader(cryptoState.resultReader))
-		if err != nil {
-			return err
-		}
-	} else {
-		return errors.New("no result")
-	}
-
-	return nil
-}
-
 func iDecryptFileAs(ctx context.Context, filename string, decryptionType string) error {
 
 	cryptoState := getCryptoState(ctx)
@@ -253,7 +224,7 @@ func successfullyDecryptAnEncryptedFileWithLegacyCode(ctx context.Context) error
 		_, e := utils.DecryptString(cryptoState.legacyCodeCipherKey, base64.StdEncoding.EncodeToString(cryptoState.result), cryptoState.legacyCodeRandomIv)
 		return e
 	} else if cryptoState.resultReader != nil {
-		buffer := &CloserBuffer{bytes.NewBuffer(nil)}
+		buffer := &closerBuffer{bytes.NewBuffer(nil)}
 
 		utils.DecryptFile(cryptoState.legacyCodeCipherKey, 0, cryptoState.resultReader, buffer)
 		_, e := io.ReadAll(buffer)
@@ -263,10 +234,10 @@ func successfullyDecryptAnEncryptedFileWithLegacyCode(ctx context.Context) error
 	}
 }
 
-type CloserBuffer struct {
+type closerBuffer struct {
 	*bytes.Buffer
 }
 
-func (c *CloserBuffer) Close() error {
+func (c *closerBuffer) Close() error {
 	return nil
 }

@@ -57,7 +57,6 @@ func MapSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the token string \'(.*)\'$`, theTokenString)
 
 	ctx.Step(`^Decrypted file content equal to the \'(.*)\' file content$`, decryptedFileContentEqualToFileContent)
-	ctx.Step(`^Encrypted file successfully decrypted by legacy code with \'(.*)\' cipher key and \'(.*)\' vector$`, encryptedFileSuccessfullyDecryptedByLegacyCodeWithCipherKeyAndVector)
 	ctx.Step(`^I decrypt \'(.*)\' file as \'(.*)\'$`, iDecryptFileAs)
 	ctx.Step(`^I decrypt \'(.*)\' file$`, iDecryptFile)
 	ctx.Step(`^I encrypt \'(.*)\' file as \'(.*)\'$`, iEncryptFileAs)
