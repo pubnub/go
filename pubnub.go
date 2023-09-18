@@ -80,6 +80,7 @@ type PubNub struct {
 	previousIvFlag       bool
 }
 
+// TODO this needs to be tested
 func (pn *PubNub) getCryptoModule() crypto.CryptoModule {
 	pn.Lock()
 	defer pn.Unlock()

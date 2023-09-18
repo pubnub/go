@@ -215,7 +215,6 @@ func AssertSuccessPublishPost(t *testing.T, pn *PubNub, expectedBody string, mes
 }
 
 func TestPublishMixedGet(t *testing.T) {
-	pn := NewPubNub(NewDemoConfig())
 	type msg struct {
 		One   string `json:"one"`
 		Two   string `json:"two"`
