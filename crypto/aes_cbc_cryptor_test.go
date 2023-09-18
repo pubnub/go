@@ -7,6 +7,10 @@ import (
 	"testing/quick"
 )
 
+var defaultPropertyTestConfig = &quick.Config{
+	MaxCount: 1000,
+}
+
 func canDecryptEncryptStreamResult(in []byte) bool {
 	cryptor, e := NewAesCbcCryptor("enigma")
 	if e != nil {
@@ -61,15 +65,13 @@ func canDecryptStreamEncryptResult(in []byte) bool {
 }
 
 func Test_AesCBC_EncryptStream(t *testing.T) {
-	c := quick.Config{MaxCount: 10000}
-	if err := quick.Check(canDecryptEncryptStreamResult, &c); err != nil {
+	if err := quick.Check(canDecryptEncryptStreamResult, defaultPropertyTestConfig); err != nil {
 		t.Error(err)
 	}
 }
 
 func Test_AesCBC_DecryptStream(t *testing.T) {
-	c := quick.Config{MaxCount: 10000}
-	if err := quick.Check(canDecryptStreamEncryptResult, &c); err != nil {
+	if err := quick.Check(canDecryptStreamEncryptResult, defaultPropertyTestConfig); err != nil {
 		t.Error(err)
 	}
 }

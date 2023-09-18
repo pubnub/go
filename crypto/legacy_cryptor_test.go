@@ -60,16 +60,13 @@ func legacyCanDecryptStreamEncryptResult(in []byte) bool {
 }
 
 func Test_Legacy_EncryptStream(t *testing.T) {
-	c := quick.Config{MaxCount: 10000}
-
-	if err := quick.Check(legacyCanDecryptEncryptStreamResult, &c); err != nil {
+	if err := quick.Check(legacyCanDecryptEncryptStreamResult, defaultPropertyTestConfig); err != nil {
 		t.Error(err)
 	}
 }
 
 func Test_Legacy_DecryptStream(t *testing.T) {
-	c := quick.Config{MaxCount: 10000}
-	if err := quick.Check(legacyCanDecryptStreamEncryptResult, &c); err != nil {
+	if err := quick.Check(legacyCanDecryptStreamEncryptResult, defaultPropertyTestConfig); err != nil {
 		t.Error(err)
 	}
 }

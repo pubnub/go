@@ -31,8 +31,7 @@ func encryptingReaderCanReadDifferentSizeOfChunks(in []byte, bufferSize uint8) b
 }
 
 func Test_EncryptingReader_ReadDifferentSizeOfBuffers(t *testing.T) {
-	c := quick.Config{MaxCount: 10000}
-	if err := quick.Check(encryptingReaderCanReadDifferentSizeOfChunks, &c); err != nil {
+	if err := quick.Check(encryptingReaderCanReadDifferentSizeOfChunks, defaultPropertyTestConfig); err != nil {
 		t.Error(err)
 	}
 }

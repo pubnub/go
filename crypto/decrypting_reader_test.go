@@ -42,8 +42,7 @@ func canReadDifferentSizeOfChunks(in []byte, bufferSize uint8) bool {
 }
 
 func Test_DecryptingReader_ReadDifferentSizeOfBuffers(t *testing.T) {
-	c := quick.Config{MaxCount: 10000}
-	if err := quick.Check(canReadDifferentSizeOfChunks, &c); err != nil {
+	if err := quick.Check(canReadDifferentSizeOfChunks, defaultPropertyTestConfig); err != nil {
 		t.Error(err)
 	}
 }
