@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"io"
 	"math/rand"
 	"net"
@@ -42,6 +43,8 @@ func seedRand() {
 }
 
 func init() {
+	godotenv.Load("../../.env")
+
 	seedRand()
 	config = pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.PublishKey = os.Getenv("PUBLISH_KEY")
