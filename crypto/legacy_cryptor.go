@@ -88,7 +88,7 @@ func (c *legacyCryptor) EncryptStream(reader io.Reader) (*EncryptedStreamData, e
 
 	return &EncryptedStreamData{
 		Metadata: nil,
-		Reader:   io.MultiReader(bytes.NewReader(iv), NewBlockModeEncryptingReader(reader, cipher.NewCBCEncrypter(c.block, iv))),
+		Reader:   io.MultiReader(bytes.NewReader(iv), newBlockModeEncryptingReader(reader, cipher.NewCBCEncrypter(c.block, iv))),
 	}, nil
 }
 
@@ -99,7 +99,7 @@ func (c *legacyCryptor) DecryptStream(encryptedData *EncryptedStreamData) (io.Re
 		return nil, err
 	}
 
-	return NewBlockModeDecryptingReader(encryptedData.Reader, cipher.NewCBCDecrypter(c.block, iv)), nil
+	return newBlockModeDecryptingReader(encryptedData.Reader, cipher.NewCBCDecrypter(c.block, iv)), nil
 }
 
 // EncryptCipherKey DEPRECATED

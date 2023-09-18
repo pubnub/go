@@ -2,6 +2,7 @@ package contract
 
 import (
 	"context"
+	"errors"
 	"github.com/pubnub/go/v7/crypto"
 	"io"
 	"os"
@@ -10,26 +11,32 @@ import (
 type cryptoStateKey struct{}
 
 type cryptoState struct {
-	cryptorNames      []string
-	cipherKey         string
-	cryptoFeaturePath string
-	randomIv          bool
-	result            []byte
-	resultReader      io.Reader
-	err               error
+	cryptorNames        []string
+	cryptorName         string
+	cipherKey           string
+	cryptoFeaturePath   string
+	randomIv            bool
+	result              []byte
+	resultReader        io.Reader
+	err                 error
+	cryptoModule        crypto.CryptoModule
+	legacyCodeCipherKey string
+	legacyCodeRandomIv  bool
 }
 
-func (c *cryptoState) createModule() (crypto.CryptoModule, error) {
-	cryptors := make([]crypto.Cryptor, len(c.cryptorNames))
-	var e error
-	for i, cryptor := range c.cryptorNames {
-		cryptors[i], e = createCryptor(cryptor, c.cipherKey, c.randomIv)
-		if e != nil {
-			return nil, e
-		}
+func (c *cryptoState) getCryptoModule() (crypto.CryptoModule, error) {
+
+	if len(c.cryptorNames) > 0 && c.cryptorNames[0] == "legacy" {
+		return crypto.NewLegacyCryptoModule(c.cipherKey, c.randomIv)
+	} else if len(c.cryptorNames) > 0 && c.cryptorNames[0] == "acrh" {
+		return crypto.NewAesCbcCryptoModule(c.cipherKey, c.randomIv)
+	} else if c.cryptorName != "" {
+		cryptor, e := createCryptor(c.cryptorName, c.cipherKey, c.randomIv)
+		c.cryptoModule = crypto.NewCryptoModule(cryptor, []crypto.Cryptor{})
+		return c.cryptoModule, e
+	} else {
+		return nil, errors.New("I don't know how to create this crypto module")
 	}
-	module := crypto.NewCryptoModule(cryptors[0], cryptors[1:])
-	return module, nil
 }
 
 func (c *cryptoState) openAssetFile(filename string) (io.ReadCloser, error) {

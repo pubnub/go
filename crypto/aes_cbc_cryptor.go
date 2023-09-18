@@ -68,7 +68,7 @@ func (c *aesCbcCryptor) EncryptStream(reader io.Reader) (*EncryptedStreamData, e
 
 	return &EncryptedStreamData{
 		Metadata: iv,
-		Reader:   NewBlockModeEncryptingReader(reader, cipher.NewCBCEncrypter(c.block, iv)),
+		Reader:   newBlockModeEncryptingReader(reader, cipher.NewCBCEncrypter(c.block, iv)),
 	}, nil
 }
 
@@ -76,7 +76,7 @@ func (c *aesCbcCryptor) DecryptStream(encryptedData *EncryptedStreamData) (io.Re
 	if encryptedData.Metadata == nil {
 		return nil, errors.New("missing metadata")
 	}
-	return NewBlockModeDecryptingReader(encryptedData.Reader, cipher.NewCBCDecrypter(c.block, encryptedData.Metadata)), nil
+	return newBlockModeDecryptingReader(encryptedData.Reader, cipher.NewCBCDecrypter(c.block, encryptedData.Metadata)), nil
 }
 
 func aesCipher(cipherKey string) (cipher.Block, error) {

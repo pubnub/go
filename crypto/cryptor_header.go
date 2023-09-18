@@ -81,7 +81,7 @@ func peekHeaderCryptorId(data []byte) (cryptorId *string, e error) {
 	return &id, nil
 }
 
-func parseHeader(data []byte) (cryptorId *string, encryptedData *EncryptedData, e error) {
+func parseHeader(data []byte) (cryptorId *string, encrData *EncryptedData, e error) {
 	id, err := peekHeaderCryptorId(data)
 	if err != nil {
 		return nil, nil, err

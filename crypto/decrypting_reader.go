@@ -8,7 +8,7 @@ import (
 	"io"
 )
 
-func NewBlockModeDecryptingReader(r io.Reader, mode cipher.BlockMode) io.Reader {
+func newBlockModeDecryptingReader(r io.Reader, mode cipher.BlockMode) io.Reader {
 	return &blockModeDecryptingReader{
 		r:         bufio.NewReader(r),
 		blockMode: mode,

@@ -22,7 +22,7 @@ func canReadDifferentSizeOfChunks(in []byte, bufferSize uint8) bool {
 	if bufferSize == 0 {
 		return true
 	}
-	decryptingReader := NewBlockModeDecryptingReader(bytes.NewReader(inPadded), &DoNothingBlockMode{})
+	decryptingReader := newBlockModeDecryptingReader(bytes.NewReader(inPadded), &DoNothingBlockMode{})
 	readDataBuffer := bytes.NewBuffer(nil)
 	buffer := make([]byte, bufferSize)
 	numberOfReadBytes := 0

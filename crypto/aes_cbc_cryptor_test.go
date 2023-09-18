@@ -18,10 +18,10 @@ func canDecryptEncryptStreamResult(in []byte) bool {
 		return false
 	}
 
-	encryptedData, err := io.ReadAll(output.Reader)
+	encrData, err := io.ReadAll(output.Reader)
 
 	decrypted, err := cryptor.Decrypt(&EncryptedData{
-		Data:     encryptedData,
+		Data:     encrData,
 		Metadata: output.Metadata,
 	})
 	if err != nil {

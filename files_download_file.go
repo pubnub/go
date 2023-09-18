@@ -97,7 +97,7 @@ func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse
 
 	} else {
 		var e error
-		cryptoModule := b.opts.pubnub.cryptoModule
+		cryptoModule := b.opts.pubnub.getCryptoModule()
 		if b.opts.CipherKey != "" {
 			cryptoModule, e = crypto.NewLegacyCryptoModule(b.opts.CipherKey, true)
 			if e != nil {

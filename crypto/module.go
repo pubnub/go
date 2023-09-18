@@ -34,7 +34,7 @@ func NewLegacyCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error
 	return NewCryptoModule(legacy, []Cryptor{aesCbc}), nil
 }
 
-func NewDefaultCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error) {
+func NewAesCbcCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error) {
 	aesCbc, e := NewAesCbcCryptor(cipherKey)
 	if e != nil {
 		return nil, e
@@ -91,7 +91,7 @@ func (m *module) Decrypt(data []byte) ([]byte, error) {
 	decryptor := m.decryptors[*id]
 
 	if decryptor == nil {
-		return nil, fmt.Errorf("decryption error: unknown cryptor id %s", *id)
+		return nil, fmt.Errorf("unknown crypto error: unknown cryptor id %s", *id)
 	}
 
 	return m.decryptors[*id].Decrypt(encryptedData)
@@ -124,7 +124,7 @@ func (m *module) DecryptStream(input io.Reader) (io.Reader, error) {
 	decryptor := m.decryptors[*id]
 
 	if decryptor == nil {
-		return nil, fmt.Errorf("decryption error: unknown cryptor id %s", *id)
+		return nil, fmt.Errorf("unknown crypto error: unknown cryptor id %s", *id)
 	}
 
 	return m.decryptors[*id].DecryptStream(encryptedStreamData)

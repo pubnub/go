@@ -11,7 +11,7 @@ func encryptingReaderCanReadDifferentSizeOfChunks(in []byte, bufferSize uint8) b
 	if bufferSize == 0 {
 		return true
 	}
-	encryptingReader := NewBlockModeEncryptingReader(bytes.NewReader(in), &DoNothingBlockMode{})
+	encryptingReader := newBlockModeEncryptingReader(bytes.NewReader(in), &DoNothingBlockMode{})
 	readDataBuffer := bytes.NewBuffer(nil)
 	buffer := make([]byte, bufferSize)
 	numberOfReadBytes := 0

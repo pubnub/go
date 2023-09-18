@@ -76,18 +76,22 @@ type PubNub struct {
 	cancel               func()
 	tokenManager         *TokenManager
 	cryptoModule         crypto.CryptoModule
-	cryptoFirstSetupDone bool
+	previousCipherKey    string
+	previousIvFlag       bool
 }
 
 func (pn *PubNub) getCryptoModule() crypto.CryptoModule {
-	if pn.cryptoModule != nil {
-		return pn.cryptoModule
-	}
 	pn.Lock()
 	defer pn.Unlock()
-	if !pn.cryptoFirstSetupDone && (pn.Config != nil) && (pn.Config.CipherKey != "") {
-		pn.cryptoFirstSetupDone = true
+	if pn.previousCipherKey == pn.Config.CipherKey && pn.previousIvFlag == pn.Config.UseRandomInitializationVector {
+		return pn.cryptoModule
+	}
+
+	if pn.Config != nil && pn.Config.CipherKey != "" {
 		pn.cryptoModule, _ = crypto.NewLegacyCryptoModule(pn.Config.CipherKey, pn.Config.UseRandomInitializationVector)
+		return pn.cryptoModule
+	} else if pn.Config != nil && pn.Config.CipherKey == "" {
+		pn.cryptoModule = nil
 		return pn.cryptoModule
 	}
 	return nil

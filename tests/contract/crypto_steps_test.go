@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/pubnub/go/v7/crypto"
+	"github.com/pubnub/go/v7/utils"
 	"io"
 	"os"
 	"strings"
@@ -14,11 +16,11 @@ import (
 
 func cryptor(ctx context.Context, cryptor string) error {
 	cryptoState := getCryptoState(ctx)
-	cryptoState.cryptorNames = append(cryptoState.cryptorNames, cryptor)
+	cryptoState.cryptorName = cryptor
 	return nil
 }
 
-func cryptoModuleWithRegisteredcryptors(ctx context.Context, cryptor1 string, cryptor2 string) error {
+func cryptoModuleWithDefaultAndAdditionalLegacyCryptors(ctx context.Context, cryptor1 string, cryptor2 string) error {
 	cryptoState := getCryptoState(ctx)
 	cryptoState.cryptorNames = append(cryptoState.cryptorNames, cryptor1, cryptor2)
 	return nil
@@ -55,6 +57,20 @@ func decryptedFileContentEqualToFileContent(ctx context.Context, filename string
 	return nil
 }
 
+func legacyCodeWithCipherKeyAndConstantVector(ctx context.Context, cipherKey string) error {
+	cryptoState := getCryptoState(ctx)
+	cryptoState.legacyCodeCipherKey = cipherKey
+	cryptoState.legacyCodeRandomIv = false
+	return nil
+}
+
+func legacyCodeWithCipherKeyAndRandomVector(ctx context.Context, cipherKey string) error {
+	cryptoState := getCryptoState(ctx)
+	cryptoState.legacyCodeCipherKey = cipherKey
+	cryptoState.legacyCodeRandomIv = true
+	return nil
+}
+
 func encryptedFileSuccessfullyDecryptedByLegacyCodeWithCipherKeyAndVector(ctx context.Context, cipherKey string, iv string) error {
 	riv := randomIv(iv)
 	cryptoState := getCryptoState(ctx)
@@ -87,7 +103,8 @@ func encryptedFileSuccessfullyDecryptedByLegacyCodeWithCipherKeyAndVector(ctx co
 func iDecryptFileAs(ctx context.Context, filename string, decryptionType string) error {
 
 	cryptoState := getCryptoState(ctx)
-	module, e := cryptoState.createModule()
+
+	module, e := cryptoState.getCryptoModule()
 	if e != nil {
 		return e
 	}
@@ -119,7 +136,7 @@ func iDecryptFile(ctx context.Context, filename string) error {
 
 	cryptoState := getCryptoState(ctx)
 
-	module, e := cryptoState.createModule()
+	module, e := cryptoState.getCryptoModule()
 	if e != nil {
 		return e
 	}
@@ -132,7 +149,6 @@ func iDecryptFile(ctx context.Context, filename string) error {
 	if e != nil {
 		cryptoState.err = e
 	}
-	_ = file.Close()
 	return nil
 }
 
@@ -148,7 +164,7 @@ func createCryptor(name string, cipherKey string, randomIv bool) (crypto.Cryptor
 
 func iEncryptFileAs(ctx context.Context, filename string, encryptionType string) error {
 	cryptoState := getCryptoState(ctx)
-	module, e := cryptoState.createModule()
+	module, e := cryptoState.getCryptoModule()
 	if e != nil {
 		return e
 	}
@@ -172,7 +188,6 @@ func iEncryptFileAs(ctx context.Context, filename string, encryptionType string)
 		}
 
 	}
-	_ = file.Close()
 	return nil
 }
 
@@ -197,7 +212,7 @@ func iReceiveSuccess(ctx context.Context) error {
 	return nil
 }
 
-func iReceiveUnknownCryptorError(ctx context.Context) error {
+func iReceiveUnknownCryptoError(ctx context.Context) error {
 	cryptoState := getCryptoState(ctx)
 	if cryptoState.err != nil {
 		if strings.Contains(cryptoState.err.Error(), "unknown crypto error") {
@@ -229,5 +244,29 @@ func randomIv(iv string) bool {
 func withVector(ctx context.Context, iv string) error {
 	cryptoState := getCryptoState(ctx)
 	cryptoState.randomIv = randomIv(iv)
+	return nil
+}
+
+func successfullyDecryptAnEncryptedFileWithLegacyCode(ctx context.Context) error {
+	cryptoState := getCryptoState(ctx)
+	if cryptoState.result != nil {
+		_, e := utils.DecryptString(cryptoState.legacyCodeCipherKey, base64.StdEncoding.EncodeToString(cryptoState.result), cryptoState.legacyCodeRandomIv)
+		return e
+	} else if cryptoState.resultReader != nil {
+		buffer := &CloserBuffer{bytes.NewBuffer(nil)}
+
+		utils.DecryptFile(cryptoState.legacyCodeCipherKey, 0, cryptoState.resultReader, buffer)
+		_, e := io.ReadAll(buffer)
+		return e
+	} else {
+		return errors.New("no result")
+	}
+}
+
+type CloserBuffer struct {
+	*bytes.Buffer
+}
+
+func (c *CloserBuffer) Close() error {
 	return nil
 }
