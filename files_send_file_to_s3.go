@@ -131,7 +131,7 @@ func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multip
 		return bytes.Buffer{}, writer, s, errFilePart
 	}
 
-	if o.CipherKey == "" && o.pubnub.cryptoModule == nil {
+	if o.CipherKey == "" && o.pubnub.getCryptoModule() == nil {
 		_, errIOCopy := io.Copy(filePart, o.File)
 
 		if errIOCopy != nil {
@@ -140,17 +140,17 @@ func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multip
 		}
 	} else {
 		var e error
-		cryptorModule := o.pubnub.cryptoModule
+		cryptoModule := o.pubnub.getCryptoModule()
 
 		if o.CipherKey != "" {
-			cryptorModule, e = crypto.NewLegacyCryptoModule(o.CipherKey, true)
+			cryptoModule, e = crypto.NewLegacyCryptoModule(o.CipherKey, true)
 			if e != nil {
 				o.pubnub.Config.Log.Printf("ERROR: %s\n", e.Error())
 				return bytes.Buffer{}, writer, s, e
 			}
 		}
 
-		e = encryptStreamAndCopyTo(cryptorModule, o.File, filePart)
+		e = encryptStreamAndCopyTo(cryptoModule, o.File, filePart)
 		if e != nil {
 			o.pubnub.Config.Log.Printf("ERROR: %s\n", e.Error())
 			return bytes.Buffer{}, writer, s, e

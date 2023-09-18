@@ -224,7 +224,7 @@ func getHistoryItemsWithoutTimetoken(historyResponseRaw []byte, o *historyOpts, 
 
 	for i, v := range historyResponseItems {
 		o.pubnub.Config.Log.Println(v)
-		items[i].Message, _ = parseCipherInterface(v, o.pubnub.Config, o.pubnub.cryptoModule)
+		items[i].Message, _ = parseCipherInterface(v, o.pubnub.Config, o.pubnub.getCryptoModule())
 	}
 	return items, nil
 }
@@ -237,7 +237,7 @@ func getHistoryItemsWithTimetoken(historyResponseItems []HistoryResponseItem, o 
 	for i, v := range historyResponseItems {
 		if v.Message != nil {
 			o.pubnub.Config.Log.Println(v.Message)
-			items[i].Message, _ = parseCipherInterface(v.Message, o.pubnub.Config, o.pubnub.cryptoModule)
+			items[i].Message, _ = parseCipherInterface(v.Message, o.pubnub.Config, o.pubnub.getCryptoModule())
 
 			o.pubnub.Config.Log.Println(v.Timetoken)
 			items[i].Timetoken = v.Timetoken

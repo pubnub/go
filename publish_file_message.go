@@ -201,7 +201,7 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 		}
 	}
 
-	if o.pubnub.cryptoModule != nil {
+	if o.pubnub.getCryptoModule() != nil {
 		var msg string
 		var p *publishBuilder
 		if o.context() != nil {

@@ -290,7 +290,7 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 
 			for _, val := range histResponseMap {
 				if histResponse, ok3 := val.(map[string]interface{}); ok3 {
-					msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config, o.pubnub.cryptoModule)
+					msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config, o.pubnub.getCryptoModule())
 
 					histItem := FetchResponseItem{
 						Message:   msg,

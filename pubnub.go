@@ -76,6 +76,21 @@ type PubNub struct {
 	cancel               func()
 	tokenManager         *TokenManager
 	cryptoModule         crypto.CryptoModule
+	cryptoFirstSetupDone bool
+}
+
+func (pn *PubNub) getCryptoModule() crypto.CryptoModule {
+	if pn.cryptoModule != nil {
+		return pn.cryptoModule
+	}
+	pn.Lock()
+	defer pn.Unlock()
+	if !pn.cryptoFirstSetupDone && (pn.Config != nil) && (pn.Config.CipherKey != "") {
+		pn.cryptoFirstSetupDone = true
+		pn.cryptoModule, _ = crypto.NewLegacyCryptoModule(pn.Config.CipherKey, pn.Config.UseRandomInitializationVector)
+		return pn.cryptoModule
+	}
+	return nil
 }
 
 // Publish is used to send a message to all subscribers of a channel.

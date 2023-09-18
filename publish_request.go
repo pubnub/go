@@ -204,7 +204,7 @@ func (o *publishOpts) encryptProcessing() (string, error) {
 
 	o.pubnub.Config.Log.Println("EncryptString: encrypting", fmt.Sprintf("%s", o.Message))
 	if o.pubnub.Config.DisablePNOtherProcessing {
-		if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.cryptoModule, o.Message, o.Serialize); errJSONMarshal != nil {
+		if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); errJSONMarshal != nil {
 			o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 			return "", errJSONMarshal
 		}
@@ -218,7 +218,7 @@ func (o *publishOpts) encryptProcessing() (string, error) {
 
 			if ok {
 				o.pubnub.Config.Log.Println(ok, msgPart)
-				encMsg, errJSONMarshal := serializeAndEncrypt(o.pubnub.cryptoModule, msgPart, o.Serialize)
+				encMsg, errJSONMarshal := serializeAndEncrypt(o.pubnub.getCryptoModule(), msgPart, o.Serialize)
 				if errJSONMarshal != nil {
 					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 					return "", errJSONMarshal
@@ -231,14 +231,14 @@ func (o *publishOpts) encryptProcessing() (string, error) {
 				}
 				msg = string(jsonEncBytes)
 			} else {
-				if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.cryptoModule, o.Message, o.Serialize); errJSONMarshal != nil {
+				if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); errJSONMarshal != nil {
 					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 					return "", errJSONMarshal
 				}
 			}
 			break
 		default:
-			if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.cryptoModule, o.Message, o.Serialize); errJSONMarshal != nil {
+			if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); errJSONMarshal != nil {
 				o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 				return "", errJSONMarshal
 			}
@@ -261,7 +261,7 @@ func (o *publishOpts) buildPath() (string, error) {
 	var msg string
 	var errJSONMarshal error
 
-	if o.pubnub.cryptoModule != nil {
+	if o.pubnub.getCryptoModule() != nil {
 		if msg, errJSONMarshal = o.encryptProcessing(); errJSONMarshal != nil {
 			return "", errJSONMarshal
 		}
@@ -336,7 +336,7 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 
 func (o *publishOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
-		if o.pubnub.cryptoModule != nil {
+		if o.pubnub.getCryptoModule() != nil {
 			msg, errJSONMarshal := o.encryptProcessing()
 			if errJSONMarshal != nil {
 				return []byte{}, errJSONMarshal

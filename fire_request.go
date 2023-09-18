@@ -157,8 +157,8 @@ func (o *fireOpts) buildPath() (string, error) {
 	var message []byte
 	var err error
 
-	if o.pubnub.cryptoModule != nil {
-		msg, e := encryptString(o.pubnub.cryptoModule, string(message))
+	if o.pubnub.getCryptoModule() != nil {
+		msg, e := encryptString(o.pubnub.getCryptoModule(), string(message))
 		if e != nil {
 			return "", e
 		}
@@ -225,8 +225,8 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 			}
 		}
 
-		if o.pubnub.cryptoModule != nil {
-			enc, err := encryptString(o.pubnub.cryptoModule, string(msg))
+		if o.pubnub.getCryptoModule() != nil {
+			enc, err := encryptString(o.pubnub.getCryptoModule(), string(msg))
 			if err != nil {
 				return []byte{}, err
 			}
