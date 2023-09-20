@@ -215,7 +215,7 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 			if err != nil {
 				return []byte{}, err
 			}
-			msg = []byte(m)
+			msg = m
 		} else {
 			if s, ok := o.Message.(string); ok {
 				msg = []byte(s)
@@ -230,11 +230,11 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 			if err != nil {
 				return []byte{}, err
 			}
-			msg, err := utils.ValueAsString(enc) //TODO WHAT?!
+			m, err := utils.ValueAsString(enc)
 			if err != nil {
 				return []byte{}, err
 			}
-			return []byte(msg), nil
+			return m, nil
 		}
 		return msg, nil
 	}

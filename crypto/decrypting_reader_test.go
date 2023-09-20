@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"bytes"
+	"io"
 	"testing"
 	"testing/quick"
 )
@@ -34,6 +35,10 @@ func canReadDifferentSizeOfChunks(in []byte, bufferSize uint8) bool {
 		readBytes, e = decryptingReader.Read(buffer)
 		numberOfReadBytes += readBytes
 		readDataBuffer.Write(buffer[:readBytes])
+	}
+
+	if e != nil && e != io.EOF {
+		return false
 	}
 
 	out := readDataBuffer.Bytes()[:numberOfReadBytes]

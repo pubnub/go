@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"bytes"
+	"io"
 	"testing"
 	"testing/quick"
 )
@@ -23,6 +24,10 @@ func encryptingReaderCanReadDifferentSizeOfChunks(in []byte, bufferSize uint8) b
 		readBytes, e = encryptingReader.Read(buffer)
 		numberOfReadBytes += readBytes
 		readDataBuffer.Write(buffer[:readBytes])
+	}
+
+	if e != nil && e != io.EOF {
+		return false
 	}
 
 	out := readDataBuffer.Bytes()[:numberOfReadBytes]

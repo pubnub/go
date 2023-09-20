@@ -30,7 +30,7 @@ func (decryptingReader *blockModeDecryptingReader) readNextBlock() ([]byte, erro
 	output := make([]byte, decryptingReader.blockMode.BlockSize())
 	sizeOfCurrentlyRead, readErr := io.ReadFull(reader, output)
 	if readErr != nil && readErr != io.EOF {
-		return output[:sizeOfCurrentlyRead], readErr
+		return nil, readErr
 	}
 
 	if sizeOfCurrentlyRead == 0 && readErr == io.EOF {

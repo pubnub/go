@@ -25,7 +25,7 @@ func headerV1(cryptorId string, metadata []byte) ([]byte, error) {
 	cryptorDataSize := len(metadata)
 	var cryptorDataBytesSize int
 
-	if cryptorDataSize <= maxShortSize {
+	if cryptorDataSize < longSizeIndicator {
 		cryptorDataBytesSize = shortSizeLength
 	} else {
 		cryptorDataBytesSize = longSizeLength
@@ -56,7 +56,7 @@ func headerV1(cryptorId string, metadata []byte) ([]byte, error) {
 		if e != nil {
 			return nil, e
 		}
-		_, e = buffer.Write([]byte(strconv.FormatInt(int64(cryptorDataSize), 10)))
+		_, e = buffer.Write([]byte(strconv.FormatInt(int64(cryptorDataSize), 10))) //TODO
 		if e != nil {
 			return nil, e
 		}
