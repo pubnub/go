@@ -70,7 +70,7 @@ func (encryptingReader *blockModeEncryptingReader) Read(p []byte) (n int, err er
 		return 0, errors.New("cannot read into empty buffer")
 	}
 
-	if (encryptingReader.err != nil) && encryptingReader.buffer.Len() == 0 {
+	if encryptingReader.err != nil && encryptingReader.buffer.Len() == 0 {
 		return 0, encryptingReader.err
 	}
 
