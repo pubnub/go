@@ -75,7 +75,6 @@ type PubNub struct {
 	ctx                  Context
 	cancel               func()
 	tokenManager         *TokenManager
-	cryptoModule         crypto.CryptoModule
 	previousCipherKey    string
 	previousIvFlag       bool
 }
@@ -85,15 +84,15 @@ func (pn *PubNub) getCryptoModule() crypto.CryptoModule {
 	pn.Lock()
 	defer pn.Unlock()
 	if pn.previousCipherKey == pn.Config.CipherKey && pn.previousIvFlag == pn.Config.UseRandomInitializationVector {
-		return pn.cryptoModule
+		return pn.Config.CryptoModule
 	}
 
 	if pn.Config != nil && pn.Config.CipherKey != "" {
-		pn.cryptoModule, _ = crypto.NewLegacyCryptoModule(pn.Config.CipherKey, pn.Config.UseRandomInitializationVector)
-		return pn.cryptoModule
+		pn.Config.CryptoModule, _ = crypto.NewLegacyCryptoModule(pn.Config.CipherKey, pn.Config.UseRandomInitializationVector)
+		return pn.Config.CryptoModule
 	} else if pn.Config != nil && pn.Config.CipherKey == "" {
-		pn.cryptoModule = nil
-		return pn.cryptoModule
+		pn.Config.CryptoModule = nil
+		return pn.Config.CryptoModule
 	}
 	return nil
 }
@@ -782,6 +781,8 @@ func NewPubNub(pnconf *Config) *PubNub {
 		nextPublishSequence: 0,
 		ctx:                 ctx,
 		cancel:              cancel,
+		previousIvFlag:      pnconf.UseRandomInitializationVector,
+		previousCipherKey:   pnconf.CipherKey,
 	}
 
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
@@ -790,15 +791,6 @@ func NewPubNub(pnconf *Config) *PubNub {
 	pn.jobQueue = make(chan *JobQItem)
 	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers, ctx)
 	pn.tokenManager = newTokenManager(pn, ctx)
-	if pnconf.CryptoModule != nil {
-		pn.cryptoModule = pnconf.CryptoModule
-	} else if pnconf.CipherKey != "" {
-		module, err := crypto.NewLegacyCryptoModule(pnconf.CipherKey, pnconf.UseRandomInitializationVector)
-		if err != nil {
-			panic(err)
-		}
-		pn.cryptoModule = module
-	}
 
 	return pn
 }

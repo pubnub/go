@@ -27,7 +27,8 @@ type Config struct {
 	// UUID to be used as a device identifier.
 	//
 	//Deprecated: please use SetUserId/GetUserId
-	UUID                          string
+	UUID string
+	//DEPRECATED: please use CryptoModule
 	CipherKey                     string              // If CipherKey is passed, all communications to/from PubNub will be encrypted.
 	Secure                        bool                // True to use TLS
 	ConnectTimeout                int                 // net.Dialer.Timeout
