@@ -94,7 +94,7 @@ func (m *module) Decrypt(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("unknown crypto error: unknown cryptor id %s", *id)
 	}
 
-	return m.decryptors[*id].Decrypt(encryptedData)
+	return decryptor.Decrypt(encryptedData)
 }
 
 func (m *module) EncryptStream(input io.Reader) (io.Reader, error) {

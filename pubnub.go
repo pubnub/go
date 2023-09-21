@@ -785,6 +785,13 @@ func NewPubNub(pnconf *Config) *PubNub {
 		previousCipherKey:   pnconf.CipherKey,
 	}
 
+	if pnconf.CipherKey != "" {
+		var e error
+		pn.Config.CryptoModule, e = crypto.NewLegacyCryptoModule(pnconf.CipherKey, pnconf.UseRandomInitializationVector)
+		if e != nil {
+			panic(e)
+		}
+	}
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
 	pn.heartbeatManager = newHeartbeatManager(pn, ctx)
 	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge, ctx)
