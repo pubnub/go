@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -182,7 +183,10 @@ func TestPublishServerError(t *testing.T) {
 		ResponseStatusCode: 403,
 	})
 
-	pn := pubnub.NewPubNub(configCopy())
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
+	config.PublishKey = os.Getenv("PUBLISH_KEY")
+	config.SubscribeKey = os.Getenv("SUBSCRIBE_KEY")
+	pn := pubnub.NewPubNub(config)
 	pn.SetClient(interceptor.GetClient())
 
 	_, _, err := pn.Publish().Channel("ch").Message("hey").Execute()
