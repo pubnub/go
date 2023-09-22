@@ -416,7 +416,7 @@ func TestHistoryEncrypt(t *testing.T) {
 	pnconfig := NewDemoConfig()
 	pnconfig.CipherKey = "testCipher"
 	pnconfig.UseRandomInitializationVector = false
-	pubnub = NewPubNub(pnconfig)
+	pubnub := NewPubNub(pnconfig)
 
 	jsonString := []byte(`[["MnwzPGdVgz2osQCIQJviGg=="],14991775432719844,14991868111600528]`)
 
