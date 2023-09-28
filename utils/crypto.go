@@ -13,7 +13,6 @@ import (
 	"strings"
 )
 
-// EncryptString DEPRECATED
 // EncryptString creates the base64 encoded encrypted string using the
 // cipherKey.
 // It accepts the following parameters:
@@ -34,7 +33,6 @@ func EncryptString(cipherKey string, message string, useRandomInitializationVect
 	return base64.StdEncoding.EncodeToString(encryptedData)
 }
 
-// DecryptString DEPRECATED
 // DecryptString decodes encrypted string using the cipherKey
 //
 // It accepts the following parameters:
@@ -99,7 +97,6 @@ func GetHmacSha256(secretKey string, input string) string {
 	return signature
 }
 
-// EncryptFile DEPRECATED
 func EncryptFile(cipherKey string, _ []byte, filePart io.Writer, file *os.File) {
 	cryptor, e := crypto.NewLegacyCryptoModule(cipherKey, true)
 	if e != nil {
@@ -115,7 +112,6 @@ func EncryptFile(cipherKey string, _ []byte, filePart io.Writer, file *os.File) 
 	}
 }
 
-// DecryptFile DEPRECATED
 func DecryptFile(cipherKey string, _ int64, reader io.Reader, w io.WriteCloser) {
 	cryptoModule, e := crypto.NewLegacyCryptoModule(cipherKey, true)
 	if e != nil {
@@ -132,7 +128,6 @@ func DecryptFile(cipherKey string, _ int64, reader io.Reader, w io.WriteCloser) 
 	e = w.Close()
 }
 
-// EncryptCipherKey DEPRECATED
 // EncryptCipherKey creates the 256 bit hex of the cipher key
 //
 // It accepts the following parameters:
