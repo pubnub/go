@@ -3,8 +3,10 @@ package crypto
 import (
 	"bufio"
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
+	math "math"
 	"strconv"
 )
 
@@ -27,8 +29,10 @@ func headerV1(cryptorId string, metadata []byte) ([]byte, error) {
 
 	if cryptorDataSize < longSizeIndicator {
 		cryptorDataBytesSize = shortSizeLength
-	} else {
+	} else if cryptorDataSize < math.MaxUint16 {
 		cryptorDataBytesSize = longSizeLength
+	} else {
+		return nil, fmt.Errorf("size of cryptor metadata too large %d", cryptorDataSize)
 	}
 	r := make([]byte, 0, len(sentinel)+1+cryptorIdLength+cryptorDataBytesSize+cryptorDataSize)
 
@@ -56,7 +60,9 @@ func headerV1(cryptorId string, metadata []byte) ([]byte, error) {
 		if e != nil {
 			return nil, e
 		}
-		_, e = buffer.Write([]byte(strconv.FormatInt(int64(cryptorDataSize), 10))) //TODO
+		sizeBytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(sizeBytes, uint16(cryptorDataSize))
+		_, e = buffer.Write(sizeBytes)
 		if e != nil {
 			return nil, e
 		}
