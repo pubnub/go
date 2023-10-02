@@ -49,18 +49,17 @@ func (c *aesCbcCryptor) Decrypt(encryptedData *EncryptedData) (r []byte, e error
 	//to handle decryption errors
 	defer func() {
 		if rec := recover(); rec != nil {
-			r, e = nil, fmt.Errorf("decrypt error: %s", rec)
+			r, e = nil, fmt.Errorf("%s", rec)
 		}
 	}()
 
-	decrypted := make([]byte, len(encryptedData.Data))
-	decrypter.CryptBlocks(decrypted, encryptedData.Data)
-	val, err := unpadPKCS7(decrypted)
-	if err != nil {
-		return nil, fmt.Errorf("decrypt error: %s", err)
+	if len(encryptedData.Data)%16 != 0 {
+		return nil, fmt.Errorf("encrypted data length should be divisible by block size")
 	}
 
-	return val, nil
+	decrypted := make([]byte, len(encryptedData.Data))
+	decrypter.CryptBlocks(decrypted, encryptedData.Data)
+	return unpadPKCS7(decrypted)
 }
 
 func (c *aesCbcCryptor) EncryptStream(reader io.Reader) (*EncryptedStreamData, error) {

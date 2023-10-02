@@ -11,13 +11,14 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"testing"
 	"time"
 
 	pubnub "github.com/pubnub/go/v7"
 	"github.com/stretchr/testify/assert"
 )
 
-var enableDebuggingInTests = false
+var enableDebuggingInTests = true
 
 const (
 	SPECIAL_CHARACTERS = "-.,_~:/?#[]@!$&'()*+;=`|"
@@ -97,6 +98,10 @@ func logInTest(format string, a ...interface{}) (n int, err error) {
 		return fmt.Printf(format, a...)
 	}
 	return 0, nil
+}
+
+func checkForAsserted(t *testing.T, maxTime, intervalTime time.Duration, fun func() error) {
+	
 }
 
 func checkFor(assert *assert.Assertions, maxTime, intervalTime time.Duration, fun func() error) {

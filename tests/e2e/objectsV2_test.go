@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -1014,6 +1015,36 @@ func ObjectsMembershipsCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool)
 		pubnub.PNChannelMetadataIncludeCustom,
 	}
 
+	checkFor(assert, time.Second, time.Millisecond*200, func() error {
+		res2, st2, err2 := pn.SetChannelMetadata().Include(inclChannel).Channel(channelid).Name(name).Description(desc).Custom(custom2).Execute()
+		if err2 != nil {
+			return err2
+		}
+		if 200 != st2.StatusCode {
+			return fmt.Errorf("expected status code 200 but got %d", st2.StatusCode)
+		}
+		if res2 != nil {
+			if channelid != res2.Data.ID {
+				return fmt.Errorf("expected channelId %s but got %s", channelid, res2.Data.ID)
+			}
+			if name != res2.Data.Name {
+				return fmt.Errorf("expected name %s but got %s", name, res2.Data.Name)
+			}
+			if desc != res2.Data.Description {
+				return fmt.Errorf("expected desc %s but got %s", desc, res2.Data.Description)
+			}
+			//assert.NotNil(res2.Data.Updated)
+			//assert.NotNil(res2.Data.ETag)
+			if "b1" != res2.Data.Custom["a1"] {
+				return fmt.Errorf("expected custom a1 -> b1 but got a1 -> %v", res2.Data.Custom["a1"])
+			}
+			if "d1" != res2.Data.Custom["c1"] {
+				return fmt.Errorf("expected custom a1 -> b1 but got a1 -> %v", res2.Data.Custom["a1"])
+			}
+			return nil
+		}
+		return errors.New("expected res to be not nil")
+	})
 	res2, st2, err2 := pn.SetChannelMetadata().Include(inclChannel).Channel(channelid).Name(name).Description(desc).Custom(custom2).Execute()
 	assert.Nil(err2)
 	assert.Equal(200, st2.StatusCode)
@@ -1917,4 +1948,15 @@ func ObjectsListenersCommonV2(t *testing.T, withPAM, runWithoutSecretKey bool) {
 	mut.Unlock()
 
 	exitListener <- true
+}
+
+func Test_CleanUpTestEnv(t *testing.T) {
+	pn := pubnub.NewPubNub(configCopy())
+	execute, _, err := pn.GetAllChannelMetadata().Execute()
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	fmt.Printf("%v", execute)
 }

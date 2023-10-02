@@ -14,7 +14,7 @@ var format string
 
 func TestMain(m *testing.M) {
 	flag.StringVar(&path, "path", "../../../sdk-specifications/features", "Path to feature files")
-	flag.StringVar(&tagsFilter, "tagsFilter", "~@skip && ~@na=go && ~@beta", "Tags filter")
+	flag.StringVar(&tagsFilter, "tagsFilter", "~@skip && ~@na=go && @beta && @featureSet=cryptoModule", "Tags filter")
 	flag.StringVar(&format, "format", "pretty", "Output formatter")
 	flag.Parse()
 	if path == "" {

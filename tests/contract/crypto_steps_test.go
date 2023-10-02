@@ -85,20 +85,13 @@ func iDecryptFileAs(ctx context.Context, filename string, decryptionType string)
 	}
 
 	if decryptionType == "stream" {
-		cryptoState.resultReader, e = module.DecryptStream(bufio.NewReader(file))
-		if e != nil {
-			return e
-		}
-
+		cryptoState.resultReader, cryptoState.err = module.DecryptStream(bufio.NewReader(file))
 	} else {
 		fileContent, e := io.ReadAll(file)
 		if e != nil {
 			return e
 		}
-		cryptoState.result, e = module.Decrypt(fileContent)
-		if e != nil {
-			return e
-		}
+		cryptoState.result, cryptoState.err = module.Decrypt(fileContent)
 	}
 	return nil
 }
@@ -144,19 +137,13 @@ func iEncryptFileAs(ctx context.Context, filename string, encryptionType string)
 		return e
 	}
 	if encryptionType == "stream" {
-		cryptoState.resultReader, e = module.EncryptStream(bufio.NewReader(file))
-		if e != nil {
-			return e
-		}
+		cryptoState.resultReader, cryptoState.err = module.EncryptStream(bufio.NewReader(file))
 	} else {
 		content, e := io.ReadAll(file)
 		if e != nil {
 			return e
 		}
-		cryptoState.result, e = module.Encrypt(content)
-		if e != nil {
-			return e
-		}
+		cryptoState.result, cryptoState.err = module.Encrypt(content)
 
 	}
 	return nil
@@ -231,6 +218,19 @@ func successfullyDecryptAnEncryptedFileWithLegacyCode(ctx context.Context) error
 		return e
 	} else {
 		return errors.New("no result")
+	}
+}
+
+func iReceiveEncryptionError(ctx context.Context) error {
+	cryptoState := getCryptoState(ctx)
+	if cryptoState.err != nil {
+		if strings.HasPrefix(cryptoState.err.Error(), "encryption error") {
+			return nil
+		} else {
+			return cryptoState.err
+		}
+	} else {
+		return errors.New("expected error")
 	}
 }
 

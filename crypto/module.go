@@ -3,6 +3,7 @@ package crypto
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -65,9 +66,12 @@ func NewCryptoModule(defaultCryptor Cryptor, decryptors []Cryptor) CryptoModule 
 }
 
 func (m *module) Encrypt(message []byte) ([]byte, error) {
+	if len(message) == 0 {
+		return nil, errors.New("encryption error: can't encrypt empty data")
+	}
 	encryptedData, e := m.encryptor.Encrypt(message)
 	if e != nil {
-		return nil, e
+		return nil, fmt.Errorf("encryption error: %s", e.Error())
 	}
 
 	if m.encryptor.Id() == legacyId {
@@ -83,6 +87,10 @@ func (m *module) Encrypt(message []byte) ([]byte, error) {
 }
 
 func (m *module) Decrypt(data []byte) ([]byte, error) {
+	if len(data) == 0 {
+		return nil, errors.New("decryption error: can't decrypt empty data")
+	}
+
 	id, encryptedData, e := parseHeader(data)
 	if e != nil {
 		return nil, e
@@ -94,11 +102,26 @@ func (m *module) Decrypt(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("unknown crypto error: unknown cryptor id %s", *id)
 	}
 
-	return decryptor.Decrypt(encryptedData)
+	if len(encryptedData.Data) == 0 {
+		return nil, errors.New("decryption error: can't decrypt empty data")
+	}
+
+	var r []byte
+	if r, e = m.decryptors[*id].Decrypt(encryptedData); e != nil {
+		return nil, fmt.Errorf("decryption error: %s", e.Error())
+	}
+
+	return r, nil
 }
 
 func (m *module) EncryptStream(input io.Reader) (io.Reader, error) {
-	encryptedStreamData, e := m.encryptor.EncryptStream(input)
+	bufferedReader := bufio.NewReader(input)
+	peekedBytes, e := bufferedReader.Peek(1)
+	if len(peekedBytes) == 0 {
+		return nil, errors.New("encryption error: can't encrypt empty data")
+	}
+
+	encryptedStreamData, e := m.encryptor.EncryptStream(bufferedReader)
 	if e != nil {
 		return nil, e
 	}
@@ -116,16 +139,36 @@ func (m *module) EncryptStream(input io.Reader) (io.Reader, error) {
 }
 
 func (m *module) DecryptStream(input io.Reader) (io.Reader, error) {
+	bufData := bufio.NewReader(input)
 
-	id, encryptedStreamData, e := parseHeaderStream(bufio.NewReader(input))
+	id, encryptedStreamData, e := parseHeaderStream(bufData)
 	if e != nil {
 		return nil, e
 	}
+
+	peeked, e := bufData.Peek(1)
+	if e != nil {
+		return nil, fmt.Errorf("decryption error: %w", e)
+	}
+
+	if len(peeked) == 0 {
+		return nil, errors.New("decryption error: can't decrypt empty data")
+	}
+
 	decryptor := m.decryptors[*id]
 
 	if decryptor == nil {
 		return nil, fmt.Errorf("unknown crypto error: unknown cryptor id %s", *id)
 	}
 
-	return m.decryptors[*id].DecryptStream(encryptedStreamData)
+	if e != nil {
+		return nil, fmt.Errorf("decryption error: %s", e.Error())
+	}
+
+	var r io.Reader
+	if r, e = m.decryptors[*id].DecryptStream(encryptedStreamData); e != nil {
+		return nil, fmt.Errorf("decryption error: %s", e.Error())
+	}
+
+	return r, nil
 }

@@ -1,11 +1,13 @@
 package crypto
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -65,6 +67,10 @@ func (c *legacyCryptor) Decrypt(encryptedData *EncryptedData) (r []byte, e error
 		iv = []byte(valIV)
 	}
 
+	if len(data)%16 != 0 {
+		return nil, fmt.Errorf("length of data to decrypt should be divisible by block size")
+	}
+
 	decrypter := cipher.NewCBCDecrypter(c.block, iv)
 	//to handle decryption errors
 	defer func() {
@@ -97,6 +103,16 @@ func (c *legacyCryptor) DecryptStream(encryptedData *EncryptedStreamData) (io.Re
 	_, err := io.ReadFull(encryptedData.Reader, iv)
 	if err != nil {
 		return nil, err
+	}
+
+	bufReader := bufio.NewReader(encryptedData.Reader)
+	peeked, e := bufReader.Peek(1)
+	if len(peeked) == 0 {
+		return nil, errors.New("can't decrypt empty data")
+	}
+
+	if e != nil {
+		return nil, e
 	}
 
 	return newBlockModeDecryptingReader(encryptedData.Reader, cipher.NewCBCDecrypter(c.block, iv)), nil

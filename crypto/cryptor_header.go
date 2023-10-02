@@ -112,6 +112,10 @@ func parseHeader(data []byte) (cryptorId *string, encrData *EncryptedData, e err
 	metadata := data[position : position+headerSize]
 	position += int64(len(metadata))
 
+	if int64(len(data)) < position {
+		return nil, nil, fmt.Errorf("decryption error: %w", e)
+	}
+
 	return id, &EncryptedData{Data: data[position:], Metadata: metadata}, nil
 }
 
@@ -162,6 +166,7 @@ func parseHeaderStream(bufData *bufio.Reader) (cryptorId *string, encrypted *Enc
 	if e != nil {
 		return nil, nil, e
 	}
+
 	return id, &EncryptedStreamData{
 		Reader:   bufData,
 		Metadata: m,

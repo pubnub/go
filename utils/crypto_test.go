@@ -489,3 +489,22 @@ func CreateLoggerForTests() *log.Logger {
 	}
 	return infoLogger
 }
+
+func TestDecryptStuffFromPython(t *testing.T) {
+	cipherKey := "myCipherKey"
+	s1 := "KGc+SNJD7mIveY+KNIL/L9ZzAjC0dCJCju+HXRwSW2k="
+	s2 := "PXjHv0L05kgj0mqIE9s7n4LDPrLtjnfamMoHyiMoL0R1uzSMsYp7dDfqEWrnoaqS"
+	s3 := "UE5FRAFBQ1JIEHvl3cY3RYsHnbKm6VR51XG/Y7HodnkumKHxo+mrsxbIjZvFpVuILQ0oZysVwjNsDNMKiMfZteoJ8P1/mvPmbuQKLErBzS2l7vEohCwbmAJODPR2yNhJGB8989reTZ7Y7Q=="
+
+	d1, _ := DecryptString(cipherKey, s1, false)
+	d2, _ := DecryptString(cipherKey, s2, true)
+	d3, _ := DecryptString(cipherKey, s3, true)
+
+	r1 := d1.(string)
+	r2 := d2.(string)
+	r3 := d3.(string)
+
+	fmt.Printf("%s: => %d\n", r1, len(r1))
+	fmt.Printf("%s: => %d\n", r2, len(r2))
+	fmt.Printf("%s: => %d\n", r3, len(r3))
+}

@@ -63,6 +63,7 @@ func MapSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I receive \'decryption error\'$`, iReceiveDecryptionError)
 	ctx.Step(`^I receive \'success\'$`, iReceiveSuccess)
 	ctx.Step(`^I receive \'unknown cryptor error\'$`, iReceiveUnknownCryptoError)
+	ctx.Step(`^I receive \'encryption error\'$`, iReceiveEncryptionError)
 	ctx.Step(`^with \'(.*)\' cipher key$`, withCipherKey)
 	ctx.Step(`^with \'(.*)\' vector$`, withVector)
 
