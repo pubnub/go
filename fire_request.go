@@ -158,17 +158,17 @@ func (o *fireOpts) buildPath() (string, error) {
 	var err error
 
 	if o.pubnub.getCryptoModule() != nil {
-		msg, e := encryptString(o.pubnub.getCryptoModule(), string(message))
-		if e != nil {
-			return "", e
+		var msg string
+		if msg, err = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); err != nil {
+			o.pubnub.Config.Log.Printf("error in serializing: %v\n", err)
+			return "", err
 		}
-
-		o.Message = []byte(msg)
-	}
-
-	message, err = utils.ValueAsString(o.Message)
-	if err != nil {
-		return "", err
+		message = []byte(msg)
+	} else {
+		message, err = utils.ValueAsString(o.Message)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return fmt.Sprintf(publishGetPath,
