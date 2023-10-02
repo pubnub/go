@@ -51,7 +51,7 @@ type Config struct {
 	UsePAMV3                     bool               // Use PAM version 2, Objects requets would still use PAM v3
 	StoreTokensOnGrant           bool               // Will store grant v3 tokens in token manager for further use.
 	FileMessagePublishRetryLimit int                // The number of tries made in case of Publish File Message failure.
-	//DEPRECATED: please use UseRandomInitializationVector
+	//DEPRECATED: please use CryptoModule
 	UseRandomInitializationVector bool                // When true the IV will be random for all requests and not just file upload. When false the IV will be hardcoded for all requests except File Upload
 	CryptoModule                  crypto.CryptoModule // A cryptography module used for encryption and decryption
 }
