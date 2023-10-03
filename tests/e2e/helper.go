@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var enableDebuggingInTests = true
+var enableDebuggingInTests = false
 
 const (
 	SPECIAL_CHARACTERS = "-.,_~:/?#[]@!$&'()*+;=`|"
@@ -101,7 +101,7 @@ func logInTest(format string, a ...interface{}) (n int, err error) {
 }
 
 func checkForAsserted(t *testing.T, maxTime, intervalTime time.Duration, fun func() error) {
-	
+
 }
 
 func checkFor(assert *assert.Assertions, maxTime, intervalTime time.Duration, fun func() error) {
