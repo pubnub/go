@@ -1,3 +1,12 @@
+## v7.2.0
+October 16 2023
+
+#### Added
+- Update the crypto module structure and add enhanced AES-CBC cryptor.
+
+#### Fixed
+- Improved security of crypto implementation by increasing the cipher key entropy by a factor of two.
+
 ## v7.1.2
 May 11 2023
 

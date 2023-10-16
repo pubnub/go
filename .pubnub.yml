@@ -1,6 +1,13 @@
 ---
-version: v7.1.2
+version: v7.2.0
 changelog:
+  - date: 2023-10-16
+    version: v7.2.0
+    changes:
+      - type: feature
+        text: "Update the crypto module structure and add enhanced AES-CBC cryptor."
+      - type: bug
+        text: "Improved security of crypto implementation by increasing the cipher key entropy by a factor of two."
   - date: 2023-05-11
     version: v7.1.2
     changes:
@@ -733,7 +740,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.1.2
+            location: https://github.com/pubnub/go/releases/tag/v7.2.0
             requires:
               -
                 name: "Go"
