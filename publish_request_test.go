@@ -191,10 +191,10 @@ func AssertSuccessPublishGetMeta(t *testing.T, expectedString string, message in
 	assert.Nil(err1)
 }
 
-func AssertSuccessPublishPost(t *testing.T, expectedBody string, message interface{}) {
+func AssertSuccessPublishPost(t *testing.T, pn *PubNub, expectedBody string, message interface{}) {
 	assert := assert.New(t)
 
-	opts := newPublishOpts(pubnub, pubnub.ctx)
+	opts := newPublishOpts(pn, pn.ctx)
 	opts.Channel = "ch"
 	opts.Message = message
 	opts.UsePost = true
@@ -206,7 +206,7 @@ func AssertSuccessPublishPost(t *testing.T, expectedBody string, message interfa
 		Path: path,
 	}
 	h.AssertPathsEqual(t,
-		"/publish/pub_key/sub_key/0/ch/0",
+		"/publish/demo/demo/0/ch/0",
 		u.EscapedPath(), []int{})
 
 	body, err := opts.buildBody()
@@ -270,6 +270,8 @@ func TestPublishMixedGet(t *testing.T) {
 }
 
 func TestPublishMixedPost(t *testing.T) {
+	pn := NewPubNub(NewDemoConfig())
+
 	type msg struct {
 		One   string `json:"one"`
 		Two   string `json:"two"`
@@ -282,16 +284,16 @@ func TestPublishMixedPost(t *testing.T) {
 	msgMap["two"] = "hey2"
 	msgMap["three"] = "hey3"
 
-	AssertSuccessPublishPost(t, "12", 12)
-	AssertSuccessPublishPost(t, "\"hey\"", "hey")
-	AssertSuccessPublishPost(t, "true", true)
-	AssertSuccessPublishPost(t, "[\"hey1\",\"hey2\",\"hey3\"]",
+	AssertSuccessPublishPost(t, pn, "12", 12)
+	AssertSuccessPublishPost(t, pn, "\"hey\"", "hey")
+	AssertSuccessPublishPost(t, pn, "true", true)
+	AssertSuccessPublishPost(t, pn, "[\"hey1\",\"hey2\",\"hey3\"]",
 		[]string{"hey1", "hey2", "hey3"})
-	AssertSuccessPublishPost(t, "[1,2,3]", []int{1, 2, 3})
-	AssertSuccessPublishPost(t,
+	AssertSuccessPublishPost(t, pn, "[1,2,3]", []int{1, 2, 3})
+	AssertSuccessPublishPost(t, pn,
 		"{\"one\":\"hey1\",\"two\":\"hey2\",\"three\":\"hey3\"}",
 		msgStruct)
-	AssertSuccessPublishPost(t,
+	AssertSuccessPublishPost(t, pn,
 		"{\"one\":\"hey1\",\"three\":\"hey3\",\"two\":\"hey2\"}",
 		msgMap)
 }

@@ -2,23 +2,16 @@ package utils
 
 import (
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/hmac"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
-	"errors"
 	"fmt"
+	"github.com/pubnub/go/v7/crypto"
 	"io"
 	"os"
 	"strconv"
 	"strings"
 )
-
-// 16 byte IV
-var valIV = "0123456789012345"
 
 // EncryptString creates the base64 encoded encrypted string using the
 // cipherKey.
@@ -29,33 +22,15 @@ var valIV = "0123456789012345"
 //
 // returns the base64 encoded encrypted string.
 func EncryptString(cipherKey string, message string, useRandomInitializationVector bool) string {
-	block, _ := aesCipher(cipherKey)
-
-	message = encodeNonASCIIChars(message)
-	value := []byte(message)
-	value = padWithPKCS7(value)
-	iv := make([]byte, aes.BlockSize)
-	if useRandomInitializationVector {
-		iv = generateIV(aes.BlockSize)
-	} else {
-		iv = []byte(valIV)
+	cryptoModule, e := crypto.NewLegacyCryptoModule(cipherKey, useRandomInitializationVector)
+	if e != nil {
+		panic(e)
 	}
-	blockmode := cipher.NewCBCEncrypter(block, iv)
-
-	cipherBytes := make([]byte, len(value))
-	blockmode.CryptBlocks(cipherBytes, value)
-	if useRandomInitializationVector {
-		return base64.StdEncoding.EncodeToString(append(iv, cipherBytes...))
+	encryptedData, e := cryptoModule.Encrypt([]byte(encodeNonASCIIChars(message)))
+	if e != nil {
+		panic(e)
 	}
-	return base64.StdEncoding.EncodeToString(cipherBytes)
-}
-
-type A struct {
-	I         string
-	Interface *B
-}
-type B struct {
-	Value string
+	return base64.StdEncoding.EncodeToString(encryptedData)
 }
 
 // DecryptString decodes encrypted string using the cipherKey
@@ -67,74 +42,18 @@ type B struct {
 //
 // returns the unencoded encrypted string,
 // error if any.
-func DecryptString(cipherKey string, message string, useRandomInitializationVector bool) (
-	retVal interface{}, err error) {
-	if message == "" {
-		return "**decrypt error***", errors.New("message is empty")
-	}
-
-	block, aesErr := aesCipher(cipherKey)
-	if aesErr != nil {
-		return "***decrypt error***", fmt.Errorf("decrypt error aes cipher: %s", aesErr)
-	}
-
+func DecryptString(cipherKey string, message string, useRandomInitializationVector bool) (retVal interface{}, err error) {
 	value, decodeErr := base64.StdEncoding.DecodeString(message)
 	if decodeErr != nil {
 		return "***decrypt error***", fmt.Errorf("decrypt error on decode: %s", decodeErr)
 	}
-	iv := make([]byte, aes.BlockSize)
-	if useRandomInitializationVector {
-		iv = value[:16]
-		value = value[16:]
-	} else {
-		iv = []byte(valIV)
+
+	cryptoModule, e := crypto.NewLegacyCryptoModule(cipherKey, useRandomInitializationVector)
+	if e != nil {
+		return nil, e
 	}
-
-	decrypter := cipher.NewCBCDecrypter(block, iv)
-	//to handle decryption errors
-	defer func() {
-		if r := recover(); r != nil {
-			retVal, err = "***decrypt error***", fmt.Errorf("decrypt error: %s", r)
-		}
-	}()
-	decrypted := make([]byte, len(value))
-	decrypter.CryptBlocks(decrypted, value)
-	val, err := unpadPKCS7(decrypted)
-	if err != nil {
-		return "***decrypt error***", fmt.Errorf("decrypt error: %s", err)
-	}
-
-	return fmt.Sprintf("%s", string(val)), nil
-}
-
-// aesCipher returns the cipher block
-//
-// It accepts the following parameters:
-// cipherKey: cipher key.
-//
-// returns the cipher block,
-// error if any.
-func aesCipher(cipherKey string) (cipher.Block, error) {
-	key := EncryptCipherKey(cipherKey)
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	return block, nil
-}
-
-// EncryptCipherKey creates the 256 bit hex of the cipher key
-//
-// It accepts the following parameters:
-// cipherKey: cipher key to use to decrypt.
-//
-// returns the 256 bit hex of the cipher key.
-func EncryptCipherKey(cipherKey string) []byte {
-	hash := sha256.New()
-	hash.Write([]byte(cipherKey))
-
-	sha256String := hash.Sum(nil)[:16]
-	return []byte(hex.EncodeToString(sha256String))
+	val, e := cryptoModule.Decrypt(value)
+	return fmt.Sprintf("%s", string(val)), e
 }
 
 // encodeNonAsciiChars creates unicode string of the non-ascii chars.
@@ -178,214 +97,44 @@ func GetHmacSha256(secretKey string, input string) string {
 	return signature
 }
 
-// padWithPKCS7 pads the data as per the PKCS7 standard
-// It accepts the following parameters:
-// data: data to pad as byte array.
-// returns the padded data as byte array.
-func padWithPKCS7(data []byte) []byte {
-	blocklen := 16
-	padlen := 1
-	for ((len(data) + padlen) % blocklen) != 0 {
-		padlen = padlen + 1
-	}
-
-	pad := bytes.Repeat([]byte{byte(padlen)}, padlen)
-	return append(data, pad...)
-}
-
-// unpadPKCS7 unpads the data as per the PKCS7 standard
-// It accepts the following parameters:
-// data: data to unpad as byte array.
-// returns the unpadded data as byte array.
-func unpadPKCS7(data []byte) ([]byte, error) {
-	blocklen := 16
-	if len(data)%blocklen != 0 || len(data) == 0 {
-		return nil, fmt.Errorf("invalid data len %d", len(data))
-	}
-	padlen := int(data[len(data)-1])
-	if padlen > blocklen || padlen == 0 {
-		return nil, fmt.Errorf("padding is invalid")
-	}
-	// check padding
-	pad := data[len(data)-padlen:]
-	for i := 0; i < padlen; i++ {
-		if pad[i] != byte(padlen) {
-			return nil, fmt.Errorf("padding is invalid")
-		}
-	}
-
-	return data[:len(data)-padlen], nil
-}
-
-func generateIV(blocksize int) []byte {
-	iv := make([]byte, aes.BlockSize)
-	if _, err := rand.Read(iv); err != nil {
-		panic(err)
-	}
-	return iv
-}
-
-func EncryptFile(cipherKey string, iv []byte, filePart io.Writer, file *os.File) {
-	key := EncryptCipherKey(cipherKey)
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
-	}
-	if bytes.Equal(iv, []byte{}) {
-		iv = generateIV(aes.BlockSize)
-	}
-	_, e := filePart.Write(iv)
+func EncryptFile(cipherKey string, _ []byte, filePart io.Writer, file *os.File) {
+	cryptor, e := crypto.NewLegacyCryptoModule(cipherKey, true)
 	if e != nil {
 		panic(e)
 	}
-	blockSize := 16
-	bufferSize := 16
-	p := make([]byte, bufferSize)
-
-	mode := cipher.NewCBCEncrypter(block, iv)
-	cryptoRan := false
-	fii, _ := file.Stat()
-	contentLenIn := fii.Size()
-	var contentRead int64
-
-	for {
-		n2, err2 := io.ReadFull(file, p)
-		contentRead += int64(n2)
-		if err2 != nil {
-			if err2 == io.EOF {
-				ciphertext := make([]byte, blockSize)
-				copy(ciphertext[:n2], p[:n2])
-				break
-			}
-
-			if err2 == io.ErrUnexpectedEOF {
-				if !cryptoRan {
-					text := make([]byte, blockSize)
-					ciphertext := make([]byte, blockSize)
-					copy(text[:n2], p[:n2])
-					pad := bytes.Repeat([]byte{byte(blockSize - n2)}, blockSize-n2)
-					copy(text[n2:], pad)
-					mode.CryptBlocks(ciphertext, text)
-					filePart.Write(ciphertext)
-				} else {
-					text := make([]byte, blockSize)
-					ciphertext := make([]byte, blockSize)
-					copy(text[:n2], p[:n2])
-					pad := bytes.Repeat([]byte{byte(blockSize - n2)}, blockSize-n2)
-					copy(text[n2:], pad)
-					mode.CryptBlocks(ciphertext, text)
-					filePart.Write(ciphertext)
-
-				}
-
-			}
-			break
-		}
-
-		ciphertext := make([]byte, blockSize)
-		cryptoRan = true
-		if contentRead >= contentLenIn {
-			pad := bytes.Repeat([]byte{byte(blockSize - n2)}, blockSize-n2)
-			copy(p[n2:], pad)
-		}
-
-		mode.CryptBlocks(ciphertext, p)
-		filePart.Write(ciphertext)
-
+	r, e := cryptor.EncryptStream(file)
+	if e != nil {
+		panic(e)
+	}
+	_, e = io.Copy(filePart, r)
+	if e != nil {
+		panic(e)
 	}
 }
 
-func DecryptFile(cipherKey string, contentLenEnc int64, reader io.Reader, w io.WriteCloser) {
-	key := EncryptCipherKey(cipherKey)
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
+func DecryptFile(cipherKey string, _ int64, reader io.Reader, w io.WriteCloser) {
+	cryptoModule, e := crypto.NewLegacyCryptoModule(cipherKey, true)
+	if e != nil {
+		panic(e)
 	}
-	blockSize := 16
-	bufferSize := 16
-	p := make([]byte, bufferSize)
-	ivBuff := make([]byte, blockSize)
-	emptyByteVar := make([]byte, blockSize)
+	encryptedReader, e := cryptoModule.DecryptStream(reader)
+	if e != nil {
+		panic(e)
+	}
+	_, e = io.Copy(w, encryptedReader)
+	if e != nil {
+		panic(e)
+	}
+	e = w.Close()
+}
 
-	iv2 := make([]byte, blockSize)
-	count := 0
+// EncryptCipherKey creates the 256 bit hex of the cipher key
+//
+// It accepts the following parameters:
+// cipherKey: cipher key to use to decrypt.
+//
+// returns the 256 bit hex of the cipher key.
 
-	var mode cipher.BlockMode
-
-	cryptoRan := false
-	var contentDownloaded int64
-
-	go func() {
-	ExitReadLabel:
-		for {
-			n2, err2 := io.ReadFull(reader, p)
-			if err2 != nil {
-				if err2 == io.EOF {
-					ciphertext := make([]byte, blockSize)
-					copy(ciphertext, p[:n2])
-					ciphertext, _ = unpadPKCS7(ciphertext)
-					w.Write(ciphertext)
-					w.Close()
-					break ExitReadLabel
-				}
-
-				if err2 == io.ErrUnexpectedEOF {
-					if bytes.Equal(iv2, emptyByteVar) {
-						copy(iv2, ivBuff[0:blockSize])
-						mode = cipher.NewCBCDecrypter(block, iv2)
-					}
-					if !cryptoRan {
-						text := make([]byte, blockSize)
-						ciphertext := make([]byte, blockSize)
-						copy(text, p[:n2])
-						mode.CryptBlocks(ciphertext, text)
-						ciphertext, _ = unpadPKCS7(ciphertext)
-						w.Write(ciphertext)
-
-						w.Close()
-						break ExitReadLabel
-					} else {
-						ciphertext := make([]byte, blockSize)
-						copy(ciphertext, p[:n2])
-						ciphertext, _ = unpadPKCS7(ciphertext)
-						w.Write(ciphertext)
-						w.Close()
-						break ExitReadLabel
-					}
-
-				}
-				break ExitReadLabel
-			} else {
-				contentDownloaded += int64(n2)
-				if count < blockSize/bufferSize {
-					if err != nil {
-						panic(err)
-					}
-					copy(ivBuff[bufferSize*count:], p)
-				} else {
-
-					if bytes.Equal(iv2, emptyByteVar) {
-						copy(iv2, ivBuff[0:blockSize])
-						mode = cipher.NewCBCDecrypter(block, iv2)
-					}
-
-					ciphertext := make([]byte, blockSize)
-
-					text := make([]byte, blockSize)
-					copy(text, p[:n2])
-
-					mode.CryptBlocks(ciphertext, p)
-					cryptoRan = true
-					if contentDownloaded >= contentLenEnc {
-						ciphertext, _ = unpadPKCS7(ciphertext)
-						w.Write(ciphertext)
-					} else {
-						w.Write(ciphertext)
-					}
-				}
-			}
-			count++
-
-		}
-	}()
+func EncryptCipherKey(cipherKey string) []byte {
+	return crypto.EncryptCipherKey(cipherKey)
 }

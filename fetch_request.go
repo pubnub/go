@@ -278,7 +278,7 @@ func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistor
 	return resp
 }
 
-//{"status": 200, "error": false, "error_message": "", "channels": {"ch1":[{"message_type": "", "message": {"text": "hey"}, "timetoken": "15959610984115342", "meta": "", "uuid": "db9c5e39-7c95-40f5-8d71-125765b6f561"}]}}
+// {"status": 200, "error": false, "error_message": "", "channels": {"ch1":[{"message_type": "", "message": {"text": "hey"}, "timetoken": "15959610984115342", "meta": "", "uuid": "db9c5e39-7c95-40f5-8d71-125765b6f561"}]}}
 func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]FetchResponseItem {
 	messages := make(map[string][]FetchResponseItem, len(channels))
 
@@ -290,7 +290,7 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 
 			for _, val := range histResponseMap {
 				if histResponse, ok3 := val.(map[string]interface{}); ok3 {
-					msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config)
+					msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config, o.pubnub.getCryptoModule())
 
 					histItem := FetchResponseItem{
 						Message:   msg,

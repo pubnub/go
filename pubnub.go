@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"github.com/pubnub/go/v7/crypto"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,7 +15,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "7.1.2"
+	Version = "7.2.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -74,6 +75,26 @@ type PubNub struct {
 	ctx                  Context
 	cancel               func()
 	tokenManager         *TokenManager
+	previousCipherKey    string
+	previousIvFlag       bool
+}
+
+// TODO this needs to be tested
+func (pn *PubNub) getCryptoModule() crypto.CryptoModule {
+	pn.Lock()
+	defer pn.Unlock()
+	if pn.previousCipherKey == pn.Config.CipherKey && pn.previousIvFlag == pn.Config.UseRandomInitializationVector {
+		return pn.Config.CryptoModule
+	}
+
+	if pn.Config != nil && pn.Config.CipherKey != "" {
+		pn.Config.CryptoModule, _ = crypto.NewLegacyCryptoModule(pn.Config.CipherKey, pn.Config.UseRandomInitializationVector)
+		return pn.Config.CryptoModule
+	} else if pn.Config != nil && pn.Config.CipherKey == "" {
+		pn.Config.CryptoModule = nil
+		return pn.Config.CryptoModule
+	}
+	return nil
 }
 
 // Publish is used to send a message to all subscribers of a channel.
@@ -752,7 +773,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	if pnconf.Log == nil {
 		pnconf.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-	pnconf.Log.Println(fmt.Sprintf("PubNub Go v4 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
+	pnconf.Log.Println(fmt.Sprintf("PubNub Go v7 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
 
 	utils.CheckUUID(pnconf.UUID)
 	pn := &PubNub{
@@ -760,8 +781,17 @@ func NewPubNub(pnconf *Config) *PubNub {
 		nextPublishSequence: 0,
 		ctx:                 ctx,
 		cancel:              cancel,
+		previousIvFlag:      pnconf.UseRandomInitializationVector,
+		previousCipherKey:   pnconf.CipherKey,
 	}
 
+	if pnconf.CipherKey != "" {
+		var e error
+		pn.Config.CryptoModule, e = crypto.NewLegacyCryptoModule(pnconf.CipherKey, pnconf.UseRandomInitializationVector)
+		if e != nil {
+			panic(e)
+		}
+	}
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
 	pn.heartbeatManager = newHeartbeatManager(pn, ctx)
 	pn.telemetryManager = newTelemetryManager(pnconf.MaximumLatencyDataAge, ctx)

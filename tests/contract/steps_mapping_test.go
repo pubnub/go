@@ -55,4 +55,22 @@ func MapSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the error detail message is not empty$`, theErrorDetailMessageIsNotEmpty)
 	ctx.Step(`^the result is successful$`, theResultIsSuccessful)
 	ctx.Step(`^the token string \'(.*)\'$`, theTokenString)
+
+	ctx.Step(`^Decrypted file content equal to the \'(.*)\' file content$`, decryptedFileContentEqualToFileContent)
+	ctx.Step(`^I decrypt \'(.*)\' file as \'(.*)\'$`, iDecryptFileAs)
+	ctx.Step(`^I decrypt \'(.*)\' file$`, iDecryptFile)
+	ctx.Step(`^I encrypt \'(.*)\' file as \'(.*)\'$`, iEncryptFileAs)
+	ctx.Step(`^I receive \'decryption error\'$`, iReceiveDecryptionError)
+	ctx.Step(`^I receive \'success\'$`, iReceiveSuccess)
+	ctx.Step(`^I receive \'unknown cryptor error\'$`, iReceiveUnknownCryptoError)
+	ctx.Step(`^I receive \'encryption error\'$`, iReceiveEncryptionError)
+	ctx.Step(`^with \'(.*)\' cipher key$`, withCipherKey)
+	ctx.Step(`^with \'(.*)\' vector$`, withVector)
+
+	ctx.Step(`^Crypto module with \'(.*)\' cryptor$`, cryptor)
+	ctx.Step(`^Crypto module with default \'(.*)\' and additional \'(.*)\' cryptors$`, cryptoModuleWithDefaultAndAdditionalLegacyCryptors)
+	ctx.Step(`^Crypto module with \'(.*)\' cryptor$`, cryptor)
+	ctx.Step(`^Legacy code with \'(.*)\' cipher key and \'constant\' vector$`, legacyCodeWithCipherKeyAndConstantVector)
+	ctx.Step(`^Legacy code with \'(.*)\' cipher key and \'random\' vector$`, legacyCodeWithCipherKeyAndRandomVector)
+	ctx.Step(`^Successfully decrypt an encrypted file with legacy code$`, successfullyDecryptAnEncryptedFileWithLegacyCode)
 }

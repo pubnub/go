@@ -198,13 +198,13 @@ func (o *publishOpts) validate() error {
 	return nil
 }
 
-func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
+func (o *publishOpts) encryptProcessing() (string, error) {
 	var msg string
 	var errJSONMarshal error
 
 	o.pubnub.Config.Log.Println("EncryptString: encrypting", fmt.Sprintf("%s", o.Message))
 	if o.pubnub.Config.DisablePNOtherProcessing {
-		if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize, o.pubnub.Config.UseRandomInitializationVector); errJSONMarshal != nil {
+		if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); errJSONMarshal != nil {
 			o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 			return "", errJSONMarshal
 		}
@@ -218,7 +218,7 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 
 			if ok {
 				o.pubnub.Config.Log.Println(ok, msgPart)
-				encMsg, errJSONMarshal := utils.SerializeAndEncrypt(msgPart, cipherKey, o.Serialize, o.pubnub.Config.UseRandomInitializationVector)
+				encMsg, errJSONMarshal := serializeAndEncrypt(o.pubnub.getCryptoModule(), msgPart, o.Serialize)
 				if errJSONMarshal != nil {
 					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 					return "", errJSONMarshal
@@ -231,14 +231,14 @@ func (o *publishOpts) encryptProcessing(cipherKey string) (string, error) {
 				}
 				msg = string(jsonEncBytes)
 			} else {
-				if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize, o.pubnub.Config.UseRandomInitializationVector); errJSONMarshal != nil {
+				if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); errJSONMarshal != nil {
 					o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 					return "", errJSONMarshal
 				}
 			}
 			break
 		default:
-			if msg, errJSONMarshal = utils.SerializeEncryptAndSerialize(o.Message, cipherKey, o.Serialize, o.pubnub.Config.UseRandomInitializationVector); errJSONMarshal != nil {
+			if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); errJSONMarshal != nil {
 				o.pubnub.Config.Log.Printf("error in serializing: %v\n", errJSONMarshal)
 				return "", errJSONMarshal
 			}
@@ -261,8 +261,8 @@ func (o *publishOpts) buildPath() (string, error) {
 	var msg string
 	var errJSONMarshal error
 
-	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-		if msg, errJSONMarshal = o.encryptProcessing(cipherKey); errJSONMarshal != nil {
+	if o.pubnub.getCryptoModule() != nil {
+		if msg, errJSONMarshal = o.encryptProcessing(); errJSONMarshal != nil {
 			return "", errJSONMarshal
 		}
 
@@ -336,8 +336,8 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 
 func (o *publishOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
-		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-			msg, errJSONMarshal := o.encryptProcessing(cipherKey)
+		if o.pubnub.getCryptoModule() != nil {
+			msg, errJSONMarshal := o.encryptProcessing()
 			if errJSONMarshal != nil {
 				return []byte{}, errJSONMarshal
 			}

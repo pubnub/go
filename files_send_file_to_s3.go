@@ -3,6 +3,7 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/pubnub/go/v7/crypto"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -11,7 +12,6 @@ import (
 	"os"
 
 	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
 )
 
 var emptySendFileToS3Response *PNSendFileToS3Response
@@ -131,16 +131,29 @@ func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multip
 		return bytes.Buffer{}, writer, s, errFilePart
 	}
 
-	if o.CipherKey != "" {
-		utils.EncryptFile(o.CipherKey, []byte{}, filePart, o.File)
-	} else if o.pubnub.Config.CipherKey != "" {
-		utils.EncryptFile(o.pubnub.Config.CipherKey, []byte{}, filePart, o.File)
-	} else {
+	if o.CipherKey == "" && o.pubnub.getCryptoModule() == nil {
 		_, errIOCopy := io.Copy(filePart, o.File)
 
 		if errIOCopy != nil {
 			o.pubnub.Config.Log.Printf("ERROR: io Copy error: %s\n", errIOCopy.Error())
 			return bytes.Buffer{}, writer, s, errIOCopy
+		}
+	} else {
+		var e error
+		cryptoModule := o.pubnub.getCryptoModule()
+
+		if o.CipherKey != "" {
+			cryptoModule, e = crypto.NewLegacyCryptoModule(o.CipherKey, true)
+			if e != nil {
+				o.pubnub.Config.Log.Printf("ERROR: %s\n", e.Error())
+				return bytes.Buffer{}, writer, s, e
+			}
+		}
+
+		e = encryptStreamAndCopyTo(cryptoModule, o.File, filePart)
+		if e != nil {
+			o.pubnub.Config.Log.Printf("ERROR: %s\n", e.Error())
+			return bytes.Buffer{}, writer, s, e
 		}
 	}
 

@@ -5,11 +5,13 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"io"
 	"math/rand"
 	"net"
 	"net/http"
 	"os"
+	"testing"
 	"time"
 
 	pubnub "github.com/pubnub/go/v7"
@@ -42,6 +44,8 @@ func seedRand() {
 }
 
 func init() {
+	godotenv.Load("../../.env")
+
 	seedRand()
 	config = pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.PublishKey = os.Getenv("PUBLISH_KEY")
@@ -94,6 +98,10 @@ func logInTest(format string, a ...interface{}) (n int, err error) {
 		return fmt.Printf(format, a...)
 	}
 	return 0, nil
+}
+
+func checkForAsserted(t *testing.T, maxTime, intervalTime time.Duration, fun func() error) {
+
 }
 
 func checkFor(assert *assert.Assertions, maxTime, intervalTime time.Duration, fun func() error) {

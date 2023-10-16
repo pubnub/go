@@ -289,40 +289,6 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 
 }
 
-func TestFileEncryptionDecryption(t *testing.T) {
-	assert := assert.New(t)
-	filepathInput := "file_upload_test.txt"
-	filepathOutput := "file_upload_test_output.txt"
-	filepathSampleOutput := "file_upload_sample_encrypted.txt"
-	filepathOutputDec := "file_upload_dec_output.txt"
-
-	out, _ := os.Create(filepathOutput)
-	file, err := os.Open(filepathInput)
-	if err != nil {
-		panic(err)
-	}
-	utils.EncryptFile("enigma", []byte{133, 126, 158, 123, 43, 95, 96, 90, 215, 178, 17, 73, 166, 130, 79, 156}, out, file)
-	fileText, _ := ioutil.ReadFile(filepathOutput)
-
-	fileTextSample, _ := ioutil.ReadFile(filepathSampleOutput)
-	assert.Equal(string(fileTextSample), string(fileText))
-
-	outDec, _ := os.Open(filepathSampleOutput)
-	fi, _ := outDec.Stat()
-	contentLenEnc := fi.Size()
-	defer outDec.Close()
-
-	fileDec, _ := os.Create(filepathOutputDec)
-	defer fileDec.Close()
-	r, w := io.Pipe()
-	utils.DecryptFile("enigma", contentLenEnc, outDec, w)
-	io.Copy(fileDec, r)
-	fileTextDec, _ := ioutil.ReadFile(filepathOutputDec)
-	fileTextIn, _ := ioutil.ReadFile(filepathInput)
-	assert.Equal(fileTextIn, fileTextDec)
-
-}
-
 func unpadPKCS7(data []byte) ([]byte, error) {
 	blocklen := 16
 	if len(data)%blocklen != 0 || len(data) == 0 {
