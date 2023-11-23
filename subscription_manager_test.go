@@ -569,3 +569,13 @@ func TestProcessSubscribePayloadCipherErr(t *testing.T) {
 	<-done
 	//pn.Destroy()
 }
+
+func TestDecryptionProcessOnNoEncryptedMessage(t *testing.T) {
+    assert := assert.New(t)
+    pn := NewPubNub(NewDemoConfig())
+
+    result, err := parseCipherInterface("test", pn.Config, pn.getCryptoModule())
+
+    assert.Nil(err)
+    assert.Equal("test", result)
+}
