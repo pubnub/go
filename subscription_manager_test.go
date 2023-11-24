@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/pubnub/go/v7/crypto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -570,12 +571,33 @@ func TestProcessSubscribePayloadCipherErr(t *testing.T) {
 	//pn.Destroy()
 }
 
+func TestDecryptionProcessOnEncryptedMessage(t *testing.T) {
+    assert := assert.New(t)
+    pn := NewPubNub(NewDemoConfig())
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pn.Config.CryptoModule = crypto
+
+    // Rust generated cipher text
+    result, err := parseCipherInterface("UE5FRAFBQ1JIEALf+E65kseYJwTw2J6BUk9MePHiCcBCS+8ykXLkBIOA", pn.Config, pn.getCryptoModule())
+
+    assert.Nil(err)
+    assert.Equal("test", result)
+}
+
 func TestDecryptionProcessOnNoEncryptedMessage(t *testing.T) {
     assert := assert.New(t)
     pn := NewPubNub(NewDemoConfig())
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pn.Config.CryptoModule = crypto
 
     result, err := parseCipherInterface("test", pn.Config, pn.getCryptoModule())
 
-    assert.Nil(err)
+    assert.NotNil(err)
     assert.Equal("test", result)
 }
