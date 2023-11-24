@@ -601,3 +601,87 @@ func TestDecryptionProcessOnNoEncryptedMessage(t *testing.T) {
     assert.NotNil(err)
     assert.Equal("test", result)
 }
+
+func TestProcessSubscribeWithCryptoModule(t *testing.T) {
+	assert := assert.New(t)
+	done := make(chan bool)
+	pn := NewPubNub(NewDemoConfig())
+
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pn.Config.CryptoModule = crypto
+
+	listener := NewListener()
+ 
+	go func() {
+		for {
+			select {
+            case result := <-listener.Message:
+                assert.Equal("test", result.Message)
+                assert.Nil(result.Error)
+				done <- true
+				break
+			case <-listener.Status:
+			case <-listener.Presence:
+				break
+			}
+		}
+	}()
+ 
+	pn.AddListener(listener)
+ 
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload:           "UE5FRAFBQ1JIEALf+E65kseYJwTw2J6BUk9MePHiCcBCS+8ykXLkBIOA",
+	}
+ 
+	processSubscribePayload(pn.subscriptionManager, *sm)
+	<-done
+	//pn.Destroy()
+} 
+
+func TestProcessSubscribeWithCryptoModuleNoEncryptedMessage(t *testing.T) {
+	assert := assert.New(t)
+	done := make(chan bool)
+	pn := NewPubNub(NewDemoConfig())
+
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pn.Config.CryptoModule = crypto
+
+	listener := NewListener()
+ 
+	go func() {
+		for {
+			select {
+            case result := <-listener.Message:
+                assert.Equal("test", result.Message)
+                assert.NotNil(result.Error)
+				done <- true
+				break
+			case <-listener.Status:
+			case <-listener.Presence:
+				break
+			}
+		}
+	}()
+ 
+	pn.AddListener(listener)
+ 
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload:           "test",
+	}
+ 
+	processSubscribePayload(pn.subscriptionManager, *sm)
+	<-done
+	//pn.Destroy()
+} 
