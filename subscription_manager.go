@@ -973,7 +973,7 @@ func parseCipherInterface(data interface{}, pnConf *Config, module crypto.Crypto
 					if errDecryption != nil {
                         if strings.Contains(errDecryption.Error(), "decrypt error on decode") {
                             pnConf.Log.Println("Couldn't decode message. Asumming no encrypted message. Returning raw message...")
-                            return msg, nil
+                            return v, nil
                         }
 						pnConf.Log.Println(errDecryption, msg)
 						return v, errDecryption
