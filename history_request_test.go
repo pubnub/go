@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/pubnub/go/v7/crypto"
 	h "github.com/pubnub/go/v7/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
@@ -552,3 +553,47 @@ func TestHistoryResponseEndTTError(t *testing.T) {
 	assert.Equal(int64(0), resp.EndTimetoken)
 	assert.Nil(err)
 }
+
+func TestHistoryCryptoModuleWithEncryptedMessage(t *testing.T) {
+	assert := assert.New(t)
+	pnconfig := NewDemoConfig()
+	pubnub := NewPubNub(pnconfig)
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pubnub.Config.CryptoModule = crypto
+
+    // Rust generated cipher text
+	jsonString := []byte(`[["UE5FRAFBQ1JIEALf+E65kseYJwTw2J6BUk9MePHiCcBCS+8ykXLkBIOA"],14991775432719844,14991868111600528]`)
+
+	resp, _, err := newHistoryResponse(jsonString, pubnub.initHistoryOpts(), fakeResponseState)
+	assert.Nil(err)
+
+	messages := resp.Messages
+	assert.Equal("test", messages[0].Message)
+    assert.Nil(messages[0].Error)
+	pnconfig.CipherKey = ""
+}
+
+func TestHistoryCryptoModuleWithNoEncryptedMessage(t *testing.T) {
+	assert := assert.New(t)
+	pnconfig := NewDemoConfig()
+	pubnub := NewPubNub(pnconfig)
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pubnub.Config.CryptoModule = crypto
+
+	jsonString := []byte(`[["test"],14991775432719844,14991868111600528]`)
+
+	resp, _, err := newHistoryResponse(jsonString, pubnub.initHistoryOpts(), fakeResponseState)
+	assert.Nil(err)
+
+	messages := resp.Messages
+	assert.Equal("test", messages[0].Message)
+    assert.NotNil(messages[0].Error)
+	pnconfig.CipherKey = ""
+}
+
