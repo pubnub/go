@@ -425,6 +425,7 @@ func TestHistoryEncrypt(t *testing.T) {
 
 	messages := resp.Messages
 	assert.Equal("hey", messages[0].Message)
+    assert.Nil(messages[0].Error)
 	pnconfig.CipherKey = ""
 }
 
@@ -550,5 +551,4 @@ func TestHistoryResponseEndTTError(t *testing.T) {
 	assert.Equal(int64(121324), resp.StartTimetoken)
 	assert.Equal(int64(0), resp.EndTimetoken)
 	assert.Nil(err)
-
 }

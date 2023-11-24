@@ -290,12 +290,13 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 
 			for _, val := range histResponseMap {
 				if histResponse, ok3 := val.(map[string]interface{}); ok3 {
-					msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config, o.pubnub.getCryptoModule())
+					msg, err := parseCipherInterface(histResponse["message"], o.pubnub.Config, o.pubnub.getCryptoModule())
 
 					histItem := FetchResponseItem{
 						Message:   msg,
 						Timetoken: histResponse["timetoken"].(string),
 						Meta:      histResponse["meta"],
+                        Error:     err,
 					}
 					if d, ok := histResponse["message_type"]; ok {
 						switch v := d.(type) {
@@ -385,6 +386,7 @@ type FetchResponse struct {
 }
 
 // FetchResponseItem contains the message and the associated timetoken.
+// It can contain the error if the message is not decrypted properly assuming the message is not encrypted.
 type FetchResponseItem struct {
 	Message        interface{}                               `json:"message"`
 	Meta           interface{}                               `json:"meta"`
@@ -393,6 +395,7 @@ type FetchResponseItem struct {
 	Timetoken      string                                    `json:"timetoken"`
 	UUID           string                                    `json:"uuid"`
 	MessageType    int                                       `json:"message_type"`
+    Error          error
 }
 
 // PNHistoryMessageActionsTypeMap is the struct used in the Fetch request that includes Message Actions
