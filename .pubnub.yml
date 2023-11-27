@@ -1,6 +1,11 @@
 ---
-version: v7.2.0
+version: v7.2.1
 changelog:
+  - date: 2023-11-27
+    version: v7.2.1
+    changes:
+      - type: bug
+        text: "Handle unencrypted message while getting messages with crypto."
   - date: 2023-10-16
     version: v7.2.0
     changes:
@@ -740,7 +745,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.2.0
+            location: https://github.com/pubnub/go/releases/tag/v7.2.1
             requires:
               -
                 name: "Go"
