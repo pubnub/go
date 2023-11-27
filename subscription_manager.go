@@ -972,8 +972,7 @@ func parseCipherInterface(data interface{}, pnConf *Config, module crypto.Crypto
 					pnConf.Log.Println("v[pn_other]", v["pn_other"], v, msg)
 					decrypted, errDecryption := decryptString(module, msg)
 					if errDecryption != nil {
-					    pnConf.Log.Println(errDecryption, msg)
-                        pnConf.Log.Println("Message might be not encrypted, returning as is...")
+					    pnConf.Log.Println(errDecryption, msg, "\nMessage might be not encrypted, returning as is...")
 
 						return v, errDecryption
 					} else {
@@ -997,8 +996,7 @@ func parseCipherInterface(data interface{}, pnConf *Config, module crypto.Crypto
 			var intf interface{}
 			decrypted, errDecryption := decryptString(module, data.(string))
 			if errDecryption != nil {
-				pnConf.Log.Println(errDecryption, intf)
-                pnConf.Log.Println("Message might be not encrypted, returning as is...")
+			    pnConf.Log.Println(errDecryption, intf, "\nMessage might be not encrypted, returning as is...")
 
 				intf = data
 				return intf, errDecryption
