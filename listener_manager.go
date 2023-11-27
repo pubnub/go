@@ -270,6 +270,7 @@ type PNMessage struct {
 	Subscription      string
 	Publisher         string
 	Timetoken         int64
+    Error             error
 }
 
 // PNPresence is the Message Response for Presence
@@ -360,4 +361,5 @@ type PNFilesEvent struct {
 	Subscription      string
 	Publisher         string
 	Timetoken         int64
+    Error             error
 }

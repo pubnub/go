@@ -60,7 +60,12 @@ func (c *legacyCryptor) Encrypt(message []byte) (*EncryptedData, error) {
 func (c *legacyCryptor) Decrypt(encryptedData *EncryptedData) (r []byte, e error) {
 	iv := make([]byte, aes.BlockSize)
 	data := encryptedData.Data
+
 	if c.randomIv {
+        if (len(data) < aes.BlockSize) {
+            return nil, fmt.Errorf("length of data to decrypt should be at least %d", aes.BlockSize)
+        }
+
 		iv = data[:aes.BlockSize]
 		data = data[aes.BlockSize:]
 	} else {

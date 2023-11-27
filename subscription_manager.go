@@ -638,7 +638,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 
 	switch payload.MessageType {
 	case PNMessageTypeSignal:
-		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, /*no error*/nil)
 		m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
 		m.listenerManager.announceSignal(pnMessageResult)
 	case PNMessageTypeObjects:
@@ -675,7 +675,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 
 		}
 
-		pnFilesEvent := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+		pnFilesEvent := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, err)
 		m.pubnub.Config.Log.Println("PNMessageTypeFile:", PNMessageTypeFile)
 		m.listenerManager.announceFile(pnFilesEvent)
 	default:
@@ -693,7 +693,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 			m.listenerManager.announceStatus(pnStatus)
 
 		}
-		pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken)
+		pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, err)
 		m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
 		m.listenerManager.announceMessage(pnMessageResult)
 	}
@@ -716,7 +716,7 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 	}
 }
 
-func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64) *PNFilesEvent {
+func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, err error) *PNFilesEvent {
 	var filesPayload map[string]interface{}
 	var ok bool
 	if filesPayload, ok = filePayload.(map[string]interface{}); !ok {
@@ -747,6 +747,7 @@ func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualC
 		Timetoken:         timetoken,
 		Publisher:         issuingClientID,
 		UserMetadata:      userMetadata,
+        Error:             err,
 	}
 	return pnFilesEvent
 }
@@ -933,7 +934,7 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	return pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType
 }
 
-func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64) *PNMessage {
+func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, error error) *PNMessage {
 
 	pnMessageResult := &PNMessage{
 		Message:           messagePayload,
@@ -944,10 +945,10 @@ func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, c
 		Timetoken:         timetoken,
 		Publisher:         issuingClientID,
 		UserMetadata:      userMetadata,
+        Error:             error,
 	}
 
 	return pnMessageResult
-
 }
 
 // parseCipherInterface handles the decryption in case a cipher key is used
@@ -971,7 +972,8 @@ func parseCipherInterface(data interface{}, pnConf *Config, module crypto.Crypto
 					pnConf.Log.Println("v[pn_other]", v["pn_other"], v, msg)
 					decrypted, errDecryption := decryptString(module, msg)
 					if errDecryption != nil {
-						pnConf.Log.Println(errDecryption, msg)
+					    pnConf.Log.Println(errDecryption, msg, "\nMessage might be not encrypted, returning as is...")
+
 						return v, errDecryption
 					} else {
 						var intf interface{}
@@ -994,7 +996,8 @@ func parseCipherInterface(data interface{}, pnConf *Config, module crypto.Crypto
 			var intf interface{}
 			decrypted, errDecryption := decryptString(module, data.(string))
 			if errDecryption != nil {
-				pnConf.Log.Println(errDecryption, intf)
+			    pnConf.Log.Println(errDecryption, intf, "\nMessage might be not encrypted, returning as is...")
+
 				intf = data
 				return intf, errDecryption
 			}
