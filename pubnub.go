@@ -740,8 +740,20 @@ func (pn *PubNub) Destroy() {
 	pn.Config.Log.Println("calling RemoveAllListeners")
 	pn.subscriptionManager.RemoveAllListeners()
 	pn.Config.Log.Println("after RemoveAllListeners")
-	close(pn.jobQueue)
-	pn.Config.Log.Println("after close jobQueue")
+	// Check if jobQueue is already closed before attempting to close it
+	select {
+	case _, ok := <-pn.jobQueue:
+		if !ok {
+			pn.Config.Log.Println("jobQueue is already closed")
+			break
+		}
+		// If the channel is open, proceed to close it
+		close(pn.jobQueue)
+		pn.Config.Log.Println("after close jobQueue")
+	default:
+		// If the channel is closed, no action is needed
+		pn.Config.Log.Println("jobQueue is already closed")
+	}
 	pn.requestWorkers.Close()
 	pn.Config.Log.Println("after close requestWorkers")
 	pn.tokenManager.CleanUp()
