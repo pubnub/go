@@ -7,11 +7,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 env:
-  PAM_PUBLISH_KEY: ${{ secrets.PAM_PUBLISH_KEY }}
-  PAM_SUBSCRIBE_KEY: ${{ secrets.PAM_SUBSCRIBE_KEY }}
-  PAM_SECRET_KEY: ${{ secrets.PAM_SECRET_KEY }}
-  PUBLISH_KEY: ${{ secrets.PUBLISH_KEY }}
-  SUBSCRIBE_KEY: ${{ secrets.SUBSCRIBE_KEY }}
+  PAM_PUBLISH_KEY: ${{ secrets.SDK_PAM_PUB_KEY }}
+  PAM_SUBSCRIBE_KEY: ${{ secrets.SDK_PAM_SUB_KEY }}
+  PAM_SECRET_KEY: ${{ secrets.SDK_PAM_SEC_KEY }}
+  PUBLISH_KEY: ${{ secrets.SDK_PUB_KEY }}
+  SUBSCRIBE_KEY: ${{ secrets.SDK_SUB_KEY }}
 defaults:
   run:
     shell: bash
@@ -19,25 +19,27 @@ defaults:
 jobs:
   tests:
     name: Integration and Unit tests
-    runs-on: ubuntu-latest
+    runs-on:
+      group: Default Larger Runners
+      labels: ubuntu-latest-m
     strategy:
       fail-fast: true
-      matrix: 
+      matrix:
         go: [1.16.15, 1.17.13, 1.18.9, 1.19.4]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_TOKEN }}
       - name: Checkout actions
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: pubnub/client-engineering-deployment-tools
           ref: v1
           token: ${{ secrets.GH_TOKEN }}
           path: .github/.release/actions
       - name: Setup Go ${{ matrix.go }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
           cache: true
@@ -48,12 +50,14 @@ jobs:
         uses: ./.github/.release/actions/actions/utils/fast-jobs-failure
   acceptance-tests:
     name: Acceptance tests
-    runs-on: ubuntu-latest
+    runs-on:
+      group: Default Larger Runners
+      labels: ubuntu-latest-m
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Checkout mock-server action
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: pubnub/client-engineering-deployment-tools
           ref: v1
@@ -64,7 +68,7 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
       - name: Setup Go 1.19.4
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: 1.19.4
           cache: true
@@ -78,7 +82,7 @@ jobs:
           cd tests/contract
           go test -path ../../sdk-specifications/features -tagsFilter "~@skip && ~@na=go && ~@beta" -format "junit:main.xml"
       - name: Expose acceptance tests reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: acceptance-test-reports
@@ -91,7 +95,9 @@ jobs:
         uses: ./.github/.release/actions/actions/utils/fast-jobs-failure
   all-tests:
     name: Tests
-    runs-on: ubuntu-latest
+    runs-on:
+      group: Default Larger Runners
+      labels: ubuntu-latest-m
     needs: [tests, acceptance-tests]
     steps:
       - name: Tests summary
