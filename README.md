@@ -22,7 +22,7 @@ You will need the publish and subscribe keys to authenticate your app. Get your 
 1. Integrate PubNub into your project using the `go` command:
 
     ```go
-    go get github.com/pubnub/go
+    go get github.com/pubnub/go/v6
     ```
 
     If you encounter dependency issues, use the `dep ensure` command to resolve them.
