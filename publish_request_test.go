@@ -35,6 +35,7 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 	assert.Equal(10, o.opts.TTL)
 	assert.Equal(true, o.opts.ShouldStore)
 	assert.Equal(true, o.opts.DoNotReplicate)
+    assert.Equal("", o.opts.CustomMessageType)
 }
 
 func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message interface{}) {
@@ -48,6 +49,7 @@ func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message
 	o.TTL(10)
 	o.ShouldStore(true)
 	o.DoNotReplicate(true)
+    o.CustomMessageType("custom")
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -63,6 +65,7 @@ func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message
 	assert.Equal(10, o.opts.TTL)
 	assert.Equal(true, o.opts.ShouldStore)
 	assert.Equal(true, o.opts.DoNotReplicate)
+    assert.Equal("custom", o.opts.CustomMessageType)
 }
 
 func AssertSuccessPublishGet2(t *testing.T, expectedString string, message interface{}) {
