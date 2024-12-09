@@ -80,6 +80,7 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 	o.TTL(10)
 	o.ShouldStore(false)
 	o.DoNotReplicate(true)
+    o.CustomMessageType("custom")
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -99,6 +100,7 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 	expected.Set("pnsdk", Version)
 	expected.Set("norep", "true")
 	expected.Set("store", "0")
+    expected.Set("custom_message_type", "custom")
 
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"seqn", "pnsdk", "uuid", "store"}, []string{})
@@ -531,4 +533,16 @@ func TestPublishValidateSubscribeKey(t *testing.T) {
 	opts := newPublishOpts(pn, pn.ctx)
 
 	assert.Equal("pubnub/validation: pubnub: Publish: Missing Subscribe Key", opts.validate().Error())
+}
+
+func TestPublishValidateCustomMessageType(t *testing.T) {
+    assert := assert.New(t)
+    pn := NewPubNub(NewDemoConfig())
+    opts := newPublishOpts(pn, pn.ctx)
+    opts.CustomMessageType = "custom-message_type"
+    assert.True(opts.isCustomMessageTypeCorrect())
+    opts.CustomMessageType = "a"
+    assert.False(opts.isCustomMessageTypeCorrect())
+    opts.CustomMessageType = "!@#$%^&*("
+    assert.False(opts.isCustomMessageTypeCorrect())
 }

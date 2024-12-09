@@ -170,7 +170,8 @@ func (b *publishBuilder) QueryParam(queryParam map[string]string) *publishBuilde
 	return b
 }
 
-// CustomMessageType sets the Custom Message Type for the Publish request.
+// CustomMessageType sets the User-specified message type string - limited by 3-50 case-sensitive alphanumeric characters
+// with only `-` and `_` special characters allowed.
 func (b *publishBuilder) CustomMessageType(messageType string) *publishBuilder {
     b.opts.CustomMessageType = messageType
 
@@ -185,6 +186,24 @@ func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	}
 
 	return newPublishResponse(rawJSON, status)
+}
+
+func (o *publishOpts) isCustomMessageTypeCorrect() bool {
+    if len(o.CustomMessageType) == 0 {
+        return true
+    }
+
+    if len(o.CustomMessageType) < 3 || len(o.CustomMessageType) > 50 {
+        return false
+    }
+
+    for _, c := range o.CustomMessageType {
+        if !('a' <= c && 'z' >= c) && !('A' <= c && 'Z' >= c) && c != '-' && c != '_' {
+            return false
+        }
+    }
+
+    return true
 }
 
 func (o *publishOpts) validate() error {
@@ -203,6 +222,10 @@ func (o *publishOpts) validate() error {
 	if o.Message == nil {
 		return newValidationError(o, StrMissingMessage)
 	}
+
+    if !o.isCustomMessageTypeCorrect() {
+        return newValidationError(o, StrInvalidCustomMessageType)
+    }
 
 	return nil
 }
