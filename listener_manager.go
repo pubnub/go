@@ -271,7 +271,8 @@ type PNMessage struct {
 	Publisher         string
 	Timetoken         int64
 	Type              string
-	SpaceId           SpaceId
+  SpaceId           SpaceId // TODO: remove
+    Error             error
 }
 
 // PNPresence is the Message Response for Presence
@@ -363,5 +364,6 @@ type PNFilesEvent struct {
 	Publisher         string
 	Timetoken         int64
 	Type              string
-	SpaceId           SpaceId
+  SpaceId           SpaceId // TODO: remove
+    Error             error
 }

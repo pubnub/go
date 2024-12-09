@@ -43,10 +43,12 @@ func before(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 	if err != nil {
 		return ctx, err
 	}
-	newCtx = context.WithValue(newCtx, commonStateKey{}, newCommonState(contractTestConfig))
-	newCtx = context.WithValue(newCtx, accessStateKey{}, newAccessState())
-	newCtx = context.WithValue(newCtx, subscribeStateKey{}, newSubscribeState())
-	newCtx = context.WithValue(newCtx, historyStateKey{}, newHistoryState())
+	commonState := newCommonState(contractTestConfig)
+	accessState := newAccessState(commonState.pubNub)
+
+	newCtx = context.WithValue(newCtx, commonStateKey{}, commonState)
+	newCtx = context.WithValue(newCtx, accessStateKey{}, accessState)
+	newCtx = context.WithValue(newCtx, cryptoStateKey{}, newCryptoState(contractTestConfig.featurePath+"/encryption"))
 
 	if !contractTestConfig.serverMock {
 		return newCtx, nil
@@ -117,6 +119,7 @@ type contractTestConfig struct {
 	serverMock   bool
 	hostPort     string
 	secure       bool
+	featurePath  string
 }
 
 func newContractTestConfig() (contractTestConfig, error) {
@@ -136,6 +139,7 @@ func newContractTestConfig() (contractTestConfig, error) {
 		hostPort:     getenvWithDefault("HOST_PORT", "localhost:8090"),
 		serverMock:   serverMock,
 		secure:       secure,
+		featurePath:  path,
 	}, err
 }
 

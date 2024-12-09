@@ -308,7 +308,7 @@ func TestFireGetAllParameters(t *testing.T) {
 }
 func TestFireGetAllParametersCipher(t *testing.T) {
 	message := "test"
-	AssertSuccessFireGetAllParameters(t, "%22c3dSanMrRnc4ZnNNT1BEaGFnZmd1QT09%22", message, "enigma")
+	AssertSuccessFireGetAllParameters(t, "%22%2B3AfkVAl8saHsXJdtOhRVQ%3D%3D%22", message, "enigma")
 }
 
 func TestFirePostAllParameters(t *testing.T) {

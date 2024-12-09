@@ -307,12 +307,13 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 
 			for _, val := range histResponseMap {
 				if histResponse, ok3 := val.(map[string]interface{}); ok3 {
-					msg, _ := parseCipherInterface(histResponse["message"], o.pubnub.Config)
+					msg, err := parseCipherInterface(histResponse["message"], o.pubnub.Config, o.pubnub.getCryptoModule())
 
 					histItem := FetchResponseItem{
 						Message:   msg,
 						Timetoken: histResponse["timetoken"].(string),
 						Meta:      histResponse["meta"],
+                        Error:     err,
 					}
 					if d, ok := histResponse["message_type"]; ok {
 						switch v := d.(type) {
@@ -408,16 +409,18 @@ type FetchResponse struct {
 }
 
 // FetchResponseItem contains the message and the associated timetoken.
+// It can contain the error if the message is not decrypted properly assuming the message is not encrypted.
 type FetchResponseItem struct {
-	Message        interface{}
-	Meta           interface{}
-	MessageActions map[string]PNHistoryMessageActionsTypeMap
-	File           PNFileDetails
-	Timetoken      string
-	UUID           string
-	MessageType    int
-	Type           string
-	SpaceId        SpaceId
+	Message        interface{}                               `json:"message"`
+	Meta           interface{}                               `json:"meta"`
+	MessageActions map[string]PNHistoryMessageActionsTypeMap `json:"actions"`
+	File           PNFileDetails                             `json:"file"`
+	Timetoken      string                                    `json:"timetoken"`
+	UUID           string                                    `json:"uuid"`
+	MessageType    int                                       `json:"message_type"`
+  Type           string                                    `json:"custom_message_type"`
+  SpaceId        SpaceId                                   `TODO: remove`
+    Error          error
 }
 
 // PNHistoryMessageActionsTypeMap is the struct used in the Fetch request that includes Message Actions

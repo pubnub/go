@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/pubnub/go/v7/crypto"
 	h "github.com/pubnub/go/v7/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
@@ -15,7 +16,7 @@ var (
 	fakeResponseState = StatusResponse{}
 )
 
-func initHistoryOpts() *historyOpts {
+func (pn *PubNub) initHistoryOpts() *historyOpts {
 	opts := newHistoryOpts(pubnub, pubnub.ctx)
 	opts.Channel = "ch"
 	opts.Start = int64(100000)
@@ -25,6 +26,7 @@ func initHistoryOpts() *historyOpts {
 	opts.Reverse = false
 	opts.Count = 3
 	opts.IncludeTimetoken = true
+	opts.pubnub = pn
 	return opts
 }
 
@@ -201,7 +203,9 @@ func TestHistoryResponseParsingStringMessages(t *testing.T) {
 
 	jsonString := []byte(`[["hey-1","hey-two","hey-1","hey-1","hey-1","hey0","hey1","hey2","hey3","hey4","hey5","hey6","hey7","hey8","hey9","hey10","hey0","hey1","hey2","hey3","hey4","hey5","hey6","hey7","hey8","hey9","hey10","hey0","hey1","hey2","hey3","hey4","hey5","hey6","hey7","hey8","hey9","hey10"],14991775432719844,14991868111600528]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	pn := NewPubNubDemo()
+
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -216,8 +220,9 @@ func TestHistoryResponseParsingStringWithTimetoken(t *testing.T) {
 	assert := assert.New(t)
 
 	jsonString := []byte(`[[{"timetoken":15232761410327866,"message":"hey-1"},{"timetoken":15232761410327866,"message":"hey-2"},{"timetoken":15232761410327866,"message":"hey-3"}],15232761410327866,15232761410327866]`)
+	pn := NewPubNubDemo()
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(15232761410327866), resp.StartTimetoken)
@@ -236,8 +241,9 @@ func TestHistoryResponseParsingInt(t *testing.T) {
 	assert := assert.New(t)
 
 	jsonString := []byte(`[[1,2,3,4,5,6,7],14991775432719844,14991868111600528]`)
+	pn := NewPubNubDemo()
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -252,7 +258,8 @@ func TestHistoryResponseParsingInt1(t *testing.T) {
 	int1 := int(1)
 	jsonString := []byte(fmt.Sprintf("[[%d],14991775432719844,14991868111600528]", int1))
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	pn := NewPubNubDemo()
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -266,8 +273,9 @@ func TestHistoryResponseParsingSlice(t *testing.T) {
 	assert := assert.New(t)
 
 	jsonString := []byte(`[[[1,2,3],["one","two","three"]],14991775432719844,14991868111600528]`)
+	pn := NewPubNubDemo()
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -275,10 +283,11 @@ func TestHistoryResponseParsingSlice(t *testing.T) {
 
 func TestHistoryResponseParsingMap(t *testing.T) {
 	assert := assert.New(t)
-	pnconfig.CipherKey = ""
-	jsonString := []byte(`[[{"one":1,"two":2},{"three":3,"four":4}],14991775432719844,14991868111600528]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	jsonString := []byte(`[[{"one":1,"two":2},{"three":3,"four":4}],14991775432719844,14991868111600528]`)
+	pn := NewPubNubDemo()
+
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -291,13 +300,14 @@ func TestHistoryResponseParsingMap(t *testing.T) {
 
 func TestHistoryPNOther(t *testing.T) {
 	assert := assert.New(t)
-	pnconfig.CipherKey = "testCipher"
-	pnconfig.UseRandomInitializationVector = false
+	pn := NewPubNubDemo()
+	pn.Config.CipherKey = "testCipher"
+	pn.Config.UseRandomInitializationVector = false
 
 	int64Val := int64(14991775432719844)
 	jsonString := []byte(`[[{"pn_other":"ven1bo79fk88nq5EIcnw/N9RmGzLeeWMnsabr1UL3iw="},1,"a",1.1,false,14991775432719844],14991775432719844,14991868111600528]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -331,11 +341,13 @@ func TestHistoryPNOther(t *testing.T) {
 
 func TestHistoryPNOtherYay(t *testing.T) {
 	assert := assert.New(t)
-	pnconfig.CipherKey = "enigma"
+	pn := NewPubNubDemo()
+	pn.Config.UseRandomInitializationVector = false
+	pn.Config.CipherKey = "enigma"
 	int64Val := int64(14991775432719844)
 	jsonString := []byte(`[[{"pn_other":"Wi24KS4pcTzvyuGOHubiXg=="},1,"a",1.1,false,14991775432719844],14991775432719844,14991868111600528]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -369,7 +381,8 @@ func TestHistoryResponseParsingSliceInMapWithTimetoken(t *testing.T) {
 
 	jsonString := []byte(`[[{"message":[1,2,3,["one","two","three"]],"timetoken":1111}],14991775432719844,14991868111600528]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	pn := NewPubNubDemo()
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -385,7 +398,8 @@ func TestHistoryResponseParsingMapInSlice(t *testing.T) {
 
 	jsonString := []byte(`[[[{"one":"two","three":[5,6]}]],14991775432719844,14991868111600528]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	pn := NewPubNubDemo()
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(14991775432719844), resp.StartTimetoken)
@@ -400,26 +414,31 @@ func TestHistoryResponseParsingMapInSlice(t *testing.T) {
 
 func TestHistoryEncrypt(t *testing.T) {
 	assert := assert.New(t)
+	pnconfig := NewDemoConfig()
 	pnconfig.CipherKey = "testCipher"
-	pubnub = NewPubNub(pnconfig)
+	pnconfig.UseRandomInitializationVector = false
+	pubnub := NewPubNub(pnconfig)
 
 	jsonString := []byte(`[["MnwzPGdVgz2osQCIQJviGg=="],14991775432719844,14991868111600528]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	resp, _, err := newHistoryResponse(jsonString, pubnub.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	messages := resp.Messages
 	assert.Equal("hey", messages[0].Message)
+    assert.Nil(messages[0].Error)
 	pnconfig.CipherKey = ""
 }
 
 func TestHistoryEncryptSlice(t *testing.T) {
 	assert := assert.New(t)
-	pnconfig.CipherKey = "testCipher"
+	pn := NewPubNubDemo()
+	pn.Config.CipherKey = "testCipher"
+	pn.Config.UseRandomInitializationVector = false
 
 	jsonString := []byte(`[["gwkdY8qcv60GM/PslArWQsdXrQ6LwJD2HoaEfy0CjMc="],14991775432719844,14991868111600528]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	messages := resp.Messages
@@ -436,11 +455,13 @@ func TestHistoryEncryptSlice(t *testing.T) {
 
 func TestHistoryEncryptMap(t *testing.T) {
 	assert := assert.New(t)
-	pnconfig.CipherKey = "testCipher"
+	pn := NewPubNubDemo()
+	pn.Config.CipherKey = "testCipher"
+	pn.Config.UseRandomInitializationVector = false
 
 	jsonString := []byte(`[["wIC13nvJcI4vBtWNFVUu0YDiqREr9kavB88xeyWTweDS363Yl84RCWqOHWTol4aY"],14991775432719844,14991868111600528]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	messages := resp.Messages
@@ -464,7 +485,8 @@ func TestHistoryResponseMeta(t *testing.T) {
 
 	jsonString := []byte(`[[{"message":"my-message","meta":{"m1":"n1","m2":"n2"}}],15699986472636251,15699986472636251]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	pn := NewPubNubDemo()
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(15699986472636251), resp.StartTimetoken)
@@ -482,7 +504,8 @@ func TestHistoryResponseMetaAndTT(t *testing.T) {
 
 	jsonString := []byte(`[[{"message":"my-message","meta":{"m1":"n1","m2":"n2"},"timetoken":15699986472636251}],15699986472636251,15699986472636251]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	pn := NewPubNubDemo()
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Nil(err)
 
 	assert.Equal(int64(15699986472636251), resp.StartTimetoken)
@@ -501,7 +524,8 @@ func TestHistoryResponseError(t *testing.T) {
 
 	jsonString := []byte(`s`)
 
-	_, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	pn := NewPubNubDemo()
+	_, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
@@ -510,7 +534,8 @@ func TestHistoryResponseStartTTError(t *testing.T) {
 
 	jsonString := []byte(`[[{"message":[1,2,3,["one","two","three"]],"timetoken":1111}],"s","a"]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	pn := NewPubNubDemo()
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Equal(int64(0), resp.StartTimetoken)
 	assert.Equal(int64(0), resp.EndTimetoken)
 	assert.Nil(err)
@@ -522,9 +547,53 @@ func TestHistoryResponseEndTTError(t *testing.T) {
 
 	jsonString := []byte(`[[{"message":[1,2,3,["one","two","three"]],"timetoken":1111}],121324,"a"]`)
 
-	resp, _, err := newHistoryResponse(jsonString, initHistoryOpts(), fakeResponseState)
+	pn := NewPubNubDemo()
+	resp, _, err := newHistoryResponse(jsonString, pn.initHistoryOpts(), fakeResponseState)
 	assert.Equal(int64(121324), resp.StartTimetoken)
 	assert.Equal(int64(0), resp.EndTimetoken)
 	assert.Nil(err)
-
 }
+
+func TestHistoryCryptoModuleWithEncryptedMessage(t *testing.T) {
+	assert := assert.New(t)
+	pnconfig := NewDemoConfig()
+	pubnub := NewPubNub(pnconfig)
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pubnub.Config.CryptoModule = crypto
+
+    // Rust generated cipher text
+	jsonString := []byte(`[["UE5FRAFBQ1JIEALf+E65kseYJwTw2J6BUk9MePHiCcBCS+8ykXLkBIOA"],14991775432719844,14991868111600528]`)
+
+	resp, _, err := newHistoryResponse(jsonString, pubnub.initHistoryOpts(), fakeResponseState)
+	assert.Nil(err)
+
+	messages := resp.Messages
+	assert.Equal("test", messages[0].Message)
+    assert.Nil(messages[0].Error)
+	pnconfig.CipherKey = ""
+}
+
+func TestHistoryCryptoModuleWithNoEncryptedMessage(t *testing.T) {
+	assert := assert.New(t)
+	pnconfig := NewDemoConfig()
+	pubnub := NewPubNub(pnconfig)
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pubnub.Config.CryptoModule = crypto
+
+	jsonString := []byte(`[["test"],14991775432719844,14991868111600528]`)
+
+	resp, _, err := newHistoryResponse(jsonString, pubnub.initHistoryOpts(), fakeResponseState)
+	assert.Nil(err)
+
+	messages := resp.Messages
+	assert.Equal("test", messages[0].Message)
+    assert.NotNil(messages[0].Error)
+	pnconfig.CipherKey = ""
+}
+

@@ -2,12 +2,10 @@ package pubnub
 
 import (
 	"fmt"
+	"github.com/pubnub/go/v7/crypto"
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
-
-	"github.com/pubnub/go/v7/utils"
 )
 
 var emptyDownloadFileResponse *PNDownloadFileResponse
@@ -93,32 +91,32 @@ func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse
 		stat.StatusCode = resp.StatusCode
 		return nil, stat, err
 	}
-	contentLenEnc, err := strconv.ParseInt(string(resp.Header.Get("Content-Length")), 10, 64)
-	if err != nil {
-		b.opts.pubnub.Config.Log.Printf("err in parsing content length %s", err)
-		return nil, stat, err
-	}
 
 	var respDL *PNDownloadFileResponse
-	if b.opts.CipherKey != "" {
-		r, w := io.Pipe()
-		utils.DecryptFile(b.opts.CipherKey, contentLenEnc, resp.Body, w)
-		respDL = &PNDownloadFileResponse{
-			File: r,
-		}
-
-	} else if b.opts.pubnub.Config.CipherKey != "" {
-		r, w := io.Pipe()
-		utils.DecryptFile(b.opts.pubnub.Config.CipherKey, contentLenEnc, resp.Body, w)
-		respDL = &PNDownloadFileResponse{
-			File: r,
-		}
-
-	} else {
+	if b.opts.CipherKey == "" && b.opts.pubnub.getCryptoModule() == nil {
 		respDL = &PNDownloadFileResponse{
 			File: resp.Body,
 		}
+	} else {
+		var e error
+		cryptoModule := b.opts.pubnub.getCryptoModule()
+		if b.opts.CipherKey != "" {
+			cryptoModule, e = crypto.NewLegacyCryptoModule(b.opts.CipherKey, true)
+			if e != nil {
+				return nil, stat, e
+			}
+		}
+
+		r, e := cryptoModule.DecryptStream(resp.Body)
+		if e != nil {
+			return nil, stat, e
+		}
+		respDL = &PNDownloadFileResponse{
+			File: r,
+		}
+
 	}
+
 	return respDL, stat, nil
 }
 

@@ -157,15 +157,18 @@ func (o *fireOpts) buildPath() (string, error) {
 	var message []byte
 	var err error
 
-	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-		msg := utils.EncryptString(cipherKey, string(message), o.pubnub.Config.UseRandomInitializationVector)
-
-		o.Message = []byte(msg)
-	}
-
-	message, err = utils.ValueAsString(o.Message)
-	if err != nil {
-		return "", err
+	if o.pubnub.getCryptoModule() != nil {
+		var msg string
+		if msg, err = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); err != nil {
+			o.pubnub.Config.Log.Printf("error in serializing: %v\n", err)
+			return "", err
+		}
+		message = []byte(msg)
+	} else {
+		message, err = utils.ValueAsString(o.Message)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return fmt.Sprintf(publishGetPath,
@@ -212,7 +215,7 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 			if err != nil {
 				return []byte{}, err
 			}
-			msg = []byte(m)
+			msg = m
 		} else {
 			if s, ok := o.Message.(string); ok {
 				msg = []byte(s)
@@ -222,13 +225,16 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 			}
 		}
 
-		if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
-			enc := utils.EncryptString(cipherKey, string(msg), o.pubnub.Config.UseRandomInitializationVector)
-			msg, err := utils.ValueAsString(enc)
+		if o.pubnub.getCryptoModule() != nil {
+			enc, err := encryptString(o.pubnub.getCryptoModule(), string(msg))
 			if err != nil {
 				return []byte{}, err
 			}
-			return []byte(msg), nil
+			m, err := utils.ValueAsString(enc)
+			if err != nil {
+				return []byte{}, err
+			}
+			return m, nil
 		}
 		return msg, nil
 	}

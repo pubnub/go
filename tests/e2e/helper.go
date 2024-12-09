@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"io"
 	"math/rand"
 	"net"
@@ -122,6 +123,10 @@ func subscribeWithATimeout(t *testing.T, pn *pubnub.PubNub, channel string, dura
 		t.Error(errMsg)
 		return errors.New(errMsg)
 	}
+}
+
+func checkForAsserted(t *testing.T, maxTime, intervalTime time.Duration, fun func() error) {
+
 }
 
 func checkFor(assert *assert.Assertions, maxTime, intervalTime time.Duration, fun func() error) {

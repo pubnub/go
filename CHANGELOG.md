@@ -1,3 +1,31 @@
+## v7.2.1
+November 27 2023
+
+#### Fixed
+- Handle unencrypted message while getting messages with crypto.
+
+## v7.2.0
+October 16 2023
+
+#### Added
+- Update the crypto module structure and add enhanced AES-CBC cryptor.
+
+#### Fixed
+- Improved security of crypto implementation by increasing the cipher key entropy by a factor of two.
+
+## v7.1.2
+May 11 2023
+
+#### Fixed
+- Use http client configured for subscribe calls to make subscribe calls.
+
+## v7.1.1
+March 07 2023
+
+#### Fixed
+- Undeprecate Grant Token methods.
+- Bump dependencies to avoid vulnerabilities.
+
 ## v7.1.0
 August 09 2022
 

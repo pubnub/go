@@ -215,7 +215,7 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 		}
 	}
 
-	if cipherKey := o.pubnub.Config.CipherKey; cipherKey != "" {
+	if o.pubnub.getCryptoModule() != nil {
 		var msg string
 		var p *publishBuilder
 		if o.context() != nil {
@@ -225,7 +225,7 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 		}
 		p.opts.Message = o.Message
 
-		msg, errJSONMarshal := p.opts.encryptProcessing(cipherKey)
+		msg, errJSONMarshal := p.opts.encryptProcessing()
 		if errJSONMarshal != nil {
 			return "", errJSONMarshal
 		}

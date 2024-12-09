@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/pubnub/go/v7/crypto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +23,7 @@ func TestParseCipherInterfaceCipherWithCipher(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.UseRandomInitializationVector = false
 
-	intf, err := parseCipherInterface(s, pn.Config)
+	intf, err := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	assert.Nil(err)
 	assert.Equal("yay!", intf.(string))
@@ -35,7 +36,7 @@ func TestParseCipherInterfacePlainWithCipher(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	assert.Equal("yay!", intf.(string))
 }
@@ -47,7 +48,7 @@ func TestParseCipherInterfaceCipherWithDiffCipher(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "test"
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	assert.Equal("Wi24KS4pcTzvyuGOHubiXg==", intf.(string))
 
@@ -60,7 +61,7 @@ func TestParseCipherInterfacePlainWithDiffCipher(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "test"
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	assert.Equal("yay!", intf.(string))
 }
@@ -72,7 +73,7 @@ func TestParseCipherInterfaceCipherWithoutCipher(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = ""
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	assert.Equal("Wi24KS4pcTzvyuGOHubiXg==", intf.(string))
 }
@@ -84,7 +85,7 @@ func TestParseCipherInterfacePlainWithoutCipher(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = ""
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	assert.Equal("yay!", intf.(string))
 }
@@ -99,7 +100,7 @@ func TestParseCipherInterfacePlainWithCipherStruct(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
 
-	intf, err := parseCipherInterface(s, pn.Config)
+	intf, err := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	assert.Nil(err)
 	if msg, ok := intf.(customStruct); !ok {
@@ -121,7 +122,7 @@ func TestParseCipherInterfacePlainWithoutCipherStruct(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = ""
 
-	intf, err := parseCipherInterface(s, pn.Config)
+	intf, err := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	assert.Nil(err)
 	if msg, ok := intf.(customStruct); !ok {
@@ -148,7 +149,7 @@ func TestParseCipherInterfacePlainWithCipherMapPNOther(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("12345", msg["not_other"])
@@ -174,7 +175,7 @@ func TestParseCipherInterfacePlainWithoutCipherMapPNOther(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = ""
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("12345", msg["not_other"])
@@ -196,7 +197,7 @@ func TestParseCipherInterfaceCipherWithoutCipherStringPNOther(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = ""
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
@@ -219,7 +220,7 @@ func TestParseCipherInterfaceCipherWithCipherStringPNOther(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.UseRandomInitializationVector = false
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
@@ -238,7 +239,7 @@ func TestParseCipherInterfaceCipherWithoutCipherStruct(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.UseRandomInitializationVector = false
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 	msg := intf.(map[string]interface{})
 	assert.Equal("hi!", msg["Foo"])
 
@@ -256,7 +257,7 @@ func TestParseCipherInterfaceCipherWithCipherStructPNOther(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.UseRandomInitializationVector = false
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
@@ -278,7 +279,7 @@ func TestParseCipherInterfaceCipherWithOtherCipherStructPNOther(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "test"
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
@@ -298,7 +299,7 @@ func TestParseCipherInterfaceCipherWithCipherStructPNOtherDisable(t *testing.T) 
 	pn.Config.UseRandomInitializationVector = false
 	pn.Config.CipherKey = "enigma"
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
@@ -314,7 +315,7 @@ func TestParseCipherInterfaceCipherWithIntSlice(t *testing.T) {
 	pn.Config.DisablePNOtherProcessing = true
 	pn.Config.CipherKey = ""
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 
 	msg := intf.([]int)
 	assert.Equal(1, msg[0])
@@ -329,7 +330,7 @@ func TestParseCipherInterfaceCipherWithoutCipherStruct2(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.UseRandomInitializationVector = false
 
-	intf, _ := parseCipherInterface(s, pn.Config)
+	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
 	msg := intf.(map[string]interface{})
 	assert.Equal("12345", msg["not_other"])
 	if msgOther, ok := msg["pn_other"].(map[string]interface{}); !ok {
@@ -624,3 +625,118 @@ func (pn *PubNub) payloadToMsg(payload subscribeMessage) *PNMessage {
 	processNonPresencePayload(pn.subscriptionManager, payload, "channel", "subscriptionMatch", payload.PublishMetaData)
 	return <-listener.Message
 }
+
+func TestDecryptionProcessOnEncryptedMessage(t *testing.T) {
+    assert := assert.New(t)
+    pn := NewPubNub(NewDemoConfig())
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pn.Config.CryptoModule = crypto
+
+    // Rust generated cipher text
+    result, err := parseCipherInterface("UE5FRAFBQ1JIEALf+E65kseYJwTw2J6BUk9MePHiCcBCS+8ykXLkBIOA", pn.Config, pn.getCryptoModule())
+
+    assert.Nil(err)
+    assert.Equal("test", result)
+}
+
+func TestDecryptionProcessOnNoEncryptedMessage(t *testing.T) {
+    assert := assert.New(t)
+    pn := NewPubNub(NewDemoConfig())
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pn.Config.CryptoModule = crypto
+
+    result, err := parseCipherInterface("test", pn.Config, pn.getCryptoModule())
+
+    assert.NotNil(err)
+    assert.Equal("test", result)
+}
+
+func TestProcessSubscribeWithCryptoModule(t *testing.T) {
+	assert := assert.New(t)
+	done := make(chan bool)
+	pn := NewPubNub(NewDemoConfig())
+
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pn.Config.CryptoModule = crypto
+
+	listener := NewListener()
+ 
+	go func() {
+		for {
+			select {
+            case result := <-listener.Message:
+                assert.Equal("test", result.Message)
+                assert.Nil(result.Error)
+				done <- true
+				break
+			case <-listener.Status:
+			case <-listener.Presence:
+				break
+			}
+		}
+	}()
+ 
+	pn.AddListener(listener)
+ 
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload:           "UE5FRAFBQ1JIEALf+E65kseYJwTw2J6BUk9MePHiCcBCS+8ykXLkBIOA",
+	}
+ 
+	processSubscribePayload(pn.subscriptionManager, *sm)
+	<-done
+	//pn.Destroy()
+} 
+
+func TestProcessSubscribeWithCryptoModuleNoEncryptedMessage(t *testing.T) {
+	assert := assert.New(t)
+	done := make(chan bool)
+	pn := NewPubNub(NewDemoConfig())
+
+    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+
+    assert.Nil(init_err)
+
+    pn.Config.CryptoModule = crypto
+
+	listener := NewListener()
+ 
+	go func() {
+		for {
+			select {
+            case result := <-listener.Message:
+                assert.Equal("test", result.Message)
+                assert.NotNil(result.Error)
+				done <- true
+				break
+			case <-listener.Status:
+			case <-listener.Presence:
+				break
+			}
+		}
+	}()
+ 
+	pn.AddListener(listener)
+ 
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload:           "test",
+	}
+ 
+	processSubscribePayload(pn.subscriptionManager, *sm)
+	<-done
+	//pn.Destroy()
+} 
