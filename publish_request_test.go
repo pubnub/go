@@ -172,7 +172,7 @@ func AssertSuccessPublishGetAuth(t *testing.T, expectedString string, message in
 }
 
 func AssertSuccessPublishPost(t *testing.T, pn *PubNub, expectedBody string, message interface{}) {
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	opts := newPublishOpts(pn, pn.ctx)
 	opts.Channel = "ch"
