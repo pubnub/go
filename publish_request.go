@@ -189,21 +189,7 @@ func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 }
 
 func (o *publishOpts) isCustomMessageTypeCorrect() bool {
-    if len(o.CustomMessageType) == 0 {
-        return true
-    }
-
-    if len(o.CustomMessageType) < 3 || len(o.CustomMessageType) > 50 {
-        return false
-    }
-
-    for _, c := range o.CustomMessageType {
-        if !('a' <= c && 'z' >= c) && !('A' <= c && 'Z' >= c) && c != '-' && c != '_' {
-            return false
-        }
-    }
-
-    return true
+    return isCustomMessageTypeValid(o.CustomMessageType)
 }
 
 func (o *publishOpts) validate() error {
