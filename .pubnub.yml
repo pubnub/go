@@ -1,6 +1,11 @@
 ---
-version: v7.2.1
+version: v7.3.0
 changelog:
+  - date: 2024-12-10
+    version: v7.3.0
+    changes:
+      - type: feature
+        text: "Add `CustomMessageType` to messages and files."
   - date: 2023-11-27
     version: v7.2.1
     changes:
@@ -745,7 +750,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.2.1
+            location: https://github.com/pubnub/go/releases/tag/v7.3.0
             requires:
               -
                 name: "Go"
