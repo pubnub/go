@@ -110,7 +110,7 @@ clean_coverage_output () {
 
 echo "Install 'gocovmerge' module"
 # Install 'gocovmerge' module.
-go install github.com/wadey/gocovmerge@latest > /dev/null 2>&1
+#go install github.com/wadey/gocovmerge@latest > /dev/null 2>&1
 
 TESTS_RUN_OUTPUT=""
 
