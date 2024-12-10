@@ -29,6 +29,7 @@ func AssertSendFile(t *testing.T, checkQueryParam, testContext bool) {
 	channel := "chan"
 	o.Channel(channel)
 	o.QueryParam(queryParam)
+    o.CustomMessageType("custom")
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -45,6 +46,7 @@ func AssertSendFile(t *testing.T, checkQueryParam, testContext bool) {
 		u, _ := o.opts.buildQuery()
 		assert.Equal("v1", u.Get("q1"))
 		assert.Equal("v2", u.Get("q2"))
+        assert.Equal("custom", u.Get("custom_message_type"))
 	}
 
 }
@@ -65,4 +67,16 @@ func TestSendFileResponseValueError(t *testing.T) {
 
 	_, _, err := newPNSendFileResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
+}
+
+func TestSendFileCustomMessageTypeValidation(t *testing.T) {
+    assert := assert.New(t)
+    pn := NewPubNub(NewDemoConfig())
+    opts := newSendFileOpts(pn, pn.ctx)
+    opts.CustomMessageType = "custom-message_type"
+    assert.True(opts.isCustomMessageTypeCorrect())
+    opts.CustomMessageType = "a"
+    assert.False(opts.isCustomMessageTypeCorrect())
+    opts.CustomMessageType = "!@#$%^&*("
+    assert.False(opts.isCustomMessageTypeCorrect())
 }

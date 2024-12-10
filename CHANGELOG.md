@@ -1,3 +1,9 @@
+## v7.3.0
+December 10 2024
+
+#### Added
+- Add `CustomMessageType` to messages and files.
+
 ## v7.2.1
 November 27 2023
 

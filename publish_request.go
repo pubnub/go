@@ -34,9 +34,11 @@ type publishOpts struct {
 	DoNotReplicate bool
 	QueryParam     map[string]string
 
+    CustomMessageType string
+
 	Transport http.RoundTripper
 
-	// nil hacks
+	// nil hacks 
 	setTTL         bool
 	setShouldStore bool
 }
@@ -168,6 +170,14 @@ func (b *publishBuilder) QueryParam(queryParam map[string]string) *publishBuilde
 	return b
 }
 
+// CustomMessageType sets the User-specified message type string - limited by 3-50 case-sensitive alphanumeric characters
+// with only `-` and `_` special characters allowed.
+func (b *publishBuilder) CustomMessageType(messageType string) *publishBuilder {
+    b.opts.CustomMessageType = messageType
+
+    return b
+}
+
 // Execute runs the Publish request.
 func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -176,6 +186,10 @@ func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	}
 
 	return newPublishResponse(rawJSON, status)
+}
+
+func (o *publishOpts) isCustomMessageTypeCorrect() bool {
+    return isCustomMessageTypeValid(o.CustomMessageType)
 }
 
 func (o *publishOpts) validate() error {
@@ -194,6 +208,10 @@ func (o *publishOpts) validate() error {
 	if o.Message == nil {
 		return newValidationError(o, StrMissingMessage)
 	}
+
+    if !o.isCustomMessageTypeCorrect() {
+        return newValidationError(o, StrInvalidCustomMessageType)
+    }
 
 	return nil
 }
@@ -323,6 +341,10 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 	seqn := strconv.Itoa(o.pubnub.getPublishSequence())
 	o.pubnub.Config.Log.Println("seqn:", seqn)
 	q.Set("seqn", seqn)
+
+    if len(o.CustomMessageType) > 0 {
+        q.Set("custom_message_type", o.CustomMessageType)
+    }
 
 	SetQueryParam(q, o.QueryParam)
 

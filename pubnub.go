@@ -15,7 +15,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "7.2.1"
+	Version = "7.3.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -55,6 +55,8 @@ const (
 	StrMissingFileName = "Missing File Name"
 	// StrMissingToken shows `Missing PAMv3 token` message
 	StrMissingToken = "Missing PAMv3 token"
+    // StrInvalidCustomMessageType shows `Invalid CustomMessageType` message
+    StrInvalidCustomMessageType = "Invalid CustomMessageType: size different than 3-50 or contains invalid characters"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.

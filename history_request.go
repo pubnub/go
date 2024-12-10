@@ -91,7 +91,15 @@ func (b *historyBuilder) QueryParam(queryParam map[string]string) *historyBuilde
 // Transport sets the Transport for the History request.
 func (b *historyBuilder) Transport(tr http.RoundTripper) *historyBuilder {
 	b.opts.Transport = tr
+
 	return b
+}
+
+// includeCustomMessageType tells server to send the custom message type with each history item
+func (b *historyBuilder) includeCustomMessageType(i bool) *historyBuilder {
+    b.opts.includeCustomMessageType = i
+
+    return b
 }
 
 // Execute runs the History request.
@@ -126,6 +134,8 @@ type historyOpts struct {
 	// nil hacks
 	setStart bool
 	setEnd   bool
+
+    includeCustomMessageType bool
 
 	Transport http.RoundTripper
 }
@@ -164,6 +174,10 @@ func (o *historyOpts) buildQuery() (*url.Values, error) {
 	} else {
 		q.Set("count", "100")
 	}
+
+    if o.includeCustomMessageType {
+        q.Set("include_custom_message_type", "true")
+    }
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_token", strconv.FormatBool(o.IncludeTimetoken))

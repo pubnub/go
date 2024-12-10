@@ -27,6 +27,7 @@ func (pn *PubNub) initHistoryOpts() *historyOpts {
 	opts.Count = 3
 	opts.IncludeTimetoken = true
 	opts.pubnub = pn
+    opts.includeCustomMessageType = false
 	return opts
 }
 
@@ -132,6 +133,7 @@ func TestHistoryRequestAllParams(t *testing.T) {
 	opts.Reverse = false
 	opts.Count = 3
 	opts.IncludeTimetoken = true
+    opts.includeCustomMessageType = true
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -151,6 +153,7 @@ func TestHistoryRequestAllParams(t *testing.T) {
 	expected.Set("reverse", "false")
 	expected.Set("count", "3")
 	expected.Set("include_token", "true")
+    expected.Set("include_custom_message_type", "true")
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "include_meta"}, []string{})
 }
 
