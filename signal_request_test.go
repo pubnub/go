@@ -26,6 +26,7 @@ func AssertSuccessSignalGet(t *testing.T, channel string, checkQueryParam bool) 
 	opts.Channel = channel
 	opts.Message = msgMap
 	opts.QueryParam = queryParam
+    opts.CustomMessageType = "custom"
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -43,8 +44,8 @@ func AssertSuccessSignalGet(t *testing.T, channel string, checkQueryParam bool) 
 		u, _ := opts.buildQuery()
 		assert.Equal("v1", u.Get("q1"))
 		assert.Equal("v2", u.Get("q2"))
+        assert.Equal("custom", u.Get("custom_message_type"))
 	}
-
 }
 
 func TestSignalPath(t *testing.T) {
@@ -143,4 +144,16 @@ func TestSignalResponseValuePass(t *testing.T) {
 
 	_, _, err := newSignalResponse(jsonBytes, opts, StatusResponse{})
 	assert.Nil(err)
+}
+
+func TestSignalCustomMessageTypeValidation(t *testing.T) {
+    assert := assert.New(t)
+    pn := NewPubNub(NewDemoConfig())
+    opts := newSignalOpts(pn, pn.ctx)
+    opts.CustomMessageType = "custom-message_type"
+    assert.True(opts.isCustomMessageTypeCorrect())
+    opts.CustomMessageType = "a"
+    assert.False(opts.isCustomMessageTypeCorrect())
+    opts.CustomMessageType = "!@#$%^&*("
+    assert.False(opts.isCustomMessageTypeCorrect())
 }

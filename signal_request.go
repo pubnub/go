@@ -69,6 +69,14 @@ func (b *signalBuilder) QueryParam(queryParam map[string]string) *signalBuilder 
 	return b
 }
 
+// CustomMessageType sets the User-specified message type string - limited by 3-50 case-sensitive alphanumeric characters
+// with only `-` and `_` special characters allowed.
+func (b *signalBuilder) CustomMessageType(messageType string) *signalBuilder {
+    b.opts.CustomMessageType = messageType
+
+    return b
+}
+
 // Execute runs the Signal request.
 func (b *signalBuilder) Execute() (*SignalResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -86,6 +94,25 @@ type signalOpts struct {
 	UsePost    bool
 	QueryParam map[string]string
 	Transport  http.RoundTripper
+    CustomMessageType string
+}
+
+func (o *signalOpts) isCustomMessageTypeCorrect() bool {
+    if len(o.CustomMessageType) == 0 {
+        return true
+    }
+
+    if len(o.CustomMessageType) < 3 || len(o.CustomMessageType) > 50 {
+        return false
+    }
+
+    for _, c := range o.CustomMessageType {
+        if !('a' <= c && 'z' >= c) && !('A' <= c && 'Z' >= c) && c != '-' && c != '_' {
+            return false
+        }
+    }
+
+    return true
 }
 
 func (o *signalOpts) validate() error {
@@ -96,6 +123,10 @@ func (o *signalOpts) validate() error {
 	if o.config().PublishKey == "" {
 		return newValidationError(o, StrMissingPubKey)
 	}
+
+    if !o.isCustomMessageTypeCorrect() {
+        return newValidationError(o, StrInvalidCustomMessageType)
+    }
 
 	return nil
 }
@@ -129,6 +160,10 @@ func (o *signalOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	SetQueryParam(q, o.QueryParam)
+
+    if len(o.CustomMessageType) > 0 {
+        q.Set("custom_message_type", o.CustomMessageType)
+    }
 
 	return q, nil
 }
