@@ -108,8 +108,9 @@ clean_coverage_output () {
 }
 
 
+echo "Install 'gocovmerge' module"
 # Install 'gocovmerge' module.
-go install github.com/wadey/gocovmerge@latest > /dev/null 2>&1
+#go install github.com/wadey/gocovmerge@latest > /dev/null 2>&1
 
 TESTS_RUN_OUTPUT=""
 
@@ -117,7 +118,7 @@ echo "Run functional tests"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./ ./ 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
-  exit 1
+  exit 2
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
@@ -125,7 +126,7 @@ echo "Run utils tests"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=utils_tests.out -covermode=atomic -coverpkg=./ ./utils/ 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
-  exit 1
+  exit 3
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
@@ -133,7 +134,7 @@ echo "Run helpers tests"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=helpers_tests.out -covermode=atomic -coverpkg=./ ./tests/helpers/ 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
-  exit 1
+  exit 4
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
@@ -141,7 +142,7 @@ echo "Run integration tests"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -coverprofile=integration_tests.out -covermode=atomic -coverpkg=./ ./tests/e2e/ 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
-  exit 1
+  exit 5
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
@@ -149,7 +150,7 @@ echo "Run deadlock tests #1"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -run "TestDestroy\b" -count 20 -coverprofile=deadlock_tests.out 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
-  exit 1
+  exit 6
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
@@ -157,7 +158,7 @@ echo "Run deadlock tests #2"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -race -run "TestDestroy2\b" -count 20 -coverprofile=deadlock2_tests.out -covermode=atomic -coverpkg=./ ./tests/e2e/ 2>&1)"; then
   parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
-  exit 1
+  exit 7
 fi
 [[ -n $TESTS_RUN_OUTPUT ]] && parse_test_utput "$TESTS_RUN_OUTPUT"
 
