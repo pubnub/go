@@ -270,6 +270,7 @@ type PNMessage struct {
 	Subscription      string
 	Publisher         string
 	Timetoken         int64
+    CustomMessageType string
     Error             error
 }
 

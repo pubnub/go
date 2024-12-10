@@ -571,6 +571,43 @@ func TestProcessSubscribePayloadCipherErr(t *testing.T) {
 	//pn.Destroy()
 }
 
+func TestProcessSubscribePayloadWithCustomMessageType(t *testing.T) {
+	assert := assert.New(t)
+	done := make(chan bool)
+	pn := NewPubNub(NewDemoConfig())
+
+	listener := NewListener()
+ 
+	go func() {
+		for {
+			select {
+            case result := <-listener.Message:
+                assert.Equal("test", result.Message)
+                assert.Equal("custom", result.CustomMessageType)
+                assert.Nil(result.Error)
+				done <- true
+				break
+			case <-listener.Status:
+			case <-listener.Presence:
+				break
+			}
+		}
+	}()
+ 
+	pn.AddListener(listener)
+ 
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload:           "test",
+        CustomMessageType: "custom",
+	}
+ 
+	processSubscribePayload(pn.subscriptionManager, *sm)
+	<-done
+}
+
 func TestDecryptionProcessOnEncryptedMessage(t *testing.T) {
     assert := assert.New(t)
     pn := NewPubNub(NewDemoConfig())
