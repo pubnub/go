@@ -36,7 +36,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # This should be the same as the one specified for on.pull_request.branches
           ref: master
       - name: Checkout release actions
         uses: actions/checkout@v4
