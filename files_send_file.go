@@ -94,7 +94,16 @@ func (b *sendFileBuilder) QueryParam(queryParam map[string]string) *sendFileBuil
 // Transport sets the Transport for the sendFile request.
 func (b *sendFileBuilder) Transport(tr http.RoundTripper) *sendFileBuilder {
 	b.opts.Transport = tr
+
 	return b
+}
+
+// CustomMessageType sets the User-specified message type string - limited by 3-50 case-sensitive alphanumeric characters
+// with only `-` and `_` special characters allowed.
+func (b *sendFileBuilder) CustomMessageType(messageType string) *sendFileBuilder {
+    b.opts.CustomMessageType = messageType
+
+    return b
 }
 
 // Execute runs the sendFile request.
@@ -110,17 +119,22 @@ func (b *sendFileBuilder) Execute() (*PNSendFileResponse, StatusResponse, error)
 type sendFileOpts struct {
 	endpointOpts
 
-	Channel     string
-	Name        string
-	Message     string
-	File        *os.File
-	CipherKey   string
-	TTL         int
-	Meta        interface{}
-	ShouldStore bool
-	QueryParam  map[string]string
+	Channel             string
+	Name                string
+	Message             string
+	File                *os.File
+	CipherKey           string
+	TTL                 int
+	Meta                interface{}
+	ShouldStore         bool
+	QueryParam          map[string]string
+    CustomMessageType   string
 
 	Transport http.RoundTripper
+}
+
+func (o *sendFileOpts) isCustomMessageTypeCorrect() bool {
+    return isCustomMessageTypeValid(o.CustomMessageType)
 }
 
 func (o *sendFileOpts) validate() error {
@@ -135,6 +149,11 @@ func (o *sendFileOpts) validate() error {
 	if o.Name == "" {
 		return newValidationError(o, StrMissingFileName)
 	}
+
+    if !o.isCustomMessageTypeCorrect() {
+        return newValidationError(o, StrInvalidCustomMessageType)
+    }
+
 	return nil
 }
 
@@ -148,6 +167,10 @@ func (o *sendFileOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
 	SetQueryParam(q, o.QueryParam)
+
+    if len(o.CustomMessageType) > 0 {
+        q.Set("custom_message_type", o.CustomMessageType)
+    }
 
 	return q, nil
 }
