@@ -10,5 +10,4 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad // indirect
 	golang.org/x/net v0.35.0
-	golang.org/x/text v0.22.0
 )
