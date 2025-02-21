@@ -8,6 +8,5 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.2
-	golang.org/x/net v0.8.0
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/net v0.23.0
 )
