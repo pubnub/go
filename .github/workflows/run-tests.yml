@@ -43,7 +43,7 @@ jobs:
           go-version: ${{ matrix.go }}
           cache: true
       - name: Build and run tests for Go ${{ matrix.go }}
-        run: ./scripts/run-tests.sh -mod=mod
+        run: make
       - name: Cancel workflow runs for commit on error
         if: failure()
         uses: ./.github/.release/actions/actions/utils/fast-jobs-failure
