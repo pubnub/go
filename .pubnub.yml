@@ -723,9 +723,8 @@ scm: github.com/pubnub/go
 supported-platforms: 
   - 
     editors: 
-      - "1.14.6"
-      - "1.15.12"      
-      - "1.16.4"      
+      - "1.18.9"      
+      - "1.19.4"      
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."
@@ -754,8 +753,8 @@ sdks:
             requires:
               -
                 name: "Go"
-                min-version: "1.14.6"
-                max-version: "1.16.4"
+                min-version: "1.18.9"
+                max-version: "1.19.4"
                 license: "https://golang.org/doc/tos"
                 license-url: "https://golang.org/doc/tos"
                 location: "Should be installed on the computer"
