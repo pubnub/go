@@ -116,7 +116,7 @@ TESTS_RUN_OUTPUT=""
 
 echo "Run functional tests"
 if ! TESTS_RUN_OUTPUT="$(go test $WITH_MOD -v -coverprofile=functional_tests.out -covermode=atomic -coverpkg=./ ./ 2>&1)"; then
-  "$TESTS_RUN_OUTPUT"
+  parse_test_utput "$TESTS_RUN_OUTPUT"
   clean_coverage_output
   exit 2
 fi
