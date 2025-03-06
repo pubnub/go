@@ -1,3 +1,9 @@
+## v7.3.1
+March 06 2025
+
+#### Modified
+- Update go sdk dependencies to fix GH Dependabot vulnerabilities (end of support for Go 1.16 and 1.17).
+
 ## v7.3.0
 December 10 2024
 
