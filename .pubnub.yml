@@ -1,6 +1,11 @@
 ---
-version: v7.3.0
+version: v7.3.1
 changelog:
+  - date: 2025-03-06
+    version: v7.3.1
+    changes:
+      - type: improvement
+        text: "Update go sdk dependencies to fix GH Dependabot vulnerabilities (end of support for Go 1.16 and 1.17)."
   - date: 2024-12-10
     version: v7.3.0
     changes:
@@ -723,9 +728,8 @@ scm: github.com/pubnub/go
 supported-platforms: 
   - 
     editors: 
-      - "1.14.6"
-      - "1.15.12"      
-      - "1.16.4"      
+      - "1.18.9"      
+      - "1.19.4"      
     platforms: 
       - "FreeBSD 8-STABLE or later, amd64, 386"
       - "Linux 2.6 or later, amd64, 386."
@@ -750,12 +754,12 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.3.0
+            location: https://github.com/pubnub/go/releases/tag/v7.3.1
             requires:
               -
                 name: "Go"
-                min-version: "1.14.6"
-                max-version: "1.16.4"
+                min-version: "1.18.9"
+                max-version: "1.19.4"
                 license: "https://golang.org/doc/tos"
                 license-url: "https://golang.org/doc/tos"
                 location: "Should be installed on the computer"
