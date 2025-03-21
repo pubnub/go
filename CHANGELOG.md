@@ -1,3 +1,9 @@
+## v7.3.2
+March 21 2025
+
+#### Fixed
+- Add handling panic while destroying the pubnub client in case pn.jobQueue is already closed. Thanks @piyushkumar96 for your contribution!. Fixed the following issues reported by [@piyushkumar96](https://github.com/piyushkumar96): [#161](https://github.com/pubnub/go/issues/161).
+
 ## v7.3.1
 March 06 2025
 
