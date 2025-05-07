@@ -1,3 +1,9 @@
+## v7.3.3
+May 07 2025
+
+#### Modified
+- Update Go SDK dependencies to fix Snyk vulnerability. Remove Gopkg files.
+
 ## v7.3.2
 March 21 2025
 
