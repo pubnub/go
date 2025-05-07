@@ -1,6 +1,11 @@
 ---
-version: v7.3.2
+version: v7.3.3
 changelog:
+  - date: 2025-05-07
+    version: v7.3.3
+    changes:
+      - type: improvement
+        text: "Update Go SDK dependencies to fix Snyk vulnerability. Remove Gopkg files."
   - date: 2025-03-21
     version: v7.3.2
     changes:
@@ -759,7 +764,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.3.2
+            location: https://github.com/pubnub/go/releases/tag/v7.3.3
             requires:
               -
                 name: "Go"
