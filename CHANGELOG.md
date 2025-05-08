@@ -1,3 +1,9 @@
+## v7.3.4
+May 08 2025
+
+#### Modified
+- Revert golang.org/x/net to the safest version.
+
 ## v7.3.3
 May 07 2025
 
