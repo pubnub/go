@@ -1,6 +1,11 @@
 ---
-version: v7.3.3
+version: v7.3.4
 changelog:
+  - date: 2025-05-08
+    version: v7.3.4
+    changes:
+      - type: improvement
+        text: "Revert golang.org/x/net to the safest version."
   - date: 2025-05-07
     version: v7.3.3
     changes:
@@ -764,7 +769,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.3.3
+            location: https://github.com/pubnub/go/releases/tag/v7.3.4
             requires:
               -
                 name: "Go"
