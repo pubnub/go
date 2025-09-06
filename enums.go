@@ -161,7 +161,7 @@ const (
 	PNLoopStopCategory
 	// PNAcknowledgmentCategory as the StatusCategory is the Acknowledgement of an operation (like Unsubscribe).
 	PNAcknowledgmentCategory
-	// PNBadRequestCategory as the StatusCategory means the request was malformed.
+	// PNBadRequestCategory as the StatusCategory means the request was malformed or request validation failed.
 	PNBadRequestCategory
 	// PNAccessDeniedCategory as the StatusCategory means that PAM is enabled and the channel is not granted R/W access.
 	PNAccessDeniedCategory
