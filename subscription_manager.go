@@ -15,8 +15,8 @@ import (
 
 // SubscriptionManager Events:
 // - ConnectedCategory - after connection established
-// - DisconnectedCategory - after subscription loop stops for any reason (no
-// channels left or error happened)
+// - DisconnectedCategory - when all channels/groups are unsubscribed (graceful disconnect)
+// - DisconnectedUnexpectedlyCategory - when network errors cause unexpected disconnection
 // Unsubscribe
 // When you unsubscribe from channel or channel group the following events
 // happens:
@@ -384,7 +384,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 						strings.Contains(err.Error(), "504") ||
 						strings.Contains(err.Error(), "pubnub/connection")) {
 					pnStatus := &PNStatus{
-						Category: PNDisconnectedCategory,
+						Category: PNDisconnectedUnexpectedlyCategory,
 					}
 					m.pubnub.Config.Log.Println("Status:", pnStatus)
 					m.listenerManager.announceStatus(pnStatus)

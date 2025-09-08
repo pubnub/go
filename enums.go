@@ -153,7 +153,7 @@ const (
 	PNTimeoutCategory
 	// PNConnectedCategory as the StatusCategory means the channel is subscribed to receive messages.
 	PNConnectedCategory
-	// PNDisconnectedCategory as the StatusCategory means a disconnection occurred due to network issues.
+	// PNDisconnectedCategory as the StatusCategory means that the PubNub client has been intentionally temporarily disconnected from the real-time updates.
 	PNDisconnectedCategory
 	// PNCancelledCategory as the StatusCategory means the context was cancelled.
 	PNCancelledCategory
@@ -177,6 +177,8 @@ const (
 	PNReconnectionAttemptsExhausted
 	// PNRequestMessageCountExceededCategory is fired when the MessageQueueOverflowCount limit is exceeded by the number of messages received in a single subscribe request
 	PNRequestMessageCountExceededCategory
+	// PNDisconnectedUnexpectedlyCategory as the StatusCategory means that the connection was unexpectedly disconnected for example due to a network issues
+	PNDisconnectedUnexpectedlyCategory
 )
 
 const (
@@ -446,6 +448,9 @@ func (c StatusCategory) String() string {
 
 	case PNNoStubMatchedCategory:
 		return "No Stub Matched"
+
+	case PNDisconnectedUnexpectedlyCategory:
+		return "Disconnected Unexpectedly"
 
 	default:
 		return "No Stub Matched"
