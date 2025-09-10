@@ -350,14 +350,6 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					m.listenerManager.announceStatus(pnStatus)
 					m.pubnub.Config.Log.Println("context canceled")
 					break
-				} else if strings.Contains(err.Error(), "499") {
-					pnStatus := &PNStatus{
-						Category: PNDisconnectedCategory,
-					}
-					m.pubnub.Config.Log.Println("Status:", pnStatus)
-					m.listenerManager.announceStatus(pnStatus)
-					m.pubnub.Config.Log.Println("client cancelled subscription")
-					break
 				} else if strings.Contains(err.Error(), "Forbidden") ||
 					strings.Contains(err.Error(), "403") {
 					pnStatus := &PNStatus{
