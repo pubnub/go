@@ -163,7 +163,17 @@ func (m *ReconnectionManager) stopHeartbeatTimer() {
 	m.Lock()
 	if m.hbRunning {
 		m.hbRunning = false
-		m.exitReconnectionManager <- true
+		// Use non-blocking send to prevent deadlock when the receiver
+		// is blocked on network I/O (like Time().Execute())
+		select {
+		case m.exitReconnectionManager <- true:
+			// Successfully sent exit signal - immediate shutdown
+			m.pubnub.Config.Log.Printf("stopHeartbeatTimer: exit signal sent successfully")
+		default:
+			// Channel is full or no receiver ready - this is OK since we set hbRunning = false
+			// The heartbeat timer will eventually check hbRunning and exit gracefully
+			m.pubnub.Config.Log.Printf("stopHeartbeatTimer: exit signal not sent, relying on hbRunning flag")
+		}
 	}
 	m.Unlock()
 	m.pubnub.Config.Log.Printf("stopHeartbeatTimer true")

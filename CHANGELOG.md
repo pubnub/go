@@ -1,3 +1,12 @@
+## v7.4.0
+September 11 2025
+
+#### Added
+- Add an `PNDisconnectedUnexpectedlyCategory ` announcement in case of server / connection errors after the initial / handshake subscription.
+
+#### Fixed
+- Fix deadlock that could happen during unsubscribe in `stopHeartbeatTimer` function.
+
 ## v7.3.4
 May 08 2025
 

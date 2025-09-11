@@ -3,19 +3,20 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
-	"github.com/pubnub/go/v7/crypto"
 	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/pubnub/go/v7/crypto"
 )
 
 // SubscriptionManager Events:
 // - ConnectedCategory - after connection established
-// - DisconnectedCategory - after subscription loop stops for any reason (no
-// channels left or error happened)
+// - DisconnectedCategory - when all channels/groups are unsubscribed (graceful disconnect)
+// - DisconnectedUnexpectedlyCategory - when network errors cause unexpected disconnection
 // Unsubscribe
 // When you unsubscribe from channel or channel group the following events
 // happens:
@@ -359,7 +360,8 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					m.unsubscribeAll()
 					break
 				} else if strings.Contains(err.Error(), "400") ||
-					strings.Contains(err.Error(), "Bad Request") {
+					strings.Contains(err.Error(), "Bad Request") ||
+					strings.Contains(err.Error(), "pubnub/validation") {
 					pnStatus := &PNStatus{
 						Category: PNBadRequestCategory,
 					}
@@ -374,6 +376,19 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					m.pubnub.Config.Log.Println("Status:", pnStatus)
 					m.listenerManager.announceStatus(pnStatus)
 					m.unsubscribeAll()
+					break
+				} else if opts.Timetoken > 0 &&
+					(strings.Contains(err.Error(), "500") ||
+						strings.Contains(err.Error(), "502") ||
+						strings.Contains(err.Error(), "503") ||
+						strings.Contains(err.Error(), "504") ||
+						strings.Contains(err.Error(), "pubnub/connection")) {
+					pnStatus := &PNStatus{
+						Category: PNDisconnectedUnexpectedlyCategory,
+					}
+					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.listenerManager.announceStatus(pnStatus)
+
 					break
 				} else {
 					pnStatus := &PNStatus{
@@ -481,7 +496,7 @@ type subscribeMessage struct {
 	UserMetadata      interface{}   `json:"u"`
 	MessageType       PNMessageType `json:"e"`
 	SequenceNumber    int           `json:"s"`
-    CustomMessageType string        `json:"ctm"`
+	CustomMessageType string        `json:"ctm"`
 
 	PublishMetaData publishMetadata `json:"p"`
 }
@@ -639,7 +654,7 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 
 	switch payload.MessageType {
 	case PNMessageTypeSignal:
-		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, payload.CustomMessageType, /*no error*/nil)
+		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, payload.CustomMessageType /*no error*/, nil)
 		m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
 		m.listenerManager.announceSignal(pnMessageResult)
 	case PNMessageTypeObjects:
@@ -748,7 +763,7 @@ func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualC
 		Timetoken:         timetoken,
 		Publisher:         issuingClientID,
 		UserMetadata:      userMetadata,
-        Error:             err,
+		Error:             err,
 	}
 	return pnFilesEvent
 }
@@ -946,8 +961,8 @@ func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, c
 		Timetoken:         timetoken,
 		Publisher:         issuingClientID,
 		UserMetadata:      userMetadata,
-        CustomMessageType: CustomMessageType,
-        Error:             error,
+		CustomMessageType: CustomMessageType,
+		Error:             error,
 	}
 
 	return pnMessageResult
@@ -974,7 +989,7 @@ func parseCipherInterface(data interface{}, pnConf *Config, module crypto.Crypto
 					pnConf.Log.Println("v[pn_other]", v["pn_other"], v, msg)
 					decrypted, errDecryption := decryptString(module, msg)
 					if errDecryption != nil {
-					    pnConf.Log.Println(errDecryption, msg, "\nMessage might be not encrypted, returning as is...")
+						pnConf.Log.Println(errDecryption, msg, "\nMessage might be not encrypted, returning as is...")
 
 						return v, errDecryption
 					} else {
@@ -998,7 +1013,7 @@ func parseCipherInterface(data interface{}, pnConf *Config, module crypto.Crypto
 			var intf interface{}
 			decrypted, errDecryption := decryptString(module, data.(string))
 			if errDecryption != nil {
-			    pnConf.Log.Println(errDecryption, intf, "\nMessage might be not encrypted, returning as is...")
+				pnConf.Log.Println(errDecryption, intf, "\nMessage might be not encrypted, returning as is...")
 
 				intf = data
 				return intf, errDecryption

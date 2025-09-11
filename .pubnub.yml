@@ -1,6 +1,13 @@
 ---
-version: v7.3.4
+version: v7.4.0
 changelog:
+  - date: 2025-09-11
+    version: v7.4.0
+    changes:
+      - type: feature
+        text: "Add an `PNDisconnectedUnexpectedlyCategory ` announcement in case of server / connection errors after the initial / handshake subscription."
+      - type: bug
+        text: "Fix deadlock that could happen during unsubscribe in `stopHeartbeatTimer` function."
   - date: 2025-05-08
     version: v7.3.4
     changes:
@@ -769,7 +776,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.3.4
+            location: https://github.com/pubnub/go/releases/tag/v7.4.0
             requires:
               -
                 name: "Go"
