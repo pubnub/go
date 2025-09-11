@@ -37,6 +37,7 @@ func TestStatusCategoryString(t *testing.T) {
 	assert.Equal("Reconnected", PNReconnectedCategory.String())
 	assert.Equal("Reconnection Attempts Exhausted", PNReconnectionAttemptsExhausted.String())
 	assert.Equal("No Stub Matched", PNNoStubMatchedCategory.String())
+	assert.Equal("Disconnected Unexpectedly", PNDisconnectedUnexpectedlyCategory.String())
 }
 
 func TestOperationTypeString(t *testing.T) {

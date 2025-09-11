@@ -37,6 +37,8 @@ func gettingStarted() {
 			case status := <-listener.Status:
 				switch status.Category {
 				case pubnub.PNDisconnectedCategory:
+					// This event happens when all channels/groups have been unsubscribed (graceful disconnect)
+				case pubnub.PNDisconnectedUnexpectedlyCategory:
 					// This event happens when radio / connectivity is lost
 				case pubnub.PNConnectedCategory:
 					// Connect event. You can do stuff like publish, and know you'll get it.
@@ -107,6 +109,8 @@ func listeners() {
 					doneSubscribe <- true
 					return
 				case pubnub.PNDisconnectedCategory:
+					//
+				case pubnub.PNDisconnectedUnexpectedlyCategory:
 					//
 				case pubnub.PNReconnectedCategory:
 					//
