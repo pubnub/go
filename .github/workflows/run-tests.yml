@@ -42,8 +42,20 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
           cache: true
+      - name: Install gotestsum
+        run: |
+          go install gotest.tools/gotestsum@latest
+          gotestsum --version
       - name: Build and run tests for Go ${{ matrix.go }}
-        run: ./scripts/run-tests.sh -mod=mod
+        run: ./scripts/run-tests-gotestsum.sh -mod=mod dots
+        timeout-minutes: 15
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-go-${{ matrix.go }}
+          path: coverage.txt
+          retention-days: 7
       - name: Cancel workflow runs for commit on error
         if: failure()
         uses: ./.github/.release/actions/actions/utils/fast-jobs-failure
