@@ -129,3 +129,18 @@ func TestReconnect(t *testing.T) {
 	assert.True(reconnected)
 	r.stopHeartbeatTimer()
 }
+
+// TestCIFailureDemo - Intentional failure to test CI/CD behavior with gotestsum
+func TestCIFailureDemo(t *testing.T) {
+	assert := assert.New(t)
+
+	// This test will always fail to demonstrate gotestsum failure output
+	expectedValue := 42
+	actualValue := 24
+
+	assert.Equal(expectedValue, actualValue, "This test intentionally fails to test CI behavior")
+
+	// Additional failing assertions to show multiple failure types
+	assert.True(false, "This boolean assertion will fail")
+	assert.Contains("hello world", "xyz", "This string assertion will fail")
+}
