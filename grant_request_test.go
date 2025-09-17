@@ -314,6 +314,189 @@ func TestGrantTokenOptsValidatePub(t *testing.T) {
 	assert.Equal("pubnub/validation: pubnub: Grant: Missing Publish Key", opts.validate().Error())
 }
 
+// Enhanced Grant Tests for better coverage
+func TestGrantInvalidTTLBoundaries(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	// Test negative TTL - need to use builder to set setTTL flag
+	o := newGrantBuilder(pn)
+	o.Channels([]string{"ch1"})
+	o.AuthKeys([]string{"auth1"})
+	o.Read(true)
+	o.TTL(-1)
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("-1", query.Get("ttl"))
+
+	// Test zero TTL (infinite)
+	o.TTL(0)
+	query, err = o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("0", query.Get("ttl"))
+
+	// Test maximum reasonable TTL
+	o.TTL(2147483647) // Max int32
+	query, err = o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("2147483647", query.Get("ttl"))
+}
+
+func TestGrantComplexPermissionCombinations(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	// Test all permissions enabled - use builder to set flags properly
+	o := newGrantBuilder(pn)
+	o.Channels([]string{"ch1"})
+	o.AuthKeys([]string{"auth1"})
+	o.Read(true)
+	o.Write(true)
+	o.Manage(true)
+	o.Delete(true)
+	o.Get(true)    // Sets isGetSet = true
+	o.Update(true) // Sets isUpdateSet = true
+	o.Join(true)   // Sets isJoinSet = true
+	o.TTL(1440)
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("1", query.Get("r"))
+	assert.Equal("1", query.Get("w"))
+	assert.Equal("1", query.Get("m"))
+	assert.Equal("1", query.Get("d"))
+	assert.Equal("1", query.Get("g"))
+	assert.Equal("1", query.Get("u"))
+	assert.Equal("1", query.Get("j"))
+
+	// Test no permissions (all false)
+	o.Read(false)
+	o.Write(false)
+	o.Manage(false)
+	o.Delete(false)
+	o.Get(false)    // Still sets isGetSet = true
+	o.Update(false) // Still sets isUpdateSet = true
+	o.Join(false)   // Still sets isJoinSet = true
+
+	query, err = o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("0", query.Get("r"))
+	assert.Equal("0", query.Get("w"))
+	assert.Equal("0", query.Get("m"))
+	assert.Equal("0", query.Get("d"))
+	assert.Equal("0", query.Get("g"))
+	assert.Equal("0", query.Get("u"))
+	assert.Equal("0", query.Get("j"))
+}
+
+func TestGrantMultipleChannelsAndGroups(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	opts := newGrantOpts(pn, pn.ctx)
+	opts.Channels = []string{"ch1", "ch2", "ch3", "special-channel_123"}
+	opts.ChannelGroups = []string{"cg1", "cg2", "special-group_456"}
+	opts.AuthKeys = []string{"auth1", "auth2", "special-auth_789"}
+	opts.UUIDs = []string{"uuid1", "uuid2", "special-uuid_abc"}
+	opts.Read = true
+	opts.TTL = 60
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	assert.Equal("ch1,ch2,ch3,special-channel_123", query.Get("channel"))
+	assert.Equal("cg1,cg2,special-group_456", query.Get("channel-group"))
+	assert.Equal("auth1,auth2,special-auth_789", query.Get("auth"))
+	assert.Equal("uuid1,uuid2,special-uuid_abc", query.Get("target-uuid"))
+}
+
+func TestGrantErrorResponseParsing(t *testing.T) {
+	assert := assert.New(t)
+
+	// Test completely invalid response
+	invalidJSON := []byte(`not json at all`)
+	_, _, err := newGrantResponse(invalidJSON, StatusResponse{})
+	assert.NotNil(err)
+	assert.Contains(err.Error(), "parsing")
+
+	// Test valid JSON but wrong structure - this should not panic (FIXED!)
+	malformedStructure := []byte(`{"not_the_expected": "structure"}`)
+	_, _, err = newGrantResponse(malformedStructure, StatusResponse{})
+	assert.NotNil(err) // Should return error, not panic
+	assert.Contains(err.Error(), "parsing")
+
+	// Test null payload - this should not panic either (FIXED!)
+	nullPayload := []byte(`{"message":"OK","payload":null,"service":"Access Manager","status":200}`)
+	_, _, err = newGrantResponse(nullPayload, StatusResponse{})
+	assert.NotNil(err) // Should handle gracefully
+	assert.Contains(err.Error(), "null payload")
+}
+
+func TestGrantSpecialCharactersInIdentifiers(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	opts := newGrantOpts(pn, pn.ctx)
+	// Test channels with special characters
+	opts.Channels = []string{"ch-with-dash", "ch_with_underscore", "ch.with.dot", "ch:with:colon"}
+	opts.AuthKeys = []string{"auth-key_123", "auth.key.456"}
+	opts.Read = true
+	opts.TTL = 300
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	channelValue := query.Get("channel")
+	assert.Contains(channelValue, "ch-with-dash")
+	assert.Contains(channelValue, "ch_with_underscore")
+	assert.Contains(channelValue, "ch.with.dot")
+	assert.Contains(channelValue, "ch:with:colon")
+
+	authValue := query.Get("auth")
+	assert.Contains(authValue, "auth-key_123")
+	assert.Contains(authValue, "auth.key.456")
+}
+
+func TestGrantEmptyAndNilArrays(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	opts := newGrantOpts(pn, pn.ctx)
+
+	// Test with nil arrays
+	opts.Channels = nil
+	opts.ChannelGroups = nil
+	opts.AuthKeys = nil
+	opts.UUIDs = nil
+	opts.Read = true
+	opts.TTL = 60
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	// Should not include empty parameters
+	assert.Empty(query.Get("channel"))
+	assert.Empty(query.Get("channel-group"))
+	assert.Empty(query.Get("auth"))
+	assert.Empty(query.Get("target-uuid"))
+
+	// Test with empty arrays
+	opts.Channels = []string{}
+	opts.ChannelGroups = []string{}
+	opts.AuthKeys = []string{}
+	opts.UUIDs = []string{}
+
+	query, err = opts.buildQuery()
+	assert.Nil(err)
+
+	// Should not include empty parameters
+	assert.Empty(query.Get("channel"))
+	assert.Empty(query.Get("channel-group"))
+	assert.Empty(query.Get("auth"))
+	assert.Empty(query.Get("target-uuid"))
+}
+
 func TestNewGrantResponseErrorUnmarshalling(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`s`)

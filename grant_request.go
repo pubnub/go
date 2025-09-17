@@ -327,9 +327,36 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	constructedGroups := make(map[string]*PNPAMEntityData)
 	constructedUUIDs := make(map[string]*PNPAMEntityData)
 
-	grantData, _ := value.(map[string]interface{})
-	payload := grantData["payload"]
-	parsedPayload := payload.(map[string]interface{})
+	grantData, ok := value.(map[string]interface{})
+	if !ok {
+		e := pnerr.NewResponseParsingError("Error parsing response: invalid JSON structure",
+			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			fmt.Errorf("expected map[string]interface{}, got %T", value))
+		return emptyGrantResponse, status, e
+	}
+
+	payload, ok := grantData["payload"]
+	if !ok {
+		e := pnerr.NewResponseParsingError("Error parsing response: missing payload field",
+			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			fmt.Errorf("payload field not found in response"))
+		return emptyGrantResponse, status, e
+	}
+
+	if payload == nil {
+		e := pnerr.NewResponseParsingError("Error parsing response: null payload",
+			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			fmt.Errorf("payload field is null"))
+		return emptyGrantResponse, status, e
+	}
+
+	parsedPayload, ok := payload.(map[string]interface{})
+	if !ok {
+		e := pnerr.NewResponseParsingError("Error parsing response: invalid payload structure",
+			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			fmt.Errorf("expected map[string]interface{} for payload, got %T", payload))
+		return emptyGrantResponse, status, e
+	}
 	auths, _ := parsedPayload["auths"].(map[string]interface{})
 	ttl, _ := parsedPayload["ttl"].(float64)
 

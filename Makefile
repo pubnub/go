@@ -1,7 +1,12 @@
 all: install-deps-tests run-tests
 
-# Traditional test runner (current)
+# Default test runner (uses gotestsum)
 run-tests: install-deps-tests
+	@echo "Running tests with gotestsum"
+	bash ./scripts/run-tests-gotestsum.sh
+
+# Traditional test runner (legacy)
+run-tests-legacy: install-deps-tests
 	@echo "Running tests with traditional script"
 	bash ./scripts/run-tests.sh
 

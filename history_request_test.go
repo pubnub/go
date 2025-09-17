@@ -27,7 +27,7 @@ func (pn *PubNub) initHistoryOpts() *historyOpts {
 	opts.Count = 3
 	opts.IncludeTimetoken = true
 	opts.pubnub = pn
-    opts.includeCustomMessageType = false
+	opts.includeCustomMessageType = false
 	return opts
 }
 
@@ -133,7 +133,7 @@ func TestHistoryRequestAllParams(t *testing.T) {
 	opts.Reverse = false
 	opts.Count = 3
 	opts.IncludeTimetoken = true
-    opts.includeCustomMessageType = true
+	opts.includeCustomMessageType = true
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -153,7 +153,7 @@ func TestHistoryRequestAllParams(t *testing.T) {
 	expected.Set("reverse", "false")
 	expected.Set("count", "3")
 	expected.Set("include_token", "true")
-    expected.Set("include_custom_message_type", "true")
+	expected.Set("include_custom_message_type", "true")
 	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "include_meta"}, []string{})
 }
 
@@ -429,7 +429,7 @@ func TestHistoryEncrypt(t *testing.T) {
 
 	messages := resp.Messages
 	assert.Equal("hey", messages[0].Message)
-    assert.Nil(messages[0].Error)
+	assert.Nil(messages[0].Error)
 	pnconfig.CipherKey = ""
 }
 
@@ -561,13 +561,13 @@ func TestHistoryCryptoModuleWithEncryptedMessage(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig := NewDemoConfig()
 	pubnub := NewPubNub(pnconfig)
-    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+	crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
 
-    assert.Nil(init_err)
+	assert.Nil(init_err)
 
-    pubnub.Config.CryptoModule = crypto
+	pubnub.Config.CryptoModule = crypto
 
-    // Rust generated cipher text
+	// Rust generated cipher text
 	jsonString := []byte(`[["UE5FRAFBQ1JIEALf+E65kseYJwTw2J6BUk9MePHiCcBCS+8ykXLkBIOA"],14991775432719844,14991868111600528]`)
 
 	resp, _, err := newHistoryResponse(jsonString, pubnub.initHistoryOpts(), fakeResponseState)
@@ -575,7 +575,7 @@ func TestHistoryCryptoModuleWithEncryptedMessage(t *testing.T) {
 
 	messages := resp.Messages
 	assert.Equal("test", messages[0].Message)
-    assert.Nil(messages[0].Error)
+	assert.Nil(messages[0].Error)
 	pnconfig.CipherKey = ""
 }
 
@@ -583,11 +583,11 @@ func TestHistoryCryptoModuleWithNoEncryptedMessage(t *testing.T) {
 	assert := assert.New(t)
 	pnconfig := NewDemoConfig()
 	pubnub := NewPubNub(pnconfig)
-    crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
+	crypto, init_err := crypto.NewAesCbcCryptoModule("enigma", true)
 
-    assert.Nil(init_err)
+	assert.Nil(init_err)
 
-    pubnub.Config.CryptoModule = crypto
+	pubnub.Config.CryptoModule = crypto
 
 	jsonString := []byte(`[["test"],14991775432719844,14991868111600528]`)
 
@@ -596,7 +596,139 @@ func TestHistoryCryptoModuleWithNoEncryptedMessage(t *testing.T) {
 
 	messages := resp.Messages
 	assert.Equal("test", messages[0].Message)
-    assert.NotNil(messages[0].Error)
+	assert.NotNil(messages[0].Error)
 	pnconfig.CipherKey = ""
 }
 
+// Enhanced History Tests for better coverage
+func TestHistoryCountBoundaries(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	// Test minimum count
+	o := newHistoryBuilder(pn)
+	o.Channel("test-channel")
+	o.Count(1)
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("1", query.Get("count"))
+
+	// Test standard maximum count (implementation caps at 100)
+	o.Count(100)
+	query, err = o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("100", query.Get("count"))
+
+	// Test count over maximum - implementation normalizes to 100
+	o.Count(1000)
+	query, err = o.opts.buildQuery()
+	assert.Nil(err)
+	// The implementation caps this at 100
+	assert.Equal("100", query.Get("count"))
+
+	// Test zero count - implementation defaults to 100
+	o.Count(0)
+	query, err = o.opts.buildQuery()
+	assert.Nil(err)
+	// The implementation defaults zero to 100
+	assert.Equal("100", query.Get("count"))
+}
+
+func TestHistoryTimetokenBoundaries(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newHistoryBuilder(pn)
+	o.Channel("test-channel")
+
+	// Test with minimum valid timetoken
+	o.Start(1)
+	o.End(2)
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("1", query.Get("start"))
+	assert.Equal("2", query.Get("end"))
+
+	// Test with maximum reasonable timetoken
+	maxTimetoken := int64(9223372036854775807) // Max int64
+	o.Start(maxTimetoken - 1000)
+	o.End(maxTimetoken)
+
+	query, err = o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("9223372036854774807", query.Get("start"))
+	assert.Equal("9223372036854775807", query.Get("end"))
+
+	// Test with zero timetokens
+	o.Start(0)
+	o.End(0)
+
+	query, err = o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("0", query.Get("start"))
+	assert.Equal("0", query.Get("end"))
+}
+
+func TestHistoryErrorResponseParsing(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := pn.initHistoryOpts()
+
+	// Test completely invalid JSON
+	invalidJSON := []byte(`not json at all`)
+	_, _, err := newHistoryResponse(invalidJSON, opts, fakeResponseState)
+	assert.NotNil(err)
+	assert.Contains(err.Error(), "parsing")
+
+	// Test malformed JSON structure (expects array, not object)
+	malformedJSON := []byte(`{"invalid": "structure"}`)
+	_, _, err = newHistoryResponse(malformedJSON, opts, fakeResponseState)
+	assert.NotNil(err)
+	assert.Contains(err.Error(), "parsing")
+
+	// Test empty object (should error - History expects array format)
+	emptyJSON := []byte(`{}`)
+	_, _, err = newHistoryResponse(emptyJSON, opts, fakeResponseState)
+	assert.NotNil(err)
+	assert.Contains(err.Error(), "parsing")
+
+	// Test empty array (should error - History expects at least 3 elements)
+	emptyArrayJSON := []byte(`[]`)
+	_, _, err = newHistoryResponse(emptyArrayJSON, opts, fakeResponseState)
+	assert.NotNil(err)
+	assert.Contains(err.Error(), "parsing")
+
+	// Test response with minimum valid structure (empty messages array)
+	validMinimalJSON := []byte(`[[], "start", "end"]`)
+	r, _, err := newHistoryResponse(validMinimalJSON, opts, fakeResponseState)
+	assert.Nil(err)
+	assert.NotNil(r)
+	assert.NotNil(r.Messages)
+	assert.Equal(0, len(r.Messages))
+}
+
+func TestHistorySpecialChannelNames(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	specialChannels := []string{
+		"ch-with-dash",
+		"ch_with_underscore",
+		"ch.with.dot",
+		"ch:with:colon",
+		"ch with space",
+		"unicode-チャンネル",
+	}
+
+	for _, channel := range specialChannels {
+		o := newHistoryBuilder(pn)
+		o.Channel(channel)
+
+		path, err := o.opts.buildPath()
+		assert.Nil(err)
+		assert.NotEmpty(path)
+		assert.Contains(path, "history")
+	}
+}
