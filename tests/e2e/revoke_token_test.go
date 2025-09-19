@@ -3,9 +3,7 @@ package e2e
 import (
 	"log"
 	"os"
-	"strings"
 	"testing"
-	"time"
 
 	pubnub "github.com/pubnub/go/v7"
 	"github.com/stretchr/testify/assert"
