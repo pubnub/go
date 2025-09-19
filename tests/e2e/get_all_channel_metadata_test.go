@@ -39,6 +39,31 @@ func cleanupTestChannelMetadata(t *testing.T, pn *pubnub.PubNub, channelIDs []st
 	}
 }
 
+// Helper function to clean up ALL test channels with Go_Sdk_test prefix (failsafe cleanup)
+func cleanupAllTestChannelMetadata(t *testing.T, pn *pubnub.PubNub) {
+	// Query for all channels with our test prefix
+	resp, _, err := pn.GetAllChannelMetadata().
+		Filter("id LIKE 'Go_Sdk_test*'").
+		Limit(100).
+		Execute()
+
+	if err != nil {
+		t.Logf("Warning: Failed to query test channels for cleanup: %v", err)
+		return
+	}
+
+	if resp != nil && resp.Data != nil {
+		var testChannelIDs []string
+		for _, channel := range resp.Data {
+			testChannelIDs = append(testChannelIDs, channel.ID)
+		}
+
+		if len(testChannelIDs) > 0 {
+			cleanupTestChannelMetadata(t, pn, testChannelIDs)
+		}
+	}
+}
+
 // Test basic happy path - get all channel metadata
 func TestGetAllChannelMetadataBasic(t *testing.T) {
 	assert := assert.New(t)
@@ -49,9 +74,10 @@ func TestGetAllChannelMetadataBasic(t *testing.T) {
 	}
 
 	// Create some test channels for this test
+	testPrefix := "Go_Sdk_test_basic_"
 	testChannels := []string{
-		randomized("get_all_test_channel_1"),
-		randomized("get_all_test_channel_2"),
+		testPrefix + randomized("channel_1"),
+		testPrefix + randomized("channel_2"),
 	}
 	defer cleanupTestChannelMetadata(t, pn, testChannels)
 
@@ -82,7 +108,7 @@ func TestGetAllChannelMetadataWithInclude(t *testing.T) {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	testChannel := randomized("get_all_include_test")
+	testChannel := "Go_Sdk_test_include_" + randomized("channel")
 	defer cleanupTestChannelMetadata(t, pn, []string{testChannel})
 
 	// Create test channel with custom data
@@ -145,10 +171,11 @@ func TestGetAllChannelMetadataWithLimit(t *testing.T) {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	// Create multiple test channels
+	// Create multiple test channels with consistent prefix
+	testPrefix := "Go_Sdk_test_limit_"
 	testChannels := make([]string, 5)
 	for i := 0; i < 5; i++ {
-		testChannels[i] = randomized("limit_test_channel_" + strconv.Itoa(i))
+		testChannels[i] = testPrefix + randomized("channel_"+strconv.Itoa(i))
 		createTestChannelMetadata(t, pn, testChannels[i], "Limit Test "+strconv.Itoa(i), "Channel for limit testing", map[string]interface{}{"index": i})
 	}
 	defer cleanupTestChannelMetadata(t, pn, testChannels)
@@ -220,10 +247,11 @@ func TestGetAllChannelMetadataWithFilter(t *testing.T) {
 	}
 
 	// Create test channels with specific names for filtering
+	testPrefix := "Go_Sdk_test_filter_"
 	testChannels := []string{
-		randomized("filter_alpha_channel"),
-		randomized("filter_beta_channel"),
-		randomized("filter_gamma_channel"),
+		testPrefix + randomized("alpha_channel"),
+		testPrefix + randomized("beta_channel"),
+		testPrefix + randomized("gamma_channel"),
 	}
 	defer cleanupTestChannelMetadata(t, pn, testChannels)
 
@@ -238,12 +266,12 @@ func TestGetAllChannelMetadataWithFilter(t *testing.T) {
 		filter string
 	}{
 		{
-			name:   "Filter by name pattern",
-			filter: "name LIKE '*Alpha*'",
+			name:   "Filter by test prefix",
+			filter: "id LIKE '" + testPrefix + "*'",
 		},
 		{
-			name:   "Filter by id pattern",
-			filter: "id LIKE '*alpha*'",
+			name:   "Filter by name pattern",
+			filter: "name LIKE '*Alpha*'",
 		},
 	}
 
@@ -386,17 +414,19 @@ func TestGetAllChannelMetadataPagination(t *testing.T) {
 	}
 
 	// Create several test channels for pagination
+	testPrefix := "Go_Sdk_test_pagination_"
 	testChannels := make([]string, 10)
 	for i := 0; i < 10; i++ {
-		testChannels[i] = randomized("pagination_channel_" + strconv.Itoa(i))
+		testChannels[i] = testPrefix + randomized("channel_"+strconv.Itoa(i))
 		createTestChannelMetadata(t, pn, testChannels[i], "Pagination Channel "+strconv.Itoa(i), "Channel for pagination", map[string]interface{}{"index": i})
 	}
 	defer cleanupTestChannelMetadata(t, pn, testChannels)
 
 	time.Sleep(1 * time.Second)
 
-	// Get first page
+	// Get first page - filter to only our test channels
 	resp1, status1, err1 := pn.GetAllChannelMetadata().
+		Filter("id LIKE '" + testPrefix + "*'").
 		Limit(3).
 		Count(true).
 		Execute()
@@ -409,6 +439,7 @@ func TestGetAllChannelMetadataPagination(t *testing.T) {
 	// If there's a next page, test pagination
 	if resp1.Next != "" {
 		resp2, status2, err2 := pn.GetAllChannelMetadata().
+			Filter("id LIKE '" + testPrefix + "*'").
 			Limit(3).
 			Start(resp1.Next).
 			Execute()
@@ -567,11 +598,15 @@ func TestGetAllChannelMetadataComprehensive(t *testing.T) {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	// Create comprehensive test data
+	// Failsafe cleanup at the start - clean up any orphaned test channels
+	defer cleanupAllTestChannelMetadata(t, pn)
+
+	// Create comprehensive test data with consistent prefix for filtering
+	testPrefix := "Go_Sdk_test_comprehensive_"
 	testChannels := []string{
-		randomized("comprehensive_alpha"),
-		randomized("comprehensive_beta"),
-		randomized("comprehensive_gamma"),
+		testPrefix + randomized("alpha"),
+		testPrefix + randomized("beta"),
+		testPrefix + randomized("gamma"),
 	}
 	defer cleanupTestChannelMetadata(t, pn, testChannels)
 
@@ -592,12 +627,13 @@ func TestGetAllChannelMetadataComprehensive(t *testing.T) {
 		"tags":       "test,gamma",
 	})
 
-	time.Sleep(1 * time.Second)
+	// Wait for metadata to propagate
+	time.Sleep(4 * time.Second)
 
-	// Test comprehensive query with multiple parameters
+	// Test comprehensive query with multiple parameters using filter
 	resp, status, err := pn.GetAllChannelMetadata().
 		Include([]pubnub.PNChannelMetadataInclude{pubnub.PNChannelMetadataIncludeCustom}).
-		Limit(10).
+		Filter("id LIKE '" + testPrefix + "*'"). // Filter only our test channels
 		Count(true).
 		Sort([]string{"name"}).
 		QueryParam(map[string]string{"test": "comprehensive"}).
@@ -623,8 +659,11 @@ func TestGetAllChannelMetadataComprehensive(t *testing.T) {
 		}
 	}
 
-	// At least some of our test channels should be found
-	assert.True(len(foundChannels) > 0)
+	// E2E test: We must find ALL 3 test channels we created
+	assert.Equal(3, len(foundChannels), "Should find all 3 created test channels")
+	for _, testChannel := range testChannels {
+		assert.True(foundChannels[testChannel], "Should find test channel: %s", testChannel)
+	}
 }
 
 // Test GetAllChannelMetadata edge cases

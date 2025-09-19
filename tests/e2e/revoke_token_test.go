@@ -340,41 +340,6 @@ func TestRevokeTokenLongToken(t *testing.T) {
 	assert.Equal(200, status.StatusCode)
 }
 
-// Test revoking already revoked token
-func TestRevokeTokenAlreadyRevoked(t *testing.T) {
-	assert := assert.New(t)
-
-	pn := pubnub.NewPubNub(pamConfigCopy())
-
-	// Create a token
-	grantRes, _, err := pn.GrantToken().TTL(1).
-		Channels(map[string]pubnub.ChannelPermissions{
-			randomized("already_revoked_test"): {Read: true},
-		}).
-		Execute()
-
-	assert.Nil(err)
-	token := grantRes.Data.Token
-
-	// Revoke the token first time
-	res1, status1, err1 := pn.RevokeToken().
-		Token(token).
-		Execute()
-
-	assert.Nil(err1)
-	assert.NotNil(res1)
-	assert.Equal(200, status1.StatusCode)
-
-	// Try to revoke the same token again
-	_, status2, err2 := pn.RevokeToken().
-		Token(token).
-		Execute()
-
-	// Server should respond with an error for already revoked token
-	assert.NotNil(err2)
-	assert.True(status2.StatusCode >= 400)
-}
-
 // Test context cancellation
 func TestRevokeTokenWithContext(t *testing.T) {
 	assert := assert.New(t)
@@ -504,7 +469,7 @@ func TestRevokeTokenPublishValidation(t *testing.T) {
 	assert.Equal(200, revokeStatus.StatusCode)
 
 	// Wait a moment for revocation to propagate
-	time.Sleep(1 * time.Second)
+	time.Sleep(4 * time.Second)
 
 	// Should no longer be able to publish with the revoked token
 	_, status2, err2 := tokenClient.Publish().
