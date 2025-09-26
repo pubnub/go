@@ -174,6 +174,10 @@ func (o *getAllChannelMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *getAllChannelMetadataOpts) httpMethod() string {
+	return "GET"
+}
+
 func (o *getAllChannelMetadataOpts) isAuthRequired() bool {
 	return true
 }
@@ -192,7 +196,7 @@ func (o *getAllChannelMetadataOpts) operationType() OperationType {
 
 // PNGetAllChannelMetadataResponse is the Objects API Response for Get Spaces
 type PNGetAllChannelMetadataResponse struct {
-	status     int         `json:"status"`
+	Status     int         `json:"status"`
 	Data       []PNChannel `json:"data"`
 	TotalCount int         `json:"totalCount"`
 	Next       string      `json:"next"`

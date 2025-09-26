@@ -192,7 +192,7 @@ func (o *setUUIDMetadataOpts) operationType() OperationType {
 
 // PNSetUUIDMetadataResponse is the Objects API Response for Update user
 type PNSetUUIDMetadataResponse struct {
-	status int    `json:"status"`
+	Status int    `json:"status"`
 	Data   PNUUID `json:"data"`
 }
 

@@ -115,7 +115,7 @@ func (o *removeChannelMetadataOpts) operationType() OperationType {
 
 // PNRemoveChannelMetadataResponse is the Objects API Response for delete space
 type PNRemoveChannelMetadataResponse struct {
-	status int         `json:"status"`
+	Status int         `json:"status"`
 	Data   interface{} `json:"data"`
 }
 

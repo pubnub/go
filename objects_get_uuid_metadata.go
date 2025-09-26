@@ -119,13 +119,17 @@ func (o *getUUIDMetadataOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
+func (o *getUUIDMetadataOpts) httpMethod() string {
+	return "GET"
+}
+
 func (o *getUUIDMetadataOpts) operationType() OperationType {
 	return PNGetUUIDMetadataOperation
 }
 
 // PNGetUUIDMetadataResponse is the Objects API Response for Get User
 type PNGetUUIDMetadataResponse struct {
-	status int    `json:"status"`
+	Status int    `json:"status"`
 	Data   PNUUID `json:"data"`
 }
 
