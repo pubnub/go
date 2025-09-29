@@ -186,6 +186,14 @@ func (o *getChannelMembersOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *getChannelMembersOptsV2) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *getChannelMembersOptsV2) httpMethod() string {
+	return "GET"
+}
+
 func (o *getChannelMembersOptsV2) isAuthRequired() bool {
 	return true
 }
@@ -204,7 +212,7 @@ func (o *getChannelMembersOptsV2) operationType() OperationType {
 
 // PNGetChannelMembersResponse is the Objects API Response for Get Members
 type PNGetChannelMembersResponse struct {
-	status     int                `json:"status"`
+	Status     int                `json:"status"`
 	Data       []PNChannelMembers `json:"data"`
 	TotalCount int                `json:"totalCount"`
 	Next       string             `json:"next"`

@@ -158,6 +158,14 @@ func (o *setStateOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
+func (o *setStateOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *setStateOpts) httpMethod() string {
+	return "GET"
+}
+
 func (o *setStateOpts) operationType() OperationType {
 	return PNSetStateOperation
 }
@@ -170,7 +178,7 @@ func newSetStateResponse(jsonBytes []byte, status StatusResponse) (
 
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
-		e := pnerr.NewResponseParsingError("Error unmarshalling response",
+		e := pnerr.NewResponseParsingError("error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptySetStateResponse, status, e
@@ -178,7 +186,7 @@ func newSetStateResponse(jsonBytes []byte, status StatusResponse) (
 
 	v, ok := value.(map[string]interface{})
 	if !ok {
-		return emptySetStateResponse, status, errors.New("Response parsing error")
+		return emptySetStateResponse, status, errors.New("response parsing error")
 	}
 	message := ""
 	if v["message"] != nil {
@@ -192,9 +200,7 @@ func newSetStateResponse(jsonBytes []byte, status StatusResponse) (
 	}
 
 	if v["payload"] != nil {
-		if val, ok := v["payload"].(interface{}); ok {
-			resp.State = val
-		}
+		resp.State = v["payload"]
 	}
 	resp.Message = message
 

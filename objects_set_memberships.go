@@ -232,7 +232,7 @@ func (o *setMembershipsOpts) operationType() OperationType {
 
 // PNSetMembershipsResponse is the Objects API Response for SetMemberships
 type PNSetMembershipsResponse struct {
-	status     int             `json:"status"`
+	Status     int             `json:"status"`
 	Data       []PNMemberships `json:"data"`
 	TotalCount int             `json:"totalCount"`
 	Next       string          `json:"next"`

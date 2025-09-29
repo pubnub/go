@@ -47,7 +47,7 @@ const (
 	//PNPushEnvironmentDevelopment for development
 	PNPushEnvironmentDevelopment PNPushEnvironment = "development"
 	//PNPushEnvironmentProduction for production
-	PNPushEnvironmentProduction = "production"
+	PNPushEnvironmentProduction PNPushEnvironment = "production"
 )
 
 const (

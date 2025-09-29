@@ -229,7 +229,7 @@ func (o *removeChannelMembersOpts) operationType() OperationType {
 
 // PNRemoveChannelMembersResponse is the Objects API Response for RemoveChannelMembers
 type PNRemoveChannelMembersResponse struct {
-	status     int                `json:"status"`
+	Status     int                `json:"status"`
 	Data       []PNChannelMembers `json:"data"`
 	TotalCount int                `json:"totalCount"`
 	Next       string             `json:"next"`

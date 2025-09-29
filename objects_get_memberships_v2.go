@@ -186,6 +186,14 @@ func (o *getMembershipsOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *getMembershipsOptsV2) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *getMembershipsOptsV2) httpMethod() string {
+	return "GET"
+}
+
 func (o *getMembershipsOptsV2) isAuthRequired() bool {
 	return true
 }
@@ -204,7 +212,7 @@ func (o *getMembershipsOptsV2) operationType() OperationType {
 
 // PNGetMembershipsResponse is the Objects API Response for Get Memberships
 type PNGetMembershipsResponse struct {
-	status     int             `json:"status"`
+	Status     int             `json:"status"`
 	Data       []PNMemberships `json:"data"`
 	TotalCount int             `json:"totalCount"`
 	Next       string          `json:"next"`

@@ -73,6 +73,13 @@ func (b *hereNowBuilder) QueryParam(queryParam map[string]string) *hereNowBuilde
 	return b
 }
 
+// Transport sets the Transport for the HereNow request.
+func (b *hereNowBuilder) Transport(tr http.RoundTripper) *hereNowBuilder {
+	b.opts.Transport = tr
+
+	return b
+}
+
 // Execute runs the HereNow request.
 func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -153,6 +160,26 @@ func (o *hereNowOpts) buildQuery() (*url.Values, error) {
 	SetQueryParam(q, o.QueryParam)
 
 	return q, nil
+}
+
+func (o *hereNowOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *hereNowOpts) httpMethod() string {
+	return "GET"
+}
+
+func (o *hereNowOpts) isAuthRequired() bool {
+	return true
+}
+
+func (o *hereNowOpts) requestTimeout() int {
+	return o.pubnub.Config.NonSubscribeRequestTimeout
+}
+
+func (o *hereNowOpts) connectTimeout() int {
+	return o.pubnub.Config.ConnectTimeout
 }
 
 func (o *hereNowOpts) operationType() OperationType {

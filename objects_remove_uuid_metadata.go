@@ -117,7 +117,7 @@ func (o *removeUUIDMetadataOpts) operationType() OperationType {
 
 // PNRemoveUUIDMetadataResponse is the Objects API Response for delete user
 type PNRemoveUUIDMetadataResponse struct {
-	status int         `json:"status"`
+	Status int         `json:"status"`
 	Data   interface{} `json:"data"`
 }
 

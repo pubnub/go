@@ -232,7 +232,7 @@ func (o *removeMembershipsOpts) operationType() OperationType {
 
 // PNRemoveMembershipsResponse is the Objects API Response for RemoveMemberships
 type PNRemoveMembershipsResponse struct {
-	status     int             `json:"status"`
+	Status     int             `json:"status"`
 	Data       []PNMemberships `json:"data"`
 	TotalCount int             `json:"totalCount"`
 	Next       string          `json:"next"`
