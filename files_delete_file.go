@@ -120,6 +120,22 @@ func (o *deleteFileOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *deleteFileOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *deleteFileOpts) isAuthRequired() bool {
+	return true
+}
+
+func (o *deleteFileOpts) requestTimeout() int {
+	return o.pubnub.Config.NonSubscribeRequestTimeout
+}
+
+func (o *deleteFileOpts) connectTimeout() int {
+	return o.pubnub.Config.ConnectTimeout
+}
+
 func (o *deleteFileOpts) httpMethod() string {
 	return "DELETE"
 }
@@ -130,7 +146,7 @@ func (o *deleteFileOpts) operationType() OperationType {
 
 // PNDeleteFileResponse is the File Upload API Response for Delete file operation
 type PNDeleteFileResponse struct {
-	status int `json:"status"`
+	Status int `json:"status"`
 }
 
 func newPNDeleteFileResponse(jsonBytes []byte, o *deleteFileOpts,
@@ -140,7 +156,7 @@ func newPNDeleteFileResponse(jsonBytes []byte, o *deleteFileOpts,
 
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
-		e := pnerr.NewResponseParsingError("Error unmarshalling response",
+		e := pnerr.NewResponseParsingError("error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyDeleteFileResponse, status, e

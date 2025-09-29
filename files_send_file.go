@@ -101,9 +101,9 @@ func (b *sendFileBuilder) Transport(tr http.RoundTripper) *sendFileBuilder {
 // CustomMessageType sets the User-specified message type string - limited by 3-50 case-sensitive alphanumeric characters
 // with only `-` and `_` special characters allowed.
 func (b *sendFileBuilder) CustomMessageType(messageType string) *sendFileBuilder {
-    b.opts.CustomMessageType = messageType
+	b.opts.CustomMessageType = messageType
 
-    return b
+	return b
 }
 
 // Execute runs the sendFile request.
@@ -119,22 +119,22 @@ func (b *sendFileBuilder) Execute() (*PNSendFileResponse, StatusResponse, error)
 type sendFileOpts struct {
 	endpointOpts
 
-	Channel             string
-	Name                string
-	Message             string
-	File                *os.File
-	CipherKey           string
-	TTL                 int
-	Meta                interface{}
-	ShouldStore         bool
-	QueryParam          map[string]string
-    CustomMessageType   string
+	Channel           string
+	Name              string
+	Message           string
+	File              *os.File
+	CipherKey         string
+	TTL               int
+	Meta              interface{}
+	ShouldStore       bool
+	QueryParam        map[string]string
+	CustomMessageType string
 
 	Transport http.RoundTripper
 }
 
 func (o *sendFileOpts) isCustomMessageTypeCorrect() bool {
-    return isCustomMessageTypeValid(o.CustomMessageType)
+	return isCustomMessageTypeValid(o.CustomMessageType)
 }
 
 func (o *sendFileOpts) validate() error {
@@ -150,9 +150,9 @@ func (o *sendFileOpts) validate() error {
 		return newValidationError(o, StrMissingFileName)
 	}
 
-    if !o.isCustomMessageTypeCorrect() {
-        return newValidationError(o, StrInvalidCustomMessageType)
-    }
+	if !o.isCustomMessageTypeCorrect() {
+		return newValidationError(o, StrInvalidCustomMessageType)
+	}
 
 	return nil
 }
@@ -168,9 +168,9 @@ func (o *sendFileOpts) buildQuery() (*url.Values, error) {
 
 	SetQueryParam(q, o.QueryParam)
 
-    if len(o.CustomMessageType) > 0 {
-        q.Set("custom_message_type", o.CustomMessageType)
-    }
+	if len(o.CustomMessageType) > 0 {
+		q.Set("custom_message_type", o.CustomMessageType)
+	}
 
 	return q, nil
 }
@@ -197,13 +197,25 @@ func (o *sendFileOpts) httpMethod() string {
 	return "POST"
 }
 
+func (o *sendFileOpts) isAuthRequired() bool {
+	return true
+}
+
+func (o *sendFileOpts) requestTimeout() int {
+	return o.pubnub.Config.NonSubscribeRequestTimeout
+}
+
+func (o *sendFileOpts) connectTimeout() int {
+	return o.pubnub.Config.ConnectTimeout
+}
+
 func (o *sendFileOpts) operationType() OperationType {
 	return PNSendFileOperation
 }
 
 // PNSendFileResponseForS3 is the File Upload API Response for SendFile.
 type PNSendFileResponseForS3 struct {
-	status            int                 `json:"status"`
+	Status            int                 `json:"status"`
 	Data              PNFileData          `json:"data"`
 	FileUploadRequest PNFileUploadRequest `json:"file_upload_request"`
 }
@@ -211,7 +223,7 @@ type PNSendFileResponseForS3 struct {
 // PNSendFileResponse is the type used to store the response info of Send File.
 type PNSendFileResponse struct {
 	Timestamp int64
-	status    int        `json:"status"`
+	Status    int        `json:"status"`
 	Data      PNFileData `json:"data"`
 }
 
@@ -223,7 +235,7 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 
 	err := json.Unmarshal(jsonBytes, &respForS3)
 	if err != nil {
-		e := pnerr.NewResponseParsingError("Error unmarshalling response",
+		e := pnerr.NewResponseParsingError("error unmarshalling response",
 			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 		return emptySendFileResponse, status, e
 	}
