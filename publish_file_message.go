@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/pubnub/go/v7/pnerr"
 	"github.com/pubnub/go/v7/utils"
-	"io/ioutil"
 
 	"net/http"
 	"net/url"
@@ -243,6 +244,33 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 
 func (o *publishFileMessageOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
+
+	if o.Meta != nil {
+		meta, err := utils.ValueAsString(o.Meta)
+		if err != nil {
+			return &url.Values{}, err
+		}
+
+		q.Set("meta", string(meta))
+	}
+
+	if o.setShouldStore {
+		if o.ShouldStore {
+			q.Set("store", "1")
+		} else {
+			q.Set("store", "0")
+		}
+	}
+
+	if o.setTTL {
+		if o.TTL > 0 {
+			q.Set("ttl", strconv.Itoa(o.TTL))
+		}
+	}
+
+	seqn := strconv.Itoa(o.pubnub.getPublishSequence())
+	o.pubnub.Config.Log.Println("seqn:", seqn)
+	q.Set("seqn", seqn)
 
 	SetQueryParam(q, o.QueryParam)
 

@@ -174,7 +174,7 @@ func buildURL(o endpoint) (*url.URL, error) {
 		}
 	}
 
-	if o.operationType() == PNPublishOperation || o.operationType() == PNFireOperation {
+	if o.operationType() == PNPublishOperation || o.operationType() == PNFireOperation || o.operationType() == PNPublishFileMessageOperation {
 		v := query.Get("meta")
 		if v != "" {
 			query.Set("meta", utils.URLEncode(v))
