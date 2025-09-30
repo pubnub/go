@@ -232,7 +232,7 @@ func (o *setChannelMembersOpts) operationType() OperationType {
 
 // PNSetChannelMembersResponse is the Objects API Response for SetChannelMembers
 type PNSetChannelMembersResponse struct {
-	Status     int                `json:"status"`
+	status     int                `json:"status"`
 	Data       []PNChannelMembers `json:"data"`
 	TotalCount int                `json:"totalCount"`
 	Next       string             `json:"next"`

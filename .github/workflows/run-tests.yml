@@ -49,13 +49,6 @@ jobs:
       - name: Build and run tests for Go ${{ matrix.go }}
         run: bash ./scripts/run-tests-gotestsum.sh -mod=mod testname
         timeout-minutes: 15
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-go-${{ matrix.go }}
-          path: coverage.txt
-          retention-days: 7
       - name: Cancel workflow runs for commit on error
         if: failure()
         uses: ./.github/.release/actions/actions/utils/fast-jobs-failure
