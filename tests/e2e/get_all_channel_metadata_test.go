@@ -1,6 +1,8 @@
 package e2e
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -627,43 +629,56 @@ func TestGetAllChannelMetadataComprehensive(t *testing.T) {
 		"tags":       "test,gamma",
 	})
 
-	// Wait for metadata to propagate
-	time.Sleep(4 * time.Second)
+	// Use retry mechanism to handle eventual consistency in CI/CD
+	checkMetadataCall := func() error {
+		resp, status, err := pn.GetAllChannelMetadata().
+			Include([]pubnub.PNChannelMetadataInclude{pubnub.PNChannelMetadataIncludeCustom}).
+			Filter("id LIKE '" + testPrefix + "*'"). // Filter only our test channels
+			Count(true).
+			Sort([]string{"name"}).
+			QueryParam(map[string]string{"test": "comprehensive"}).
+			Execute()
 
-	// Test comprehensive query with multiple parameters using filter
-	resp, status, err := pn.GetAllChannelMetadata().
-		Include([]pubnub.PNChannelMetadataInclude{pubnub.PNChannelMetadataIncludeCustom}).
-		Filter("id LIKE '" + testPrefix + "*'"). // Filter only our test channels
-		Count(true).
-		Sort([]string{"name"}).
-		QueryParam(map[string]string{"test": "comprehensive"}).
-		Execute()
+		if err != nil {
+			return err
+		}
+		if status.StatusCode != 200 {
+			return errors.New("status code not 200")
+		}
+		if resp == nil || resp.Data == nil {
+			return errors.New("response or data is nil")
+		}
 
-	assert.Nil(err)
-	assert.Equal(200, status.StatusCode)
-	assert.NotNil(resp)
-	assert.NotNil(resp.Data)
-
-	// Verify our test channels are in the results
-	foundChannels := make(map[string]bool)
-	for _, channel := range resp.Data {
-		for _, testChannel := range testChannels {
-			if channel.ID == testChannel {
-				foundChannels[testChannel] = true
-				// Verify custom data is included
-				assert.NotNil(channel.Custom)
-				assert.NotNil(channel.Name)
-				assert.NotNil(channel.Description)
-				break
+		// Verify our test channels are in the results
+		foundChannels := make(map[string]bool)
+		for _, channel := range resp.Data {
+			for _, testChannel := range testChannels {
+				if channel.ID == testChannel {
+					foundChannels[testChannel] = true
+					// Verify custom data is included
+					assert.NotNil(channel.Custom)
+					assert.NotNil(channel.Name)
+					assert.NotNil(channel.Description)
+					break
+				}
 			}
 		}
+
+		// Check if all 3 test channels are found
+		if len(foundChannels) != 3 {
+			return fmt.Errorf("expected 3 channels, found %d", len(foundChannels))
+		}
+		for _, testChannel := range testChannels {
+			if !foundChannels[testChannel] {
+				return fmt.Errorf("test channel not found: %s", testChannel)
+			}
+		}
+
+		return nil
 	}
 
-	// E2E test: We must find ALL 3 test channels we created
-	assert.Equal(3, len(foundChannels), "Should find all 3 created test channels")
-	for _, testChannel := range testChannels {
-		assert.True(foundChannels[testChannel], "Should find test channel: %s", testChannel)
-	}
+	// Use retry mechanism with 10 seconds max timeout, 500ms intervals
+	checkFor(assert, time.Second*10, time.Millisecond*500, checkMetadataCall)
 }
 
 // Test GetAllChannelMetadata edge cases

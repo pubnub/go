@@ -1,6 +1,8 @@
 package e2e
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -627,43 +629,56 @@ func TestGetAllUUIDMetadataComprehensive(t *testing.T) {
 		"tags":       "test,gamma",
 	})
 
-	// Wait for metadata to propagate
-	time.Sleep(4 * time.Second)
+	// Use retry mechanism to handle eventual consistency in CI/CD
+	checkMetadataCall := func() error {
+		resp, status, err := pn.GetAllUUIDMetadata().
+			Include([]pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom}).
+			Filter("id LIKE '" + testPrefix + "*'"). // Filter only our test UUIDs
+			Count(true).
+			Sort([]string{"name"}).
+			QueryParam(map[string]string{"test": "comprehensive"}).
+			Execute()
 
-	// Test comprehensive query with multiple parameters using filter
-	resp, status, err := pn.GetAllUUIDMetadata().
-		Include([]pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom}).
-		Filter("id LIKE '" + testPrefix + "*'"). // Filter only our test UUIDs
-		Count(true).
-		Sort([]string{"name"}).
-		QueryParam(map[string]string{"test": "comprehensive"}).
-		Execute()
+		if err != nil {
+			return err
+		}
+		if status.StatusCode != 200 {
+			return errors.New("status code not 200")
+		}
+		if resp == nil || resp.Data == nil {
+			return errors.New("response or data is nil")
+		}
 
-	assert.Nil(err)
-	assert.Equal(200, status.StatusCode)
-	assert.NotNil(resp)
-	assert.NotNil(resp.Data)
-
-	// Verify our test UUIDs are in the results
-	foundUUIDs := make(map[string]bool)
-	for _, uuid := range resp.Data {
-		for _, testUUID := range testUUIDs {
-			if uuid.ID == testUUID {
-				foundUUIDs[testUUID] = true
-				// Verify custom data is included
-				assert.NotNil(uuid.Custom)
-				assert.NotNil(uuid.Name)
-				assert.NotNil(uuid.Email)
-				break
+		// Verify our test UUIDs are in the results
+		foundUUIDs := make(map[string]bool)
+		for _, uuid := range resp.Data {
+			for _, testUUID := range testUUIDs {
+				if uuid.ID == testUUID {
+					foundUUIDs[testUUID] = true
+					// Verify custom data is included
+					assert.NotNil(uuid.Custom)
+					assert.NotNil(uuid.Name)
+					assert.NotNil(uuid.Email)
+					break
+				}
 			}
 		}
+
+		// Check if all 3 test UUIDs are found
+		if len(foundUUIDs) != 3 {
+			return fmt.Errorf("expected 3 UUIDs, found %d", len(foundUUIDs))
+		}
+		for _, testUUID := range testUUIDs {
+			if !foundUUIDs[testUUID] {
+				return fmt.Errorf("test UUID not found: %s", testUUID)
+			}
+		}
+
+		return nil
 	}
 
-	// E2E test: We must find ALL 3 test UUIDs we created
-	assert.Equal(3, len(foundUUIDs), "Should find all 3 created test UUIDs")
-	for _, testUUID := range testUUIDs {
-		assert.True(foundUUIDs[testUUID], "Should find test UUID: %s", testUUID)
-	}
+	// Use retry mechanism with 10 seconds max timeout, 500ms intervals
+	checkFor(assert, time.Second*10, time.Millisecond*500, checkMetadataCall)
 }
 
 // Test GetAllUUIDMetadata edge cases
