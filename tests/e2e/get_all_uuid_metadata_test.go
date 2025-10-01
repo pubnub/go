@@ -71,6 +71,7 @@ func TestGetAllUUIDMetadataBasic(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -106,6 +107,7 @@ func TestGetAllUUIDMetadataWithInclude(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -169,6 +171,7 @@ func TestGetAllUUIDMetadataWithLimit(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -214,6 +217,7 @@ func TestGetAllUUIDMetadataWithCount(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -244,6 +248,7 @@ func TestGetAllUUIDMetadataWithFilter(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -298,6 +303,7 @@ func TestGetAllUUIDMetadataWithSort(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -364,6 +370,7 @@ func TestGetAllUUIDMetadataWithInvalidSort(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -411,6 +418,7 @@ func TestGetAllUUIDMetadataPagination(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -462,6 +470,7 @@ func TestGetAllUUIDMetadataWithQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -487,6 +496,7 @@ func TestGetAllUUIDMetadataWithContext(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -521,6 +531,7 @@ func TestGetAllUUIDMetadataInvalidParameters(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -596,6 +607,7 @@ func TestGetAllUUIDMetadataComprehensive(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -686,6 +698,7 @@ func TestGetAllUUIDMetadataEdgeCases(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}

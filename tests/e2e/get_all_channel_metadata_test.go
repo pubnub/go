@@ -71,6 +71,7 @@ func TestGetAllChannelMetadataBasic(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -106,6 +107,7 @@ func TestGetAllChannelMetadataWithInclude(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -169,6 +171,7 @@ func TestGetAllChannelMetadataWithLimit(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -214,6 +217,7 @@ func TestGetAllChannelMetadataWithCount(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -244,6 +248,7 @@ func TestGetAllChannelMetadataWithFilter(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -298,6 +303,7 @@ func TestGetAllChannelMetadataWithSort(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -364,6 +370,7 @@ func TestGetAllChannelMetadataWithInvalidSort(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -411,6 +418,7 @@ func TestGetAllChannelMetadataPagination(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -462,6 +470,7 @@ func TestGetAllChannelMetadataWithQueryParam(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -487,6 +496,7 @@ func TestGetAllChannelMetadataWithContext(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -521,6 +531,7 @@ func TestGetAllChannelMetadataInvalidParameters(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -596,6 +607,7 @@ func TestGetAllChannelMetadataComprehensive(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -686,6 +698,7 @@ func TestGetAllChannelMetadataEdgeCases(t *testing.T) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(configCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}

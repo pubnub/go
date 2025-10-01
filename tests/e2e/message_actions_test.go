@@ -294,6 +294,11 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 	} else {
 		assert.Fail("resPub nil")
 	}
+
+	// Cleanup PubNub client to prevent goroutine leaks
+	pnMA.UnsubscribeAll()
+	pnMA.RemoveListener(listener)
+	pnMA.Destroy()
 }
 
 func MatchHistoryMessageWithMAResp(assert *assert.Assertions, resp *pubnub.HistoryResponse, chMA, message string, messageTimetoken int64, meta interface{}, withMeta bool) {

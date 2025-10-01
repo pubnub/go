@@ -57,6 +57,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
 	if enableDebuggingInTests {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
