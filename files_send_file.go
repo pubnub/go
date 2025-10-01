@@ -25,10 +25,7 @@ func newSendFileBuilder(pubnub *PubNub) *sendFileBuilder {
 }
 
 func newSendFileOpts(pubnub *PubNub, ctx Context) *sendFileOpts {
-	return &sendFileOpts{
-		endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx},
-		ShouldStore:  true, // Default to storing messages in history for backward compatibility
-	}
+	return &sendFileOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
 }
 func newSendFileBuilderWithContext(pubnub *PubNub,
 	context Context) *sendFileBuilder {

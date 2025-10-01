@@ -130,7 +130,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	// Sleep a bit, to give client some time to subscribe on channels firs.
 	time.Sleep(100 * time.Millisecond)
 
-	resSendFile, statusSendFile, _ := pn.SendFile().Channel(ch).Message(message).CipherKey(cipherKey).Name(name).File(file).Execute()
+	resSendFile, statusSendFile, _ := pn.SendFile().Channel(ch).Message(message).CipherKey(cipherKey).Name(name).File(file).ShouldStore(true).Execute()
 	assert.Equal(200, statusSendFile.StatusCode)
 	if enableDebuggingInTests {
 		fmt.Println("statusSendFile.AdditionalData:", statusSendFile.AdditionalData)
