@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -94,7 +94,7 @@ func newListPushProvisionsRequestResponse(jsonBytes []byte, status StatusRespons
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyListPushProvisionsRequestResponse, status, e
 	}

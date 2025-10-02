@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -240,7 +239,7 @@ func newRequest(method string, u *url.URL, body io.Reader, useHTTP2 bool) (*http
 
 	rc, ok = body.(io.ReadCloser)
 	if !ok && body != nil {
-		rc = ioutil.NopCloser(body)
+		rc = io.NopCloser(body)
 	}
 
 	if useHTTP2 {
@@ -302,7 +301,7 @@ func parseResponse(resp *http.Response, opts endpoint) ([]byte, StatusResponse, 
 		return nil, status, e
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error reading response body", resp.Body, err)
 		opts.config().Log.Println("Read All error: resp.Body, resp.Request.URL, e", resp.StatusCode, resp.Body, resp.Request.URL, e)

@@ -2,9 +2,10 @@ package pubnub
 
 import (
 	"fmt"
-	"github.com/pubnub/go/v7/crypto"
 	"log"
 	"sync"
+
+	"github.com/pubnub/go/v7/crypto"
 )
 
 const (

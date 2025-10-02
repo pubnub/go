@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"strconv"
 	"strings"
@@ -318,7 +318,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyGrantResponse, status, e
 	}
@@ -330,7 +330,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	grantData, ok := value.(map[string]interface{})
 	if !ok {
 		e := pnerr.NewResponseParsingError("Error parsing response: invalid JSON structure",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
 			fmt.Errorf("expected map[string]interface{}, got %T", value))
 		return emptyGrantResponse, status, e
 	}
@@ -338,14 +338,14 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	payload, ok := grantData["payload"]
 	if !ok {
 		e := pnerr.NewResponseParsingError("Error parsing response: missing payload field",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
 			fmt.Errorf("payload field not found in response"))
 		return emptyGrantResponse, status, e
 	}
 
 	if payload == nil {
 		e := pnerr.NewResponseParsingError("Error parsing response: null payload",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
 			fmt.Errorf("payload field is null"))
 		return emptyGrantResponse, status, e
 	}
@@ -353,7 +353,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	parsedPayload, ok := payload.(map[string]interface{})
 	if !ok {
 		e := pnerr.NewResponseParsingError("Error parsing response: invalid payload structure",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
 			fmt.Errorf("expected map[string]interface{} for payload, got %T", payload))
 		return emptyGrantResponse, status, e
 	}

@@ -1,10 +1,11 @@
 package pubnub
 
 import (
-	"golang.org/x/net/http2"
 	"net"
 	"net/http"
 	"time"
+
+	"golang.org/x/net/http2"
 )
 
 // NewHTTP1Client creates a new HTTP 1 client with a new transport initialized with connect and read timeout

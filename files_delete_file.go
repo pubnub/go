@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -157,7 +157,7 @@ func newPNDeleteFileResponse(jsonBytes []byte, o *deleteFileOpts,
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyDeleteFileResponse, status, e
 	}

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strconv"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -222,7 +222,7 @@ type HistoryResponseItem struct {
 func logAndCreateNewResponseParsingError(o *historyOpts, err error, jsonBody string, message string) *pnerr.ResponseParsingError {
 	o.pubnub.Config.Log.Println(err.Error())
 	e := pnerr.NewResponseParsingError(message,
-		ioutil.NopCloser(bytes.NewBufferString(jsonBody)), err)
+		io.NopCloser(bytes.NewBufferString(jsonBody)), err)
 	return e
 }
 

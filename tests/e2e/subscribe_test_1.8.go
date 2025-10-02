@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-/////////////////////////////
+// ///////////////////////////
 // Channel Group Subscription
-/////////////////////////////
+// ///////////////////////////
 func TestSubscribeUnsubscribeGroup(t *testing.T) {
 	assert := assert.New(t)
 	doneSubscribe := make(chan bool)

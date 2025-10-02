@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 
 	"github.com/pubnub/go/v7/pnerr"
 	"github.com/pubnub/go/v7/utils"
@@ -327,7 +327,7 @@ func newPublishFileMessageResponse(jsonBytes []byte, o *publishFileMessageOpts,
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyPublishFileMessageResponse, status, e
 	}

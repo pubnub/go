@@ -1,8 +1,9 @@
 package pubnub
 
 import (
-	"github.com/pubnub/go/v7/crypto"
 	"testing"
+
+	"github.com/pubnub/go/v7/crypto"
 
 	"github.com/stretchr/testify/assert"
 )

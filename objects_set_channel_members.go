@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -247,7 +247,7 @@ func newPNSetChannelMembersResponse(jsonBytes []byte, o *setChannelMembersOpts,
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptySetChannelMembersResponse, status, e
 	}

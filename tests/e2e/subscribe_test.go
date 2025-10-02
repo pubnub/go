@@ -3,7 +3,7 @@ package e2e
 import (
 	//"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"math/rand"
 	"net"
@@ -57,7 +57,7 @@ func SubscribesLogsForQueryParams(t *testing.T) {
 
 	}
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
 	//fmt.Printf("Captured: %s", out)

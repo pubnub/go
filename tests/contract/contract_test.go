@@ -2,10 +2,11 @@ package contract
 
 import (
 	"flag"
-	"github.com/cucumber/godog"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/cucumber/godog"
 )
 
 var path string

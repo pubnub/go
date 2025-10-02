@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"reflect"
 	"strconv"
 
@@ -296,7 +296,7 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 						Message:   msg,
 						Timetoken: histResponse["timetoken"].(string),
 						Meta:      histResponse["meta"],
-                        Error:     err,
+						Error:     err,
 					}
 					if d, ok := histResponse["message_type"]; ok {
 						switch v := d.(type) {
@@ -359,7 +359,7 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyFetchResp, status, e
 	}
@@ -395,7 +395,7 @@ type FetchResponseItem struct {
 	Timetoken      string                                    `json:"timetoken"`
 	UUID           string                                    `json:"uuid"`
 	MessageType    int                                       `json:"message_type"`
-    Error          error
+	Error          error
 }
 
 // PNHistoryMessageActionsTypeMap is the struct used in the Fetch request that includes Message Actions

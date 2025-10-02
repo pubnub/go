@@ -2,7 +2,7 @@ package e2e
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
 	"sync"
 	"testing"
@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//TODO ENABLE
+// TODO ENABLE
 func HeartbeatTimeoutEvent(t *testing.T) {
 	assert := assert.New(t)
 	ch := randomized("hb-te")
@@ -138,7 +138,7 @@ func HeartbeatTimeoutEvent(t *testing.T) {
 		Status:     "200 OK",
 		StatusCode: 200,
 		// WARNING: can be read only once
-		Body: ioutil.NopCloser(strings.NewReader("Hijacked response")),
+		Body: io.NopCloser(strings.NewReader("Hijacked response")),
 	}
 	pn.SetClient(cl)
 

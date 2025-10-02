@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -248,7 +248,7 @@ func newPNManageMembershipsResponse(jsonBytes []byte, o *manageMembershipsOptsV2
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyManageMembershipsResponse, status, e
 	}

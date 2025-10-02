@@ -3,7 +3,7 @@ package stubs
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -30,7 +30,7 @@ func (s *Sleeper) RoundTrip(req *http.Request) (*http.Response,
 
 	select {
 	case <-time.After(time.Duration(s.Timeout) * time.Millisecond):
-		body := ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf(
+		body := io.NopCloser(bytes.NewBufferString(fmt.Sprintf(
 			"%d ms passed", s.Timeout)))
 		return &http.Response{
 			Status:           "530 RoundTrip Timeout",

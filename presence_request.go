@@ -23,13 +23,13 @@ func newPresenceBuilder(pubnub *PubNub) *presenceBuilder {
 }
 
 func newPresenceOpts(pubnub *PubNub, ctx Context) *presenceOpts {
-return &presenceOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx,}}}
+	return &presenceOpts{endpointOpts: endpointOpts{pubnub: pubnub, ctx: ctx}}
+}
 func newPresenceBuilderWithContext(pubnub *PubNub, context Context) *presenceBuilder {
 	builder := presenceBuilder{
 		opts: newPresenceOpts(pubnub, context)}
 	return &builder
 }
-
 
 // Channels sets the Channels for the Presence request.
 func (b *presenceBuilder) Channels(ch []string) *presenceBuilder {

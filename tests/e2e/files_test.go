@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -214,8 +213,8 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 			if err != nil {
 				fmt.Println(err)
 			} else {
-				fileText, _ := ioutil.ReadFile(filepathInput)
-				fileTextOut, _ := ioutil.ReadFile(filepathOutput)
+				fileText, _ := os.ReadFile(filepathInput)
+				fileTextOut, _ := os.ReadFile(filepathOutput)
 				assert.Equal(fileText, fileTextOut)
 			}
 		}
@@ -547,8 +546,8 @@ func FileEncryptDecryptWithoutBase64Test(t *testing.T) {
 	outD, _ := os.Create(filepathDecOutput)
 	io.Copy(outD, r)
 
-	fileText, _ := ioutil.ReadFile(filepathInput)
-	fileTextOut, _ := ioutil.ReadFile(filepathDecOutput)
+	fileText, _ := os.ReadFile(filepathInput)
+	fileTextOut, _ := os.ReadFile(filepathDecOutput)
 	fileOut, err := os.Open(filepathInput)
 	fio, _ := fileOut.Stat()
 	contentLenOut := fio.Size()

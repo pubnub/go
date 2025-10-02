@@ -1,12 +1,13 @@
 package e2e
 
 import (
-	pubnub "github.com/pubnub/go/v7"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
 	"reflect"
 	"testing"
+
+	pubnub "github.com/pubnub/go/v7"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestObjectsV2ChannelMetadataSetUpdateGetRemove(t *testing.T) {

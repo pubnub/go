@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 
 	"github.com/pubnub/go/v7/pnerr"
@@ -112,7 +112,7 @@ func newPNRevokeTokenResponse(jsonBytes []byte, o *revokeTokenOpts, status Statu
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyPNRevokeTokenResponse, status, e
 	}

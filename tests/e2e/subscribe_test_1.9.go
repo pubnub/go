@@ -5,7 +5,7 @@ package e2e
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"testing"
@@ -41,7 +41,7 @@ func TestSubscribeParseLogsForAuthKey(t *testing.T) {
 	}
 
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
 	s := fmt.Sprintf("%s", out)

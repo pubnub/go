@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -83,7 +83,7 @@ func after(ctx context.Context, sc *godog.Scenario, err error) (context.Context,
 		if err != nil {
 			return ctx, err
 		}
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return ctx, err
 		}

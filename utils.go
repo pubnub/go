@@ -5,10 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/pubnub/go/v7/crypto"
-	"github.com/pubnub/go/v7/pnerr"
 	"io"
 	"strconv"
+
+	"github.com/pubnub/go/v7/crypto"
+	"github.com/pubnub/go/v7/pnerr"
 )
 
 // encodeNonAsciiChars creates unicode string of the non-ascii chars.
@@ -120,19 +121,19 @@ func decryptString(cryptoModule crypto.CryptoModule, message string) (retVal int
 }
 
 func isCustomMessageTypeValid(customMessageType string) bool {
-    if len(customMessageType) == 0 {
-        return true
-    }
+	if len(customMessageType) == 0 {
+		return true
+	}
 
-    if len(customMessageType) < 3 || len(customMessageType) > 50 {
-        return false
-    }
+	if len(customMessageType) < 3 || len(customMessageType) > 50 {
+		return false
+	}
 
-    for _, c := range customMessageType {
-        if !('a' <= c && 'z' >= c) && !('A' <= c && 'Z' >= c) && c != '-' && c != '_' {
-            return false
-        }
-    }
+	for _, c := range customMessageType {
+		if !('a' <= c && 'z' >= c) && !('A' <= c && 'Z' >= c) && c != '-' && c != '_' {
+			return false
+		}
+	}
 
-    return true
+	return true
 }

@@ -3,13 +3,13 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/pubnub/go/v7/crypto"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/pubnub/go/v7/crypto"
 
 	"github.com/pubnub/go/v7/pnerr"
 )
@@ -187,7 +187,7 @@ func newPNSendFileToS3Response(jsonBytes []byte, o *sendFileToS3Opts,
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptySendFileToS3Response, status, e
 	}

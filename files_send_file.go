@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -236,7 +236,7 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 	err := json.Unmarshal(jsonBytes, &respForS3)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 		return emptySendFileResponse, status, e
 	}
 	var s *sendFileToS3Builder
