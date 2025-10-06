@@ -115,6 +115,10 @@ func (b *publishFileMessageBuilder) QueryParam(queryParam map[string]string) *pu
 // UseRawText sets whether the message text should be sent as raw text instead of being wrapped in a JSON "text" field.
 // When true, the message will be sent directly without the {"text": "message"} wrapper.
 // Defaults to false for backward compatibility.
+// Example:
+//
+//	UseRawText(false): {"message": {"text": "Hello"}, "file": {"id": "123", "name": "file.txt"}}
+//	UseRawText(true):  {"message": "Hello", "file": {"id": "123", "name": "file.txt"}}
 func (b *publishFileMessageBuilder) UseRawText(useRawText bool) *publishFileMessageBuilder {
 	b.opts.UseRawText = useRawText
 
@@ -199,6 +203,20 @@ func (o *publishFileMessageOpts) validate() error {
 	return nil
 }
 
+// buildRawTextMessage creates the appropriate message structure for raw text mode
+func (o *publishFileMessageOpts) buildRawTextMessage() interface{} {
+	if filesPayload, ok := o.Message.(PNPublishFileMessage); ok && filesPayload.PNMessage != nil {
+		return map[string]interface{}{
+			"message": filesPayload.PNMessage.Text,
+			"file": map[string]interface{}{
+				"id":   filesPayload.PNFile.ID,
+				"name": filesPayload.PNFile.Name,
+			},
+		}
+	}
+	return o.MessageText
+}
+
 func (o *publishFileMessageOpts) buildPath() (string, error) {
 	if o.UsePost {
 		return fmt.Sprintf(publishFileMessagePostPath,
@@ -223,6 +241,13 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 		}
 	}
 
+	var messageToProcess interface{}
+	if o.UseRawText {
+		messageToProcess = o.buildRawTextMessage()
+	} else {
+		messageToProcess = o.Message
+	}
+
 	if o.pubnub.getCryptoModule() != nil {
 		var msg string
 		var p *publishBuilder
@@ -232,25 +257,7 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 			p = newPublishBuilder(o.pubnub)
 		}
 
-		if o.UseRawText {
-			// For raw text mode, encrypt the message with file info
-			if filesPayload, ok := o.Message.(PNPublishFileMessage); ok && filesPayload.PNMessage != nil {
-				// Create a structure with raw text message and file info
-				rawMessage := map[string]interface{}{
-					"message": filesPayload.PNMessage.Text, // Raw text, not wrapped in {"text": "..."}
-					"file": map[string]interface{}{
-						"id":   filesPayload.PNFile.ID,
-						"name": filesPayload.PNFile.Name,
-					},
-				}
-				p.opts.Message = rawMessage
-			} else {
-				p.opts.Message = o.MessageText
-			}
-		} else {
-			p.opts.Message = o.Message
-		}
-
+		p.opts.Message = messageToProcess
 		msg, errJSONMarshal := p.opts.encryptProcessing()
 		if errJSONMarshal != nil {
 			return "", errJSONMarshal
@@ -264,36 +271,13 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 			"0",
 			utils.URLEncode(msg)), nil
 	}
-	var msg string
-	if o.UseRawText {
-		// For raw text mode, send the message text as raw text but still include file info
-		if filesPayload, ok := o.Message.(PNPublishFileMessage); ok && filesPayload.PNMessage != nil {
-			// Create a structure with raw text message and file info
-			rawMessage := map[string]interface{}{
-				"message": filesPayload.PNMessage.Text, // Raw text, not wrapped in {"text": "..."}
-				"file": map[string]interface{}{
-					"id":   filesPayload.PNFile.ID,
-					"name": filesPayload.PNFile.Name,
-				},
-			}
-			jsonEncBytes, errEnc := json.Marshal(rawMessage)
-			if errEnc != nil {
-				o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
-				return "", errEnc
-			}
-			msg = string(jsonEncBytes)
-		} else {
-			// Fallback to regular message text if available
-			msg = o.MessageText
-		}
-	} else {
-		jsonEncBytes, errEnc := json.Marshal(o.Message)
-		if errEnc != nil {
-			o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
-			return "", errEnc
-		}
-		msg = string(jsonEncBytes)
+
+	jsonEncBytes, errEnc := json.Marshal(messageToProcess)
+	if errEnc != nil {
+		o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
+		return "", errEnc
 	}
+	msg := string(jsonEncBytes)
 	return fmt.Sprintf(publishFileMessageGetPath,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,

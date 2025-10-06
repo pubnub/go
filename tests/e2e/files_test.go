@@ -48,6 +48,14 @@ func TestFileUploadWithCustomCipher(t *testing.T) {
 	FileUploadCommon(t, true, "enigma2", "file_upload_test.txt", "file_upload_test_output.txt")
 }
 
+func TestFileUploadWithUseRawText(t *testing.T) {
+	FileUploadCommonWithUseRawText(t, false, "", "file_upload_test.txt", "file_upload_test_output.txt")
+}
+
+func TestFileUploadWithUseRawTextAndCipher(t *testing.T) {
+	FileUploadCommonWithUseRawText(t, true, "", "file_upload_test.txt", "file_upload_test_output.txt")
+}
+
 type FileData struct {
 	id, url, name, message string
 }
@@ -246,6 +254,250 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 			} else {
 				if enableDebuggingInTests {
 					fmt.Println("pubnub.PNPublishMessage", msg.Text)
+				}
+				if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
+					bFoundInFetch = true
+					break
+				}
+			}
+
+		}
+		if !bFoundInFetch {
+			return errors.New("bFoundInFetch is false")
+		}
+		return nil
+	}
+
+	checkFor(assert, time.Second*3, time.Millisecond*500, fetchCall)
+
+	resListFile, statusListFile, errListFile := pn.ListFiles().Channel(ch).Execute()
+	assert.Nil(errListFile)
+	assert.Equal(200, statusListFile.StatusCode)
+
+	if resListFile != nil {
+		bFound := false
+		for _, m := range resListFile.Data {
+			if enableDebuggingInTests {
+				fmt.Println("file =====> ", m.ID, m.Created, m.Name, m.Size)
+			}
+			if m.ID == id && m.Name == name {
+				bFound = true
+			}
+		}
+		assert.True(resListFile.Count > 0)
+		assert.True(bFound)
+	}
+
+	_, statusDelFile, errDelFile := pn.DeleteFile().Channel(ch).ID(id).Name(name).Execute()
+	assert.Nil(errDelFile)
+	assert.Equal(200, statusDelFile.StatusCode)
+
+	// _, statusGetFile2, _ := pn.DownloadFile().Channel(ch).ID(id).Name(name).Execute()
+	// assert.Equal(404, statusGetFile2.StatusCode)
+
+}
+
+func FileUploadCommonWithUseRawText(t *testing.T, useCipher bool, customCipher string, filepathInput, filepathOutput string) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+	defer pn.Destroy() // Cleanup to prevent goroutine leaks
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+	cipherKey := ""
+	if useCipher {
+		if customCipher != "" {
+			cipherKey = customCipher
+			pn.Config.CipherKey = "enigma"
+		} else {
+			pn.Config.CipherKey = "enigma"
+			cipherKey = pn.Config.CipherKey
+		}
+	}
+
+	file, err := os.Open(filepathInput)
+
+	defer file.Close()
+	if err != nil {
+		fmt.Println("File open error : ", err)
+		assert.Fail("File open error")
+	}
+
+	fileDataChannel := make(chan FileData)
+	r := GenRandom()
+	rno := r.Intn(99999)
+	id := ""
+	retURL := ""
+	ch := fmt.Sprintf("test_file_upload_channel_%d", rno)
+	name := fmt.Sprintf("test_file_upload_name_%d.txt", rno)
+	message := fmt.Sprintf("test file %s", name)
+
+	listener := pubnub.NewListener()
+	exitListener := make(chan bool)
+	go func() {
+	ExitLabel:
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.PNConnectedCategory:
+					break
+				default:
+				}
+
+			case file := <-listener.File:
+				if enableDebuggingInTests {
+
+					fmt.Println(" --- File: ")
+					fmt.Printf("%v\n", file)
+					fmt.Printf("file.File.PNMessage.Text: %s\n", file.File.PNMessage.Text)
+					fmt.Printf("file.File.PNFile.Name: %s\n", file.File.PNFile.Name)
+					fmt.Printf("file.File.PNFile.ID: %s\n", file.File.PNFile.ID)
+					fmt.Printf("file.File.PNFile.URL: %s\n", file.File.PNFile.URL)
+					fmt.Printf("file.Channel: %s\n", file.Channel)
+					fmt.Printf("file.Timetoken: %d\n", file.Timetoken)
+					fmt.Printf("file.SubscribedChannel: %s\n", file.SubscribedChannel)
+					fmt.Printf("file.Publisher: %s\n", file.Publisher)
+				}
+				fileDataChannel <- FileData{file.File.PNFile.ID, file.File.PNFile.URL, file.File.PNFile.Name, file.File.PNMessage.Text}
+
+			case <-exitListener:
+				break ExitLabel
+
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe().Channels([]string{ch}).Execute()
+	// Sleep a bit, to give client some time to subscribe on channels firs.
+	time.Sleep(100 * time.Millisecond)
+
+	// Test with UseRawText(true) - message should be sent as raw text without "text" wrapper
+	resSendFile, statusSendFile, _ := pn.SendFile().Channel(ch).Message(message).CipherKey(cipherKey).Name(name).File(file).ShouldStore(true).UseRawText(true).Execute()
+	assert.Equal(200, statusSendFile.StatusCode)
+	if enableDebuggingInTests {
+		fmt.Println("statusSendFile.AdditionalData:", statusSendFile.AdditionalData)
+	}
+
+	if resSendFile == nil {
+		close(fileDataChannel)
+		assert.Fail("resSendFile nil")
+		return
+	}
+
+	id = resSendFile.Data.ID
+
+	timer := time.NewTimer(5 * time.Second)
+	var fileData FileData
+	select {
+	case fileData = <-fileDataChannel:
+	case <-timer.C:
+		assert.Fail("Timeout when waiting on file event")
+		return
+	}
+	retURL = fileData.url
+
+	if enableDebuggingInTests {
+		fmt.Println("resSendFile.Data.ID ==>", resSendFile.Data.ID)
+	}
+
+	resGetFile, statusGetFile, errGetFile := pn.GetFileURL().Channel(ch).ID(id).Name(name).Execute()
+	if enableDebuggingInTests {
+		fmt.Println(statusGetFile)
+	}
+	assert.Equal(200, statusGetFile.StatusCode)
+	assert.Nil(errGetFile)
+
+	if resGetFile == nil {
+		assert.Fail("resGetFile nil")
+		return
+	}
+
+	location := resGetFile.URL
+
+	secure := ""
+	if pn.Config.Secure {
+		secure = "s"
+	}
+
+	i1 := strings.Index(retURL, "?")
+	i2 := strings.Index(location, "?")
+	retURL = retURL[:i1]
+	location = location[:i2]
+
+	path := fmt.Sprintf("v1/files/%s/channels/%s/files/%s/%s", pn.Config.SubscribeKey, ch, id, name)
+	locationTest := fmt.Sprintf("http%s://%s/%s", secure, pn.Config.Origin, path)
+	if enableDebuggingInTests {
+		fmt.Println("location:", location)
+	}
+	assert.Contains(location, locationTest)
+
+	assert.Equal(name, fileData.name)
+	assert.Equal(id, fileData.id)
+	assert.Equal(message, fileData.message)
+	assert.Equal(retURL, location)
+
+	out, errDL := os.Create(filepathOutput)
+	defer out.Close()
+	if errDL != nil {
+		if enableDebuggingInTests {
+			fmt.Println(errDL)
+		}
+	} else {
+
+		resDLFile, statusDLFile, errDLFile := pn.DownloadFile().Channel(ch).CipherKey(cipherKey).ID(id).Name(name).Execute()
+		assert.Nil(errDLFile)
+		if enableDebuggingInTests {
+			fmt.Println("statusDLFile.StatusCode ===>", statusDLFile.StatusCode)
+		}
+		if resDLFile != nil {
+			_, err := io.Copy(out, resDLFile.File)
+
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fileText, _ := os.ReadFile(filepathInput)
+				fileTextOut, _ := os.ReadFile(filepathOutput)
+				assert.Equal(fileText, fileTextOut)
+			}
+		}
+	}
+
+	fetchCall := func() error {
+		ret1, _, _ := pn.FetchWithContext(backgroundContext).
+			Channels([]string{ch}).
+			Count(25).
+			IncludeMessageType(true).
+			IncludeUUID(true).
+			Reverse(true).
+			Execute()
+		chMessages := ret1.Messages[ch]
+		bFoundInFetch := false
+		// With UseRawText(true), the message structure should be different - raw text instead of {"text": "message"}
+		for i := 0; i < len(chMessages); i++ {
+
+			m := chMessages[i].Message
+			file := chMessages[i].File
+			if enableDebuggingInTests {
+				fmt.Println("pubnub.PNFileDetails", file.ID)
+				fmt.Println("pubnub.PNFileDetails", file.Name)
+			}
+			// With UseRawText(true), the message should be a string directly, not wrapped in PNPublishMessage
+			if msg, ok := m.(string); ok {
+				if enableDebuggingInTests {
+					fmt.Println("Raw text message:", msg)
+				}
+				if msg == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
+					bFoundInFetch = true
+					break
+				}
+			} else if msg, ok := m.(pubnub.PNPublishMessage); ok {
+				// Fallback to check if it's still wrapped (shouldn't happen with UseRawText=true)
+				if enableDebuggingInTests {
+					fmt.Println("Wrapped message (unexpected with UseRawText=true):", msg.Text)
 				}
 				if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
 					bFoundInFetch = true

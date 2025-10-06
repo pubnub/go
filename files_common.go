@@ -1,5 +1,7 @@
 package pubnub
 
+import "encoding/json"
+
 // PNPublishMessage is the part of the message struct used in Publish File
 type PNPublishMessage struct {
 	Text string `json:"text"`
@@ -12,7 +14,7 @@ type PNPublishMessageRaw struct {
 
 // MarshalJSON customizes JSON marshaling for raw text mode
 func (m PNPublishMessageRaw) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + m.Text + `"`), nil
+	return json.Marshal(m.Text)
 }
 
 // PNFileInfoForPublish is the part of the message struct used in Publish File
@@ -97,11 +99,10 @@ func ParseFileInfo(filesPayload map[string]interface{}) (PNFileDetails, PNPublis
 	}
 	if m, ok := filesPayload["message"]; ok {
 		if m != nil {
-			// Check if message is a string (raw text format: {"message": "text"})
+			// Handle both raw text format: {"message": "text"} and regular format: {"message": {"text": "text"}}
 			if messageStr, ok := m.(string); ok {
 				resp.PNMessage.Text = messageStr
 			} else if data, ok := m.(map[string]interface{}); ok {
-				// Regular format: {"message": {"text": "text"}}
 				if d, ok := data["text"]; ok {
 					if textStr, ok := d.(string); ok {
 						resp.PNMessage.Text = textStr

@@ -109,6 +109,10 @@ func (b *sendFileBuilder) CustomMessageType(messageType string) *sendFileBuilder
 // UseRawText sets whether the message text should be sent as raw text instead of being wrapped in a JSON "text" field.
 // When true, the message will be sent directly without the {"text": "message"} wrapper.
 // Defaults to false for backward compatibility.
+// Example:
+//
+//	UseRawText(false): {"message": {"text": "Hello"}, "file": {"id": "123", "name": "file.txt"}}
+//	UseRawText(true):  {"message": "Hello", "file": {"id": "123", "name": "file.txt"}}
 func (b *sendFileBuilder) UseRawText(useRawText bool) *sendFileBuilder {
 	b.opts.UseRawText = useRawText
 

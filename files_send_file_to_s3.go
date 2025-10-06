@@ -103,7 +103,6 @@ func (o *sendFileToS3Opts) buildQuery() (*url.Values, error) {
 }
 
 func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
-	// Check if file is nil
 	if o.File == nil {
 		return bytes.Buffer{}, nil, 0, fmt.Errorf("file is nil")
 	}
