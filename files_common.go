@@ -5,6 +5,16 @@ type PNPublishMessage struct {
 	Text string `json:"text"`
 }
 
+// PNPublishMessageRaw is used when UseRawText is true - the message is sent as raw text without "text" wrapper
+type PNPublishMessageRaw struct {
+	Text string `json:"-"`
+}
+
+// MarshalJSON customizes JSON marshaling for raw text mode
+func (m PNPublishMessageRaw) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + m.Text + `"`), nil
+}
+
 // PNFileInfoForPublish is the part of the message struct used in Publish File
 type PNFileInfoForPublish struct {
 	Name string `json:"name"`
@@ -14,6 +24,12 @@ type PNFileInfoForPublish struct {
 // PNPublishFileMessage is the message struct used in Publish File
 type PNPublishFileMessage struct {
 	PNMessage *PNPublishMessage     `json:"message"`
+	PNFile    *PNFileInfoForPublish `json:"file"`
+}
+
+// PNPublishFileMessageRaw is used when UseRawText is true - the message is sent as raw text without "text" wrapper
+type PNPublishFileMessageRaw struct {
+	PNMessage *PNPublishMessageRaw  `json:"message"`
 	PNFile    *PNFileInfoForPublish `json:"file"`
 }
 
@@ -58,7 +74,6 @@ type PNFileMessageAndDetails struct {
 
 // ParseFileInfo is a function extract file info and add to the struct PNFileMessageAndDetails
 func ParseFileInfo(filesPayload map[string]interface{}) (PNFileDetails, PNPublishMessage) {
-	var data map[string]interface{}
 	resp := &PNFileMessageAndDetails{}
 	resp.PNMessage = PNPublishMessage{}
 	resp.PNFile = PNFileDetails{}
@@ -66,20 +81,32 @@ func ParseFileInfo(filesPayload map[string]interface{}) (PNFileDetails, PNPublis
 	//"message":{"text":"test file"},"file":{"name":"test_file_upload_name_32899","id":"9076246e-5036-42af-b3a3-767b514c93c8"}}
 	if o, ok := filesPayload["file"]; ok {
 		if o != nil {
-			data = o.(map[string]interface{})
-			if d, ok := data["id"]; ok {
-				resp.PNFile.ID = d.(string)
-			}
-			if d, ok := data["name"]; ok {
-				resp.PNFile.Name = d.(string)
+			if data, ok := o.(map[string]interface{}); ok {
+				if d, ok := data["id"]; ok {
+					if idStr, ok := d.(string); ok {
+						resp.PNFile.ID = idStr
+					}
+				}
+				if d, ok := data["name"]; ok {
+					if nameStr, ok := d.(string); ok {
+						resp.PNFile.Name = nameStr
+					}
+				}
 			}
 		}
 	}
 	if m, ok := filesPayload["message"]; ok {
 		if m != nil {
-			data = m.(map[string]interface{})
-			if d, ok := data["text"]; ok {
-				resp.PNMessage.Text = d.(string)
+			// Check if message is a string (raw text format: {"message": "text"})
+			if messageStr, ok := m.(string); ok {
+				resp.PNMessage.Text = messageStr
+			} else if data, ok := m.(map[string]interface{}); ok {
+				// Regular format: {"message": {"text": "text"}}
+				if d, ok := data["text"]; ok {
+					if textStr, ok := d.(string); ok {
+						resp.PNMessage.Text = textStr
+					}
+				}
 			}
 		}
 	}

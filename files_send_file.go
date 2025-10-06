@@ -106,6 +106,15 @@ func (b *sendFileBuilder) CustomMessageType(messageType string) *sendFileBuilder
 	return b
 }
 
+// UseRawText sets whether the message text should be sent as raw text instead of being wrapped in a JSON "text" field.
+// When true, the message will be sent directly without the {"text": "message"} wrapper.
+// Defaults to false for backward compatibility.
+func (b *sendFileBuilder) UseRawText(useRawText bool) *sendFileBuilder {
+	b.opts.UseRawText = useRawText
+
+	return b
+}
+
 // Execute runs the sendFile request.
 func (b *sendFileBuilder) Execute() (*PNSendFileResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -129,6 +138,7 @@ type sendFileOpts struct {
 	ShouldStore       bool
 	QueryParam        map[string]string
 	CustomMessageType string
+	UseRawText        bool
 
 	Transport http.RoundTripper
 }
@@ -148,6 +158,10 @@ func (o *sendFileOpts) validate() error {
 
 	if o.Name == "" {
 		return newValidationError(o, StrMissingFileName)
+	}
+
+	if o.File == nil {
+		return newValidationError(o, "file is required")
 	}
 
 	if !o.isCustomMessageTypeCorrect() {
@@ -251,15 +265,14 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 		return emptySendFileResponse, s3ResponseStatus, errS3Response
 	}
 
-	m := &PNPublishMessage{
-		Text: o.Message,
-	}
-
 	file := &PNFileInfoForPublish{
 		ID:   respForS3.Data.ID,
 		Name: o.Name,
 	}
 
+	m := &PNPublishMessage{
+		Text: o.Message,
+	}
 	message := PNPublishFileMessage{
 		PNFile:    file,
 		PNMessage: m,
@@ -271,7 +284,11 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 	maxCount := o.config().FileMessagePublishRetryLimit
 	for !sent && tryCount < maxCount {
 		tryCount++
-		pubFileMessageResponse, pubFileResponseStatus, errPubFileResponse := o.pubnub.PublishFileMessage().TTL(o.TTL).Meta(o.Meta).ShouldStore(o.ShouldStore).Channel(o.Channel).Message(message).Execute()
+		var pubFileMessageResponse *PublishFileMessageResponse
+		var pubFileResponseStatus StatusResponse
+		var errPubFileResponse error
+
+		pubFileMessageResponse, pubFileResponseStatus, errPubFileResponse = o.pubnub.PublishFileMessage().TTL(o.TTL).Meta(o.Meta).ShouldStore(o.ShouldStore).Channel(o.Channel).Message(message).UseRawText(o.UseRawText).Execute()
 		if errPubFileResponse != nil {
 			if tryCount >= maxCount {
 				pubFileResponseStatus.AdditionalData = file
