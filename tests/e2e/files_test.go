@@ -291,10 +291,6 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	_, statusDelFile, errDelFile := pn.DeleteFile().Channel(ch).ID(id).Name(name).Execute()
 	assert.Nil(errDelFile)
 	assert.Equal(200, statusDelFile.StatusCode)
-
-	// _, statusGetFile2, _ := pn.DownloadFile().Channel(ch).ID(id).Name(name).Execute()
-	// assert.Equal(404, statusGetFile2.StatusCode)
-
 }
 
 func FileUploadCommonWithUseRawText(t *testing.T, useCipher bool, customCipher string, filepathInput, filepathOutput string) {
@@ -535,10 +531,6 @@ func FileUploadCommonWithUseRawText(t *testing.T, useCipher bool, customCipher s
 	_, statusDelFile, errDelFile := pn.DeleteFile().Channel(ch).ID(id).Name(name).Execute()
 	assert.Nil(errDelFile)
 	assert.Equal(200, statusDelFile.StatusCode)
-
-	// _, statusGetFile2, _ := pn.DownloadFile().Channel(ch).ID(id).Name(name).Execute()
-	// assert.Equal(404, statusGetFile2.StatusCode)
-
 }
 
 func unpadPKCS7(data []byte) ([]byte, error) {

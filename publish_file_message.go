@@ -232,12 +232,11 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 			Name: o.FileName,
 		}
 
-		m := &PNPublishMessage{
-			Text: o.MessageText,
-		}
 		o.Message = PNPublishFileMessage{
-			PNFile:    file,
-			PNMessage: m,
+			PNFile: file,
+			PNMessage: &PNPublishMessage{
+				Text: o.MessageText,
+			},
 		}
 	}
 
