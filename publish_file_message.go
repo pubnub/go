@@ -214,7 +214,23 @@ func (o *publishFileMessageOpts) buildRawTextMessage() interface{} {
 			},
 		}
 	}
-	return o.MessageText
+	if filesPayloadRaw, ok := o.Message.(PNPublishFileMessageRaw); ok && filesPayloadRaw.PNMessage != nil {
+		return map[string]interface{}{
+			"message": filesPayloadRaw.PNMessage.Text,
+			"file": map[string]interface{}{
+				"id":   filesPayloadRaw.PNFile.ID,
+				"name": filesPayloadRaw.PNFile.Name,
+			},
+		}
+	}
+	// Fallback: construct message from individual fields (MessageText, FileID, FileName)
+	return map[string]interface{}{
+		"message": o.MessageText,
+		"file": map[string]interface{}{
+			"id":   o.FileID,
+			"name": o.FileName,
+		},
+	}
 }
 
 func (o *publishFileMessageOpts) buildPath() (string, error) {

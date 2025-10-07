@@ -1,7 +1,5 @@
 package pubnub
 
-import "encoding/json"
-
 // PNPublishMessage is the part of the message struct used in Publish File
 type PNPublishMessage struct {
 	Text string `json:"text"`
@@ -10,11 +8,6 @@ type PNPublishMessage struct {
 // PNPublishMessageRaw is used when UseRawText is true - the message is sent as raw text without "text" wrapper
 type PNPublishMessageRaw struct {
 	Text string `json:"-"`
-}
-
-// MarshalJSON customizes JSON marshaling for raw text mode
-func (m PNPublishMessageRaw) MarshalJSON() ([]byte, error) {
-	return json.Marshal(m.Text)
 }
 
 // PNFileInfoForPublish is the part of the message struct used in Publish File
