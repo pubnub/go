@@ -73,9 +73,14 @@ func (b *publishFileMessageBuilder) FileName(name string) *publishFileMessageBui
 }
 
 // Message sets the Payload for the PublishFileMessage request.
-func (b *publishFileMessageBuilder) Message(msg PNPublishFileMessage) *publishFileMessageBuilder {
+// Accepts either:
+//   - PNPublishFileMessage: Regular format with "text" wrapper (UseRawMessage=false)
+//   - PNPublishFileMessageRaw: Raw format without wrapper (UseRawMessage=true)
+//
+// The message content (PNMessage.Text) can be any JSON-serializable type:
+// string, map[string]interface{}, []interface{}, number, bool, etc.
+func (b *publishFileMessageBuilder) Message(msg interface{}) *publishFileMessageBuilder {
 	b.opts.Message = msg
-
 	return b
 }
 
@@ -113,6 +118,21 @@ func (b *publishFileMessageBuilder) QueryParam(queryParam map[string]string) *pu
 	return b
 }
 
+// UseRawMessage sets whether the message should be sent as raw content instead of being wrapped in a JSON "text" field.
+// When true, the message will be sent directly without the {"text": ...} wrapper.
+// When false (default), the message is wrapped in a "text" field for backward compatibility.
+// Works with any JSON-serializable type: strings, objects, arrays, numbers, booleans, etc.
+// Examples:
+//
+//	UseRawMessage(false): {"message": {"text": "Hello"}, "file": {"id": "123", "name": "file.txt"}}
+//	UseRawMessage(true):  {"message": "Hello", "file": {"id": "123", "name": "file.txt"}}
+//	UseRawMessage(true):  {"message": {"type": "doc", "priority": "high"}, "file": {...}}
+func (b *publishFileMessageBuilder) UseRawMessage(useRawMessage bool) *publishFileMessageBuilder {
+	b.opts.UseRawMessage = useRawMessage
+
+	return b
+}
+
 // Execute runs the PublishFileMessage request.
 func (b *publishFileMessageBuilder) Execute() (*PublishFileMessageResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -138,6 +158,7 @@ type publishFileMessageOpts struct {
 	FileName       string
 	QueryParam     map[string]string
 	Transport      http.RoundTripper
+	UseRawMessage  bool
 }
 
 func (o *publishFileMessageOpts) validate() error {
@@ -169,6 +190,19 @@ func (o *publishFileMessageOpts) validate() error {
 			} else {
 				return newValidationError(o, StrMissingFileID)
 			}
+		} else if filesPayloadRaw, okFileRaw := o.Message.(PNPublishFileMessageRaw); okFileRaw {
+			if filesPayloadRaw.PNFile != nil {
+				if filesPayloadRaw.PNFile.ID == "" {
+					return newValidationError(o, StrMissingFileID)
+				}
+				if filesPayloadRaw.PNFile.Name == "" {
+					return newValidationError(o, StrMissingFileName)
+				}
+			} else {
+				return newValidationError(o, StrMissingFileID)
+			}
+			// Set UseRawMessage to true when a raw message is passed
+			o.UseRawMessage = true
 		} else {
 			return newValidationError(o, StrMissingMessage)
 		}
@@ -177,8 +211,39 @@ func (o *publishFileMessageOpts) validate() error {
 	return nil
 }
 
+// buildRawMessage creates the appropriate message structure for raw message mode.
+// The message content can be any JSON type (string, object, array, number, bool, etc.)
+func (o *publishFileMessageOpts) buildRawMessage() interface{} {
+	if filesPayload, ok := o.Message.(PNPublishFileMessage); ok && filesPayload.PNMessage != nil {
+		return map[string]interface{}{
+			"message": filesPayload.PNMessage.Text,
+			"file": map[string]interface{}{
+				"id":   filesPayload.PNFile.ID,
+				"name": filesPayload.PNFile.Name,
+			},
+		}
+	}
+	if filesPayloadRaw, ok := o.Message.(PNPublishFileMessageRaw); ok && filesPayloadRaw.PNMessage != nil {
+		return map[string]interface{}{
+			"message": filesPayloadRaw.PNMessage.Text,
+			"file": map[string]interface{}{
+				"id":   filesPayloadRaw.PNFile.ID,
+				"name": filesPayloadRaw.PNFile.Name,
+			},
+		}
+	}
+	// Fallback: construct message from individual fields (MessageText, FileID, FileName)
+	return map[string]interface{}{
+		"message": o.MessageText,
+		"file": map[string]interface{}{
+			"id":   o.FileID,
+			"name": o.FileName,
+		},
+	}
+}
+
 func (o *publishFileMessageOpts) buildPath() (string, error) {
-	if o.UsePost == true {
+	if o.UsePost {
 		return fmt.Sprintf(publishFileMessagePostPath,
 			o.pubnub.Config.PublishKey,
 			o.pubnub.Config.SubscribeKey,
@@ -187,19 +252,24 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 	}
 
 	if o.Message == nil {
-		m := &PNPublishMessage{
-			Text: o.MessageText,
-		}
-
 		file := &PNFileInfoForPublish{
 			ID:   o.FileID,
 			Name: o.FileName,
 		}
 
 		o.Message = PNPublishFileMessage{
-			PNFile:    file,
-			PNMessage: m,
+			PNFile: file,
+			PNMessage: &PNPublishMessage{
+				Text: o.MessageText,
+			},
 		}
+	}
+
+	var messageToProcess interface{}
+	if o.UseRawMessage {
+		messageToProcess = o.buildRawMessage()
+	} else {
+		messageToProcess = o.Message
 	}
 
 	if o.pubnub.getCryptoModule() != nil {
@@ -210,8 +280,8 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 		} else {
 			p = newPublishBuilder(o.pubnub)
 		}
-		p.opts.Message = o.Message
 
+		p.opts.Message = messageToProcess
 		msg, errJSONMarshal := p.opts.encryptProcessing()
 		if errJSONMarshal != nil {
 			return "", errJSONMarshal
@@ -225,13 +295,13 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 			"0",
 			utils.URLEncode(msg)), nil
 	}
-	var msg string
-	jsonEncBytes, errEnc := json.Marshal(o.Message)
+
+	jsonEncBytes, errEnc := json.Marshal(messageToProcess)
 	if errEnc != nil {
 		o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
 		return "", errEnc
 	}
-	msg = string(jsonEncBytes)
+	msg := string(jsonEncBytes)
 	return fmt.Sprintf(publishFileMessageGetPath,
 		o.pubnub.Config.PublishKey,
 		o.pubnub.Config.SubscribeKey,

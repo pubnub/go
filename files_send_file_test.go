@@ -131,6 +131,7 @@ func TestSendFileValidateCustomMessageType(t *testing.T) {
 	opts := newSendFileOpts(pubnub, pubnub.ctx)
 	opts.Channel = "test-channel"
 	opts.Name = "test.txt"
+	opts.File = &os.File{} // Mock file
 	opts.CustomMessageType = "!"
 
 	err := opts.validate()
@@ -821,6 +822,7 @@ func TestSendFileValidationErrors(t *testing.T) {
 			opts.Channel = tc.channel
 			opts.Name = tc.fileName
 			opts.CustomMessageType = tc.customMessageType
+			opts.File = &os.File{} // Mock file for validation
 
 			err := opts.validate()
 
@@ -837,7 +839,7 @@ func TestSendFileBuilderDefaults(t *testing.T) {
 
 	assert.Equal("", builder.opts.Channel)
 	assert.Equal("", builder.opts.Name)
-	assert.Equal("", builder.opts.Message)
+	assert.Nil(builder.opts.Message)
 	assert.Nil(builder.opts.File)
 	assert.Equal("", builder.opts.CipherKey)
 	assert.Equal(0, builder.opts.TTL)
@@ -906,4 +908,101 @@ func TestSendFileIsCustomMessageTypeCorrect(t *testing.T) {
 			assert.Equal(tc.expected, result)
 		})
 	}
+}
+
+// ===========================
+// UseRawMessage Tests
+// ===========================
+
+func TestSendFileBuilderUseRawMessage(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newSendFileBuilder(pubnub)
+
+	// Test UseRawMessage true
+	result := builder.UseRawMessage(true)
+	assert.True(builder.opts.UseRawMessage)
+	assert.Equal(builder, result) // Fluent interface
+
+	// Test UseRawMessage false
+	result = builder.UseRawMessage(false)
+	assert.False(builder.opts.UseRawMessage)
+	assert.Equal(builder, result) // Fluent interface
+}
+
+func TestSendFileUseRawMessageDefaults(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	opts := newSendFileOpts(pubnub, pubnub.ctx)
+
+	// Test default value
+	assert.False(opts.UseRawMessage)
+}
+
+func TestSendFileUseRawMessageMethodChaining(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newSendFileBuilder(pubnub)
+	tempFile, _ := os.CreateTemp("", "test")
+	defer os.Remove(tempFile.Name())
+
+	// Test method chaining with UseRawMessage
+	result := builder.
+		Channel("test-channel").
+		Name("test.txt").
+		Message("test message").
+		File(tempFile).
+		UseRawMessage(true).
+		ShouldStore(true).
+		TTL(24)
+
+	assert.Equal("test-channel", builder.opts.Channel)
+	assert.Equal("test.txt", builder.opts.Name)
+	assert.Equal("test message", builder.opts.Message)
+	assert.Equal(tempFile, builder.opts.File)
+	assert.True(builder.opts.UseRawMessage)
+	assert.True(builder.opts.ShouldStore)
+	assert.Equal(24, builder.opts.TTL)
+	assert.Equal(builder, result) // Fluent interface
+}
+
+func TestSendFileUseRawMessageWithAllParameters(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newSendFileBuilder(pubnub)
+	tempFile, _ := os.CreateTemp("", "test")
+	defer os.Remove(tempFile.Name())
+
+	// Test UseRawMessage with all other parameters
+	queryParam := map[string]string{"param1": "value1"}
+	meta := map[string]interface{}{"key": "value"}
+
+	result := builder.
+		Channel("test-channel").
+		Name("test.txt").
+		Message("test message").
+		File(tempFile).
+		CipherKey("my-cipher-key").
+		TTL(24).
+		Meta(meta).
+		ShouldStore(true).
+		CustomMessageType("custom-type").
+		QueryParam(queryParam).
+		UseRawMessage(true).
+		Transport(&http.Transport{})
+
+	// Verify all parameters are set correctly
+	assert.Equal("test-channel", builder.opts.Channel)
+	assert.Equal("test.txt", builder.opts.Name)
+	assert.Equal("test message", builder.opts.Message)
+	assert.Equal(tempFile, builder.opts.File)
+	assert.Equal("my-cipher-key", builder.opts.CipherKey)
+	assert.Equal(24, builder.opts.TTL)
+	assert.Equal(meta, builder.opts.Meta)
+	assert.True(builder.opts.ShouldStore)
+	assert.Equal("custom-type", builder.opts.CustomMessageType)
+	assert.Equal(queryParam, builder.opts.QueryParam)
+	assert.True(builder.opts.UseRawMessage)
+	assert.NotNil(builder.opts.Transport)
+	assert.Equal(builder, result) // Fluent interface
 }

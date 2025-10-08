@@ -3,6 +3,7 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -102,11 +103,17 @@ func (o *sendFileToS3Opts) buildQuery() (*url.Values, error) {
 }
 
 func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	if o.File == nil {
+		return bytes.Buffer{}, nil, 0, fmt.Errorf("file is nil")
+	}
 
-	fileInfo, _ := o.File.Stat()
+	fileInfo, err := o.File.Stat()
+	if err != nil {
+		return bytes.Buffer{}, nil, 0, fmt.Errorf("failed to get file info: %v", err)
+	}
 	s := fileInfo.Size()
 	buffer := make([]byte, 512)
-	_, err := o.File.Read(buffer)
+	_, err = o.File.Read(buffer)
 	if err != nil {
 		return bytes.Buffer{}, nil, s, err
 	}

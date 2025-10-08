@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	h "github.com/pubnub/go/v7/tests/helpers"
@@ -680,4 +681,219 @@ func TestPublishFileMessageWithComplexMeta(t *testing.T) {
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
 	assert.NotEmpty(path)
+}
+
+// ===========================
+// UseRawMessage Tests
+// ===========================
+
+func TestPublishFileMessageBuilderUseRawMessage(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newPublishFileMessageBuilder(pubnub)
+
+	// Test UseRawMessage true
+	result := builder.UseRawMessage(true)
+	assert.True(builder.opts.UseRawMessage)
+	assert.Equal(builder, result) // Fluent interface
+
+	// Test UseRawMessage false
+	result = builder.UseRawMessage(false)
+	assert.False(builder.opts.UseRawMessage)
+	assert.Equal(builder, result) // Fluent interface
+}
+
+func TestPublishFileMessageUseRawMessageDefaults(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	opts := newPublishFileMessageOpts(pubnub, pubnub.ctx)
+
+	// Test default value
+	assert.False(opts.UseRawMessage)
+}
+
+func TestPublishFileMessageUseRawMessageMethodChaining(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newPublishFileMessageBuilder(pubnub)
+
+	// Test method chaining with UseRawMessage
+	result := builder.
+		Channel("test-channel").
+		FileID("test-id").
+		FileName("test.txt").
+		MessageText("test message").
+		UseRawMessage(true).
+		ShouldStore(true).
+		TTL(24)
+
+	assert.Equal("test-channel", builder.opts.Channel)
+	assert.Equal("test-id", builder.opts.FileID)
+	assert.Equal("test.txt", builder.opts.FileName)
+	assert.Equal("test message", builder.opts.MessageText)
+	assert.True(builder.opts.UseRawMessage)
+	assert.True(builder.opts.ShouldStore)
+	assert.Equal(24, builder.opts.TTL)
+	assert.Equal(builder, result) // Fluent interface
+}
+
+func TestPublishFileMessageUseRawMessageWithAllParameters(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newPublishFileMessageBuilder(pubnub)
+
+	// Test UseRawMessage with all other parameters
+	queryParam := map[string]string{"param1": "value1"}
+	meta := map[string]interface{}{"key": "value"}
+
+	result := builder.
+		Channel("test-channel").
+		FileID("test-id").
+		FileName("test.txt").
+		MessageText("test message").
+		TTL(24).
+		Meta(meta).
+		ShouldStore(true).
+		QueryParam(queryParam).
+		UseRawMessage(true).
+		Transport(&http.Transport{})
+
+	// Verify all parameters are set correctly
+	assert.Equal("test-channel", builder.opts.Channel)
+	assert.Equal("test-id", builder.opts.FileID)
+	assert.Equal("test.txt", builder.opts.FileName)
+	assert.Equal("test message", builder.opts.MessageText)
+	assert.Equal(24, builder.opts.TTL)
+	assert.Equal(meta, builder.opts.Meta)
+	assert.True(builder.opts.ShouldStore)
+	assert.Equal(queryParam, builder.opts.QueryParam)
+	assert.True(builder.opts.UseRawMessage)
+	assert.NotNil(builder.opts.Transport)
+	assert.Equal(builder, result) // Fluent interface
+}
+
+func TestPublishFileMessageBuildRawMessage(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	opts := newPublishFileMessageOpts(pubnub, pubnub.ctx)
+
+	// Test with PNPublishFileMessage
+	file := &PNFileInfoForPublish{
+		ID:   "test-id",
+		Name: "test.txt",
+	}
+	message := &PNPublishMessage{
+		Text: "Hello World",
+	}
+	opts.Message = PNPublishFileMessage{
+		PNFile:    file,
+		PNMessage: message,
+	}
+
+	result := opts.buildRawMessage()
+	rawMessage, ok := result.(map[string]interface{})
+	assert.True(ok)
+	assert.Equal("Hello World", rawMessage["message"])
+
+	fileInfo, ok := rawMessage["file"].(map[string]interface{})
+	assert.True(ok)
+	assert.Equal("test-id", fileInfo["id"])
+	assert.Equal("test.txt", fileInfo["name"])
+
+	// Test with PNPublishFileMessageRaw
+	fileRaw := &PNFileInfoForPublish{
+		ID:   "raw-id",
+		Name: "raw.txt",
+	}
+	messageRaw := &PNPublishMessageRaw{
+		Text: "Raw Message",
+	}
+	opts.Message = PNPublishFileMessageRaw{
+		PNFile:    fileRaw,
+		PNMessage: messageRaw,
+	}
+
+	result = opts.buildRawMessage()
+	rawMessage, ok = result.(map[string]interface{})
+	assert.True(ok)
+	assert.Equal("Raw Message", rawMessage["message"])
+
+	fileInfo, ok = rawMessage["file"].(map[string]interface{})
+	assert.True(ok)
+	assert.Equal("raw-id", fileInfo["id"])
+	assert.Equal("raw.txt", fileInfo["name"])
+
+	// Test with MessageText fallback
+	opts.Message = nil
+	opts.MessageText = "Fallback message"
+	opts.FileID = "fallback-id"
+	opts.FileName = "fallback.txt"
+	result = opts.buildRawMessage()
+	rawMessage, ok = result.(map[string]interface{})
+	assert.True(ok, "Fallback should return map[string]interface{}")
+	assert.Equal("Fallback message", rawMessage["message"])
+
+	fileInfo, ok = rawMessage["file"].(map[string]interface{})
+	assert.True(ok, "Fallback should have file info")
+	assert.Equal("fallback-id", fileInfo["id"])
+	assert.Equal("fallback.txt", fileInfo["name"])
+}
+
+// TestPublishFileMessageBuildRawMessageWithIndividualFields tests the complete message structure
+// when using individual field setters (MessageText, FileID, FileName) with UseRawMessage
+func TestPublishFileMessageBuildRawMessageWithIndividualFields(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newPublishFileMessageBuilder(pubnub)
+
+	// Test using individual field setters with UseRawMessage(true)
+	builder.
+		Channel("test-channel").
+		MessageText("Test message").
+		FileID("test-id").
+		FileName("test.txt").
+		UseRawMessage(true)
+
+	// Build the path which internally calls buildRawMessage
+	path, err := builder.opts.buildPath()
+	assert.Nil(err)
+	assert.NotEmpty(path)
+
+	// Verify the message structure
+	result := builder.opts.buildRawMessage()
+	rawMessage, ok := result.(map[string]interface{})
+	assert.True(ok, "Should return map[string]interface{} when using individual fields")
+	assert.Equal("Test message", rawMessage["message"], "Message text should be present")
+
+	fileInfo, ok := rawMessage["file"].(map[string]interface{})
+	assert.True(ok, "Should have file info when using individual fields")
+	assert.Equal("test-id", fileInfo["id"], "File ID should be present")
+	assert.Equal("test.txt", fileInfo["name"], "File name should be present")
+}
+
+// TestPublishFileMessageUseRawMessageWithIndividualFieldsViaPath tests the full path generation
+// when using individual field setters with UseRawMessage to ensure the message is properly encoded
+func TestPublishFileMessageUseRawMessageWithIndividualFieldsViaPath(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newPublishFileMessageBuilder(pubnub)
+
+	// Test the complete flow with individual field setters
+	builder.
+		Channel("test-channel").
+		MessageText("Hello World").
+		FileID("file-123").
+		FileName("document.pdf").
+		UseRawMessage(true)
+
+	path, err := builder.opts.buildPath()
+	assert.Nil(err)
+	assert.NotEmpty(path)
+
+	// The path should contain the URL-encoded JSON with raw message format
+	// Expected structure: {"message":"Hello World","file":{"id":"file-123","name":"document.pdf"}}
+	assert.Contains(path, "test-channel", "Path should contain channel name")
+	// The message should be in the path as URL-encoded JSON
+	assert.Contains(path, "%22message%22", "Path should contain encoded message field")
+	assert.Contains(path, "%22file%22", "Path should contain encoded file field")
 }
