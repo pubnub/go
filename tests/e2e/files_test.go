@@ -57,7 +57,8 @@ func TestFileUploadWithUseRawMessageAndCipher(t *testing.T) {
 }
 
 type FileData struct {
-	id, url, name, message string
+	id, url, name string
+	message       interface{}
 }
 
 func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepathInput, filepathOutput string) {
@@ -114,7 +115,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 
 					fmt.Println(" --- File: ")
 					fmt.Printf("%v\n", file)
-					fmt.Printf("file.File.PNMessage.Text: %s\n", file.File.PNMessage.Text)
+					fmt.Printf("file.File.PNMessage.Text: %v\n", file.File.PNMessage.Text)
 					fmt.Printf("file.File.PNFile.Name: %s\n", file.File.PNFile.Name)
 					fmt.Printf("file.File.PNFile.ID: %s\n", file.File.PNFile.ID)
 					fmt.Printf("file.File.PNFile.URL: %s\n", file.File.PNFile.URL)
@@ -347,7 +348,7 @@ func FileUploadCommonWithUseRawMessage(t *testing.T, useCipher bool, customCiphe
 
 					fmt.Println(" --- File: ")
 					fmt.Printf("%v\n", file)
-					fmt.Printf("file.File.PNMessage.Text: %s\n", file.File.PNMessage.Text)
+					fmt.Printf("file.File.PNMessage.Text: %v\n", file.File.PNMessage.Text)
 					fmt.Printf("file.File.PNFile.Name: %s\n", file.File.PNFile.Name)
 					fmt.Printf("file.File.PNFile.ID: %s\n", file.File.PNFile.ID)
 					fmt.Printf("file.File.PNFile.URL: %s\n", file.File.PNFile.URL)
