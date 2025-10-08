@@ -73,7 +73,13 @@ func (b *publishFileMessageBuilder) FileName(name string) *publishFileMessageBui
 }
 
 // Message sets the Payload for the PublishFileMessage request.
-func (b *publishFileMessageBuilder) Message(msg PNPublishFileMessage) *publishFileMessageBuilder {
+// Accepts either:
+//   - PNPublishFileMessage: Regular format with "text" wrapper (UseRawMessage=false)
+//   - PNPublishFileMessageRaw: Raw format without wrapper (UseRawMessage=true)
+//
+// The message content (PNMessage.Text) can be any JSON-serializable type:
+// string, map[string]interface{}, []interface{}, number, bool, etc.
+func (b *publishFileMessageBuilder) Message(msg interface{}) *publishFileMessageBuilder {
 	b.opts.Message = msg
 	return b
 }
@@ -112,15 +118,17 @@ func (b *publishFileMessageBuilder) QueryParam(queryParam map[string]string) *pu
 	return b
 }
 
-// UseRawText sets whether the message text should be sent as raw text instead of being wrapped in a JSON "text" field.
-// When true, the message will be sent directly without the {"text": "message"} wrapper.
-// Defaults to false for backward compatibility.
-// Example:
+// UseRawMessage sets whether the message should be sent as raw content instead of being wrapped in a JSON "text" field.
+// When true, the message will be sent directly without the {"text": ...} wrapper.
+// When false (default), the message is wrapped in a "text" field for backward compatibility.
+// Works with any JSON-serializable type: strings, objects, arrays, numbers, booleans, etc.
+// Examples:
 //
-//	UseRawText(false): {"message": {"text": "Hello"}, "file": {"id": "123", "name": "file.txt"}}
-//	UseRawText(true):  {"message": "Hello", "file": {"id": "123", "name": "file.txt"}}
-func (b *publishFileMessageBuilder) UseRawText(useRawText bool) *publishFileMessageBuilder {
-	b.opts.UseRawText = useRawText
+//	UseRawMessage(false): {"message": {"text": "Hello"}, "file": {"id": "123", "name": "file.txt"}}
+//	UseRawMessage(true):  {"message": "Hello", "file": {"id": "123", "name": "file.txt"}}
+//	UseRawMessage(true):  {"message": {"type": "doc", "priority": "high"}, "file": {...}}
+func (b *publishFileMessageBuilder) UseRawMessage(useRawMessage bool) *publishFileMessageBuilder {
+	b.opts.UseRawMessage = useRawMessage
 
 	return b
 }
@@ -150,7 +158,7 @@ type publishFileMessageOpts struct {
 	FileName       string
 	QueryParam     map[string]string
 	Transport      http.RoundTripper
-	UseRawText     bool
+	UseRawMessage  bool
 }
 
 func (o *publishFileMessageOpts) validate() error {
@@ -193,8 +201,8 @@ func (o *publishFileMessageOpts) validate() error {
 			} else {
 				return newValidationError(o, StrMissingFileID)
 			}
-			// Set UseRawText to true when a raw message is passed
-			o.UseRawText = true
+			// Set UseRawMessage to true when a raw message is passed
+			o.UseRawMessage = true
 		} else {
 			return newValidationError(o, StrMissingMessage)
 		}
@@ -203,8 +211,9 @@ func (o *publishFileMessageOpts) validate() error {
 	return nil
 }
 
-// buildRawTextMessage creates the appropriate message structure for raw text mode
-func (o *publishFileMessageOpts) buildRawTextMessage() interface{} {
+// buildRawMessage creates the appropriate message structure for raw message mode.
+// The message content can be any JSON type (string, object, array, number, bool, etc.)
+func (o *publishFileMessageOpts) buildRawMessage() interface{} {
 	if filesPayload, ok := o.Message.(PNPublishFileMessage); ok && filesPayload.PNMessage != nil {
 		return map[string]interface{}{
 			"message": filesPayload.PNMessage.Text,
@@ -257,8 +266,8 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 	}
 
 	var messageToProcess interface{}
-	if o.UseRawText {
-		messageToProcess = o.buildRawTextMessage()
+	if o.UseRawMessage {
+		messageToProcess = o.buildRawMessage()
 	} else {
 		messageToProcess = o.Message
 	}

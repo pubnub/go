@@ -839,7 +839,7 @@ func TestSendFileBuilderDefaults(t *testing.T) {
 
 	assert.Equal("", builder.opts.Channel)
 	assert.Equal("", builder.opts.Name)
-	assert.Equal("", builder.opts.Message)
+	assert.Nil(builder.opts.Message)
 	assert.Nil(builder.opts.File)
 	assert.Equal("", builder.opts.CipherKey)
 	assert.Equal(0, builder.opts.TTL)
@@ -911,48 +911,48 @@ func TestSendFileIsCustomMessageTypeCorrect(t *testing.T) {
 }
 
 // ===========================
-// UseRawText Tests
+// UseRawMessage Tests
 // ===========================
 
-func TestSendFileBuilderUseRawText(t *testing.T) {
+func TestSendFileBuilderUseRawMessage(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := NewPubNub(NewDemoConfig())
 	builder := newSendFileBuilder(pubnub)
 
-	// Test UseRawText true
-	result := builder.UseRawText(true)
-	assert.True(builder.opts.UseRawText)
+	// Test UseRawMessage true
+	result := builder.UseRawMessage(true)
+	assert.True(builder.opts.UseRawMessage)
 	assert.Equal(builder, result) // Fluent interface
 
-	// Test UseRawText false
-	result = builder.UseRawText(false)
-	assert.False(builder.opts.UseRawText)
+	// Test UseRawMessage false
+	result = builder.UseRawMessage(false)
+	assert.False(builder.opts.UseRawMessage)
 	assert.Equal(builder, result) // Fluent interface
 }
 
-func TestSendFileUseRawTextDefaults(t *testing.T) {
+func TestSendFileUseRawMessageDefaults(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := NewPubNub(NewDemoConfig())
 	opts := newSendFileOpts(pubnub, pubnub.ctx)
 
 	// Test default value
-	assert.False(opts.UseRawText)
+	assert.False(opts.UseRawMessage)
 }
 
-func TestSendFileUseRawTextMethodChaining(t *testing.T) {
+func TestSendFileUseRawMessageMethodChaining(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := NewPubNub(NewDemoConfig())
 	builder := newSendFileBuilder(pubnub)
 	tempFile, _ := os.CreateTemp("", "test")
 	defer os.Remove(tempFile.Name())
 
-	// Test method chaining with UseRawText
+	// Test method chaining with UseRawMessage
 	result := builder.
 		Channel("test-channel").
 		Name("test.txt").
 		Message("test message").
 		File(tempFile).
-		UseRawText(true).
+		UseRawMessage(true).
 		ShouldStore(true).
 		TTL(24)
 
@@ -960,20 +960,20 @@ func TestSendFileUseRawTextMethodChaining(t *testing.T) {
 	assert.Equal("test.txt", builder.opts.Name)
 	assert.Equal("test message", builder.opts.Message)
 	assert.Equal(tempFile, builder.opts.File)
-	assert.True(builder.opts.UseRawText)
+	assert.True(builder.opts.UseRawMessage)
 	assert.True(builder.opts.ShouldStore)
 	assert.Equal(24, builder.opts.TTL)
 	assert.Equal(builder, result) // Fluent interface
 }
 
-func TestSendFileUseRawTextWithAllParameters(t *testing.T) {
+func TestSendFileUseRawMessageWithAllParameters(t *testing.T) {
 	assert := assert.New(t)
 	pubnub := NewPubNub(NewDemoConfig())
 	builder := newSendFileBuilder(pubnub)
 	tempFile, _ := os.CreateTemp("", "test")
 	defer os.Remove(tempFile.Name())
 
-	// Test UseRawText with all other parameters
+	// Test UseRawMessage with all other parameters
 	queryParam := map[string]string{"param1": "value1"}
 	meta := map[string]interface{}{"key": "value"}
 
@@ -988,7 +988,7 @@ func TestSendFileUseRawTextWithAllParameters(t *testing.T) {
 		ShouldStore(true).
 		CustomMessageType("custom-type").
 		QueryParam(queryParam).
-		UseRawText(true).
+		UseRawMessage(true).
 		Transport(&http.Transport{})
 
 	// Verify all parameters are set correctly
@@ -1002,7 +1002,7 @@ func TestSendFileUseRawTextWithAllParameters(t *testing.T) {
 	assert.True(builder.opts.ShouldStore)
 	assert.Equal("custom-type", builder.opts.CustomMessageType)
 	assert.Equal(queryParam, builder.opts.QueryParam)
-	assert.True(builder.opts.UseRawText)
+	assert.True(builder.opts.UseRawMessage)
 	assert.NotNil(builder.opts.Transport)
 	assert.Equal(builder, result) // Fluent interface
 }

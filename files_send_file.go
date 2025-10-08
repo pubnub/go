@@ -72,7 +72,13 @@ func (b *sendFileBuilder) Name(name string) *sendFileBuilder {
 	return b
 }
 
-func (b *sendFileBuilder) Message(message string) *sendFileBuilder {
+// Message sets the message content for the file upload.
+// Accepts any JSON-serializable type: string, map[string]interface{}, []interface{}, number, bool, etc.
+// Examples:
+//   - String: .Message("Hello")
+//   - JSON object: .Message(map[string]interface{}{"type": "document", "priority": "high"})
+//   - Array: .Message([]string{"item1", "item2"})
+func (b *sendFileBuilder) Message(message interface{}) *sendFileBuilder {
 	b.opts.Message = message
 
 	return b
@@ -106,15 +112,17 @@ func (b *sendFileBuilder) CustomMessageType(messageType string) *sendFileBuilder
 	return b
 }
 
-// UseRawText sets whether the message text should be sent as raw text instead of being wrapped in a JSON "text" field.
-// When true, the message will be sent directly without the {"text": "message"} wrapper.
-// Defaults to false for backward compatibility.
-// Example:
+// UseRawMessage sets whether the message should be sent as raw content instead of being wrapped in a JSON "text" field.
+// When true, the message will be sent directly without the {"text": ...} wrapper.
+// When false (default), the message is wrapped in a "text" field for backward compatibility.
+// Works with any JSON-serializable type: strings, objects, arrays, numbers, booleans, etc.
+// Examples:
 //
-//	UseRawText(false): {"message": {"text": "Hello"}, "file": {"id": "123", "name": "file.txt"}}
-//	UseRawText(true):  {"message": "Hello", "file": {"id": "123", "name": "file.txt"}}
-func (b *sendFileBuilder) UseRawText(useRawText bool) *sendFileBuilder {
-	b.opts.UseRawText = useRawText
+//	UseRawMessage(false): {"message": {"text": "Hello"}, "file": {"id": "123", "name": "file.txt"}}
+//	UseRawMessage(true):  {"message": "Hello", "file": {"id": "123", "name": "file.txt"}}
+//	UseRawMessage(true):  {"message": {"type": "doc", "priority": "high"}, "file": {...}}
+func (b *sendFileBuilder) UseRawMessage(useRawMessage bool) *sendFileBuilder {
+	b.opts.UseRawMessage = useRawMessage
 
 	return b
 }
@@ -134,7 +142,7 @@ type sendFileOpts struct {
 
 	Channel           string
 	Name              string
-	Message           string
+	Message           interface{}
 	File              *os.File
 	CipherKey         string
 	TTL               int
@@ -142,7 +150,7 @@ type sendFileOpts struct {
 	ShouldStore       bool
 	QueryParam        map[string]string
 	CustomMessageType string
-	UseRawText        bool
+	UseRawMessage     bool
 
 	Transport http.RoundTripper
 }
@@ -288,7 +296,7 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 	maxCount := o.config().FileMessagePublishRetryLimit
 	for !sent && tryCount < maxCount {
 		tryCount++
-		pubFileMessageResponse, pubFileResponseStatus, errPubFileResponse := o.pubnub.PublishFileMessage().TTL(o.TTL).Meta(o.Meta).ShouldStore(o.ShouldStore).Channel(o.Channel).Message(message).UseRawText(o.UseRawText).Execute()
+		pubFileMessageResponse, pubFileResponseStatus, errPubFileResponse := o.pubnub.PublishFileMessage().TTL(o.TTL).Meta(o.Meta).ShouldStore(o.ShouldStore).Channel(o.Channel).Message(message).UseRawMessage(o.UseRawMessage).Execute()
 		if errPubFileResponse != nil {
 			if tryCount >= maxCount {
 				pubFileResponseStatus.AdditionalData = file

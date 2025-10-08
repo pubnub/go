@@ -1,13 +1,15 @@
 package pubnub
 
-// PNPublishMessage is the part of the message struct used in Publish File
+// PNPublishMessage is the part of the message struct used in Publish File.
+// Text can be any JSON-serializable type: string, map[string]interface{}, []interface{}, number, bool, etc.
 type PNPublishMessage struct {
-	Text string `json:"text"`
+	Text interface{} `json:"text"`
 }
 
-// PNPublishMessageRaw is used when UseRawText is true - the message is sent as raw text without "text" wrapper
+// PNPublishMessageRaw is used when UseRawMessage is true - the message content is sent directly without "text" wrapper.
+// Text can be any JSON-serializable type: string, map[string]interface{}, []interface{}, number, bool, etc.
 type PNPublishMessageRaw struct {
-	Text string `json:"-"`
+	Text interface{} `json:"-"`
 }
 
 // PNFileInfoForPublish is the part of the message struct used in Publish File
@@ -22,7 +24,7 @@ type PNPublishFileMessage struct {
 	PNFile    *PNFileInfoForPublish `json:"file"`
 }
 
-// PNPublishFileMessageRaw is used when UseRawText is true - the message is sent as raw text without "text" wrapper
+// PNPublishFileMessageRaw is used when UseRawMessage is true - the message is sent as raw content without "text" wrapper
 type PNPublishFileMessageRaw struct {
 	PNMessage *PNPublishMessageRaw  `json:"message"`
 	PNFile    *PNFileInfoForPublish `json:"file"`
@@ -67,7 +69,13 @@ type PNFileMessageAndDetails struct {
 	PNFile    PNFileDetails    `json:"file"`
 }
 
-// ParseFileInfo is a function extract file info and add to the struct PNFileMessageAndDetails
+// ParseFileInfo extracts file information and message content from PubNub file payloads.
+// It handles multiple message formats:
+//   - Regular format with "text" wrapper: {"message": {"text": <value>}} - extracts value from "text" field
+//   - Raw format without wrapper: {"message": <any JSON type>} - uses the message value directly
+//   - JSON objects without "text" field are treated as raw format
+//
+// Returns PNFileDetails containing file metadata and PNPublishMessage with the message content.
 func ParseFileInfo(filesPayload map[string]interface{}) (PNFileDetails, PNPublishMessage) {
 	resp := &PNFileMessageAndDetails{}
 	resp.PNMessage = PNPublishMessage{}
@@ -92,15 +100,19 @@ func ParseFileInfo(filesPayload map[string]interface{}) (PNFileDetails, PNPublis
 	}
 	if m, ok := filesPayload["message"]; ok {
 		if m != nil {
-			// Handle both raw text format: {"message": "text"} and regular format: {"message": {"text": "text"}}
-			if messageStr, ok := m.(string); ok {
-				resp.PNMessage.Text = messageStr
-			} else if data, ok := m.(map[string]interface{}); ok {
+			// Handle multiple message formats
+			if data, ok := m.(map[string]interface{}); ok {
+				// Message is a JSON object - check if it has "text" field
 				if d, ok := data["text"]; ok {
-					if textStr, ok := d.(string); ok {
-						resp.PNMessage.Text = textStr
-					}
+					// Format: {"message": {"text": <value>}} - extract value from "text" field
+					resp.PNMessage.Text = d
+				} else {
+					// Format: {"message": {"key": "value", ...}} - use entire object as message
+					resp.PNMessage.Text = m
 				}
+			} else {
+				// Format: {"message": <primitive>} - use value directly (string, number, bool, array)
+				resp.PNMessage.Text = m
 			}
 		}
 	}

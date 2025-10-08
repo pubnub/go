@@ -48,12 +48,12 @@ func TestFileUploadWithCustomCipher(t *testing.T) {
 	FileUploadCommon(t, true, "enigma2", "file_upload_test.txt", "file_upload_test_output.txt")
 }
 
-func TestFileUploadWithUseRawText(t *testing.T) {
-	FileUploadCommonWithUseRawText(t, false, "", "file_upload_test.txt", "file_upload_test_output.txt")
+func TestFileUploadWithUseRawMessage(t *testing.T) {
+	FileUploadCommonWithUseRawMessage(t, false, "", "file_upload_test.txt", "file_upload_test_output.txt")
 }
 
-func TestFileUploadWithUseRawTextAndCipher(t *testing.T) {
-	FileUploadCommonWithUseRawText(t, true, "", "file_upload_test.txt", "file_upload_test_output.txt")
+func TestFileUploadWithUseRawMessageAndCipher(t *testing.T) {
+	FileUploadCommonWithUseRawMessage(t, true, "", "file_upload_test.txt", "file_upload_test_output.txt")
 }
 
 type FileData struct {
@@ -293,7 +293,7 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 	assert.Equal(200, statusDelFile.StatusCode)
 }
 
-func FileUploadCommonWithUseRawText(t *testing.T, useCipher bool, customCipher string, filepathInput, filepathOutput string) {
+func FileUploadCommonWithUseRawMessage(t *testing.T, useCipher bool, customCipher string, filepathInput, filepathOutput string) {
 	assert := assert.New(t)
 
 	pn := pubnub.NewPubNub(pamConfigCopy())
@@ -371,8 +371,8 @@ func FileUploadCommonWithUseRawText(t *testing.T, useCipher bool, customCipher s
 	// Sleep a bit, to give client some time to subscribe on channels firs.
 	time.Sleep(100 * time.Millisecond)
 
-	// Test with UseRawText(true) - message should be sent as raw text without "text" wrapper
-	resSendFile, statusSendFile, _ := pn.SendFile().Channel(ch).Message(message).CipherKey(cipherKey).Name(name).File(file).ShouldStore(true).UseRawText(true).Execute()
+	// Test with UseRawMessage(true) - message should be sent as raw content without "text" wrapper
+	resSendFile, statusSendFile, _ := pn.SendFile().Channel(ch).Message(message).CipherKey(cipherKey).Name(name).File(file).ShouldStore(true).UseRawMessage(true).Execute()
 	assert.Equal(200, statusSendFile.StatusCode)
 	if enableDebuggingInTests {
 		fmt.Println("statusSendFile.AdditionalData:", statusSendFile.AdditionalData)
@@ -472,7 +472,7 @@ func FileUploadCommonWithUseRawText(t *testing.T, useCipher bool, customCipher s
 			Execute()
 		chMessages := ret1.Messages[ch]
 		bFoundInFetch := false
-		// With UseRawText(true), the message structure should be different - raw text instead of {"text": "message"}
+		// With UseRawMessage(true), the message structure should be different - raw message instead of {"text": "message"}
 		for i := 0; i < len(chMessages); i++ {
 
 			m := chMessages[i].Message
@@ -481,19 +481,19 @@ func FileUploadCommonWithUseRawText(t *testing.T, useCipher bool, customCipher s
 				fmt.Println("pubnub.PNFileDetails", file.ID)
 				fmt.Println("pubnub.PNFileDetails", file.Name)
 			}
-			// With UseRawText(true), the message should be a string directly, not wrapped in PNPublishMessage
+			// With UseRawMessage(true), the message should be a string directly, not wrapped in PNPublishMessage
 			if msg, ok := m.(string); ok {
 				if enableDebuggingInTests {
-					fmt.Println("Raw text message:", msg)
+					fmt.Println("Raw message:", msg)
 				}
 				if msg == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
 					bFoundInFetch = true
 					break
 				}
 			} else if msg, ok := m.(pubnub.PNPublishMessage); ok {
-				// Fallback to check if it's still wrapped (shouldn't happen with UseRawText=true)
+				// Fallback to check if it's still wrapped (shouldn't happen with UseRawMessage=true)
 				if enableDebuggingInTests {
-					fmt.Println("Wrapped message (unexpected with UseRawText=true):", msg.Text)
+					fmt.Println("Wrapped message (unexpected with UseRawMessage=true):", msg.Text)
 				}
 				if msg.Text == message && file.ID == id && file.Name == name && chMessages[i].MessageType == 4 && chMessages[i].UUID == pn.Config.UUID {
 					bFoundInFetch = true
