@@ -233,7 +233,7 @@ func (o *manageMembershipsOptsV2) operationType() OperationType {
 
 // PNManageMembershipsResponse is the Objects API Response for ManageMemberships
 type PNManageMembershipsResponse struct {
-	status     int             `json:"status"`
+	Status     int             `json:"status"`
 	Data       []PNMemberships `json:"data"`
 	TotalCount int             `json:"totalCount"`
 	Next       string          `json:"next"`

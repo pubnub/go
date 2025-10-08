@@ -130,7 +130,7 @@ func (o *removeMessageActionsOpts) operationType() OperationType {
 
 // PNRemoveMessageActionsResponse is the Objects API Response for create space
 type PNRemoveMessageActionsResponse struct {
-	status int         `json:"status"`
+	Status int         `json:"status"`
 	Data   interface{} `json:"data"`
 }
 

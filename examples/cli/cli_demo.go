@@ -1100,6 +1100,8 @@ func getSpaces(args []string) {
 
 	incl := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
+		pubnub.PNChannelMetadataIncludeStatus,
+		pubnub.PNChannelMetadataIncludeType,
 	}
 
 	if start != "" {
@@ -1130,9 +1132,11 @@ func updateChannelMetadata(args []string) {
 
 	incl := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
+		pubnub.PNChannelMetadataIncludeStatus,
+		pubnub.PNChannelMetadataIncludeType,
 	}
 
-	res, status, err := pn.SetChannelMetadata().Channel(id).Name(name).Description(desc).Include(incl).Custom(custom).Execute()
+	res, status, err := pn.SetChannelMetadata().Channel(id).Name(name).Description(desc).Include(incl).Custom(custom).Status("active").Type("demo").Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
@@ -1165,10 +1169,11 @@ func createChannelMetadata(args []string) {
 
 	incl := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
-		pubnub.PNChannelMetadataIncludeCustom,
+		pubnub.PNChannelMetadataIncludeStatus,
+		pubnub.PNChannelMetadataIncludeType,
 	}
 
-	res, status, err := pn.SetChannelMetadata().Channel(id).Name(name).Description(desc).Include(incl).Custom(custom).Execute()
+	res, status, err := pn.SetChannelMetadata().Channel(id).Name(name).Description(desc).Include(incl).Custom(custom).Status("active").Type("demo").Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
@@ -1183,6 +1188,8 @@ func getChannelMetadata(args []string) {
 
 	incl := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
+		pubnub.PNChannelMetadataIncludeStatus,
+		pubnub.PNChannelMetadataIncludeType,
 	}
 
 	res, status, err := pn.GetChannelMetadata().Channel(id).Include(incl).Execute()

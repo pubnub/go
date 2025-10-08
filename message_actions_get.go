@@ -153,7 +153,7 @@ type PNGetMessageActionsMore struct {
 
 // PNGetMessageActionsResponse is the GetMessageActions API Response
 type PNGetMessageActionsResponse struct {
-	status int                        `json:"status"`
+	Status int                        `json:"status"`
 	Data   []PNMessageActionsResponse `json:"data"`
 	More   PNGetMessageActionsMore    `json:"more"`
 }

@@ -83,6 +83,10 @@ const (
 const (
 	// PNChannelMetadataIncludeCustom is the enum equivalent to the value `custom` available Channel include types
 	PNChannelMetadataIncludeCustom PNChannelMetadataInclude = 1 + iota
+	// PNChannelMetadataIncludeStatus is the enum equivalent to the value `status` available Channel include types
+	PNChannelMetadataIncludeStatus
+	// PNChannelMetadataIncludeType is the enum equivalent to the value `type` available Channel include types
+	PNChannelMetadataIncludeType
 )
 
 func (s PNUUIDMetadataInclude) String() string {
@@ -90,7 +94,7 @@ func (s PNUUIDMetadataInclude) String() string {
 }
 
 func (s PNChannelMetadataInclude) String() string {
-	return [...]string{"custom"}[s-1]
+	return [...]string{"custom", "status", "type"}[s-1]
 }
 
 const (

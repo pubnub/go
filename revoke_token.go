@@ -103,7 +103,7 @@ func (o *revokeTokenOpts) operationType() OperationType {
 
 // PNRevokeTokenResponse is the struct returned when the Execute function of Grant Token is called.
 type PNRevokeTokenResponse struct {
-	status int `json:"status"`
+	Status int `json:"status"`
 }
 
 func newPNRevokeTokenResponse(jsonBytes []byte, o *revokeTokenOpts, status StatusResponse) (*PNRevokeTokenResponse, StatusResponse, error) {

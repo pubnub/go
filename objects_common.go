@@ -20,6 +20,8 @@ type PNChannel struct {
 	Updated     string                 `json:"updated"`
 	ETag        string                 `json:"eTag"`
 	Custom      map[string]interface{} `json:"custom"`
+	Status      string                 `json:"status"`
+	Type        string                 `json:"type"`
 }
 
 // PNChannelMembers is the Objects API Members struct

@@ -23,13 +23,17 @@ func TestObjectsV2ChannelMetadataSetUpdateGetRemove(t *testing.T) {
 	name := randomized("name")
 	desc := "desc"
 	custom := map[string]interface{}{"a": "b", "c": "d"}
+	status := "active"
+	channelType := "public"
 
 	incl := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
+		pubnub.PNChannelMetadataIncludeStatus,
+		pubnub.PNChannelMetadataIncludeType,
 	}
 
 	defer removeChannelMetadata(a, pn, id)
-	res, st, err := pn.SetChannelMetadata().Include(incl).Channel(id).Name(name).Description(desc).Custom(custom).Execute()
+	res, st, err := pn.SetChannelMetadata().Include(incl).Channel(id).Name(name).Description(desc).Custom(custom).Status(status).Type(channelType).Execute()
 
 	a.Nil(err)
 	a.Equal(200, st.StatusCode)
@@ -40,21 +44,30 @@ func TestObjectsV2ChannelMetadataSetUpdateGetRemove(t *testing.T) {
 		a.NotNil(res.Data.Updated)
 		a.NotNil(res.Data.ETag)
 		a.True(reflect.DeepEqual(custom, res.Data.Custom))
+		a.Equal(status, res.Data.Status)
+		a.Equal(channelType, res.Data.Type)
 	}
 
 	desc = "desc2"
+	statusUpdated := "inactive"
 
-	res, st, err = pn.SetChannelMetadata().Include(incl).Channel(id).Name(name).Description(desc).Custom(custom).Execute()
+	res, st, err = pn.SetChannelMetadata().Include(incl).Channel(id).Name(name).Description(desc).Custom(custom).Status(statusUpdated).Type(channelType).Execute()
 	a.Nil(err)
 	a.Equal(200, st.StatusCode)
 	if res != nil {
 		a.Equal(id, res.Data.ID)
 		a.Equal(desc, res.Data.Description)
+		a.Equal(statusUpdated, res.Data.Status)
+		a.Equal(channelType, res.Data.Type)
 	}
 
-	_, st, err = pn.GetChannelMetadata().Include(incl).Channel(id).Execute()
+	getRes, st, err := pn.GetChannelMetadata().Include(incl).Channel(id).Execute()
 	a.Nil(err)
 	a.Equal(200, st.StatusCode)
+	if getRes != nil {
+		a.Equal(statusUpdated, getRes.Data.Status)
+		a.Equal(channelType, getRes.Data.Type)
+	}
 
 }
 
