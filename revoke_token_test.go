@@ -486,8 +486,8 @@ func TestRevokeTokenResponseParsingErrors(t *testing.T) {
 	// Test response with wrong data types
 	wrongTypeJSON := []byte(`{"status": "not-a-number"}`)
 	resp, _, err = newPNRevokeTokenResponse(wrongTypeJSON, opts, StatusResponse{StatusCode: 200})
-	assert.Nil(err) // JSON unmarshaling should handle this gracefully
-	assert.NotNil(resp)
+	assert.NotNil(err) // Should error when status field has wrong type
+	assert.Contains(err.Error(), "parsing")
 }
 
 func TestRevokeTokenResponseWithDifferentStatusCodes(t *testing.T) {

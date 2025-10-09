@@ -70,6 +70,8 @@ func AssertManageMembersV2(t *testing.T, checkQueryParam, testContext bool, with
 	in := PNChannelMembersSet{
 		UUID:   uuid,
 		Custom: custom,
+		Status: "active",
+		Type:   "member",
 	}
 
 	inArr := []PNChannelMembersSet{
@@ -95,7 +97,7 @@ func AssertManageMembersV2(t *testing.T, checkQueryParam, testContext bool, with
 
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
-	expectedBody := "{\"set\":[{\"uuid\":{\"id\":\"id0\"},\"custom\":{\"a1\":\"b1\",\"c1\":\"d1\"}}],\"delete\":[{\"uuid\":{\"id\":\"id0\"}}]}"
+	expectedBody := "{\"set\":[{\"uuid\":{\"id\":\"id0\"},\"custom\":{\"a1\":\"b1\",\"c1\":\"d1\"},\"status\":\"active\",\"type\":\"member\"}],\"delete\":[{\"uuid\":{\"id\":\"id0\"}}]}"
 
 	assert.Equal(expectedBody, string(body))
 
@@ -167,7 +169,7 @@ func TestManageMembersV2ResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newManageMembersOptsV2(pn, pn.ctx)
-	jsonBytes := []byte(`{"status":200,"data":[{"id":"userid4","custom":{"a1":"b1","c1":"d1"},"uuid":{"id":"userid4","name":"userid4name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-23T10:36:27.083453Z","updated":"2019-08-23T10:36:27.083453Z","eTag":"AbuLvdnC9JnYEA"},"created":"2019-08-23T10:41:35.503214Z","updated":"2019-08-23T10:41:35.503214Z","eTag":"AZK3l4nQsrWG9gE"}],"totalCount":1,"next":"MQ"}`)
+	jsonBytes := []byte(`{"status":200,"data":[{"id":"userid4","custom":{"a1":"b1","c1":"d1"},"status":"active","type":"member","uuid":{"id":"userid4","name":"userid4name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"status":"active","type":"user","created":"2019-08-23T10:36:27.083453Z","updated":"2019-08-23T10:36:27.083453Z","eTag":"AbuLvdnC9JnYEA"},"created":"2019-08-23T10:41:35.503214Z","updated":"2019-08-23T10:41:35.503214Z","eTag":"AZK3l4nQsrWG9gE"}],"totalCount":1,"next":"MQ"}`)
 
 	r, _, err := newPNManageMembersResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(1, r.TotalCount)
@@ -178,6 +180,8 @@ func TestManageMembersV2ResponseValuePass(t *testing.T) {
 	assert.Equal("AZK3l4nQsrWG9gE", r.Data[0].ETag)
 	assert.Equal("b1", r.Data[0].Custom["a1"])
 	assert.Equal("d1", r.Data[0].Custom["c1"])
+	assert.Equal("active", r.Data[0].Status)
+	assert.Equal("member", r.Data[0].Type)
 	assert.Equal("userid4", r.Data[0].UUID.ID)
 	assert.Equal("userid4name", r.Data[0].UUID.Name)
 	assert.Equal("extid", r.Data[0].UUID.ExternalID)
@@ -188,6 +192,8 @@ func TestManageMembersV2ResponseValuePass(t *testing.T) {
 	assert.Equal("AbuLvdnC9JnYEA", r.Data[0].UUID.ETag)
 	assert.Equal("b", r.Data[0].UUID.Custom["a"])
 	assert.Equal("d", r.Data[0].UUID.Custom["c"])
+	assert.Equal("active", r.Data[0].UUID.Status)
+	assert.Equal("user", r.Data[0].UUID.Type)
 
 	assert.Nil(err)
 }

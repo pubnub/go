@@ -34,6 +34,8 @@ type PNChannelMembers struct {
 	Updated string                 `json:"updated"`
 	ETag    string                 `json:"eTag"`
 	Custom  map[string]interface{} `json:"custom"`
+	Status  string                 `json:"status"`
+	Type    string                 `json:"type"`
 }
 
 // PNMemberships is the Objects API Memberships struct
@@ -44,6 +46,8 @@ type PNMemberships struct {
 	Updated string                 `json:"updated"`
 	ETag    string                 `json:"eTag"`
 	Custom  map[string]interface{} `json:"custom"`
+	Status  string                 `json:"status"`
+	Type    string                 `json:"type"`
 }
 
 // PNChannelMembersUUID is the Objects API Members input struct used to add members
@@ -55,6 +59,8 @@ type PNChannelMembersUUID struct {
 type PNChannelMembersSet struct {
 	UUID   PNChannelMembersUUID   `json:"uuid"`
 	Custom map[string]interface{} `json:"custom"`
+	Status string                 `json:"status"`
+	Type   string                 `json:"type"`
 }
 
 // PNChannelMembersRemove is the Objects API Members struct used to remove members
@@ -71,6 +77,8 @@ type PNMembershipsChannel struct {
 type PNMembershipsSet struct {
 	Channel PNMembershipsChannel   `json:"channel"`
 	Custom  map[string]interface{} `json:"custom"`
+	Status  string                 `json:"status"`
+	Type    string                 `json:"type"`
 }
 
 // PNMembershipsRemove is the Objects API Memberships struct used to remove members
@@ -93,6 +101,8 @@ type PNObjectsResponse struct {
 	Updated     string                 `json:"updated"`
 	ETag        string                 `json:"eTag"`
 	Custom      map[string]interface{} `json:"custom"`
+	Status      string                 `json:"status"`
+	Type        string                 `json:"-"` // - because type is already in the EventType field. This struct is not usedwith Json marshalling anyway
 	Data        map[string]interface{} `json:"data"`
 }
 

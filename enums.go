@@ -108,10 +108,18 @@ const (
 	PNMembershipsIncludeChannel
 	// PNMembershipsIncludeChannelCustom is the enum equivalent to the value `channel.custom` available Memberships include types
 	PNMembershipsIncludeChannelCustom
+	// PNMembershipsIncludeChannelStatus is the enum equivalent to the value `channel.status` available Memberships include types
+	PNMembershipsIncludeChannelStatus
+	// PNMembershipsIncludeChannelType is the enum equivalent to the value `channel.type` available Memberships include types
+	PNMembershipsIncludeChannelType
+	// PNMembershipsIncludeStatus is the enum equivalent to the value `status` available Memberships include types
+	PNMembershipsIncludeStatus
+	// PNMembershipsIncludeType is the enum equivalent to the value `type` available Memberships include types
+	PNMembershipsIncludeType
 )
 
 func (s PNMembershipsInclude) String() string {
-	return [...]string{"custom", "channel", "channel.custom"}[s-1]
+	return [...]string{"custom", "channel", "channel.custom", "channel.status", "channel.type", "status", "type"}[s-1]
 }
 
 const (
@@ -121,11 +129,18 @@ const (
 	PNChannelMembersIncludeUUID
 	// PNChannelMembersIncludeUUIDCustom is the enum equivalent to the value `uuid.custom` available Members include types
 	PNChannelMembersIncludeUUIDCustom
+	// PNChannelMembersIncludeUUIDStatus is the enum equivalent to the value `uuid.status` available Members include types
+	PNChannelMembersIncludeUUIDStatus
+	// PNChannelMembersIncludeUUIDType is the enum equivalent to the value `uuid.type` available Members include types
+	PNChannelMembersIncludeUUIDType
+	// PNChannelMembersIncludeStatus is the enum equivalent to the value `status` available Members include types
+	PNChannelMembersIncludeStatus
+	// PNChannelMembersIncludeType is the enum equivalent to the value `type` available Members include types
+	PNChannelMembersIncludeType
 )
 
 func (s PNChannelMembersInclude) String() string {
-	//return [...]string{"custom", "user", "user.custom", "uuid", "uuid.custom"}[s-1]
-	return [...]string{"custom", "uuid", "uuid.custom"}[s-1]
+	return [...]string{"custom", "uuid", "uuid.custom", "uuid.status", "uuid.type", "status", "type"}[s-1]
 }
 
 // PNMessageType is used as an enum to catgorize the Subscribe response.

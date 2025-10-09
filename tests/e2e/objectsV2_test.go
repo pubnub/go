@@ -156,20 +156,30 @@ func TestObjectsV2MembersAddRemove(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 	channelid := randomized("channel")
 	userid := randomized("uuid")
-	inc := []pubnub.PNChannelMembersInclude{pubnub.PNChannelMembersIncludeUUID}
+	inc := []pubnub.PNChannelMembersInclude{
+		pubnub.PNChannelMembersIncludeUUID,
+		pubnub.PNChannelMembersIncludeStatus,
+		pubnub.PNChannelMembersIncludeType,
+	}
 
 	defer removeChannelMembers(a, pn, channelid, userid)
 
 	res, st, err := pn.
 		SetChannelMembers().
 		Channel(channelid).
-		Set([]pubnub.PNChannelMembersSet{{UUID: pubnub.PNChannelMembersUUID{ID: userid}}}).
+		Set([]pubnub.PNChannelMembersSet{{
+			UUID:   pubnub.PNChannelMembersUUID{ID: userid},
+			Status: "active",
+			Type:   "member",
+		}}).
 		Include(inc).
 		Execute()
 	a.Nil(err)
 	a.Equal(200, st.StatusCode)
 	if err == nil {
 		a.True(len(res.Data) > 0)
+		a.Equal("active", res.Data[0].Status)
+		a.Equal("member", res.Data[0].Type)
 	}
 
 }
@@ -190,20 +200,30 @@ func TestObjectsV2MembershipAddRemove(t *testing.T) {
 	pn := pubnub.NewPubNub(configCopy())
 	channelid := randomized("channel")
 	userid := randomized("uuid")
-	inc := []pubnub.PNMembershipsInclude{pubnub.PNMembershipsIncludeChannel}
+	inc := []pubnub.PNMembershipsInclude{
+		pubnub.PNMembershipsIncludeChannel,
+		pubnub.PNMembershipsIncludeStatus,
+		pubnub.PNMembershipsIncludeType,
+	}
 
 	defer removeMemberships(a, pn, channelid, userid)
 
 	res, st, err := pn.
 		SetMemberships().
 		UUID(userid).
-		Set([]pubnub.PNMembershipsSet{{Channel: pubnub.PNMembershipsChannel{ID: channelid}}}).
+		Set([]pubnub.PNMembershipsSet{{
+			Channel: pubnub.PNMembershipsChannel{ID: channelid},
+			Status:  "active",
+			Type:    "member",
+		}}).
 		Include(inc).
 		Execute()
 	a.Nil(err)
 	a.Equal(200, st.StatusCode)
 	if err == nil {
 		a.True(len(res.Data) > 0)
+		a.Equal("active", res.Data[0].Status)
+		a.Equal("member", res.Data[0].Type)
 	}
 
 }
