@@ -584,7 +584,7 @@ func TestManageMembersV2BuildPathWithUnicodeChannel(t *testing.T) {
 	assert.Contains(path, "/uuids")
 }
 
-// JSON Body Building Tests (CRITICAL for dual PATCH operation)
+// JSON Body Building Tests  (CRITICAL for dual PATCH operation)
 
 func TestManageMembersV2BuildBodyEmpty(t *testing.T) {
 	assert := assert.New(t)
