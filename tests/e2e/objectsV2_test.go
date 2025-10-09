@@ -93,13 +93,17 @@ func TestObjectsV2UUIDMetadataSetUpdateGetRemove(t *testing.T) {
 	name := randomized("name")
 	email := "go@pubnub.com"
 	custom := map[string]interface{}{"a": "b", "c": "d"}
+	status := "active"
+	uuidType := "public"
 
 	incl := []pubnub.PNUUIDMetadataInclude{
 		pubnub.PNUUIDMetadataIncludeCustom,
+		pubnub.PNUUIDMetadataIncludeStatus,
+		pubnub.PNUUIDMetadataIncludeType,
 	}
 
 	defer removeUUIDMetadata(a, pn, id)
-	res, st, err := pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).Email(email).Custom(custom).Execute()
+	res, st, err := pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).Email(email).Custom(custom).Status(status).Type(uuidType).Execute()
 
 	a.Nil(err)
 	a.Equal(200, st.StatusCode)
@@ -110,21 +114,30 @@ func TestObjectsV2UUIDMetadataSetUpdateGetRemove(t *testing.T) {
 		a.NotNil(res.Data.Updated)
 		a.NotNil(res.Data.ETag)
 		a.True(reflect.DeepEqual(custom, res.Data.Custom))
+		a.Equal(status, res.Data.Status)
+		a.Equal(uuidType, res.Data.Type)
 	}
 
 	email = "gosdk@pubnub.com"
+	statusUpdated := "inactive"
 
-	res, st, err = pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).Email(email).Custom(custom).Execute()
+	res, st, err = pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).Email(email).Custom(custom).Status(statusUpdated).Type(uuidType).Execute()
 	a.Nil(err)
 	a.Equal(200, st.StatusCode)
 	if res != nil {
 		a.Equal(id, res.Data.ID)
 		a.Equal(email, res.Data.Email)
+		a.Equal(statusUpdated, res.Data.Status)
+		a.Equal(uuidType, res.Data.Type)
 	}
 
-	_, st, err = pn.GetUUIDMetadata().Include(incl).UUID(id).Execute()
+	getRes, st, err := pn.GetUUIDMetadata().Include(incl).UUID(id).Execute()
 	a.Nil(err)
 	a.Equal(200, st.StatusCode)
+	if getRes != nil {
+		a.Equal(statusUpdated, getRes.Data.Status)
+		a.Equal(uuidType, getRes.Data.Type)
+	}
 
 }
 

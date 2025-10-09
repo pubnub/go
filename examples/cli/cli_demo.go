@@ -1231,9 +1231,11 @@ func updateUUIDMetadata(args []string) {
 	custom["c"] = "d"
 	incl := []pubnub.PNUUIDMetadataInclude{
 		pubnub.PNUUIDMetadataIncludeCustom,
+		pubnub.PNUUIDMetadataIncludeStatus,
+		pubnub.PNUUIDMetadataIncludeType,
 	}
 
-	res, status, err := pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
+	res, status, err := pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Status("active").Type("demo").Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
@@ -1248,6 +1250,8 @@ func getUUIDMetadata(args []string) {
 
 	incl := []pubnub.PNUUIDMetadataInclude{
 		pubnub.PNUUIDMetadataIncludeCustom,
+		pubnub.PNUUIDMetadataIncludeStatus,
+		pubnub.PNUUIDMetadataIncludeType,
 	}
 
 	res, status, err := pn.GetUUIDMetadata().Include(incl).UUID(id).Execute()
@@ -1275,6 +1279,8 @@ func getAllUUIDMetadata(args []string) {
 
 	incl := []pubnub.PNUUIDMetadataInclude{
 		pubnub.PNUUIDMetadataIncludeCustom,
+		pubnub.PNUUIDMetadataIncludeStatus,
+		pubnub.PNUUIDMetadataIncludeType,
 	}
 
 	if start != "" {
@@ -1309,9 +1315,11 @@ func setUUIDMetadata(args []string) {
 
 	incl := []pubnub.PNUUIDMetadataInclude{
 		pubnub.PNUUIDMetadataIncludeCustom,
+		pubnub.PNUUIDMetadataIncludeStatus,
+		pubnub.PNUUIDMetadataIncludeType,
 	}
 
-	res, status, err := pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
+	res, status, err := pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Status("active").Type("demo").Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)

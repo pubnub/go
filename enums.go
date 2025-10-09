@@ -78,6 +78,10 @@ const (
 const (
 	// PNUUIDMetadataIncludeCustom is the enum equivalent to the value `custom` available UUID include types
 	PNUUIDMetadataIncludeCustom PNUUIDMetadataInclude = 1 + iota
+	// PNUUIDMetadataIncludeStatus is the enum equivalent to the value `status` available UUID include types
+	PNUUIDMetadataIncludeStatus
+	// PNUUIDMetadataIncludeType is the enum equivalent to the value `type` available UUID include types
+	PNUUIDMetadataIncludeType
 )
 
 const (
@@ -90,7 +94,7 @@ const (
 )
 
 func (s PNUUIDMetadataInclude) String() string {
-	return [...]string{"custom"}[s-1]
+	return [...]string{"custom", "status", "type"}[s-1]
 }
 
 func (s PNChannelMetadataInclude) String() string {

@@ -40,6 +40,8 @@ type SetUUIDMetadataBody struct {
 	ProfileURL string                 `json:"profileUrl,omitempty"`
 	Email      string                 `json:"email,omitempty"`
 	Custom     map[string]interface{} `json:"custom,omitempty"`
+	Status     string                 `json:"status,omitempty"`
+	Type       string                 `json:"type,omitempty"`
 }
 
 func (b *setUUIDMetadataBuilder) UUID(uuid string) *setUUIDMetadataBuilder {
@@ -84,6 +86,19 @@ func (b *setUUIDMetadataBuilder) Custom(custom map[string]interface{}) *setUUIDM
 	return b
 }
 
+func (b *setUUIDMetadataBuilder) Status(status string) *setUUIDMetadataBuilder {
+	b.opts.Status = status
+
+	return b
+}
+
+// Called uuidType instead of type because type is a reserved word in Go
+func (b *setUUIDMetadataBuilder) Type(uuidType string) *setUUIDMetadataBuilder {
+	b.opts.Type = uuidType
+
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *setUUIDMetadataBuilder) QueryParam(queryParam map[string]string) *setUUIDMetadataBuilder {
 	b.opts.QueryParam = queryParam
@@ -120,6 +135,8 @@ type setUUIDMetadataOpts struct {
 	ProfileURL string
 	Email      string
 	Custom     map[string]interface{}
+	Status     string
+	Type       string
 	QueryParam map[string]string
 
 	Transport http.RoundTripper
@@ -158,6 +175,8 @@ func (o *setUUIDMetadataOpts) buildBody() ([]byte, error) {
 		ProfileURL: o.ProfileURL,
 		Email:      o.Email,
 		Custom:     o.Custom,
+		Status:     o.Status,
+		Type:       o.Type,
 	}
 
 	jsonEncBytes, errEnc := json.Marshal(b)
