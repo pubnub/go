@@ -91,7 +91,7 @@ func AssertSetChannelMembers(t *testing.T, checkQueryParam, testContext bool, wi
 
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
-	expectedBody := "{\"set\":[{\"uuid\":{\"id\":\"id0\"},\"custom\":{\"a3\":\"b3\",\"c3\":\"d3\"}}]}"
+	expectedBody := "{\"set\":[{\"uuid\":{\"id\":\"id0\"},\"custom\":{\"a3\":\"b3\",\"c3\":\"d3\"},\"status\":\"\",\"type\":\"\"}]}"
 
 	assert.Equal(expectedBody, string(body))
 
@@ -580,7 +580,7 @@ func TestSetChannelMembersBuildBodyBasic(t *testing.T) {
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
-	expectedBody := `{"set":[{"uuid":{"id":"user1"},"custom":null}]}`
+	expectedBody := `{"set":[{"uuid":{"id":"user1"},"custom":null,"status":"","type":""}]}`
 	assert.Equal(expectedBody, string(body))
 }
 

@@ -91,7 +91,7 @@ func AssertSetMemberships(t *testing.T, checkQueryParam, testContext bool, withF
 
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
-	expectedBody := "{\"set\":[{\"channel\":{\"id\":\"id0\"},\"custom\":{\"a1\":\"b1\",\"c1\":\"d1\"}}]}"
+	expectedBody := "{\"set\":[{\"channel\":{\"id\":\"id0\"},\"custom\":{\"a1\":\"b1\",\"c1\":\"d1\"},\"status\":\"\",\"type\":\"\"}]}"
 
 	assert.Equal(expectedBody, string(body))
 
@@ -591,7 +591,7 @@ func TestSetMembershipsBuildBodyBasic(t *testing.T) {
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
-	expected := `{"set":[{"channel":{"id":"channel1"},"custom":{"role":"admin"}}]}`
+	expected := `{"set":[{"channel":{"id":"channel1"},"custom":{"role":"admin"},"status":"","type":""}]}`
 	assert.Equal(expected, string(body))
 }
 
@@ -607,7 +607,7 @@ func TestSetMembershipsBuildBodyMultiple(t *testing.T) {
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
-	expected := `{"set":[{"channel":{"id":"channel1"},"custom":{"role":"admin"}},{"channel":{"id":"channel2"},"custom":{"level":5}}]}`
+	expected := `{"set":[{"channel":{"id":"channel1"},"custom":{"role":"admin"},"status":"","type":""},{"channel":{"id":"channel2"},"custom":{"level":5},"status":"","type":""}]}`
 	assert.Equal(expected, string(body))
 }
 
@@ -913,7 +913,7 @@ func TestSetMembershipsSetOperationValidation(t *testing.T) {
 			memberships: []PNMembershipsSet{
 				{Channel: PNMembershipsChannel{ID: "channel1"}, Custom: map[string]interface{}{"role": "admin"}},
 			},
-			expectedJSON: `{"set":[{"channel":{"id":"channel1"},"custom":{"role":"admin"}}]}`,
+			expectedJSON: `{"set":[{"channel":{"id":"channel1"},"custom":{"role":"admin"},"status":"","type":""}]}`,
 		},
 		{
 			name: "Multiple memberships",
@@ -921,7 +921,7 @@ func TestSetMembershipsSetOperationValidation(t *testing.T) {
 				{Channel: PNMembershipsChannel{ID: "channel1"}, Custom: map[string]interface{}{"role": "admin"}},
 				{Channel: PNMembershipsChannel{ID: "channel2"}, Custom: map[string]interface{}{"role": "member"}},
 			},
-			expectedJSON: `{"set":[{"channel":{"id":"channel1"},"custom":{"role":"admin"}},{"channel":{"id":"channel2"},"custom":{"role":"member"}}]}`,
+			expectedJSON: `{"set":[{"channel":{"id":"channel1"},"custom":{"role":"admin"},"status":"","type":""},{"channel":{"id":"channel2"},"custom":{"role":"member"},"status":"","type":""}]}`,
 		},
 	}
 
@@ -1528,7 +1528,7 @@ func TestSetMembershipsBuilderCompleteness(t *testing.T) {
 	// Should build correct JSON body (PATCH operation)
 	body, err := builder.opts.buildBody()
 	assert.Nil(err)
-	expectedBody := `{"set":[{"channel":{"id":"channel1"},"custom":{"role":"admin"}},{"channel":{"id":"channel2"},"custom":{"role":"member"}}]}`
+	expectedBody := `{"set":[{"channel":{"id":"channel1"},"custom":{"role":"admin"},"status":"","type":""},{"channel":{"id":"channel2"},"custom":{"role":"member"},"status":"","type":""}]}`
 	assert.Equal(expectedBody, string(body))
 }
 

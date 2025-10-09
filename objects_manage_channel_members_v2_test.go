@@ -608,7 +608,7 @@ func TestManageMembersV2BuildBodySetOnly(t *testing.T) {
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
-	expected := `{"set":[{"uuid":{"id":"user1"},"custom":{"role":"admin"}}],"delete":null}`
+	expected := `{"set":[{"uuid":{"id":"user1"},"custom":{"role":"admin"},"status":"","type":""}],"delete":null}`
 	assert.Equal(expected, string(body))
 }
 
@@ -643,7 +643,7 @@ func TestManageMembersV2BuildBodyCombinedOperations(t *testing.T) {
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
-	expected := `{"set":[{"uuid":{"id":"user1"},"custom":{"role":"admin"}},{"uuid":{"id":"user2"},"custom":{"level":5}}],"delete":[{"uuid":{"id":"user3"}},{"uuid":{"id":"user4"}}]}`
+	expected := `{"set":[{"uuid":{"id":"user1"},"custom":{"role":"admin"},"status":"","type":""},{"uuid":{"id":"user2"},"custom":{"level":5},"status":"","type":""}],"delete":[{"uuid":{"id":"user3"}},{"uuid":{"id":"user4"}}]}`
 	assert.Equal(expected, string(body))
 }
 
@@ -970,7 +970,7 @@ func TestManageMembersV2DualOperationValidation(t *testing.T) {
 				{UUID: PNChannelMembersUUID{ID: "user1"}, Custom: map[string]interface{}{"role": "admin"}},
 			},
 			removeMembers: nil,
-			expectedJSON:  `{"set":[{"uuid":{"id":"user1"},"custom":{"role":"admin"}}],"delete":null}`,
+			expectedJSON:  `{"set":[{"uuid":{"id":"user1"},"custom":{"role":"admin"},"status":"","type":""}],"delete":null}`,
 		},
 		{
 			name:       "Remove only",
@@ -988,7 +988,7 @@ func TestManageMembersV2DualOperationValidation(t *testing.T) {
 			removeMembers: []PNChannelMembersRemove{
 				{UUID: PNChannelMembersUUID{ID: "user2"}},
 			},
-			expectedJSON: `{"set":[{"uuid":{"id":"user1"},"custom":{"role":"admin"}}],"delete":[{"uuid":{"id":"user2"}}]}`,
+			expectedJSON: `{"set":[{"uuid":{"id":"user1"},"custom":{"role":"admin"},"status":"","type":""}],"delete":[{"uuid":{"id":"user2"}}]}`,
 		},
 	}
 
@@ -1696,7 +1696,7 @@ func TestManageMembersV2BuilderCompleteness(t *testing.T) {
 	// Should build correct JSON body (PATCH operation)
 	body, err := builder.opts.buildBody()
 	assert.Nil(err)
-	expectedBody := `{"set":[{"uuid":{"id":"user1"},"custom":{"role":"admin"}},{"uuid":{"id":"user2"},"custom":{"role":"member"}}],"delete":[{"uuid":{"id":"user3"}},{"uuid":{"id":"user4"}}]}`
+	expectedBody := `{"set":[{"uuid":{"id":"user1"},"custom":{"role":"admin"},"status":"","type":""},{"uuid":{"id":"user2"},"custom":{"role":"member"},"status":"","type":""}],"delete":[{"uuid":{"id":"user3"}},{"uuid":{"id":"user4"}}]}`
 	assert.Equal(expectedBody, string(body))
 }
 
