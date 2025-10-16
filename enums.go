@@ -202,6 +202,8 @@ const (
 	PNRequestMessageCountExceededCategory
 	// PNDisconnectedUnexpectedlyCategory as the StatusCategory means that the connection was unexpectedly disconnected for example due to a network issues
 	PNDisconnectedUnexpectedlyCategory
+	// PNPreconditionFailedCategory as the StatusCategory means the precondition for the request failed (e.g., ETag mismatch with If-Match header).
+	PNPreconditionFailedCategory
 )
 
 const (
@@ -474,6 +476,9 @@ func (c StatusCategory) String() string {
 
 	case PNDisconnectedUnexpectedlyCategory:
 		return "Disconnected Unexpectedly"
+
+	case PNPreconditionFailedCategory:
+		return "Precondition Failed"
 
 	default:
 		return "No Stub Matched"

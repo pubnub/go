@@ -1080,3 +1080,67 @@ func TestSetChannelMetadataBuilderCompleteness(t *testing.T) {
 	assert.Equal("Complete channel description with all features", parsedBody["description"])
 	assert.NotNil(parsedBody["custom"])
 }
+
+// IfMatchETag Tests
+
+func TestSetChannelMetadataIfMatchETagWithValue(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetChannelMetadataBuilder(pn)
+	o.Channel("test-channel")
+	o.Name("name")
+	o.IfMatchETag("AYKH2s7ZlYKoJA")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("AYKH2s7ZlYKoJA", headers["If-Match"])
+}
+
+func TestSetChannelMetadataIfMatchETagWithEmptyString(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetChannelMetadataBuilder(pn)
+	o.Channel("test-channel")
+	o.Name("name")
+	o.IfMatchETag("")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("", headers["If-Match"])
+}
+
+func TestSetChannelMetadataIfMatchETagNotSet(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetChannelMetadataBuilder(pn)
+	o.Channel("test-channel")
+	o.Name("name")
+	// Not calling IfMatchETag
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(0, len(headers))
+	_, exists := headers["If-Match"]
+	assert.False(exists)
+}
+
+func TestSetChannelMetadataIfMatchETagMultipleCalls(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetChannelMetadataBuilder(pn)
+	o.Channel("test-channel")
+	o.Name("name")
+	o.IfMatchETag("firstETag")
+	o.IfMatchETag("secondETag")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("secondETag", headers["If-Match"])
+}

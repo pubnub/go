@@ -85,6 +85,14 @@ func (b *setChannelMetadataBuilder) Type(channelType string) *setChannelMetadata
 	return b
 }
 
+// IfMatchETag sets the ETag value for conditional update via If-Match header
+func (b *setChannelMetadataBuilder) IfMatchETag(eTag string) *setChannelMetadataBuilder {
+	b.opts.IfMatchETag = eTag
+	b.opts.setIfMatchETag = true
+
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *setChannelMetadataBuilder) QueryParam(queryParam map[string]string) *setChannelMetadataBuilder {
 	b.opts.QueryParam = queryParam
@@ -110,14 +118,16 @@ func (b *setChannelMetadataBuilder) Execute() (*PNSetChannelMetadataResponse, St
 
 type setChannelMetadataOpts struct {
 	endpointOpts
-	Include     []string
-	Channel     string
-	Name        string
-	Description string
-	Custom      map[string]interface{}
-	Status      string
-	Type        string
-	QueryParam  map[string]string
+	Include        []string
+	Channel        string
+	Name           string
+	Description    string
+	Custom         map[string]interface{}
+	Status         string
+	Type           string
+	IfMatchETag    string
+	setIfMatchETag bool
+	QueryParam     map[string]string
 
 	Transport http.RoundTripper
 }
@@ -188,6 +198,16 @@ func (o *setChannelMetadataOpts) connectTimeout() int {
 
 func (o *setChannelMetadataOpts) operationType() OperationType {
 	return PNSetChannelMetadataOperation
+}
+
+// buildHeaders adds the If-Match header for conditional updates when IfMatchETag is set.
+// The If-Match header enables optimistic concurrency control using ETags.
+func (o *setChannelMetadataOpts) buildHeaders() (map[string]string, error) {
+	headers := make(map[string]string)
+	if o.setIfMatchETag {
+		headers["If-Match"] = o.IfMatchETag
+	}
+	return headers, nil
 }
 
 // PNSetChannelMetadataResponse is the Objects API Response for Update Space

@@ -99,6 +99,14 @@ func (b *setUUIDMetadataBuilder) Type(uuidType string) *setUUIDMetadataBuilder {
 	return b
 }
 
+// IfMatchETag sets the ETag value for conditional update via If-Match header
+func (b *setUUIDMetadataBuilder) IfMatchETag(eTag string) *setUUIDMetadataBuilder {
+	b.opts.IfMatchETag = eTag
+	b.opts.setIfMatchETag = true
+
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *setUUIDMetadataBuilder) QueryParam(queryParam map[string]string) *setUUIDMetadataBuilder {
 	b.opts.QueryParam = queryParam
@@ -128,16 +136,18 @@ func (b *setUUIDMetadataBuilder) Execute() (*PNSetUUIDMetadataResponse, StatusRe
 
 type setUUIDMetadataOpts struct {
 	endpointOpts
-	Include    []string
-	UUID       string
-	Name       string
-	ExternalID string
-	ProfileURL string
-	Email      string
-	Custom     map[string]interface{}
-	Status     string
-	Type       string
-	QueryParam map[string]string
+	Include        []string
+	UUID           string
+	Name           string
+	ExternalID     string
+	ProfileURL     string
+	Email          string
+	Custom         map[string]interface{}
+	Status         string
+	Type           string
+	IfMatchETag    string
+	setIfMatchETag bool
+	QueryParam     map[string]string
 
 	Transport http.RoundTripper
 }
@@ -207,6 +217,16 @@ func (o *setUUIDMetadataOpts) connectTimeout() int {
 
 func (o *setUUIDMetadataOpts) operationType() OperationType {
 	return PNSetUUIDMetadataOperation
+}
+
+// buildHeaders adds the If-Match header for conditional updates when IfMatchETag is set.
+// The If-Match header enables optimistic concurrency control using ETags.
+func (o *setUUIDMetadataOpts) buildHeaders() (map[string]string, error) {
+	headers := make(map[string]string)
+	if o.setIfMatchETag {
+		headers["If-Match"] = o.IfMatchETag
+	}
+	return headers, nil
 }
 
 // PNSetUUIDMetadataResponse is the Objects API Response for Update user

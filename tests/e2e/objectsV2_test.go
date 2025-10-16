@@ -237,3 +237,259 @@ func removeMemberships(a *assert.Assertions, pn *pubnub.PubNub, channelid string
 	a.Nil(err)
 	a.Equal(200, st.StatusCode)
 }
+
+// ETag Tests
+
+func TestObjectsV2UUIDMetadataETagConditionalUpdate(t *testing.T) {
+	a := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+	id := randomized("testuuid-etag")
+
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+
+	incl := []pubnub.PNUUIDMetadataInclude{
+		pubnub.PNUUIDMetadataIncludeCustom,
+	}
+
+	defer removeUUIDMetadata(a, pn, id)
+
+	// Step 1: Set initial metadata
+	initialName := randomized("initial-name")
+	custom := map[string]interface{}{"version": "1"}
+	res, st, err := pn.SetUUIDMetadata().
+		Include(incl).
+		UUID(id).
+		Name(initialName).
+		Custom(custom).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.NotNil(res)
+	a.NotEmpty(res.Data.ETag)
+	initialETag := res.Data.ETag
+
+	// Step 2: Get metadata to verify ETag
+	getRes, st, err := pn.GetUUIDMetadata().
+		Include(incl).
+		UUID(id).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.NotNil(getRes)
+	a.Equal(initialETag, getRes.Data.ETag)
+
+	// Step 3: Try to update with incorrect ETag - should fail with 412
+	incorrectETag := "incorrectETagValue123"
+	updatedName := randomized("updated-name")
+	_, st, err = pn.SetUUIDMetadata().
+		Include(incl).
+		UUID(id).
+		Name(updatedName).
+		IfMatchETag(incorrectETag).
+		Execute()
+
+	a.NotNil(err)
+	a.Equal(412, st.StatusCode)
+	a.Equal(pubnub.PNPreconditionFailedCategory, st.Category)
+
+	// Step 4: Verify data was NOT changed
+	getRes, st, err = pn.GetUUIDMetadata().
+		Include(incl).
+		UUID(id).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.Equal(initialName, getRes.Data.Name) // Should still be initial name
+	a.Equal(initialETag, getRes.Data.ETag) // ETag unchanged
+
+	// Step 5: Update with correct ETag - should succeed
+	res, st, err = pn.SetUUIDMetadata().
+		Include(incl).
+		UUID(id).
+		Name(updatedName).
+		IfMatchETag(initialETag).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.NotNil(res)
+	a.Equal(updatedName, res.Data.Name)
+	a.NotEqual(initialETag, res.Data.ETag) // ETag should change after update
+	newETag := res.Data.ETag
+
+	// Step 6: Verify the update was successful
+	getRes, st, err = pn.GetUUIDMetadata().
+		Include(incl).
+		UUID(id).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.Equal(updatedName, getRes.Data.Name)
+	a.Equal(newETag, getRes.Data.ETag)
+}
+
+func TestObjectsV2ChannelMetadataETagConditionalUpdate(t *testing.T) {
+	a := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+	id := randomized("testchannel-etag")
+
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+
+	incl := []pubnub.PNChannelMetadataInclude{
+		pubnub.PNChannelMetadataIncludeCustom,
+	}
+
+	defer removeChannelMetadata(a, pn, id)
+
+	// Step 1: Set initial metadata
+	initialName := randomized("initial-name")
+	initialDesc := "initial description"
+	custom := map[string]interface{}{"version": "1"}
+	res, st, err := pn.SetChannelMetadata().
+		Include(incl).
+		Channel(id).
+		Name(initialName).
+		Description(initialDesc).
+		Custom(custom).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.NotNil(res)
+	a.NotEmpty(res.Data.ETag)
+	initialETag := res.Data.ETag
+
+	// Step 2: Get metadata to verify ETag
+	getRes, st, err := pn.GetChannelMetadata().
+		Include(incl).
+		Channel(id).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.NotNil(getRes)
+	a.Equal(initialETag, getRes.Data.ETag)
+
+	// Step 3: Try to update with incorrect ETag - should fail with 412
+	incorrectETag := "incorrectETagValue456"
+	updatedName := randomized("updated-name")
+	_, st, err = pn.SetChannelMetadata().
+		Include(incl).
+		Channel(id).
+		Name(updatedName).
+		IfMatchETag(incorrectETag).
+		Execute()
+
+	a.NotNil(err)
+	a.Equal(412, st.StatusCode)
+	a.Equal(pubnub.PNPreconditionFailedCategory, st.Category)
+
+	// Step 4: Verify data was NOT changed
+	getRes, st, err = pn.GetChannelMetadata().
+		Include(incl).
+		Channel(id).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.Equal(initialName, getRes.Data.Name) // Should still be initial name
+	a.Equal(initialETag, getRes.Data.ETag) // ETag unchanged
+
+	// Step 5: Update with correct ETag - should succeed
+	res, st, err = pn.SetChannelMetadata().
+		Include(incl).
+		Channel(id).
+		Name(updatedName).
+		IfMatchETag(initialETag).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.NotNil(res)
+	a.Equal(updatedName, res.Data.Name)
+	a.NotEqual(initialETag, res.Data.ETag) // ETag should change after update
+	newETag := res.Data.ETag
+
+	// Step 6: Verify the update was successful
+	getRes, st, err = pn.GetChannelMetadata().
+		Include(incl).
+		Channel(id).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.Equal(updatedName, getRes.Data.Name)
+	a.Equal(newETag, getRes.Data.ETag)
+}
+
+func TestObjectsV2UUIDMetadataETagEmptyValue(t *testing.T) {
+	a := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+	id := randomized("testuuid-etag-empty")
+
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+
+	incl := []pubnub.PNUUIDMetadataInclude{
+		pubnub.PNUUIDMetadataIncludeCustom,
+	}
+
+	defer removeUUIDMetadata(a, pn, id)
+
+	// Test setting metadata with empty ETag (for first-time creation constraint)
+	initialName := randomized("first-time-name")
+	res, st, err := pn.SetUUIDMetadata().
+		Include(incl).
+		UUID(id).
+		Name(initialName).
+		IfMatchETag(""). // Empty ETag for first-time creation
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.NotNil(res)
+	a.NotEmpty(res.Data.ETag)
+}
+
+func TestObjectsV2ChannelMetadataETagEmptyValue(t *testing.T) {
+	a := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+	id := randomized("testchannel-etag-empty")
+
+	if enableDebuggingInTests {
+		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+
+	incl := []pubnub.PNChannelMetadataInclude{
+		pubnub.PNChannelMetadataIncludeCustom,
+	}
+
+	defer removeChannelMetadata(a, pn, id)
+
+	// Test setting metadata with empty ETag (for first-time creation constraint)
+	initialName := randomized("first-time-name")
+	res, st, err := pn.SetChannelMetadata().
+		Include(incl).
+		Channel(id).
+		Name(initialName).
+		IfMatchETag(""). // Empty ETag for first-time creation
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.NotNil(res)
+	a.NotEmpty(res.Data.ETag)
+}

@@ -1774,3 +1774,67 @@ func TestSetUUIDMetadataResponseParsingErrors(t *testing.T) {
 		})
 	}
 }
+
+// IfMatchETag Tests
+
+func TestSetUUIDMetadataIfMatchETagWithValue(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetUUIDMetadataBuilder(pn)
+	o.UUID("id0")
+	o.Name("name")
+	o.IfMatchETag("AbyT4v2p6K7fpQE")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("AbyT4v2p6K7fpQE", headers["If-Match"])
+}
+
+func TestSetUUIDMetadataIfMatchETagWithEmptyString(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetUUIDMetadataBuilder(pn)
+	o.UUID("id0")
+	o.Name("name")
+	o.IfMatchETag("")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("", headers["If-Match"])
+}
+
+func TestSetUUIDMetadataIfMatchETagNotSet(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetUUIDMetadataBuilder(pn)
+	o.UUID("id0")
+	o.Name("name")
+	// Not calling IfMatchETag
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(0, len(headers))
+	_, exists := headers["If-Match"]
+	assert.False(exists)
+}
+
+func TestSetUUIDMetadataIfMatchETagMultipleCalls(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetUUIDMetadataBuilder(pn)
+	o.UUID("id0")
+	o.Name("name")
+	o.IfMatchETag("firstETag")
+	o.IfMatchETag("secondETag")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("secondETag", headers["If-Match"])
+}
