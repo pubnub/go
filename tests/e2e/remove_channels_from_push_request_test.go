@@ -15,7 +15,7 @@ func TestRemovePushNotificationsFromChannels(t *testing.T) {
 	_, _, err := pn.RemovePushNotificationsFromChannels().
 		Channels([]string{"ch"}).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		Execute()
 	assert.Nil(err)
 }
@@ -28,7 +28,7 @@ func TestRemovePushNotificationsFromChannelsContext(t *testing.T) {
 	_, _, err := pn.RemovePushNotificationsFromChannelsWithContext(backgroundContext).
 		Channels([]string{"ch"}).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		Execute()
 	assert.Nil(err)
 }
@@ -40,7 +40,7 @@ func TestRemovePushNotificationsFromChannelsTopicAndEnv(t *testing.T) {
 	_, _, err := pn.RemovePushNotificationsFromChannels().
 		Channels([]string{"ch"}).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		Topic("a").
 		Environment(pubnub.PNPushEnvironmentProduction).
 		Execute()
@@ -55,7 +55,7 @@ func TestRemovePushNotificationsFromChannelsTopicAndEnvContext(t *testing.T) {
 	_, _, err := pn.RemovePushNotificationsFromChannelsWithContext(backgroundContext).
 		Channels([]string{"ch"}).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		Topic("a").
 		Environment(pubnub.PNPushEnvironmentProduction).
 		Execute()

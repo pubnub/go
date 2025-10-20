@@ -298,15 +298,6 @@ func TestAddChannelsToPushBuilderSetters(t *testing.T) {
 			},
 		},
 		{
-			name: "PushType setter",
-			setterFunc: func(b *addPushNotificationsOnChannelsBuilder) {
-				b.PushType(PNPushTypeMPNS)
-			},
-			validateFn: func(b *addPushNotificationsOnChannelsBuilder, t *testing.T) {
-				assert.Equal(PNPushTypeMPNS, b.opts.PushType)
-			},
-		},
-		{
 			name: "DeviceIDForPush setter",
 			setterFunc: func(b *addPushNotificationsOnChannelsBuilder) {
 				b.DeviceIDForPush("test-device-123")
@@ -457,14 +448,14 @@ func TestAddChannelsToPushAllPushTypes(t *testing.T) {
 			expected: "apns",
 		},
 		{
-			name:     "MPNS push type",
-			pushType: PNPushTypeMPNS,
-			expected: "mpns",
-		},
-		{
 			name:     "APNS2 push type",
 			pushType: PNPushTypeAPNS2,
 			expected: "apns2",
+		},
+		{
+			name:     "FCM push type",
+			pushType: PNPushTypeFCM,
+			expected: "fcm",
 		},
 	}
 

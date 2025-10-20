@@ -302,15 +302,6 @@ func TestRemoveChannelsFromPushValidationComprehensive(t *testing.T) {
 			},
 			expectedError: "",
 		},
-		{
-			name: "Valid MPNS configuration",
-			setupOpts: func(opts *removeChannelsFromPushOpts) {
-				opts.Channels = []string{"channel1"}
-				opts.DeviceIDForPush = "device123"
-				opts.PushType = PNPushTypeMPNS
-			},
-			expectedError: "",
-		},
 	}
 
 	for _, tc := range testCases {
@@ -473,9 +464,9 @@ func TestRemoveChannelsFromPushBuilderPushTypeCombinations(t *testing.T) {
 			description: "Google Cloud Messaging",
 		},
 		{
-			name:        "MPNS push type",
-			pushType:    PNPushTypeMPNS,
-			description: "Microsoft Push Notification Service",
+			name:        "FCM push type",
+			pushType:    PNPushTypeFCM,
+			description: "Firebase Cloud Messaging",
 		},
 	}
 
@@ -698,19 +689,6 @@ func TestRemoveChannelsFromPushBuildPathGCM(t *testing.T) {
 	assert.Equal(expected, path)
 }
 
-func TestRemoveChannelsFromPushBuildPathMPNS(t *testing.T) {
-	assert := assert.New(t)
-	pn := NewPubNub(NewDemoConfig())
-	opts := newRemoveChannelsFromPushOpts(pn, pn.ctx)
-	opts.DeviceIDForPush = "device123"
-	opts.PushType = PNPushTypeMPNS
-
-	path, err := opts.buildPath()
-	assert.Nil(err)
-	expected := "/v1/push/sub-key/demo/devices/device123"
-	assert.Equal(expected, path)
-}
-
 func TestRemoveChannelsFromPushBuildPathWithDifferentSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
@@ -860,19 +838,19 @@ func TestRemoveChannelsFromPushBuildQueryGCM(t *testing.T) {
 	assert.NotEmpty(query.Get("pnsdk"))
 }
 
-func TestRemoveChannelsFromPushBuildQueryMPNS(t *testing.T) {
+func TestRemoveChannelsFromPushBuildQueryFCM(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newRemoveChannelsFromPushOpts(pn, pn.ctx)
-	opts.Channels = []string{"channel1"}
+	opts.Channels = []string{"channel1", "channel2", "channel3"}
 	opts.DeviceIDForPush = "device123"
-	opts.PushType = PNPushTypeMPNS
+	opts.PushType = PNPushTypeFCM
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
 
-	assert.Equal("mpns", query.Get("type"))
-	assert.Equal("channel1", query.Get("remove"))
+	assert.Equal("fcm", query.Get("type"))
+	assert.Equal("channel1,channel2,channel3", query.Get("remove"))
 	assert.NotEmpty(query.Get("uuid"))
 	assert.NotEmpty(query.Get("pnsdk"))
 }
@@ -1068,14 +1046,14 @@ func TestRemoveChannelsFromPushGCMConfiguration(t *testing.T) {
 	assert.Equal("channel1,channel2", query.Get("remove"))
 }
 
-func TestRemoveChannelsFromPushMPNSConfiguration(t *testing.T) {
+func TestRemoveChannelsFromPushFCMConfiguration(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
 	builder := newRemoveChannelsFromPushBuilder(pn)
-	builder.Channels([]string{"channel1"})
-	builder.DeviceIDForPush("mpns-device-token")
-	builder.PushType(PNPushTypeMPNS)
+	builder.Channels([]string{"channel1", "channel2"})
+	builder.DeviceIDForPush("fcm-registration-token")
+	builder.PushType(PNPushTypeFCM)
 
 	// Should pass validation
 	assert.Nil(builder.opts.validate())
@@ -1088,8 +1066,8 @@ func TestRemoveChannelsFromPushMPNSConfiguration(t *testing.T) {
 	// Should have correct query type and channels
 	query, err := builder.opts.buildQuery()
 	assert.Nil(err)
-	assert.Equal("mpns", query.Get("type"))
-	assert.Equal("channel1", query.Get("remove"))
+	assert.Equal("fcm", query.Get("type"))
+	assert.Equal("channel1,channel2", query.Get("remove"))
 }
 
 // Device ID Encoding Tests
@@ -1297,13 +1275,6 @@ func TestRemoveChannelsFromPushParameterBoundaries(t *testing.T) {
 			deviceID:    "device123",
 			pushType:    PNPushTypeGCM,
 			description: "Single character channel",
-		},
-		{
-			name:        "Unicode-only channels",
-			channels:    []string{"测试", "канал"},
-			deviceID:    "device123",
-			pushType:    PNPushTypeMPNS,
-			description: "Channels with Unicode characters",
 		},
 		{
 			name:        "Very long channel names",

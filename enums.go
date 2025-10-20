@@ -342,14 +342,16 @@ const (
 const (
 	// PNPushTypeNone is used as an enum to for selecting `none` as the PNPushType
 	PNPushTypeNone PNPushType = 1 + iota
-	// PNPushTypeGCM is used as an enum to for selecting `GCM` as the PNPushType
+	// Deprecated: PNPushTypeGCM is deprecated. Use PNPushTypeFCM instead.
+	// Google Cloud Messaging (GCM) has been replaced by Firebase Cloud Messaging (FCM).
 	PNPushTypeGCM
+	// Deprecated: PNPushTypeAPNS is deprecated. Use PNPushTypeAPNS2 instead.
 	// PNPushTypeAPNS is used as an enum to for selecting `APNS` as the PNPushType
 	PNPushTypeAPNS
-	// PNPushTypeMPNS is used as an enum to for selecting `MPNS` as the PNPushType
-	PNPushTypeMPNS
 	// PNPushTypeAPNS2 is used as an enum to for selecting `APNS2` as the PNPushType
 	PNPushTypeAPNS2
+	// PNPushTypeFCM is used as an enum to for selecting `FCM` as the PNPushType
+	PNPushTypeFCM
 )
 
 func (p PNPushType) String() string {
@@ -360,11 +362,11 @@ func (p PNPushType) String() string {
 	case PNPushTypeGCM:
 		return "gcm"
 
-	case PNPushTypeMPNS:
-		return "mpns"
-
 	case PNPushTypeAPNS2:
 		return "apns2"
+
+	case PNPushTypeFCM:
+		return "fcm"
 
 	default:
 		return "none"
