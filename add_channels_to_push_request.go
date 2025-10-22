@@ -37,7 +37,7 @@ func (b *addPushNotificationsOnChannelsBuilder) Channels(channels []string) *add
 	return b
 }
 
-// PushType set the type of Push: FCM, APNS, APNS2
+// PushType set the type of Push: FCM, APNS2
 func (b *addPushNotificationsOnChannelsBuilder) PushType(pushType PNPushType) *addPushNotificationsOnChannelsBuilder {
 	b.opts.PushType = pushType
 	return b
