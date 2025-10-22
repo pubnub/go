@@ -17,6 +17,8 @@ import (
 func createTestUUIDMetadata(t *testing.T, pn *pubnub.PubNub, id, name, email string, custom map[string]interface{}) {
 	incl := []pubnub.PNUUIDMetadataInclude{
 		pubnub.PNUUIDMetadataIncludeCustom,
+		pubnub.PNUUIDMetadataIncludeStatus,
+		pubnub.PNUUIDMetadataIncludeType,
 	}
 	_, _, err := pn.SetUUIDMetadata().
 		Include(incl).
@@ -24,6 +26,8 @@ func createTestUUIDMetadata(t *testing.T, pn *pubnub.PubNub, id, name, email str
 		Name(name).
 		Email(email).
 		Custom(custom).
+		Status("active").
+		Type("test").
 		Execute()
 
 	if err != nil {
@@ -136,7 +140,7 @@ func TestGetAllUUIDMetadataWithInclude(t *testing.T) {
 		},
 		{
 			name:    "Multiple Includes",
-			include: []pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom},
+			include: []pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom, pubnub.PNUUIDMetadataIncludeStatus, pubnub.PNUUIDMetadataIncludeType},
 		},
 	}
 
@@ -286,7 +290,7 @@ func TestGetAllUUIDMetadataWithFilter(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resp, status, err := pn.GetAllUUIDMetadata().
 				Filter(tc.filter).
-				Include([]pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom}).
+				Include([]pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom, pubnub.PNUUIDMetadataIncludeStatus, pubnub.PNUUIDMetadataIncludeType}).
 				Execute()
 
 			assert.Nil(err)
@@ -644,7 +648,7 @@ func TestGetAllUUIDMetadataComprehensive(t *testing.T) {
 	// Use retry mechanism to handle eventual consistency in CI/CD
 	checkMetadataCall := func() error {
 		resp, status, err := pn.GetAllUUIDMetadata().
-			Include([]pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom}).
+			Include([]pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom, pubnub.PNUUIDMetadataIncludeStatus, pubnub.PNUUIDMetadataIncludeType}).
 			Filter("id LIKE '" + testPrefix + "*'"). // Filter only our test UUIDs
 			Count(true).
 			Sort([]string{"name"}).

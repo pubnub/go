@@ -45,6 +45,8 @@ func AssertSetUUIDMetadata(t *testing.T, checkQueryParam, testContext bool) {
 	o.ProfileURL("prourl")
 	o.Email("email")
 	o.Custom(custom)
+	o.Status("active")
+	o.Type("public")
 	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()
@@ -57,7 +59,7 @@ func AssertSetUUIDMetadata(t *testing.T, checkQueryParam, testContext bool) {
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
 
-	expectedBody := "{\"name\":\"name\",\"externalId\":\"exturl\",\"profileUrl\":\"prourl\",\"email\":\"email\",\"custom\":{\"a\":\"b\",\"c\":\"d\"}}"
+	expectedBody := "{\"name\":\"name\",\"externalId\":\"exturl\",\"profileUrl\":\"prourl\",\"email\":\"email\",\"custom\":{\"a\":\"b\",\"c\":\"d\"},\"status\":\"active\",\"type\":\"public\"}"
 
 	assert.Equal(expectedBody, string(body))
 
@@ -121,7 +123,7 @@ func TestSetUUIDMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newSetUUIDMetadataOpts(pn, pn.ctx)
-	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:19.140324Z","updated":"2019-08-20T13:26:19.140324Z","eTag":"AbyT4v2p6K7fpQE"}}`)
+	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"status":"active","type":"public","created":"2019-08-20T13:26:19.140324Z","updated":"2019-08-20T13:26:19.140324Z","eTag":"AbyT4v2p6K7fpQE"}}`)
 
 	r, _, err := newPNSetUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("id0", r.Data.ID)
@@ -134,6 +136,8 @@ func TestSetUUIDMetadataResponseValuePass(t *testing.T) {
 	assert.Equal("AbyT4v2p6K7fpQE", r.Data.ETag)
 	assert.Equal("b", r.Data.Custom["a"])
 	assert.Equal("d", r.Data.Custom["c"])
+	assert.Equal("active", r.Data.Status)
+	assert.Equal("public", r.Data.Type)
 
 	assert.Nil(err)
 }
@@ -281,6 +285,14 @@ func TestSetUUIDMetadataBuilderSettersIndividual(t *testing.T) {
 	builder.Custom(custom)
 	assert.Equal(custom, builder.opts.Custom)
 
+	// Test Status setter
+	builder.Status("active")
+	assert.Equal("active", builder.opts.Status)
+
+	// Test Type setter
+	builder.Type("public")
+	assert.Equal("public", builder.opts.Type)
+
 	// Test QueryParam setter
 	queryParam := map[string]string{
 		"param1": "value1",
@@ -306,6 +318,8 @@ func TestSetUUIDMetadataBuilderMethodChaining(t *testing.T) {
 		ProfileURL("https://example.com/profile.jpg").
 		Email("test@example.com").
 		Custom(custom).
+		Status("active").
+		Type("public").
 		QueryParam(queryParam)
 
 	// Should return same instance for method chaining
@@ -319,6 +333,8 @@ func TestSetUUIDMetadataBuilderMethodChaining(t *testing.T) {
 	assert.Equal("https://example.com/profile.jpg", builder.opts.ProfileURL)
 	assert.Equal("test@example.com", builder.opts.Email)
 	assert.Equal(custom, builder.opts.Custom)
+	assert.Equal("active", builder.opts.Status)
+	assert.Equal("public", builder.opts.Type)
 	assert.Equal(queryParam, builder.opts.QueryParam)
 }
 
@@ -479,6 +495,8 @@ func TestSetUUIDMetadataBuildBodyComplete(t *testing.T) {
 		"role": "admin",
 		"dept": "engineering",
 	}
+	opts.Status = "active"
+	opts.Type = "public"
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
@@ -492,6 +510,8 @@ func TestSetUUIDMetadataBuildBodyComplete(t *testing.T) {
 	assert.Equal("ext123", parsed["externalId"])
 	assert.Equal("https://example.com/profile.jpg", parsed["profileUrl"])
 	assert.Equal("test@example.com", parsed["email"])
+	assert.Equal("active", parsed["status"])
+	assert.Equal("public", parsed["type"])
 	assert.NotNil(parsed["custom"])
 
 	customMap := parsed["custom"].(map[string]interface{})
@@ -645,11 +665,11 @@ func TestSetUUIDMetadataBuildQueryWithInclude(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newSetUUIDMetadataOpts(pn, pn.ctx)
-	opts.Include = []string{"custom", "type"}
+	opts.Include = []string{"custom", "status", "type"}
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
-	assert.Equal("custom,type", query.Get("include"))
+	assert.Equal("custom,status,type", query.Get("include"))
 }
 
 func TestSetUUIDMetadataBuildQueryWithCustomParams(t *testing.T) {
@@ -691,7 +711,7 @@ func TestSetUUIDMetadataBuildQueryComprehensiveCombination(t *testing.T) {
 	opts := newSetUUIDMetadataOpts(pn, pn.ctx)
 
 	// Set all possible query parameters
-	opts.Include = []string{"custom", "type"}
+	opts.Include = []string{"custom", "status", "type"}
 	opts.QueryParam = map[string]string{
 		"extra": "parameter",
 		"debug": "true",
@@ -701,7 +721,7 @@ func TestSetUUIDMetadataBuildQueryComprehensiveCombination(t *testing.T) {
 	assert.Nil(err)
 
 	// Verify all parameters are set correctly
-	assert.Equal("custom,type", query.Get("include"))
+	assert.Equal("custom,status,type", query.Get("include"))
 	assert.Equal("parameter", query.Get("extra"))
 	assert.Equal("true", query.Get("debug"))
 
@@ -1371,14 +1391,24 @@ func TestSetUUIDMetadataIncludeEnumConversion(t *testing.T) {
 			expected: "",
 		},
 		{
-			name:     "Single include",
+			name:     "Single include custom",
 			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeCustom},
 			expected: "custom",
 		},
 		{
+			name:     "Single include status",
+			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeStatus},
+			expected: "status",
+		},
+		{
+			name:     "Single include type",
+			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeType},
+			expected: "type",
+		},
+		{
 			name:     "Multiple includes",
-			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeCustom},
-			expected: "custom",
+			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeCustom, PNUUIDMetadataIncludeStatus, PNUUIDMetadataIncludeType},
+			expected: "custom,status,type",
 		},
 	}
 
@@ -1636,6 +1666,8 @@ func TestSetUUIDMetadataBuilderCompleteness(t *testing.T) {
 		ProfileURL("https://example.com/profile.jpg").
 		Email("test@example.com").
 		Custom(custom).
+		Status("active").
+		Type("public").
 		QueryParam(queryParam)
 
 	// Verify all values are set
@@ -1646,6 +1678,8 @@ func TestSetUUIDMetadataBuilderCompleteness(t *testing.T) {
 	assert.Equal("https://example.com/profile.jpg", builder.opts.ProfileURL)
 	assert.Equal("test@example.com", builder.opts.Email)
 	assert.Equal(custom, builder.opts.Custom)
+	assert.Equal("active", builder.opts.Status)
+	assert.Equal("public", builder.opts.Type)
 	assert.Equal(queryParam, builder.opts.QueryParam)
 
 	// Should pass validation
@@ -1675,6 +1709,8 @@ func TestSetUUIDMetadataBuilderCompleteness(t *testing.T) {
 	assert.Equal("ext123", parsed["externalId"])
 	assert.Equal("https://example.com/profile.jpg", parsed["profileUrl"])
 	assert.Equal("test@example.com", parsed["email"])
+	assert.Equal("active", parsed["status"])
+	assert.Equal("public", parsed["type"])
 	assert.NotNil(parsed["custom"])
 }
 
@@ -1737,4 +1773,68 @@ func TestSetUUIDMetadataResponseParsingErrors(t *testing.T) {
 			}
 		})
 	}
+}
+
+// IfMatchETag Tests
+
+func TestSetUUIDMetadataIfMatchETagWithValue(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetUUIDMetadataBuilder(pn)
+	o.UUID("id0")
+	o.Name("name")
+	o.IfMatchETag("AbyT4v2p6K7fpQE")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("AbyT4v2p6K7fpQE", headers["If-Match"])
+}
+
+func TestSetUUIDMetadataIfMatchETagWithEmptyString(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetUUIDMetadataBuilder(pn)
+	o.UUID("id0")
+	o.Name("name")
+	o.IfMatchETag("")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("", headers["If-Match"])
+}
+
+func TestSetUUIDMetadataIfMatchETagNotSet(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetUUIDMetadataBuilder(pn)
+	o.UUID("id0")
+	o.Name("name")
+	// Not calling IfMatchETag
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(0, len(headers))
+	_, exists := headers["If-Match"]
+	assert.False(exists)
+}
+
+func TestSetUUIDMetadataIfMatchETagMultipleCalls(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetUUIDMetadataBuilder(pn)
+	o.UUID("id0")
+	o.Name("name")
+	o.IfMatchETag("firstETag")
+	o.IfMatchETag("secondETag")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("secondETag", headers["If-Match"])
 }

@@ -267,14 +267,6 @@ func TestListPushProvisionsValidationComprehensive(t *testing.T) {
 			},
 			expectedError: "",
 		},
-		{
-			name: "Valid MPNS configuration",
-			setupOpts: func(opts *listPushProvisionsRequestOpts) {
-				opts.DeviceIDForPush = "device123"
-				opts.PushType = PNPushTypeMPNS
-			},
-			expectedError: "",
-		},
 	}
 
 	for _, tc := range testCases {
@@ -428,9 +420,9 @@ func TestListPushProvisionsBuilderPushTypeCombinations(t *testing.T) {
 			description: "Google Cloud Messaging",
 		},
 		{
-			name:        "MPNS push type",
-			pushType:    PNPushTypeMPNS,
-			description: "Microsoft Push Notification Service",
+			name:        "FCM push type",
+			pushType:    PNPushTypeFCM,
+			description: "Firebase Cloud Messaging",
 		},
 	}
 
@@ -604,19 +596,6 @@ func TestListPushProvisionsBuildPathGCM(t *testing.T) {
 	assert.Equal(expected, path)
 }
 
-func TestListPushProvisionsBuildPathMPNS(t *testing.T) {
-	assert := assert.New(t)
-	pn := NewPubNub(NewDemoConfig())
-	opts := newListPushProvisionsRequestOpts(pn, pn.ctx)
-	opts.DeviceIDForPush = "device123"
-	opts.PushType = PNPushTypeMPNS
-
-	path, err := opts.buildPath()
-	assert.Nil(err)
-	expected := "/v1/push/sub-key/demo/devices/device123"
-	assert.Equal(expected, path)
-}
-
 func TestListPushProvisionsBuildPathWithDifferentSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
@@ -758,17 +737,17 @@ func TestListPushProvisionsBuildQueryGCM(t *testing.T) {
 	assert.NotEmpty(query.Get("pnsdk"))
 }
 
-func TestListPushProvisionsBuildQueryMPNS(t *testing.T) {
+func TestListPushProvisionsBuildQueryFCM(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newListPushProvisionsRequestOpts(pn, pn.ctx)
 	opts.DeviceIDForPush = "device123"
-	opts.PushType = PNPushTypeMPNS
+	opts.PushType = PNPushTypeFCM
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
 
-	assert.Equal("mpns", query.Get("type"))
+	assert.Equal("fcm", query.Get("type"))
 	assert.NotEmpty(query.Get("uuid"))
 	assert.NotEmpty(query.Get("pnsdk"))
 }
@@ -893,13 +872,13 @@ func TestListPushProvisionsGCMConfiguration(t *testing.T) {
 	assert.Equal("gcm", query.Get("type"))
 }
 
-func TestListPushProvisionsMPNSConfiguration(t *testing.T) {
+func TestListPushProvisionsFCMConfiguration(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
 	builder := newListPushProvisionsRequestBuilder(pn)
-	builder.DeviceIDForPush("mpns-device-token")
-	builder.PushType(PNPushTypeMPNS)
+	builder.DeviceIDForPush("fcm-registration-token")
+	builder.PushType(PNPushTypeFCM)
 
 	// Should pass validation
 	assert.Nil(builder.opts.validate())
@@ -912,7 +891,7 @@ func TestListPushProvisionsMPNSConfiguration(t *testing.T) {
 	// Should have correct query type
 	query, err := builder.opts.buildQuery()
 	assert.Nil(err)
-	assert.Equal("mpns", query.Get("type"))
+	assert.Equal("fcm", query.Get("type"))
 }
 
 // Device ID Encoding Tests
@@ -1219,12 +1198,6 @@ func TestListPushProvisionsParameterBoundaries(t *testing.T) {
 			deviceID:    "a",
 			pushType:    PNPushTypeGCM,
 			description: "Device ID with single character",
-		},
-		{
-			name:        "Unicode-only device ID",
-			deviceID:    "测试",
-			pushType:    PNPushTypeMPNS,
-			description: "Device ID with Unicode characters",
 		},
 		{
 			name:        "Very long device ID",

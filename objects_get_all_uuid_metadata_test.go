@@ -133,7 +133,7 @@ func TestGetAllUUIDMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newGetAllUUIDMetadataOpts(pn, pn.ctx)
-	jsonBytes := []byte(`{"status":200,"data":[{"id":"id2","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-19T14:44:54.837392Z","updated":"2019-08-19T14:44:54.837392Z","eTag":"AbyT4v2p6K7fpQE"},{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:19.140324Z","updated":"2019-08-20T13:26:19.140324Z","eTag":"AbyT4v2p6K7fpQE"}],"totalCount":2,"next":"Mg","prev":"Nd"}`)
+	jsonBytes := []byte(`{"status":200,"data":[{"id":"id2","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"status":"active","type":"public","created":"2019-08-19T14:44:54.837392Z","updated":"2019-08-19T14:44:54.837392Z","eTag":"AbyT4v2p6K7fpQE"},{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"status":"inactive","type":"private","created":"2019-08-20T13:26:19.140324Z","updated":"2019-08-20T13:26:19.140324Z","eTag":"AbyT4v2p6K7fpQE"}],"totalCount":2,"next":"Mg","prev":"Nd"}`)
 
 	r, _, err := newPNGetAllUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(2, r.TotalCount)
@@ -149,6 +149,8 @@ func TestGetAllUUIDMetadataResponseValuePass(t *testing.T) {
 	assert.Equal("AbyT4v2p6K7fpQE", r.Data[0].ETag)
 	assert.Equal("b", r.Data[0].Custom["a"])
 	assert.Equal("d", r.Data[0].Custom["c"])
+	assert.Equal("active", r.Data[0].Status)
+	assert.Equal("public", r.Data[0].Type)
 
 	assert.Nil(err)
 }
@@ -848,9 +850,24 @@ func TestGetAllUUIDMetadataIncludeEnumConversion(t *testing.T) {
 			expected: "",
 		},
 		{
-			name:     "Single include",
+			name:     "Single include custom",
 			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeCustom},
 			expected: "custom",
+		},
+		{
+			name:     "Single include status",
+			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeStatus},
+			expected: "status",
+		},
+		{
+			name:     "Single include type",
+			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeType},
+			expected: "type",
+		},
+		{
+			name:     "Multiple includes",
+			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeCustom, PNUUIDMetadataIncludeStatus, PNUUIDMetadataIncludeType},
+			expected: "custom,status,type",
 		},
 	}
 

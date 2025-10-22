@@ -125,7 +125,7 @@ func (o *listFilesOpts) operationType() OperationType {
 
 // PNListFilesResponse is the File Upload API Response for Get Spaces
 type PNListFilesResponse struct {
-	status int          `json:"status"`
+	Status int          `json:"status"`
 	Data   []PNFileInfo `json:"data"`
 	Count  int          `json:"count"`
 	Next   string       `json:"next"`

@@ -84,7 +84,7 @@ func TestGetChannelMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newGetChannelMetadataOpts(pn, pn.ctx)
-	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"}}`)
+	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"status":"active","type":"public","created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"}}`)
 
 	r, _, err := newPNGetChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("id0", r.Data.ID)
@@ -94,6 +94,8 @@ func TestGetChannelMetadataResponseValuePass(t *testing.T) {
 	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data.Updated)
 	assert.Equal("Aee9zsKNndXlHw", r.Data.ETag)
 	assert.Equal("b", r.Data.Custom["a"])
+	assert.Equal("active", r.Data.Status)
+	assert.Equal("public", r.Data.Type)
 
 	assert.Nil(err)
 }
@@ -364,11 +366,11 @@ func TestGetChannelMetadataBuildQueryWithMultipleIncludes(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newGetChannelMetadataOpts(pn, pn.ctx)
-	opts.Include = []string{"custom", "type"}
+	opts.Include = []string{"custom", "status", "type"}
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
-	assert.Equal("custom,type", query.Get("include"))
+	assert.Equal("custom,status,type", query.Get("include"))
 }
 
 func TestGetChannelMetadataBuilderIncludeEnums(t *testing.T) {
@@ -381,14 +383,24 @@ func TestGetChannelMetadataBuilderIncludeEnums(t *testing.T) {
 		expected []string
 	}{
 		{
-			name:     "Single include",
+			name:     "Single include custom",
 			includes: []PNChannelMetadataInclude{PNChannelMetadataIncludeCustom},
 			expected: []string{"custom"},
 		},
 		{
+			name:     "Single include status",
+			includes: []PNChannelMetadataInclude{PNChannelMetadataIncludeStatus},
+			expected: []string{"status"},
+		},
+		{
+			name:     "Single include type",
+			includes: []PNChannelMetadataInclude{PNChannelMetadataIncludeType},
+			expected: []string{"type"},
+		},
+		{
 			name:     "Multiple includes",
-			includes: []PNChannelMetadataInclude{PNChannelMetadataIncludeCustom},
-			expected: []string{"custom"},
+			includes: []PNChannelMetadataInclude{PNChannelMetadataIncludeCustom, PNChannelMetadataIncludeStatus, PNChannelMetadataIncludeType},
+			expected: []string{"custom", "status", "type"},
 		},
 		{
 			name:     "Empty includes",
@@ -557,7 +569,7 @@ func TestGetChannelMetadataParameterCombinations(t *testing.T) {
 		{
 			name:    "Complete - all parameters",
 			channel: "complete-channel",
-			include: []string{"custom", "type"},
+			include: []string{"custom", "status", "type"},
 			queryParam: map[string]string{
 				"param1": "value1",
 				"param2": "value2",

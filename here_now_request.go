@@ -66,6 +66,23 @@ func (b *hereNowBuilder) IncludeUUIDs(uuid bool) *hereNowBuilder {
 	return b
 }
 
+// Limit sets the limit for the number of UUIDs returned in the here now response.
+// Valid range is 1-1000. If not set, defaults to 1000.
+func (b *hereNowBuilder) Limit(limit int) *hereNowBuilder {
+	b.opts.Limit = limit
+
+	return b
+}
+
+// Offset sets the offset for pagination in the here now response.
+// Must be >= 0. If not set, defaults to 0.
+func (b *hereNowBuilder) Offset(offset int) *hereNowBuilder {
+	b.opts.Offset = offset
+	b.opts.SetOffset = true
+
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *hereNowBuilder) QueryParam(queryParam map[string]string) *hereNowBuilder {
 	b.opts.QueryParam = queryParam
@@ -96,6 +113,7 @@ func newHereNowOpts(pubnub *PubNub, ctx Context) *hereNowOpts {
 			pubnub: pubnub,
 			ctx:    ctx,
 		},
+		Limit: 1000, // Default limit
 	}
 }
 
@@ -108,6 +126,9 @@ type hereNowOpts struct {
 	IncludeState    bool
 	SetIncludeState bool
 	SetIncludeUUIDs bool
+	Limit           int
+	Offset          int
+	SetOffset       bool
 	QueryParam      map[string]string
 
 	Transport http.RoundTripper
@@ -155,6 +176,14 @@ func (o *hereNowOpts) buildQuery() (*url.Values, error) {
 		q.Set("disable-uuids", "1")
 	} else if o.SetIncludeUUIDs && o.IncludeUUIDs {
 		q.Set("disable-uuids", "0")
+	}
+
+	// Limit should always be set
+	q.Set("limit", fmt.Sprintf("%d", o.Limit))
+
+	// Offset should only be set if explicitly set and not 0
+	if o.SetOffset && o.Offset != 0 {
+		q.Set("offset", fmt.Sprintf("%d", o.Offset))
 	}
 
 	SetQueryParam(q, o.QueryParam)

@@ -43,6 +43,8 @@ func AssertSetChannelMetadata(t *testing.T, checkQueryParam, testContext bool) {
 	o.Name("name")
 	o.Description("exturl")
 	o.Custom(custom)
+	o.Status("active")
+	o.Type("public")
 	o.QueryParam(queryParam)
 
 	path, err := o.opts.buildPath()
@@ -55,7 +57,7 @@ func AssertSetChannelMetadata(t *testing.T, checkQueryParam, testContext bool) {
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
 
-	expectedBody := "{\"name\":\"name\",\"description\":\"exturl\",\"custom\":{\"a\":\"b\",\"c\":\"d\"}}"
+	expectedBody := "{\"name\":\"name\",\"description\":\"exturl\",\"custom\":{\"a\":\"b\",\"c\":\"d\"},\"status\":\"active\",\"type\":\"public\"}"
 
 	assert.Equal(expectedBody, string(body))
 
@@ -114,7 +116,7 @@ func TestSetChannelMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newSetChannelMetadataOpts(pn, pn.ctx)
-	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","description":"desc","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T14:48:11.675743Z","eTag":"AYKH2s7ZlYKoJA"}}`)
+	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","description":"desc","custom":{"a":"b","c":"d"},"status":"active","type":"public","created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T14:48:11.675743Z","eTag":"AYKH2s7ZlYKoJA"}}`)
 
 	r, _, err := newPNSetChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("id0", r.Data.ID)
@@ -124,6 +126,8 @@ func TestSetChannelMetadataResponseValuePass(t *testing.T) {
 	assert.Equal("2019-08-20T14:48:11.675743Z", r.Data.Updated)
 	assert.Equal("AYKH2s7ZlYKoJA", r.Data.ETag)
 	assert.Equal("b", r.Data.Custom["a"])
+	assert.Equal("active", r.Data.Status)
+	assert.Equal("public", r.Data.Type)
 
 	assert.Nil(err)
 }
@@ -261,6 +265,14 @@ func TestSetChannelMetadataBuilderSettersIndividual(t *testing.T) {
 	builder.Custom(custom)
 	assert.Equal(custom, builder.opts.Custom)
 
+	// Test Status setter
+	builder.Status("active")
+	assert.Equal("active", builder.opts.Status)
+
+	// Test Type setter
+	builder.Type("public")
+	assert.Equal("public", builder.opts.Type)
+
 	// Test Include setter
 	include := []PNChannelMetadataInclude{
 		PNChannelMetadataIncludeCustom,
@@ -282,7 +294,7 @@ func TestSetChannelMetadataBuilderMethodChaining(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	custom := map[string]interface{}{"type": "test"}
+	custom := map[string]interface{}{"category": "test"}
 	include := []PNChannelMetadataInclude{PNChannelMetadataIncludeCustom}
 	queryParam := map[string]string{"key": "value"}
 
@@ -291,6 +303,8 @@ func TestSetChannelMetadataBuilderMethodChaining(t *testing.T) {
 		Name("Test Name").
 		Description("Test Description").
 		Custom(custom).
+		Status("active").
+		Type("public").
 		Include(include).
 		QueryParam(queryParam)
 
@@ -302,6 +316,8 @@ func TestSetChannelMetadataBuilderMethodChaining(t *testing.T) {
 	assert.Equal("Test Name", builder.opts.Name)
 	assert.Equal("Test Description", builder.opts.Description)
 	assert.Equal(custom, builder.opts.Custom)
+	assert.Equal("active", builder.opts.Status)
+	assert.Equal("public", builder.opts.Type)
 	assert.Equal(EnumArrayToStringArray(include), builder.opts.Include)
 	assert.Equal(queryParam, builder.opts.QueryParam)
 }
@@ -350,6 +366,8 @@ func TestSetChannelMetadataBuildBodyAllFields(t *testing.T) {
 		"category": "test",
 		"priority": 1,
 	}
+	opts.Status = "active"
+	opts.Type = "public"
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
@@ -361,6 +379,8 @@ func TestSetChannelMetadataBuildBodyAllFields(t *testing.T) {
 
 	assert.Equal("Test Name", parsedBody["name"])
 	assert.Equal("Test Description", parsedBody["description"])
+	assert.Equal("active", parsedBody["status"])
+	assert.Equal("public", parsedBody["type"])
 	assert.NotNil(parsedBody["custom"])
 
 	customMap := parsedBody["custom"].(map[string]interface{})
@@ -545,11 +565,11 @@ func TestSetChannelMetadataBuildQueryWithMultipleIncludes(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newSetChannelMetadataOpts(pn, pn.ctx)
-	opts.Include = []string{"custom", "type"}
+	opts.Include = []string{"custom", "status", "type"}
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
-	assert.Equal("custom,type", query.Get("include"))
+	assert.Equal("custom,status,type", query.Get("include"))
 }
 
 func TestSetChannelMetadataBuilderIncludeEnums(t *testing.T) {
@@ -562,14 +582,24 @@ func TestSetChannelMetadataBuilderIncludeEnums(t *testing.T) {
 		expected []string
 	}{
 		{
-			name:     "Single include",
+			name:     "Single include custom",
 			includes: []PNChannelMetadataInclude{PNChannelMetadataIncludeCustom},
 			expected: []string{"custom"},
 		},
 		{
+			name:     "Single include status",
+			includes: []PNChannelMetadataInclude{PNChannelMetadataIncludeStatus},
+			expected: []string{"status"},
+		},
+		{
+			name:     "Single include type",
+			includes: []PNChannelMetadataInclude{PNChannelMetadataIncludeType},
+			expected: []string{"type"},
+		},
+		{
 			name:     "Multiple includes",
-			includes: []PNChannelMetadataInclude{PNChannelMetadataIncludeCustom},
-			expected: []string{"custom"},
+			includes: []PNChannelMetadataInclude{PNChannelMetadataIncludeCustom, PNChannelMetadataIncludeStatus, PNChannelMetadataIncludeType},
+			expected: []string{"custom", "status", "type"},
 		},
 		{
 			name:     "Empty includes",
@@ -1008,6 +1038,8 @@ func TestSetChannelMetadataBuilderCompleteness(t *testing.T) {
 		Name("Complete Channel Name").
 		Description("Complete channel description with all features").
 		Custom(custom).
+		Status("active").
+		Type("public").
 		Include(include).
 		QueryParam(queryParam)
 
@@ -1016,6 +1048,8 @@ func TestSetChannelMetadataBuilderCompleteness(t *testing.T) {
 	assert.Equal("Complete Channel Name", builder.opts.Name)
 	assert.Equal("Complete channel description with all features", builder.opts.Description)
 	assert.Equal(custom, builder.opts.Custom)
+	assert.Equal("active", builder.opts.Status)
+	assert.Equal("public", builder.opts.Type)
 	assert.Equal(EnumArrayToStringArray(include), builder.opts.Include)
 	assert.Equal(queryParam, builder.opts.QueryParam)
 
@@ -1045,4 +1079,68 @@ func TestSetChannelMetadataBuilderCompleteness(t *testing.T) {
 	assert.Equal("Complete Channel Name", parsedBody["name"])
 	assert.Equal("Complete channel description with all features", parsedBody["description"])
 	assert.NotNil(parsedBody["custom"])
+}
+
+// IfMatchETag Tests
+
+func TestSetChannelMetadataIfMatchETagWithValue(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetChannelMetadataBuilder(pn)
+	o.Channel("test-channel")
+	o.Name("name")
+	o.IfMatchETag("AYKH2s7ZlYKoJA")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("AYKH2s7ZlYKoJA", headers["If-Match"])
+}
+
+func TestSetChannelMetadataIfMatchETagWithEmptyString(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetChannelMetadataBuilder(pn)
+	o.Channel("test-channel")
+	o.Name("name")
+	o.IfMatchETag("")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("", headers["If-Match"])
+}
+
+func TestSetChannelMetadataIfMatchETagNotSet(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetChannelMetadataBuilder(pn)
+	o.Channel("test-channel")
+	o.Name("name")
+	// Not calling IfMatchETag
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(0, len(headers))
+	_, exists := headers["If-Match"]
+	assert.False(exists)
+}
+
+func TestSetChannelMetadataIfMatchETagMultipleCalls(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetChannelMetadataBuilder(pn)
+	o.Channel("test-channel")
+	o.Name("name")
+	o.IfMatchETag("firstETag")
+	o.IfMatchETag("secondETag")
+
+	headers, err := o.opts.buildHeaders()
+	assert.Nil(err)
+	assert.Equal(1, len(headers))
+	assert.Equal("secondETag", headers["If-Match"])
 }

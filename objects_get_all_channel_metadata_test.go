@@ -134,7 +134,7 @@ func TestGetAllChannelMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newGetAllChannelMetadataOpts(pn, pn.ctx)
-	jsonBytes := []byte(`{"status":200,"data":[{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"},{"id":"id01","name":"name","description":"desc","custom":{"a":"b"},"created":"2019-08-20T14:44:52.799969Z","updated":"2019-08-20T14:44:52.799969Z","eTag":"Aee9zsKNndXlHw"}],"totalCount":2,"next":"Mg","prev":"Nd"}`)
+	jsonBytes := []byte(`{"status":200,"data":[{"id":"id0","name":"name","description":"desc","custom":{"a":"b"},"status":"active","type":"public","created":"2019-08-20T13:26:08.341297Z","updated":"2019-08-20T13:26:08.341297Z","eTag":"Aee9zsKNndXlHw"},{"id":"id01","name":"name","description":"desc","custom":{"a":"b"},"status":"inactive","type":"private","created":"2019-08-20T14:44:52.799969Z","updated":"2019-08-20T14:44:52.799969Z","eTag":"Aee9zsKNndXlHw"}],"totalCount":2,"next":"Mg","prev":"Nd"}`)
 
 	r, _, err := newPNGetAllChannelMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(2, r.TotalCount)
@@ -147,6 +147,8 @@ func TestGetAllChannelMetadataResponseValuePass(t *testing.T) {
 	assert.Equal("2019-08-20T13:26:08.341297Z", r.Data[0].Updated)
 	assert.Equal("Aee9zsKNndXlHw", r.Data[0].ETag)
 	assert.Equal("b", r.Data[0].Custom["a"])
+	assert.Equal("active", r.Data[0].Status)
+	assert.Equal("public", r.Data[0].Type)
 
 	assert.Nil(err)
 }
@@ -430,11 +432,11 @@ func TestGetAllChannelMetadataBuildQueryWithInclude(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newGetAllChannelMetadataOpts(pn, pn.ctx)
-	opts.Include = []string{"custom", "type"}
+	opts.Include = []string{"custom", "status", "type"}
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
-	assert.Equal("custom,type", query.Get("include"))
+	assert.Equal("custom,status,type", query.Get("include"))
 }
 
 func TestGetAllChannelMetadataBuildQueryWithPagination(t *testing.T) {
@@ -582,7 +584,7 @@ func TestGetAllChannelMetadataBuildQueryComprehensiveCombination(t *testing.T) {
 	opts := newGetAllChannelMetadataOpts(pn, pn.ctx)
 
 	// Set all possible query parameters
-	opts.Include = []string{"custom", "type"}
+	opts.Include = []string{"custom", "status", "type"}
 	opts.Limit = 75
 	opts.Start = "start_123"
 	opts.End = "end_456"
@@ -598,7 +600,7 @@ func TestGetAllChannelMetadataBuildQueryComprehensiveCombination(t *testing.T) {
 	assert.Nil(err)
 
 	// Verify all parameters are set correctly
-	assert.Equal("custom,type", query.Get("include"))
+	assert.Equal("custom,status,type", query.Get("include"))
 	assert.Equal("75", query.Get("limit"))
 	assert.Equal("start_123", query.Get("start"))
 	assert.Equal("end_456", query.Get("end"))
@@ -811,7 +813,7 @@ func TestGetAllChannelMetadataParameterCombinations(t *testing.T) {
 		{
 			name:    "Include with count",
 			limit:   getAllChannelMetadataLimitV2,
-			include: []string{"custom", "type"},
+			include: []string{"custom", "status", "type"},
 			count:   true,
 		},
 		{

@@ -503,9 +503,9 @@ type PNGrantTokenData struct {
 
 // PNGrantTokenResponse is the struct returned when the Execute function of Grant Token is called.
 type PNGrantTokenResponse struct {
-	status  int              `json:"status"`
+	Status  int              `json:"status"`
 	Data    PNGrantTokenData `json:"data"`
-	service string           `json:"service"`
+	Service string           `json:"service"`
 }
 
 func newGrantTokenResponse(jsonBytes []byte, status StatusResponse) (*PNGrantTokenResponse, StatusResponse, error) {

@@ -138,6 +138,21 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 			err
 	}
 
+	// Apply custom headers from endpoint
+	headers, err := opts.buildHeaders()
+	if err != nil {
+		opts.config().Log.Println("buildHeaders error", err)
+		return nil,
+			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
+			err
+	}
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+	if len(headers) > 0 {
+		opts.config().Log.Println("Custom headers:", headers)
+	}
+
 	ctx := opts.context()
 	if ctx != nil {
 		// with !go1.7 you can't assign context directly to a request,
@@ -292,6 +307,13 @@ func parseResponse(resp *http.Response, opts endpoint) ([]byte, StatusResponse, 
 		if resp.StatusCode == 400 {
 			opts.config().Log.Println("PNBadRequestCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
 			status = createStatus(PNBadRequestCategory, "", ResponseInfo{StatusCode: resp.StatusCode}, e)
+
+			return nil, status, e
+		}
+
+		if resp.StatusCode == 412 {
+			opts.config().Log.Println("PNPreconditionFailedCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
+			status = createStatus(PNPreconditionFailedCategory, "", ResponseInfo{StatusCode: resp.StatusCode, Operation: opts.operationType()}, e)
 
 			return nil, status, e
 		}

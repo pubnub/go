@@ -121,6 +121,8 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s uuidEvent.Updated: %s", outputPrefix, uuidEvent.Updated))
 				fmt.Println(fmt.Sprintf("%s uuidEvent.ETag: %s", outputPrefix, uuidEvent.ETag))
 				fmt.Println(fmt.Sprintf("%s uuidEvent.Custom: %v", outputPrefix, uuidEvent.Custom))
+				fmt.Println(fmt.Sprintf("%s uuidEvent.Status: %s", outputPrefix, uuidEvent.Status))
+				fmt.Println(fmt.Sprintf("%s uuidEvent.Type: %s", outputPrefix, uuidEvent.Type))
 
 			case channelEvent := <-listener.ChannelEvent:
 				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
@@ -136,6 +138,8 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s channelEvent.Updated: %s", outputPrefix, channelEvent.Updated))
 				fmt.Println(fmt.Sprintf("%s channelEvent.ETag: %s", outputPrefix, channelEvent.ETag))
 				fmt.Println(fmt.Sprintf("%s channelEvent.Custom: %v", outputPrefix, channelEvent.Custom))
+				fmt.Println(fmt.Sprintf("%s channelEvent.Status: %s", outputPrefix, channelEvent.Status))
+				fmt.Println(fmt.Sprintf("%s channelEvent.Type: %s", outputPrefix, channelEvent.Type))
 
 			case membershipEvent := <-listener.MembershipEvent:
 				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
@@ -149,6 +153,8 @@ func connect() {
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Description: %s", outputPrefix, membershipEvent.Description))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Timestamp: %s", outputPrefix, membershipEvent.Timestamp))
 				fmt.Println(fmt.Sprintf("%s membershipEvent.Custom: %v", outputPrefix, membershipEvent.Custom))
+				fmt.Println(fmt.Sprintf("%s membershipEvent.Status: %s", outputPrefix, membershipEvent.Status))
+				fmt.Println(fmt.Sprintf("%s membershipEvent.Type: %s", outputPrefix, membershipEvent.Type))
 
 			case messageActionsEvent := <-listener.MessageActionsEvent:
 				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
@@ -861,6 +867,8 @@ func manageMembers(args []string) {
 		pubnub.PNChannelMembersIncludeCustom,
 		pubnub.PNChannelMembersIncludeUUID,
 		pubnub.PNChannelMembersIncludeUUIDCustom,
+		pubnub.PNChannelMembersIncludeStatus,
+		pubnub.PNChannelMembersIncludeType,
 	}
 
 	custom := make(map[string]interface{})
@@ -873,6 +881,8 @@ func manageMembers(args []string) {
 	in := pubnub.PNChannelMembersSet{
 		UUID:   uuid,
 		Custom: custom,
+		Status: "active",
+		Type:   "member",
 	}
 
 	custom2 := make(map[string]interface{})
@@ -882,6 +892,8 @@ func manageMembers(args []string) {
 	up := pubnub.PNChannelMembersSet{
 		UUID:   uuid,
 		Custom: custom2,
+		Status: "active",
+		Type:   "member",
 	}
 
 	inArr := []pubnub.PNChannelMembersSet{
@@ -944,6 +956,8 @@ func manageMemberships(args []string) {
 		pubnub.PNMembershipsIncludeCustom,
 		pubnub.PNMembershipsIncludeChannel,
 		pubnub.PNMembershipsIncludeChannelCustom,
+		pubnub.PNMembershipsIncludeStatus,
+		pubnub.PNMembershipsIncludeType,
 	}
 
 	custom3 := make(map[string]interface{})
@@ -957,6 +971,8 @@ func manageMemberships(args []string) {
 	in := pubnub.PNMembershipsSet{
 		Channel: channel,
 		Custom:  custom3,
+		Status:  "active",
+		Type:    "member",
 	}
 
 	custom4 := make(map[string]interface{})
@@ -966,6 +982,8 @@ func manageMemberships(args []string) {
 	up := pubnub.PNMembershipsSet{
 		Channel: channel,
 		Custom:  custom4,
+		Status:  "active",
+		Type:    "member",
 	}
 
 	inArr := []pubnub.PNMembershipsSet{
@@ -1029,6 +1047,8 @@ func getSpaceMemberships(args []string) {
 		pubnub.PNMembershipsIncludeCustom,
 		pubnub.PNMembershipsIncludeChannel,
 		pubnub.PNMembershipsIncludeChannelCustom,
+		pubnub.PNMembershipsIncludeStatus,
+		pubnub.PNMembershipsIncludeType,
 	}
 	if start != "" {
 		res, status, err := pn.GetMemberships().UUID(id).Include(incl).Limit(limit).Count(count).Start(start).Execute()
@@ -1066,6 +1086,8 @@ func getMembers(args []string) {
 		pubnub.PNChannelMembersIncludeCustom,
 		pubnub.PNChannelMembersIncludeUUIDCustom,
 		pubnub.PNChannelMembersIncludeUUID,
+		pubnub.PNChannelMembersIncludeStatus,
+		pubnub.PNChannelMembersIncludeType,
 	}
 	sort := []string{"updated:desc"}
 	if start != "" {
@@ -1100,6 +1122,8 @@ func getSpaces(args []string) {
 
 	incl := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
+		pubnub.PNChannelMetadataIncludeStatus,
+		pubnub.PNChannelMetadataIncludeType,
 	}
 
 	if start != "" {
@@ -1130,9 +1154,11 @@ func updateChannelMetadata(args []string) {
 
 	incl := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
+		pubnub.PNChannelMetadataIncludeStatus,
+		pubnub.PNChannelMetadataIncludeType,
 	}
 
-	res, status, err := pn.SetChannelMetadata().Channel(id).Name(name).Description(desc).Include(incl).Custom(custom).Execute()
+	res, status, err := pn.SetChannelMetadata().Channel(id).Name(name).Description(desc).Include(incl).Custom(custom).Status("active").Type("demo").Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
@@ -1165,10 +1191,11 @@ func createChannelMetadata(args []string) {
 
 	incl := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
-		pubnub.PNChannelMetadataIncludeCustom,
+		pubnub.PNChannelMetadataIncludeStatus,
+		pubnub.PNChannelMetadataIncludeType,
 	}
 
-	res, status, err := pn.SetChannelMetadata().Channel(id).Name(name).Description(desc).Include(incl).Custom(custom).Execute()
+	res, status, err := pn.SetChannelMetadata().Channel(id).Name(name).Description(desc).Include(incl).Custom(custom).Status("active").Type("demo").Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
@@ -1183,6 +1210,8 @@ func getChannelMetadata(args []string) {
 
 	incl := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
+		pubnub.PNChannelMetadataIncludeStatus,
+		pubnub.PNChannelMetadataIncludeType,
 	}
 
 	res, status, err := pn.GetChannelMetadata().Channel(id).Include(incl).Execute()
@@ -1224,9 +1253,11 @@ func updateUUIDMetadata(args []string) {
 	custom["c"] = "d"
 	incl := []pubnub.PNUUIDMetadataInclude{
 		pubnub.PNUUIDMetadataIncludeCustom,
+		pubnub.PNUUIDMetadataIncludeStatus,
+		pubnub.PNUUIDMetadataIncludeType,
 	}
 
-	res, status, err := pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
+	res, status, err := pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Status("active").Type("demo").Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)
@@ -1241,6 +1272,8 @@ func getUUIDMetadata(args []string) {
 
 	incl := []pubnub.PNUUIDMetadataInclude{
 		pubnub.PNUUIDMetadataIncludeCustom,
+		pubnub.PNUUIDMetadataIncludeStatus,
+		pubnub.PNUUIDMetadataIncludeType,
 	}
 
 	res, status, err := pn.GetUUIDMetadata().Include(incl).UUID(id).Execute()
@@ -1268,6 +1301,8 @@ func getAllUUIDMetadata(args []string) {
 
 	incl := []pubnub.PNUUIDMetadataInclude{
 		pubnub.PNUUIDMetadataIncludeCustom,
+		pubnub.PNUUIDMetadataIncludeStatus,
+		pubnub.PNUUIDMetadataIncludeType,
 	}
 
 	if start != "" {
@@ -1302,9 +1337,11 @@ func setUUIDMetadata(args []string) {
 
 	incl := []pubnub.PNUUIDMetadataInclude{
 		pubnub.PNUUIDMetadataIncludeCustom,
+		pubnub.PNUUIDMetadataIncludeStatus,
+		pubnub.PNUUIDMetadataIncludeType,
 	}
 
-	res, status, err := pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Execute()
+	res, status, err := pn.SetUUIDMetadata().Include(incl).UUID(id).Name(name).ExternalID(extid).ProfileURL(purl).Email(email).Custom(custom).Status("active").Type("demo").Execute()
 	fmt.Println("status", status)
 	fmt.Println("err", err)
 	fmt.Println("res", res)

@@ -86,7 +86,7 @@ func TestGetUUIDMetadataResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newGetUUIDMetadataOpts(pn, pn.ctx)
-	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"created":"2019-08-20T13:26:19.140324Z","updated":"2019-08-20T13:26:19.140324Z","eTag":"AbyT4v2p6K7fpQE"}}`)
+	jsonBytes := []byte(`{"status":200,"data":{"id":"id0","name":"name","externalId":"extid","profileUrl":"purl","email":"email","custom":{"a":"b","c":"d"},"status":"active","type":"public","created":"2019-08-20T13:26:19.140324Z","updated":"2019-08-20T13:26:19.140324Z","eTag":"AbyT4v2p6K7fpQE"}}`)
 
 	r, _, err := newPNGetUUIDMetadataResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal("id0", r.Data.ID)
@@ -99,6 +99,8 @@ func TestGetUUIDMetadataResponseValuePass(t *testing.T) {
 	assert.Equal("AbyT4v2p6K7fpQE", r.Data.ETag)
 	assert.Equal("b", r.Data.Custom["a"])
 	assert.Equal("d", r.Data.Custom["c"])
+	assert.Equal("active", r.Data.Status)
+	assert.Equal("public", r.Data.Type)
 
 	assert.Nil(err)
 }
@@ -513,9 +515,24 @@ func TestGetUUIDMetadataIncludeEnumConversion(t *testing.T) {
 			expected: "",
 		},
 		{
-			name:     "Single include",
+			name:     "Single include custom",
 			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeCustom},
 			expected: "custom",
+		},
+		{
+			name:     "Single include status",
+			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeStatus},
+			expected: "status",
+		},
+		{
+			name:     "Single include type",
+			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeType},
+			expected: "type",
+		},
+		{
+			name:     "Multiple includes",
+			include:  []PNUUIDMetadataInclude{PNUUIDMetadataIncludeCustom, PNUUIDMetadataIncludeStatus, PNUUIDMetadataIncludeType},
+			expected: "custom,status,type",
 		},
 	}
 

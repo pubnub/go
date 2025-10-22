@@ -306,6 +306,8 @@ type PNUUIDEvent struct {
 	Updated           string
 	ETag              string
 	Custom            map[string]interface{}
+	Status            string
+	Type              string
 	SubscribedChannel string
 	ActualChannel     string
 	Channel           string
@@ -322,6 +324,8 @@ type PNChannelEvent struct {
 	Updated           string
 	ETag              string
 	Custom            map[string]interface{}
+	Status            string
+	Type              string
 	SubscribedChannel string
 	ActualChannel     string
 	Channel           string
@@ -336,6 +340,8 @@ type PNMembershipEvent struct {
 	Description       string
 	Timestamp         string
 	Custom            map[string]interface{}
+	Status            string
+	Type              string
 	SubscribedChannel string
 	ActualChannel     string
 	Channel           string

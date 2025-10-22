@@ -1,15 +1,5 @@
 package pubnub
 
-// PNMPNSData is the struct used for the MPNS paylod
-type PNMPNSData struct {
-	Title       string `json:"title"`
-	Type        string `json:"type"`
-	Count       int    `json:"count"`
-	BackTitle   string `json:"back_title"`
-	BackContent string `json:"back_content"`
-	Custom      map[string]interface{}
-}
-
 // PNFCMData is the struct used for the FCM paylod
 type PNFCMData struct {
 	Data   PNFCMDataFields `json:"data"`
@@ -84,11 +74,6 @@ func (b *publishPushHelperBuilder) BuildPayload() map[string]interface{} {
 		}
 	}
 
-	mpns := b.opts.buildMPNSPayload()
-	if mpns != nil {
-		response["pn_mpns"] = mpns
-	}
-
 	fcm := b.opts.buildFCMPayload()
 	if fcm != nil {
 		response["pn_gcm"] = fcm
@@ -149,34 +134,6 @@ func (o *publishPushHelperOpts) buildAPNSPayload() map[string]interface{} {
 	return apns
 }
 
-func (o *publishPushHelperOpts) buildMPNSPayload() map[string]interface{} {
-	mpns := make(map[string]interface{})
-	if o.PushMPNSData != nil {
-		if o.PushMPNSData.Title != "" {
-			mpns["title"] = o.PushMPNSData.Title
-		}
-		if o.PushMPNSData.Type != "" {
-			mpns["type"] = o.PushMPNSData.Type
-		}
-		if o.PushMPNSData.BackTitle != "" {
-			mpns["back_title"] = o.PushMPNSData.BackTitle
-		}
-		if o.PushMPNSData.BackContent != "" {
-			mpns["back_content"] = o.PushMPNSData.BackContent
-		}
-		mpns["count"] = o.PushMPNSData.Count
-
-		custom := o.PushMPNSData.Custom
-		if custom != nil {
-			for key, value := range custom {
-				mpns[key] = value
-			}
-		}
-	}
-
-	return mpns
-}
-
 func (o *publishPushHelperOpts) buildFCMPayload() map[string]interface{} {
 	fcm := make(map[string]interface{})
 	if o.PushFCMData != nil {
@@ -215,13 +172,6 @@ func (b *publishPushHelperBuilder) SetAPNSPayload(pnAPNSData PNAPNSData, pnAPNS2
 	return b
 }
 
-// SetMPNSPayload sets the MPNS payload
-func (b *publishPushHelperBuilder) SetMPNSPayload(pnMPNSData PNMPNSData) *publishPushHelperBuilder {
-	b.opts.PushMPNSData = &pnMPNSData
-
-	return b
-}
-
 // SetCommonPayload sets the common payload
 func (b *publishPushHelperBuilder) SetCommonPayload(commonPayload map[string]interface{}) *publishPushHelperBuilder {
 	b.opts.CommonPayload = commonPayload
@@ -241,7 +191,6 @@ type publishPushHelperOpts struct {
 
 	PushAPNS2Data  []PNAPNS2Data
 	PushAPNSData   *PNAPNSData
-	PushMPNSData   *PNMPNSData
 	PushFCMData    *PNFCMData
 	CommonPayload  map[string]interface{}
 	PushCustomData map[string]interface{}

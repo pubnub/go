@@ -17,6 +17,8 @@ import (
 func createTestChannelMetadata(t *testing.T, pn *pubnub.PubNub, id, name, description string, custom map[string]interface{}) {
 	incl := []pubnub.PNChannelMetadataInclude{
 		pubnub.PNChannelMetadataIncludeCustom,
+		pubnub.PNChannelMetadataIncludeStatus,
+		pubnub.PNChannelMetadataIncludeType,
 	}
 	_, _, err := pn.SetChannelMetadata().
 		Include(incl).
@@ -24,6 +26,8 @@ func createTestChannelMetadata(t *testing.T, pn *pubnub.PubNub, id, name, descri
 		Name(name).
 		Description(description).
 		Custom(custom).
+		Status("active").
+		Type("test").
 		Execute()
 
 	if err != nil {

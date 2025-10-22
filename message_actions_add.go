@@ -155,7 +155,7 @@ type PNMessageActionsResponse struct {
 
 // PNAddMessageActionsResponse is the Add Message Actions API Response
 type PNAddMessageActionsResponse struct {
-	status int                      `json:"status"`
+	Status int                      `json:"status"`
 	Data   PNMessageActionsResponse `json:"data"`
 }
 

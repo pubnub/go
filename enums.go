@@ -78,19 +78,27 @@ const (
 const (
 	// PNUUIDMetadataIncludeCustom is the enum equivalent to the value `custom` available UUID include types
 	PNUUIDMetadataIncludeCustom PNUUIDMetadataInclude = 1 + iota
+	// PNUUIDMetadataIncludeStatus is the enum equivalent to the value `status` available UUID include types
+	PNUUIDMetadataIncludeStatus
+	// PNUUIDMetadataIncludeType is the enum equivalent to the value `type` available UUID include types
+	PNUUIDMetadataIncludeType
 )
 
 const (
 	// PNChannelMetadataIncludeCustom is the enum equivalent to the value `custom` available Channel include types
 	PNChannelMetadataIncludeCustom PNChannelMetadataInclude = 1 + iota
+	// PNChannelMetadataIncludeStatus is the enum equivalent to the value `status` available Channel include types
+	PNChannelMetadataIncludeStatus
+	// PNChannelMetadataIncludeType is the enum equivalent to the value `type` available Channel include types
+	PNChannelMetadataIncludeType
 )
 
 func (s PNUUIDMetadataInclude) String() string {
-	return [...]string{"custom"}[s-1]
+	return [...]string{"custom", "status", "type"}[s-1]
 }
 
 func (s PNChannelMetadataInclude) String() string {
-	return [...]string{"custom"}[s-1]
+	return [...]string{"custom", "status", "type"}[s-1]
 }
 
 const (
@@ -100,10 +108,18 @@ const (
 	PNMembershipsIncludeChannel
 	// PNMembershipsIncludeChannelCustom is the enum equivalent to the value `channel.custom` available Memberships include types
 	PNMembershipsIncludeChannelCustom
+	// PNMembershipsIncludeChannelStatus is the enum equivalent to the value `channel.status` available Memberships include types
+	PNMembershipsIncludeChannelStatus
+	// PNMembershipsIncludeChannelType is the enum equivalent to the value `channel.type` available Memberships include types
+	PNMembershipsIncludeChannelType
+	// PNMembershipsIncludeStatus is the enum equivalent to the value `status` available Memberships include types
+	PNMembershipsIncludeStatus
+	// PNMembershipsIncludeType is the enum equivalent to the value `type` available Memberships include types
+	PNMembershipsIncludeType
 )
 
 func (s PNMembershipsInclude) String() string {
-	return [...]string{"custom", "channel", "channel.custom"}[s-1]
+	return [...]string{"custom", "channel", "channel.custom", "channel.status", "channel.type", "status", "type"}[s-1]
 }
 
 const (
@@ -113,11 +129,18 @@ const (
 	PNChannelMembersIncludeUUID
 	// PNChannelMembersIncludeUUIDCustom is the enum equivalent to the value `uuid.custom` available Members include types
 	PNChannelMembersIncludeUUIDCustom
+	// PNChannelMembersIncludeUUIDStatus is the enum equivalent to the value `uuid.status` available Members include types
+	PNChannelMembersIncludeUUIDStatus
+	// PNChannelMembersIncludeUUIDType is the enum equivalent to the value `uuid.type` available Members include types
+	PNChannelMembersIncludeUUIDType
+	// PNChannelMembersIncludeStatus is the enum equivalent to the value `status` available Members include types
+	PNChannelMembersIncludeStatus
+	// PNChannelMembersIncludeType is the enum equivalent to the value `type` available Members include types
+	PNChannelMembersIncludeType
 )
 
 func (s PNChannelMembersInclude) String() string {
-	//return [...]string{"custom", "user", "user.custom", "uuid", "uuid.custom"}[s-1]
-	return [...]string{"custom", "uuid", "uuid.custom"}[s-1]
+	return [...]string{"custom", "uuid", "uuid.custom", "uuid.status", "uuid.type", "status", "type"}[s-1]
 }
 
 // PNMessageType is used as an enum to catgorize the Subscribe response.
@@ -179,6 +202,8 @@ const (
 	PNRequestMessageCountExceededCategory
 	// PNDisconnectedUnexpectedlyCategory as the StatusCategory means that the connection was unexpectedly disconnected for example due to a network issues
 	PNDisconnectedUnexpectedlyCategory
+	// PNPreconditionFailedCategory as the StatusCategory means the precondition for the request failed (e.g., ETag mismatch with If-Match header).
+	PNPreconditionFailedCategory
 )
 
 const (
@@ -317,14 +342,16 @@ const (
 const (
 	// PNPushTypeNone is used as an enum to for selecting `none` as the PNPushType
 	PNPushTypeNone PNPushType = 1 + iota
-	// PNPushTypeGCM is used as an enum to for selecting `GCM` as the PNPushType
+	// Deprecated: PNPushTypeGCM is deprecated. Use PNPushTypeFCM instead.
+	// Google Cloud Messaging (GCM) has been replaced by Firebase Cloud Messaging (FCM).
 	PNPushTypeGCM
+	// Deprecated: PNPushTypeAPNS is deprecated. Use PNPushTypeAPNS2 instead.
 	// PNPushTypeAPNS is used as an enum to for selecting `APNS` as the PNPushType
 	PNPushTypeAPNS
-	// PNPushTypeMPNS is used as an enum to for selecting `MPNS` as the PNPushType
-	PNPushTypeMPNS
 	// PNPushTypeAPNS2 is used as an enum to for selecting `APNS2` as the PNPushType
 	PNPushTypeAPNS2
+	// PNPushTypeFCM is used as an enum to for selecting `FCM` as the PNPushType
+	PNPushTypeFCM
 )
 
 func (p PNPushType) String() string {
@@ -335,11 +362,11 @@ func (p PNPushType) String() string {
 	case PNPushTypeGCM:
 		return "gcm"
 
-	case PNPushTypeMPNS:
-		return "mpns"
-
 	case PNPushTypeAPNS2:
 		return "apns2"
+
+	case PNPushTypeFCM:
+		return "fcm"
 
 	default:
 		return "none"
@@ -451,6 +478,9 @@ func (c StatusCategory) String() string {
 
 	case PNDisconnectedUnexpectedlyCategory:
 		return "Disconnected Unexpectedly"
+
+	case PNPreconditionFailedCategory:
+		return "Precondition Failed"
 
 	default:
 		return "No Stub Matched"

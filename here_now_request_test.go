@@ -36,7 +36,7 @@ func TestHereNowChannelsGroups(t *testing.T) {
 	expected := &url.Values{}
 	expected.Set("channel-group", "cg1,cg2,cg3")
 	expected.Set("disable-uuids", "0")
-	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "limit"}, []string{})
 
 	body, err := opts.buildBody()
 
@@ -105,7 +105,7 @@ func TestHereNowMultipleWithOpts(t *testing.T) {
 	expected.Set("channel-group", "cg1,cg2,cg3")
 	expected.Set("state", "1")
 	expected.Set("disable-uuids", "1")
-	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "limit"}, []string{})
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
@@ -140,7 +140,7 @@ func TestHereNowMultipleWithOptsQueryParam(t *testing.T) {
 	expected.Set("q1", "v1")
 	expected.Set("q2", "v2")
 
-	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "limit"}, []string{})
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
@@ -165,7 +165,7 @@ func TestHereNowGlobal(t *testing.T) {
 	assert.Nil(err)
 
 	expected := &url.Values{}
-	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "limit"}, []string{})
 
 	body, err := opts.buildBody()
 	assert.Nil(err)
@@ -207,7 +207,7 @@ func TestHereNowBuildQuery(t *testing.T) {
 	expected := &url.Values{}
 	expected.Set("channel-group", "cg1,cg2,cg3")
 	expected.Set("state", "1")
-	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid"}, []string{})
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "limit"}, []string{})
 
 }
 
@@ -1666,3 +1666,152 @@ func TestHereNowValidationErrors(t *testing.T) {
 }
 
 // Extended Response Parsing Tests (Note: Basic response parsing is already tested in existing tests)
+
+// Limit and Offset Tests
+
+func TestHereNowBuilderLimit(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	builder := newHereNowBuilder(pn)
+	builder.Limit(500)
+
+	assert.Equal(500, builder.opts.Limit)
+}
+
+func TestHereNowBuilderOffset(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	builder := newHereNowBuilder(pn)
+	builder.Offset(100)
+
+	assert.Equal(100, builder.opts.Offset)
+	assert.True(builder.opts.SetOffset)
+}
+
+func TestHereNowBuildQueryWithLimit(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	// Test when limit is set
+	opts := newHereNowOpts(pn, pn.ctx)
+	opts.Limit = 500
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("500", query.Get("limit"))
+
+	// Test default limit (1000)
+	opts2 := newHereNowOpts(pn, pn.ctx)
+	query2, err2 := opts2.buildQuery()
+	assert.Nil(err2)
+	assert.Equal("1000", query2.Get("limit"))
+}
+
+func TestHereNowBuildQueryWithOffset(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	// Test when offset is set to non-zero value
+	opts := newHereNowOpts(pn, pn.ctx)
+	opts.Offset = 100
+	opts.SetOffset = true
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("100", query.Get("offset"))
+
+	// Test when offset is set to 0 - should not appear in query
+	opts2 := newHereNowOpts(pn, pn.ctx)
+	opts2.Offset = 0
+	opts2.SetOffset = true
+
+	query2, err2 := opts2.buildQuery()
+	assert.Nil(err2)
+	assert.Equal("", query2.Get("offset"))
+
+	// Test when offset is not set
+	opts3 := newHereNowOpts(pn, pn.ctx)
+	query3, err3 := opts3.buildQuery()
+	assert.Nil(err3)
+	assert.Equal("", query3.Get("offset"))
+}
+
+func TestHereNowBuildQueryWithLimitAndOffset(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := newHereNowOpts(pn, pn.ctx)
+
+	// Set both limit and offset
+	opts.Limit = 250
+	opts.Offset = 500
+	opts.SetOffset = true
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("250", query.Get("limit"))
+	assert.Equal("500", query.Get("offset"))
+}
+
+func TestHereNowBuilderLimitOffset(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	builder := newHereNowBuilder(pn)
+	builder.Channels([]string{"test-channel"}).
+		Limit(100).
+		Offset(200)
+
+	assert.Equal(100, builder.opts.Limit)
+	assert.Equal(200, builder.opts.Offset)
+
+	query, err := builder.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("100", query.Get("limit"))
+	assert.Equal("200", query.Get("offset"))
+}
+
+func TestHereNowBuilderAllParametersIncludingLimitOffset(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	channels := []string{"channel1", "channel2"}
+	channelGroups := []string{"group1", "group2"}
+	queryParam := map[string]string{
+		"custom1": "value1",
+		"custom2": "value2",
+	}
+
+	// Test all setters including new Limit and Offset
+	builder := newHereNowBuilder(pn).
+		Channels(channels).
+		ChannelGroups(channelGroups).
+		IncludeState(true).
+		IncludeUUIDs(false).
+		Limit(100).
+		Offset(50).
+		QueryParam(queryParam)
+
+	// Verify all are set correctly
+	assert.Equal(channels, builder.opts.Channels)
+	assert.Equal(channelGroups, builder.opts.ChannelGroups)
+	assert.True(builder.opts.IncludeState)
+	assert.True(builder.opts.SetIncludeState)
+	assert.False(builder.opts.IncludeUUIDs)
+	assert.True(builder.opts.SetIncludeUUIDs)
+	assert.Equal(100, builder.opts.Limit)
+	assert.Equal(50, builder.opts.Offset)
+	assert.Equal(queryParam, builder.opts.QueryParam)
+
+	// Verify query contains all parameters
+	query, err := builder.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("group1,group2", query.Get("channel-group"))
+	assert.Equal("1", query.Get("state"))
+	assert.Equal("1", query.Get("disable-uuids"))
+	assert.Equal("100", query.Get("limit"))
+	assert.Equal("50", query.Get("offset"))
+	assert.Equal("value1", query.Get("custom1"))
+	assert.Equal("value2", query.Get("custom2"))
+}
