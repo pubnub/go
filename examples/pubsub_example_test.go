@@ -8,7 +8,7 @@ import (
 	pubnub "github.com/pubnub/go/v7"
 )
 
-//snippet.end
+// snippet.end
 
 // snippet.simple_publish
 // Example_simplePublish demonstrates basic message publishing
