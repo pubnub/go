@@ -10,6 +10,23 @@ import (
 
 // snippet.end
 
+/*
+IMPORTANT NOTE FOR COPYING EXAMPLES:
+
+Throughout this file, you'll see code between "snippet.hide" and "snippet.show" comments.
+These sections are used for CI/CD testing and should be SKIPPED if you're copying examples.
+
+Example of what to skip:
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)  // <- Skip this line (for testing only)
+	defer pn.DeleteChannelGroup().Execute()      // <- Skip this line (cleanup for tests)
+	// snippet.show
+
+When copying examples to your own code:
+- Use your own publish/subscribe keys instead of the "demo" keys
+- Remove any statements that are between snippet.hide and snippet.show (they're only for testing purposes)
+*/
+
 // snippet.simple_publish
 // Example_simplePublish demonstrates basic message publishing
 func Example_simplePublish() {
@@ -18,7 +35,6 @@ func Example_simplePublish() {
 	config.PublishKey = "demo"   // Replace with your publish key
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
@@ -42,8 +58,6 @@ func Example_simplePublish() {
 	// Message published successfully
 }
 
-// snippet.end
-
 // snippet.publish_with_metadata
 // Example_publishWithMetadata demonstrates publishing with custom metadata
 func Example_publishWithMetadata() {
@@ -52,7 +66,6 @@ func Example_publishWithMetadata() {
 	config.PublishKey = "demo"
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
@@ -84,8 +97,6 @@ func Example_publishWithMetadata() {
 	// Message with metadata published successfully
 }
 
-// snippet.end
-
 // snippet.publish_with_ttl
 // Example_publishWithTTL demonstrates publishing with message expiration
 func Example_publishWithTTL() {
@@ -94,7 +105,6 @@ func Example_publishWithTTL() {
 	config.PublishKey = "demo"
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
@@ -121,8 +131,6 @@ func Example_publishWithTTL() {
 	// Message with TTL published successfully
 }
 
-// snippet.end
-
 // snippet.fire
 // Example_fire demonstrates fire operation (publish without storage)
 func Example_fire() {
@@ -131,7 +139,6 @@ func Example_fire() {
 	config.PublishKey = "demo"
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
@@ -156,8 +163,6 @@ func Example_fire() {
 	// Fire message sent successfully
 }
 
-// snippet.end
-
 // snippet.signal
 // Example_signal demonstrates sending signals (lightweight messages)
 func Example_signal() {
@@ -166,7 +171,6 @@ func Example_signal() {
 	config.PublishKey = "demo"
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
@@ -191,8 +195,6 @@ func Example_signal() {
 	// Signal sent successfully
 }
 
-// snippet.end
-
 // snippet.subscribe
 // Example_subscribe demonstrates basic channel subscription
 func Example_subscribe() {
@@ -200,7 +202,6 @@ func Example_subscribe() {
 	config.SubscribeKey = "demo"
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
@@ -244,8 +245,6 @@ func Example_subscribe() {
 	// Subscribed to channel
 }
 
-// snippet.end
-
 // snippet.subscribe_multiple
 // Example_subscribeMultiple demonstrates subscribing to multiple channels
 func Example_subscribeMultiple() {
@@ -253,7 +252,6 @@ func Example_subscribeMultiple() {
 	config.SubscribeKey = "demo"
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
@@ -289,8 +287,6 @@ func Example_subscribeMultiple() {
 	// Subscribed to multiple channels
 }
 
-// snippet.end
-
 // snippet.subscribe_with_presence
 // Example_subscribeWithPresence demonstrates subscription with presence enabled
 func Example_subscribeWithPresence() {
@@ -298,7 +294,6 @@ func Example_subscribeWithPresence() {
 	config.SubscribeKey = "demo"
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
@@ -340,8 +335,6 @@ func Example_subscribeWithPresence() {
 	// Subscribed with presence
 }
 
-// snippet.end
-
 // snippet.subscribe_wildcard
 // Example_subscribeWildcard demonstrates wildcard channel subscription
 func Example_subscribeWildcard() {
@@ -349,7 +342,6 @@ func Example_subscribeWildcard() {
 	config.SubscribeKey = "demo"
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
@@ -385,8 +377,6 @@ func Example_subscribeWildcard() {
 	// Subscribed to wildcard channels
 }
 
-// snippet.end
-
 // snippet.unsubscribe
 // Example_unsubscribe demonstrates unsubscribing from channels
 func Example_unsubscribe() {
@@ -394,7 +384,6 @@ func Example_unsubscribe() {
 	config.SubscribeKey = "demo"
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
@@ -416,8 +405,6 @@ func Example_unsubscribe() {
 	// Unsubscribed from channel
 }
 
-// snippet.end
-
 // snippet.unsubscribe_all
 // Example_unsubscribeAll demonstrates unsubscribing from all channels
 func Example_unsubscribeAll() {
@@ -425,7 +412,6 @@ func Example_unsubscribeAll() {
 	config.SubscribeKey = "demo"
 
 	// snippet.hide
-	// Override config with real keys for CI/CD testing. If you copy example from here, just skip this part.
 	config = setPubnubExampleConfigData(config)
 	// snippet.show
 
