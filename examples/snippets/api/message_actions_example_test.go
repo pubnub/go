@@ -210,8 +210,8 @@ func Example_getMessageActionsWithTimeRange() {
 	// Using a very wide range to ensure we capture our action
 	response, status, err := pn.GetMessageActions().
 		Channel("timerange-channel").
-		Start(fmt.Sprintf("%d", publishResp.Timestamp+100000000)). // Start (more recent)
-		End(fmt.Sprintf("%d", publishResp.Timestamp-100000000)).   // End (older)
+		Start(fmt.Sprintf("%d", publishResp.Timestamp+10000000)). // Start (more recent)
+		End(fmt.Sprintf("%d", publishResp.Timestamp-10000000)).   // End (older)
 		Limit(10).
 		Execute()
 
