@@ -210,6 +210,9 @@ func Example_subscribe() {
 	// Create listener to handle incoming messages
 	listener := pubnub.NewListener()
 
+	// Create a done channel to stop the goroutine when needed
+	done := make(chan bool)
+
 	go func() {
 		for {
 			select {
@@ -228,6 +231,10 @@ func Example_subscribe() {
 				// Handle received messages
 				fmt.Printf("Received message: %v on channel: %s\n",
 					message.Message, message.Channel)
+
+			case <-done:
+				// Stop the goroutine when done signal is received
+				return
 			}
 		}
 	}()
@@ -240,6 +247,10 @@ func Example_subscribe() {
 		Execute()
 
 	fmt.Println("Subscribed to channel")
+
+	// When done, unsubscribe and stop goroutine
+	pn.UnsubscribeAll()
+	close(done)
 
 	// Output:
 	// Subscribed to channel
@@ -259,6 +270,9 @@ func Example_subscribeMultiple() {
 
 	listener := pubnub.NewListener()
 
+	// Create a done channel to stop the goroutine when needed
+	done := make(chan bool)
+
 	go func() {
 		for {
 			select {
@@ -270,6 +284,10 @@ func Example_subscribeMultiple() {
 			case message := <-listener.Message:
 				fmt.Printf("Received on %s: %v\n",
 					message.Channel, message.Message)
+
+			case <-done:
+				// Stop the goroutine when done signal is received
+				return
 			}
 		}
 	}()
@@ -282,6 +300,10 @@ func Example_subscribeMultiple() {
 		Execute()
 
 	fmt.Println("Subscribed to multiple channels")
+
+	// When done, unsubscribe and stop goroutine
+	pn.UnsubscribeAll()
+	close(done)
 
 	// Output:
 	// Subscribed to multiple channels
@@ -301,6 +323,9 @@ func Example_subscribeWithPresence() {
 
 	listener := pubnub.NewListener()
 
+	// Create a done channel to stop the goroutine when needed
+	done := make(chan bool)
+
 	go func() {
 		for {
 			select {
@@ -317,6 +342,10 @@ func Example_subscribeWithPresence() {
 				// Handle presence events (join, leave, timeout)
 				fmt.Printf("Presence event: %s for UUID: %s\n",
 					presence.Event, presence.UUID)
+
+			case <-done:
+				// Stop the goroutine when done signal is received
+				return
 			}
 		}
 	}()
@@ -330,6 +359,10 @@ func Example_subscribeWithPresence() {
 		Execute()
 
 	fmt.Println("Subscribed with presence")
+
+	// When done, unsubscribe and stop goroutine
+	pn.UnsubscribeAll()
+	close(done)
 
 	// Output:
 	// Subscribed with presence
@@ -349,6 +382,9 @@ func Example_subscribeWildcard() {
 
 	listener := pubnub.NewListener()
 
+	// Create a done channel to stop the goroutine when needed
+	done := make(chan bool)
+
 	go func() {
 		for {
 			select {
@@ -360,6 +396,10 @@ func Example_subscribeWildcard() {
 			case message := <-listener.Message:
 				fmt.Printf("Received on %s: %v\n",
 					message.Channel, message.Message)
+
+			case <-done:
+				// Stop the goroutine when done signal is received
+				return
 			}
 		}
 	}()
@@ -372,6 +412,10 @@ func Example_subscribeWildcard() {
 		Execute()
 
 	fmt.Println("Subscribed to wildcard channels")
+
+	// When done, unsubscribe and stop goroutine
+	pn.UnsubscribeAll()
+	close(done)
 
 	// Output:
 	// Subscribed to wildcard channels

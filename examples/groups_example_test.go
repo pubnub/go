@@ -210,6 +210,9 @@ func Example_subscribeToChannelGroup() {
 	// Create listener to handle incoming messages
 	listener := pubnub.NewListener()
 
+	// Create a done channel to stop the goroutine when needed
+	done := make(chan bool)
+
 	go func() {
 		for {
 			select {
@@ -220,6 +223,10 @@ func Example_subscribeToChannelGroup() {
 				// Handle messages from any channel in the group
 				fmt.Printf("Received message: %v from channel: %s\n",
 					message.Message, message.Channel)
+
+			case <-done:
+				// Stop the goroutine when done signal is received
+				return
 			}
 		}
 	}()
@@ -233,6 +240,10 @@ func Example_subscribeToChannelGroup() {
 		Execute()
 
 	fmt.Println("Subscribed to channel group")
+
+	// When done, unsubscribe and stop goroutine
+	pn.UnsubscribeAll()
+	close(done)
 
 	// Output:
 	// Subscribed to channel group
@@ -268,6 +279,9 @@ func Example_subscribeToMultipleChannelGroups() {
 
 	listener := pubnub.NewListener()
 
+	// Create a done channel to stop the goroutine when needed
+	done := make(chan bool)
+
 	go func() {
 		for {
 			select {
@@ -277,6 +291,10 @@ func Example_subscribeToMultipleChannelGroups() {
 			case message := <-listener.Message:
 				fmt.Printf("Received from %s: %v\n",
 					message.Channel, message.Message)
+
+			case <-done:
+				// Stop the goroutine when done signal is received
+				return
 			}
 		}
 	}()
@@ -289,6 +307,10 @@ func Example_subscribeToMultipleChannelGroups() {
 		Execute()
 
 	fmt.Println("Subscribed to multiple channel groups")
+
+	// When done, unsubscribe and stop goroutine
+	pn.UnsubscribeAll()
+	close(done)
 
 	// Output:
 	// Subscribed to multiple channel groups
@@ -318,6 +340,9 @@ func Example_subscribeToChannelsAndGroups() {
 
 	listener := pubnub.NewListener()
 
+	// Create a done channel to stop the goroutine when needed
+	done := make(chan bool)
+
 	go func() {
 		for {
 			select {
@@ -328,6 +353,10 @@ func Example_subscribeToChannelsAndGroups() {
 				// Messages from both individual channels and channel group channels
 				fmt.Printf("Message from %s: %v\n",
 					message.Channel, message.Message)
+
+			case <-done:
+				// Stop the goroutine when done signal is received
+				return
 			}
 		}
 	}()
@@ -341,6 +370,10 @@ func Example_subscribeToChannelsAndGroups() {
 		Execute()
 
 	fmt.Println("Subscribed to channels and groups")
+
+	// When done, unsubscribe and stop goroutine
+	pn.UnsubscribeAll()
+	close(done)
 
 	// Output:
 	// Subscribed to channels and groups

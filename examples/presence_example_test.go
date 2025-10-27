@@ -110,7 +110,7 @@ func Example_hereNowOccupancyOnly() {
 
 	// Get only occupancy count (no UUIDs or state)
 	response, status, err := pn.HereNow().
-		Channels([]string{"my-channel"}).
+		Channels([]string{"my-channel-100"}).
 		IncludeUUIDs(false). // Don't include UUIDs
 		IncludeState(false). // Don't include state
 		Execute()
@@ -146,7 +146,7 @@ func Example_hereNowMultipleChannels() {
 
 	// Get presence for multiple channels at once
 	response, status, err := pn.HereNow().
-		Channels([]string{"channel-1", "channel-2", "channel-3"}).
+		Channels([]string{"channel-10", "channel-20", "channel-30"}).
 		IncludeUUIDs(true).
 		Execute()
 
