@@ -32,6 +32,7 @@ When copying examples to your own code:
 func Example_addChannelsToPushFCM() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo" // Replace with your subscribe key
+	config.PublishKey = "demo"   // Replace with your publish key
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -64,6 +65,7 @@ func Example_addChannelsToPushFCM() {
 func Example_addChannelsToPushAPNS2() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo" // Replace with your subscribe key
+	config.PublishKey = "demo"   // Replace with your publish key
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -98,6 +100,7 @@ func Example_addChannelsToPushAPNS2() {
 func Example_addChannelsToPushAPNS2Production() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo" // Replace with your subscribe key
+	config.PublishKey = "demo"   // Replace with your publish key
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -132,6 +135,7 @@ func Example_addChannelsToPushAPNS2Production() {
 func Example_listPushChannelsFCM() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo" // Replace with your subscribe key
+	config.PublishKey = "demo"   // Replace with your publish key
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -175,6 +179,7 @@ func Example_listPushChannelsFCM() {
 func Example_listPushChannelsAPNS2() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo" // Replace with your subscribe key
+	config.PublishKey = "demo"   // Replace with your publish key
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -210,6 +215,7 @@ func Example_listPushChannelsAPNS2() {
 func Example_removeChannelsFromPushFCM() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo" // Replace with your subscribe key
+	config.PublishKey = "demo"   // Replace with your publish key
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -242,6 +248,7 @@ func Example_removeChannelsFromPushFCM() {
 func Example_removeChannelsFromPushAPNS2() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo" // Replace with your subscribe key
+	config.PublishKey = "demo"   // Replace with your publish key
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -276,6 +283,7 @@ func Example_removeChannelsFromPushAPNS2() {
 func Example_removeAllPushChannelsFCM() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo" // Replace with your subscribe key
+	config.PublishKey = "demo"   // Replace with your publish key
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -308,6 +316,7 @@ func Example_removeAllPushChannelsFCM() {
 func Example_removeAllPushChannelsAPNS2() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo" // Replace with your subscribe key
+	config.PublishKey = "demo"   // Replace with your publish key
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)

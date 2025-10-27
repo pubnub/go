@@ -32,6 +32,7 @@ When copying examples to your own code:
 func Example_hereNow() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -69,6 +70,7 @@ func Example_hereNow() {
 func Example_hereNowWithState() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -101,6 +103,7 @@ func Example_hereNowWithState() {
 func Example_hereNowOccupancyOnly() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -137,6 +140,7 @@ func Example_hereNowOccupancyOnly() {
 func Example_hereNowMultipleChannels() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -170,6 +174,7 @@ func Example_hereNowMultipleChannels() {
 func Example_hereNowChannelGroup() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -204,6 +209,7 @@ func Example_hereNowChannelGroup() {
 func Example_whereNow() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -236,6 +242,7 @@ func Example_whereNow() {
 func Example_whereNowCurrentUser() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -265,6 +272,7 @@ func Example_whereNowCurrentUser() {
 func Example_setState() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -302,6 +310,7 @@ func Example_setState() {
 func Example_setStateMultipleChannels() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -338,6 +347,7 @@ func Example_setStateMultipleChannels() {
 func Example_setStateChannelGroup() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -367,6 +377,7 @@ func Example_setStateChannelGroup() {
 func Example_getState() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -398,6 +409,7 @@ func Example_getState() {
 func Example_getStateMultipleChannels() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -429,6 +441,7 @@ func Example_getStateMultipleChannels() {
 func Example_getStateChannelGroup() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -453,6 +466,7 @@ func Example_getStateChannelGroup() {
 func Example_heartbeatJoin() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -477,6 +491,7 @@ func Example_heartbeatJoin() {
 func Example_heartbeatLeave() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
@@ -501,6 +516,7 @@ func Example_heartbeatLeave() {
 func Example_heartbeatChannelGroup() {
 	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
 	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
 
 	// snippet.hide
 	config = setPubnubExampleConfigData(config)
