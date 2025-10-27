@@ -8,7 +8,7 @@ import (
 	pubnub "github.com/pubnub/go/v7"
 )
 
-//snippet.end
+// snippet.end
 
 /*
 IMPORTANT NOTE FOR COPYING EXAMPLES:
