@@ -774,6 +774,118 @@ func Example_getMembershipsWithAllIncludes() {
 	// Role: moderator
 }
 
+// snippet.remove_memberships
+// Example_removeMemberships demonstrates removing a user from channels (removing memberships)
+func Example_removeMemberships() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// snippet.hide
+	// Setup: Create channels and add memberships
+	pn.SetChannelMetadata().Channel("temp-channel-1").Name("Temp 1").Execute()
+	pn.SetChannelMetadata().Channel("temp-channel-2").Name("Temp 2").Execute()
+	pn.SetUUIDMetadata().UUID("remove-user-888").Name("Bob").Execute()
+	defer pn.RemoveChannelMetadata().Channel("temp-channel-1").Execute()
+	defer pn.RemoveChannelMetadata().Channel("temp-channel-2").Execute()
+	defer pn.RemoveUUIDMetadata().UUID("remove-user-888").Execute()
+
+	pn.SetMemberships().
+		UUID("remove-user-888").
+		Set([]pubnub.PNMembershipsSet{
+			{Channel: pubnub.PNMembershipsChannel{ID: "temp-channel-1"}},
+			{Channel: pubnub.PNMembershipsChannel{ID: "temp-channel-2"}},
+		}).
+		Execute()
+	// snippet.show
+
+	// Remove user from specific channels
+	response, status, err := pn.RemoveMemberships().
+		UUID("remove-user-888").             // User ID
+		Remove([]pubnub.PNMembershipsRemove{ // Channels to remove from
+			{Channel: pubnub.PNMembershipsChannel{ID: "temp-channel-1"}},
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		fmt.Printf("Removed from %d channel(s)\n", len(response.Data))
+	}
+
+	// Output:
+	// Removed from 1 channel(s)
+}
+
+// snippet.manage_memberships
+// Example_manageMemberships demonstrates adding and removing channel memberships in a single call
+func Example_manageMemberships() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// snippet.hide
+	// Setup: Create channels
+	pn.SetChannelMetadata().Channel("add-channel-999").Name("Add Channel").Execute()
+	pn.SetChannelMetadata().Channel("remove-channel-999").Name("Remove Channel").Execute()
+	pn.SetUUIDMetadata().UUID("manage-user-999").Name("Charlie").Execute()
+	defer pn.RemoveChannelMetadata().Channel("add-channel-999").Execute()
+	defer pn.RemoveChannelMetadata().Channel("remove-channel-999").Execute()
+	defer pn.RemoveUUIDMetadata().UUID("manage-user-999").Execute()
+
+	// Add initial membership to be removed
+	pn.SetMemberships().
+		UUID("manage-user-999").
+		Set([]pubnub.PNMembershipsSet{
+			{Channel: pubnub.PNMembershipsChannel{ID: "remove-channel-999"}},
+		}).
+		Execute()
+	// snippet.show
+
+	// Manage memberships: add to some channels and remove from others
+	response, status, err := pn.ManageMemberships().
+		UUID("manage-user-999").       // User ID
+		Set([]pubnub.PNMembershipsSet{ // Channels to add
+			{
+				Channel: pubnub.PNMembershipsChannel{ID: "add-channel-999"},
+				Custom: map[string]interface{}{
+					"role": "participant",
+				},
+			},
+		}).
+		Remove([]pubnub.PNMembershipsRemove{ // Channels to remove
+			{Channel: pubnub.PNMembershipsChannel{ID: "remove-channel-999"}},
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		fmt.Printf("Managed memberships: %d channel(s)\n", len(response.Data))
+	}
+
+	// Output:
+	// Managed memberships: 1 channel(s)
+}
+
 // snippet.set_channel_members
 // Example_setChannelMembers demonstrates adding users to a channel (channel members)
 func Example_setChannelMembers() {
@@ -974,6 +1086,118 @@ func Example_getChannelMembersWithAllIncludes() {
 	// User Status: active
 	// Member Status: active
 	// Access: admin
+}
+
+// snippet.remove_channel_members
+// Example_removeChannelMembers demonstrates removing users from a channel
+func Example_removeChannelMembers() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// snippet.hide
+	// Setup: Create channel and users, then add them as members
+	pn.SetChannelMetadata().Channel("remove-members-channel").Name("Team").Execute()
+	pn.SetUUIDMetadata().UUID("remove-member-1").Name("Alice").Execute()
+	pn.SetUUIDMetadata().UUID("remove-member-2").Name("Bob").Execute()
+	defer pn.RemoveChannelMetadata().Channel("remove-members-channel").Execute()
+	defer pn.RemoveUUIDMetadata().UUID("remove-member-1").Execute()
+	defer pn.RemoveUUIDMetadata().UUID("remove-member-2").Execute()
+
+	pn.SetChannelMembers().
+		Channel("remove-members-channel").
+		Set([]pubnub.PNChannelMembersSet{
+			{UUID: pubnub.PNChannelMembersUUID{ID: "remove-member-1"}},
+			{UUID: pubnub.PNChannelMembersUUID{ID: "remove-member-2"}},
+		}).
+		Execute()
+	// snippet.show
+
+	// Remove specific users from the channel
+	response, status, err := pn.RemoveChannelMembers().
+		Channel("remove-members-channel").      // Channel ID
+		Remove([]pubnub.PNChannelMembersRemove{ // Users to remove
+			{UUID: pubnub.PNChannelMembersUUID{ID: "remove-member-1"}},
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		fmt.Printf("Removed %d member(s) from channel\n", len(response.Data))
+	}
+
+	// Output:
+	// Removed 1 member(s) from channel
+}
+
+// snippet.manage_channel_members
+// Example_manageChannelMembers demonstrates adding and removing channel members in a single call
+func Example_manageChannelMembers() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// snippet.hide
+	// Setup: Create channel and users
+	pn.SetChannelMetadata().Channel("manage-members-channel").Name("Project Team").Execute()
+	pn.SetUUIDMetadata().UUID("new-member-111").Name("David").Execute()
+	pn.SetUUIDMetadata().UUID("old-member-111").Name("Eve").Execute()
+	defer pn.RemoveChannelMetadata().Channel("manage-members-channel").Execute()
+	defer pn.RemoveUUIDMetadata().UUID("new-member-111").Execute()
+	defer pn.RemoveUUIDMetadata().UUID("old-member-111").Execute()
+
+	// Add initial member to be removed
+	pn.SetChannelMembers().
+		Channel("manage-members-channel").
+		Set([]pubnub.PNChannelMembersSet{
+			{UUID: pubnub.PNChannelMembersUUID{ID: "old-member-111"}},
+		}).
+		Execute()
+	// snippet.show
+
+	// Manage channel members: add new members and remove others
+	response, status, err := pn.ManageChannelMembers().
+		Channel("manage-members-channel"). // Channel ID
+		Set([]pubnub.PNChannelMembersSet{  // Members to add
+			{
+				UUID: pubnub.PNChannelMembersUUID{ID: "new-member-111"},
+				Custom: map[string]interface{}{
+					"role": "developer",
+				},
+			},
+		}).
+		Remove([]pubnub.PNChannelMembersRemove{ // Members to remove
+			{UUID: pubnub.PNChannelMembersUUID{ID: "old-member-111"}},
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		fmt.Printf("Managed channel members: %d member(s)\n", len(response.Data))
+	}
+
+	// Output:
+	// Managed channel members: 1 member(s)
 }
 
 // snippet.end
