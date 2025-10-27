@@ -9,14 +9,14 @@ import (
 var pn *pubnub.PubNub
 
 func init() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
 
 	pn = pubnub.NewPubNub(config)
 }
 
-func main() {
+func mainPublishSubscribe() {
 	listener := pubnub.NewListener()
 	doneSubscribe := make(chan bool)
 	data := make(map[string]interface{})
@@ -34,7 +34,7 @@ func main() {
 						Message(data).
 						Execute()
 
-					fmt.Printf(res, status, err)
+					fmt.Println(res, status, err)
 
 					doneSubscribe <- true
 					return

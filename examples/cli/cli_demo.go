@@ -35,7 +35,7 @@ func connect() {
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
-	config = pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config = pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.UseHTTP2 = false
 
 	config.PNReconnectionPolicy = pubnub.PNExponentialPolicy

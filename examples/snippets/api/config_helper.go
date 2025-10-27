@@ -14,6 +14,15 @@ func setPubnubExampleConfigData(config *pubnub.Config) *pubnub.Config {
 	return config
 }
 
+func setPubnubExampleConfigDataWithSecretKey(config *pubnub.Config) *pubnub.Config {
+	config.SetUserId("GO_SDK_EXAMPLE_USER")
+	config.PublishKey = os.Getenv("PUBLISH_KEY")
+	config.SubscribeKey = os.Getenv("SUBSCRIBE_KEY")
+	config.SecretKey = os.Getenv("SECRET_KEY")
+
+	return config
+}
+
 func setPubnubExamplePAMConfigData(config *pubnub.Config) *pubnub.Config {
 	config.SetUserId("GO_SDK_EXAMPLE_USER")
 	config.PublishKey = os.Getenv("PAM_PUBLISH_KEY")

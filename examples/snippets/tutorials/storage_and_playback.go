@@ -8,7 +8,7 @@ import (
 )
 
 func getAllMessages(startTT int64) {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
 	config.SecretKey = "my-secret"
@@ -36,8 +36,8 @@ func getAllMessages(startTT int64) {
 	}
 }
 
-func main() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+func mainStorageAndPlayback() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
 	config.SecretKey = "my-secret"
