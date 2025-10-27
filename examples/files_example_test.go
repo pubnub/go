@@ -376,4 +376,58 @@ func Example_deleteFile() {
 	// File deleted successfully
 }
 
+// snippet.publish_file_message
+// Example_publishFileMessage demonstrates publishing a file message for an already uploaded file
+func Example_publishFileMessage() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// Create the message payload
+	messagePayload := &pubnub.PNPublishMessage{
+		Text: "Check out this updated file!",
+	}
+
+	// Create the file info
+	fileInfo := &pubnub.PNFileInfoForPublish{
+		ID:   "d9515cb7-48a7-41a4-9284-f4bf331bc770", // File ID from previous upload
+		Name: "cat_picture.jpg",                      // File name from previous upload
+	}
+
+	// Combine into file message
+	fileMessage := pubnub.PNPublishFileMessage{
+		PNFile:    fileInfo,
+		PNMessage: messagePayload,
+	}
+
+	// Publish the file message
+	response, status, err := pn.PublishFileMessage().
+		Channel("files-publish-channel").
+		Message(fileMessage).
+		ShouldStore(true). // Store in history
+		TTL(24).           // Message expires after 24 hours
+		CustomMessageType("file_message").
+		Meta(map[string]interface{}{
+			"file_type": "image",
+			"file_size": 1024,
+			"file_name": "cat_picture.jpg",
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 && response.Timestamp > 0 {
+		fmt.Println("File message published successfully")
+	}
+}
+
 // snippet.end

@@ -897,3 +897,249 @@ func TestPublishFileMessageUseRawMessageWithIndividualFieldsViaPath(t *testing.T
 	assert.Contains(path, "%22message%22", "Path should contain encoded message field")
 	assert.Contains(path, "%22file%22", "Path should contain encoded file field")
 }
+
+// ===========================
+// CustomMessageType Tests
+// ===========================
+
+func TestPublishFileMessageBuilderCustomMessageType(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newPublishFileMessageBuilder(pubnub)
+
+	// Test CustomMessageType
+	result := builder.CustomMessageType("file-message")
+	assert.Equal("file-message", builder.opts.CustomMessageType)
+	assert.Equal(builder, result) // Fluent interface
+}
+
+func TestPublishFileMessageCustomMessageTypeDefaults(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	opts := newPublishFileMessageOpts(pubnub, pubnub.ctx)
+
+	// Test default value
+	assert.Empty(opts.CustomMessageType)
+}
+
+func TestPublishFileMessageCustomMessageTypeMethodChaining(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newPublishFileMessageBuilder(pubnub)
+
+	// Test method chaining with CustomMessageType
+	result := builder.
+		Channel("test-channel").
+		FileID("test-id").
+		FileName("test.txt").
+		MessageText("test message").
+		CustomMessageType("file-message").
+		ShouldStore(true).
+		TTL(24)
+
+	assert.Equal("test-channel", builder.opts.Channel)
+	assert.Equal("test-id", builder.opts.FileID)
+	assert.Equal("test.txt", builder.opts.FileName)
+	assert.Equal("test message", builder.opts.MessageText)
+	assert.Equal("file-message", builder.opts.CustomMessageType)
+	assert.True(builder.opts.ShouldStore)
+	assert.Equal(24, builder.opts.TTL)
+	assert.Equal(builder, result) // Fluent interface
+}
+
+func TestPublishFileMessageCustomMessageTypeValidation(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+
+	// Test valid CustomMessageType
+	file := &PNFileInfoForPublish{
+		ID:   "test-id",
+		Name: "test.txt",
+	}
+	m := &PNPublishMessage{
+		Text: "test message",
+	}
+	m1 := PNPublishFileMessage{
+		PNFile:    file,
+		PNMessage: m,
+	}
+
+	opts := newPublishFileMessageOpts(pubnub, pubnub.ctx)
+	opts.Channel = "test-channel"
+	opts.Message = m1
+	opts.CustomMessageType = "valid-type"
+	assert.Nil(opts.validate())
+
+	// Test invalid CustomMessageType - too short
+	opts2 := newPublishFileMessageOpts(pubnub, pubnub.ctx)
+	opts2.Channel = "test-channel"
+	opts2.Message = m1
+	opts2.CustomMessageType = "ab"
+	assert.NotNil(opts2.validate())
+	assert.Contains(opts2.validate().Error(), "Invalid CustomMessageType")
+
+	// Test invalid CustomMessageType - too long
+	opts3 := newPublishFileMessageOpts(pubnub, pubnub.ctx)
+	opts3.Channel = "test-channel"
+	opts3.Message = m1
+	opts3.CustomMessageType = "this-is-a-very-long-custom-message-type-that-exceeds-the-limit"
+	assert.NotNil(opts3.validate())
+	assert.Contains(opts3.validate().Error(), "Invalid CustomMessageType")
+
+	// Test invalid CustomMessageType - invalid characters
+	opts4 := newPublishFileMessageOpts(pubnub, pubnub.ctx)
+	opts4.Channel = "test-channel"
+	opts4.Message = m1
+	opts4.CustomMessageType = "invalid@type"
+	assert.NotNil(opts4.validate())
+	assert.Contains(opts4.validate().Error(), "Invalid CustomMessageType")
+
+	// Test empty CustomMessageType (should be valid)
+	opts5 := newPublishFileMessageOpts(pubnub, pubnub.ctx)
+	opts5.Channel = "test-channel"
+	opts5.Message = m1
+	opts5.CustomMessageType = ""
+	assert.Nil(opts5.validate())
+}
+
+func TestPublishFileMessageCustomMessageTypeInQuery(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+
+	file := &PNFileInfoForPublish{
+		ID:   "test-id",
+		Name: "test.txt",
+	}
+	m := &PNPublishMessage{
+		Text: "test message",
+	}
+	m1 := PNPublishFileMessage{
+		PNFile:    file,
+		PNMessage: m,
+	}
+
+	builder := newPublishFileMessageBuilder(pubnub)
+	builder.Channel("test-channel")
+	builder.Message(m1)
+	builder.CustomMessageType("file-message")
+
+	query, err := builder.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("file-message", query.Get("custom_message_type"))
+}
+
+func TestPublishFileMessageCustomMessageTypeWithAllParameters(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+	builder := newPublishFileMessageBuilder(pubnub)
+
+	// Test CustomMessageType with all other parameters
+	queryParam := map[string]string{"param1": "value1"}
+	meta := map[string]interface{}{"key": "value"}
+
+	result := builder.
+		Channel("test-channel").
+		FileID("test-id").
+		FileName("test.txt").
+		MessageText("test message").
+		TTL(24).
+		Meta(meta).
+		ShouldStore(true).
+		QueryParam(queryParam).
+		CustomMessageType("file-message").
+		UseRawMessage(true).
+		Transport(&http.Transport{})
+
+	// Verify all parameters are set correctly
+	assert.Equal("test-channel", builder.opts.Channel)
+	assert.Equal("test-id", builder.opts.FileID)
+	assert.Equal("test.txt", builder.opts.FileName)
+	assert.Equal("test message", builder.opts.MessageText)
+	assert.Equal(24, builder.opts.TTL)
+	assert.Equal(meta, builder.opts.Meta)
+	assert.True(builder.opts.ShouldStore)
+	assert.Equal(queryParam, builder.opts.QueryParam)
+	assert.Equal("file-message", builder.opts.CustomMessageType)
+	assert.True(builder.opts.UseRawMessage)
+	assert.NotNil(builder.opts.Transport)
+	assert.Equal(builder, result) // Fluent interface
+}
+
+func TestPublishFileMessageCustomMessageTypeValidCharacters(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+
+	file := &PNFileInfoForPublish{
+		ID:   "test-id",
+		Name: "test.txt",
+	}
+	m := &PNPublishMessage{
+		Text: "test message",
+	}
+	m1 := PNPublishFileMessage{
+		PNFile:    file,
+		PNMessage: m,
+	}
+
+	// Test valid combinations
+	validTypes := []string{
+		"abc",
+		"ABC",
+		"test-type",
+		"test_type",
+		"Test-Message_Type",
+		"file-message",
+		"custom_message_type",
+	}
+
+	for _, validType := range validTypes {
+		opts := newPublishFileMessageOpts(pubnub, pubnub.ctx)
+		opts.Channel = "test-channel"
+		opts.Message = m1
+		opts.CustomMessageType = validType
+		assert.Nil(opts.validate(), "Type '%s' should be valid", validType)
+	}
+}
+
+func TestPublishFileMessageCustomMessageTypeInvalidCharacters(t *testing.T) {
+	assert := assert.New(t)
+	pubnub := NewPubNub(NewDemoConfig())
+
+	file := &PNFileInfoForPublish{
+		ID:   "test-id",
+		Name: "test.txt",
+	}
+	m := &PNPublishMessage{
+		Text: "test message",
+	}
+	m1 := PNPublishFileMessage{
+		PNFile:    file,
+		PNMessage: m,
+	}
+
+	// Test invalid combinations
+	invalidTypes := []string{
+		"ab",         // too short
+		"a@b",        // invalid character @
+		"test type",  // space not allowed
+		"test!type",  // ! not allowed
+		"test#type",  // # not allowed
+		"test$type",  // $ not allowed
+		"test%type",  // % not allowed
+		"test&type",  // & not allowed
+		"abc123",     // digits not allowed
+		"test123",    // digits not allowed
+		"test.type",  // dot not allowed
+		"test/type",  // slash not allowed
+		"test\\type", // backslash not allowed
+		"test:type",  // colon not allowed
+	}
+
+	for _, invalidType := range invalidTypes {
+		opts := newPublishFileMessageOpts(pubnub, pubnub.ctx)
+		opts.Channel = "test-channel"
+		opts.Message = m1
+		opts.CustomMessageType = invalidType
+		assert.NotNil(opts.validate(), "Type '%s' should be invalid", invalidType)
+	}
+}
