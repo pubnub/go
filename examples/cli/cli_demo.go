@@ -400,8 +400,8 @@ func showSetStateHelp() {
 
 func showFetchHelp() {
 	fmt.Println(" FETCH EXAMPLE: ")
-	fmt.Println("	fetch Channel Reverse Max Start End ")
-	fmt.Println("	fetch my-channel,test true 10 15210190573608384 15211140747622125 ")
+	fmt.Println("	fetch Channel Max Start End ")
+	fmt.Println("	fetch my-channel,test 10 15210190573608384 15211140747622125 ")
 }
 
 func showFireHelp() {
@@ -1809,14 +1809,9 @@ func fetchRequest(args []string) {
 		channels = strings.Split(args[0], ",")
 	}
 
-	var reverse bool
-	if len(args) > 1 {
-		reverse, _ = strconv.ParseBool(args[1])
-	}
-
 	var count int
-	if len(args) > 2 {
-		i, err := strconv.ParseInt(args[2], 10, 64)
+	if len(args) > 1 {
+		i, err := strconv.ParseInt(args[1], 10, 64)
 		if err != nil {
 			count = 100
 		} else {
@@ -1825,8 +1820,8 @@ func fetchRequest(args []string) {
 	}
 
 	var start int64
-	if len(args) > 3 {
-		i, err := strconv.ParseInt(args[3], 10, 64)
+	if len(args) > 2 {
+		i, err := strconv.ParseInt(args[2], 10, 64)
 		if err != nil {
 			start = 0
 		} else {
@@ -1835,8 +1830,8 @@ func fetchRequest(args []string) {
 	}
 
 	var end int64
-	if len(args) > 4 {
-		i, err := strconv.ParseInt(args[4], 10, 64)
+	if len(args) > 3 {
+		i, err := strconv.ParseInt(args[3], 10, 64)
 		if err != nil {
 			end = 0
 		} else {
@@ -1845,13 +1840,13 @@ func fetchRequest(args []string) {
 	}
 
 	var withMessageActions = false
-	if len(args) > 5 {
-		withMessageActions, _ = strconv.ParseBool(args[5])
+	if len(args) > 4 {
+		withMessageActions, _ = strconv.ParseBool(args[4])
 	}
 
 	var withMeta bool
-	if len(args) > 6 {
-		withMeta, _ = strconv.ParseBool(args[6])
+	if len(args) > 5 {
+		withMeta, _ = strconv.ParseBool(args[5])
 	}
 
 	if (end != 0) && (start != 0) {
@@ -1860,7 +1855,6 @@ func fetchRequest(args []string) {
 			Count(count).
 			Start(start).
 			End(end).
-			Reverse(reverse).
 			IncludeMessageActions(withMessageActions).
 			IncludeMeta(withMeta).
 			Execute()
@@ -1870,7 +1864,6 @@ func fetchRequest(args []string) {
 			Channels(channels).
 			Count(count).
 			Start(start).
-			Reverse(reverse).
 			IncludeMessageActions(withMessageActions).
 			IncludeMeta(withMeta).
 			Execute()
@@ -1880,7 +1873,6 @@ func fetchRequest(args []string) {
 			Channels(channels).
 			Count(count).
 			End(end).
-			Reverse(reverse).
 			IncludeMessageActions(withMessageActions).
 			IncludeMeta(withMeta).
 			Execute()
@@ -1889,7 +1881,6 @@ func fetchRequest(args []string) {
 		res, status, err := pn.Fetch().
 			Channels(channels).
 			Count(count).
-			Reverse(reverse).
 			IncludeMessageActions(withMessageActions).
 			IncludeMeta(withMeta).
 			Execute()
