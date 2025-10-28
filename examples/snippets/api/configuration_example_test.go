@@ -65,6 +65,30 @@ func Example_initBasic() {
 	// PubNub client initialized successfully
 }
 
+// snippet.init_read_only
+// Example_initReadOnly demonstrates read only PubNub initialization
+func Example_initReadOnly() {
+	// Create configuration with a unique user ID
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("my-user-id"))
+
+	// Set your PubNub keys
+	config.SubscribeKey = "demo" // Replace with your subscribe key
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	// Initialize PubNub client
+	pn := pubnub.NewPubNub(config)
+
+	if pn != nil {
+		fmt.Println("PubNub client initialized successfully")
+	}
+
+	// Output:
+	// PubNub client initialized successfully
+}
+
 // snippet.init_with_uuid
 // Example_initWithUUID demonstrates initialization with a generated UUID
 func Example_initWithUUID() {
