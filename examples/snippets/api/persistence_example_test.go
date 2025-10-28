@@ -1,15 +1,27 @@
+package pubnub_samples_test
+
+import (
+	"fmt"
+	"strconv"
+	"time"
+
+	pubnub "github.com/pubnub/go/v7"
+)
+
+/*
+//common includes for most of examples
 // snippet.includes
 // Replace with your package name (usually "main")
 package pubnub_samples_test
 
 import (
 	"fmt"
-	"time"
 
 	pubnub "github.com/pubnub/go/v7"
 )
 
 // snippet.end
+*/
 
 /*
 IMPORTANT NOTE FOR COPYING EXAMPLES:
@@ -101,6 +113,23 @@ func Example_fetchWithMetadata() {
 		}
 	}
 }
+
+// snippet.end
+
+/*
+// snippet.includes_fetch_with_time_range
+// Replace with your package name (usually "main")
+package pubnub_samples_test
+
+import (
+	"fmt"
+	"time"
+
+	pubnub "github.com/pubnub/go/v7"
+)
+
+// snippet.end
+*/
 
 // snippet.fetch_with_time_range
 // Example_fetchWithTimeRange demonstrates fetching history within a specific time range
@@ -285,6 +314,23 @@ func Example_deleteMessages() {
 	// Messages deleted successfully
 }
 
+// snippet.end
+
+/*
+// snippet.includes_delete_messages_time_range
+// Replace with your package name (usually "main")
+package pubnub_samples_test
+
+import (
+	"fmt"
+	"time"
+
+	pubnub "github.com/pubnub/go/v7"
+)
+
+// snippet.end
+*/
+
 // snippet.delete_messages_time_range
 // Example_deleteMessagesTimeRange demonstrates deleting messages within a specific time range
 func Example_deleteMessagesTimeRange() {
@@ -357,6 +403,227 @@ func Example_historyDeprecated() {
 		fmt.Printf("Retrieved %d messages using History API\n", len(response.Messages))
 		for _, msg := range response.Messages {
 			fmt.Printf("Message: %v\n", msg.Message)
+		}
+	}
+}
+
+// snippet.fetch_oldest_messages
+// Example_fetchOldestMessages demonstrates retrieving the three oldest messages
+func Example_fetchOldestMessages() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// Fetch the three oldest messages
+	response, status, err := pn.Fetch().
+		Channels([]string{"history-channel"}).
+		Count(3).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		if messages, ok := response.Messages["history-channel"]; ok {
+			fmt.Printf("Retrieved %d oldest messages\n", len(messages))
+		}
+	}
+}
+
+// snippet.fetch_newer_than_timetoken
+// Example_fetchNewerThanTimetoken demonstrates retrieving messages newer than a given timetoken
+func Example_fetchNewerThanTimetoken() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// Fetch messages newer than the specified timetoken
+	response, status, err := pn.Fetch().
+		Channels([]string{"history-channel"}).
+		Count(100).
+		End(int64(15343325004275466)). // Get messages from this timetoken and newer
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		if messages, ok := response.Messages["history-channel"]; ok {
+			fmt.Printf("Retrieved %d messages newer than timetoken\n", len(messages))
+		}
+	}
+}
+
+// snippet.fetch_until_timetoken
+// Example_fetchUntilTimetoken demonstrates retrieving messages until a given timetoken
+func Example_fetchUntilTimetoken() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// Fetch messages until (older than) the specified timetoken
+	response, status, err := pn.Fetch().
+		Channels([]string{"history-channel"}).
+		Count(100).
+		Start(int64(15343325004275466)). // Get messages older than this timetoken
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		if messages, ok := response.Messages["history-channel"]; ok {
+			fmt.Printf("Retrieved %d messages until timetoken\n", len(messages))
+		}
+	}
+}
+
+// snippet.end
+
+/*
+// snippet.fetchPaging
+// Replace with your package name (usually "main")
+package pubnub_samples_test
+
+import (
+	"fmt"
+	"time"
+	"strconv"
+
+	pubnub "github.com/pubnub/go/v7"
+)
+
+// snippet.end
+*/
+
+// snippet.fetch_paging
+// Example_fetchPaging demonstrates paging through message history
+func Example_fetchPaging() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	// Publish some test messages for paging demonstration
+	pn := pubnub.NewPubNub(config)
+	for i := 1; i <= 5; i++ {
+		pn.Publish().
+			Channel("history-channel").
+			Message(fmt.Sprintf("Test message %d", i)).
+			Execute()
+	}
+	time.Sleep(2 * time.Second)
+
+	// Get the first batch of messages
+	response, status, err := pn.Fetch().
+		Channels([]string{"history-channel"}).
+		Count(2).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	var totalMessages int
+	if status.StatusCode == 200 {
+		if messages, ok := response.Messages["history-channel"]; ok {
+			totalMessages += len(messages)
+			fmt.Printf("First page: %d messages\n", len(messages))
+
+			// Get the next page using the first message's timetoken
+			if len(messages) > 0 {
+				firstTimetokenStr := messages[0].Timetoken
+				firstTimetoken, _ := strconv.ParseInt(firstTimetokenStr, 10, 64)
+
+				// Fetch next batch ending before the first timetoken
+				response2, status2, err2 := pn.Fetch().
+					Channels([]string{"history-channel"}).
+					Count(2).
+					Start(firstTimetoken). // Get messages older than first message
+					Execute()
+
+				if err2 != nil {
+					fmt.Printf("Error: %v\n", err2)
+					return
+				}
+
+				if status2.StatusCode == 200 {
+					if messages2, ok2 := response2.Messages["history-channel"]; ok2 {
+						totalMessages += len(messages2)
+						fmt.Printf("Second page: %d messages\n", len(messages2))
+					}
+				}
+			}
+		}
+		fmt.Printf("Total messages retrieved: %d\n", totalMessages)
+	}
+
+	// Output:
+	// First page: 2 messages
+	// Second page: 2 messages
+	// Total messages retrieved: 4
+}
+
+// snippet.fetch_with_timetoken
+// Example_fetchWithTimetoken demonstrates that Fetch includes timetokens by default
+func Example_fetchWithTimetoken() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// Fetch() includes timetoken in response by default
+	response, status, err := pn.Fetch().
+		Channels([]string{"history-channel"}).
+		Count(10).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		if messages, ok := response.Messages["history-channel"]; ok {
+			fmt.Printf("Retrieved %d messages with timetokens\n", len(messages))
+			// Each message includes a Timetoken field
+			for _, msg := range messages {
+				// Access msg.Timetoken for each message
+				_ = msg.Timetoken
+			}
 		}
 	}
 }

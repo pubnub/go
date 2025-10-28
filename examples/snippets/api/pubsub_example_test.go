@@ -131,6 +131,40 @@ func Example_publishWithTTL() {
 	// Message with TTL published successfully
 }
 
+// snippet.publish_array
+// Example_publishArray demonstrates publishing an array with metadata
+func Example_publishArray() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// Publish an array message with metadata and custom message type
+	response, status, err := pn.Publish().
+		Channel("my-channel").
+		Message([]string{"Hello", "there"}).
+		Meta([]string{"1a", "2b", "3c"}).
+		CustomMessageType("text-message").
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if response.Timestamp > 0 && status.StatusCode == 200 {
+		fmt.Println("Array message published successfully")
+	}
+
+	// Output:
+	// Array message published successfully
+}
+
 // snippet.fire
 // Example_fire demonstrates fire operation (publish without storage)
 func Example_fire() {
@@ -163,6 +197,42 @@ func Example_fire() {
 	// Fire message sent successfully
 }
 
+// snippet.fire_with_metadata
+// Example_fireWithMetadata demonstrates fire operation with custom metadata
+func Example_fireWithMetadata() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// Fire message with metadata (not stored in history)
+	response, status, err := pn.Fire().
+		Channel("my-channel").
+		Message("test").
+		Meta(map[string]interface{}{
+			"name":      "important-event",
+			"timestamp": 1234567890,
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if response.Timestamp > 0 && status.StatusCode == 200 {
+		fmt.Println("Fire message with metadata sent successfully")
+	}
+
+	// Output:
+	// Fire message with metadata sent successfully
+}
+
 // snippet.signal
 // Example_signal demonstrates sending signals (lightweight messages)
 func Example_signal() {
@@ -193,6 +263,33 @@ func Example_signal() {
 
 	// Output:
 	// Signal sent successfully
+}
+
+// snippet.subscribe_basic_with_logging
+// Example_subscribeBasicWithLogging demonstrates basic subscription setup
+func Example_subscribeBasicWithLogging() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.PublishKey = "demo"
+	config.SubscribeKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// Subscribe to a channel
+	pn.Subscribe().
+		Channels([]string{"my-channel"}).
+		Execute()
+
+	fmt.Println("Subscribed to my-channel")
+
+	// Cleanup
+	pn.UnsubscribeAll()
+
+	// Output:
+	// Subscribed to my-channel
 }
 
 // snippet.subscribe
@@ -421,6 +518,85 @@ func Example_subscribeWildcard() {
 	// Subscribed to wildcard channels
 }
 
+// snippet.subscribe_with_state
+// Example_subscribeWithState demonstrates subscribing with state
+func Example_subscribeWithState() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	listener := pubnub.NewListener()
+	done := make(chan bool)
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				switch status.Category {
+				case pubnub.PNConnectedCategory:
+					// Set state after connection is established
+					response, status, err := pn.SetState().
+						Channels([]string{"ch"}).
+						State(map[string]interface{}{
+							"field_a": "cool",
+							"field_b": 21,
+						}).Execute()
+
+					if err != nil {
+						fmt.Printf("Error: %v\n", err)
+					}
+
+					if response != nil && status.StatusCode == 200 {
+						fmt.Println("State set successfully")
+					}
+					done <- true
+				}
+			case <-listener.Message:
+				// Handle messages
+			case <-listener.Presence:
+				// Handle presence
+			case <-done:
+				return
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	pn.Subscribe().
+		Channels([]string{"ch"}).
+		Execute()
+
+	<-done
+
+	pn.UnsubscribeAll()
+
+	// Output:
+	// State set successfully
+}
+
+// snippet.subscribe_to_channel_group_presence
+// subscribeToChannelGroupPresence demonstrates subscribing to presence of channel groups
+func subscribeToChannelGroupPresence() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+
+	pn := pubnub.NewPubNub(config)
+
+	// Subscribe to channel groups with presence
+	pn.Subscribe().
+		ChannelGroups([]string{"cg1", "cg2"}). // subscribe to channel groups
+		Timetoken(int64(1337)).                // optional, pass a timetoken
+		WithPresence(true).                    // also subscribe to related presence information
+		Execute()
+}
+
 // snippet.unsubscribe
 // Example_unsubscribe demonstrates unsubscribing from channels
 func Example_unsubscribe() {
@@ -447,6 +623,34 @@ func Example_unsubscribe() {
 
 	// Output:
 	// Unsubscribed from channel
+}
+
+// snippet.unsubscribe_multiple
+// Example_unsubscribeMultiple demonstrates unsubscribing from multiple channels
+func Example_unsubscribeMultiple() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// First subscribe to multiple channels
+	pn.Subscribe().
+		Channels([]string{"my-channel", "my-channel2"}).
+		Execute()
+
+	// Unsubscribe from multiple channels
+	pn.Unsubscribe().
+		Channels([]string{"my-channel", "my-channel2"}).
+		Execute()
+
+	fmt.Println("Unsubscribed from multiple channels")
+
+	// Output:
+	// Unsubscribed from multiple channels
 }
 
 // snippet.unsubscribe_all

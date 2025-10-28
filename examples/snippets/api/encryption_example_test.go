@@ -1,16 +1,29 @@
-// snippet.includes
-// Replace with your package name (usually "main")
 package pubnub_samples_test
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"time"
 
 	pubnub "github.com/pubnub/go/v7"
 	"github.com/pubnub/go/v7/crypto"
 )
 
+/*
+//common includes for most of examples
+// snippet.includes
+// Replace with your package name (usually "main")
+package pubnub_samples_test
+
+import (
+	"fmt"
+
+	pubnub "github.com/pubnub/go/v7"
+)
+
 // snippet.end
+*/
 
 /*
 IMPORTANT NOTE FOR COPYING EXAMPLES:
@@ -356,6 +369,163 @@ func Example_historyWithEncryption() {
 	// Output:
 	// Fetched encrypted message history
 	// First message: Encrypted historical message
+}
+
+// snippet.crypto_module_config
+// cryptoModuleConfig demonstrates configuring CryptoModule for encryption
+func cryptoModuleConfig() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// encrypts using 256 bit AES-CBC cipher (recommended)
+	// decrypts data encrypted with the legacy and the 256 bit AES-CBC ciphers
+	config.CryptoModule, _ = crypto.NewAesCbcCryptoModule("cipherKey", true)
+
+	// encrypts with 128-bit cipher key entropy (legacy)
+	// decrypts data encrypted with the legacy and the 256 bit AES-CBC ciphers
+	config.CryptoModule, _ = crypto.NewLegacyCryptoModule("cipherKey", true)
+
+	_ = pubnub.NewPubNub(config)
+}
+
+// snippet.end
+
+/*
+// snippet.includes_encrypt_stream
+// Replace with your package name (usually "main")
+package pubnub_samples_test
+
+import (
+	"fmt"
+	"io"
+	"os"
+	pubnub "github.com/pubnub/go/v7"
+)
+
+// snippet.end
+*/
+
+// snippet.encrypt_stream
+// encryptStream demonstrates encrypting a data stream
+func encryptStream() {
+	// Create a crypto module with your cipher key
+	module, err := crypto.NewAesCbcCryptoModule("your-cipher-key", true)
+	if err != nil {
+		panic(err)
+	}
+
+	// Open the file you want to encrypt (or any io.Reader)
+	inputFile, err := os.Open("path/to/your/file.jpg")
+	if err != nil {
+		// File doesn't exist - this is just an example
+		return
+	}
+	defer inputFile.Close()
+
+	// Encrypt the stream - returns an io.Reader with encrypted data
+	encryptedStream, err := module.EncryptStream(inputFile)
+	if err != nil {
+		panic(err)
+	}
+
+	// Write the encrypted stream to an output file
+	outputFile, _ := os.Create("encrypted_output.jpg")
+	defer outputFile.Close()
+	io.Copy(outputFile, encryptedStream)
+}
+
+// snippet.encrypt_string
+// encryptString demonstrates encrypting a string
+func encryptString() {
+	// Create a crypto module with your cipher key
+	module, err := crypto.NewAesCbcCryptoModule("your-cipher-key", true)
+	if err != nil {
+		panic(err)
+	}
+
+	// Your message to encrypt
+	message := "This is a secret message"
+
+	// Encrypt the message
+	encryptedBytes, err := module.Encrypt([]byte(message))
+	if err != nil {
+		panic(err)
+	}
+
+	// encryptedBytes now contains your encrypted data
+	// You can send this over the network, store it, etc.
+	_ = encryptedBytes
+}
+
+// snippet.decrypt_string
+// decryptString demonstrates decrypting a string
+func decryptString() {
+	// Create a crypto module with your cipher key (must match encryption key)
+	module, err := crypto.NewAesCbcCryptoModule("your-cipher-key", true)
+	if err != nil {
+		panic(err)
+	}
+
+	// Your encrypted data (replace with actual encrypted bytes)
+	encryptedData := []byte("your-encrypted-data-here")
+
+	// Decrypt the data
+	decryptedBytes, err := module.Decrypt(encryptedData)
+	if err != nil {
+		panic(err)
+	}
+
+	// Convert decrypted bytes back to string
+	decryptedMessage := string(decryptedBytes)
+	_ = decryptedMessage
+	// Now you can use decryptedMessage
+}
+
+// snippet.end
+
+/*
+// snippet.includes_decrypt_stream
+// Replace with your package name (usually "main")
+package pubnub_samples_test
+
+import (
+	"fmt"
+	"io"
+	"os"
+	pubnub "github.com/pubnub/go/v7"
+)
+
+// snippet.end
+*/
+
+// snippet.decrypt_stream
+// decryptStream demonstrates decrypting a data stream
+func decryptStream() {
+	// Create a crypto module with your cipher key (must match encryption key)
+	module, err := crypto.NewAesCbcCryptoModule("your-cipher-key", true)
+	if err != nil {
+		panic(err)
+	}
+
+	// Open the encrypted file (or any io.Reader with encrypted data)
+	encryptedFile, err := os.Open("path/to/encrypted_output.jpg")
+	if err != nil {
+		// File doesn't exist - this is just an example
+		return
+	}
+	defer encryptedFile.Close()
+
+	// Decrypt the stream - returns an io.Reader with decrypted data
+	decryptedStream, err := module.DecryptStream(encryptedFile)
+	if err != nil {
+		panic(err)
+	}
+
+	// Write the decrypted stream to an output file
+	outputFile, _ := os.Create("decrypted_file.jpg")
+	defer outputFile.Close()
+	io.Copy(outputFile, decryptedStream)
 }
 
 // snippet.end

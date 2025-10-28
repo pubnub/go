@@ -466,4 +466,151 @@ func Example_revokeToken() {
 	// Token revoked successfully
 }
 
+// snippet.grant_token_multi_access
+// grantTokenMultiAccess demonstrates granting different levels of access to various resources
+func grantTokenMultiAccess() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+	config.SecretKey = "demo-secret"
+
+	pn := pubnub.NewPubNub(config)
+
+	// Grant an authorized client different levels of access to various resources in a single call
+	response, _, err := pn.GrantToken().
+		TTL(15).
+		AuthorizedUUID("my-authorized-uuid").
+		Channels(map[string]pubnub.ChannelPermissions{
+			"channel-a": {
+				Read: true,
+			},
+			"channel-b": {
+				Read:  true,
+				Write: true,
+			},
+			"channel-c": {
+				Read:  true,
+				Write: true,
+			},
+			"channel-d": {
+				Read:  true,
+				Write: true,
+			},
+		}).
+		ChannelGroups(map[string]pubnub.GroupPermissions{
+			"channel-group-b": {
+				Read: true,
+			},
+		}).
+		UUIDs(map[string]pubnub.UUIDPermissions{
+			"uuid-c": {
+				Get: true,
+			},
+			"uuid-d": {
+				Get:    true,
+				Update: true,
+			},
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error granting token: %v\n", err)
+		return
+	}
+
+	// Print the generated token
+	fmt.Printf("Token granted successfully: %s\n", response.Data.Token)
+}
+
+// snippet.grant_token_regex
+// grantTokenRegex demonstrates granting read access to multiple channels using RegEx
+func grantTokenRegex() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+	config.SecretKey = "demo-secret"
+
+	pn := pubnub.NewPubNub(config)
+
+	// Grant an authorized client read access to multiple channels using RegEx
+	response, _, err := pn.GrantToken().
+		TTL(15).
+		AuthorizedUUID("my-authorized-uuid").
+		ChannelsPattern(map[string]pubnub.ChannelPermissions{
+			"^channel-[A-Za-z0-9]*$": {
+				Read: true,
+			},
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error granting token: %v\n", err)
+		return
+	}
+
+	// Print the generated token
+	fmt.Printf("Token granted successfully: %s\n", response.Data.Token)
+}
+
+// snippet.grant_token_multi_access_regex
+// grantTokenMultiAccessRegex demonstrates granting different access levels with RegEx patterns
+func grantTokenMultiAccessRegex() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+	config.SecretKey = "demo-secret"
+
+	pn := pubnub.NewPubNub(config)
+
+	// Grant different levels of access to various resources and read access to channels using RegEx
+	response, _, err := pn.GrantToken().
+		TTL(15).
+		AuthorizedUUID("my-authorized-uuid").
+		Channels(map[string]pubnub.ChannelPermissions{
+			"channel-a": {
+				Read: true,
+			},
+			"channel-b": {
+				Read:  true,
+				Write: true,
+			},
+			"channel-c": {
+				Read:  true,
+				Write: true,
+			},
+			"channel-d": {
+				Read:  true,
+				Write: true,
+			},
+		}).
+		ChannelGroups(map[string]pubnub.GroupPermissions{
+			"channel-group-b": {
+				Read: true,
+			},
+		}).
+		UUIDs(map[string]pubnub.UUIDPermissions{
+			"uuid-c": {
+				Get: true,
+			},
+			"uuid-d": {
+				Get:    true,
+				Update: true,
+			},
+		}).
+		ChannelsPattern(map[string]pubnub.ChannelPermissions{
+			"^channel-[A-Za-z0-9]*$": {
+				Read: true,
+			},
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error granting token: %v\n", err)
+		return
+	}
+
+	// Print the generated token
+	fmt.Printf("Token granted successfully: %s\n", response.Data.Token)
+}
+
 // snippet.end

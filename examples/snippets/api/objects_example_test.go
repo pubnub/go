@@ -1200,4 +1200,222 @@ func Example_manageChannelMembers() {
 	// Managed channel members: 1 member(s)
 }
 
+// snippet.channel_metadata_etag_conditional_update
+// Example_channelMetadataETagConditionalUpdate demonstrates using ETags for optimistic concurrency control
+// when updating channel metadata. ETags prevent concurrent updates from overwriting each other's changes.
+func Example_channelMetadataETagConditionalUpdate() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// snippet.hide
+	// Cleanup: Remove channel metadata after test
+	defer pn.RemoveChannelMetadata().Channel("etag-test-channel").Execute()
+	// snippet.show
+
+	// Step 1: Set initial channel metadata
+	// When creating or updating metadata, PubNub returns an ETag that represents the version of the data
+	_, status, err := pn.SetChannelMetadata().
+		Channel("etag-test-channel").
+		Name("Initial Name").
+		Description("Initial description").
+		Custom(map[string]interface{}{
+			"version": 1,
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error setting initial metadata: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		fmt.Println("Step 1: Initial metadata set successfully")
+	}
+
+	// Step 2: Try to update metadata with an INCORRECT ETag
+	// This simulates a scenario where someone else might have updated the data
+	incorrectETag := "incorrect-etag-value-123"
+	_, status, err = pn.SetChannelMetadata().
+		Channel("etag-test-channel").
+		Name("Updated Name").
+		IfMatchETag(incorrectETag). // Using wrong ETag
+		Execute()
+
+	// Step 3: Handle the error from incorrect ETag
+	// When the ETag doesn't match, PubNub returns a 412 Precondition Failed error
+	if err != nil && status.StatusCode == 412 {
+		fmt.Println("Step 2: Update rejected - ETag mismatch detected")
+	} else if err != nil {
+		fmt.Printf("Unexpected error: %v\n", err)
+		return
+	}
+
+	// Step 4: Get current metadata to retrieve the correct ETag
+	// In a real application, you would typically get the latest data before updating
+	getResponse, status, err := pn.GetChannelMetadata().
+		Channel("etag-test-channel").
+		Include([]pubnub.PNChannelMetadataInclude{
+			pubnub.PNChannelMetadataIncludeCustom,
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error getting metadata: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		fmt.Println("Step 3: Retrieved current metadata with correct ETag")
+	}
+
+	// Get the current ETag from the retrieved data
+	correctETag := getResponse.Data.ETag
+
+	// Step 5: Update metadata with the CORRECT ETag
+	// This ensures we're updating the latest version of the data
+	updateResponse, status, err := pn.SetChannelMetadata().
+		Channel("etag-test-channel").
+		Name("Updated Name").
+		Description("Successfully updated with correct ETag").
+		Custom(map[string]interface{}{
+			"version": 2,
+		}).
+		IfMatchETag(correctETag). // Using correct ETag
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error updating with correct ETag: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 && updateResponse.Data.Name == "Updated Name" {
+		fmt.Println("Step 4: Update successful with correct ETag")
+		// Note: The new ETag will be different from the previous one
+		fmt.Println("Step 5: New ETag generated after successful update")
+	}
+
+	// Output:
+	// Step 1: Initial metadata set successfully
+	// Step 2: Update rejected - ETag mismatch detected
+	// Step 3: Retrieved current metadata with correct ETag
+	// Step 4: Update successful with correct ETag
+	// Step 5: New ETag generated after successful update
+}
+
+// snippet.uuid_metadata_etag_conditional_update
+// Example_uuidMetadataETagConditionalUpdate demonstrates using ETags for optimistic concurrency control
+// when updating UUID metadata. ETags prevent concurrent updates from overwriting each other's changes.
+func Example_uuidMetadataETagConditionalUpdate() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+
+	// snippet.hide
+	config = setPubnubExampleConfigData(config)
+	// snippet.show
+
+	pn := pubnub.NewPubNub(config)
+
+	// snippet.hide
+	// Cleanup: Remove UUID metadata after test
+	defer pn.RemoveUUIDMetadata().UUID("etag-test-uuid").Execute()
+	// snippet.show
+
+	// Step 1: Set initial UUID metadata
+	// When creating or updating metadata, PubNub returns an ETag that represents the version of the data
+	_, status, err := pn.SetUUIDMetadata().
+		UUID("etag-test-uuid").
+		Name("Initial Name").
+		Email("initial@example.com").
+		Custom(map[string]interface{}{
+			"version": 1,
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error setting initial metadata: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		fmt.Println("Step 1: Initial metadata set successfully")
+	}
+
+	// Step 2: Try to update metadata with an INCORRECT ETag
+	// This simulates a scenario where someone else might have updated the data
+	incorrectETag := "incorrect-etag-value-123"
+	_, status, err = pn.SetUUIDMetadata().
+		UUID("etag-test-uuid").
+		Name("Updated Name").
+		IfMatchETag(incorrectETag). // Using wrong ETag
+		Execute()
+
+	// Step 3: Handle the error from incorrect ETag
+	// When the ETag doesn't match, PubNub returns a 412 Precondition Failed error
+	if err != nil && status.StatusCode == 412 {
+		fmt.Println("Step 2: Update rejected - ETag mismatch detected")
+	} else if err != nil {
+		fmt.Printf("Unexpected error: %v\n", err)
+		return
+	}
+
+	// Step 4: Get current metadata to retrieve the correct ETag
+	// In a real application, you would typically get the latest data before updating
+	getResponse, status, err := pn.GetUUIDMetadata().
+		UUID("etag-test-uuid").
+		Include([]pubnub.PNUUIDMetadataInclude{
+			pubnub.PNUUIDMetadataIncludeCustom,
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error getting metadata: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		fmt.Println("Step 3: Retrieved current metadata with correct ETag")
+	}
+
+	// Get the current ETag from the retrieved data
+	correctETag := getResponse.Data.ETag
+
+	// Step 5: Update metadata with the CORRECT ETag
+	// This ensures we're updating the latest version of the data
+	updateResponse, status, err := pn.SetUUIDMetadata().
+		UUID("etag-test-uuid").
+		Name("Updated Name").
+		Email("updated@example.com").
+		Custom(map[string]interface{}{
+			"version": 2,
+		}).
+		IfMatchETag(correctETag). // Using correct ETag
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error updating with correct ETag: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 && updateResponse.Data.Name == "Updated Name" {
+		fmt.Println("Step 4: Update successful with correct ETag")
+		// Note: The new ETag will be different from the previous one
+		fmt.Println("Step 5: New ETag generated after successful update")
+	}
+
+	// Output:
+	// Step 1: Initial metadata set successfully
+	// Step 2: Update rejected - ETag mismatch detected
+	// Step 3: Retrieved current metadata with correct ETag
+	// Step 4: Update successful with correct ETag
+	// Step 5: New ETag generated after successful update
+}
+
 // snippet.end
