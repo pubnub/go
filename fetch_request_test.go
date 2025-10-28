@@ -18,7 +18,6 @@ func AssertSuccessFetchGet(t *testing.T, expectedString string, channels []strin
 
 	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels: channels,
-		Reverse:  false,
 	})
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -35,7 +34,7 @@ func AssertSuccessFetchGet(t *testing.T, expectedString string, channels []strin
 
 func TestFetchQueryParam(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	AssertSuccessFetchGetQueryParam(t, "%22test%22?max=25&reverse=false", channels)
+	AssertSuccessFetchGetQueryParam(t, "%22test%22?max=25", channels)
 }
 
 func TestFetchMetaAndActions(t *testing.T) {
@@ -107,7 +106,6 @@ func AssertSuccessFetchGetMetaAndActions(t *testing.T, expectedString string, ch
 
 	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels:   channels,
-		Reverse:    false,
 		QueryParam: queryParam,
 	})
 	opts.WithMeta = withMeta
@@ -157,7 +155,6 @@ func TestFetchMessageActionValidation(t *testing.T) {
 	channels := []string{"test1", "test2"}
 	o := newFetchBuilder(pubnub)
 	o.Channels(channels)
-	o.Reverse(false)
 	o.IncludeMessageActions(true)
 
 	_, _, e := o.Execute()
@@ -174,7 +171,6 @@ func AssertSuccessFetchGetQueryParam(t *testing.T, expectedString string, channe
 
 	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels:   channels,
-		Reverse:    false,
 		QueryParam: queryParam,
 	})
 
@@ -189,75 +185,65 @@ func AssertSuccessFetchGetQueryParam(t *testing.T, expectedString string, channe
 func TestSuccessFetchQueryOneChannel(t *testing.T) {
 	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels: []string{"ch"},
-		Reverse:  false,
 	})
 
 	query, _ := opts.buildQuery()
 
 	assert.Equal(t, "100", query.Get("max"))
-	assert.Equal(t, "false", query.Get("reverse"))
 
 }
 
 func TestSuccessFetchQueryOneChannelWithMessageActions(t *testing.T) {
 	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels:           []string{"ch"},
-		Reverse:            false,
 		WithMessageActions: true,
 	})
 
 	query, _ := opts.buildQuery()
 
 	assert.Equal(t, "25", query.Get("max"))
-	assert.Equal(t, "false", query.Get("reverse"))
 
 }
 
 func AssertSuccessFetchQuery(t *testing.T, expectedString string, channels []string) {
 	opts := newFetchOpts(pubnub, pubnub.ctx, fetchOpts{
 		Channels: channels,
-		Reverse:  false,
 	})
 
 	query, _ := opts.buildQuery()
 
 	assert.Equal(t, "25", query.Get("max"))
-	assert.Equal(t, "false", query.Get("reverse"))
 
 }
 
 func AssertNewFetchBuilder(t *testing.T, expectedString string, channels []string) {
 	o := newFetchBuilder(pubnub)
 	o.Channels(channels)
-	o.Reverse(false)
 
 	query, _ := o.opts.buildQuery()
 
 	assert.Equal(t, "25", query.Get("max"))
-	assert.Equal(t, "false", query.Get("reverse"))
 
 }
 
 func TestNewFetchBuilder(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	AssertNewFetchBuilder(t, "%22test%22?max=25&reverse=false", channels)
+	AssertNewFetchBuilder(t, "%22test%22?max=25", channels)
 }
 
 func AssertNewFetchBuilderContext(t *testing.T, expectedString string, channels []string) {
 	o := newFetchBuilderWithContext(pubnub, pubnub.ctx)
 	o.Channels(channels)
-	o.Reverse(false)
 
 	query, _ := o.opts.buildQuery()
 
 	assert.Equal(t, "25", query.Get("max"))
-	assert.Equal(t, "false", query.Get("reverse"))
 
 }
 
 func TestNewFetchBuilderContext(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	AssertNewFetchBuilderContext(t, "%22test%22?max=25&reverse=false", channels)
+	AssertNewFetchBuilderContext(t, "%22test%22?max=25", channels)
 }
 
 func TestFetchPath(t *testing.T) {
@@ -267,7 +253,7 @@ func TestFetchPath(t *testing.T) {
 
 func TestFetchQuery(t *testing.T) {
 	channels := []string{"test1", "test2"}
-	AssertSuccessFetchQuery(t, "%22test%22?max=25&reverse=false", channels)
+	AssertSuccessFetchQuery(t, "%22test%22?max=25", channels)
 }
 
 func initFetchOpts(cipher string) *fetchOpts {
@@ -276,7 +262,6 @@ func initFetchOpts(cipher string) *fetchOpts {
 	pn.Config.UseRandomInitializationVector = false
 	return newFetchOpts(pn, pn.ctx, fetchOpts{
 		Channels: []string{"test1,test2"},
-		Reverse:  false,
 	})
 }
 
@@ -376,7 +361,6 @@ func TestFetchResponseWithCipherInterfacePNOtherDisabled(t *testing.T) {
 	pn.Config.UseRandomInitializationVector = false
 	f := newFetchOpts(pn, pn.ctx, fetchOpts{
 		Channels: []string{"test1,test2"},
-		Reverse:  false,
 	})
 
 	jsonString := []byte(`{"status": 200, "error": false, "error_message": "", "channels": {"test":[{"message":"{\"not_other\":\"1234\", \"pn_other\":\"yay!\"}","timetoken":"15229448184080121"}],"my-channel":[{"message":{"not_other":"1234", "pn_other":"Wi24KS4pcTzvyuGOHubiXg=="},"timetoken":"15229448086016618"},{"message":"bCC/kQbGdScQ0teYcawUsunrJLoUdp3Mwb/24ifa87QDBWv5aTkXkkjVMMXizEDb","timetoken":"15229448126438499"},{"message":"my-message","timetoken":"15229450607090584"}]}}`)
@@ -582,9 +566,7 @@ func TestFireValidateSubscribeKey(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
-	opts := newFetchOpts(pn, pn.ctx, fetchOpts{
-		Reverse: false,
-	})
+	opts := newFetchOpts(pn, pn.ctx, fetchOpts{})
 
 	assert.Equal("pubnub/validation: pubnub: Fetch Messages: Missing Subscribe Key", opts.validate().Error())
 }
@@ -592,18 +574,14 @@ func TestFireValidateSubscribeKey(t *testing.T) {
 func TestFireValidateCH(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := newFetchOpts(pn, pn.ctx, fetchOpts{
-		Reverse: false,
-	})
+	opts := newFetchOpts(pn, pn.ctx, fetchOpts{})
 	assert.Equal("pubnub/validation: pubnub: Fetch Messages: Missing Channel", opts.validate().Error())
 }
 
 func TestNewFetchResponseValueError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
-	opts := newFetchOpts(pn, pn.ctx, fetchOpts{
-		Reverse: false,
-	})
+	opts := newFetchOpts(pn, pn.ctx, fetchOpts{})
 	jsonBytes := []byte(`s`)
 
 	_, _, err := newFetchResponse(jsonBytes, opts, StatusResponse{})
@@ -654,7 +632,6 @@ func TestFetchValidateSuccessComplexParameters(t *testing.T) {
 		Start:           123456789,
 		End:             987654321,
 		Count:           25,
-		Reverse:         true,
 		WithMeta:        true,
 		WithUUID:        true,
 		WithMessageType: true,
@@ -738,10 +715,6 @@ func TestFetchBuilderSettersIndividual(t *testing.T) {
 	builder.Count(50)
 	assert.Equal(50, builder.opts.Count)
 
-	// Test Reverse setter
-	builder.Reverse(true)
-	assert.True(builder.opts.Reverse)
-
 	// Test IncludeMeta setter
 	builder.IncludeMeta(true)
 	assert.True(builder.opts.WithMeta)
@@ -779,7 +752,6 @@ func TestFetchBuilderMethodChaining(t *testing.T) {
 		Start(123456789).
 		End(987654321).
 		Count(25).
-		Reverse(true).
 		IncludeMeta(true).
 		IncludeMessageActions(false).
 		IncludeUUID(false).
@@ -794,7 +766,6 @@ func TestFetchBuilderMethodChaining(t *testing.T) {
 	assert.Equal(int64(123456789), builder.opts.Start)
 	assert.Equal(int64(987654321), builder.opts.End)
 	assert.Equal(25, builder.opts.Count)
-	assert.True(builder.opts.Reverse)
 	assert.True(builder.opts.WithMeta)
 	assert.False(builder.opts.WithMessageActions)
 	assert.False(builder.opts.WithUUID)
@@ -832,8 +803,7 @@ func TestFetchBuildQuerySingleChannelMaxCount(t *testing.T) {
 
 	query, err := opts.buildQuery()
 	assert.Nil(err)
-	assert.Equal("100", query.Get("max")) // maxCountFetch = 100 for single channel
-	assert.Equal("false", query.Get("reverse"))
+	assert.Equal("100", query.Get("max"))            // maxCountFetch = 100 for single channel
 	assert.Equal("false", query.Get("include_meta")) // Default is false, not true
 	assert.Equal("true", query.Get("include_message_type"))
 	assert.Equal("true", query.Get("include_uuid"))
@@ -954,7 +924,6 @@ func TestFetchBuildQueryBooleanFlagCombinations(t *testing.T) {
 
 	testCases := []struct {
 		name               string
-		reverse            bool
 		withMeta           bool
 		withMessageActions bool
 		withUUID           bool
@@ -962,7 +931,6 @@ func TestFetchBuildQueryBooleanFlagCombinations(t *testing.T) {
 	}{
 		{
 			name:               "All flags false",
-			reverse:            false,
 			withMeta:           false,
 			withMessageActions: false,
 			withUUID:           false,
@@ -970,7 +938,6 @@ func TestFetchBuildQueryBooleanFlagCombinations(t *testing.T) {
 		},
 		{
 			name:               "All flags true",
-			reverse:            true,
 			withMeta:           true,
 			withMessageActions: false, // Cannot be true with multiple channels
 			withUUID:           true,
@@ -978,7 +945,6 @@ func TestFetchBuildQueryBooleanFlagCombinations(t *testing.T) {
 		},
 		{
 			name:               "Mixed flags 1",
-			reverse:            true,
 			withMeta:           false,
 			withMessageActions: false,
 			withUUID:           true,
@@ -986,7 +952,6 @@ func TestFetchBuildQueryBooleanFlagCombinations(t *testing.T) {
 		},
 		{
 			name:               "Mixed flags 2",
-			reverse:            false,
 			withMeta:           true,
 			withMessageActions: false,
 			withUUID:           false,
@@ -1000,14 +965,12 @@ func TestFetchBuildQueryBooleanFlagCombinations(t *testing.T) {
 				Channels: []string{"channel1", "channel2"},
 			})
 			// Set the flags after creation to override defaults
-			opts.Reverse = tc.reverse
 			opts.WithMeta = tc.withMeta
 			opts.WithUUID = tc.withUUID
 			opts.WithMessageType = tc.withMessageType
 
 			query, err := opts.buildQuery()
 			assert.Nil(err)
-			assert.Equal(strconv.FormatBool(tc.reverse), query.Get("reverse"))
 			assert.Equal(strconv.FormatBool(tc.withMeta), query.Get("include_meta"))
 			assert.Equal(strconv.FormatBool(tc.withUUID), query.Get("include_uuid"))
 			assert.Equal(strconv.FormatBool(tc.withMessageType), query.Get("include_message_type"))
@@ -1338,7 +1301,6 @@ func TestFetchParameterCombinations(t *testing.T) {
 		start    int64
 		end      int64
 		count    int
-		reverse  bool
 		meta     bool
 		actions  bool
 		uuid     bool
@@ -1354,7 +1316,6 @@ func TestFetchParameterCombinations(t *testing.T) {
 			start:    123456789,
 			end:      987654321,
 			count:    25,
-			reverse:  true,
 			meta:     true,
 			actions:  true,
 			uuid:     true,
@@ -1366,7 +1327,6 @@ func TestFetchParameterCombinations(t *testing.T) {
 			start:    123456789,
 			end:      987654321,
 			count:    25,
-			reverse:  true,
 			meta:     true,
 			actions:  false, // Cannot be true with multiple channels
 			uuid:     true,
@@ -1377,7 +1337,6 @@ func TestFetchParameterCombinations(t *testing.T) {
 			channels: []string{"ch1", "ch2"},
 			start:    555666777,
 			count:    15,
-			reverse:  false,
 			meta:     true,
 			uuid:     false,
 			msgType:  true,
@@ -1399,7 +1358,6 @@ func TestFetchParameterCombinations(t *testing.T) {
 				builder.Count(tc.count)
 			}
 
-			builder.Reverse(tc.reverse)
 			builder.IncludeMeta(tc.meta)
 			builder.IncludeMessageActions(tc.actions)
 			builder.IncludeUUID(tc.uuid)
@@ -1589,7 +1547,6 @@ func TestFetchBuilderCompleteness(t *testing.T) {
 		Start(111111111).
 		End(999999999).
 		Count(15).
-		Reverse(true).
 		IncludeMeta(true).
 		IncludeMessageActions(false). // false because multiple channels
 		IncludeUUID(false).
@@ -1601,7 +1558,6 @@ func TestFetchBuilderCompleteness(t *testing.T) {
 	assert.Equal(int64(111111111), builder.opts.Start)
 	assert.Equal(int64(999999999), builder.opts.End)
 	assert.Equal(15, builder.opts.Count)
-	assert.True(builder.opts.Reverse)
 	assert.True(builder.opts.WithMeta)
 	assert.False(builder.opts.WithMessageActions)
 	assert.False(builder.opts.WithUUID)
@@ -1625,7 +1581,6 @@ func TestFetchBuilderCompleteness(t *testing.T) {
 	assert.Equal("value1", query.Get("custom1"))
 	assert.Equal("value2", query.Get("custom2"))
 	assert.Equal("15", query.Get("max"))
-	assert.Equal("true", query.Get("reverse"))
 	assert.Equal("true", query.Get("include_meta"))
 	assert.Equal("false", query.Get("include_uuid"))
 	assert.Equal("false", query.Get("include_message_type"))
