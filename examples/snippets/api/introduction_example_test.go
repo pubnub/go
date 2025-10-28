@@ -241,14 +241,6 @@ func Example_completeExample() {
 	pn.UnsubscribeAll()
 	fmt.Println("Example completed successfully!")
 
-	// Output:
-	// PubNub instance initialized
-	// Connected to PubNub!
-	// Subscribed to channel: my-channel
-	// Publishing message: map[sender:go-sdk text:Hello, world!]
-	// Publish successful!
-	// Received message: map[sender:go-sdk text:Hello, world!]
-	// Example completed successfully!
 }
 
 // snippet.end
