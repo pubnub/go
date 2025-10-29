@@ -60,6 +60,9 @@ func Example_setUpListeners() {
 	// Create channel to signal connection event
 	doneConnect := make(chan bool)
 
+	// Create quit channel for goroutine cleanup
+	quit := make(chan bool)
+
 	// Start a goroutine to process events
 	go func() {
 		for {
@@ -86,12 +89,19 @@ func Example_setUpListeners() {
 			case presence := <-listener.Presence:
 				// Handle presence
 				fmt.Println("Presence event:", presence.Event)
+
+			case <-quit:
+				// Exit goroutine when function returns
+				return
 			}
 		}
 	}()
 
 	// Add the listener to PubNub
 	pn.AddListener(listener)
+
+	// When don't need to listen to events anymore, close the quit channel to exit the goroutine
+	close(quit)
 }
 
 // snippet.create_subscription
@@ -168,6 +178,9 @@ func Example_completeExample() {
 	doneConnect := make(chan bool)
 	listener := pubnub.NewListener()
 
+	// Create quit channel for goroutine cleanup
+	quit := make(chan bool)
+
 	// Step 3: Set up listener for events
 	go func() {
 		for {
@@ -194,6 +207,10 @@ func Example_completeExample() {
 			case presence := <-listener.Presence:
 				// Handle presence
 				fmt.Println("Presence event:", presence.Event)
+
+			case <-quit:
+				// Exit goroutine when function returns
+				return
 			}
 		}
 	}()
@@ -239,6 +256,7 @@ func Example_completeExample() {
 
 	// Step 6: Clean up
 	pn.UnsubscribeAll()
+	close(quit)
 	fmt.Println("Example completed successfully!")
 
 }
