@@ -3,20 +3,19 @@ package main
 import (
 	"fmt"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 )
 
-var pn *pubnub.PubNub
-
-func init() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+func initStreamController() *pubnub.PubNub {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
 
-	pn = pubnub.NewPubNub(config)
+	return pubnub.NewPubNub(config)
 }
 
-func main() {
+func mainStreamController() {
+	pn := initStreamController()
 	channelGroup := "family"
 
 	res, status, err := pn.ListChannelsInChannelGroup().

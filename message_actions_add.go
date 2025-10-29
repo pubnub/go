@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 var emptyPNAddMessageActionsResponse *PNAddMessageActionsResponse
@@ -155,7 +155,7 @@ type PNMessageActionsResponse struct {
 
 // PNAddMessageActionsResponse is the Add Message Actions API Response
 type PNAddMessageActionsResponse struct {
-	status int                      `json:"status"`
+	Status int                      `json:"status"`
 	Data   PNMessageActionsResponse `json:"data"`
 }
 
@@ -167,7 +167,7 @@ func newPNAddMessageActionsResponse(jsonBytes []byte, o *addMessageActionsOpts,
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyPNAddMessageActionsResponse, status, e
 	}

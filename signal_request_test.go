@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	h "github.com/pubnub/go/v7/tests/helpers"
+	h "github.com/pubnub/go/v8/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +26,7 @@ func AssertSuccessSignalGet(t *testing.T, channel string, checkQueryParam bool) 
 	opts.Channel = channel
 	opts.Message = msgMap
 	opts.QueryParam = queryParam
-    opts.CustomMessageType = "custom"
+	opts.CustomMessageType = "custom"
 
 	path, err := opts.buildPath()
 	assert.Nil(err)
@@ -44,7 +44,7 @@ func AssertSuccessSignalGet(t *testing.T, channel string, checkQueryParam bool) 
 		u, _ := opts.buildQuery()
 		assert.Equal("v1", u.Get("q1"))
 		assert.Equal("v2", u.Get("q2"))
-        assert.Equal("custom", u.Get("custom_message_type"))
+		assert.Equal("custom", u.Get("custom_message_type"))
 	}
 }
 
@@ -135,7 +135,7 @@ func TestSignalResponseValueError(t *testing.T) {
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
-//[1, "Sent", "1232423423423"]
+// [1, "Sent", "1232423423423"]
 func TestSignalResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
@@ -147,13 +147,13 @@ func TestSignalResponseValuePass(t *testing.T) {
 }
 
 func TestSignalCustomMessageTypeValidation(t *testing.T) {
-    assert := assert.New(t)
-    pn := NewPubNub(NewDemoConfig())
-    opts := newSignalOpts(pn, pn.ctx)
-    opts.CustomMessageType = "custom-message_type"
-    assert.True(opts.isCustomMessageTypeCorrect())
-    opts.CustomMessageType = "a"
-    assert.False(opts.isCustomMessageTypeCorrect())
-    opts.CustomMessageType = "!@#$%^&*("
-    assert.False(opts.isCustomMessageTypeCorrect())
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := newSignalOpts(pn, pn.ctx)
+	opts.CustomMessageType = "custom-message_type"
+	assert.True(opts.isCustomMessageTypeCorrect())
+	opts.CustomMessageType = "a"
+	assert.False(opts.isCustomMessageTypeCorrect())
+	opts.CustomMessageType = "!@#$%^&*("
+	assert.False(opts.isCustomMessageTypeCorrect())
 }

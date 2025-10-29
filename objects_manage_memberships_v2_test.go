@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"testing"
 
-	h "github.com/pubnub/go/v7/tests/helpers"
-	"github.com/pubnub/go/v7/utils"
+	h "github.com/pubnub/go/v8/tests/helpers"
+	"github.com/pubnub/go/v8/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -68,6 +68,8 @@ func AssertManageMembershipsV2(t *testing.T, checkQueryParam, testContext bool, 
 	in := PNMembershipsSet{
 		Channel: channel,
 		Custom:  custom3,
+		Status:  "active",
+		Type:    "member",
 	}
 
 	inArr := []PNMembershipsSet{
@@ -94,7 +96,7 @@ func AssertManageMembershipsV2(t *testing.T, checkQueryParam, testContext bool, 
 
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
-	expectedBody := "{\"set\":[{\"channel\":{\"id\":\"id0\"},\"custom\":{\"a3\":\"b3\",\"c3\":\"d3\"}}],\"delete\":[{\"channel\":{\"id\":\"id0\"}}]}"
+	expectedBody := "{\"set\":[{\"channel\":{\"id\":\"id0\"},\"custom\":{\"a3\":\"b3\",\"c3\":\"d3\"},\"status\":\"active\",\"type\":\"member\"}],\"delete\":[{\"channel\":{\"id\":\"id0\"}}]}"
 
 	assert.Equal(expectedBody, string(body))
 
@@ -166,7 +168,7 @@ func TestManageMembershipsV2ResponseValuePass(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	opts := newManageMembershipsOptsV2(pn, pn.ctx)
-	jsonBytes := []byte(`{"status":200,"data":[{"id":"spaceid3","custom":{"a3":"b3","c3":"d3"},"channel":{"id":"spaceid3","name":"spaceid3name","description":"spaceid3desc","custom":{"a":"b"},"created":"2019-08-23T10:34:43.985248Z","updated":"2019-08-23T10:34:43.985248Z","eTag":"Aazjn7vC3oDDYw"},"created":"2019-08-23T10:41:17.156491Z","updated":"2019-08-23T10:41:17.156491Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ"}`)
+	jsonBytes := []byte(`{"status":200,"data":[{"id":"spaceid3","custom":{"a3":"b3","c3":"d3"},"status":"active","type":"member","channel":{"id":"spaceid3","name":"spaceid3name","description":"spaceid3desc","custom":{"a":"b"},"status":"active","type":"public","created":"2019-08-23T10:34:43.985248Z","updated":"2019-08-23T10:34:43.985248Z","eTag":"Aazjn7vC3oDDYw"},"created":"2019-08-23T10:41:17.156491Z","updated":"2019-08-23T10:41:17.156491Z","eTag":"AamrnoXdpdmzjwE"}],"totalCount":1,"next":"MQ"}`)
 
 	r, _, err := newPNManageMembershipsResponse(jsonBytes, opts, StatusResponse{})
 	assert.Equal(1, r.TotalCount)
@@ -179,11 +181,15 @@ func TestManageMembershipsV2ResponseValuePass(t *testing.T) {
 	assert.Equal("2019-08-23T10:34:43.985248Z", r.Data[0].Channel.Updated)
 	assert.Equal("Aazjn7vC3oDDYw", r.Data[0].Channel.ETag)
 	assert.Equal("b", r.Data[0].Channel.Custom["a"])
+	assert.Equal("active", r.Data[0].Channel.Status)
+	assert.Equal("public", r.Data[0].Channel.Type)
 	assert.Equal("2019-08-23T10:41:17.156491Z", r.Data[0].Created)
 	assert.Equal("2019-08-23T10:41:17.156491Z", r.Data[0].Updated)
 	assert.Equal("AamrnoXdpdmzjwE", r.Data[0].ETag)
 	assert.Equal("b3", r.Data[0].Custom["a3"])
 	assert.Equal("d3", r.Data[0].Custom["c3"])
+	assert.Equal("active", r.Data[0].Status)
+	assert.Equal("member", r.Data[0].Type)
 
 	assert.Nil(err)
 }

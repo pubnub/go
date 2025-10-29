@@ -2,20 +2,21 @@ package pubnub
 
 import (
 	"fmt"
-	"github.com/pubnub/go/v7/crypto"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"runtime"
 	"sync"
 
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/crypto"
+
+	"github.com/pubnub/go/v8/utils"
 )
 
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "7.4.0"
+	Version = "8.0.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -55,8 +56,8 @@ const (
 	StrMissingFileName = "Missing File Name"
 	// StrMissingToken shows `Missing PAMv3 token` message
 	StrMissingToken = "Missing PAMv3 token"
-    // StrInvalidCustomMessageType shows `Invalid CustomMessageType` message
-    StrInvalidCustomMessageType = "Invalid CustomMessageType: size different than 3-50 or contains invalid characters"
+	// StrInvalidCustomMessageType shows `Invalid CustomMessageType` message
+	StrInvalidCustomMessageType = "Invalid CustomMessageType: size different than 3-50 or contains invalid characters"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.
@@ -787,7 +788,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	ctx, cancel := contextWithCancel(backgroundContext)
 
 	if pnconf.Log == nil {
-		pnconf.Log = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+		pnconf.Log = log.New(io.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 	pnconf.Log.Println(fmt.Sprintf("PubNub Go v7 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
 

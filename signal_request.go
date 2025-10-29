@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
-	"io/ioutil"
+	"io"
+
+	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v8/utils"
 
 	"net/http"
 	"net/url"
@@ -72,9 +73,9 @@ func (b *signalBuilder) QueryParam(queryParam map[string]string) *signalBuilder 
 // CustomMessageType sets the User-specified message type string - limited by 3-50 case-sensitive alphanumeric characters
 // with only `-` and `_` special characters allowed.
 func (b *signalBuilder) CustomMessageType(messageType string) *signalBuilder {
-    b.opts.CustomMessageType = messageType
+	b.opts.CustomMessageType = messageType
 
-    return b
+	return b
 }
 
 // Execute runs the Signal request.
@@ -89,16 +90,16 @@ func (b *signalBuilder) Execute() (*SignalResponse, StatusResponse, error) {
 
 type signalOpts struct {
 	endpointOpts
-	Message    interface{}
-	Channel    string
-	UsePost    bool
-	QueryParam map[string]string
-	Transport  http.RoundTripper
-    CustomMessageType string
+	Message           interface{}
+	Channel           string
+	UsePost           bool
+	QueryParam        map[string]string
+	Transport         http.RoundTripper
+	CustomMessageType string
 }
 
 func (o *signalOpts) isCustomMessageTypeCorrect() bool {
-    return isCustomMessageTypeValid(o.CustomMessageType)
+	return isCustomMessageTypeValid(o.CustomMessageType)
 }
 
 func (o *signalOpts) validate() error {
@@ -110,9 +111,9 @@ func (o *signalOpts) validate() error {
 		return newValidationError(o, StrMissingPubKey)
 	}
 
-    if !o.isCustomMessageTypeCorrect() {
-        return newValidationError(o, StrInvalidCustomMessageType)
-    }
+	if !o.isCustomMessageTypeCorrect() {
+		return newValidationError(o, StrInvalidCustomMessageType)
+	}
 
 	return nil
 }
@@ -147,9 +148,9 @@ func (o *signalOpts) buildQuery() (*url.Values, error) {
 
 	SetQueryParam(q, o.QueryParam)
 
-    if len(o.CustomMessageType) > 0 {
-        q.Set("custom_message_type", o.CustomMessageType)
-    }
+	if len(o.CustomMessageType) > 0 {
+		q.Set("custom_message_type", o.CustomMessageType)
+	}
 
 	return q, nil
 }
@@ -204,7 +205,7 @@ func newSignalResponse(jsonBytes []byte, o *signalOpts,
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptySignalResponse, status, e
 	}

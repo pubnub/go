@@ -3,15 +3,16 @@ package pubnub
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/pubnub/go/v7/crypto"
+	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/crypto"
+
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 var emptySendFileToS3Response *PNSendFileToS3Response
@@ -102,11 +103,17 @@ func (o *sendFileToS3Opts) buildQuery() (*url.Values, error) {
 }
 
 func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
+	if o.File == nil {
+		return bytes.Buffer{}, nil, 0, fmt.Errorf("file is nil")
+	}
 
-	fileInfo, _ := o.File.Stat()
+	fileInfo, err := o.File.Stat()
+	if err != nil {
+		return bytes.Buffer{}, nil, 0, fmt.Errorf("failed to get file info: %v", err)
+	}
 	s := fileInfo.Size()
 	buffer := make([]byte, 512)
-	_, err := o.File.Read(buffer)
+	_, err = o.File.Read(buffer)
 	if err != nil {
 		return bytes.Buffer{}, nil, s, err
 	}
@@ -187,7 +194,7 @@ func newPNSendFileToS3Response(jsonBytes []byte, o *sendFileToS3Opts,
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptySendFileToS3Response, status, e
 	}

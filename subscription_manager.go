@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pubnub/go/v7/crypto"
+	"github.com/pubnub/go/v8/crypto"
 )
 
 // SubscriptionManager Events:
@@ -840,7 +840,7 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		m.pubnub.Config.Log.Println("Ignoring non versioned event")
 		return &PNUUIDEvent{}, &PNChannelEvent{}, &PNMembershipEvent{}, PNObjectsNoneEvent
 	}
-	var id, UUID, channelID, description, timestamp, updated, eTag, name, externalID, profileURL, email string
+	var id, UUID, channelID, description, timestamp, updated, eTag, name, externalID, profileURL, email, status, objectType string
 	var custom, data map[string]interface{}
 	if o, ok := objectsPayload["data"]; ok {
 		data = o.(map[string]interface{})
@@ -882,6 +882,12 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		if d, ok := data["custom"]; ok {
 			custom = d.(map[string]interface{})
 		}
+		if d, ok := data["status"]; ok {
+			status = d.(string)
+		}
+		if d, ok := data["type"]; ok {
+			objectType = d.(string)
+		}
 
 	}
 
@@ -895,6 +901,8 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		Updated:     updated,
 		ETag:        eTag,
 		Custom:      custom,
+		Status:      status,
+		Type:        objectType,
 		Data:        data,
 		Name:        name,
 		ExternalID:  externalID,
@@ -911,6 +919,8 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		Updated:           pnObjectsResult.Updated,
 		ETag:              pnObjectsResult.ETag,
 		Custom:            pnObjectsResult.Custom,
+		Status:            status,
+		Type:              objectType,
 		ActualChannel:     actualCh,
 		SubscribedChannel: subscribedCh,
 		Channel:           channel,
@@ -924,6 +934,8 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		Updated:           pnObjectsResult.Updated,
 		ETag:              pnObjectsResult.ETag,
 		Custom:            pnObjectsResult.Custom,
+		Status:            status,
+		Type:              objectType,
 		Name:              pnObjectsResult.Name,
 		ExternalID:        pnObjectsResult.ExternalID,
 		ProfileURL:        pnObjectsResult.ProfileURL,
@@ -941,6 +953,8 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		Description:       pnObjectsResult.Description,
 		Timestamp:         pnObjectsResult.Timestamp,
 		Custom:            pnObjectsResult.Custom,
+		Status:            status,
+		Type:              objectType,
 		ActualChannel:     actualCh,
 		SubscribedChannel: subscribedCh,
 		Channel:           pnObjectsResult.Channel,

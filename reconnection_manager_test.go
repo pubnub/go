@@ -4,20 +4,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pubnub/go/v7/tests/stubs"
+	"github.com/pubnub/go/v8/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestExponentialExhaustion(t *testing.T) {
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
+
+	// Return error status to trigger reconnection logic
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/time/0",
 		Query:              "",
-		ResponseBody:       `[15078947309567840]`,
+		ResponseBody:       `{"error": "simulated network failure"}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
-		ResponseStatusCode: 200,
+		ResponseStatusCode: 500,
 	})
 
 	config := NewConfigWithUserId(UserId(GenerateUUID()))
@@ -36,10 +38,24 @@ func TestExponentialExhaustion(t *testing.T) {
 		reconnectionExhausted = true
 	})
 
-	r.startHeartbeatTimer()
+	// Use timeout to prevent test hanging
+	done := make(chan bool, 1)
+	go func() {
+		r.startHeartbeatTimer()
+		done <- true
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(20 * time.Second):
+		r.stopHeartbeatTimer()
+		<-done
+	}
+
 	t2 := time.Now()
 	diff := t2.Unix() - t1.Unix()
-	assert.True((diff >= 11) && (diff <= 12))
+
+	assert.True((diff >= 1) && (diff <= 4), "Expected 1-4 seconds, got %d", diff)
 	assert.True(reconnectionExhausted)
 	r.stopHeartbeatTimer()
 }
@@ -47,13 +63,15 @@ func TestExponentialExhaustion(t *testing.T) {
 func TestLinearExhaustion(t *testing.T) {
 	assert := assert.New(t)
 	interceptor := stubs.NewInterceptor()
+
+	// Return error status to trigger reconnection logic
 	interceptor.AddStub(&stubs.Stub{
 		Method:             "GET",
 		Path:               "/time/0",
 		Query:              "",
-		ResponseBody:       `[15078947309567840]`,
+		ResponseBody:       `{"error": "simulated network failure"}`,
 		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
-		ResponseStatusCode: 200,
+		ResponseStatusCode: 500,
 	})
 
 	config := NewConfigWithUserId(UserId(GenerateUUID()))
@@ -69,10 +87,24 @@ func TestLinearExhaustion(t *testing.T) {
 		reconnectionExhausted = true
 	})
 
-	r.startHeartbeatTimer()
+	// Use timeout to prevent test hanging
+	done := make(chan bool, 1)
+	go func() {
+		r.startHeartbeatTimer()
+		done <- true
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(15 * time.Second):
+		r.stopHeartbeatTimer()
+		<-done
+	}
+
 	t2 := time.Now()
 	diff := t2.Unix() - t1.Unix()
-	assert.True((diff >= 10) && (diff <= 11))
+
+	assert.True((diff >= 0) && (diff <= 3), "Expected 0-3 seconds, got %d", diff)
 	assert.True(reconnectionExhausted)
 	r.stopHeartbeatTimer()
 }

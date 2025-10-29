@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/joho/godotenv"
 	"io"
 	"math/rand"
 	"net"
@@ -14,7 +13,9 @@ import (
 	"testing"
 	"time"
 
-	pubnub "github.com/pubnub/go/v7"
+	"github.com/joho/godotenv"
+
+	pubnub "github.com/pubnub/go/v8"
 	"github.com/stretchr/testify/assert"
 )
 

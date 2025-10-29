@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 const grantTokenPath = "/v3/pam/%s/grant"
@@ -503,9 +503,9 @@ type PNGrantTokenData struct {
 
 // PNGrantTokenResponse is the struct returned when the Execute function of Grant Token is called.
 type PNGrantTokenResponse struct {
-	status  int              `json:"status"`
+	Status  int              `json:"status"`
 	Data    PNGrantTokenData `json:"data"`
-	service string           `json:"service"`
+	Service string           `json:"service"`
 }
 
 func newGrantTokenResponse(jsonBytes []byte, status StatusResponse) (*PNGrantTokenResponse, StatusResponse, error) {
@@ -514,7 +514,7 @@ func newGrantTokenResponse(jsonBytes []byte, status StatusResponse) (*PNGrantTok
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyPNGrantTokenResponse, status, e
 	}

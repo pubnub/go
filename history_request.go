@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strconv"
 
-	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v8/utils"
 
 	"net/http"
 	"net/url"
@@ -97,9 +97,9 @@ func (b *historyBuilder) Transport(tr http.RoundTripper) *historyBuilder {
 
 // includeCustomMessageType tells server to send the custom message type with each history item
 func (b *historyBuilder) includeCustomMessageType(i bool) *historyBuilder {
-    b.opts.includeCustomMessageType = i
+	b.opts.includeCustomMessageType = i
 
-    return b
+	return b
 }
 
 // Execute runs the History request.
@@ -135,7 +135,7 @@ type historyOpts struct {
 	setStart bool
 	setEnd   bool
 
-    includeCustomMessageType bool
+	includeCustomMessageType bool
 
 	Transport http.RoundTripper
 }
@@ -175,9 +175,9 @@ func (o *historyOpts) buildQuery() (*url.Values, error) {
 		q.Set("count", "100")
 	}
 
-    if o.includeCustomMessageType {
-        q.Set("include_custom_message_type", "true")
-    }
+	if o.includeCustomMessageType {
+		q.Set("include_custom_message_type", "true")
+	}
 
 	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_token", strconv.FormatBool(o.IncludeTimetoken))
@@ -216,13 +216,13 @@ type HistoryResponseItem struct {
 	Message   interface{}
 	Meta      interface{}
 	Timetoken int64
-    Error     error
+	Error     error
 }
 
 func logAndCreateNewResponseParsingError(o *historyOpts, err error, jsonBody string, message string) *pnerr.ResponseParsingError {
 	o.pubnub.Config.Log.Println(err.Error())
 	e := pnerr.NewResponseParsingError(message,
-		ioutil.NopCloser(bytes.NewBufferString(jsonBody)), err)
+		io.NopCloser(bytes.NewBufferString(jsonBody)), err)
 	return e
 }
 
@@ -326,11 +326,11 @@ func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 			resp.EndTimetoken = endTimetoken
 		}
 	} else if historyResponseRaw != nil && len(historyResponseRaw) > 0 {
-		e := logAndCreateNewResponseParsingError(o, err, string(jsonBytes), "Error unmarshalling response")
+		e := logAndCreateNewResponseParsingError(o, fmt.Errorf("incomplete history response"), string(jsonBytes), "Error unmarshalling response")
 
 		return emptyHistoryResp, status, e
 	} else {
-		e := logAndCreateNewResponseParsingError(o, err, string(jsonBytes), "Error unmarshalling response")
+		e := logAndCreateNewResponseParsingError(o, fmt.Errorf("empty or invalid history response"), string(jsonBytes), "Error unmarshalling response")
 
 		return emptyHistoryResp, status, e
 	}

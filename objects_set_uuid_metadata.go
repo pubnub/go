@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 var emptyPNSetUUIDMetadataResponse *PNSetUUIDMetadataResponse
@@ -40,6 +40,8 @@ type SetUUIDMetadataBody struct {
 	ProfileURL string                 `json:"profileUrl,omitempty"`
 	Email      string                 `json:"email,omitempty"`
 	Custom     map[string]interface{} `json:"custom,omitempty"`
+	Status     string                 `json:"status,omitempty"`
+	Type       string                 `json:"type,omitempty"`
 }
 
 func (b *setUUIDMetadataBuilder) UUID(uuid string) *setUUIDMetadataBuilder {
@@ -84,6 +86,27 @@ func (b *setUUIDMetadataBuilder) Custom(custom map[string]interface{}) *setUUIDM
 	return b
 }
 
+func (b *setUUIDMetadataBuilder) Status(status string) *setUUIDMetadataBuilder {
+	b.opts.Status = status
+
+	return b
+}
+
+// Called uuidType instead of type because type is a reserved word in Go
+func (b *setUUIDMetadataBuilder) Type(uuidType string) *setUUIDMetadataBuilder {
+	b.opts.Type = uuidType
+
+	return b
+}
+
+// IfMatchETag sets the ETag value for conditional update via If-Match header
+func (b *setUUIDMetadataBuilder) IfMatchETag(eTag string) *setUUIDMetadataBuilder {
+	b.opts.IfMatchETag = eTag
+	b.opts.setIfMatchETag = true
+
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *setUUIDMetadataBuilder) QueryParam(queryParam map[string]string) *setUUIDMetadataBuilder {
 	b.opts.QueryParam = queryParam
@@ -113,14 +136,18 @@ func (b *setUUIDMetadataBuilder) Execute() (*PNSetUUIDMetadataResponse, StatusRe
 
 type setUUIDMetadataOpts struct {
 	endpointOpts
-	Include    []string
-	UUID       string
-	Name       string
-	ExternalID string
-	ProfileURL string
-	Email      string
-	Custom     map[string]interface{}
-	QueryParam map[string]string
+	Include        []string
+	UUID           string
+	Name           string
+	ExternalID     string
+	ProfileURL     string
+	Email          string
+	Custom         map[string]interface{}
+	Status         string
+	Type           string
+	IfMatchETag    string
+	setIfMatchETag bool
+	QueryParam     map[string]string
 
 	Transport http.RoundTripper
 }
@@ -158,6 +185,8 @@ func (o *setUUIDMetadataOpts) buildBody() ([]byte, error) {
 		ProfileURL: o.ProfileURL,
 		Email:      o.Email,
 		Custom:     o.Custom,
+		Status:     o.Status,
+		Type:       o.Type,
 	}
 
 	jsonEncBytes, errEnc := json.Marshal(b)
@@ -190,9 +219,19 @@ func (o *setUUIDMetadataOpts) operationType() OperationType {
 	return PNSetUUIDMetadataOperation
 }
 
+// buildHeaders adds the If-Match header for conditional updates when IfMatchETag is set.
+// The If-Match header enables optimistic concurrency control using ETags.
+func (o *setUUIDMetadataOpts) buildHeaders() (map[string]string, error) {
+	headers := make(map[string]string)
+	if o.setIfMatchETag {
+		headers["If-Match"] = o.IfMatchETag
+	}
+	return headers, nil
+}
+
 // PNSetUUIDMetadataResponse is the Objects API Response for Update user
 type PNSetUUIDMetadataResponse struct {
-	status int    `json:"status"`
+	Status int    `json:"status"`
 	Data   PNUUID `json:"data"`
 }
 
@@ -204,7 +243,7 @@ func newPNSetUUIDMetadataResponse(jsonBytes []byte, o *setUUIDMetadataOpts,
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyPNSetUUIDMetadataResponse, status, e
 	}

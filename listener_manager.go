@@ -270,8 +270,8 @@ type PNMessage struct {
 	Subscription      string
 	Publisher         string
 	Timetoken         int64
-    CustomMessageType string
-    Error             error
+	CustomMessageType string
+	Error             error
 }
 
 // PNPresence is the Message Response for Presence
@@ -306,6 +306,8 @@ type PNUUIDEvent struct {
 	Updated           string
 	ETag              string
 	Custom            map[string]interface{}
+	Status            string
+	Type              string
 	SubscribedChannel string
 	ActualChannel     string
 	Channel           string
@@ -322,6 +324,8 @@ type PNChannelEvent struct {
 	Updated           string
 	ETag              string
 	Custom            map[string]interface{}
+	Status            string
+	Type              string
 	SubscribedChannel string
 	ActualChannel     string
 	Channel           string
@@ -336,6 +340,8 @@ type PNMembershipEvent struct {
 	Description       string
 	Timestamp         string
 	Custom            map[string]interface{}
+	Status            string
+	Type              string
 	SubscribedChannel string
 	ActualChannel     string
 	Channel           string
@@ -362,5 +368,5 @@ type PNFilesEvent struct {
 	Subscription      string
 	Publisher         string
 	Timetoken         int64
-    Error             error
+	Error             error
 }

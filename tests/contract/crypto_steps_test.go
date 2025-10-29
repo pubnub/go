@@ -7,11 +7,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/pubnub/go/v7/crypto"
-	"github.com/pubnub/go/v7/utils"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/pubnub/go/v8/crypto"
+	"github.com/pubnub/go/v8/utils"
 )
 
 func cryptor(ctx context.Context, cryptor string) error {

@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"reflect"
 	"strconv"
 
-	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v8/utils"
 
 	"net/http"
 	"net/url"
@@ -34,11 +34,11 @@ type publishOpts struct {
 	DoNotReplicate bool
 	QueryParam     map[string]string
 
-    CustomMessageType string
+	CustomMessageType string
 
 	Transport http.RoundTripper
 
-	// nil hacks 
+	// nil hacks
 	setTTL         bool
 	setShouldStore bool
 }
@@ -59,7 +59,7 @@ func newPublishResponse(jsonBytes []byte, status StatusResponse) (
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyPublishResponse, status, e
 	}
@@ -173,9 +173,9 @@ func (b *publishBuilder) QueryParam(queryParam map[string]string) *publishBuilde
 // CustomMessageType sets the User-specified message type string - limited by 3-50 case-sensitive alphanumeric characters
 // with only `-` and `_` special characters allowed.
 func (b *publishBuilder) CustomMessageType(messageType string) *publishBuilder {
-    b.opts.CustomMessageType = messageType
+	b.opts.CustomMessageType = messageType
 
-    return b
+	return b
 }
 
 // Execute runs the Publish request.
@@ -189,7 +189,7 @@ func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 }
 
 func (o *publishOpts) isCustomMessageTypeCorrect() bool {
-    return isCustomMessageTypeValid(o.CustomMessageType)
+	return isCustomMessageTypeValid(o.CustomMessageType)
 }
 
 func (o *publishOpts) validate() error {
@@ -209,9 +209,9 @@ func (o *publishOpts) validate() error {
 		return newValidationError(o, StrMissingMessage)
 	}
 
-    if !o.isCustomMessageTypeCorrect() {
-        return newValidationError(o, StrInvalidCustomMessageType)
-    }
+	if !o.isCustomMessageTypeCorrect() {
+		return newValidationError(o, StrInvalidCustomMessageType)
+	}
 
 	return nil
 }
@@ -342,9 +342,9 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 	o.pubnub.Config.Log.Println("seqn:", seqn)
 	q.Set("seqn", seqn)
 
-    if len(o.CustomMessageType) > 0 {
-        q.Set("custom_message_type", o.CustomMessageType)
-    }
+	if len(o.CustomMessageType) > 0 {
+		q.Set("custom_message_type", o.CustomMessageType)
+	}
 
 	SetQueryParam(q, o.QueryParam)
 

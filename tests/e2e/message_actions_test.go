@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -261,7 +261,6 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 		retFM2, _, errFM2 := pnMA.Fetch().
 			Channels([]string{chMA}).
 			Count(10).
-			Reverse(true).
 			Start(att).
 			End(mtt).
 			IncludeMeta(withMeta).
@@ -273,7 +272,6 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 		retFM, _, errFM := pnMA.Fetch().
 			Channels([]string{chMA}).
 			Count(10).
-			Reverse(true).
 			Start(att).
 			End(mtt).
 			IncludeMeta(withMeta).
@@ -294,6 +292,11 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 	} else {
 		assert.Fail("resPub nil")
 	}
+
+	// Cleanup PubNub client to prevent goroutine leaks
+	pnMA.UnsubscribeAll()
+	pnMA.RemoveListener(listener)
+	pnMA.Destroy()
 }
 
 func MatchHistoryMessageWithMAResp(assert *assert.Assertions, resp *pubnub.HistoryResponse, chMA, message string, messageTimetoken int64, meta interface{}, withMeta bool) {

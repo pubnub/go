@@ -3,7 +3,6 @@ package pnerr
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 )
 
 // Error validating type or value of passed in params.
@@ -63,7 +62,7 @@ func (e ServerError) Error() string {
 }
 
 func NewServerError(statusCode int, body io.ReadCloser) *ServerError {
-	bodyString, _ := ioutil.ReadAll(body)
+	bodyString, _ := io.ReadAll(body)
 
 	return &ServerError{
 		StatusCode: statusCode,

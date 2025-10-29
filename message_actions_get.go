@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 var emptyPNGetMessageActionsResponse *PNGetMessageActionsResponse
@@ -153,7 +153,7 @@ type PNGetMessageActionsMore struct {
 
 // PNGetMessageActionsResponse is the GetMessageActions API Response
 type PNGetMessageActionsResponse struct {
-	status int                        `json:"status"`
+	Status int                        `json:"status"`
 	Data   []PNMessageActionsResponse `json:"data"`
 	More   PNGetMessageActionsMore    `json:"more"`
 }
@@ -166,7 +166,7 @@ func newPNGetMessageActionsResponse(jsonBytes []byte, o *getMessageActionsOpts,
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyPNGetMessageActionsResponse, status, e
 	}

@@ -42,8 +42,13 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
           cache: true
+      - name: Install gotestsum
+        run: |
+          go install gotest.tools/gotestsum@v1.12.0
+          gotestsum --version
       - name: Build and run tests for Go ${{ matrix.go }}
-        run: ./scripts/run-tests.sh -mod=mod
+        run: bash ./scripts/run-tests-gotestsum.sh -mod=mod testname
+        timeout-minutes: 15
       - name: Cancel workflow runs for commit on error
         if: failure()
         uses: ./.github/.release/actions/actions/utils/fast-jobs-failure

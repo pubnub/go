@@ -2,18 +2,18 @@ package e2e
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	pubnub "github.com/pubnub/go/v7"
-	"github.com/pubnub/go/v7/tests/stubs"
+	pubnub "github.com/pubnub/go/v8"
+	"github.com/pubnub/go/v8/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
-//TODO ENABLE
+// TODO ENABLE
 func HeartbeatTimeoutEvent(t *testing.T) {
 	assert := assert.New(t)
 	ch := randomized("hb-te")
@@ -138,7 +138,7 @@ func HeartbeatTimeoutEvent(t *testing.T) {
 		Status:     "200 OK",
 		StatusCode: 200,
 		// WARNING: can be read only once
-		Body: ioutil.NopCloser(strings.NewReader("Hijacked response")),
+		Body: io.NopCloser(strings.NewReader("Hijacked response")),
 	}
 	pn.SetClient(cl)
 

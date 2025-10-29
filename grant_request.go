@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 const grantPath = "/v2/auth/grant/sub-key/%s"
@@ -318,7 +318,7 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyGrantResponse, status, e
 	}
@@ -327,9 +327,36 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	constructedGroups := make(map[string]*PNPAMEntityData)
 	constructedUUIDs := make(map[string]*PNPAMEntityData)
 
-	grantData, _ := value.(map[string]interface{})
-	payload := grantData["payload"]
-	parsedPayload := payload.(map[string]interface{})
+	grantData, ok := value.(map[string]interface{})
+	if !ok {
+		e := pnerr.NewResponseParsingError("Error parsing response: invalid JSON structure",
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			fmt.Errorf("expected map[string]interface{}, got %T", value))
+		return emptyGrantResponse, status, e
+	}
+
+	payload, ok := grantData["payload"]
+	if !ok {
+		e := pnerr.NewResponseParsingError("Error parsing response: missing payload field",
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			fmt.Errorf("payload field not found in response"))
+		return emptyGrantResponse, status, e
+	}
+
+	if payload == nil {
+		e := pnerr.NewResponseParsingError("Error parsing response: null payload",
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			fmt.Errorf("payload field is null"))
+		return emptyGrantResponse, status, e
+	}
+
+	parsedPayload, ok := payload.(map[string]interface{})
+	if !ok {
+		e := pnerr.NewResponseParsingError("Error parsing response: invalid payload structure",
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+			fmt.Errorf("expected map[string]interface{} for payload, got %T", payload))
+		return emptyGrantResponse, status, e
+	}
 	auths, _ := parsedPayload["auths"].(map[string]interface{})
 	ttl, _ := parsedPayload["ttl"].(float64)
 

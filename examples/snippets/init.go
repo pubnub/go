@@ -1,18 +1,14 @@
 package main
 
-var pn *PubNub
+import (
+	pubnub "github.com/pubnub/go/v8"
+)
 
-func Init() {
-	pnconfig = NewConfigWithUserId(UserId())
+func initPubNub() *pubnub.PubNub {
+	pnconfig := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 
 	pnconfig.PublishKey = "demo"
 	pnconfig.SubscribeKey = "demo"
 
-	pn = NewPubNub(pnconfig)
-}
-
-func pubnubCopy() *PubNub {
-	pn := new(PubNub)
-	*pn = *pubnub
-	return pn
+	return pubnub.NewPubNub(pnconfig)
 }

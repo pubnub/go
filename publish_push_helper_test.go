@@ -7,14 +7,14 @@ import (
 )
 
 func TestPushPayload(t *testing.T) {
-	PushPayloadCommon(t, false, true, true, true, true, true, false)
+	PushPayloadCommon(t, false, true, true, true, true, false)
 }
 
 func TestPushPayloadWithCtx(t *testing.T) {
-	PushPayloadCommon(t, true, true, true, true, true, true, false)
+	PushPayloadCommon(t, true, true, true, true, true, false)
 }
 
-func PushPayloadCommon(t *testing.T, withContext, withAPNS, withAPNS2, withFCM, withMPNS, withCommonPayload, setAPNSAlert bool) {
+func PushPayloadCommon(t *testing.T, withContext, withAPNS, withAPNS2, withFCM, withCommonPayload, setAPNSAlert bool) {
 	assert := assert.New(t)
 
 	o := newPublishPushHelperBuilder(pubnub)
@@ -85,22 +85,6 @@ func PushPayloadCommon(t *testing.T, withContext, withAPNS, withAPNS2, withFCM, 
 		if withAPNS2 {
 			o.SetAPNSPayload(apns, apns2)
 		}
-	}
-
-	mpns := PNMPNSData{
-		Title:       "title",
-		Type:        "type",
-		Count:       1,
-		BackTitle:   "BackTitle",
-		BackContent: "BackContent",
-		Custom: map[string]interface{}{
-			"mpns_key1": "mpns_value1",
-			"mpns_key2": "mpns_value2",
-		},
-	}
-
-	if withMPNS {
-		o.SetMPNSPayload(mpns)
 	}
 
 	fcm := PNFCMData{
@@ -175,17 +159,6 @@ func PushPayloadCommon(t *testing.T, withContext, withAPNS, withAPNS2, withFCM, 
 			}
 		}
 
-		if withMPNS {
-			resMPNS := result["pn_mpns"].(map[string]interface{})
-			assert.Equal(mpns.Title, resMPNS["title"])
-			assert.Equal(mpns.Type, resMPNS["type"])
-			assert.Equal(mpns.Count, resMPNS["count"])
-			assert.Equal(mpns.BackTitle, resMPNS["back_title"])
-			assert.Equal(mpns.BackContent, resMPNS["back_content"])
-			assert.Equal(mpns.Custom["mpns_key1"], resMPNS["mpns_key1"])
-			assert.Equal(mpns.Custom["mpns_key2"], resMPNS["mpns_key2"])
-		}
-
 		if withFCM {
 			resFCM := result["pn_gcm"].(map[string]interface{})
 			resFCMData := resFCM["data"].(map[string]interface{})
@@ -209,45 +182,37 @@ func PushPayloadCommon(t *testing.T, withContext, withAPNS, withAPNS2, withFCM, 
 }
 
 func TestPushAPNSPayload(t *testing.T) {
-	PushPayloadCommon(t, false, true, false, false, false, false, false)
+	PushPayloadCommon(t, false, true, false, false, false, false)
 }
 
 func TestPushAPNSPayloadWithSetAlert(t *testing.T) {
-	PushPayloadCommon(t, false, true, false, false, false, false, true)
+	PushPayloadCommon(t, false, true, false, false, false, true)
 }
 
 func TestPushAPNS2Payload(t *testing.T) {
-	PushPayloadCommon(t, false, false, true, false, false, false, false)
-}
-
-func TestPushMPNSPayload(t *testing.T) {
-	PushPayloadCommon(t, false, false, false, false, true, false, false)
+	PushPayloadCommon(t, false, false, true, false, false, false)
 }
 
 func TestPushFCMPayload(t *testing.T) {
-	PushPayloadCommon(t, false, false, false, true, false, false, false)
+	PushPayloadCommon(t, false, false, false, true, false, false)
 }
 
 func TestPushCommonPayload(t *testing.T) {
-	PushPayloadCommon(t, false, false, false, false, false, true, false)
+	PushPayloadCommon(t, false, false, false, false, true, false)
 }
 
 func TestPushAPNSPayloadWithCtx(t *testing.T) {
-	PushPayloadCommon(t, false, true, false, false, false, false, false)
+	PushPayloadCommon(t, false, true, false, false, false, false)
 }
 
 func TestPushAPNS2PayloadWithCtx(t *testing.T) {
-	PushPayloadCommon(t, false, false, true, false, false, false, false)
-}
-
-func TestPushMPNSPayloadWithCtx(t *testing.T) {
-	PushPayloadCommon(t, false, false, false, false, true, false, false)
+	PushPayloadCommon(t, false, false, true, false, false, false)
 }
 
 func TestPushFCMPayloadWithCtx(t *testing.T) {
-	PushPayloadCommon(t, false, false, false, true, false, false, false)
+	PushPayloadCommon(t, false, false, false, true, false, false)
 }
 
 func TestPushCommonPayloadWithCtx(t *testing.T) {
-	PushPayloadCommon(t, false, false, false, false, false, true, false)
+	PushPayloadCommon(t, false, false, false, false, true, false)
 }

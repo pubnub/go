@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/utils"
 )
 
 const addChannelsToPushPath = "/v1/push/sub-key/%s/devices/%s"
@@ -37,7 +37,7 @@ func (b *addPushNotificationsOnChannelsBuilder) Channels(channels []string) *add
 	return b
 }
 
-// PushType set the type of Push: GCM, APNS, MPNS
+// PushType set the type of Push: FCM, APNS2
 func (b *addPushNotificationsOnChannelsBuilder) PushType(pushType PNPushType) *addPushNotificationsOnChannelsBuilder {
 	b.opts.PushType = pushType
 	return b
@@ -136,13 +136,7 @@ func (o *addChannelsToPushOpts) buildPath() (string, error) {
 func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 
-	var channels []string
-
-	for _, v := range o.Channels {
-		channels = append(channels, v)
-	}
-
-	q.Set("add", strings.Join(channels, ","))
+	q.Set("add", strings.Join(o.Channels, ","))
 	q.Set("type", o.PushType.String())
 	SetPushEnvironment(q, o.Environment)
 	SetPushTopic(q, o.Topic)
@@ -151,6 +145,26 @@ func (o *addChannelsToPushOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *addChannelsToPushOpts) httpMethod() string {
+	return "GET"
+}
+
+func (o *addChannelsToPushOpts) isAuthRequired() bool {
+	return true
+}
+
+func (o *addChannelsToPushOpts) requestTimeout() int {
+	return o.pubnub.Config.NonSubscribeRequestTimeout
+}
+
+func (o *addChannelsToPushOpts) connectTimeout() int {
+	return o.pubnub.Config.ConnectTimeout
+}
+
+func (o *addChannelsToPushOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
 func (o *addChannelsToPushOpts) operationType() OperationType {
-	return PNRemoveGroupOperation
+	return PNAddPushNotificationsOnChannelsOperation
 }

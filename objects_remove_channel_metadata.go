@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 var emptyPNRemoveChannelMetadataResponse *PNRemoveChannelMetadataResponse
@@ -115,7 +115,7 @@ func (o *removeChannelMetadataOpts) operationType() OperationType {
 
 // PNRemoveChannelMetadataResponse is the Objects API Response for delete space
 type PNRemoveChannelMetadataResponse struct {
-	status int         `json:"status"`
+	Status int         `json:"status"`
 	Data   interface{} `json:"data"`
 }
 
@@ -127,7 +127,7 @@ func newPNRemoveChannelMetadataResponse(jsonBytes []byte, o *removeChannelMetada
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyPNRemoveChannelMetadataResponse, status, e
 	}

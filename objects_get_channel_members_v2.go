@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 var emptyGetChannelMembersResponse *PNGetChannelMembersResponse
@@ -186,6 +186,14 @@ func (o *getChannelMembersOptsV2) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *getChannelMembersOptsV2) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *getChannelMembersOptsV2) httpMethod() string {
+	return "GET"
+}
+
 func (o *getChannelMembersOptsV2) isAuthRequired() bool {
 	return true
 }
@@ -204,7 +212,7 @@ func (o *getChannelMembersOptsV2) operationType() OperationType {
 
 // PNGetChannelMembersResponse is the Objects API Response for Get Members
 type PNGetChannelMembersResponse struct {
-	status     int                `json:"status"`
+	Status     int                `json:"status"`
 	Data       []PNChannelMembers `json:"data"`
 	TotalCount int                `json:"totalCount"`
 	Next       string             `json:"next"`
@@ -219,7 +227,7 @@ func newPNGetChannelMembersResponse(jsonBytes []byte, o *getChannelMembersOptsV2
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyGetChannelMembersResponse, status, e
 	}

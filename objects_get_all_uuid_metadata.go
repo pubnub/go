@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 var emptyPNGetAllUUIDMetadataResponse *PNGetAllUUIDMetadataResponse
@@ -188,13 +188,17 @@ func (o *getAllUUIDMetadataOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
+func (o *getAllUUIDMetadataOpts) httpMethod() string {
+	return "GET"
+}
+
 func (o *getAllUUIDMetadataOpts) operationType() OperationType {
 	return PNGetAllUUIDMetadataOperation
 }
 
 // PNGetAllUUIDMetadataResponse is the Objects API Response for Get Users
 type PNGetAllUUIDMetadataResponse struct {
-	status     int      `json:"status"`
+	Status     int      `json:"status"`
 	Data       []PNUUID `json:"data"`
 	TotalCount int      `json:"totalCount"`
 	Next       string   `json:"next"`
@@ -209,7 +213,7 @@ func newPNGetAllUUIDMetadataResponse(jsonBytes []byte, o *getAllUUIDMetadataOpts
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyPNGetAllUUIDMetadataResponse, status, e
 	}

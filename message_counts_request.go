@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"reflect"
 	"strconv"
 	"strings"
 
-	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v8/utils"
 
 	"net/http"
 	"net/url"
@@ -162,8 +162,8 @@ type MessageCountsResponse struct {
 	Channels map[string]int
 }
 
-//http://ps.pndsn.com/v3/history/sub-key/demo/message-counts/my-channel,my-channel1?timestamp=1549982652&pnsdk=PubNub-Go/4.1.6&uuid=pn-82f145ea-adc3-4917-a11d-76a957347a82&timetoken=15499825804610610&channelsTimetoken=15499825804610610,15499925804610615&auth=akey&signature=pVDVge_suepcOlSMllpsXg_jpOjtEpW7B3HHFaViI4s=
-//{"status": 200, "error": false, "error_message": "", "channels": {"my-channel1":1,"my-channel":2}}
+// http://ps.pndsn.com/v3/history/sub-key/demo/message-counts/my-channel,my-channel1?timestamp=1549982652&pnsdk=PubNub-Go/4.1.6&uuid=pn-82f145ea-adc3-4917-a11d-76a957347a82&timetoken=15499825804610610&channelsTimetoken=15499825804610610,15499925804610615&auth=akey&signature=pVDVge_suepcOlSMllpsXg_jpOjtEpW7B3HHFaViI4s=
+// {"status": 200, "error": false, "error_message": "", "channels": {"my-channel1":1,"my-channel":2}}
 func newMessageCountsResponse(jsonBytes []byte, o *messageCountsOpts,
 	status StatusResponse) (*MessageCountsResponse, StatusResponse, error) {
 
@@ -174,7 +174,7 @@ func newMessageCountsResponse(jsonBytes []byte, o *messageCountsOpts,
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyMessageCountsResp, status, e
 	}

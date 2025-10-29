@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v8/utils"
 )
 
 type endpointOpts struct {
@@ -31,6 +31,7 @@ type endpoint interface {
 	buildQuery() (*url.Values, error)
 	buildBody() ([]byte, error)
 	buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error)
+	buildHeaders() (map[string]string, error)
 	httpMethod() string
 	operationType() OperationType
 	telemetryManager() *TelemetryManager
@@ -79,6 +80,12 @@ func (o *endpointOpts) connectTimeout() int {
 
 func (o *endpointOpts) buildBodyMultipartFileUpload() (bytes.Buffer, *multipart.Writer, int64, error) {
 	return bytes.Buffer{}, nil, 0, errors.New("Not required")
+}
+
+// buildHeaders returns custom HTTP headers for the request.
+// Default implementation returns empty map. Endpoints can override to add custom headers.
+func (o *endpointOpts) buildHeaders() (map[string]string, error) {
+	return map[string]string{}, nil
 }
 
 func (o *endpointOpts) httpMethod() string {
@@ -174,7 +181,7 @@ func buildURL(o endpoint) (*url.URL, error) {
 		}
 	}
 
-	if o.operationType() == PNPublishOperation {
+	if o.operationType() == PNPublishOperation || o.operationType() == PNFireOperation || o.operationType() == PNPublishFileMessageOperation {
 		v := query.Get("meta")
 		if v != "" {
 			query.Set("meta", utils.URLEncode(v))

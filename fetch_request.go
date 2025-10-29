@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"reflect"
 	"strconv"
 
-	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v8/utils"
 
 	"net/http"
 	"net/url"
@@ -63,12 +63,6 @@ func (b *fetchBuilder) End(end int64) *fetchBuilder {
 // Count sets the number of items to return in the Fetch request.
 func (b *fetchBuilder) Count(count int) *fetchBuilder {
 	b.opts.Count = count
-	return b
-}
-
-// Reverse sets the order of messages in the Fetch request.
-func (b *fetchBuilder) Reverse(r bool) *fetchBuilder {
-	b.opts.Reverse = r
 	return b
 }
 
@@ -143,9 +137,6 @@ type fetchOpts struct {
 	// default: 100
 	Count int
 
-	// default: false
-	Reverse bool
-
 	QueryParam map[string]string
 
 	// nil hacks
@@ -211,7 +202,6 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 		q.Set("max", strconv.Itoa(maxCount))
 	}
 
-	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_meta", strconv.FormatBool(o.WithMeta))
 	q.Set("include_message_type", strconv.FormatBool(o.WithMessageType))
 	q.Set("include_uuid", strconv.FormatBool(o.WithUUID))
@@ -296,7 +286,7 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 						Message:   msg,
 						Timetoken: histResponse["timetoken"].(string),
 						Meta:      histResponse["meta"],
-                        Error:     err,
+						Error:     err,
 					}
 					if d, ok := histResponse["message_type"]; ok {
 						switch v := d.(type) {
@@ -359,7 +349,7 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyFetchResp, status, e
 	}
@@ -395,7 +385,7 @@ type FetchResponseItem struct {
 	Timetoken      string                                    `json:"timetoken"`
 	UUID           string                                    `json:"uuid"`
 	MessageType    int                                       `json:"message_type"`
-    Error          error
+	Error          error
 }
 
 // PNHistoryMessageActionsTypeMap is the struct used in the Fetch request that includes Message Actions

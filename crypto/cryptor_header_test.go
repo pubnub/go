@@ -2,9 +2,10 @@ package crypto
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCryptorHeader_CreateHeaderWithLargeMetadata(t *testing.T) {

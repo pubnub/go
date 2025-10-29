@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 var emptyPNGetChannelMetadataResponse *PNGetChannelMetadataResponse
@@ -106,6 +106,10 @@ func (o *getChannelMetadataOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *getChannelMetadataOpts) httpMethod() string {
+	return "GET"
+}
+
 func (o *getChannelMetadataOpts) isAuthRequired() bool {
 	return true
 }
@@ -124,7 +128,7 @@ func (o *getChannelMetadataOpts) operationType() OperationType {
 
 // PNGetChannelMetadataResponse is the Objects API Response for Get Space
 type PNGetChannelMetadataResponse struct {
-	status int       `json:"status"`
+	Status int       `json:"status"`
 	Data   PNChannel `json:"data"`
 }
 
@@ -136,7 +140,7 @@ func newPNGetChannelMetadataResponse(jsonBytes []byte, o *getChannelMetadataOpts
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyPNGetChannelMetadataResponse, status, e
 	}

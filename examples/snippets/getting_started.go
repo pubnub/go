@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"sync"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 )
 
 var pn *pubnub.PubNub
 
 func init() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
 
@@ -185,14 +185,14 @@ func presence() {
 	errChan := make(chan string)
 	ch := "my-channel"
 
-	configPresenceListener := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	configPresenceListener := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	configPresenceListener.SubscribeKey = "demo"
 	configPresenceListener.PublishKey = "demo"
 
 	pnPresenceListener := pubnub.NewPubNub(configPresenceListener)
 
-	pn.Config.SetUserId(UserId("my-emitter"))
-	pnPresenceListener.Config.SetUserId(UserId("my-listener"))
+	pn.Config.SetUserId(pubnub.UserId("my-emitter"))
+	pnPresenceListener.Config.SetUserId(pubnub.UserId("my-listener"))
 
 	listenerEmitter := pubnub.NewListener()
 	listenerPresenceListener := pubnub.NewListener()
@@ -315,7 +315,7 @@ func unsubscribe() {
 		Execute()
 }
 
-func main() {
+func mainGettingStarted() {
 	// gettingStarted()
 	// listeners()
 	// time()

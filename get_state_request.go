@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v8/utils"
 )
 
 const getStatePath = "/v2/presence/sub-key/%s/channel/%s/uuid/%s"
@@ -149,6 +149,26 @@ func (o *getStateOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *getStateOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *getStateOpts) httpMethod() string {
+	return "GET"
+}
+
+func (o *getStateOpts) isAuthRequired() bool {
+	return true
+}
+
+func (o *getStateOpts) requestTimeout() int {
+	return o.pubnub.Config.NonSubscribeRequestTimeout
+}
+
+func (o *getStateOpts) connectTimeout() int {
+	return o.pubnub.Config.ConnectTimeout
+}
+
 func (o *getStateOpts) operationType() OperationType {
 	return PNGetStateOperation
 }
@@ -169,14 +189,14 @@ func newGetStateResponse(jsonBytes []byte, status StatusResponse) (
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyGetStateResp, status, e
 	}
 
 	v, ok := value.(map[string]interface{})
 	if !ok {
-		return emptyGetStateResp, status, errors.New("Response parsing error")
+		return emptyGetStateResp, status, errors.New("response parsing error")
 	}
 	if v["error"] != nil {
 		message := ""
@@ -195,26 +215,23 @@ func newGetStateResponse(jsonBytes []byte, status StatusResponse) (
 	if v["channel"] != nil {
 		if channel, ok2 := v["channel"].(string); ok2 {
 			if v["payload"] != nil {
-				val, ok := v["payload"].(interface{})
-				if !ok {
-					return emptyGetStateResp, status, errors.New("Response parsing payload")
-				}
+				val := v["payload"]
 				m[channel] = val
 			} else {
-				return emptyGetStateResp, status, errors.New("Response parsing channel")
+				return emptyGetStateResp, status, errors.New("response parsing channel")
 			}
 		} else {
-			return emptyGetStateResp, status, errors.New("Response parsing channel 2")
+			return emptyGetStateResp, status, errors.New("response parsing channel 2")
 		}
 	} else {
 		if v["payload"] != nil {
 			val, ok := v["payload"].(map[string]interface{})
 			if !ok {
-				return emptyGetStateResp, status, errors.New("Response parsing payload 2")
+				return emptyGetStateResp, status, errors.New("response parsing payload 2")
 			}
 			channels, ok2 := val["channels"].(map[string]interface{})
 			if !ok2 {
-				return emptyGetStateResp, status, errors.New("Response parsing channels")
+				return emptyGetStateResp, status, errors.New("response parsing channels")
 			}
 			for ch, state := range channels {
 				m[ch] = state

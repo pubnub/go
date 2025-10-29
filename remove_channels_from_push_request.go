@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/utils"
 )
 
 const removeChannelsFromPushPath = "/v1/push/sub-key/%s/devices/%s"
@@ -62,6 +62,12 @@ func (b *removeChannelsFromPushBuilder) Environment(env PNPushEnvironment) *remo
 func (b *removeChannelsFromPushBuilder) QueryParam(queryParam map[string]string) *removeChannelsFromPushBuilder {
 	b.opts.QueryParam = queryParam
 
+	return b
+}
+
+// Transport sets the Transport for the RemoveChannelsFromPush request.
+func (b *removeChannelsFromPushBuilder) Transport(tr http.RoundTripper) *removeChannelsFromPushBuilder {
+	b.opts.Transport = tr
 	return b
 }
 
@@ -138,13 +144,7 @@ func (o *removeChannelsFromPushOpts) buildQuery() (*url.Values, error) {
 	q := defaultQuery(o.pubnub.Config.UUID, o.pubnub.telemetryManager)
 	q.Set("type", o.PushType.String())
 
-	var channels []string
-
-	for _, v := range o.Channels {
-		channels = append(channels, v)
-	}
-
-	q.Set("remove", strings.Join(channels, ","))
+	q.Set("remove", strings.Join(o.Channels, ","))
 	SetPushEnvironment(q, o.Environment)
 	SetPushTopic(q, o.Topic)
 	SetQueryParam(q, o.QueryParam)
@@ -163,6 +163,14 @@ func (o *removeChannelsFromPushOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
+func (o *removeChannelsFromPushOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *removeChannelsFromPushOpts) httpMethod() string {
+	return "GET"
+}
+
 func (o *removeChannelsFromPushOpts) operationType() OperationType {
-	return PNRemoveGroupOperation
+	return PNRemovePushNotificationsFromChannelsOperation
 }

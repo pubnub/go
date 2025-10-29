@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 var whereNowPath = "/v2/presence/sub-key/%s/uuid/%s"
@@ -44,6 +44,12 @@ func (b *whereNowBuilder) UUID(uuid string) *whereNowBuilder {
 func (b *whereNowBuilder) QueryParam(queryParam map[string]string) *whereNowBuilder {
 	b.opts.QueryParam = queryParam
 
+	return b
+}
+
+// Transport sets the Transport for the WhereNow request.
+func (b *whereNowBuilder) Transport(tr http.RoundTripper) *whereNowBuilder {
+	b.opts.Transport = tr
 	return b
 }
 
@@ -101,6 +107,14 @@ func (o *whereNowOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
+func (o *whereNowOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *whereNowOpts) httpMethod() string {
+	return "GET"
+}
+
 func (o *whereNowOpts) operationType() OperationType {
 	return PNWhereNowOperation
 }
@@ -118,8 +132,8 @@ func newWhereNowResponse(jsonBytes []byte, status StatusResponse) (
 
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
-		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+		e := pnerr.NewResponseParsingError("error unmarshalling response",
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyWhereNowResponse, status, e
 	}

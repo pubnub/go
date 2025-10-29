@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# The old test runner for PubNub Go SDK.
+# It is no longer used and is only kept for reference. Use gotestsum instead.
+
 # Colors for console.
 INFO_BG="\033[0m\033[48;2;5;49;70m"
 INFO_FG="\033[38;2;19;181;255m"
@@ -33,7 +36,7 @@ fi
 
 # Parse test suite output.
 parse_test_utput () {
-  TES_SUIITE_BASE="github.com/pubnub/go/v7/"
+  TES_SUIITE_BASE="github.com/pubnub/go/v8/"
   TEST_RESULTS=""
   TEST_SUITE_RESULTS=""
   TEST_CASE_NAME=""

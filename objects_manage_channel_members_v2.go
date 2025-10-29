@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 var emptyManageMembersResponse *PNManageMembersResponse
@@ -234,7 +234,7 @@ func (o *manageMembersOptsV2) operationType() OperationType {
 
 // PNManageMembersResponse is the Objects API Response for ManageMembers
 type PNManageMembersResponse struct {
-	status     int                `json:"status"`
+	Status     int                `json:"status"`
 	Data       []PNChannelMembers `json:"data"`
 	TotalCount int                `json:"totalCount"`
 	Next       string             `json:"next"`
@@ -249,7 +249,7 @@ func newPNManageMembersResponse(jsonBytes []byte, o *manageMembersOptsV2,
 	err := json.Unmarshal(jsonBytes, &resp)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyManageMembersResponse, status, e
 	}

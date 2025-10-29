@@ -3,9 +3,10 @@ package contract
 import (
 	"context"
 	"errors"
-	"github.com/pubnub/go/v7/crypto"
 	"io"
 	"os"
+
+	"github.com/pubnub/go/v8/crypto"
 )
 
 type cryptoStateKey struct{}

@@ -1,6 +1,9 @@
+//go:build !go1.7
 // +build !go1.7
 
 package pubnub
+
+import "context"
 
 // import (
 // 	"golang.org/x/net/context"

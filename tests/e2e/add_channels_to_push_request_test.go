@@ -3,7 +3,7 @@ package e2e
 import (
 	"testing"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +15,7 @@ func TestAddChannelToPushNotStubbed(t *testing.T) {
 	_, _, err := pn.AddPushNotificationsOnChannels().
 		Channels([]string{"ch"}).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		Execute()
 	assert.Nil(err)
 }
@@ -28,7 +28,7 @@ func TestAddChannelToPushNotStubbedContext(t *testing.T) {
 	_, _, err := pn.AddPushNotificationsOnChannelsWithContext(backgroundContext).
 		Channels([]string{"ch1"}).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		Execute()
 	assert.Nil(err)
 }
@@ -46,7 +46,7 @@ func TestAddChannelToPushNotStubbedContextWithQueryParam(t *testing.T) {
 	_, _, err := pn.AddPushNotificationsOnChannelsWithContext(backgroundContext).
 		Channels([]string{"ch1"}).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		QueryParam(queryParam).
 		Execute()
 	assert.Nil(err)
@@ -60,7 +60,7 @@ func TestAddChannelToPushTopicAndEnvNotStubbed(t *testing.T) {
 	_, _, err := pn.AddPushNotificationsOnChannels().
 		Channels([]string{"ch"}).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		Topic("a").
 		Environment(pubnub.PNPushEnvironmentDevelopment).
 		Execute()
@@ -75,7 +75,7 @@ func TestAddChannelToPushTopicAndEnvNotStubbedContext(t *testing.T) {
 	_, _, err := pn.AddPushNotificationsOnChannelsWithContext(backgroundContext).
 		Channels([]string{"ch1"}).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		Topic("a").
 		Environment(pubnub.PNPushEnvironmentDevelopment).
 		Execute()
@@ -95,7 +95,7 @@ func TestAddChannelToPushTopicAndEnvNotStubbedContextWithQueryParam(t *testing.T
 	_, _, err := pn.AddPushNotificationsOnChannelsWithContext(backgroundContext).
 		Channels([]string{"ch1"}).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		QueryParam(queryParam).
 		Topic("a").
 		Environment(pubnub.PNPushEnvironmentProduction).

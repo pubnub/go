@@ -6,11 +6,12 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/pubnub/go/v7/crypto"
 	"io"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/pubnub/go/v8/crypto"
 )
 
 // EncryptString creates the base64 encoded encrypted string using the

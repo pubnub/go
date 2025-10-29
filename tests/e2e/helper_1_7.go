@@ -1,3 +1,4 @@
+//go:build !go1.8 && go1.7
 // +build !go1.8,go1.7
 
 package e2e

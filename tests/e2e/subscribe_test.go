@@ -3,7 +3,7 @@ package e2e
 import (
 	//"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"math/rand"
 	"net"
@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	pubnub "github.com/pubnub/go/v7"
-	"github.com/pubnub/go/v7/tests/stubs"
+	pubnub "github.com/pubnub/go/v8"
+	"github.com/pubnub/go/v8/tests/stubs"
 	"github.com/stretchr/testify/assert"
 
 	"net/http"
@@ -57,7 +57,7 @@ func SubscribesLogsForQueryParams(t *testing.T) {
 
 	}
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
 	//fmt.Printf("Captured: %s", out)
@@ -301,18 +301,6 @@ func TestSubscribePublishUnsubscribePushHelper(t *testing.T) {
 
 	apns2 := []pubnub.PNAPNS2Data{apns2One, apns2Two}
 
-	mpns := pubnub.PNMPNSData{
-		Title:       "title",
-		Type:        "type",
-		Count:       1,
-		BackTitle:   "BackTitle",
-		BackContent: "BackContent",
-		Custom: map[string]interface{}{
-			"mpns_key1": "mpns_value1",
-			"mpns_key2": "mpns_value2",
-		},
-	}
-
 	fcm := pubnub.PNFCMData{
 		Data: pubnub.PNFCMDataFields{
 			Summary: "summary",
@@ -336,7 +324,7 @@ func TestSubscribePublishUnsubscribePushHelper(t *testing.T) {
 		"pn_debug": true,
 	}
 
-	s := pn.CreatePushPayload().SetAPNSPayload(apns, apns2).SetCommonPayload(CommonPayload).SetFCMPayload(fcm).SetMPNSPayload(mpns).BuildPayload()
+	s := pn.CreatePushPayload().SetAPNSPayload(apns, apns2).SetCommonPayload(CommonPayload).SetFCMPayload(fcm).BuildPayload()
 
 	go SubscribePublishUnsubscribeMultiCommon(t, s, "", pubMessage, false, false)
 	m, ok := <-pubMessage
@@ -390,14 +378,6 @@ func TestSubscribePublishUnsubscribePushHelper(t *testing.T) {
 		assert.Equal(apns2[0].Targets[0].ExcludeDevices[0], excludeDevices1[0])
 		assert.Equal(apns2[0].Targets[0].ExcludeDevices[1], excludeDevices1[1])
 
-		resMPNS := result["pn_mpns"].(map[string]interface{})
-		assert.Equal(mpns.Title, resMPNS["title"])
-		assert.Equal(mpns.Type, resMPNS["type"])
-		assert.Equal(float64(mpns.Count), resMPNS["count"])
-		assert.Equal(mpns.BackTitle, resMPNS["back_title"])
-		assert.Equal(mpns.BackContent, resMPNS["back_content"])
-		assert.Equal(mpns.Custom["mpns_key1"], resMPNS["mpns_key1"])
-		assert.Equal(mpns.Custom["mpns_key2"], resMPNS["mpns_key2"])
 		resFCM := result["pn_gcm"].(map[string]interface{})
 		resFCMData := resFCM["data"].(map[string]interface{})
 

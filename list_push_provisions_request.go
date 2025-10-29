@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v8/utils"
 )
 
 const listChannelsOfPushPath = "/v1/push/sub-key/%s/devices/%s"
@@ -61,6 +61,12 @@ func (b *listPushProvisionsRequestBuilder) Environment(env PNPushEnvironment) *l
 	return b
 }
 
+// Transport sets the Transport for the List Push Provisions request.
+func (b *listPushProvisionsRequestBuilder) Transport(tr http.RoundTripper) *listPushProvisionsRequestBuilder {
+	b.opts.Transport = tr
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *listPushProvisionsRequestBuilder) QueryParam(queryParam map[string]string) *listPushProvisionsRequestBuilder {
 	b.opts.QueryParam = queryParam
@@ -87,8 +93,8 @@ func newListPushProvisionsRequestResponse(jsonBytes []byte, status StatusRespons
 
 	err := json.Unmarshal(jsonBytes, &value)
 	if err != nil {
-		e := pnerr.NewResponseParsingError("Error unmarshalling response",
-			ioutil.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
+		e := pnerr.NewResponseParsingError("error unmarshalling response",
+			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
 		return emptyListPushProvisionsRequestResponse, status, e
 	}
@@ -184,6 +190,14 @@ func (o *listPushProvisionsRequestOpts) connectTimeout() int {
 	return o.pubnub.Config.ConnectTimeout
 }
 
+func (o *listPushProvisionsRequestOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *listPushProvisionsRequestOpts) httpMethod() string {
+	return "GET"
+}
+
 func (o *listPushProvisionsRequestOpts) operationType() OperationType {
-	return PNRemoveGroupOperation
+	return PNPushNotificationsEnabledChannelsOperation
 }

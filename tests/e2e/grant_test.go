@@ -2,14 +2,14 @@ package e2e
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"testing"
 	"time"
 
-	pubnub "github.com/pubnub/go/v7"
-	"github.com/pubnub/go/v7/tests/stubs"
+	pubnub "github.com/pubnub/go/v8"
+	"github.com/pubnub/go/v8/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -270,7 +270,7 @@ func TestGrantParseLogsForAuthKey(t *testing.T) {
 	}
 
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
 	s := fmt.Sprintf("%s", out)
@@ -307,7 +307,7 @@ func TestGrantParseLogsForMultipleAuthKeys(t *testing.T) {
 	}
 
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
 	s := fmt.Sprintf("%s", out)

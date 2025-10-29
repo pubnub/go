@@ -3,7 +3,7 @@ package e2e
 import (
 	"testing"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +14,7 @@ func TestRemoveAllPushNotifications(t *testing.T) {
 
 	_, _, err := pn.RemoveAllPushNotifications().
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		Execute()
 	assert.Nil(err)
 }
@@ -26,7 +26,7 @@ func TestRemoveAllPushNotificationsContext(t *testing.T) {
 
 	_, _, err := pn.RemoveAllPushNotificationsWithContext(backgroundContext).
 		DeviceIDForPush(randomized("di")).
-		PushType(pubnub.PNPushTypeGCM).
+		PushType(pubnub.PNPushTypeFCM).
 		Execute()
 	assert.Nil(err)
 }

@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"testing"
 
-	h "github.com/pubnub/go/v7/tests/helpers"
+	h "github.com/pubnub/go/v8/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,7 +35,7 @@ func AssertSuccessPublishGet(t *testing.T, expectedString string, message interf
 	assert.Equal(10, o.opts.TTL)
 	assert.Equal(true, o.opts.ShouldStore)
 	assert.Equal(true, o.opts.DoNotReplicate)
-    assert.Equal("", o.opts.CustomMessageType)
+	assert.Equal("", o.opts.CustomMessageType)
 }
 
 func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message interface{}) {
@@ -49,7 +49,7 @@ func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message
 	o.TTL(10)
 	o.ShouldStore(true)
 	o.DoNotReplicate(true)
-    o.CustomMessageType("custom")
+	o.CustomMessageType("custom")
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -65,7 +65,7 @@ func AssertSuccessPublishGetContext(t *testing.T, expectedString string, message
 	assert.Equal(10, o.opts.TTL)
 	assert.Equal(true, o.opts.ShouldStore)
 	assert.Equal(true, o.opts.DoNotReplicate)
-    assert.Equal("custom", o.opts.CustomMessageType)
+	assert.Equal("custom", o.opts.CustomMessageType)
 }
 
 func AssertSuccessPublishGet2(t *testing.T, expectedString string, message interface{}) {
@@ -80,7 +80,7 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 	o.TTL(10)
 	o.ShouldStore(false)
 	o.DoNotReplicate(true)
-    o.CustomMessageType("custom")
+	o.CustomMessageType("custom")
 
 	path, err := o.opts.buildPath()
 	assert.Nil(err)
@@ -100,7 +100,7 @@ func AssertSuccessPublishGet2(t *testing.T, expectedString string, message inter
 	expected.Set("pnsdk", Version)
 	expected.Set("norep", "true")
 	expected.Set("store", "0")
-    expected.Set("custom_message_type", "custom")
+	expected.Set("custom_message_type", "custom")
 
 	h.AssertQueriesEqual(t, expected, query,
 		[]string{"seqn", "pnsdk", "uuid", "store"}, []string{})
@@ -536,13 +536,13 @@ func TestPublishValidateSubscribeKey(t *testing.T) {
 }
 
 func TestPublishValidateCustomMessageType(t *testing.T) {
-    assert := assert.New(t)
-    pn := NewPubNub(NewDemoConfig())
-    opts := newPublishOpts(pn, pn.ctx)
-    opts.CustomMessageType = "custom-message_type"
-    assert.True(opts.isCustomMessageTypeCorrect())
-    opts.CustomMessageType = "a"
-    assert.False(opts.isCustomMessageTypeCorrect())
-    opts.CustomMessageType = "!@#$%^&*("
-    assert.False(opts.isCustomMessageTypeCorrect())
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	opts := newPublishOpts(pn, pn.ctx)
+	opts.CustomMessageType = "custom-message_type"
+	assert.True(opts.isCustomMessageTypeCorrect())
+	opts.CustomMessageType = "a"
+	assert.False(opts.isCustomMessageTypeCorrect())
+	opts.CustomMessageType = "!@#$%^&*("
+	assert.False(opts.isCustomMessageTypeCorrect())
 }

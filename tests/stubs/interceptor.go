@@ -3,13 +3,13 @@ package stubs
 import (
 	"bytes"
 	//"fmt"
-	"io/ioutil"
+	"io"
 	//"log"
 	"net/http"
 	"net/url"
 	"time"
 
-	"github.com/pubnub/go/v7/tests/helpers"
+	"github.com/pubnub/go/v8/tests/helpers"
 )
 
 type Interceptor struct {
@@ -109,7 +109,7 @@ func (i *interceptTransport) RoundTrip(req *http.Request) (*http.Response,
 				Header:           http.Header{"Content-Length": {"256"}},
 				TransferEncoding: nil,
 				Close:            true,
-				Body:             ioutil.NopCloser(bytes.NewBufferString(v.ResponseBody)),
+				Body:             io.NopCloser(bytes.NewBufferString(v.ResponseBody)),
 				ContentLength:    256,
 			}, nil
 		}
@@ -124,7 +124,7 @@ func (i *interceptTransport) RoundTrip(req *http.Request) (*http.Response,
 		ProtoMinor:       0,
 		Request:          req,
 		TransferEncoding: nil,
-		Body:             ioutil.NopCloser(bytes.NewBufferString("No Stub Matched")),
+		Body:             io.NopCloser(bytes.NewBufferString("No Stub Matched")),
 		Close:            true,
 		ContentLength:    256,
 	}, nil

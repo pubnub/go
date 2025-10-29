@@ -2,9 +2,10 @@ package pubnub
 
 import (
 	"net/url"
+	"strings"
 	"testing"
 
-	h "github.com/pubnub/go/v7/tests/helpers"
+	h "github.com/pubnub/go/v8/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -175,4 +176,104 @@ func TestSubscribeValidateState(t *testing.T) {
 	opts.State = map[string]interface{}{"a": "a"}
 
 	assert.Nil(opts.validate())
+}
+
+func TestSubscribeDuplicateChannelsInSameCall(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	// Subscribe with duplicate channels in the same call
+	subscribeOp := &SubscribeOperation{
+		Channels: []string{"test-channel", "test-channel", "test-channel"},
+	}
+
+	pn.subscriptionManager.adaptSubscribe(subscribeOp)
+
+	// Get the channels from state manager
+	channels := pn.subscriptionManager.stateManager.prepareChannelList(false)
+
+	// Verify that the channel appears only once
+	assert.Equal(1, len(channels), "Channel should appear only once")
+	assert.Equal("test-channel", channels[0], "Channel name should be 'test-channel'")
+}
+
+func TestSubscribeDuplicateChannelsMultipleCalls(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	// Subscribe to the same channel twice in separate operations
+	subscribeOp1 := &SubscribeOperation{
+		Channels: []string{"test-channel"},
+	}
+	pn.subscriptionManager.adaptSubscribe(subscribeOp1)
+
+	subscribeOp2 := &SubscribeOperation{
+		Channels: []string{"test-channel"},
+	}
+	pn.subscriptionManager.adaptSubscribe(subscribeOp2)
+
+	// Get the channels from state manager
+	channels := pn.subscriptionManager.stateManager.prepareChannelList(false)
+
+	// Verify that the channel appears only once
+	assert.Equal(1, len(channels), "Channel should appear only once after multiple subscribe calls")
+	assert.Equal("test-channel", channels[0], "Channel name should be 'test-channel'")
+}
+
+func TestSubscribeDuplicateChannelsInRequestPath(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	// Subscribe with duplicate channels
+	subscribeOp := &SubscribeOperation{
+		Channels: []string{"ch-1", "ch-2", "ch-1", "ch-3", "ch-2"},
+	}
+
+	pn.subscriptionManager.adaptSubscribe(subscribeOp)
+
+	// Get the channels from state manager
+	channels := pn.subscriptionManager.stateManager.prepareChannelList(false)
+
+	// Verify that we only have 3 unique channels
+	assert.Equal(3, len(channels), "Should have 3 unique channels")
+
+	// Create opts and build path to verify the actual request path
+	opts := newSubscribeOpts(pn, pn.ctx)
+	opts.Channels = channels
+
+	path, err := opts.buildPath()
+	assert.Nil(err)
+
+	// The path should contain each channel only once
+	u := &url.URL{
+		Path: path,
+	}
+
+	// Count occurrences of each channel in the path
+	pathStr := u.EscapedPath()
+	assert.Contains(pathStr, "ch-1")
+	assert.Contains(pathStr, "ch-2")
+	assert.Contains(pathStr, "ch-3")
+
+	// Verify each channel appears exactly once in the path
+	// The path format is: /v2/subscribe/sub_key/ch-1,ch-2,ch-3/0
+	// We check that there are no duplicate channel names in the comma-separated list
+	channelsPart := ""
+	if strings.Contains(pathStr, "/v2/subscribe/") {
+		parts := strings.Split(pathStr, "/")
+		if len(parts) >= 5 {
+			channelsPart = parts[4] // The channel list is the 5th part (index 4)
+		}
+	}
+
+	// Split by comma and verify uniqueness
+	channelList := strings.Split(channelsPart, ",")
+	uniqueChannels := make(map[string]bool)
+	for _, ch := range channelList {
+		if ch != "" {
+			assert.False(uniqueChannels[ch], "Channel %s should not appear more than once in the path", ch)
+			uniqueChannels[ch] = true
+		}
+	}
+	assert.Equal(3, len(uniqueChannels), "Should have exactly 3 unique channels in the request path")
 }

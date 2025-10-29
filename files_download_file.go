@@ -2,10 +2,11 @@ package pubnub
 
 import (
 	"fmt"
-	"github.com/pubnub/go/v7/crypto"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/pubnub/go/v8/crypto"
 )
 
 var emptyDownloadFileResponse *PNDownloadFileResponse
@@ -164,13 +165,33 @@ func (o *downloadFileOpts) buildQuery() (*url.Values, error) {
 	return q, nil
 }
 
+func (o *downloadFileOpts) buildBody() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (o *downloadFileOpts) httpMethod() string {
+	return "GET"
+}
+
+func (o *downloadFileOpts) isAuthRequired() bool {
+	return true
+}
+
+func (o *downloadFileOpts) requestTimeout() int {
+	return o.pubnub.Config.NonSubscribeRequestTimeout
+}
+
+func (o *downloadFileOpts) connectTimeout() int {
+	return o.pubnub.Config.ConnectTimeout
+}
+
 func (o *downloadFileOpts) operationType() OperationType {
 	return PNDownloadFileOperation
 }
 
 // PNDownloadFileResponse is the File Upload API Response for Get Spaces
 type PNDownloadFileResponse struct {
-	status int       `json:"status"`
+	Status int       `json:"status"`
 	File   io.Reader `json:"data"`
 }
 
