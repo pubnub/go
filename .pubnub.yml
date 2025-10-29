@@ -1,6 +1,39 @@
 ---
-version: v7.4.0
+version: 8.0.0
 changelog:
+  - date: 2025-10-29
+    version: 8.0.0
+    changes:
+      - type: feature
+        text: "Add `UseRawMessage` parameter to `SendFile` and `PublishFileMessage` functions - when enabled, message content is sent as-is without wrapping in a "text" JSON field."
+      - type: feature
+        text: "Add `CustomMessageType` parameter to `PublishFileMessage` function to enable custom message type specification."
+      - type: feature
+        text: "Add `Status` and `Type` fields to App Context objects (Channel and UUID Metadata, Channel Members and Memberships)."
+      - type: feature
+        text: "Add `IfMatchETag` method to `SetChannelMetadata` and `SetUUIDMetadata` to enable conditional updates that prevent overwriting metadata without fetching the latest version first."
+      - type: feature
+        text: "The `HereNow` method now returns a maximum of 1,000 occupants per channel. Previously, it would return all occupants regardless of count. If you have channels with more than 1,000 occupants, you must use pagination (new `Limit` and `Offset` parameters) to retrieve the complete list. **BREAKING CHANGE**."
+      - type: feature
+        text: "Add testable code snippets with examples for all API endpoints. Fix old snippets and remove outdated ones."
+      - type: bug
+        text: "Fix bug where `ShouldStore` parameter was not being added to `SendFile` requests. Now correctly defaults to false. **BREAKING CHANGE**."
+      - type: bug
+        text: "Fix bug where `SendFile` function was not including `Meta` and other parameters in the request."
+      - type: bug
+        text: "Fix bug where `Fire` method was not correctly including `Meta` parameter in the request."
+      - type: improvement
+        text: "Remove `PNPushTypeMPNS` push type entirely, deprecate `PNPushTypeGCM` and `PNPushTypeAPNS`, and add new `PNPushTypeFCM` type for Firebase Cloud Messaging. **BREAKING CHANGE**."
+      - type: improvement
+        text: "Change `PNPublishMessage.Text` parameter type from string to interface{} to enable sending arbitrary JSON types in published file messages. **BREAKING CHANGE**."
+      - type: improvement
+        text: "Remove not supported `Reverse` parameter from `Fetch` function. **BREAKING CHANGE**."
+      - type: improvement
+        text: "Rename status field to `Status` in response structures to fix JSON marshalling and linter errors."
+      - type: improvement
+        text: "Add missing unit and e2e tests for all API endpoints to improve code coverage."
+      - type: improvement
+        text: "Change testing script to use `GoTestSum` for improved test output formatting and readability."
   - date: 2025-09-11
     version: v7.4.0
     changes:
@@ -776,7 +809,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v7.4.0
+            location: https://github.com/pubnub/go/releases/tag/8.0.0
             requires:
               -
                 name: "Go"

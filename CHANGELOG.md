@@ -1,3 +1,27 @@
+## 8.0.0
+October 29 2025
+
+#### Added
+- Add `UseRawMessage` parameter to `SendFile` and `PublishFileMessage` functions - when enabled, message content is sent as-is without wrapping in a "text" JSON field.
+- Add `CustomMessageType` parameter to `PublishFileMessage` function to enable custom message type specification.
+- Add `Status` and `Type` fields to App Context objects (Channel and UUID Metadata, Channel Members and Memberships).
+- Add `IfMatchETag` method to `SetChannelMetadata` and `SetUUIDMetadata` to enable conditional updates that prevent overwriting metadata without fetching the latest version first.
+- The `HereNow` method now returns a maximum of 1,000 occupants per channel. Previously, it would return all occupants regardless of count. If you have channels with more than 1,000 occupants, you must use pagination (new `Limit` and `Offset` parameters) to retrieve the complete list. **BREAKING CHANGE**.
+- Add testable code snippets with examples for all API endpoints. Fix old snippets and remove outdated ones.
+
+#### Fixed
+- Fix bug where `ShouldStore` parameter was not being added to `SendFile` requests. Now correctly defaults to false. **BREAKING CHANGE**.
+- Fix bug where `SendFile` function was not including `Meta` and other parameters in the request.
+- Fix bug where `Fire` method was not correctly including `Meta` parameter in the request.
+
+#### Modified
+- Remove `PNPushTypeMPNS` push type entirely, deprecate `PNPushTypeGCM` and `PNPushTypeAPNS`, and add new `PNPushTypeFCM` type for Firebase Cloud Messaging. **BREAKING CHANGE**.
+- Change `PNPublishMessage.Text` parameter type from string to interface{} to enable sending arbitrary JSON types in published file messages. **BREAKING CHANGE**.
+- Remove not supported `Reverse` parameter from `Fetch` function. **BREAKING CHANGE**.
+- Rename status field to `Status` in response structures to fix JSON marshalling and linter errors.
+- Add missing unit and e2e tests for all API endpoints to improve code coverage.
+- Change testing script to use `GoTestSum` for improved test output formatting and readability.
+
 ## v7.4.0
 September 11 2025
 
