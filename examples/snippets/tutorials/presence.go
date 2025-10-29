@@ -7,10 +7,10 @@ import (
 )
 
 func subscribe() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.SetUserId(UserId("Stephen"))
+	config.SetUserId(pubnub.UserId("Stephen"))
 
 	pn := pubnub.NewPubNub(config)
 
@@ -43,10 +43,10 @@ func subscribe() {
 }
 
 func hereNow() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.SetUserId(UserId("Stephen"))
+	config.SetUserId(pubnub.UserId("Stephen"))
 
 	pn := pubnub.NewPubNub(config)
 
@@ -67,10 +67,10 @@ func hereNow() {
 }
 
 func globalHereNow() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.SetUserId(UserId("Stephen"))
+	config.SetUserId(pubnub.UserId("Stephen"))
 
 	pn := pubnub.NewPubNub(config)
 
@@ -83,10 +83,10 @@ func globalHereNow() {
 }
 
 func whereNow() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.SetUserId(UserId("Stephen"))
+	config.SetUserId(pubnub.UserId("Stephen"))
 
 	pn := pubnub.NewPubNub(config)
 
@@ -98,10 +98,10 @@ func whereNow() {
 }
 
 func getState() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "demo"
 	config.PublishKey = "demo"
-	config.SetUserId(UserId("Stephen"))
+	config.SetUserId(pubnub.UserId("Stephen"))
 
 	pn := pubnub.NewPubNub(config)
 
@@ -112,7 +112,7 @@ func getState() {
 	fmt.Println(res, status, err)
 }
 
-func main() {
+func mainPresence() {
 	subscribe()
 	hereNow()
 	globalHereNow()

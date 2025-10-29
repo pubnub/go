@@ -235,7 +235,6 @@ func FileUploadCommon(t *testing.T, useCipher bool, customCipher string, filepat
 			Count(25).
 			IncludeMessageType(true).
 			IncludeUUID(true).
-			Reverse(true).
 			Execute()
 		chMessages := ret1.Messages[ch]
 		bFoundInFetch := false
@@ -469,7 +468,6 @@ func FileUploadCommonWithUseRawMessage(t *testing.T, useCipher bool, customCiphe
 			Count(25).
 			IncludeMessageType(true).
 			IncludeUUID(true).
-			Reverse(true).
 			Execute()
 		chMessages := ret1.Messages[ch]
 		bFoundInFetch := false

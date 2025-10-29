@@ -261,7 +261,6 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 		retFM2, _, errFM2 := pnMA.Fetch().
 			Channels([]string{chMA}).
 			Count(10).
-			Reverse(true).
 			Start(att).
 			End(mtt).
 			IncludeMeta(withMeta).
@@ -273,7 +272,6 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 		retFM, _, errFM := pnMA.Fetch().
 			Channels([]string{chMA}).
 			Count(10).
-			Reverse(true).
 			Start(att).
 			End(mtt).
 			IncludeMeta(withMeta).

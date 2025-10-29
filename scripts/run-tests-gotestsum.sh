@@ -41,8 +41,9 @@ echo "  1. Functional tests (main package)"
 echo "  2. Utils tests"
 echo "  3. Helpers tests" 
 echo "  4. Integration tests"
-echo "  5. Deadlock tests (x20)"
-echo "  6. Additional deadlock tests (x20)"
+echo "  5. Example tests (snippets/api)"
+echo "  6. Deadlock tests (x20)"
+echo "  7. Additional deadlock tests (x20)"
 echo ""
 
 # 1. Run functional tests
@@ -81,34 +82,43 @@ if ! gotestsum $GOTESTSUM_FLAGS \
   exit 5
 fi
 
-# 5. Run deadlock tests #1
+# 5. Run example tests
+echo "📚 Running example tests (snippets/api)..."
+if ! gotestsum $GOTESTSUM_FLAGS \
+  --raw-command -- go test $WITH_MOD -json -v \
+  -coverprofile=examples_tests.out -covermode=atomic -coverpkg=./ ./examples/snippets/api/; then
+  clean_coverage_output
+  exit 6
+fi
+
+# 6. Run deadlock tests #1
 echo "🔒 Running deadlock tests #1 (20 iterations)..."
 if ! gotestsum $GOTESTSUM_FLAGS \
   --raw-command -- go test $WITH_MOD -json -v -race \
   -run "TestDestroy\b" -count 20 -coverprofile=deadlock_tests.out; then
   clean_coverage_output
-  exit 6
+  exit 7
 fi
 
-# 6. Run deadlock tests #2
+# 7. Run deadlock tests #2
 echo "🔐 Running deadlock tests #2 (20 iterations)..."
 if ! gotestsum $GOTESTSUM_FLAGS \
   --raw-command -- go test $WITH_MOD -json -v -race \
   -run "TestDestroy2\b" -count 20 -coverprofile=deadlock2_tests.out \
   -covermode=atomic -coverpkg=./ ./tests/e2e/; then
   clean_coverage_output
-  exit 7
+  exit 8
 fi
 
 # Merge coverage reports
 if command -v gocovmerge &> /dev/null; then
   if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then
     echo "📊 Uploading coverage results..."
-    gocovmerge functional_tests.out integration_tests.out utils_tests.out helpers_tests.out deadlock_tests.out deadlock2_tests.out > coverage.txt
+    gocovmerge functional_tests.out integration_tests.out utils_tests.out helpers_tests.out examples_tests.out deadlock_tests.out deadlock2_tests.out > coverage.txt
   else
     echo "⚠️  Code coverage not uploaded because 'CODACY_PROJECT_TOKEN' not set."
     echo "📊 Merging coverage reports locally..."
-    gocovmerge functional_tests.out integration_tests.out utils_tests.out helpers_tests.out deadlock_tests.out deadlock2_tests.out > coverage.txt
+    gocovmerge functional_tests.out integration_tests.out utils_tests.out helpers_tests.out examples_tests.out deadlock_tests.out deadlock2_tests.out > coverage.txt
   fi
 else
   echo "⚠️  gocovmerge not available. Individual coverage files preserved."

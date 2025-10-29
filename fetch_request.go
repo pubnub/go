@@ -66,12 +66,6 @@ func (b *fetchBuilder) Count(count int) *fetchBuilder {
 	return b
 }
 
-// Reverse sets the order of messages in the Fetch request.
-func (b *fetchBuilder) Reverse(r bool) *fetchBuilder {
-	b.opts.Reverse = r
-	return b
-}
-
 // IncludeMeta fetches the meta data associated with the message
 func (b *fetchBuilder) IncludeMeta(withMeta bool) *fetchBuilder {
 	b.opts.WithMeta = withMeta
@@ -143,9 +137,6 @@ type fetchOpts struct {
 	// default: 100
 	Count int
 
-	// default: false
-	Reverse bool
-
 	QueryParam map[string]string
 
 	// nil hacks
@@ -211,7 +202,6 @@ func (o *fetchOpts) buildQuery() (*url.Values, error) {
 		q.Set("max", strconv.Itoa(maxCount))
 	}
 
-	q.Set("reverse", strconv.FormatBool(o.Reverse))
 	q.Set("include_meta", strconv.FormatBool(o.WithMeta))
 	q.Set("include_message_type", strconv.FormatBool(o.WithMessageType))
 	q.Set("include_uuid", strconv.FormatBool(o.WithUUID))

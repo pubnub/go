@@ -296,7 +296,7 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 	maxCount := o.config().FileMessagePublishRetryLimit
 	for !sent && tryCount < maxCount {
 		tryCount++
-		pubFileMessageResponse, pubFileResponseStatus, errPubFileResponse := o.pubnub.PublishFileMessage().TTL(o.TTL).Meta(o.Meta).ShouldStore(o.ShouldStore).Channel(o.Channel).Message(message).UseRawMessage(o.UseRawMessage).Execute()
+		pubFileMessageResponse, pubFileResponseStatus, errPubFileResponse := o.pubnub.PublishFileMessage().TTL(o.TTL).Meta(o.Meta).ShouldStore(o.ShouldStore).Channel(o.Channel).Message(message).UseRawMessage(o.UseRawMessage).CustomMessageType(o.CustomMessageType).Execute()
 		if errPubFileResponse != nil {
 			if tryCount >= maxCount {
 				pubFileResponseStatus.AdditionalData = file

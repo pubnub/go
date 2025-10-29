@@ -133,6 +133,14 @@ func (b *publishFileMessageBuilder) UseRawMessage(useRawMessage bool) *publishFi
 	return b
 }
 
+// CustomMessageType sets the User-specified message type string - limited by 3-50 case-sensitive alphanumeric characters
+// with only `-` and `_` special characters allowed.
+func (b *publishFileMessageBuilder) CustomMessageType(messageType string) *publishFileMessageBuilder {
+	b.opts.CustomMessageType = messageType
+
+	return b
+}
+
 // Execute runs the PublishFileMessage request.
 func (b *publishFileMessageBuilder) Execute() (*PublishFileMessageResponse, StatusResponse, error) {
 	rawJSON, status, err := executeRequest(b.opts)
@@ -145,20 +153,25 @@ func (b *publishFileMessageBuilder) Execute() (*PublishFileMessageResponse, Stat
 
 type publishFileMessageOpts struct {
 	endpointOpts
-	Message        interface{}
-	Channel        string
-	UsePost        bool
-	TTL            int
-	Meta           interface{}
-	ShouldStore    bool
-	setTTL         bool
-	setShouldStore bool
-	MessageText    string
-	FileID         string
-	FileName       string
-	QueryParam     map[string]string
-	Transport      http.RoundTripper
-	UseRawMessage  bool
+	Message           interface{}
+	Channel           string
+	UsePost           bool
+	TTL               int
+	Meta              interface{}
+	ShouldStore       bool
+	setTTL            bool
+	setShouldStore    bool
+	MessageText       string
+	FileID            string
+	FileName          string
+	QueryParam        map[string]string
+	Transport         http.RoundTripper
+	UseRawMessage     bool
+	CustomMessageType string
+}
+
+func (o *publishFileMessageOpts) isCustomMessageTypeCorrect() bool {
+	return isCustomMessageTypeValid(o.CustomMessageType)
 }
 
 func (o *publishFileMessageOpts) validate() error {
@@ -206,6 +219,10 @@ func (o *publishFileMessageOpts) validate() error {
 		} else {
 			return newValidationError(o, StrMissingMessage)
 		}
+	}
+
+	if !o.isCustomMessageTypeCorrect() {
+		return newValidationError(o, StrInvalidCustomMessageType)
 	}
 
 	return nil
@@ -341,6 +358,10 @@ func (o *publishFileMessageOpts) buildQuery() (*url.Values, error) {
 	seqn := strconv.Itoa(o.pubnub.getPublishSequence())
 	o.pubnub.Config.Log.Println("seqn:", seqn)
 	q.Set("seqn", seqn)
+
+	if len(o.CustomMessageType) > 0 {
+		q.Set("custom_message_type", o.CustomMessageType)
+	}
 
 	SetQueryParam(q, o.QueryParam)
 

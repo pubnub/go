@@ -7,7 +7,7 @@ import (
 )
 
 func operationLevel() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "my_sub_key"
 	config.PublishKey = "my_pub_key"
 	config.SecretKey = "my_secret_key"
@@ -31,7 +31,7 @@ func operationLevel() {
 }
 
 func operationLevel2() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "my_sub_key"
 	config.PublishKey = "my_pub_key"
 	config.SecretKey = "my_secret_key"
@@ -53,7 +53,7 @@ func operationLevel2() {
 }
 
 func operationLevel3() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "my_sub_key"
 	config.PublishKey = "my_pub_key"
 	config.SecretKey = "my_secret_key"
@@ -76,7 +76,7 @@ func operationLevel3() {
 }
 
 func operationLevel4() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "my_sub_key"
 	config.PublishKey = "my_pub_key"
 	config.SecretKey = "my_secret_key"
@@ -100,7 +100,7 @@ func operationLevel4() {
 }
 
 func permissionDenied() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "sub-c-b9ab9508-43cf-11e8-9967-869954283fb4"
 	config.PublishKey = "pub-c-1bd448ed-05ba-4dbc-81a5-7d6ff5c6e2bb"
 	config.SecretKey = "wrong-key"
@@ -134,7 +134,7 @@ func permissionDenied() {
 }
 
 func grantChannelGroup() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "my_sub_key"
 	config.PublishKey = "my_pub_key"
 	config.SecretKey = "my_secret_key"
@@ -158,7 +158,7 @@ func grantChannelGroup() {
 }
 
 func revokeChannelGroup() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "my_sub_key"
 	config.PublishKey = "my_pub_key"
 	config.SecretKey = "my_secret_key"
@@ -183,7 +183,7 @@ func revokeChannelGroup() {
 }
 
 func cipher() {
-	config := pubnub.NewConfigWithUserId(UserId(pubnub.GenerateUUID()))
+	config := pubnub.NewConfigWithUserId(pubnub.UserId(pubnub.GenerateUUID()))
 	config.SubscribeKey = "my_sub_key"
 	config.PublishKey = "my_pub_key"
 	config.SecretKey = "my_secret_key"
@@ -193,7 +193,7 @@ func cipher() {
 	_ = pn
 }
 
-func main() {
+func mainAccessManager() {
 	operationLevel()
 	operationLevel2()
 	operationLevel3()

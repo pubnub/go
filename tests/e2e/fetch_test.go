@@ -61,8 +61,6 @@ func FetchCommon(t *testing.T, withMeta, withMessageActions bool) {
 		pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	reverse := true
-
 	ch1 := randomized("testChannel_sub_%d")
 	ch2 := ch1 + "_2"
 
@@ -86,7 +84,6 @@ func FetchCommon(t *testing.T, withMeta, withMessageActions bool) {
 	ret, _, err := pn.Fetch().
 		Channels([]string{ch1, ch2}).
 		Count(25).
-		Reverse(reverse).
 		Execute()
 
 	assert.Nil(err)
@@ -100,7 +97,6 @@ func FetchCommon(t *testing.T, withMeta, withMessageActions bool) {
 	ret1, _, err1 := pn.FetchWithContext(backgroundContext).
 		Channels([]string{ch1, ch2}).
 		Count(25).
-		Reverse(reverse).
 		Start(timestamp1).
 		End(timestamp2).
 		QueryParam(queryParam).
@@ -113,7 +109,6 @@ func FetchCommon(t *testing.T, withMeta, withMessageActions bool) {
 	ret2, _, err2 := pn.Fetch().
 		Channels([]string{ch1, ch2}).
 		Count(25).
-		Reverse(reverse).
 		Start(timestamp2).
 		End(timestamp3).
 		Execute()
@@ -125,7 +120,6 @@ func FetchCommon(t *testing.T, withMeta, withMessageActions bool) {
 	ret3, _, err3 := pn.Fetch().
 		Channels([]string{ch1, ch2}).
 		Count(25).
-		Reverse(reverse).
 		Start(timestamp1).
 		Execute()
 
@@ -136,7 +130,6 @@ func FetchCommon(t *testing.T, withMeta, withMessageActions bool) {
 	ret4, _, err4 := pn.Fetch().
 		Channels([]string{ch1, ch2}).
 		Count(25).
-		Reverse(reverse).
 		Start(timestamp2).
 		Execute()
 
