@@ -1,11 +1,11 @@
 ---
-version: 8.0.0
+version: v8.0.0
 changelog:
   - date: 2025-10-29
-    version: 8.0.0
+    version: v8.0.0
     changes:
       - type: feature
-        text: "Add `UseRawMessage` parameter to `SendFile` and `PublishFileMessage` functions - when enabled, message content is sent as-is without wrapping in a "text" JSON field."
+        text: "Add `UseRawMessage` parameter to `SendFile` and `PublishFileMessage` functions - when enabled, message content is sent as-is without wrapping in a 'text' JSON field."
       - type: feature
         text: "Add `CustomMessageType` parameter to `PublishFileMessage` function to enable custom message type specification."
       - type: feature
