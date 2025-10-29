@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pubnub/go/v7/crypto"
+	"github.com/pubnub/go/v8/crypto"
 )
 
 // EncryptString creates the base64 encoded encrypted string using the

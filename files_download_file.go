@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v7/crypto"
+	"github.com/pubnub/go/v8/crypto"
 )
 
 var emptyDownloadFileResponse *PNDownloadFileResponse

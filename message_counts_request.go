@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v8/utils"
 
 	"net/http"
 	"net/url"

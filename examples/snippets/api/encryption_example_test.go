@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	pubnub "github.com/pubnub/go/v7"
-	"github.com/pubnub/go/v7/crypto"
+	pubnub "github.com/pubnub/go/v8"
+	"github.com/pubnub/go/v8/crypto"
 )
 
 /*
@@ -19,7 +19,7 @@ package pubnub_samples_test
 import (
 	"fmt"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 )
 
 // snippet.end
@@ -400,7 +400,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 )
 
 // snippet.end
@@ -493,7 +493,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 )
 
 // snippet.end

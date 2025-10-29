@@ -1,6 +1,6 @@
 package main
 
-import pubnub "github.com/pubnub/go/v7"
+import pubnub "github.com/pubnub/go/v8"
 
 func main() {
 	// Uncomment to run any of the tutorial examples:

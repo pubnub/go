@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 )
 
 /*
@@ -18,7 +18,7 @@ package pubnub_samples_test
 import (
 	"fmt"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 )
 
 // snippet.end
@@ -253,7 +253,7 @@ import (
 	"io"
 	"os"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 )
 
 // snippet.end

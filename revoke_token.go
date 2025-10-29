@@ -7,8 +7,8 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/pubnub/go/v7/pnerr"
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v8/utils"
 )
 
 const revokeTokenPath = "/v3/pam/%s/grant/%s"

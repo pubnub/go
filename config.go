@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/pubnub/go/v7/crypto"
+	"github.com/pubnub/go/v8/crypto"
 )
 
 const (

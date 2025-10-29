@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/utils"
 	"github.com/stretchr/testify/assert"
 )
 

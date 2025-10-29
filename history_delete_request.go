@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/utils"
 )
 
 const historyDeletePath = "/v3/history/sub-key/%s/channel/%s"

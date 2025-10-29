@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 )
 
 var pn *pubnub.PubNub

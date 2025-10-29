@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 func theErrorContains(ctx context.Context, substr string) error {

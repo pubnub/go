@@ -8,15 +8,15 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/pubnub/go/v7/crypto"
+	"github.com/pubnub/go/v8/crypto"
 
-	"github.com/pubnub/go/v7/utils"
+	"github.com/pubnub/go/v8/utils"
 )
 
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "7.4.0"
+	Version = "8.0.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )

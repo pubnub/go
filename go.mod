@@ -1,4 +1,4 @@
-module github.com/pubnub/go/v7
+module github.com/pubnub/go/v8
 
 go 1.18
 

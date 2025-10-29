@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/pubnub/go/v7/pnerr"
+	"github.com/pubnub/go/v8/pnerr"
 )
 
 // StatusResponse is used to store the usable properties in the response of an request.

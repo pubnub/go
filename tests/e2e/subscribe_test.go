@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	pubnub "github.com/pubnub/go/v7"
-	"github.com/pubnub/go/v7/tests/stubs"
+	pubnub "github.com/pubnub/go/v8"
+	"github.com/pubnub/go/v8/tests/stubs"
 	"github.com/stretchr/testify/assert"
 
 	"net/http"

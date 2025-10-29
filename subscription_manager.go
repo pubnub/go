@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pubnub/go/v7/crypto"
+	"github.com/pubnub/go/v8/crypto"
 )
 
 // SubscriptionManager Events:

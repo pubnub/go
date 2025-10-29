@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 	"github.com/stretchr/testify/assert"
 )
 

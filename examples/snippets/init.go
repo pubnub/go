@@ -1,7 +1,7 @@
 package main
 
 import (
-	pubnub "github.com/pubnub/go/v7"
+	pubnub "github.com/pubnub/go/v8"
 )
 
 func initPubNub() *pubnub.PubNub {
