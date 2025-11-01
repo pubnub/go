@@ -276,18 +276,6 @@ func newHereNowResponse(jsonBytes []byte, channelNames []string,
 						resp.Channels = channels
 
 						return resp, status, nil
-					} else if len(val) == 1 {
-						resp.TotalChannels = 1
-
-						if totalOcc, ok := parsedPayload["total_occupancy"].(float64); ok {
-							resp.TotalOccupancy = int(totalOcc)
-						}
-
-						resp.Channels = append(resp.Channels, HereNowChannelData{
-							channelNames[0], 1, []HereNowOccupantsData{},
-						})
-
-						return resp, status, nil
 					} else {
 						if totalCh, ok := parsedValue["total_channels"].(float64); ok {
 							resp.TotalChannels = int(totalCh)
@@ -392,27 +380,19 @@ func parseChannelData(channelName string, rawData interface{}) HereNowChannelDat
 				for _, user := range parsedUUIDs {
 					if u, ok := user.(map[string]interface{}); ok {
 						if len(u) > 0 {
+							occData := HereNowOccupantsData{}
+
+							if uuid, ok := u["uuid"].(string); ok {
+								occData.UUID = uuid
+							}
+
 							if _, ok := u["state"]; ok {
-								occData := HereNowOccupantsData{}
-
-								if uuid, ok := u["uuid"].(string); ok {
-									occData.UUID = uuid
-								}
-
 								if state, ok := u["state"].(map[string]interface{}); ok {
 									occData.State = state
 								}
-
-								occupants = append(occupants, occData)
-							} else {
-								occData := HereNowOccupantsData{}
-
-								if uuid, ok := u["uuid"].(string); ok {
-									occData.UUID = uuid
-								}
-
-								occupants = append(occupants, occData)
 							}
+
+							occupants = append(occupants, occData)
 						}
 					} else {
 						empty := make(map[string]interface{})
