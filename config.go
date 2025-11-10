@@ -42,7 +42,8 @@ type Config struct {
 	MaximumLatencyDataAge        int                // Max time to store the latency data for telemetry
 	FilterExpression             string             // Feature to subscribe with a custom filter expression.
 	PNReconnectionPolicy         ReconnectionPolicy // Reconnection policy selection
-	Log                          *log.Logger        // Logger instance
+	Log                          *log.Logger        // Deprecated: Logger instance. Use Loggers instead for enhanced logging.
+	Loggers                      []PNLogger         // Custom loggers for enhanced logging. If empty, no logging will occur unless the deprecated Log field is set.
 	SuppressLeaveEvents          bool               // When true the SDK doesn't send out the leave requests.
 	DisablePNOtherProcessing     bool               // PNOther processing looks for pn_other in the JSON on the recevied message
 	UseHTTP2                     bool               // HTTP2 Flag

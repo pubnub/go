@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"runtime"
 	"sync"
+	"time"
 
 	"github.com/pubnub/go/v8/crypto"
 
@@ -71,6 +73,8 @@ type PubNub struct {
 	subscriptionManager  *SubscriptionManager
 	telemetryManager     *TelemetryManager
 	heartbeatManager     *HeartbeatManager
+	loggerManager        *loggerManager
+	instanceID           string
 	client               *http.Client
 	subscribeClient      *http.Client
 	requestWorkers       *RequestWorkers
@@ -783,16 +787,47 @@ func GenerateUUID() string {
 	return utils.UUID()
 }
 
+// generateShortInstanceID generates a short random instance ID (8 characters).
+// Uses alphanumeric characters for readability in logs.
+func generateShortInstanceID() string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	const length = 8
+
+	// Create a local random source seeded with current time
+	// This works in all Go versions without deprecation warnings
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		result[i] = charset[r.Intn(len(charset))]
+	}
+
+	return string(result)
+}
+
 // NewPubNub instantiates a PubNub instance with default values.
 func NewPubNub(pnconf *Config) *PubNub {
 	ctx, cancel := contextWithCancel(backgroundContext)
 
+	utils.CheckUUID(pnconf.UUID)
+
+	// Generate short random instance ID for logging
+	instanceID := generateShortInstanceID()
+
+	// Initialize logger manager
+	loggerMgr := newLoggerManager(instanceID, pnconf.Loggers)
+
 	if pnconf.Log == nil {
 		pnconf.Log = log.New(io.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+	} else {
+		// For backward compatibility, if old logger is provided, we bridge it to the new logger manager
+		// Use Warn level - minimal logging (warnings and errors only)
+		defaultLogger := NewDefaultLoggerWithWriter(PNLogLevelWarn, pnconf.Log.Writer())
+		loggerMgr.AddLogger(defaultLogger)
 	}
+
 	pnconf.Log.Println(fmt.Sprintf("PubNub Go v7 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
 
-	utils.CheckUUID(pnconf.UUID)
 	pn := &PubNub{
 		Config:              pnconf,
 		nextPublishSequence: 0,
@@ -800,6 +835,8 @@ func NewPubNub(pnconf *Config) *PubNub {
 		cancel:              cancel,
 		previousIvFlag:      pnconf.UseRandomInitializationVector,
 		previousCipherKey:   pnconf.CipherKey,
+		loggerManager:       loggerMgr,
+		instanceID:          instanceID,
 	}
 
 	if pnconf.CipherKey != "" {
