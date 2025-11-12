@@ -74,9 +74,26 @@ func (b *listPushProvisionsRequestBuilder) QueryParam(queryParam map[string]stri
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *listPushProvisionsRequestOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"PushType":        o.PushType,
+		"DeviceIDForPush": o.DeviceIDForPush,
+	}
+	if o.Topic != "" {
+		params["Topic"] = o.Topic
+	}
+	if o.Environment != "" {
+		params["Environment"] = o.Environment
+	}
+	return params
+}
+
 // Execute runs the List Push Provisions request.
 func (b *listPushProvisionsRequestBuilder) Execute() (
 	*ListPushProvisionsRequestResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNPushNotificationsEnabledChannelsOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyListPushProvisionsRequestResponse, status, err

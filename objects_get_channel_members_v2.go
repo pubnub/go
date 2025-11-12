@@ -100,8 +100,33 @@ func (b *getChannelMembersBuilderV2) Transport(tr http.RoundTripper) *getChannel
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *getChannelMembersOptsV2) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel": o.Channel,
+		"Limit":   o.Limit,
+		"Include": o.Include,
+		"Count":   o.Count,
+	}
+	if o.Start != "" {
+		params["Start"] = o.Start
+	}
+	if o.End != "" {
+		params["End"] = o.End
+	}
+	if o.Filter != "" {
+		params["Filter"] = o.Filter
+	}
+	if len(o.Sort) > 0 {
+		params["Sort"] = o.Sort
+	}
+	return params
+}
+
 // Execute runs the getChannelMembers request.
 func (b *getChannelMembersBuilderV2) Execute() (*PNGetChannelMembersResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetChannelMembersOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGetChannelMembersResponse, status, err

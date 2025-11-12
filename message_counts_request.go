@@ -70,8 +70,24 @@ func (b *messageCountsBuilder) Transport(tr http.RoundTripper) *messageCountsBui
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *messageCountsOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channels": o.Channels,
+	}
+	if o.Timetoken != 0 {
+		params["Timetoken"] = o.Timetoken
+	}
+	if len(o.ChannelsTimetoken) > 0 {
+		params["ChannelsTimetoken"] = o.ChannelsTimetoken
+	}
+	return params
+}
+
 // Execute runs the MessageCounts request.
 func (b *messageCountsBuilder) Execute() (*MessageCountsResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNMessageCountsOperation, b.opts.GetLogParams(), true)
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyMessageCountsResp, status, err
@@ -180,7 +196,7 @@ func newMessageCountsResponse(jsonBytes []byte, o *messageCountsOpts,
 	}
 
 	if result, ok := value.(map[string]interface{}); ok {
-		o.pubnub.Config.Log.Println(result["channels"])
+		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("MessageCounts: channels=%v", result["channels"]), false)
 		if channels, ok1 := result["channels"].(map[string]interface{}); ok1 {
 			if channels != nil {
 				resp.Channels = make(map[string]int)
@@ -188,13 +204,13 @@ func newMessageCountsResponse(jsonBytes []byte, o *messageCountsOpts,
 					resp.Channels[ch] = int(v.(float64))
 				}
 			} else {
-				o.pubnub.Config.Log.Printf("type assertion to map failed %v\n", result)
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("MessageCounts: type assertion to map failed: %v", result), false)
 			}
 		} else {
-			o.pubnub.Config.Log.Println("Assertion failed", reflect.TypeOf(result["channels"]))
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("MessageCounts: assertion failed, type=%v", reflect.TypeOf(result["channels"])), false)
 		}
 	} else {
-		o.pubnub.Config.Log.Printf("type assertion to map failed %v\n", value)
+		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("MessageCounts: type assertion to map failed: %v", value), false)
 	}
 
 	return resp, status, nil

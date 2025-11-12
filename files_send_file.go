@@ -127,8 +127,32 @@ func (b *sendFileBuilder) UseRawMessage(useRawMessage bool) *sendFileBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *sendFileOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel":     o.Channel,
+		"Name":        o.Name,
+		"TTL":         o.TTL,
+		"ShouldStore": o.ShouldStore,
+	}
+	if o.Message != nil {
+		msgStr := fmt.Sprintf("%v", o.Message)
+		if len(msgStr) > 100 {
+			params["Message"] = msgStr[:100] + "... (truncated)"
+		} else {
+			params["Message"] = msgStr
+		}
+	}
+	if o.Meta != nil {
+		params["Meta"] = fmt.Sprintf("%v", o.Meta)
+	}
+	return params
+}
+
 // Execute runs the sendFile request.
 func (b *sendFileBuilder) Execute() (*PNSendFileResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSendFileOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptySendFileResponse, status, err
@@ -213,7 +237,7 @@ func (o *sendFileOpts) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(b)
 
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "SendFileBodySerializationFailed", PNSendFileOperation, true)
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil
@@ -273,7 +297,7 @@ func newPNSendFileResponse(jsonBytes []byte, o *sendFileOpts,
 	}
 	_, s3ResponseStatus, errS3Response := s.File(o.File).CipherKey(o.CipherKey).FileUploadRequestData(respForS3.FileUploadRequest).Execute()
 	if s3ResponseStatus.StatusCode != 204 {
-		o.pubnub.Config.Log.Printf("s3ResponseStatus: %d", s3ResponseStatus.StatusCode)
+		o.pubnub.loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("Send file: S3 upload unexpected status=%d", s3ResponseStatus.StatusCode), false)
 		return emptySendFileResponse, s3ResponseStatus, errS3Response
 	}
 

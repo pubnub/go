@@ -177,6 +177,19 @@ const (
 	PNExponentialPolicy
 )
 
+func (p ReconnectionPolicy) String() string {
+	switch p {
+	case PNNonePolicy:
+		return "None"
+	case PNLinearPolicy:
+		return "Linear"
+	case PNExponentialPolicy:
+		return "Exponential"
+	default:
+		return "Unknown"
+	}
+}
+
 const (
 	// PNMessageTypeSignal is to identify Signal the Subscribe response
 	PNMessageTypeSignal PNMessageType = 1 + iota

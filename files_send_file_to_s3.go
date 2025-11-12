@@ -124,7 +124,7 @@ func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multip
 	writer := multipart.NewWriter(&fileBody)
 
 	for _, v := range o.FileUploadRequestData.FormFields {
-		o.pubnub.Config.Log.Printf("FormFields: Key: %s Value: %s\n", v.Key, v.Value)
+		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("File upload: form field %s=%s", v.Key, v.Value), false)
 		if v.Key == "Content-Type" {
 			v.Value = contentType
 		}
@@ -134,7 +134,7 @@ func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multip
 	filePart, errFilePart := writer.CreateFormFile("file", fileInfo.Name())
 
 	if errFilePart != nil {
-		o.pubnub.Config.Log.Printf("ERROR: writer CreateFormFile: %s\n", errFilePart.Error())
+		o.pubnub.loggerManager.LogError(errFilePart, "FileUploadCreateFormFileFailed", PNSendFileToS3Operation, true)
 		return bytes.Buffer{}, writer, s, errFilePart
 	}
 
@@ -142,7 +142,7 @@ func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multip
 		_, errIOCopy := io.Copy(filePart, o.File)
 
 		if errIOCopy != nil {
-			o.pubnub.Config.Log.Printf("ERROR: io Copy error: %s\n", errIOCopy.Error())
+			o.pubnub.loggerManager.LogError(errIOCopy, "FileUploadCopyFailed", PNSendFileToS3Operation, true)
 			return bytes.Buffer{}, writer, s, errIOCopy
 		}
 	} else {
@@ -152,21 +152,21 @@ func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multip
 		if o.CipherKey != "" {
 			cryptoModule, e = crypto.NewLegacyCryptoModule(o.CipherKey, true)
 			if e != nil {
-				o.pubnub.Config.Log.Printf("ERROR: %s\n", e.Error())
+				o.pubnub.loggerManager.LogError(e, "FileUploadCryptoModuleInitFailed", PNSendFileToS3Operation, true)
 				return bytes.Buffer{}, writer, s, e
 			}
 		}
 
 		e = encryptStreamAndCopyTo(cryptoModule, o.File, filePart)
 		if e != nil {
-			o.pubnub.Config.Log.Printf("ERROR: %s\n", e.Error())
+			o.pubnub.loggerManager.LogError(e, "FileUploadEncryptionFailed", PNSendFileToS3Operation, true)
 			return bytes.Buffer{}, writer, s, e
 		}
 	}
 
 	errWriterClose := writer.Close()
 	if errWriterClose != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Writer close: %s\n", errWriterClose.Error())
+		o.pubnub.loggerManager.LogError(errWriterClose, "FileUploadWriterCloseFailed", PNSendFileToS3Operation, true)
 		return bytes.Buffer{}, writer, s, errWriterClose
 	}
 
@@ -198,7 +198,7 @@ func newPNSendFileToS3Response(jsonBytes []byte, o *sendFileToS3Opts,
 
 		return emptySendFileToS3Response, status, e
 	}
-	o.pubnub.Config.Log.Printf("newPNSendFileToS3Response status.StatusCode==> %d", status.StatusCode)
+	o.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("File upload to S3 completed: status=%d", status.StatusCode), false)
 
 	return resp, status, nil
 }

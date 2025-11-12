@@ -53,12 +53,23 @@ func (b *whereNowBuilder) Transport(tr http.RoundTripper) *whereNowBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *whereNowOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{}
+	if o.UUID != "" {
+		params["UUID"] = o.UUID
+	}
+	return params
+}
+
 // Execute runs the WhereNow request.
 func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
 	if len(b.opts.UUID) <= 0 {
 		b.opts.UUID = b.opts.pubnub.Config.UUID
 	}
 
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNWhereNowOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyWhereNowResponse, status, err

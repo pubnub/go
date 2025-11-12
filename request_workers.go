@@ -1,6 +1,9 @@
 package pubnub
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 type nonSubMsgType int
 
@@ -62,13 +65,13 @@ func (pw Worker) Process(pubnub *PubNub) {
 						Resp:  res,
 					}
 					job.JobResponse <- jqr
-					pubnub.Config.Log.Println("Request sent using worker id ", pw.id)
+					pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Request sent using worker id %d", pw.id), false)
 				}
 			case <-pw.ctx.Done():
-				pubnub.Config.Log.Println("Exiting Worker Process by worker ctx, id ", pw.id)
+				pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Exiting Worker Process by worker ctx, id %d", pw.id), false)
 				break ProcessLabel
 			case <-pubnub.ctx.Done():
-				pubnub.Config.Log.Println("Exiting Worker Process by PN ctx, id ", pw.id)
+				pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Exiting Worker Process by PN ctx, id %d", pw.id), false)
 				break ProcessLabel
 			}
 		}
@@ -77,10 +80,10 @@ func (pw Worker) Process(pubnub *PubNub) {
 
 // Start starts the workers
 func (p *RequestWorkers) Start(pubnub *PubNub, ctx Context) {
-	pubnub.Config.Log.Println("Start: Running with workers ", p.MaxWorkers)
+	pubnub.loggerManager.LogSimple(PNLogLevelInfo, fmt.Sprintf("Starting request workers: count=%d", p.MaxWorkers), false)
 	p.Workers = make([]Worker, p.MaxWorkers)
 	for i := 0; i < p.MaxWorkers; i++ {
-		pubnub.Config.Log.Println("Start: StartNonSubWorker ", i)
+		pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Starting worker %d", i), false)
 		worker := newRequestWorkers(p.WorkersChannel, i, ctx)
 		worker.Process(pubnub)
 		p.Workers[i] = worker
@@ -91,13 +94,13 @@ func (p *RequestWorkers) Start(pubnub *PubNub, ctx Context) {
 // ReadQueue reads the queue and passes on the job to the workers
 func (p *RequestWorkers) ReadQueue(pubnub *PubNub) {
 	for job := range pubnub.jobQueue {
-		pubnub.Config.Log.Println("ReadQueue: Got job for channel ", job.Req)
+		pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Worker queue received job: %s %s", job.Req.Method, job.Req.URL.String()), false)
 		go func(job *JobQItem) {
 			jobChannel := <-p.WorkersChannel
 			jobChannel <- job
 		}(job)
 	}
-	pubnub.Config.Log.Println("ReadQueue: Exit")
+	pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Worker queue exiting", false)
 }
 
 // Close closes the workers

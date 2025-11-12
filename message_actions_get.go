@@ -71,8 +71,25 @@ func (b *getMessageActionsBuilder) Transport(tr http.RoundTripper) *getMessageAc
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *getMessageActionsOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel": o.Channel,
+		"Limit":   o.Limit,
+	}
+	if o.Start != "" {
+		params["Start"] = o.Start
+	}
+	if o.End != "" {
+		params["End"] = o.End
+	}
+	return params
+}
+
 // Execute runs the getMessageActions request.
 func (b *getMessageActionsBuilder) Execute() (*PNGetMessageActionsResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetMessageActionsOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGetMessageActionsResponse, status, err

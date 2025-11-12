@@ -64,8 +64,19 @@ func (b *removeMessageActionsBuilder) Transport(tr http.RoundTripper) *removeMes
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *removeMessageActionsOpts) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{
+		"Channel":          o.Channel,
+		"MessageTimetoken": o.MessageTimetoken,
+		"ActionTimetoken":  o.ActionTimetoken,
+	}
+}
+
 // Execute runs the removeMessageActions request.
 func (b *removeMessageActionsBuilder) Execute() (*PNRemoveMessageActionsResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemoveMessageActionsOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNRemoveMessageActionsResponse, status, err

@@ -75,9 +75,23 @@ func (b *getStateBuilder) Transport(
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *getStateOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channels":      o.Channels,
+		"ChannelGroups": o.ChannelGroups,
+	}
+	if o.UUID != "" {
+		params["UUID"] = o.UUID
+	}
+	return params
+}
+
 // Execute runs the the Get State request.
 func (b *getStateBuilder) Execute() (
 	*GetStateResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetStateOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGetStateResp, status, err

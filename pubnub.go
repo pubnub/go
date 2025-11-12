@@ -728,45 +728,43 @@ func (pn *PubNub) PublishFileMessageWithContext(ctx Context) *publishFileMessage
 
 // Destroy stops all open requests, removes listeners, closes heartbeats, and cleans up.
 func (pn *PubNub) Destroy() {
-	pn.Config.Log.Println("Calling Destroy")
+	pn.loggerManager.LogSimple(PNLogLevelInfo, "Destroying PubNub instance", false)
 	pn.UnsubscribeAll()
 	pn.cancel()
 
 	if pn.subscriptionManager != nil {
 		pn.subscriptionManager.Destroy()
-		pn.Config.Log.Println("after subscription manager Destroy")
+		pn.loggerManager.LogSimple(PNLogLevelTrace, "Subscription manager destroyed", false)
 	}
 
-	pn.Config.Log.Println("calling subscriptionManager Destroy")
 	if pn.heartbeatManager != nil {
 		pn.heartbeatManager.Destroy()
-		pn.Config.Log.Println("after heartbeat manager Destroy")
+		pn.loggerManager.LogSimple(PNLogLevelTrace, "Heartbeat manager destroyed", false)
 	}
 
-	pn.Config.Log.Println("After Destroy")
-	pn.Config.Log.Println("calling RemoveAllListeners")
 	pn.subscriptionManager.RemoveAllListeners()
-	pn.Config.Log.Println("after RemoveAllListeners")
+	pn.loggerManager.LogSimple(PNLogLevelTrace, "All listeners removed", false)
 
 	// Check if jobQueue is already closed before attempting to close it
 	select {
 	case _, ok := <-pn.jobQueue:
 		if !ok {
-			pn.Config.Log.Println("jobQueue is already closed")
+			pn.loggerManager.LogSimple(PNLogLevelTrace, "Job queue already closed", false)
 			break
 		}
 		// If the channel is open, proceed to close it
 		close(pn.jobQueue)
-		pn.Config.Log.Println("after close jobQueue")
+		pn.loggerManager.LogSimple(PNLogLevelTrace, "Job queue closed", false)
 	default:
 		// If the channel is closed, no action is needed
-		pn.Config.Log.Println("jobQueue is already closed")
+		pn.loggerManager.LogSimple(PNLogLevelTrace, "Job queue already closed", false)
 	}
 
 	pn.requestWorkers.Close()
-	pn.Config.Log.Println("after close requestWorkers")
+	pn.loggerManager.LogSimple(PNLogLevelTrace, "Request workers closed", false)
 	pn.tokenManager.CleanUp()
 	pn.client.CloseIdleConnections()
+	pn.loggerManager.LogSimple(PNLogLevelInfo, "PubNub instance destroyed", false)
 
 }
 
@@ -826,7 +824,14 @@ func NewPubNub(pnconf *Config) *PubNub {
 		loggerMgr.AddLogger(defaultLogger)
 	}
 
-	pnconf.Log.Println(fmt.Sprintf("PubNub Go v7 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
+	// Log SDK initialization with masked config
+	loggerMgr.LogSimple(PNLogLevelInfo, fmt.Sprintf("PubNub Go SDK v%s initialized\nGo: %s %s/%s\n%s",
+		Version, runtime.Version(), runtime.GOOS, runtime.GOARCH, pnconf.GetLogString()), false)
+
+	// Log any validation warnings from config setup
+	for _, warning := range pnconf.validationWarnings {
+		loggerMgr.LogSimple(PNLogLevelWarn, fmt.Sprintf("Config validation: %s", warning), false)
+	}
 
 	pn := &PubNub{
 		Config:              pnconf,
@@ -859,7 +864,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 func (pn *PubNub) newNonSubQueueProcessor(maxWorkers int, ctx Context) *RequestWorkers {
 	workers := make(chan chan *JobQItem, maxWorkers)
 
-	pn.Config.Log.Printf("Init RequestWorkers: workers %d", maxWorkers)
+	pn.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Initializing request workers: %d workers", maxWorkers), false)
 
 	p := &RequestWorkers{
 		WorkersChannel: workers,

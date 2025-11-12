@@ -106,8 +106,58 @@ func (b *grantTokenBuilder) QueryParam(queryParam map[string]string) *grantToken
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *grantTokenOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{}
+	if len(o.AuthKeys) > 0 {
+		params["AuthKeys"] = o.AuthKeys
+	}
+	if len(o.Channels) > 0 {
+		channelNames := make([]string, 0, len(o.Channels))
+		for k := range o.Channels {
+			channelNames = append(channelNames, k)
+		}
+		params["Channels"] = channelNames
+	}
+	if len(o.ChannelGroups) > 0 {
+		groupNames := make([]string, 0, len(o.ChannelGroups))
+		for k := range o.ChannelGroups {
+			groupNames = append(groupNames, k)
+		}
+		params["ChannelGroups"] = groupNames
+	}
+	if len(o.UUIDs) > 0 {
+		uuidNames := make([]string, 0, len(o.UUIDs))
+		for k := range o.UUIDs {
+			uuidNames = append(uuidNames, k)
+		}
+		params["UUIDs"] = uuidNames
+	}
+	if len(o.ChannelsPattern) > 0 {
+		params["ChannelsPattern"] = fmt.Sprintf("(%d patterns)", len(o.ChannelsPattern))
+	}
+	if len(o.ChannelGroupsPattern) > 0 {
+		params["ChannelGroupsPattern"] = fmt.Sprintf("(%d patterns)", len(o.ChannelGroupsPattern))
+	}
+	if len(o.UUIDsPattern) > 0 {
+		params["UUIDsPattern"] = fmt.Sprintf("(%d patterns)", len(o.UUIDsPattern))
+	}
+	if o.AuthorizedUUID != "" {
+		params["AuthorizedUUID"] = o.AuthorizedUUID
+	}
+	if o.setTTL {
+		params["TTL"] = o.TTL
+	}
+	if o.Meta != nil {
+		params["Meta"] = fmt.Sprintf("%v", o.Meta)
+	}
+	return params
+}
+
 // Execute runs the Grant request.
 func (b *grantTokenBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerGrantToken, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGrantTokenResponse, status, err
@@ -212,6 +262,8 @@ func (b *grantTokenObjectsBuilder) QueryParam(queryParam map[string]string) *gra
 
 // Execute runs the Grant request.
 func (b *grantTokenObjectsBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerGrantToken, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGrantTokenResponse, status, err
@@ -286,6 +338,8 @@ func (b *grantTokenEntitiesBuilder) QueryParam(queryParam map[string]string) *gr
 
 // Execute runs the Grant request.
 func (b *grantTokenEntitiesBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerGrantToken, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGrantTokenResponse, status, err
@@ -363,7 +417,7 @@ func (o *grantTokenOpts) setBitmask(value bool, bitmask PNGrantBitMask, bm int64
 	if value {
 		bm |= int64(bitmask)
 	}
-	o.pubnub.Config.Log.Println(fmt.Sprintf("bmVal: %t %d %d", value, bitmask, bm))
+	o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: bitmask value=%t, mask=%d, result=%d", value, bitmask, bm), false)
 	return bm
 }
 
@@ -384,7 +438,7 @@ func (o *grantTokenOpts) parseResourcePermissions(resource interface{}, resource
 				bmVal = o.setBitmask(v.Update, PNUpdate, bmVal)
 				bmVal = o.setBitmask(v.Manage, PNManage, bmVal)
 				bmVal = o.setBitmask(v.Get, PNGet, bmVal)
-				o.pubnub.Config.Log.Println("bmVal ChannelPermissions:", bmVal)
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: channel permissions bitmask=%d", bmVal), false)
 				r[k] = bmVal
 			}
 			return r
@@ -400,7 +454,7 @@ func (o *grantTokenOpts) parseResourcePermissions(resource interface{}, resource
 				bmVal = int64(0)
 				bmVal = o.setBitmask(v.Read, PNRead, bmVal)
 				bmVal = o.setBitmask(v.Manage, PNManage, bmVal)
-				o.pubnub.Config.Log.Println("bmVal GroupPermissions:", bmVal)
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: group permissions bitmask=%d", bmVal), false)
 				r[k] = bmVal
 			}
 			return r
@@ -417,7 +471,7 @@ func (o *grantTokenOpts) parseResourcePermissions(resource interface{}, resource
 				bmVal = o.setBitmask(v.Get, PNGet, bmVal)
 				bmVal = o.setBitmask(v.Update, PNUpdate, bmVal)
 				bmVal = o.setBitmask(v.Delete, PNDelete, bmVal)
-				o.pubnub.Config.Log.Println("bmVal UUIDPermissions:", bmVal)
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: UUID permissions bitmask=%d", bmVal), false)
 				r[k] = bmVal
 			}
 			return r
@@ -464,7 +518,7 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 		AuthorizedUUID: o.AuthorizedUUID,
 	}
 
-	o.pubnub.Config.Log.Println("permissions: ", permissions)
+	o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: permissions=%+v", permissions), false)
 
 	ttl := -1
 	if o.setTTL {
@@ -481,7 +535,7 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(b)
 
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "GrantTokenSerializationFailed", PNAccessManagerGrantToken, true)
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil

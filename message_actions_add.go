@@ -70,8 +70,19 @@ func (b *addMessageActionsBuilder) Transport(tr http.RoundTripper) *addMessageAc
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *addMessageActionsOpts) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{
+		"Channel":          o.Channel,
+		"MessageTimetoken": o.MessageTimetoken,
+		"Action":           fmt.Sprintf("%v", o.Action),
+	}
+}
+
 // Execute runs the addMessageActions request.
 func (b *addMessageActionsBuilder) Execute() (*PNAddMessageActionsResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAddMessageActionsOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNAddMessageActionsResponse, status, err
@@ -117,7 +128,7 @@ func (o *addMessageActionsOpts) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(o.Action)
 
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "AddMessageActionsSerializationFailed", PNAddMessageActionsOperation, true)
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil

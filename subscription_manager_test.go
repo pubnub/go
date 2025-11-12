@@ -23,7 +23,7 @@ func TestParseCipherInterfaceCipherWithCipher(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.UseRandomInitializationVector = false
 
-	intf, err := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, err := parseCipherInterface(s, pn)
 
 	assert.Nil(err)
 	assert.Equal("yay!", intf.(string))
@@ -36,7 +36,7 @@ func TestParseCipherInterfacePlainWithCipher(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	assert.Equal("yay!", intf.(string))
 }
@@ -48,7 +48,7 @@ func TestParseCipherInterfaceCipherWithDiffCipher(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "test"
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	assert.Equal("Wi24KS4pcTzvyuGOHubiXg==", intf.(string))
 
@@ -61,7 +61,7 @@ func TestParseCipherInterfacePlainWithDiffCipher(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "test"
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	assert.Equal("yay!", intf.(string))
 }
@@ -73,7 +73,7 @@ func TestParseCipherInterfaceCipherWithoutCipher(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = ""
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	assert.Equal("Wi24KS4pcTzvyuGOHubiXg==", intf.(string))
 }
@@ -85,7 +85,7 @@ func TestParseCipherInterfacePlainWithoutCipher(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = ""
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	assert.Equal("yay!", intf.(string))
 }
@@ -100,7 +100,7 @@ func TestParseCipherInterfacePlainWithCipherStruct(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
 
-	intf, err := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, err := parseCipherInterface(s, pn)
 
 	assert.Nil(err)
 	if msg, ok := intf.(customStruct); !ok {
@@ -122,7 +122,7 @@ func TestParseCipherInterfacePlainWithoutCipherStruct(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = ""
 
-	intf, err := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, err := parseCipherInterface(s, pn)
 
 	assert.Nil(err)
 	if msg, ok := intf.(customStruct); !ok {
@@ -149,7 +149,7 @@ func TestParseCipherInterfacePlainWithCipherMapPNOther(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "enigma"
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("12345", msg["not_other"])
@@ -175,7 +175,7 @@ func TestParseCipherInterfacePlainWithoutCipherMapPNOther(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = ""
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("12345", msg["not_other"])
@@ -197,7 +197,7 @@ func TestParseCipherInterfaceCipherWithoutCipherStringPNOther(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = ""
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
@@ -220,7 +220,7 @@ func TestParseCipherInterfaceCipherWithCipherStringPNOther(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.UseRandomInitializationVector = false
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
@@ -239,7 +239,7 @@ func TestParseCipherInterfaceCipherWithoutCipherStruct(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.UseRandomInitializationVector = false
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 	msg := intf.(map[string]interface{})
 	assert.Equal("hi!", msg["Foo"])
 
@@ -257,7 +257,7 @@ func TestParseCipherInterfaceCipherWithCipherStructPNOther(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.UseRandomInitializationVector = false
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
@@ -279,7 +279,7 @@ func TestParseCipherInterfaceCipherWithOtherCipherStructPNOther(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.CipherKey = "test"
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
@@ -299,7 +299,7 @@ func TestParseCipherInterfaceCipherWithCipherStructPNOtherDisable(t *testing.T) 
 	pn.Config.UseRandomInitializationVector = false
 	pn.Config.CipherKey = "enigma"
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	msg := intf.(map[string]interface{})
 	assert.Equal("1234", msg["not_other"])
@@ -315,7 +315,7 @@ func TestParseCipherInterfaceCipherWithIntSlice(t *testing.T) {
 	pn.Config.DisablePNOtherProcessing = true
 	pn.Config.CipherKey = ""
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 
 	msg := intf.([]int)
 	assert.Equal(1, msg[0])
@@ -330,7 +330,7 @@ func TestParseCipherInterfaceCipherWithoutCipherStruct2(t *testing.T) {
 	pn.Config.CipherKey = "enigma"
 	pn.Config.UseRandomInitializationVector = false
 
-	intf, _ := parseCipherInterface(s, pn.Config, pn.getCryptoModule())
+	intf, _ := parseCipherInterface(s, pn)
 	msg := intf.(map[string]interface{})
 	assert.Equal("12345", msg["not_other"])
 	if msgOther, ok := msg["pn_other"].(map[string]interface{}); !ok {
@@ -618,7 +618,7 @@ func TestDecryptionProcessOnEncryptedMessage(t *testing.T) {
 	pn.Config.CryptoModule = crypto
 
 	// Rust generated cipher text
-	result, err := parseCipherInterface("UE5FRAFBQ1JIEALf+E65kseYJwTw2J6BUk9MePHiCcBCS+8ykXLkBIOA", pn.Config, pn.getCryptoModule())
+	result, err := parseCipherInterface("UE5FRAFBQ1JIEALf+E65kseYJwTw2J6BUk9MePHiCcBCS+8ykXLkBIOA", pn)
 
 	assert.Nil(err)
 	assert.Equal("test", result)
@@ -633,7 +633,7 @@ func TestDecryptionProcessOnNoEncryptedMessage(t *testing.T) {
 
 	pn.Config.CryptoModule = crypto
 
-	result, err := parseCipherInterface("test", pn.Config, pn.getCryptoModule())
+	result, err := parseCipherInterface("test", pn)
 
 	assert.NotNil(err)
 	assert.Equal("test", result)

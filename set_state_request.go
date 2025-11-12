@@ -65,8 +65,25 @@ func (b *setStateBuilder) UUID(uuid string) *setStateBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *setStateOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channels":      o.Channels,
+		"ChannelGroups": o.ChannelGroups,
+	}
+	if o.UUID != "" {
+		params["UUID"] = o.UUID
+	}
+	if o.State != nil {
+		params["State"] = fmt.Sprintf("%v", o.State)
+	}
+	return params
+}
+
 // Execute runs the the Set State request and returns the SetStateResponse
 func (b *setStateBuilder) Execute() (*SetStateResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSetStateOperation, b.opts.GetLogParams(), true)
+	
 	stateOperation := StateOperation{}
 	stateOperation.channels = b.opts.Channels
 	stateOperation.channelGroups = b.opts.ChannelGroups

@@ -106,8 +106,24 @@ func (b *setChannelMembersBuilder) Transport(tr http.RoundTripper) *setChannelMe
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *setChannelMembersOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel": o.Channel,
+		"Limit":   o.Limit,
+		"Include": o.Include,
+		"Count":   o.Count,
+	}
+	if len(o.ChannelMembersSet) > 0 {
+		params["ChannelMembersSet"] = fmt.Sprintf("(%d members)", len(o.ChannelMembersSet))
+	}
+	return params
+}
+
 // Execute runs the setChannelMembers request.
 func (b *setChannelMembersBuilder) Execute() (*PNSetChannelMembersResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSetChannelMembersOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptySetChannelMembersResponse, status, err
@@ -204,7 +220,7 @@ func (o *setChannelMembersOpts) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(b)
 
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "SetChannelMembersSerializationFailed", PNSetChannelMembersOperation, true)
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil

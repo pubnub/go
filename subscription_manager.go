@@ -3,14 +3,13 @@ package pubnub
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/pubnub/go/v8/crypto"
 )
 
 // SubscriptionManager Events:
@@ -128,7 +127,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 				Category:              PNReconnectedCategory,
 			}
 
-			pubnub.Config.Log.Println("Status: ", pnStatus)
+			pubnub.loggerManager.LogSimple(PNLogLevelInfo, "Subscription reconnected", false)
 
 			manager.listenerManager.announceStatus(pnStatus)
 		})
@@ -144,7 +143,7 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 			AffectedChannelGroups: combinedGroups,
 			Category:              PNReconnectionAttemptsExhausted,
 		}
-		pubnub.Config.Log.Println("Status: ", pnStatus)
+		pubnub.loggerManager.LogSimple(PNLogLevelWarn, "Reconnection attempts exhausted", false)
 
 		manager.listenerManager.announceStatus(pnStatus)
 
@@ -198,8 +197,7 @@ func (m *SubscriptionManager) adaptState(stateOperation StateOperation) {
 func (m *SubscriptionManager) adaptSubscribe(
 	subscribeOperation *SubscribeOperation) {
 	m.stateManager.adaptSubscribeOperation(subscribeOperation)
-	m.pubnub.Config.Log.Println("adapting a new subscription", subscribeOperation.Channels,
-		subscribeOperation.PresenceEnabled)
+	m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Adapting subscription: channels=%v, presence=%v", subscribeOperation.Channels, subscribeOperation.PresenceEnabled), false)
 
 	m.Lock()
 
@@ -223,9 +221,8 @@ func (m *SubscriptionManager) adaptSubscribe(
 
 func (m *SubscriptionManager) adaptUnsubscribe(
 	unsubscribeOperation *UnsubscribeOperation) {
-	m.pubnub.Config.Log.Println("before adaptUnsubscribeOperation")
+	m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Unsubscribing: channels=%v, groups=%v", unsubscribeOperation.Channels, unsubscribeOperation.ChannelGroups), false)
 	m.stateManager.adaptUnsubscribeOperation(unsubscribeOperation)
-	m.pubnub.Config.Log.Println("after adaptUnsubscribeOperation")
 
 	m.Lock()
 	m.subscriptionStateAnnounced = false
@@ -246,7 +243,7 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 					AffectedChannels:      unsubscribeOperation.Channels,
 					AffectedChannelGroups: unsubscribeOperation.ChannelGroups,
 				}
-				m.pubnub.Config.Log.Println("Leave: err", err, pnStatus)
+				m.pubnub.loggerManager.LogError(err, "LeaveFailed", PNUnsubscribeOperation, true)
 				m.listenerManager.announceStatus(pnStatus)
 			} else {
 				announceAck = true
@@ -264,12 +261,10 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 				AffectedChannels:      unsubscribeOperation.Channels,
 				AffectedChannelGroups: unsubscribeOperation.ChannelGroups,
 			}
-			m.pubnub.Config.Log.Println("Leave: ack", pnStatus)
+			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Leave acknowledged", false)
 			m.listenerManager.announceStatus(pnStatus)
-			m.pubnub.Config.Log.Println("After Leave: ack", pnStatus)
 		}
 	}()
-	m.pubnub.Config.Log.Println("before storedTimetoken reset")
 	m.Lock()
 	if m.stateManager.isEmpty() {
 		m.region = 0
@@ -280,25 +275,22 @@ func (m *SubscriptionManager) adaptUnsubscribe(
 		m.timetoken = 0
 	}
 	m.Unlock()
-	m.pubnub.Config.Log.Println("after storedTimetoken reset")
 
 	m.reconnect()
-	m.pubnub.Config.Log.Println("after reconnect")
 }
 
 func (m *SubscriptionManager) startSubscribeLoop() {
-	m.pubnub.Config.Log.Println("startSubscribeLoop")
+	m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Starting subscribe loop", false)
 	go subscribeMessageWorker(m)
 
 	go m.reconnectionManager.startPolling()
 
 	for {
-		m.pubnub.Config.Log.Println("startSubscribeLoop looping...")
 		combinedChannels := m.stateManager.prepareChannelList(true)
 		combinedGroups := m.stateManager.prepareGroupList(true)
 
 		if len(combinedChannels) == 0 && len(combinedGroups) == 0 {
-			m.pubnub.Config.Log.Println("no channels left to subscribe")
+			m.pubnub.loggerManager.LogSimple(PNLogLevelInfo, "No channels left to subscribe, disconnecting", false)
 			m.listenerManager.announceStatus(&PNStatus{
 				Category: PNDisconnectedCategory,
 			})
@@ -332,13 +324,12 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 
 		res, _, err := executeRequest(opts)
 		if err != nil {
-			m.pubnub.Config.Log.Println(err.Error())
+			m.pubnub.loggerManager.LogError(err, "SubscribeRequestFailed", PNSubscribeOperation, true)
 
 			if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "request canceled") {
 				m.listenerManager.announceStatus(&PNStatus{
 					Category: PNTimeoutCategory,
 				})
-				m.pubnub.Config.Log.Println("continue")
 				continue
 			} else {
 
@@ -346,16 +337,15 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					pnStatus := &PNStatus{
 						Category: PNCancelledCategory,
 					}
-					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Subscribe context canceled", false)
 					m.listenerManager.announceStatus(pnStatus)
-					m.pubnub.Config.Log.Println("context canceled")
 					break
 				} else if strings.Contains(err.Error(), "Forbidden") ||
 					strings.Contains(err.Error(), "403") {
 					pnStatus := &PNStatus{
 						Category: PNAccessDeniedCategory,
 					}
-					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.pubnub.loggerManager.LogSimple(PNLogLevelError, "Subscribe: Access denied (403)", false)
 					m.listenerManager.announceStatus(pnStatus)
 					m.unsubscribeAll()
 					break
@@ -365,7 +355,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					pnStatus := &PNStatus{
 						Category: PNBadRequestCategory,
 					}
-					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.pubnub.loggerManager.LogSimple(PNLogLevelError, "Subscribe: Bad request (400)", false)
 					m.listenerManager.announceStatus(pnStatus)
 					m.unsubscribeAll()
 					break
@@ -373,7 +363,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					pnStatus := &PNStatus{
 						Category: PNNoStubMatchedCategory,
 					}
-					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.pubnub.loggerManager.LogSimple(PNLogLevelError, "Subscribe: No stub matched (530)", false)
 					m.listenerManager.announceStatus(pnStatus)
 					m.unsubscribeAll()
 					break
@@ -386,7 +376,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					pnStatus := &PNStatus{
 						Category: PNDisconnectedUnexpectedlyCategory,
 					}
-					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.pubnub.loggerManager.LogSimple(PNLogLevelError, "Subscribe: Disconnected unexpectedly (5xx)", false)
 					m.listenerManager.announceStatus(pnStatus)
 
 					break
@@ -394,7 +384,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					pnStatus := &PNStatus{
 						Category: PNUnknownCategory,
 					}
-					m.pubnub.Config.Log.Println("Status:", pnStatus)
+					m.pubnub.loggerManager.LogSimple(PNLogLevelError, "Subscribe: Unknown error", false)
 					m.listenerManager.announceStatus(pnStatus)
 
 					break
@@ -426,7 +416,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 				AffectedChannels:      combinedChannels,
 				AffectedChannelGroups: combinedGroups,
 			}
-			m.pubnub.Config.Log.Println("Unmarshal: err", err, pnStatus)
+			m.pubnub.loggerManager.LogError(err, "SubscribeUnmarshalFailed", PNSubscribeOperation, true)
 
 			m.listenerManager.announceStatus(pnStatus)
 		}
@@ -439,7 +429,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					AffectedChannelGroups: combinedGroups,
 					Category:              PNRequestMessageCountExceededCategory,
 				}
-				m.pubnub.Config.Log.Println("Status: ", pnStatus)
+				m.pubnub.loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("Message queue overflow: %d messages exceed limit of %d", messageCount, m.pubnub.Config.MessageQueueOverflowCount), false)
 
 				m.listenerManager.announceStatus(pnStatus)
 			}
@@ -465,7 +455,7 @@ func (m *SubscriptionManager) startSubscribeLoop() {
 					AffectedChannels:      combinedChannels,
 					AffectedChannelGroups: combinedGroups,
 				}
-				m.pubnub.Config.Log.Println("ParseInt: err", err, pnStatus)
+				m.pubnub.loggerManager.LogError(err, "TimetokenParseIntFailed", PNSubscribeOperation, true)
 				m.listenerManager.announceStatus(pnStatus)
 			}
 
@@ -522,44 +512,40 @@ type originationMetadata struct {
 func subscribeMessageWorker(m *SubscriptionManager) {
 	m.Lock()
 	if m.ctx == nil && m.subscribeCancel == nil {
-		m.pubnub.Config.Log.Println("subscribeMessageWorker setting context")
+		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: setting context", false)
 		m.ctx, m.subscribeCancel = contextWithCancel(backgroundContext)
-		m.pubnub.Config.Log.Println("subscribeMessageWorker after setting context")
 	}
 
-	m.pubnub.Config.Log.Println("subscribeMessageWorker")
+	m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: started", false)
 
 	m.Unlock()
-	m.pubnub.Config.Log.Println("acquiring lock exitSubscriptionManagerMutex")
 	m.exitSubscriptionManagerMutex.Lock()
 	if m.exitSubscriptionManager != nil {
 		m.exitSubscriptionManager <- true
-		m.pubnub.Config.Log.Println("close exitSubscriptionManager")
+		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: signaled old worker to exit", false)
 	}
-	m.pubnub.Config.Log.Println("make channel exitSubscriptionManager")
 	m.exitSubscriptionManager = make(chan bool)
 	m.exitSubscriptionManagerMutex.Unlock()
 
 SubscribeMessageWorkerLabel:
 	for {
-		m.pubnub.Config.Log.Println("subscribeMessageWorker looping...")
 		combinedChannels := m.stateManager.prepareChannelList(true)
 		combinedGroups := m.stateManager.prepareGroupList(true)
 
 		if len(combinedChannels) == 0 && len(combinedGroups) == 0 {
-			m.pubnub.Config.Log.Println("subscribeMessageWorker all channels unsubscribed")
+			m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: all channels unsubscribed", false)
 			break
 		}
 		select {
 		case <-m.exitSubscriptionManager:
-			m.pubnub.Config.Log.Println("subscribeMessageWorker context done")
+			m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: exit signal received", false)
 			break SubscribeMessageWorkerLabel
 		case message := <-m.messages:
-			m.pubnub.Config.Log.Println("subscribeMessageWorker messages")
+			m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: processing message", false)
 			processSubscribePayload(m, message)
 		}
 	}
-	m.pubnub.Config.Log.Println("subscribeMessageWorker after for")
+	m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: exited", false)
 
 }
 
@@ -586,10 +572,10 @@ func processPresencePayload(m *SubscriptionManager, payload subscribeMessage, ch
 	if presencePayload["occupancy"] != nil {
 		occupancyFromJSON, _ := presencePayload["occupancy"].(float64)
 		occupancy = int(occupancyFromJSON)
-		m.pubnub.Config.Log.Println("occupancy ", occupancy)
+		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Presence occupancy: %d", occupancy), false)
 	}
 	if presencePayload["timestamp"] != nil {
-		m.pubnub.Config.Log.Println("presencePayload['timestamp'] type", reflect.TypeOf(presencePayload["timestamp"]).Kind())
+		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Presence timestamp type: %v", reflect.TypeOf(presencePayload["timestamp"]).Kind()), false)
 		switch presencePayload["timestamp"].(type) {
 		case int:
 			timestamp = int64(presencePayload["timestamp"].(int))
@@ -655,29 +641,29 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 	switch payload.MessageType {
 	case PNMessageTypeSignal:
 		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, payload.CustomMessageType /*no error*/, nil)
-		m.pubnub.Config.Log.Println("announceSignal,", pnMessageResult)
+		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing signal: channel=%s", channel), false)
 		m.listenerManager.announceSignal(pnMessageResult)
 	case PNMessageTypeObjects:
 		pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
-		m.pubnub.Config.Log.Println("announceObjects,", pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType)
+		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing objects event: type=%v, channel=%s", eventType, channel), false)
 		switch eventType {
 		case PNObjectsUUIDEvent:
-			m.pubnub.Config.Log.Println("pnUUIDEvent:", pnUUIDEvent)
+			m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("UUID event: %s", pnUUIDEvent.UUID), false)
 			m.listenerManager.announceUUIDEvent(pnUUIDEvent)
 		case PNObjectsChannelEvent:
-			m.pubnub.Config.Log.Println("pnChannelEvent:", pnChannelEvent)
+			m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Channel event: %s", pnChannelEvent.ChannelID), false)
 			m.listenerManager.announceChannelEvent(pnChannelEvent)
 		case PNObjectsMembershipEvent:
-			m.pubnub.Config.Log.Println("pnMembershipEvent:", pnMembershipEvent)
+			m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Membership event: %s", pnMembershipEvent.UUID), false)
 			m.listenerManager.announceMembershipEvent(pnMembershipEvent)
 		}
 	case PNMessageTypeMessageActions:
 		pnMessageActionsEvent := createPNMessageActionsEventResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID)
-		m.pubnub.Config.Log.Println("PNMessageTypeMessageActions:", pnMessageActionsEvent)
+		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing message actions event: channel=%s", channel), false)
 		m.listenerManager.announceMessageActionsEvent(pnMessageActionsEvent)
 	case PNMessageTypeFile:
 		var err error
-		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config, m.pubnub.getCryptoModule())
+		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub)
 		if err != nil {
 			pnStatus := &PNStatus{
 				Category:         PNBadRequestCategory,
@@ -686,17 +672,17 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 				Operation:        PNSubscribeOperation,
 				AffectedChannels: []string{channel},
 			}
-			m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
+			m.pubnub.loggerManager.LogError(err, "FileMessageDecryptFailed", PNSubscribeOperation, true)
 			m.listenerManager.announceStatus(pnStatus)
 
 		}
 
 		pnFilesEvent := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, err)
-		m.pubnub.Config.Log.Println("PNMessageTypeFile:", PNMessageTypeFile)
+		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing file event: channel=%s", channel), false)
 		m.listenerManager.announceFile(pnFilesEvent)
 	default:
 		var err error
-		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub.Config, m.pubnub.getCryptoModule())
+		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub)
 		if err != nil {
 			pnStatus := &PNStatus{
 				Category:         PNBadRequestCategory,
@@ -705,15 +691,14 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 				Operation:        PNSubscribeOperation,
 				AffectedChannels: []string{channel},
 			}
-			m.pubnub.Config.Log.Println("DecryptString: err", err, pnStatus)
+			m.pubnub.loggerManager.LogError(err, "MessageDecryptFailed", PNSubscribeOperation, true)
 			m.listenerManager.announceStatus(pnStatus)
 
 		}
 		pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, payload.CustomMessageType, err)
-		m.pubnub.Config.Log.Println("announceMessage,", pnMessageResult)
+		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing message: channel=%s", channel), false)
 		m.listenerManager.announceMessage(pnMessageResult)
 	}
-	m.pubnub.Config.Log.Println("after announceMessage")
 }
 
 func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
@@ -833,11 +818,11 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 	if d, ok := objectsPayload["version"]; ok {
 		version = d.(string)
 		if version == "1.0" {
-			m.pubnub.Config.Log.Println("Ignoring version 1.0 event")
+			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Ignoring objects event version 1.0", false)
 			return &PNUUIDEvent{}, &PNChannelEvent{}, &PNMembershipEvent{}, PNObjectsNoneEvent
 		}
 	} else {
-		m.pubnub.Config.Log.Println("Ignoring non versioned event")
+		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Ignoring non-versioned objects event", false)
 		return &PNUUIDEvent{}, &PNChannelEvent{}, &PNMembershipEvent{}, PNObjectsNoneEvent
 	}
 	var id, UUID, channelID, description, timestamp, updated, eTag, name, externalID, profileURL, email, status, objectType string
@@ -987,66 +972,68 @@ func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, c
 //
 // parameters
 // data: the data to decrypt as interface.
-// cipherKey: cipher key to use to decrypt.
+// pubnub: PubNub instance for accessing config, crypto module, and logger.
 //
 // returns the decrypted data as interface and error.
-func parseCipherInterface(data interface{}, pnConf *Config, module crypto.CryptoModule) (interface{}, error) {
+func parseCipherInterface(data interface{}, pubnub *PubNub) (interface{}, error) {
+	module := pubnub.getCryptoModule()
 	if module != nil {
-		pnConf.Log.Println("reflect.TypeOf(data).Kind()", reflect.TypeOf(data).Kind(), data)
+		pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Crypto: decrypting data, type=%v", reflect.TypeOf(data).Kind()), false)
 		switch v := data.(type) {
 		case map[string]interface{}:
 
-			if !pnConf.DisablePNOtherProcessing {
+			if !pubnub.Config.DisablePNOtherProcessing {
 				//decrypt pn_other only
 				msg, ok := v["pn_other"].(string)
 				if ok {
-					pnConf.Log.Println("v[pn_other]", v["pn_other"], v, msg)
+					pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: decrypting pn_other field", false)
 					decrypted, errDecryption := decryptString(module, msg)
 					if errDecryption != nil {
-						pnConf.Log.Println(errDecryption, msg, "\nMessage might be not encrypted, returning as is...")
+						pubnub.loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("Crypto: decryption error, message might be unencrypted: %v", errDecryption), false)
 
 						return v, errDecryption
 					} else {
 						var intf interface{}
 						err := json.Unmarshal([]byte(decrypted.(string)), &intf)
 						if err != nil {
-							pnConf.Log.Println("Unmarshal: err", err)
+							pubnub.loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("Serialization: JSON unmarshal error after decryption: %v", err), false)
 							return intf, err
 						}
 						v["pn_other"] = intf
 
-						pnConf.Log.Println("reflect.TypeOf(v).Kind()", reflect.TypeOf(v).Kind(), v)
+						pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: successfully decrypted pn_other", false)
 						return v, nil
 					}
 				}
 				return v, nil
 			}
-			pnConf.Log.Println("return as is reflect.TypeOf(v).Kind()", reflect.TypeOf(v).Kind(), v)
+			pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: DisablePNOtherProcessing is true, returning as is", false)
 			return v, nil
 		case string:
 			var intf interface{}
+			pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: decrypting string message", false)
 			decrypted, errDecryption := decryptString(module, data.(string))
 			if errDecryption != nil {
-				pnConf.Log.Println(errDecryption, intf, "\nMessage might be not encrypted, returning as is...")
+				pubnub.loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("Crypto: decryption error, message might be unencrypted: %v", errDecryption), false)
 
 				intf = data
 				return intf, errDecryption
 			}
-			pnConf.Log.Println("reflect.TypeOf(intf).Kind()", reflect.TypeOf(decrypted).Kind(), decrypted)
+			pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: decryption successful, unmarshaling JSON", false)
 
 			err := json.Unmarshal([]byte(decrypted.(string)), &intf)
 			if err != nil {
-				pnConf.Log.Println("Unmarshal: err", err)
+				pubnub.loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("Serialization: JSON unmarshal error after decryption: %v", err), false)
 				return intf, err
 			}
 
 			return intf, nil
 		default:
-			pnConf.Log.Println("returning as is", reflect.TypeOf(v).Kind())
+			pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Crypto: unsupported type for decryption, returning as is: %v", reflect.TypeOf(v).Kind()), false)
 			return v, nil
 		}
 	} else {
-		pnConf.Log.Println("No Cipher, returning as is ", data)
+		pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: no crypto module, returning data as is", false)
 		return data, nil
 	}
 }
@@ -1073,16 +1060,15 @@ func (m *SubscriptionManager) GetListeners() map[*Listener]bool {
 }
 
 func (m *SubscriptionManager) reconnect() {
-	m.pubnub.Config.Log.Println("reconnect")
+	m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Subscription manager reconnecting", false)
 	m.reconnectionManager.stopHeartbeatTimer()
-	m.pubnub.Config.Log.Println("after stopHeartbeatTimer")
 	m.stopSubscribeLoop()
 
 	combinedChannels := m.stateManager.prepareChannelList(true)
 	combinedGroups := m.stateManager.prepareGroupList(true)
 
 	if len(combinedChannels) == 0 && len(combinedGroups) == 0 {
-		m.pubnub.Config.Log.Println("All channels or channel groups unsubscribed.")
+		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Reconnect aborted: all channels or channel groups unsubscribed", false)
 	} else {
 		go m.startSubscribeLoop()
 		go m.pubnub.heartbeatManager.startHeartbeatTimer(false)
@@ -1091,7 +1077,7 @@ func (m *SubscriptionManager) reconnect() {
 
 // Disconnect stops all open subscribe requests, timers, heartbeats and unsubscribes from all channels
 func (m *SubscriptionManager) Disconnect() {
-	m.pubnub.Config.Log.Println("disconnect")
+	m.pubnub.loggerManager.LogSimple(PNLogLevelInfo, "Disconnecting subscription manager", false)
 
 	if m.exitSubscriptionManager != nil {
 		m.exitSubscriptionManager <- true
@@ -1133,9 +1119,5 @@ func (m *SubscriptionManager) unsubscribeAll() {
 }
 
 func (m *SubscriptionManager) log(message string) {
-	m.pubnub.Config.Log.Printf("pubnub: subscribe: %s: %s: %s/%s\n",
-		message,
-		m.pubnub.Config.UUID,
-		m.stateManager.prepareChannelList(true),
-		m.stateManager.prepareGroupList(true))
+	m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Subscribe %s: UUID=%s, channels=%v, groups=%v", message, m.pubnub.Config.UUID, m.stateManager.prepareChannelList(true), m.stateManager.prepareGroupList(true)), false)
 }

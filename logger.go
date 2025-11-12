@@ -70,12 +70,6 @@ type ErrorLogMessage struct {
 	Operation OperationType
 }
 
-// ConfigLogMessage contains PubNub configuration details.
-type ConfigLogMessage struct {
-	BaseLogMessage
-	ConfigData map[string]interface{}
-}
-
 // UserInputLogMessage contains API call parameters.
 type UserInputLogMessage struct {
 	BaseLogMessage
@@ -114,12 +108,6 @@ func (msg ErrorLogMessage) String() string {
 		formatLogBase(msg), msg.ErrorName, msg.Error)
 }
 
-// String implements fmt.Stringer for ConfigLogMessage
-func (msg ConfigLogMessage) String() string {
-	return fmt.Sprintf("%s PubNub Create with configuration:\n%s",
-		formatLogBase(msg), formatConfigMap(msg.ConfigData))
-}
-
 // String implements fmt.Stringer for UserInputLogMessage
 func (msg UserInputLogMessage) String() string {
 	return fmt.Sprintf("%s %s with parameters:\n%s",
@@ -138,24 +126,6 @@ func formatLogBase(logMsg LogMessage) string {
 	}
 
 	return base
-}
-
-// formatConfigMap formats configuration data as a readable string
-func formatConfigMap(config map[string]interface{}) string {
-	if len(config) == 0 {
-		return "  (empty)"
-	}
-
-	var lines []string
-	for key, value := range config {
-		// Mask sensitive fields
-		if key == "SecretKey" || key == "CipherKey" {
-			lines = append(lines, fmt.Sprintf("  %-30s: %s", key, "****"))
-		} else {
-			lines = append(lines, fmt.Sprintf("  %-30s: %v", key, value))
-		}
-	}
-	return strings.Join(lines, "\n")
 }
 
 // formatParamsMap formats user parameters as a readable string
@@ -186,7 +156,6 @@ func formatParamsMap(params map[string]interface{}) string {
 //   - NetworkRequestLogMessage: HTTP request details
 //   - NetworkResponseLogMessage: HTTP response details
 //   - ErrorLogMessage: Error information with context
-//   - ConfigLogMessage: PubNub configuration
 //   - UserInputLogMessage: API call parameters
 //
 // Custom loggers can handle specific types using type switches, or use only

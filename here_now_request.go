@@ -97,8 +97,29 @@ func (b *hereNowBuilder) Transport(tr http.RoundTripper) *hereNowBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *hereNowOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channels":      o.Channels,
+		"ChannelGroups": o.ChannelGroups,
+		"Limit":         o.Limit,
+	}
+	if o.SetIncludeUUIDs {
+		params["IncludeUUIDs"] = o.IncludeUUIDs
+	}
+	if o.SetIncludeState {
+		params["IncludeState"] = o.IncludeState
+	}
+	if o.SetOffset {
+		params["Offset"] = o.Offset
+	}
+	return params
+}
+
 // Execute runs the HereNow request.
 func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNHereNowOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyHereNowResponse, status, err

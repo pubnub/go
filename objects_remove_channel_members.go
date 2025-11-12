@@ -103,8 +103,24 @@ func (b *removeChannelMembersBuilder) Transport(tr http.RoundTripper) *removeCha
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *removeChannelMembersOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel": o.Channel,
+		"Limit":   o.Limit,
+		"Include": o.Include,
+		"Count":   o.Count,
+	}
+	if len(o.ChannelMembersRemove) > 0 {
+		params["ChannelMembersRemove"] = fmt.Sprintf("(%d members)", len(o.ChannelMembersRemove))
+	}
+	return params
+}
+
 // Execute runs the removeChannelMembers request.
 func (b *removeChannelMembersBuilder) Execute() (*PNRemoveChannelMembersResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemoveChannelMembersOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyRemoveChannelMembersResponse, status, err
@@ -201,7 +217,7 @@ func (o *removeChannelMembersOpts) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(b)
 
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "RemoveChannelMembersSerializationFailed", PNRemoveChannelMembersOperation, true)
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil

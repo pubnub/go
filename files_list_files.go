@@ -70,8 +70,22 @@ func (b *listFilesBuilder) Transport(tr http.RoundTripper) *listFilesBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *listFilesOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel": o.Channel,
+		"Limit":   o.Limit,
+	}
+	if o.Next != "" {
+		params["Next"] = o.Next
+	}
+	return params
+}
+
 // Execute runs the listFiles request.
 func (b *listFilesBuilder) Execute() (*PNListFilesResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNListFilesOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyListFilesResponse, status, err

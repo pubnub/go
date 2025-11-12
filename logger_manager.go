@@ -149,21 +149,6 @@ func (lm *loggerManager) LogError(err error, errorName string, operation Operati
 	})
 }
 
-// LogConfig logs PubNub configuration.
-// includeCallsite: if true, captures the file and line number of the caller
-func (lm *loggerManager) LogConfig(level PNLogLevel, configData map[string]interface{}, includeCallsite bool) {
-	lm.log(ConfigLogMessage{
-		BaseLogMessage: BaseLogMessage{
-			Timestamp:  time.Now(),
-			InstanceID: lm.instanceID,
-			LogLevel:   level,
-			Message:    "Configuration",
-			Callsite:   lm.captureCallsite(includeCallsite, 2),
-		},
-		ConfigData: configData,
-	})
-}
-
 // LogUserInput logs user-provided API parameters.
 // includeCallsite: if true, captures the file and line number of the caller
 func (lm *loggerManager) LogUserInput(level PNLogLevel, operation OperationType, parameters map[string]interface{}, includeCallsite bool) {

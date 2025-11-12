@@ -71,8 +71,26 @@ func (b *removeChannelsFromPushBuilder) Transport(tr http.RoundTripper) *removeC
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *removeChannelsFromPushOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channels":        o.Channels,
+		"PushType":        o.PushType,
+		"DeviceIDForPush": o.DeviceIDForPush,
+	}
+	if o.Topic != "" {
+		params["Topic"] = o.Topic
+	}
+	if o.Environment != "" {
+		params["Environment"] = o.Environment
+	}
+	return params
+}
+
 // Execute runs the RemovePushNotificationsFromChannels request.
 func (b *removeChannelsFromPushBuilder) Execute() (*RemoveChannelsFromPushResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemovePushNotificationsFromChannelsOperation, b.opts.GetLogParams(), true)
+	
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyRemoveChannelsFromPushResponse, status, err

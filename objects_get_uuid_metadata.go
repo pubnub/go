@@ -58,12 +58,25 @@ func (b *getUUIDMetadataBuilder) Transport(tr http.RoundTripper) *getUUIDMetadat
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *getUUIDMetadataOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Include": o.Include,
+	}
+	if o.UUID != "" {
+		params["UUID"] = o.UUID
+	}
+	return params
+}
+
 // Execute runs the getUUIDMetadata request.
 func (b *getUUIDMetadataBuilder) Execute() (*PNGetUUIDMetadataResponse, StatusResponse, error) {
 	if len(b.opts.UUID) <= 0 {
 		b.opts.UUID = b.opts.pubnub.Config.UUID
 	}
 
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetUUIDMetadataOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGetUUIDMetadataResponse, status, err

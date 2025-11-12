@@ -102,8 +102,28 @@ func (b *historyBuilder) includeCustomMessageType(i bool) *historyBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *historyOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel":          o.Channel,
+		"Count":            o.Count,
+		"Reverse":          o.Reverse,
+		"IncludeTimetoken": o.IncludeTimetoken,
+		"WithMeta":         o.WithMeta,
+	}
+	if o.setStart {
+		params["Start"] = o.Start
+	}
+	if o.setEnd {
+		params["End"] = o.End
+	}
+	return params
+}
+
 // Execute runs the History request.
 func (b *historyBuilder) Execute() (*HistoryResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNHistoryOperation, b.opts.GetLogParams(), true)
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyHistoryResp, status, err
@@ -220,7 +240,7 @@ type HistoryResponseItem struct {
 }
 
 func logAndCreateNewResponseParsingError(o *historyOpts, err error, jsonBody string, message string) *pnerr.ResponseParsingError {
-	o.pubnub.Config.Log.Println(err.Error())
+	o.pubnub.loggerManager.LogError(err, "HistoryResponseParsingError", PNHistoryOperation, true)
 	e := pnerr.NewResponseParsingError(message,
 		io.NopCloser(bytes.NewBufferString(jsonBody)), err)
 	return e
@@ -238,8 +258,8 @@ func getHistoryItemsWithoutTimetoken(historyResponseRaw []byte, o *historyOpts, 
 	items := make([]HistoryResponseItem, len(historyResponseItems))
 
 	for i, v := range historyResponseItems {
-		o.pubnub.Config.Log.Println(v)
-		items[i].Message, items[i].Error = parseCipherInterface(v, o.pubnub.Config, o.pubnub.getCryptoModule())
+		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("History: processing message %d: %v", i, v), false)
+		items[i].Message, items[i].Error = parseCipherInterface(v, o.pubnub)
 	}
 	return items, nil
 }
@@ -251,13 +271,11 @@ func getHistoryItemsWithTimetoken(historyResponseItems []HistoryResponseItem, o 
 
 	for i, v := range historyResponseItems {
 		if v.Message != nil {
-			o.pubnub.Config.Log.Println(v.Message)
-			items[i].Message, items[i].Error = parseCipherInterface(v.Message, o.pubnub.Config, o.pubnub.getCryptoModule())
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("History: processing message %d with timetoken", i), false)
+			items[i].Message, items[i].Error = parseCipherInterface(v.Message, o.pubnub)
 
-			o.pubnub.Config.Log.Println(v.Timetoken)
 			items[i].Timetoken = v.Timetoken
 
-			o.pubnub.Config.Log.Println(v.Meta)
 			items[i].Meta = v.Meta
 		} else {
 			b = true
@@ -287,9 +305,7 @@ func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 	}
 
 	if historyResponseRaw != nil && len(historyResponseRaw) > 2 {
-		o.pubnub.Config.Log.Println("M", string(historyResponseRaw[0]))
-		o.pubnub.Config.Log.Println("T1", string(historyResponseRaw[1]))
-		o.pubnub.Config.Log.Println("T2", string(historyResponseRaw[2]))
+		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("History: messages=%s, start=%s, end=%s", string(historyResponseRaw[0]), string(historyResponseRaw[1]), string(historyResponseRaw[2])), false)
 
 		var historyResponseItems []HistoryResponseItem
 		var items []HistoryResponseItem
@@ -297,7 +313,7 @@ func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 		err1 := json.Unmarshal(historyResponseRaw[0], &historyResponseItems)
 		var e *pnerr.ResponseParsingError
 		if err1 != nil {
-			o.pubnub.Config.Log.Println(err1.Error())
+			o.pubnub.loggerManager.LogError(err1, "HistoryUnmarshalFailed", PNHistoryOperation, true)
 
 			items, e = getHistoryItemsWithoutTimetoken(historyResponseRaw[0], o, err1, jsonBytes)
 			if e != nil {
@@ -311,9 +327,9 @@ func newHistoryResponse(jsonBytes []byte, o *historyOpts,
 		}
 		if items != nil {
 			resp.Messages = items
-			o.pubnub.Config.Log.Printf("returning []interface, %v\n", items)
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("History: returning %d items", len(items)), false)
 		} else {
-			o.pubnub.Config.Log.Println("items nil")
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "History: items nil", false)
 		}
 
 		startTimetoken, err := strconv.ParseInt(string(historyResponseRaw[1]), 10, 64)

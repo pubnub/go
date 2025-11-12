@@ -12,6 +12,17 @@ import (
 	"github.com/pubnub/go/v8/pnerr"
 )
 
+// httpHeaderToMap converts http.Header to map[string]string for logging
+func httpHeaderToMap(httpHeaders http.Header) map[string]string {
+	headers := make(map[string]string)
+	for k, v := range httpHeaders {
+		if len(v) > 0 {
+			headers[k] = v[0] // Take first value
+		}
+	}
+	return headers
+}
+
 // StatusResponse is used to store the usable properties in the response of an request.
 type StatusResponse struct {
 	Error                 error
@@ -66,19 +77,21 @@ func buildBody(opts endpoint, url *url.URL) (io.Reader, error) {
 
 	b, err := opts.buildBody()
 	if err != nil {
-		opts.config().Log.Println("PNUnknownCategory", err, url)
+		opts.getPubNub().loggerManager.LogError(err, "BuildBodyFailed", opts.operationType(), true)
 		return nil, err
 	}
-	opts.config().Log.Println("BODY", string(b))
+	opts.getPubNub().loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Request body: %s", string(b)), false)
 
 	return bytes.NewReader(b), nil
 }
 
 func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
-	err := opts.validate()
+	var err error
+
+	err = opts.validate()
 
 	if err != nil {
-		opts.config().Log.Println("PNUnknownCategory", err)
+		opts.getPubNub().loggerManager.LogError(err, "ValidationFailed", opts.operationType(), true)
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
 			err
@@ -87,18 +100,19 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	url, err := buildURL(opts)
 
 	if err != nil {
-		opts.config().Log.Println("PNUnknownCategory", err)
+		opts.getPubNub().loggerManager.LogError(err, "BuildURLFailed", opts.operationType(), true)
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
 			err
 	}
 
-	opts.config().Log.Println(fmt.Sprintf("url:%s\nmethod:%s", url, opts.httpMethod()))
+	opts.getPubNub().loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Preparing request: method=%s, url=%s", opts.httpMethod(), url.String()), false)
 
 	var req *http.Request
 
 	if opts.httpMethod() == "POST" {
-		body, err := buildBody(opts, url)
+		var body io.Reader
+		body, err = buildBody(opts, url)
 		if err != nil {
 			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
 		}
@@ -108,12 +122,13 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 
 		body, w, _, err := opts.buildBodyMultipartFileUpload()
 		if err != nil {
+			opts.getPubNub().loggerManager.LogError(err, "BuildMultipartBodyFailed", opts.operationType(), true)
 			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
 		}
 
 		req, err = newRequestForMultipartWriter("POST", url.RequestURI(), &body, w, opts.config().UseHTTP2)
 		if err != nil {
-			opts.config().Log.Println("POST ERROR : ", err)
+			opts.getPubNub().loggerManager.LogError(err, "CreateMultipartRequestFailed", opts.operationType(), true)
 			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
 		}
 
@@ -121,7 +136,8 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	} else if opts.httpMethod() == "DELETE" {
 		req, err = newRequest("DELETE", url, nil, opts.config().UseHTTP2)
 	} else if opts.httpMethod() == "PATCH" {
-		body, err := buildBody(opts, url)
+		var body io.Reader
+		body, err = buildBody(opts, url)
 		if err != nil {
 			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
 		}
@@ -132,7 +148,7 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	}
 
 	if err != nil {
-		opts.config().Log.Println("PNUnknownCategory", err, url)
+		opts.getPubNub().loggerManager.LogError(err, "CreateRequestFailed", opts.operationType(), true)
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
 			err
@@ -141,7 +157,7 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	// Apply custom headers from endpoint
 	headers, err := opts.buildHeaders()
 	if err != nil {
-		opts.config().Log.Println("buildHeaders error", err)
+		opts.getPubNub().loggerManager.LogError(err, "BuildHeadersFailed", opts.operationType(), true)
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, err),
 			err
@@ -150,7 +166,7 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 		req.Header.Set(key, value)
 	}
 	if len(headers) > 0 {
-		opts.config().Log.Println("Custom headers:", headers)
+		opts.getPubNub().loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Custom headers applied: %v", headers), false)
 	}
 
 	ctx := opts.context()
@@ -162,6 +178,19 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	}
 
 	client := opts.client()
+
+	// Log the outgoing network request
+	requestHeaders := httpHeaderToMap(req.Header)
+	requestBody := ""
+	if opts.httpMethod() == "POST" || opts.httpMethod() == "PATCH" {
+		// Body was already logged in buildBody, skip for multipart
+		if opts.httpMethod() != "POSTFORM" {
+			requestBody = "[See previous body log]"
+		} else {
+			requestBody = "[Multipart form data]"
+		}
+	}
+	opts.getPubNub().loggerManager.LogNetworkRequest(PNLogLevelDebug, req.Method, req.URL.String(), requestHeaders, requestBody, true)
 
 	startTimestamp := time.Now()
 
@@ -186,10 +215,10 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 
 	// Host lookup failed
 	if err != nil {
-		opts.config().Log.Println("err.Error()", err.Error())
+		opts.getPubNub().loggerManager.LogSimple(PNLogLevelError, fmt.Sprintf("HTTP request failed: %s", err.Error()), false)
 		e := pnerr.NewConnectionError("Failed to execute request", err)
 
-		opts.config().Log.Println("PNUnknownCategory", e.Error(), url)
+		opts.getPubNub().loggerManager.LogError(e, "NetworkRequestFailed", opts.operationType(), true)
 		return nil,
 			createStatus(PNUnknownCategory, "", ResponseInfo{}, e),
 			e
@@ -198,7 +227,7 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	val, status, err := parseResponse(res, opts)
 	// Already wrapped error
 	if err != nil {
-		opts.config().Log.Println("res.StatusCode, status, err.Error()", res.StatusCode, status, err.Error())
+		// Error logging already handled in parseResponse
 		return nil, status, err
 	}
 
@@ -226,9 +255,13 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 		responseInfo.AuthKey = auth[0]
 	}
 
-	if opts.httpMethod() != "POSTFORM" {
-		opts.config().Log.Println("PNUnknownCategory", string(val), responseInfo)
+	// Log successful response
+	responseBody := string(val)
+	if opts.httpMethod() == "POSTFORM" {
+		responseBody = "[Multipart response - omitted]"
 	}
+	opts.getPubNub().loggerManager.LogNetworkResponse(PNLogLevelDebug, res.StatusCode, req.URL.String(), responseBody, true)
+
 	status = createStatus(PNUnknownCategory, string(val), responseInfo, nil)
 
 	return val, status, nil
@@ -295,45 +328,49 @@ func parseResponse(resp *http.Response, opts endpoint) ([]byte, StatusResponse, 
 		// Errors like 400, 403, 500
 		e := pnerr.NewServerError(resp.StatusCode, resp.Body)
 
-		opts.config().Log.Println(e.Error())
+		// Read body for logging (if possible)
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		bodyStr := string(bodyBytes)
+
+		// Log error response
+		logLevel := PNLogLevelError
+		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+			logLevel = PNLogLevelWarn // Client errors
+		}
+		opts.getPubNub().loggerManager.LogNetworkResponse(logLevel, resp.StatusCode, resp.Request.URL.String(), bodyStr, true)
 
 		if resp.StatusCode == 408 {
-			opts.config().Log.Println("PNTimeoutCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
+			opts.getPubNub().loggerManager.LogError(e, "RequestTimeout", opts.operationType(), true)
 			status = createStatus(PNTimeoutCategory, "", ResponseInfo{StatusCode: resp.StatusCode}, e)
-
 			return nil, status, e
 		}
 
 		if resp.StatusCode == 400 {
-			opts.config().Log.Println("PNBadRequestCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
+			opts.getPubNub().loggerManager.LogError(e, "BadRequest", opts.operationType(), true)
 			status = createStatus(PNBadRequestCategory, "", ResponseInfo{StatusCode: resp.StatusCode}, e)
-
 			return nil, status, e
 		}
 
 		if resp.StatusCode == 412 {
-			opts.config().Log.Println("PNPreconditionFailedCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
+			opts.getPubNub().loggerManager.LogError(e, "PreconditionFailed", opts.operationType(), true)
 			status = createStatus(PNPreconditionFailedCategory, "", ResponseInfo{StatusCode: resp.StatusCode, Operation: opts.operationType()}, e)
-
 			return nil, status, e
 		}
-		opts.config().Log.Println("PNUnknownCategory: resp.StatusCode, resp.Body, resp.Request.URL", resp.StatusCode, resp.Body, resp.Request.URL)
-		status = createStatus(PNUnknownCategory, "", ResponseInfo{StatusCode: resp.StatusCode, Operation: opts.operationType()}, e)
 
+		opts.getPubNub().loggerManager.LogError(e, fmt.Sprintf("HTTPError%d", resp.StatusCode), opts.operationType(), true)
+		status = createStatus(PNUnknownCategory, "", ResponseInfo{StatusCode: resp.StatusCode, Operation: opts.operationType()}, e)
 		return nil, status, e
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error reading response body", resp.Body, err)
-		opts.config().Log.Println("Read All error: resp.Body, resp.Request.URL, e", resp.StatusCode, resp.Body, resp.Request.URL, e)
-
+		opts.getPubNub().loggerManager.LogError(e, "ReadResponseBodyFailed", opts.operationType(), true)
 		return nil, status, e
 	}
 
-	opts.config().Log.Println("200 OK: resp.StatusCode, resp.Status, resp.Body, resp.Request.URL, string(body)", resp.StatusCode, resp.Status, resp.Body, resp.Request.URL, string(body))
+	opts.getPubNub().loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Response parsed successfully: %d bytes", len(body)), false)
 
-	//opts.config().Log.Println("200 OK: resp.StatusCode, resp.Status, resp.Request.URL", resp.StatusCode, resp.Status, resp.Request.URL)
 	return body, status, nil
 }
 

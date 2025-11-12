@@ -120,11 +120,45 @@ func (b *setUUIDMetadataBuilder) Transport(tr http.RoundTripper) *setUUIDMetadat
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *setUUIDMetadataOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Include": o.Include,
+	}
+	if o.UUID != "" {
+		params["UUID"] = o.UUID
+	}
+	if o.Name != "" {
+		params["Name"] = o.Name
+	}
+	if o.ExternalID != "" {
+		params["ExternalID"] = o.ExternalID
+	}
+	if o.ProfileURL != "" {
+		params["ProfileURL"] = o.ProfileURL
+	}
+	if o.Email != "" {
+		params["Email"] = o.Email
+	}
+	if o.Status != "" {
+		params["Status"] = o.Status
+	}
+	if o.Type != "" {
+		params["Type"] = o.Type
+	}
+	if o.Custom != nil {
+		params["Custom"] = fmt.Sprintf("%v", o.Custom)
+	}
+	return params
+}
+
 // Execute runs the setUUIDMetadata request.
 func (b *setUUIDMetadataBuilder) Execute() (*PNSetUUIDMetadataResponse, StatusResponse, error) {
 	if len(b.opts.UUID) <= 0 {
 		b.opts.UUID = b.opts.pubnub.Config.UUID
 	}
+
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSetUUIDMetadataOperation, b.opts.GetLogParams(), true)
 
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
@@ -192,7 +226,7 @@ func (o *setUUIDMetadataOpts) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(b)
 
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "SetUUIDMetadataSerializationFailed", PNSetUUIDMetadataOperation, true)
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil
