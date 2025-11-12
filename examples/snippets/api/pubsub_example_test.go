@@ -346,8 +346,8 @@ func Example_subscribe() {
 	fmt.Println("Subscribed to channel")
 
 	// When done, unsubscribe and stop goroutine
-	pn.UnsubscribeAll()
 	close(done)
+	pn.UnsubscribeAll()
 
 	// Output:
 	// Subscribed to channel
