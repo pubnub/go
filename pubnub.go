@@ -819,7 +819,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 		pnconf.Log = log.New(io.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 	} else {
 		// For backward compatibility, if old logger is provided, we bridge it to the new logger manager
-		// Use Warn level - minimal logging (warnings and errors only)
+		// Use Debug level to maintain backward compatibility with existing verbose logging behavior
 		defaultLogger := NewDefaultLoggerWithWriter(PNLogLevelDebug, pnconf.Log.Writer())
 		loggerMgr.AddLogger(defaultLogger)
 	}

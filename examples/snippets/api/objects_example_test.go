@@ -4,6 +4,7 @@ package pubnub_samples_test
 
 import (
 	"fmt"
+	"time"
 
 	pubnub "github.com/pubnub/go/v8"
 )
@@ -94,6 +95,9 @@ func Example_getUUIDMetadata() {
 		Name("Jane Smith").
 		Email("jane@example.com").
 		Execute()
+
+	// Small delay to ensure metadata is persisted before retrieval
+	time.Sleep(2 * time.Second)
 
 	// Then retrieve the user metadata
 	response, status, err := pn.GetUUIDMetadata().
@@ -366,6 +370,9 @@ func Example_getChannelMetadata() {
 		Description("Sales team discussions").
 		Execute()
 
+	// Small delay to ensure metadata is persisted before retrieval
+	time.Sleep(2 * time.Second)
+
 	// Then retrieve the channel metadata
 	response, status, err := pn.GetChannelMetadata().
 		Channel("sales-channel-456"). // Channel ID to retrieve
@@ -414,6 +421,9 @@ func Example_getChannelMetadataWithIncludes() {
 		Status("active").
 		Type("public").
 		Execute()
+
+	// Small delay to ensure metadata is persisted before retrieval
+	time.Sleep(2 * time.Second)
 
 	// Get channel metadata with all include options
 	response, status, err := pn.GetChannelMetadata().
@@ -662,6 +672,9 @@ func Example_getMemberships() {
 		}).
 		Execute()
 
+	// Small delay to ensure metadata is persisted before retrieval
+	time.Sleep(2 * time.Second)
+
 	// Get all channels the user is a member of
 	response, status, err := pn.GetMemberships().
 		UUID("member-user-999"). // User ID
@@ -737,6 +750,9 @@ func Example_getMembershipsWithAllIncludes() {
 			},
 		}).
 		Execute()
+
+	// Small delay to ensure metadata is persisted before retrieval
+	time.Sleep(2 * time.Second)
 
 	// Get memberships with all include options
 	response, status, err := pn.GetMemberships().
@@ -976,6 +992,9 @@ func Example_getChannelMembers() {
 		}).
 		Execute()
 
+	// Small delay to ensure metadata is persisted before retrieval
+	time.Sleep(2 * time.Second)
+
 	// Get all members of the channel
 	response, status, err := pn.GetChannelMembers().
 		Channel("project-channel-777"). // Channel ID
@@ -1051,6 +1070,9 @@ func Example_getChannelMembersWithAllIncludes() {
 			},
 		}).
 		Execute()
+
+	// Small delay to ensure metadata is persisted before retrieval
+	time.Sleep(2 * time.Second)
 
 	// Get channel members with all include options
 	response, status, err := pn.GetChannelMembers().
