@@ -259,7 +259,33 @@ func getHistoryItemsWithoutTimetoken(historyResponseRaw []byte, o *historyOpts, 
 
 	for i, v := range historyResponseItems {
 		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("History: processing message %d: %v", i, v), false)
-		items[i].Message, items[i].Error = parseCipherInterface(v, o.pubnub)
+
+		// Check if v is a map (with timetoken/meta) or just a plain value
+		if vMap, ok := v.(map[string]interface{}); ok {
+			// Try to extract message, timetoken, and meta from the map
+			if message, hasMessage := vMap["message"]; hasMessage {
+				items[i].Message, items[i].Error = parseCipherInterface(message, o.pubnub)
+			} else {
+				items[i].Message, items[i].Error = parseCipherInterface(v, o.pubnub)
+			}
+
+			// Preserve timetoken if present
+			if timetoken, hasTimetoken := vMap["timetoken"]; hasTimetoken {
+				if tt, ok := timetoken.(float64); ok {
+					items[i].Timetoken = int64(tt)
+				} else if tt, ok := timetoken.(int64); ok {
+					items[i].Timetoken = tt
+				}
+			}
+
+			// Preserve meta if present
+			if meta, hasMeta := vMap["meta"]; hasMeta {
+				items[i].Meta = meta
+			}
+		} else {
+			// Plain value without timetoken/meta
+			items[i].Message, items[i].Error = parseCipherInterface(v, o.pubnub)
+		}
 	}
 	return items, nil
 }

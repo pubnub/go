@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -281,22 +280,18 @@ func createSignatureV2(o endpoint, path string, query *url.Values) string {
 		fmt.Sprintf("%s", path),
 		utils.PreparePamParams(query),
 		bodyString,
-		o.config().Log,
 	)
 
 	o.getPubNub().loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("PAM: signaturev2=%s", sig), false)
 	return sig
 }
 
-func createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body string, l *log.Logger) string {
+func createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body string) string {
 	signedInputV2 := httpMethod + "\n"
 	signedInputV2 += pubKey + "\n"
 	signedInputV2 += path + "\n"
 	signedInputV2 += query + "\n"
 	signedInputV2 += body
-	if l != nil {
-		l.Println("signedInputV2:", signedInputV2)
-	}
 
 	encoded := utils.GetHmacSha256(secKey, signedInputV2)
 	encoded = strings.TrimRight(encoded, "=")
