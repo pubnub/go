@@ -21,10 +21,6 @@ jobs:
     name: Integration and Unit tests
     runs-on:
       group: organization/Default
-    strategy:
-      fail-fast: true
-      matrix:
-        go: [1.18.9, 1.19.4]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,16 +33,16 @@ jobs:
           ref: v1
           token: ${{ secrets.GH_TOKEN }}
           path: .github/.release/actions
-      - name: Setup Go ${{ matrix.go }}
+      - name: Setup Go 1.19.4
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go }}
+          go-version: 1.19.4
           cache: true
       - name: Install gotestsum
         run: |
           go install gotest.tools/gotestsum@v1.12.0
           gotestsum --version
-      - name: Build and run tests for Go ${{ matrix.go }}
+      - name: Build and run tests
         run: bash ./scripts/run-tests-gotestsum.sh -mod=mod testname
         timeout-minutes: 15
       - name: Cancel workflow runs for commit on error
