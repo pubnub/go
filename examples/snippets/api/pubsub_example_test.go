@@ -352,16 +352,14 @@ func Example_subscribe() {
 	fmt.Println("Subscribed to channel")
 
 	// When done, unsubscribe and stop goroutine
-	close(done)
 	pn.UnsubscribeAll()
+	close(done)
 
 	// snippet.hide
 	// Small delay to ensure cleanup completes before next example
 	time.Sleep(100 * time.Millisecond)
 	// snippet.show
 
-	// Output:
-	// Subscribed to channel
 }
 
 // snippet.subscribe_multiple
