@@ -4,6 +4,7 @@ package pubnub_samples_test
 
 import (
 	"fmt"
+	"time"
 
 	pubnub "github.com/pubnub/go/v8"
 )
@@ -288,6 +289,11 @@ func Example_subscribeBasicWithLogging() {
 	// Cleanup
 	pn.UnsubscribeAll()
 
+	// snippet.hide
+	// Small delay to ensure cleanup completes before next example
+	time.Sleep(100 * time.Millisecond)
+	// snippet.show
+
 	// Output:
 	// Subscribed to my-channel
 }
@@ -349,6 +355,11 @@ func Example_subscribe() {
 	close(done)
 	pn.UnsubscribeAll()
 
+	// snippet.hide
+	// Small delay to ensure cleanup completes before next example
+	time.Sleep(100 * time.Millisecond)
+	// snippet.show
+
 	// Output:
 	// Subscribed to channel
 }
@@ -401,6 +412,11 @@ func Example_subscribeMultiple() {
 	// When done, unsubscribe and stop goroutine
 	pn.UnsubscribeAll()
 	close(done)
+
+	// snippet.hide
+	// Small delay to ensure cleanup completes before next example
+	time.Sleep(100 * time.Millisecond)
+	// snippet.show
 
 	// Output:
 	// Subscribed to multiple channels
@@ -461,6 +477,11 @@ func Example_subscribeWithPresence() {
 	pn.UnsubscribeAll()
 	close(done)
 
+	// snippet.hide
+	// Small delay to ensure cleanup completes before next example
+	time.Sleep(100 * time.Millisecond)
+	// snippet.show
+
 	// Output:
 	// Subscribed with presence
 }
@@ -513,6 +534,11 @@ func Example_subscribeWildcard() {
 	// When done, unsubscribe and stop goroutine
 	pn.UnsubscribeAll()
 	close(done)
+
+	// snippet.hide
+	// Small delay to ensure cleanup completes before next example
+	time.Sleep(100 * time.Millisecond)
+	// snippet.show
 
 	// Output:
 	// Subscribed to wildcard channels
@@ -576,6 +602,11 @@ func Example_subscribeWithState() {
 	<-done
 
 	pn.UnsubscribeAll()
+
+	// snippet.hide
+	// Small delay to ensure cleanup completes before next example
+	time.Sleep(100 * time.Millisecond)
+	// snippet.show
 
 	// Output:
 	// State set successfully
@@ -674,6 +705,11 @@ func Example_unsubscribeAll() {
 	pn.UnsubscribeAll()
 
 	fmt.Println("Unsubscribed from all channels")
+
+	// snippet.hide
+	// Small delay to ensure cleanup completes before next example
+	time.Sleep(100 * time.Millisecond)
+	// snippet.show
 
 	// Output:
 	// Unsubscribed from all channels
