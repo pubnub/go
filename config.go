@@ -203,7 +203,7 @@ func (c *Config) GetLogString() string {
 		c.PublishKey,
 		c.SubscribeKey,
 		maskIfNotEmpty(c.SecretKey),
-		c.AuthKey,
+		maskIfNotEmpty(c.AuthKey),
 		c.Origin,
 		c.UUID,
 		maskIfNotEmpty(c.CipherKey),

@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -252,11 +253,23 @@ func TestGrantParseLogsForAuthKey(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.SecretKey = "sec-key"
-	pn.Config.AuthKey = "myAuthKey"
+	config := configCopy()
+	config.SecretKey = "sec-key"
+	config.AuthKey = "myAuthKey"
 
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	// Use new logger system at TRACE level to capture PAM signature logs
+	traceLogger := pubnub.NewDefaultLoggerWithWriter(pubnub.PNLogLevelTrace, w)
+	config.Loggers = []pubnub.PNLogger{traceLogger}
+
+	pn := pubnub.NewPubNub(config)
+
+	// Read from pipe concurrently to avoid deadlock
+	var buf bytes.Buffer
+	done := make(chan bool)
+	go func() {
+		io.Copy(&buf, r)
+		done <- true
+	}()
 
 	pn.Grant().
 		Read(true).Write(true).Manage(true).
@@ -270,12 +283,12 @@ func TestGrantParseLogsForAuthKey(t *testing.T) {
 	}
 
 	w.Close()
-	out, _ := io.ReadAll(r)
+	<-done // Wait for reader to finish
 	os.Stdout = rescueStdout
 
-	s := fmt.Sprintf("%s", out)
+	s := buf.String()
 	expected2 := fmt.Sprintf("auth=%s",
-		pn.Config.AuthKey)
+		config.AuthKey)
 
 	assert.Contains(s, expected2)
 
@@ -288,11 +301,23 @@ func TestGrantParseLogsForMultipleAuthKeys(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	pn := pubnub.NewPubNub(configCopy())
-	pn.Config.SecretKey = "sec-key"
-	pn.Config.AuthKey = "myAuthKey"
+	config := configCopy()
+	config.SecretKey = "sec-key"
+	config.AuthKey = "myAuthKey"
 
-	pn.Config.Log = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	// Use new logger system at TRACE level to capture PAM signature logs
+	traceLogger := pubnub.NewDefaultLoggerWithWriter(pubnub.PNLogLevelTrace, w)
+	config.Loggers = []pubnub.PNLogger{traceLogger}
+
+	pn := pubnub.NewPubNub(config)
+
+	// Read from pipe concurrently to avoid deadlock
+	var buf bytes.Buffer
+	done := make(chan bool)
+	go func() {
+		io.Copy(&buf, r)
+		done <- true
+	}()
 
 	pn.Grant().
 		Read(true).Write(true).Manage(true).
@@ -307,10 +332,10 @@ func TestGrantParseLogsForMultipleAuthKeys(t *testing.T) {
 	}
 
 	w.Close()
-	out, _ := io.ReadAll(r)
+	<-done // Wait for reader to finish
 	os.Stdout = rescueStdout
 
-	s := fmt.Sprintf("%s", out)
+	s := buf.String()
 
 	assert.Contains(s, "auth=authkey1,authkey2")
 }

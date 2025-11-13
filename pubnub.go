@@ -820,18 +820,18 @@ func NewPubNub(pnconf *Config) *PubNub {
 	} else {
 		// For backward compatibility, if old logger is provided, we bridge it to the new logger manager
 		// Use Warn level - minimal logging (warnings and errors only)
-		defaultLogger := NewDefaultLoggerWithWriter(PNLogLevelWarn, pnconf.Log.Writer())
+		defaultLogger := NewDefaultLoggerWithWriter(PNLogLevelDebug, pnconf.Log.Writer())
 		loggerMgr.AddLogger(defaultLogger)
 	}
-
-	// Log SDK initialization with masked config
-	loggerMgr.LogSimple(PNLogLevelInfo, fmt.Sprintf("PubNub Go SDK v%s initialized\nGo: %s %s/%s\n%s",
-		Version, runtime.Version(), runtime.GOOS, runtime.GOARCH, pnconf.GetLogString()), false)
 
 	// Log any validation warnings from config setup
 	for _, warning := range pnconf.validationWarnings {
 		loggerMgr.LogSimple(PNLogLevelWarn, fmt.Sprintf("Config validation: %s", warning), false)
 	}
+
+	// Log SDK initialization with masked config
+	loggerMgr.LogSimple(PNLogLevelInfo, fmt.Sprintf("PubNub Go SDK v%s initialized\nGo: %s %s/%s\n%s",
+		Version, runtime.Version(), runtime.GOOS, runtime.GOARCH, pnconf.GetLogString()), false)
 
 	pn := &PubNub{
 		Config:              pnconf,
