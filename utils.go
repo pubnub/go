@@ -47,14 +47,20 @@ func encryptString(module crypto.CryptoModule, message string) (string, error) {
 	return base64.StdEncoding.EncodeToString(encryptedData), nil
 }
 
-func serializeEncryptAndSerialize(cryptoModule crypto.CryptoModule, msg interface{}, serialize bool) (string, error) {
+func serializeEncryptAndSerialize(cryptoModule crypto.CryptoModule, msg interface{}, serialize bool, loggerMgr *loggerManager) (string, error) {
 	var encrypted string
 	var err error
 
 	if serialize {
+		if loggerMgr != nil {
+			loggerMgr.LogSimple(PNLogLevelTrace, "Serialization: serializing message content", false)
+		}
 		jsonSerialized, errJSONMarshal := json.Marshal(msg)
 		if errJSONMarshal != nil {
 			return "", errJSONMarshal
+		}
+		if loggerMgr != nil {
+			loggerMgr.LogSimple(PNLogLevelTrace, "Serialization: message serialized successfully", false)
 		}
 		encrypted, err = encryptString(cryptoModule, string(jsonSerialized))
 
@@ -68,20 +74,32 @@ func serializeEncryptAndSerialize(cryptoModule crypto.CryptoModule, msg interfac
 	if err != nil {
 		return "", err
 	}
+	if loggerMgr != nil {
+		loggerMgr.LogSimple(PNLogLevelTrace, "Serialization: serializing encrypted content", false)
+	}
 	jsonSerialized, errJSONMarshal := json.Marshal(encrypted)
 	if errJSONMarshal != nil {
 		return "", errJSONMarshal
 	}
+	if loggerMgr != nil {
+		loggerMgr.LogSimple(PNLogLevelTrace, "Serialization: encrypted content serialized successfully", false)
+	}
 	return string(jsonSerialized), nil
 }
 
-func serializeAndEncrypt(cryptoModule crypto.CryptoModule, msg interface{}, serialize bool) (string, error) {
+func serializeAndEncrypt(cryptoModule crypto.CryptoModule, msg interface{}, serialize bool, loggerMgr *loggerManager) (string, error) {
 	var encrypted string
 	var err error
 	if serialize {
+		if loggerMgr != nil {
+			loggerMgr.LogSimple(PNLogLevelTrace, "Serialization: serializing message content", false)
+		}
 		jsonSerialized, errJSONMarshal := json.Marshal(msg)
 		if errJSONMarshal != nil {
 			return "", errJSONMarshal
+		}
+		if loggerMgr != nil {
+			loggerMgr.LogSimple(PNLogLevelTrace, "Serialization: message serialized successfully", false)
 		}
 		encrypted, err = encryptString(cryptoModule, string(jsonSerialized))
 	} else {
@@ -117,7 +135,22 @@ func decryptString(cryptoModule crypto.CryptoModule, message string) (retVal int
 	}
 
 	val, e := cryptoModule.Decrypt(value)
-	return fmt.Sprintf("%s", string(val)), e
+	return string(val), e
+}
+
+// unmarshalWithLogging wraps json.Unmarshal with trace-level logging
+func unmarshalWithLogging(data []byte, v interface{}, loggerMgr *loggerManager, operation string) error {
+	if loggerMgr != nil {
+		loggerMgr.LogSimple(PNLogLevelTrace, fmt.Sprintf("Deserialization: deserializing %s response", operation), false)
+	}
+	err := json.Unmarshal(data, v)
+	if err != nil {
+		return err
+	}
+	if loggerMgr != nil {
+		loggerMgr.LogSimple(PNLogLevelTrace, fmt.Sprintf("Deserialization: %s response deserialized successfully", operation), false)
+	}
+	return nil
 }
 
 func isCustomMessageTypeValid(customMessageType string) bool {

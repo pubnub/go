@@ -96,9 +96,16 @@ func (pn *PubNub) getCryptoModule() crypto.CryptoModule {
 
 	if pn.Config != nil && pn.Config.CipherKey != "" {
 		pn.Config.CryptoModule, _ = crypto.NewLegacyCryptoModule(pn.Config.CipherKey, pn.Config.UseRandomInitializationVector)
+		pn.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto Module re-initialized: type=LegacyCryptoModule, randomIV=%t (cipher key or IV flag changed)", pn.Config.UseRandomInitializationVector), false)
+		pn.previousCipherKey = pn.Config.CipherKey
+		pn.previousIvFlag = pn.Config.UseRandomInitializationVector
 		return pn.Config.CryptoModule
 	} else if pn.Config != nil && pn.Config.CipherKey == "" {
+		if pn.Config.CryptoModule != nil {
+			pn.loggerManager.LogSimple(PNLogLevelDebug, "Crypto Module cleared (cipher key removed)", false)
+		}
 		pn.Config.CryptoModule = nil
+		pn.previousCipherKey = ""
 		return pn.Config.CryptoModule
 	}
 	return nil
@@ -850,6 +857,9 @@ func NewPubNub(pnconf *Config) *PubNub {
 		if e != nil {
 			panic(e)
 		}
+		loggerMgr.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto Module initialized: type=LegacyCryptoModule, randomIV=%t", pnconf.UseRandomInitializationVector), false)
+	} else if pnconf.CryptoModule != nil {
+		loggerMgr.LogSimple(PNLogLevelDebug, "Crypto Module initialized: type=CustomCryptoModule", false)
 	}
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
 	pn.heartbeatManager = newHeartbeatManager(pn, ctx)

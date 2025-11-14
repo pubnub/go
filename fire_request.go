@@ -149,7 +149,7 @@ func (b *fireBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 		return emptyPublishResponse, status, err
 	}
 
-	return newPublishResponse(rawJSON, status)
+	return newPublishResponse(rawJSON, status, b.opts.pubnub.loggerManager)
 }
 
 func (o *fireOpts) validate() error {
@@ -186,7 +186,7 @@ func (o *fireOpts) buildPath() (string, error) {
 
 	if o.pubnub.getCryptoModule() != nil {
 		var msg string
-		if msg, err = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); err != nil {
+		if msg, err = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize, o.pubnub.loggerManager); err != nil {
 			o.pubnub.loggerManager.LogError(err, "FireMessageSerializationFailed", PNFireOperation, true)
 			return "", err
 		}

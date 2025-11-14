@@ -52,11 +52,11 @@ type publishBuilder struct {
 	opts *publishOpts
 }
 
-func newPublishResponse(jsonBytes []byte, status StatusResponse) (
+func newPublishResponse(jsonBytes []byte, status StatusResponse, loggerMgr *loggerManager) (
 	*PublishResponse, StatusResponse, error) {
 	var value []interface{}
 
-	err := json.Unmarshal(jsonBytes, &value)
+	err := unmarshalWithLogging(jsonBytes, &value, loggerMgr, "Publish")
 	if err != nil {
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
@@ -219,7 +219,7 @@ func (b *publishBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 		return emptyPublishResponse, status, err
 	}
 
-	return newPublishResponse(rawJSON, status)
+	return newPublishResponse(rawJSON, status, b.opts.pubnub.loggerManager)
 }
 
 func (o *publishOpts) isCustomMessageTypeCorrect() bool {
@@ -254,9 +254,9 @@ func (o *publishOpts) encryptProcessing() (string, error) {
 	var msg string
 	var errJSONMarshal error
 
-	o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Publish: encrypting message", false)
+	o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: encrypting message", false)
 	if o.pubnub.Config.DisablePNOtherProcessing {
-		if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); errJSONMarshal != nil {
+		if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize, o.pubnub.loggerManager); errJSONMarshal != nil {
 			o.pubnub.loggerManager.LogError(errJSONMarshal, "PublishSerializationFailed", PNPublishOperation, true)
 			return "", errJSONMarshal
 		}
@@ -269,31 +269,35 @@ func (o *publishOpts) encryptProcessing() (string, error) {
 			msgPart, ok := v["pn_other"].(string)
 
 			if ok {
-				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Publish: encrypting pn_other field", false)
-				encMsg, errJSONMarshal := serializeAndEncrypt(o.pubnub.getCryptoModule(), msgPart, o.Serialize)
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: encrypting pn_other field", false)
+				encMsg, errJSONMarshal := serializeAndEncrypt(o.pubnub.getCryptoModule(), msgPart, o.Serialize, o.pubnub.loggerManager)
 				if errJSONMarshal != nil {
 					o.pubnub.loggerManager.LogError(errJSONMarshal, "PublishPnOtherSerializationFailed", PNPublishOperation, true)
 					return "", errJSONMarshal
 				}
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Serialization: pn_other field serialised successfully", false)
 				v["pn_other"] = encMsg
 				jsonEncBytes, errEnc := json.Marshal(v)
 				if errEnc != nil {
 					o.pubnub.loggerManager.LogError(errEnc, "PublishMessageMarshalFailed", PNPublishOperation, true)
 					return "", errEnc
 				}
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Serialization: message with pn_other serialised successfully", false)
 				msg = string(jsonEncBytes)
 			} else {
-				if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); errJSONMarshal != nil {
+				if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize, o.pubnub.loggerManager); errJSONMarshal != nil {
 					o.pubnub.loggerManager.LogError(errJSONMarshal, "PublishSerializationFailed", PNPublishOperation, true)
 					return "", errJSONMarshal
 				}
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Serialization: message serialised successfully", false)
 			}
 			break
 		default:
-			if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); errJSONMarshal != nil {
+			if msg, errJSONMarshal = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize, o.pubnub.loggerManager); errJSONMarshal != nil {
 				o.pubnub.loggerManager.LogError(errJSONMarshal, "PublishSerializationFailed", PNPublishOperation, true)
 				return "", errJSONMarshal
 			}
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Serialization: message serialised successfully", false)
 
 			break
 		}
@@ -318,14 +322,16 @@ func (o *publishOpts) buildPath() (string, error) {
 			return "", errJSONMarshal
 		}
 
-		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Publish: message encrypted successfully", false)
+		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: message encrypted successfully", false)
 	} else {
 		if o.Serialize {
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Serialization: serialising message content", false)
 			jsonEncBytes, errEnc := json.Marshal(o.Message)
 			if errEnc != nil {
 				o.pubnub.loggerManager.LogError(errEnc, "PublishMessageMarshalFailed", PNPublishOperation, true)
 				return "", errEnc
 			}
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Serialization: message serialised successfully", false)
 			msg = string(jsonEncBytes)
 			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Publish: message serialized, length=%d", len(jsonEncBytes)), false)
 

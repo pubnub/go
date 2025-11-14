@@ -73,16 +73,16 @@ func addToJobQ(req *http.Request, client *http.Client, opts endpoint, j chan *Jo
 	}
 }
 
-func buildBody(opts endpoint, url *url.URL) (io.Reader, error) {
+func buildBody(opts endpoint, url *url.URL) ([]byte, io.Reader, error) {
 
 	b, err := opts.buildBody()
 	if err != nil {
 		opts.getPubNub().loggerManager.LogError(err, "BuildBodyFailed", opts.operationType(), true)
-		return nil, err
+		return nil, nil, err
 	}
-	opts.getPubNub().loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Request body: %s", string(b)), false)
 
-	return bytes.NewReader(b), nil
+	// Return both the bytes (for logging) and a reader (for the request)
+	return b, bytes.NewReader(b), nil
 }
 
 func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
@@ -109,10 +109,11 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	opts.getPubNub().loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Preparing request: method=%s, url=%s", opts.httpMethod(), url.String()), false)
 
 	var req *http.Request
+	var requestBodyBytes []byte
 
 	if opts.httpMethod() == "POST" {
 		var body io.Reader
-		body, err = buildBody(opts, url)
+		requestBodyBytes, body, err = buildBody(opts, url)
 		if err != nil {
 			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
 		}
@@ -137,7 +138,7 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 		req, err = newRequest("DELETE", url, nil, opts.config().UseHTTP2)
 	} else if opts.httpMethod() == "PATCH" {
 		var body io.Reader
-		body, err = buildBody(opts, url)
+		requestBodyBytes, body, err = buildBody(opts, url)
 		if err != nil {
 			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
 		}
@@ -183,11 +184,16 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	requestHeaders := httpHeaderToMap(req.Header)
 	requestBody := ""
 	if opts.httpMethod() == "POST" || opts.httpMethod() == "PATCH" {
-		// Body was already logged in buildBody, skip for multipart
-		if opts.httpMethod() != "POSTFORM" {
-			requestBody = "[See previous body log]"
-		} else {
+		if opts.httpMethod() == "POSTFORM" {
 			requestBody = "[Multipart form data]"
+		} else if len(requestBodyBytes) > 0 {
+			// Truncate body for logging readability
+			bodyStr := string(requestBodyBytes)
+			if len(bodyStr) > 1000 {
+				requestBody = bodyStr[:1000] + fmt.Sprintf("... (truncated, total: %d bytes)", len(requestBodyBytes))
+			} else {
+				requestBody = bodyStr
+			}
 		}
 	}
 	opts.getPubNub().loggerManager.LogNetworkRequest(PNLogLevelDebug, req.Method, req.URL.String(), requestHeaders, requestBody, true)
@@ -259,6 +265,8 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	responseBody := string(val)
 	if opts.httpMethod() == "POSTFORM" {
 		responseBody = "[Multipart response - omitted]"
+	} else if len(responseBody) > 1000 {
+		responseBody = responseBody[:1000] + fmt.Sprintf("... (truncated, total: %d bytes)", len(val))
 	}
 	opts.getPubNub().loggerManager.LogNetworkResponse(PNLogLevelDebug, res.StatusCode, req.URL.String(), responseBody, true)
 
@@ -326,18 +334,23 @@ func parseResponse(resp *http.Response, opts endpoint) ([]byte, StatusResponse, 
 
 	if (resp.StatusCode != 200) && (resp.StatusCode != 204) {
 		// Errors like 400, 403, 500
-		e := pnerr.NewServerError(resp.StatusCode, resp.Body)
-
-		// Read body for logging (if possible)
+		// Read body once for both error creation and logging
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		bodyStr := string(bodyBytes)
 
-		// Log error response
+		// Create error with the body bytes
+		e := pnerr.NewServerError(resp.StatusCode, io.NopCloser(bytes.NewReader(bodyBytes)))
+
+		// Log error response (truncate for readability)
 		logLevel := PNLogLevelError
 		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
 			logLevel = PNLogLevelWarn // Client errors
 		}
-		opts.getPubNub().loggerManager.LogNetworkResponse(logLevel, resp.StatusCode, resp.Request.URL.String(), bodyStr, true)
+		logBodyStr := bodyStr
+		if len(logBodyStr) > 1000 {
+			logBodyStr = logBodyStr[:1000] + fmt.Sprintf("... (truncated, total: %d bytes)", len(bodyBytes))
+		}
+		opts.getPubNub().loggerManager.LogNetworkResponse(logLevel, resp.StatusCode, resp.Request.URL.String(), logBodyStr, true)
 
 		if resp.StatusCode == 408 {
 			opts.getPubNub().loggerManager.LogError(e, "RequestTimeout", opts.operationType(), true)

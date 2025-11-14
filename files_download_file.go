@@ -81,7 +81,7 @@ func (o *downloadFileOpts) GetLogParams() map[string]interface{} {
 
 func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNDownloadFileOperation, b.opts.GetLogParams(), true)
-	
+
 	u, _ := buildURL(b.opts)
 	stat := StatusResponse{
 		AffectedChannels: []string{b.opts.Channel},
@@ -115,8 +115,10 @@ func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse
 		if b.opts.CipherKey != "" {
 			cryptoModule, e = crypto.NewLegacyCryptoModule(b.opts.CipherKey, true)
 			if e != nil {
+				b.opts.pubnub.loggerManager.LogError(e, "FileDownloadCryptoModuleInitFailed", PNDownloadFileOperation, true)
 				return nil, stat, e
 			}
+			b.opts.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Crypto Module initialized for file download: type=LegacyCryptoModule, randomIV=true", false)
 		}
 
 		r, e := cryptoModule.DecryptStream(resp.Body)
