@@ -62,9 +62,19 @@ func (b *addChannelToChannelGroupBuilder) QueryParam(queryParam map[string]strin
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *addChannelOpts) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{
+		"Channels":     o.Channels,
+		"ChannelGroup": o.ChannelGroup,
+	}
+}
+
 // Execute runs AddChannelToChannelGroup request
 func (b *addChannelToChannelGroupBuilder) Execute() (
 	*AddChannelToChannelGroupResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAddChannelsToChannelGroupOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyAddChannelToChannelGroupResp, status, err

@@ -44,8 +44,15 @@ func (b *timeBuilder) QueryParam(queryParam map[string]string) *timeBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *timeOpts) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{} // No user parameters for Time operation
+}
+
 // Execute runs the Time request and fetches the time from the server.
 func (b *timeBuilder) Execute() (*TimeResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNTimeOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyTimeResp, status, err

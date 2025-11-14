@@ -100,12 +100,39 @@ func (b *getMembershipsBuilderV2) Transport(tr http.RoundTripper) *getMembership
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *getMembershipsOptsV2) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Limit":   o.Limit,
+		"Include": o.Include,
+		"Count":   o.Count,
+	}
+	if o.UUID != "" {
+		params["UUID"] = o.UUID
+	}
+	if o.Start != "" {
+		params["Start"] = o.Start
+	}
+	if o.End != "" {
+		params["End"] = o.End
+	}
+	if o.Filter != "" {
+		params["Filter"] = o.Filter
+	}
+	if len(o.Sort) > 0 {
+		params["Sort"] = o.Sort
+	}
+	return params
+}
+
 // Execute runs the getMemberships request.
 func (b *getMembershipsBuilderV2) Execute() (*PNGetMembershipsResponse, StatusResponse, error) {
 	if len(b.opts.UUID) <= 0 {
 		b.opts.UUID = b.opts.pubnub.Config.UUID
 	}
 
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetMembershipsOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGetMembershipsResponse, status, err

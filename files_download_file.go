@@ -70,7 +70,18 @@ func (b *downloadFileBuilder) Transport(tr http.RoundTripper) *downloadFileBuild
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *downloadFileOpts) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{
+		"Channel": o.Channel,
+		"ID":      o.ID,
+		"Name":    o.Name,
+	}
+}
+
 func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNDownloadFileOperation, b.opts.GetLogParams(), true)
+
 	u, _ := buildURL(b.opts)
 	stat := StatusResponse{
 		AffectedChannels: []string{b.opts.Channel},
@@ -82,10 +93,10 @@ func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse
 		Origin:           b.opts.config().Origin,
 		UUID:             b.opts.config().UUID,
 	}
-	b.opts.pubnub.Config.Log.Printf("u.RequestURI(): %s", u.RequestURI())
+	b.opts.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Downloading file: URI=%s", u.RequestURI()), false)
 	resp, err := b.opts.client().Get(u.RequestURI())
 	if err != nil {
-		b.opts.pubnub.Config.Log.Printf("err %s", err)
+		b.opts.pubnub.loggerManager.LogError(err, "FileDownloadRequestFailed", PNDownloadFileOperation, true)
 		return nil, stat, err
 	}
 	if resp.StatusCode != 200 {
@@ -104,14 +115,22 @@ func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse
 		if b.opts.CipherKey != "" {
 			cryptoModule, e = crypto.NewLegacyCryptoModule(b.opts.CipherKey, true)
 			if e != nil {
+				b.opts.pubnub.loggerManager.LogError(e, "FileDownloadCryptoModuleInitFailed", PNDownloadFileOperation, true)
 				return nil, stat, e
 			}
+			b.opts.pubnub.loggerManager.LogSimple(PNLogLevelDebug, `Crypto Module initialized for file download:
+				type: LegacyCryptoModule
+				cipherKey: ***
+				randomIV: true`, false)
 		}
 
+		b.opts.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: decrypting file", false)
 		r, e := cryptoModule.DecryptStream(resp.Body)
 		if e != nil {
+			b.opts.pubnub.loggerManager.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: decryption of file failed due to %v", e), false)
 			return nil, stat, e
 		}
+		b.opts.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: file decrypted successfully", false)
 		respDL = &PNDownloadFileResponse{
 			File: r,
 		}

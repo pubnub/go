@@ -58,8 +58,19 @@ func (b *getChannelMetadataBuilder) Transport(tr http.RoundTripper) *getChannelM
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *getChannelMetadataOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel": o.Channel,
+		"Include": o.Include,
+	}
+	return params
+}
+
 // Execute runs the getChannelMetadata request.
 func (b *getChannelMetadataBuilder) Execute() (*PNGetChannelMetadataResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetChannelMetadataOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGetChannelMetadataResponse, status, err

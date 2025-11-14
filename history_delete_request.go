@@ -63,8 +63,24 @@ func (b *historyDeleteBuilder) Transport(tr http.RoundTripper) *historyDeleteBui
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *historyDeleteOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel": o.Channel,
+	}
+	if o.SetStart {
+		params["Start"] = o.Start
+	}
+	if o.SetEnd {
+		params["End"] = o.End
+	}
+	return params
+}
+
 // Execute runs the DeleteMessages request.
 func (b *historyDeleteBuilder) Execute() (*HistoryDeleteResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNDeleteMessagesOperation, b.opts.GetLogParams(), true)
+
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyHistoryDeleteResp, status, err

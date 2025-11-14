@@ -141,8 +141,50 @@ func (b *publishFileMessageBuilder) CustomMessageType(messageType string) *publi
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *publishFileMessageOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel":       o.Channel,
+		"UsePost":       o.UsePost,
+		"FileID":        o.FileID,
+		"FileName":      o.FileName,
+		"UseRawMessage": o.UseRawMessage,
+	}
+	if o.setTTL {
+		params["TTL"] = o.TTL
+	}
+	if o.setShouldStore {
+		params["ShouldStore"] = o.ShouldStore
+	}
+	if o.Meta != nil {
+		params["Meta"] = fmt.Sprintf("%v", o.Meta)
+	}
+	if o.CustomMessageType != "" {
+		params["CustomMessageType"] = o.CustomMessageType
+	}
+	if o.MessageText != "" {
+		if len(o.MessageText) > 100 {
+			params["MessageText"] = o.MessageText[:100] + "... (truncated)"
+		} else {
+			params["MessageText"] = o.MessageText
+		}
+	}
+	// Truncate message for logging
+	if o.Message != nil {
+		msgStr := fmt.Sprintf("%v", o.Message)
+		if len(msgStr) > 100 {
+			params["Message"] = msgStr[:100] + "... (truncated)"
+		} else {
+			params["Message"] = msgStr
+		}
+	}
+	return params
+}
+
 // Execute runs the PublishFileMessage request.
 func (b *publishFileMessageBuilder) Execute() (*PublishFileMessageResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNPublishFileMessageOperation, b.opts.GetLogParams(), true)
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPublishFileMessageResponse, status, err
@@ -304,7 +346,7 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 			return "", errJSONMarshal
 		}
 
-		o.pubnub.Config.Log.Println("EncryptString: encrypted", msg)
+		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Publish file message: message encrypted", false)
 		return fmt.Sprintf(publishFileMessageGetPath,
 			o.pubnub.Config.PublishKey,
 			o.pubnub.Config.SubscribeKey,
@@ -315,7 +357,7 @@ func (o *publishFileMessageOpts) buildPath() (string, error) {
 
 	jsonEncBytes, errEnc := json.Marshal(messageToProcess)
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "PublishFileMessageMarshalFailed", PNPublishFileMessageOperation, true)
 		return "", errEnc
 	}
 	msg := string(jsonEncBytes)
@@ -356,7 +398,7 @@ func (o *publishFileMessageOpts) buildQuery() (*url.Values, error) {
 	}
 
 	seqn := strconv.Itoa(o.pubnub.getPublishSequence())
-	o.pubnub.Config.Log.Println("seqn:", seqn)
+	o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Publish file message: sequence number=%s", seqn), false)
 	q.Set("seqn", seqn)
 
 	if len(o.CustomMessageType) > 0 {
@@ -372,7 +414,7 @@ func (o *publishFileMessageOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		jsonEncBytes, errEnc := json.Marshal(o.Message)
 		if errEnc != nil {
-			o.pubnub.Config.Log.Printf("ERROR: PublishFileMessage error: %s\n", errEnc.Error())
+			o.pubnub.loggerManager.LogError(errEnc, "PublishFileMessageMarshalFailed", PNPublishFileMessageOperation, true)
 			return []byte{}, errEnc
 		}
 		return jsonEncBytes, nil

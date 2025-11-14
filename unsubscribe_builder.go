@@ -35,7 +35,16 @@ func (b *unsubscribeBuilder) QueryParam(queryParam map[string]string) *unsubscri
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *UnsubscribeOperation) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{
+		"Channels":      o.Channels,
+		"ChannelGroups": o.ChannelGroups,
+	}
+}
+
 // Execute runs the Unsubscribe request and unsubscribes from the specified channels.
 func (b *unsubscribeBuilder) Execute() {
+	b.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNUnsubscribeOperation, b.operation.GetLogParams(), true)
 	b.pubnub.subscriptionManager.adaptUnsubscribe(b.operation)
 }

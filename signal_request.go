@@ -78,8 +78,31 @@ func (b *signalBuilder) CustomMessageType(messageType string) *signalBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *signalOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel": o.Channel,
+		"UsePost": o.UsePost,
+	}
+	if o.CustomMessageType != "" {
+		params["CustomMessageType"] = o.CustomMessageType
+	}
+	// Truncate message for logging
+	if o.Message != nil {
+		msgStr := fmt.Sprintf("%v", o.Message)
+		if len(msgStr) > 100 {
+			params["Message"] = msgStr[:100] + "... (truncated)"
+		} else {
+			params["Message"] = msgStr
+		}
+	}
+	return params
+}
+
 // Execute runs the Signal request.
 func (b *signalBuilder) Execute() (*SignalResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSignalOperation, b.opts.GetLogParams(), true)
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptySignalResponse, status, err
@@ -130,7 +153,7 @@ func (o *signalOpts) buildPath() (string, error) {
 	var msg string
 	jsonEncBytes, errEnc := json.Marshal(o.Message)
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Publish error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "SignalMessageMarshalFailed", PNSignalOperation, true)
 		return "", errEnc
 	}
 	msg = string(jsonEncBytes)
@@ -159,7 +182,7 @@ func (o *signalOpts) buildBody() ([]byte, error) {
 	if o.UsePost {
 		jsonEncBytes, errEnc := json.Marshal(o.Message)
 		if errEnc != nil {
-			o.pubnub.Config.Log.Printf("ERROR: Signal error: %s\n", errEnc.Error())
+			o.pubnub.loggerManager.LogError(errEnc, "SignalMessageMarshalFailed", PNSignalOperation, true)
 			return []byte{}, errEnc
 		}
 		return jsonEncBytes, nil

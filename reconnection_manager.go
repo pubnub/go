@@ -61,7 +61,7 @@ func (m *ReconnectionManager) HandleOnMaxReconnectionExhaustion(handler func()) 
 func (m *ReconnectionManager) startPolling() {
 
 	if m.pubnub.Config.PNReconnectionPolicy == PNNonePolicy {
-		m.pubnub.Config.Log.Println("Reconnection policy is disabled, please handle reconnection manually.")
+		m.pubnub.loggerManager.LogSimple(PNLogLevelInfo, "Reconnection policy is disabled", false)
 		return
 	}
 
@@ -72,11 +72,11 @@ func (m *ReconnectionManager) startPolling() {
 	m.Unlock()
 
 	if !hbRunning {
-		m.pubnub.Config.Log.Println(fmt.Sprintf("Reconnection policy: %d, retries: %d", m.pubnub.Config.PNReconnectionPolicy, m.pubnub.Config.MaximumReconnectionRetries))
+		m.pubnub.loggerManager.LogSimple(PNLogLevelInfo, fmt.Sprintf("Starting reconnection manager: policy=%d, maxRetries=%d", m.pubnub.Config.PNReconnectionPolicy, m.pubnub.Config.MaximumReconnectionRetries), false)
 
 		m.startHeartbeatTimer()
 	} else {
-		m.pubnub.Config.Log.Println("hb already running")
+		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Reconnection manager already running", false)
 	}
 
 }
@@ -91,14 +91,14 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 		m.hbRunning = true
 		failedCalls := m.FailedCalls
 		m.Unlock()
-		_, status, err := m.pubnub.Time().Execute()
+		_, status, _ := m.pubnub.Time().Execute()
 		if status.Error == nil {
 			if failedCalls > 0 {
 				timerInterval = reconnectionInterval
 				m.Lock()
 				m.FailedCalls = 0
 				m.Unlock()
-				m.pubnub.Config.Log.Println(fmt.Sprintf("Network reconnected"))
+				m.pubnub.loggerManager.LogSimple(PNLogLevelInfo, "Network reconnected", false)
 				m.OnReconnection()
 			}
 		} else {
@@ -107,14 +107,14 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 			}
 			m.Lock()
 			m.FailedCalls++
-			m.pubnub.Config.Log.Println(fmt.Sprintf("Network disconnected, reconnection try %d of %d\n %v %v", m.FailedCalls, m.pubnub.Config.MaximumReconnectionRetries, status, err))
+			m.pubnub.loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("Network disconnected, reconnection attempt %d of %d", m.FailedCalls, m.pubnub.Config.MaximumReconnectionRetries), false)
 			m.ExponentialMultiplier++
 
 			failedCalls := m.FailedCalls
 			retries := m.pubnub.Config.MaximumReconnectionRetries
 			m.Unlock()
 			if retries != -1 && failedCalls >= retries {
-				m.pubnub.Config.Log.Printf(fmt.Sprintf("Network connection retry limit (%d) exceeded", retries))
+				m.pubnub.loggerManager.LogSimple(PNLogLevelError, fmt.Sprintf("Network connection retry limit (%d) exceeded", retries), false)
 				m.Lock()
 				m.hbRunning = false
 				m.Unlock()
@@ -126,13 +126,13 @@ func (m *ReconnectionManager) startHeartbeatTimer() {
 		select {
 		case <-time.After(time.Duration(timerInterval) * time.Second):
 		case <-m.pubnub.ctx.Done():
-			m.pubnub.Config.Log.Printf(fmt.Sprintf("pubnub.ctx.Done\n"))
+			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Reconnection manager stopping: context done", false)
 			m.Lock()
 			m.hbRunning = false
 			m.Unlock()
 			return
 		case <-m.exitReconnectionManager:
-			m.pubnub.Config.Log.Printf(fmt.Sprintf("exitReconnectionManager\n"))
+			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Reconnection manager stopping: exit signal received", false)
 			return
 		}
 	}
@@ -145,21 +145,21 @@ func (m *ReconnectionManager) getExponentialInterval() int {
 
 		m.Lock()
 		m.ExponentialMultiplier = 1
-		m.pubnub.Config.Log.Printf(fmt.Sprintf("timerInterval > MaxExponentialBackoff at: %d\n", m.ExponentialMultiplier))
+		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Reconnection backoff exceeded maximum, resetting to minimum: multiplier=%d", m.ExponentialMultiplier), false)
 		m.Unlock()
 
 	} else if timerInterval < 1 {
 		timerInterval = reconnectionMinExponentialBackoff
 		m.Lock()
 		m.ExponentialMultiplier = 1
-		m.pubnub.Config.Log.Printf(fmt.Sprintf("timerInterval < 1 at: %d\n", m.ExponentialMultiplier))
+		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Reconnection interval too small, resetting: multiplier=%d", m.ExponentialMultiplier), false)
 		m.Unlock()
 	}
 	return timerInterval
 }
 
 func (m *ReconnectionManager) stopHeartbeatTimer() {
-	m.pubnub.Config.Log.Printf("stopHeartbeatTimer")
+	m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Stopping reconnection heartbeat timer", false)
 	m.Lock()
 	if m.hbRunning {
 		m.hbRunning = false
@@ -168,13 +168,12 @@ func (m *ReconnectionManager) stopHeartbeatTimer() {
 		select {
 		case m.exitReconnectionManager <- true:
 			// Successfully sent exit signal - immediate shutdown
-			m.pubnub.Config.Log.Printf("stopHeartbeatTimer: exit signal sent successfully")
+			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Reconnection exit signal sent successfully", false)
 		default:
 			// Channel is full or no receiver ready - this is OK since we set hbRunning = false
 			// The heartbeat timer will eventually check hbRunning and exit gracefully
-			m.pubnub.Config.Log.Printf("stopHeartbeatTimer: exit signal not sent, relying on hbRunning flag")
+			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Reconnection exit signal not sent, relying on hbRunning flag", false)
 		}
 	}
 	m.Unlock()
-	m.pubnub.Config.Log.Printf("stopHeartbeatTimer true")
 }

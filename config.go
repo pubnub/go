@@ -42,7 +42,8 @@ type Config struct {
 	MaximumLatencyDataAge        int                // Max time to store the latency data for telemetry
 	FilterExpression             string             // Feature to subscribe with a custom filter expression.
 	PNReconnectionPolicy         ReconnectionPolicy // Reconnection policy selection
-	Log                          *log.Logger        // Logger instance
+	Log                          *log.Logger        // Deprecated: Logger instance. Use Loggers instead for enhanced logging.
+	Loggers                      []PNLogger         // Custom loggers for enhanced logging. If empty, no logging will occur unless the deprecated Log field is set.
 	SuppressLeaveEvents          bool               // When true the SDK doesn't send out the leave requests.
 	DisablePNOtherProcessing     bool               // PNOther processing looks for pn_other in the JSON on the recevied message
 	UseHTTP2                     bool               // HTTP2 Flag
@@ -55,6 +56,8 @@ type Config struct {
 	//DEPRECATED: please use CryptoModule
 	UseRandomInitializationVector bool                // When true the IV will be random for all requests and not just file upload. When false the IV will be hardcoded for all requests except File Upload
 	CryptoModule                  crypto.CryptoModule // A cryptography module used for encryption and decryption
+
+	validationWarnings []string // Internal field to store validation warnings during config setup
 }
 
 // NewDemoConfig initiates the config with demo keys, for tests only.
@@ -102,9 +105,11 @@ func NewConfig(uuid string) *Config {
 
 func (c *Config) checkMinTimeout(timeout int) int {
 	if timeout < minTimeout {
-		if c.Log != nil {
-			c.Log.Println(fmt.Sprintf("PresenceTimeout value less than the min recommended value of %[1]d, setting value to %[1]d %d", minTimeout, timeout))
-		}
+		warning := fmt.Sprintf("PresenceTimeout value %d is less than the min recommended value of %d, adjusting to %d", timeout, minTimeout, minTimeout)
+
+		// Store warning to be logged when PubNub instance is created
+		c.validationWarnings = append(c.validationWarnings, warning)
+
 		timeout = minTimeout
 	}
 	return timeout
@@ -141,4 +146,89 @@ func (c *Config) SetUserId(userId UserId) *Config {
 // GetUserId gets value of userId
 func (c *Config) GetUserId() UserId {
 	return UserId(c.UUID)
+}
+
+// GetLogString returns a formatted string representation of the Config for logging purposes.
+// Sensitive fields (SecretKey, CipherKey) are masked with ***.
+func (c *Config) GetLogString() string {
+	c.RLock()
+	defer c.RUnlock()
+
+	maskIfNotEmpty := func(value string) string {
+		if value != "" {
+			return "***"
+		}
+		return ""
+	}
+
+	cryptoModuleStr := "<nil>"
+	if c.CryptoModule != nil {
+		cryptoModuleStr = "<configured>"
+	}
+
+	loggersStr := fmt.Sprintf("%d logger(s)", len(c.Loggers))
+
+	return fmt.Sprintf(`Config{
+  PublishKey: %s
+  SubscribeKey: %s
+  SecretKey: %s
+  AuthKey: %s
+  Origin: %s
+  UUID: %s
+  CipherKey: %s
+  Secure: %t
+  ConnectTimeout: %d
+  NonSubscribeRequestTimeout: %d
+  SubscribeRequestTimeout: %d
+  FileUploadRequestTimeout: %d
+  HeartbeatInterval: %d
+  PresenceTimeout: %d
+  MaximumReconnectionRetries: %d
+  MaximumLatencyDataAge: %d
+  FilterExpression: %s
+  PNReconnectionPolicy: %s
+  SuppressLeaveEvents: %t
+  DisablePNOtherProcessing: %t
+  UseHTTP2: %t
+  MessageQueueOverflowCount: %d
+  MaxIdleConnsPerHost: %d
+  MaxWorkers: %d
+  UsePAMV3: %t
+  StoreTokensOnGrant: %t
+  FileMessagePublishRetryLimit: %d
+  UseRandomInitializationVector: %t
+  CryptoModule: %s
+  Loggers: %s
+}`,
+		c.PublishKey,
+		c.SubscribeKey,
+		maskIfNotEmpty(c.SecretKey),
+		maskIfNotEmpty(c.AuthKey),
+		c.Origin,
+		c.UUID,
+		maskIfNotEmpty(c.CipherKey),
+		c.Secure,
+		c.ConnectTimeout,
+		c.NonSubscribeRequestTimeout,
+		c.SubscribeRequestTimeout,
+		c.FileUploadRequestTimeout,
+		c.HeartbeatInterval,
+		c.PresenceTimeout,
+		c.MaximumReconnectionRetries,
+		c.MaximumLatencyDataAge,
+		c.FilterExpression,
+		c.PNReconnectionPolicy,
+		c.SuppressLeaveEvents,
+		c.DisablePNOtherProcessing,
+		c.UseHTTP2,
+		c.MessageQueueOverflowCount,
+		c.MaxIdleConnsPerHost,
+		c.MaxWorkers,
+		c.UsePAMV3,
+		c.StoreTokensOnGrant,
+		c.FileMessagePublishRetryLimit,
+		c.UseRandomInitializationVector,
+		cryptoModuleStr,
+		loggersStr,
+	)
 }

@@ -45,8 +45,24 @@ func (b *revokeTokenBuilder) QueryParam(queryParam map[string]string) *revokeTok
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *revokeTokenOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{}
+	if o.Token != "" {
+		// Mask token for security, show only first 8 chars
+		if len(o.Token) > 8 {
+			params["Token"] = o.Token[:8] + "..."
+		} else {
+			params["Token"] = "***"
+		}
+	}
+	return params
+}
+
 // Execute runs the Grant request.
 func (b *revokeTokenBuilder) Execute() (*PNRevokeTokenResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerRevokeToken, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNRevokeTokenResponse, status, err

@@ -136,8 +136,34 @@ func (b *grantBuilder) QueryParam(queryParam map[string]string) *grantBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *grantOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"AuthKeys":      o.AuthKeys,
+		"Channels":      o.Channels,
+		"ChannelGroups": o.ChannelGroups,
+		"UUIDs":         o.UUIDs,
+		"Read":          o.Read,
+		"Write":         o.Write,
+		"Manage":        o.Manage,
+		"Delete":        o.Delete,
+		"Get":           o.Get,
+		"Update":        o.Update,
+		"Join":          o.Join,
+	}
+	if o.setTTL {
+		params["TTL"] = o.TTL
+	}
+	if o.Meta != nil {
+		params["Meta"] = fmt.Sprintf("%v", o.Meta)
+	}
+	return params
+}
+
 // Execute runs the Grant request.
 func (b *grantBuilder) Execute() (*GrantResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerGrant, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGrantResponse, status, err

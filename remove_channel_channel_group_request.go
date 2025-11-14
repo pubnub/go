@@ -55,9 +55,19 @@ func (b *removeChannelFromChannelGroupBuilder) QueryParam(queryParam map[string]
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *removeChannelOpts) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{
+		"Channels":     o.Channels,
+		"ChannelGroup": o.ChannelGroup,
+	}
+}
+
 // Execute runs RemoveChannelFromChannelGroup request
 func (b *removeChannelFromChannelGroupBuilder) Execute() (
 	*RemoveChannelFromChannelGroupResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemoveChannelFromChannelGroupOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyRemoveChannelFromChannelGroupResponse, status, err

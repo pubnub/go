@@ -68,8 +68,26 @@ func (b *addPushNotificationsOnChannelsBuilder) QueryParam(queryParam map[string
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *addChannelsToPushOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channels":        o.Channels,
+		"PushType":        o.PushType,
+		"DeviceIDForPush": o.DeviceIDForPush,
+	}
+	if o.Topic != "" {
+		params["Topic"] = o.Topic
+	}
+	if o.Environment != "" {
+		params["Environment"] = o.Environment
+	}
+	return params
+}
+
 // Execute runs add Push Notifications on channels request
 func (b *addPushNotificationsOnChannelsBuilder) Execute() (*AddPushNotificationsOnChannelsResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNPushNotificationsEnabledChannelsOperation, b.opts.GetLogParams(), true)
+	
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyAddPushNotificationsOnChannelsResponse, status, err

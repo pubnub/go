@@ -103,12 +103,30 @@ func (b *removeMembershipsBuilder) Transport(tr http.RoundTripper) *removeMember
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *removeMembershipsOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Limit":   o.Limit,
+		"Include": o.Include,
+		"Count":   o.Count,
+	}
+	if o.UUID != "" {
+		params["UUID"] = o.UUID
+	}
+	if len(o.MembershipsRemove) > 0 {
+		params["MembershipsRemove"] = fmt.Sprintf("(%d memberships)", len(o.MembershipsRemove))
+	}
+	return params
+}
+
 // Execute runs the removeMemberships request.
 func (b *removeMembershipsBuilder) Execute() (*PNRemoveMembershipsResponse, StatusResponse, error) {
 	if len(b.opts.UUID) <= 0 {
 		b.opts.UUID = b.opts.pubnub.Config.UUID
 	}
 
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemoveMembershipsOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyRemoveMembershipsResponse, status, err
@@ -203,7 +221,7 @@ func (o *removeMembershipsOpts) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(b)
 
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "RemoveMembershipsSerializationFailed", PNRemoveMembershipsOperation, true)
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil

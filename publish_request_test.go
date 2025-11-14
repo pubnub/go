@@ -506,7 +506,7 @@ func TestNewPublishResponse(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`s`)
 
-	_, _, err := newPublishResponse(jsonBytes, StatusResponse{})
+	_, _, err := newPublishResponse(jsonBytes, StatusResponse{}, nil)
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {s}", err.Error())
 }
 
@@ -514,7 +514,7 @@ func TestNewPublishResponseTimestamp(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`[1, Sent, "a"]`)
 
-	_, _, err := newPublishResponse(jsonBytes, StatusResponse{})
+	_, _, err := newPublishResponse(jsonBytes, StatusResponse{}, nil)
 	assert.Equal("pubnub/parsing: Error unmarshalling response: {[1, Sent, \"a\"]}", err.Error())
 }
 
@@ -522,7 +522,7 @@ func TestNewPublishResponseTimestamp2(t *testing.T) {
 	assert := assert.New(t)
 	jsonBytes := []byte(`[1, "Sent", "a"]`)
 
-	_, _, err := newPublishResponse(jsonBytes, StatusResponse{})
+	_, _, err := newPublishResponse(jsonBytes, StatusResponse{}, nil)
 	assert.Contains(err.Error(), "parsing \"a\": invalid syntax")
 }
 

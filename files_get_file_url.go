@@ -60,8 +60,19 @@ func (b *getFileURLBuilder) Transport(tr http.RoundTripper) *getFileURLBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *getFileURLOpts) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{
+		"Channel": o.Channel,
+		"ID":      o.ID,
+		"Name":    o.Name,
+	}
+}
+
 // Execute runs the getFileURL request.
 func (b *getFileURLBuilder) Execute() (*PNGetFileURLResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetFileURLOperation, b.opts.GetLogParams(), true)
+	
 	u, _ := buildURL(b.opts)
 
 	resp := &PNGetFileURLResponse{

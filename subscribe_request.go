@@ -98,8 +98,28 @@ func (b *subscribeBuilder) QueryParam(queryParam map[string]string) *subscribeBu
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *SubscribeOperation) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channels":        o.Channels,
+		"ChannelGroups":   o.ChannelGroups,
+		"PresenceEnabled": o.PresenceEnabled,
+	}
+	if o.Timetoken != 0 {
+		params["Timetoken"] = o.Timetoken
+	}
+	if o.FilterExpression != "" {
+		params["FilterExpression"] = o.FilterExpression
+	}
+	if o.State != nil {
+		params["State"] = fmt.Sprintf("%v", o.State)
+	}
+	return params
+}
+
 // Execute runs the Subscribe operation.
 func (b *subscribeBuilder) Execute() {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSubscribeOperation, b.operation.GetLogParams(), true)
 	b.opts.pubnub.subscriptionManager.adaptSubscribe(b.operation)
 }
 

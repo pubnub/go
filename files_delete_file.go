@@ -65,8 +65,19 @@ func (b *deleteFileBuilder) Transport(tr http.RoundTripper) *deleteFileBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *deleteFileOpts) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{
+		"Channel": o.Channel,
+		"ID":      o.ID,
+		"Name":    o.Name,
+	}
+}
+
 // Execute runs the deleteFile request.
 func (b *deleteFileBuilder) Execute() (*PNDeleteFileResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNDeleteFileOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyDeleteFileResponse, status, err

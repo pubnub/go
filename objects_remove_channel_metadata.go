@@ -52,8 +52,17 @@ func (b *removeChannelMetadataBuilder) Transport(tr http.RoundTripper) *removeCh
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *removeChannelMetadataOpts) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{
+		"Channel": o.Channel,
+	}
+}
+
 // Execute runs the removeChannelMetadata request.
 func (b *removeChannelMetadataBuilder) Execute() (*PNRemoveChannelMetadataResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemoveChannelMetadataOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNRemoveChannelMetadataResponse, status, err

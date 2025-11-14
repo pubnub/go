@@ -106,8 +106,34 @@ func (b *setChannelMetadataBuilder) Transport(tr http.RoundTripper) *setChannelM
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *setChannelMetadataOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel": o.Channel,
+		"Include": o.Include,
+	}
+	if o.Name != "" {
+		params["Name"] = o.Name
+	}
+	if o.Description != "" {
+		params["Description"] = o.Description
+	}
+	if o.Status != "" {
+		params["Status"] = o.Status
+	}
+	if o.Type != "" {
+		params["Type"] = o.Type
+	}
+	if o.Custom != nil {
+		params["Custom"] = fmt.Sprintf("%v", o.Custom)
+	}
+	return params
+}
+
 // Execute runs the setChannelMetadata request.
 func (b *setChannelMetadataBuilder) Execute() (*PNSetChannelMetadataResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSetChannelMetadataOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNSetChannelMetadataResponse, status, err
@@ -173,7 +199,7 @@ func (o *setChannelMetadataOpts) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(b)
 
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "SetChannelMetadataSerializationFailed", PNSetChannelMetadataOperation, true)
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil

@@ -47,7 +47,7 @@ func (m *HeartbeatManager) nonIndependentHeartbeatLoop() {
 
 	if reqSentAt > 0 {
 		timediff := int64(m.pubnub.Config.HeartbeatInterval) - (timeNow - reqSentAt)
-		m.pubnub.Config.Log.Println(fmt.Sprintf("heartbeat timediff: %d", timediff))
+		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Heartbeat timediff: %d seconds", timediff), false)
 		m.pubnub.subscriptionManager.hbDataMutex.Lock()
 		m.pubnub.subscriptionManager.requestSentAt = 0
 		m.pubnub.subscriptionManager.hbDataMutex.Unlock()
@@ -56,7 +56,7 @@ func (m *HeartbeatManager) nonIndependentHeartbeatLoop() {
 			m.hbTimer.Stop()
 			m.Unlock()
 
-			m.pubnub.Config.Log.Println(fmt.Sprintf("heartbeat sleeping timediff: %d", timediff))
+			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Heartbeat sleeping for %d seconds", timediff), false)
 			waitTimer := time.NewTicker(time.Duration(timediff) * time.Second)
 
 			var wg sync.WaitGroup
@@ -67,17 +67,16 @@ func (m *HeartbeatManager) nonIndependentHeartbeatLoop() {
 					select {
 					case <-m.hbDone:
 						wg.Done()
-						m.pubnub.Config.Log.Println("nonIndependentHeartbeatLoop: breaking out to HeartbeatLabel")
+						m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Heartbeat loop interrupted", false)
 						return
 					case <-waitTimerCh:
-						m.pubnub.Config.Log.Println("nonIndependentHeartbeatLoop: waitTimerCh done")
+						m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Heartbeat sleep completed", false)
 						wg.Done()
 						return
 					}
 				}
 			}()
 			wg.Wait()
-			m.pubnub.Config.Log.Println("heartbeat sleep end")
 
 			m.Lock()
 			m.hbTimer = time.NewTicker(time.Duration(m.pubnub.Config.HeartbeatInterval) * time.Second)
@@ -110,7 +109,7 @@ func (m *HeartbeatManager) readHeartBeatTimer(runIndependentOfSubscribe bool) {
 					m.nonIndependentHeartbeatLoop()
 				}
 			case <-m.hbDone:
-				m.pubnub.Config.Log.Println("heartbeat: loop after stop")
+				m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Heartbeat timer stopped", false)
 				break HeartbeatLabel
 			}
 		}
@@ -130,7 +129,7 @@ func (m *HeartbeatManager) startHeartbeatTimer(runIndependentOfSubscribe bool) {
 	m.hbRunning = true
 	m.Unlock()
 
-	m.pubnub.Config.Log.Println("heartbeat: new timer", m.pubnub.Config.HeartbeatInterval)
+	m.pubnub.loggerManager.LogSimple(PNLogLevelInfo, fmt.Sprintf("Starting heartbeat timer: interval=%d seconds", m.pubnub.Config.HeartbeatInterval), false)
 	m.pubnub.Config.Lock()
 	presenceTimeout := m.pubnub.Config.PresenceTimeout
 	heartbeatInterval := m.pubnub.Config.HeartbeatInterval
@@ -163,17 +162,17 @@ func (m *HeartbeatManager) stopHeartbeat(runIndependentOfSubscribe bool, skipRun
 			return
 		}
 	}
-	m.pubnub.Config.Log.Println("heartbeat: loop: stopping...")
+	m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Stopping heartbeat", false)
 
 	m.Lock()
 	if m.hbTimer != nil {
 		m.hbTimer.Stop()
-		m.pubnub.Config.Log.Println("heartbeat: loop: timer stopped")
+		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Heartbeat timer stopped", false)
 	}
 
 	if m.hbDone != nil {
 		m.hbDone <- true
-		m.pubnub.Config.Log.Println("heartbeat: loop: done channel stopped")
+		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Heartbeat done channel stopped", false)
 	}
 	m.hbRunning = false
 	m.Unlock()
@@ -199,21 +198,17 @@ func (m *HeartbeatManager) performHeartbeatLoop() error {
 	presenceGroups := m.prepareList(m.heartbeatGroups)
 	stateStorage = m.state
 	queryParam := m.queryParam
-	m.pubnub.Config.Log.Println("performHeartbeatLoop: count presenceChannels, presenceGroups", len(presenceChannels), len(presenceGroups))
 	m.RUnlock()
 
 	if (len(presenceChannels) == 0) && (len(presenceGroups) == 0) {
-		m.pubnub.Config.Log.Println("performHeartbeatLoop: count presenceChannels, presenceGroups nil")
 		presenceChannels = m.pubnub.subscriptionManager.stateManager.prepareChannelList(false)
 		presenceGroups = m.pubnub.subscriptionManager.stateManager.prepareGroupList(false)
 		stateStorage = m.pubnub.subscriptionManager.stateManager.createStatePayload()
 		queryParam = nil
-
-		m.pubnub.Config.Log.Println("performHeartbeatLoop: count sub presenceChannels, presenceGroups", len(presenceChannels), len(presenceGroups))
 	}
 
 	if len(presenceChannels) <= 0 && len(presenceGroups) <= 0 {
-		m.pubnub.Config.Log.Println("heartbeat: no channels left")
+		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Heartbeat: no channels left", false)
 		go m.stopHeartbeat(true, true)
 		return nil
 	}
@@ -233,7 +228,7 @@ func (m *HeartbeatManager) performHeartbeatLoop() error {
 			Error:     true,
 			ErrorData: err,
 		}
-		m.pubnub.Config.Log.Println("performHeartbeatLoop: err", err, pnStatus)
+		m.pubnub.loggerManager.LogError(err, "HeartbeatFailed", PNHeartBeatOperation, true)
 
 		m.pubnub.subscriptionManager.listenerManager.announceStatus(pnStatus)
 
@@ -246,7 +241,7 @@ func (m *HeartbeatManager) performHeartbeatLoop() error {
 		Operation:  PNHeartBeatOperation,
 		StatusCode: status.StatusCode,
 	}
-	m.pubnub.Config.Log.Println("performHeartbeatLoop: err", err, pnStatus)
+	m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Heartbeat sent successfully: channels=%d, groups=%d", len(presenceChannels), len(presenceGroups)), false)
 
 	m.pubnub.subscriptionManager.listenerManager.announceStatus(pnStatus)
 

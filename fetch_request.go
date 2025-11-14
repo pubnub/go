@@ -103,8 +103,29 @@ func (b *fetchBuilder) Transport(tr http.RoundTripper) *fetchBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *fetchOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channels":           o.Channels,
+		"Count":              o.Count,
+		"WithMessageActions": o.WithMessageActions,
+		"WithMeta":           o.WithMeta,
+		"WithUUID":           o.WithUUID,
+		"WithMessageType":    o.WithMessageType,
+	}
+	if o.setStart {
+		params["Start"] = o.Start
+	}
+	if o.setEnd {
+		params["End"] = o.End
+	}
+	return params
+}
+
 // Execute runs the Fetch request.
 func (b *fetchBuilder) Execute() (*FetchResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNFetchMessagesOperation, b.opts.GetLogParams(), true)
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyFetchResp, status, err
@@ -216,7 +237,7 @@ func (o *fetchOpts) operationType() OperationType {
 }
 
 func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistoryMessageActionsTypeMap {
-	o.pubnub.Config.Log.Println(actions)
+	o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: parsing message actions: %v", actions), false)
 	resp := make(map[string]PNHistoryMessageActionsTypeMap)
 
 	if actions != nil {
@@ -224,8 +245,7 @@ func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistor
 
 		for actionType, action := range actionsMap {
 
-			o.pubnub.Config.Log.Println("action:", action)
-			o.pubnub.Config.Log.Println("actionType:", actionType) //reaction2
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: action type=%s, action=%v", actionType, action), false)
 
 			actionMap := action.(map[string]interface{})
 
@@ -233,8 +253,7 @@ func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistor
 				messageActionsTypeMap := PNHistoryMessageActionsTypeMap{}
 				messageActionsTypeMap.ActionsTypeValues = make(map[string][]PNHistoryMessageActionTypeVal, len(actionMap))
 				for actionVal, val := range actionMap {
-					o.pubnub.Config.Log.Println("actionVal:", actionVal) // smiley_face
-					o.pubnub.Config.Log.Println("val:", val)
+					o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: action value=%s, val=%v", actionVal, val), false)
 
 					actionValInt := val.([]interface{})
 					if actionValInt != nil {
@@ -244,8 +263,7 @@ func (o *fetchOpts) parseMessageActions(actions interface{}) map[string]PNHistor
 
 							pv := PNHistoryMessageActionTypeVal{}
 							for actionParamName, actionParamVal := range actionParam.(map[string]interface{}) {
-								o.pubnub.Config.Log.Println("actionParamName", actionParamName)
-								o.pubnub.Config.Log.Println("actionParamVal", actionParamVal)
+								o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: action param %s=%v", actionParamName, actionParamVal), false)
 								switch actionParamName {
 								case "uuid":
 									pv.UUID = actionParamVal.(string)
@@ -274,13 +292,13 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 
 	for channel, histResponseSliceMap := range channels {
 		if histResponseMap, ok2 := histResponseSliceMap.([]interface{}); ok2 {
-			o.pubnub.Config.Log.Printf("Channel:%s, count:%d\n", channel, len(histResponseMap))
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: channel=%s, message count=%d", channel, len(histResponseMap)), false)
 			items := make([]FetchResponseItem, len(histResponseMap))
 			count := 0
 
 			for _, val := range histResponseMap {
 				if histResponse, ok3 := val.(map[string]interface{}); ok3 {
-					msg, err := parseCipherInterface(histResponse["message"], o.pubnub.Config, o.pubnub.getCryptoModule())
+					msg, err := parseCipherInterface(histResponse["message"], o.pubnub)
 
 					histItem := FetchResponseItem{
 						Message:   msg,
@@ -297,14 +315,14 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 							if err == nil {
 								histItem.MessageType = int(t)
 							} else {
-								o.pubnub.Config.Log.Printf("MessageType conversion error.")
+								o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Fetch: message_type conversion error", false)
 							}
 						default:
-							o.pubnub.Config.Log.Printf("histResponse message_type type %vv", d)
+							o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: message_type type=%v", d), false)
 							if v != nil {
-								o.pubnub.Config.Log.Printf("histResponse message_type type %vv", reflect.TypeOf(v).Kind())
+								o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: message_type kind=%v", reflect.TypeOf(v).Kind()), false)
 							} else {
-								o.pubnub.Config.Log.Printf("histResponse message_type nil")
+								o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Fetch: message_type nil", false)
 							}
 						}
 					}
@@ -322,17 +340,17 @@ func (o *fetchOpts) fetchMessages(channels map[string]interface{}) map[string][]
 					}
 
 					items[count] = histItem
-					o.pubnub.Config.Log.Printf("Channel:%s, count:%d %d\n", channel, count, len(items))
+					o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: channel=%s, processed %d/%d items", channel, count, len(items)), false)
 					count++
 				} else {
-					o.pubnub.Config.Log.Printf("histResponse not a map %v\n", histResponse)
+					o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: histResponse not a map: %v", histResponse), false)
 					continue
 				}
 			}
 			messages[channel] = items
-			o.pubnub.Config.Log.Printf("Channel:%s, count:%d\n", channel, len(messages[channel]))
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: channel=%s, total messages=%d", channel, len(messages[channel])), false)
 		} else {
-			o.pubnub.Config.Log.Printf("histResponseSliceMap not an []interface %v\n", histResponseSliceMap)
+			o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: histResponseSliceMap not an []interface: %v", histResponseSliceMap), false)
 			continue
 		}
 	}
@@ -355,16 +373,16 @@ func newFetchResponse(jsonBytes []byte, o *fetchOpts,
 	}
 
 	if result, ok := value.(map[string]interface{}); ok {
-		o.pubnub.Config.Log.Println(result["channels"])
+		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: channels=%v", result["channels"]), false)
 		if channels, ok1 := result["channels"].(map[string]interface{}); ok1 {
 			if channels != nil {
 				resp.Messages = o.fetchMessages(channels)
 			} else {
-				o.pubnub.Config.Log.Printf("type assertion to map failed %v\n", result)
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: type assertion to map failed: %v", result), false)
 			}
 		}
 	} else {
-		o.pubnub.Config.Log.Printf("type assertion to map failed %v\n", value)
+		o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Fetch: type assertion to map failed: %v", value), false)
 	}
 
 	return resp, status, nil

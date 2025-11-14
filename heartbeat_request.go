@@ -60,8 +60,22 @@ func (b *heartbeatBuilder) ChannelGroups(cg []string) *heartbeatBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *heartbeatOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channels":      o.Channels,
+		"ChannelGroups": o.ChannelGroups,
+	}
+	if o.State != nil {
+		params["State"] = fmt.Sprintf("%v", o.State)
+	}
+	return params
+}
+
 // Execute runs the Heartbeat request
 func (b *heartbeatBuilder) Execute() (interface{}, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNHeartBeatOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return "", status, err

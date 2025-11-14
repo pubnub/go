@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"runtime"
 	"sync"
+	"time"
 
 	"github.com/pubnub/go/v8/crypto"
 
@@ -71,6 +73,8 @@ type PubNub struct {
 	subscriptionManager  *SubscriptionManager
 	telemetryManager     *TelemetryManager
 	heartbeatManager     *HeartbeatManager
+	loggerManager        *loggerManager
+	instanceID           string
 	client               *http.Client
 	subscribeClient      *http.Client
 	requestWorkers       *RequestWorkers
@@ -92,9 +96,19 @@ func (pn *PubNub) getCryptoModule() crypto.CryptoModule {
 
 	if pn.Config != nil && pn.Config.CipherKey != "" {
 		pn.Config.CryptoModule, _ = crypto.NewLegacyCryptoModule(pn.Config.CipherKey, pn.Config.UseRandomInitializationVector)
+		pn.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf(`Crypto Module re-initialized (cipher key or IV flag changed):
+			type: LegacyCryptoModule
+			cipherKey: ***
+			randomIV: %t`, pn.Config.UseRandomInitializationVector), false)
+		pn.previousCipherKey = pn.Config.CipherKey
+		pn.previousIvFlag = pn.Config.UseRandomInitializationVector
 		return pn.Config.CryptoModule
 	} else if pn.Config != nil && pn.Config.CipherKey == "" {
+		if pn.Config.CryptoModule != nil {
+			pn.loggerManager.LogSimple(PNLogLevelDebug, "Crypto Module cleared (cipher key removed)", false)
+		}
 		pn.Config.CryptoModule = nil
+		pn.previousCipherKey = ""
 		return pn.Config.CryptoModule
 	}
 	return nil
@@ -724,45 +738,43 @@ func (pn *PubNub) PublishFileMessageWithContext(ctx Context) *publishFileMessage
 
 // Destroy stops all open requests, removes listeners, closes heartbeats, and cleans up.
 func (pn *PubNub) Destroy() {
-	pn.Config.Log.Println("Calling Destroy")
+	pn.loggerManager.LogSimple(PNLogLevelInfo, "Destroying PubNub instance", false)
 	pn.UnsubscribeAll()
 	pn.cancel()
 
 	if pn.subscriptionManager != nil {
 		pn.subscriptionManager.Destroy()
-		pn.Config.Log.Println("after subscription manager Destroy")
+		pn.loggerManager.LogSimple(PNLogLevelTrace, "Subscription manager destroyed", false)
 	}
 
-	pn.Config.Log.Println("calling subscriptionManager Destroy")
 	if pn.heartbeatManager != nil {
 		pn.heartbeatManager.Destroy()
-		pn.Config.Log.Println("after heartbeat manager Destroy")
+		pn.loggerManager.LogSimple(PNLogLevelTrace, "Heartbeat manager destroyed", false)
 	}
 
-	pn.Config.Log.Println("After Destroy")
-	pn.Config.Log.Println("calling RemoveAllListeners")
 	pn.subscriptionManager.RemoveAllListeners()
-	pn.Config.Log.Println("after RemoveAllListeners")
+	pn.loggerManager.LogSimple(PNLogLevelTrace, "All listeners removed", false)
 
 	// Check if jobQueue is already closed before attempting to close it
 	select {
 	case _, ok := <-pn.jobQueue:
 		if !ok {
-			pn.Config.Log.Println("jobQueue is already closed")
+			pn.loggerManager.LogSimple(PNLogLevelTrace, "Job queue already closed", false)
 			break
 		}
 		// If the channel is open, proceed to close it
 		close(pn.jobQueue)
-		pn.Config.Log.Println("after close jobQueue")
+		pn.loggerManager.LogSimple(PNLogLevelTrace, "Job queue closed", false)
 	default:
 		// If the channel is closed, no action is needed
-		pn.Config.Log.Println("jobQueue is already closed")
+		pn.loggerManager.LogSimple(PNLogLevelTrace, "Job queue already closed", false)
 	}
 
 	pn.requestWorkers.Close()
-	pn.Config.Log.Println("after close requestWorkers")
+	pn.loggerManager.LogSimple(PNLogLevelTrace, "Request workers closed", false)
 	pn.tokenManager.CleanUp()
 	pn.client.CloseIdleConnections()
+	pn.loggerManager.LogSimple(PNLogLevelInfo, "PubNub instance destroyed", false)
 
 }
 
@@ -783,16 +795,54 @@ func GenerateUUID() string {
 	return utils.UUID()
 }
 
+// generateShortInstanceID generates a short random instance ID (8 characters).
+// Uses alphanumeric characters for readability in logs.
+func generateShortInstanceID() string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	const length = 8
+
+	// Create a local random source seeded with current time
+	// This works in all Go versions without deprecation warnings
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		result[i] = charset[r.Intn(len(charset))]
+	}
+
+	return string(result)
+}
+
 // NewPubNub instantiates a PubNub instance with default values.
 func NewPubNub(pnconf *Config) *PubNub {
 	ctx, cancel := contextWithCancel(backgroundContext)
 
+	utils.CheckUUID(pnconf.UUID)
+
+	// Generate short random instance ID for logging
+	instanceID := generateShortInstanceID()
+
+	// Initialize logger manager
+	loggerMgr := newLoggerManager(instanceID, pnconf.Loggers)
+
 	if pnconf.Log == nil {
 		pnconf.Log = log.New(io.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
+	} else {
+		// For backward compatibility, if old logger is provided, we bridge it to the new logger manager
+		// Use Debug level to maintain backward compatibility with existing verbose logging behavior
+		defaultLogger := NewDefaultLoggerWithWriter(PNLogLevelDebug, pnconf.Log.Writer())
+		loggerMgr.AddLogger(defaultLogger)
 	}
-	pnconf.Log.Println(fmt.Sprintf("PubNub Go v7 SDK: %s\npnconf: %v\n%s\n%s\n%s", Version, pnconf, runtime.Version(), runtime.GOARCH, runtime.GOOS))
 
-	utils.CheckUUID(pnconf.UUID)
+	// Log any validation warnings from config setup
+	for _, warning := range pnconf.validationWarnings {
+		loggerMgr.LogSimple(PNLogLevelWarn, fmt.Sprintf("Config validation: %s", warning), false)
+	}
+
+	// Log SDK initialization with masked config
+	loggerMgr.LogSimple(PNLogLevelInfo, fmt.Sprintf("PubNub Go SDK v%s initialized\nGo: %s %s/%s\n%s",
+		Version, runtime.Version(), runtime.GOOS, runtime.GOARCH, pnconf.GetLogString()), false)
+
 	pn := &PubNub{
 		Config:              pnconf,
 		nextPublishSequence: 0,
@@ -800,6 +850,8 @@ func NewPubNub(pnconf *Config) *PubNub {
 		cancel:              cancel,
 		previousIvFlag:      pnconf.UseRandomInitializationVector,
 		previousCipherKey:   pnconf.CipherKey,
+		loggerManager:       loggerMgr,
+		instanceID:          instanceID,
 	}
 
 	if pnconf.CipherKey != "" {
@@ -808,6 +860,13 @@ func NewPubNub(pnconf *Config) *PubNub {
 		if e != nil {
 			panic(e)
 		}
+		loggerMgr.LogSimple(PNLogLevelDebug, fmt.Sprintf(`Crypto Module initialized:
+  type: LegacyCryptoModule
+  cipherKey: ***
+  randomIV: %t`, pnconf.UseRandomInitializationVector), false)
+	} else if pnconf.CryptoModule != nil {
+		loggerMgr.LogSimple(PNLogLevelDebug, `Crypto Module initialized:
+  type: CustomCryptoModule`, false)
 	}
 	pn.subscriptionManager = newSubscriptionManager(pn, ctx)
 	pn.heartbeatManager = newHeartbeatManager(pn, ctx)
@@ -822,7 +881,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 func (pn *PubNub) newNonSubQueueProcessor(maxWorkers int, ctx Context) *RequestWorkers {
 	workers := make(chan chan *JobQItem, maxWorkers)
 
-	pn.Config.Log.Printf("Init RequestWorkers: workers %d", maxWorkers)
+	pn.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Initializing request workers: %d workers", maxWorkers), false)
 
 	p := &RequestWorkers{
 		WorkersChannel: workers,

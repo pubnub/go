@@ -113,16 +113,43 @@ func (b *fireBuilder) QueryParam(queryParam map[string]string) *fireBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *fireOpts) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Channel":   o.Channel,
+		"UsePost":   o.UsePost,
+		"Serialize": o.Serialize,
+	}
+	if o.setTTL {
+		params["TTL"] = o.TTL
+	}
+	if o.Meta != nil {
+		params["Meta"] = fmt.Sprintf("%v", o.Meta)
+	}
+	// Truncate message for logging
+	if o.Message != nil {
+		msgStr := fmt.Sprintf("%v", o.Message)
+		if len(msgStr) > 100 {
+			params["Message"] = msgStr[:100] + "... (truncated)"
+		} else {
+			params["Message"] = msgStr
+		}
+	}
+	return params
+}
+
 // Execute runs the Fire request.
 func (b *fireBuilder) Execute() (*PublishResponse, StatusResponse, error) {
 	b.opts.ShouldStore = false
 	b.opts.DoNotReplicate = true
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNFireOperation, b.opts.GetLogParams(), true)
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPublishResponse, status, err
 	}
 
-	return newPublishResponse(rawJSON, status)
+	return newPublishResponse(rawJSON, status, b.opts.pubnub.loggerManager)
 }
 
 func (o *fireOpts) validate() error {
@@ -159,8 +186,8 @@ func (o *fireOpts) buildPath() (string, error) {
 
 	if o.pubnub.getCryptoModule() != nil {
 		var msg string
-		if msg, err = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize); err != nil {
-			o.pubnub.Config.Log.Printf("error in serializing: %v\n", err)
+		if msg, err = serializeEncryptAndSerialize(o.pubnub.getCryptoModule(), o.Message, o.Serialize, o.pubnub.loggerManager); err != nil {
+			o.pubnub.loggerManager.LogError(err, "FireMessageSerializationFailed", PNFireOperation, true)
 			return "", err
 		}
 		message = []byte(msg)
@@ -226,7 +253,7 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 		}
 
 		if o.pubnub.getCryptoModule() != nil {
-			enc, err := encryptString(o.pubnub.getCryptoModule(), string(msg))
+			enc, err := encryptString(o.pubnub.getCryptoModule(), string(msg), o.pubnub.loggerManager)
 			if err != nil {
 				return []byte{}, err
 			}

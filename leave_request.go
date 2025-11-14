@@ -45,8 +45,18 @@ func (b *leaveBuilder) QueryParam(queryParam map[string]string) *leaveBuilder {
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *leaveOpts) GetLogParams() map[string]interface{} {
+	return map[string]interface{}{
+		"Channels":      o.Channels,
+		"ChannelGroups": o.ChannelGroups,
+	}
+}
+
 // Execute runs the Leave request.
 func (b *leaveBuilder) Execute() (StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNUnsubscribeOperation, b.opts.GetLogParams(), true)
+	
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
 		return status, err

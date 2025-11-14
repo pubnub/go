@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -36,6 +35,7 @@ type endpoint interface {
 	operationType() OperationType
 	telemetryManager() *TelemetryManager
 	tokenManager() *TokenManager
+	getPubNub() *PubNub
 }
 
 func (o *endpointOpts) config() *Config {
@@ -52,6 +52,10 @@ func (o *endpointOpts) context() Context {
 
 func (o *endpointOpts) jobQueue() chan *JobQItem {
 	return o.pubnub.jobQueue
+}
+
+func (o *endpointOpts) getPubNub() *PubNub {
+	return o.pubnub
 }
 
 func (o *endpointOpts) buildBody() ([]byte, error) {
@@ -173,7 +177,7 @@ func buildURL(o endpoint) (*url.URL, error) {
 			signedInput += fmt.Sprintf("%s\n", path)
 
 			signedInput += utils.PreparePamParams(query)
-			o.config().Log.Println("signedInput:", signedInput)
+			o.getPubNub().loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("PAM: signedInput=%s", signedInput), false)
 
 			signature = utils.GetHmacSha256(o.config().SecretKey, signedInput)
 		} else {
@@ -266,7 +270,7 @@ func createSignatureV2(o endpoint, path string, query *url.Values) string {
 	if err == nil {
 		bodyString = string(b)
 	} else {
-		o.config().Log.Println("buildBody error", err.Error())
+		o.getPubNub().loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("PAM: buildBody error: %v", err.Error()), false)
 	}
 
 	sig := createSignatureV2FromStrings(
@@ -276,22 +280,18 @@ func createSignatureV2(o endpoint, path string, query *url.Values) string {
 		fmt.Sprintf("%s", path),
 		utils.PreparePamParams(query),
 		bodyString,
-		o.config().Log,
 	)
 
-	o.config().Log.Println("signaturev2:", sig)
+	o.getPubNub().loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("PAM: signaturev2=%s", sig), false)
 	return sig
 }
 
-func createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body string, l *log.Logger) string {
+func createSignatureV2FromStrings(httpMethod, pubKey, secKey, path, query, body string) string {
 	signedInputV2 := httpMethod + "\n"
 	signedInputV2 += pubKey + "\n"
 	signedInputV2 += path + "\n"
 	signedInputV2 += query + "\n"
 	signedInputV2 += body
-	if l != nil {
-		l.Println("signedInputV2:", signedInputV2)
-	}
 
 	encoded := utils.GetHmacSha256(secKey, signedInputV2)
 	encoded = strings.TrimRight(encoded, "=")

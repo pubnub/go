@@ -9,6 +9,9 @@ import (
 // in the APIs lifecycle
 type StatusCategory int
 
+// PubNubLogLevel is used as an enum to catgorize the available log levels
+type PNLogLevel int
+
 // OperationType is used as an enum to catgorize the various operations
 // in the APIs lifecycle
 type OperationType int
@@ -42,6 +45,22 @@ type PNMessageActionsEventType string
 
 // PNPushEnvironment is used as an enum to catgorize the available Message Actions Event types
 type PNPushEnvironment string
+
+// PNLogLevel constants define the available log levels
+const (
+	// PNLogLevelTrace is the enum when the log level is trace
+	PNLogLevelTrace PNLogLevel = 1 + iota
+	// PNLogLevelDebug is the enum when the log level is debug
+	PNLogLevelDebug
+	// PNLogLevelInfo is the enum when the log level is info
+	PNLogLevelInfo
+	// PNLogLevelWarn is the enum when the log level is warn
+	PNLogLevelWarn
+	// PNLogLevelError is the enum when the log level is error
+	PNLogLevelError
+	// PNLogLevelNone is the enum when the log level is none
+	PNLogLevelNone
+)
 
 const (
 	//PNPushEnvironmentDevelopment for development
@@ -157,6 +176,19 @@ const (
 	// ReconnectionPolicy is set in the config.
 	PNExponentialPolicy
 )
+
+func (p ReconnectionPolicy) String() string {
+	switch p {
+	case PNNonePolicy:
+		return "None"
+	case PNLinearPolicy:
+		return "Linear"
+	case PNExponentialPolicy:
+		return "Exponential"
+	default:
+		return "Unknown"
+	}
+}
 
 const (
 	// PNMessageTypeSignal is to identify Signal the Subscribe response
@@ -353,6 +385,25 @@ const (
 	// PNPushTypeFCM is used as an enum to for selecting `FCM` as the PNPushType
 	PNPushTypeFCM
 )
+
+func (l PNLogLevel) String() string {
+	switch l {
+	case PNLogLevelTrace:
+		return "Trace"
+	case PNLogLevelDebug:
+		return "Debug"
+	case PNLogLevelInfo:
+		return "Info"
+	case PNLogLevelWarn:
+		return "Warn"
+	case PNLogLevelError:
+		return "Error"
+	case PNLogLevelNone:
+		return "None"
+	default:
+		return "None"
+	}
+}
 
 func (p PNPushType) String() string {
 	switch p {

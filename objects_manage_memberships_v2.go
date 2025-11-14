@@ -109,12 +109,33 @@ func (b *manageMembershipsBuilderV2) Transport(tr http.RoundTripper) *manageMemb
 	return b
 }
 
+// GetLogParams returns the user-provided parameters for logging
+func (o *manageMembershipsOptsV2) GetLogParams() map[string]interface{} {
+	params := map[string]interface{}{
+		"Limit":   o.Limit,
+		"Include": o.Include,
+		"Count":   o.Count,
+	}
+	if o.UUID != "" {
+		params["UUID"] = o.UUID
+	}
+	if len(o.MembershipsSet) > 0 {
+		params["MembershipsSet"] = fmt.Sprintf("(%d memberships)", len(o.MembershipsSet))
+	}
+	if len(o.MembershipsRemove) > 0 {
+		params["MembershipsRemove"] = fmt.Sprintf("(%d memberships)", len(o.MembershipsRemove))
+	}
+	return params
+}
+
 // Execute runs the manageMemberships request.
 func (b *manageMembershipsBuilderV2) Execute() (*PNManageMembershipsResponse, StatusResponse, error) {
 	if len(b.opts.UUID) <= 0 {
 		b.opts.UUID = b.opts.pubnub.Config.UUID
 	}
 
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNManageMembershipsOperation, b.opts.GetLogParams(), true)
+	
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyManageMembershipsResponse, status, err
@@ -205,7 +226,7 @@ func (o *manageMembershipsOptsV2) buildBody() ([]byte, error) {
 	jsonEncBytes, errEnc := json.Marshal(b)
 
 	if errEnc != nil {
-		o.pubnub.Config.Log.Printf("ERROR: Serialization error: %s\n", errEnc.Error())
+		o.pubnub.loggerManager.LogError(errEnc, "ManageMembershipsV2SerializationFailed", PNManageMembershipsOperation, true)
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil
