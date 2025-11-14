@@ -253,7 +253,7 @@ func (o *fireOpts) buildBody() ([]byte, error) {
 		}
 
 		if o.pubnub.getCryptoModule() != nil {
-			enc, err := encryptString(o.pubnub.getCryptoModule(), string(msg))
+			enc, err := encryptString(o.pubnub.getCryptoModule(), string(msg), o.pubnub.loggerManager)
 			if err != nil {
 				return []byte{}, err
 			}

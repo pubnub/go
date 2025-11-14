@@ -155,10 +155,13 @@ func (o *sendFileToS3Opts) buildBodyMultipartFileUpload() (bytes.Buffer, *multip
 				o.pubnub.loggerManager.LogError(e, "FileUploadCryptoModuleInitFailed", PNSendFileToS3Operation, true)
 				return bytes.Buffer{}, writer, s, e
 			}
-			o.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Crypto Module initialized for file upload: type=LegacyCryptoModule, randomIV=true", false)
+			o.pubnub.loggerManager.LogSimple(PNLogLevelDebug, `Crypto Module initialized for file upload:
+				type: LegacyCryptoModule
+				cipherKey: ***
+				randomIV: true`, false)
 		}
 
-		e = encryptStreamAndCopyTo(cryptoModule, o.File, filePart)
+		e = encryptStreamAndCopyTo(cryptoModule, o.File, filePart, o.pubnub.loggerManager)
 		if e != nil {
 			o.pubnub.loggerManager.LogError(e, "FileUploadEncryptionFailed", PNSendFileToS3Operation, true)
 			return bytes.Buffer{}, writer, s, e

@@ -39,10 +39,19 @@ func encodeNonASCIIChars(message string) string {
 	return encodedString.String()
 }
 
-func encryptString(module crypto.CryptoModule, message string) (string, error) {
+func encryptString(module crypto.CryptoModule, message string, loggerMgr *loggerManager) (string, error) {
+	if loggerMgr != nil {
+		loggerMgr.LogSimple(PNLogLevelTrace, "Crypto: encrypting message", false)
+	}
 	encryptedData, e := module.Encrypt([]byte(encodeNonASCIIChars(message)))
 	if e != nil {
+		if loggerMgr != nil {
+			loggerMgr.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: encryption of message failed due to %v", e), false)
+		}
 		return "", e
+	}
+	if loggerMgr != nil {
+		loggerMgr.LogSimple(PNLogLevelTrace, "Crypto: message encrypted successfully", false)
 	}
 	return base64.StdEncoding.EncodeToString(encryptedData), nil
 }
@@ -62,11 +71,11 @@ func serializeEncryptAndSerialize(cryptoModule crypto.CryptoModule, msg interfac
 		if loggerMgr != nil {
 			loggerMgr.LogSimple(PNLogLevelTrace, "Serialization: message serialized successfully", false)
 		}
-		encrypted, err = encryptString(cryptoModule, string(jsonSerialized))
+		encrypted, err = encryptString(cryptoModule, string(jsonSerialized), loggerMgr)
 
 	} else {
 		if serializedMsg, ok := msg.(string); ok {
-			encrypted, err = encryptString(cryptoModule, string(serializedMsg))
+			encrypted, err = encryptString(cryptoModule, string(serializedMsg), loggerMgr)
 		} else {
 			return "", pnerr.NewBuildRequestError("Message is not JSON serialized.")
 		}
@@ -101,10 +110,10 @@ func serializeAndEncrypt(cryptoModule crypto.CryptoModule, msg interface{}, seri
 		if loggerMgr != nil {
 			loggerMgr.LogSimple(PNLogLevelTrace, "Serialization: message serialized successfully", false)
 		}
-		encrypted, err = encryptString(cryptoModule, string(jsonSerialized))
+		encrypted, err = encryptString(cryptoModule, string(jsonSerialized), loggerMgr)
 	} else {
 		if serializedMsg, ok := msg.(string); ok {
-			encrypted, err = encryptString(cryptoModule, serializedMsg)
+			encrypted, err = encryptString(cryptoModule, serializedMsg, loggerMgr)
 		} else {
 			return "", pnerr.NewBuildRequestError("Message is not JSON serialized.")
 		}
@@ -116,25 +125,52 @@ func serializeAndEncrypt(cryptoModule crypto.CryptoModule, msg interface{}, seri
 	return encrypted, nil
 }
 
-func encryptStreamAndCopyTo(module crypto.CryptoModule, reader io.Reader, writer io.Writer) error {
+func encryptStreamAndCopyTo(module crypto.CryptoModule, reader io.Reader, writer io.Writer, loggerMgr *loggerManager) error {
+	if loggerMgr != nil {
+		loggerMgr.LogSimple(PNLogLevelTrace, "Crypto: encrypting file", false)
+	}
 	encryptedStream, e := module.EncryptStream(reader)
 	if e != nil {
+		if loggerMgr != nil {
+			loggerMgr.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: encryption of file failed due to %v", e), false)
+		}
 		return e
 	}
 	_, e = io.Copy(writer, encryptedStream)
 	if e != nil {
+		if loggerMgr != nil {
+			loggerMgr.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: encryption of file failed due to %v", e), false)
+		}
 		return e
+	}
+	if loggerMgr != nil {
+		loggerMgr.LogSimple(PNLogLevelTrace, "Crypto: file encrypted successfully", false)
 	}
 	return nil
 }
 
-func decryptString(cryptoModule crypto.CryptoModule, message string) (retVal interface{}, err error) {
+func decryptString(cryptoModule crypto.CryptoModule, message string, loggerMgr *loggerManager) (retVal interface{}, err error) {
+	if loggerMgr != nil {
+		loggerMgr.LogSimple(PNLogLevelTrace, "Crypto: decrypting message", false)
+	}
 	value, decodeErr := base64.StdEncoding.DecodeString(message)
 	if decodeErr != nil {
+		if loggerMgr != nil {
+			loggerMgr.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: decryption of message failed due to %v", decodeErr), false)
+		}
 		return "***decrypt error***", fmt.Errorf("decrypt error on decode: %s", decodeErr)
 	}
 
 	val, e := cryptoModule.Decrypt(value)
+	if e != nil {
+		if loggerMgr != nil {
+			loggerMgr.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: decryption of message failed due to %v", e), false)
+		}
+		return string(val), e
+	}
+	if loggerMgr != nil {
+		loggerMgr.LogSimple(PNLogLevelTrace, "Crypto: message decrypted successfully", false)
+	}
 	return string(val), e
 }
 

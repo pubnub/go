@@ -986,10 +986,8 @@ func parseCipherInterface(data interface{}, pubnub *PubNub) (interface{}, error)
 				//decrypt pn_other only
 				msg, ok := v["pn_other"].(string)
 				if ok {
-					pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: decrypting pn_other field", false)
-					decrypted, errDecryption := decryptString(module, msg)
+					decrypted, errDecryption := decryptString(module, msg, pubnub.loggerManager)
 					if errDecryption != nil {
-						pubnub.loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("Crypto: decryption error, message might be unencrypted: %v", errDecryption), false)
 
 						return v, errDecryption
 					} else {
@@ -1000,8 +998,6 @@ func parseCipherInterface(data interface{}, pubnub *PubNub) (interface{}, error)
 							return intf, err
 						}
 						v["pn_other"] = intf
-
-						pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: successfully decrypted pn_other", false)
 						return v, nil
 					}
 				}
@@ -1011,16 +1007,12 @@ func parseCipherInterface(data interface{}, pubnub *PubNub) (interface{}, error)
 			return v, nil
 		case string:
 			var intf interface{}
-			pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: decrypting string message", false)
-			decrypted, errDecryption := decryptString(module, data.(string))
+			decrypted, errDecryption := decryptString(module, data.(string), pubnub.loggerManager)
 			if errDecryption != nil {
-				pubnub.loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("Crypto: decryption error, message might be unencrypted: %v", errDecryption), false)
 
 				intf = data
 				return intf, errDecryption
 			}
-			pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: decryption successful, unmarshaling JSON", false)
-
 			err := json.Unmarshal([]byte(decrypted.(string)), &intf)
 			if err != nil {
 				pubnub.loggerManager.LogSimple(PNLogLevelWarn, fmt.Sprintf("Serialization: JSON unmarshal error after decryption: %v", err), false)
