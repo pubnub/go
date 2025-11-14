@@ -61,6 +61,51 @@ func TestLoggerManager_AddLogger(t *testing.T) {
 	}
 }
 
+func TestLoggerManager_RemoveLogger(t *testing.T) {
+	logger1 := &testLogger{minLevel: PNLogLevelInfo}
+	logger2 := &testLogger{minLevel: PNLogLevelDebug}
+	logger3 := &testLogger{minLevel: PNLogLevelWarn}
+	mgr := newLoggerManager("test-instance", []PNLogger{logger1, logger2, logger3})
+
+	// Remove logger2
+	removed := mgr.RemoveLogger(logger2)
+	if !removed {
+		t.Error("Expected RemoveLogger to return true for existing logger")
+	}
+
+	mgr.mu.RLock()
+	loggerCount := len(mgr.loggers)
+	mgr.mu.RUnlock()
+
+	if loggerCount != 2 {
+		t.Errorf("Expected 2 loggers after removal, got %d", loggerCount)
+	}
+
+	// Verify logger2 is not in the list
+	mgr.mu.RLock()
+	for _, l := range mgr.loggers {
+		if l == logger2 {
+			t.Error("Removed logger still found in manager")
+		}
+	}
+	mgr.mu.RUnlock()
+
+	// Try to remove non-existent logger
+	nonExistentLogger := &testLogger{minLevel: PNLogLevelError}
+	removed = mgr.RemoveLogger(nonExistentLogger)
+	if removed {
+		t.Error("Expected RemoveLogger to return false for non-existent logger")
+	}
+
+	mgr.mu.RLock()
+	finalCount := len(mgr.loggers)
+	mgr.mu.RUnlock()
+
+	if finalCount != 2 {
+		t.Errorf("Expected logger count to remain 2, got %d", finalCount)
+	}
+}
+
 func TestLoggerManager_RemoveAllLoggers(t *testing.T) {
 	logger1 := &testLogger{minLevel: PNLogLevelInfo}
 	logger2 := &testLogger{minLevel: PNLogLevelDebug}

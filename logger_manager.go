@@ -37,6 +37,22 @@ func (lm *loggerManager) AddLogger(logger PNLogger) {
 	lm.loggers = append(lm.loggers, logger)
 }
 
+// RemoveLogger removes a specific logger from the manager.
+// Returns true if the logger was found and removed, false otherwise.
+func (lm *loggerManager) RemoveLogger(logger PNLogger) bool {
+	lm.mu.Lock()
+	defer lm.mu.Unlock()
+
+	for i, l := range lm.loggers {
+		if l == logger {
+			// Remove logger by slicing around it
+			lm.loggers = append(lm.loggers[:i], lm.loggers[i+1:]...)
+			return true
+		}
+	}
+	return false
+}
+
 // RemoveAllLoggers removes all loggers from the manager.
 func (lm *loggerManager) RemoveAllLoggers() {
 	lm.mu.Lock()
