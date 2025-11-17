@@ -1,3 +1,13 @@
+## v8.1.0
+November 17 2025
+
+#### Added
+- Add new logging system with `LoggerManager` supporting multiple custom loggers, structured log message types (network requests/responses, errors, user inputs), and PNLogger interface. Includes `DefaultLogger` with configurable log levels and detailed SDK operation logging. The new Config.Loggers field replaces deprecated Config.Log while maintaining backward compatibility.
+
+#### Modified
+- Refactor logs across the whole SDK. Now logs have dedicated structure and type, so only intended type will be printed. There is now much more logs, especially in internal systems.
+- Deprecate the old Logger. The old logger is still working (for backward compatibility) and is default to `PNLogLevelDebug`.
+
 ## v8.0.0
 October 29 2025
 
