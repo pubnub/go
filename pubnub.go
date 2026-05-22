@@ -483,8 +483,9 @@ func (pn *PubNub) GetClient() *http.Client {
 
 	if pn.client == nil {
 		if pn.Config.UseHTTP2 {
-			pn.client = NewHTTP2Client(pn.Config.ConnectTimeout,
-				pn.Config.SubscribeRequestTimeout)
+			pn.client = newHTTP2Client(pn.Config.ConnectTimeout,
+				pn.Config.NonSubscribeRequestTimeout,
+				pn.Config.MaxIdleConnsPerHost)
 		} else {
 			pn.client = NewHTTP1Client(pn.Config.ConnectTimeout,
 				pn.Config.NonSubscribeRequestTimeout,
@@ -509,8 +510,9 @@ func (pn *PubNub) GetSubscribeClient() *http.Client {
 	if pn.subscribeClient == nil {
 
 		if pn.Config.UseHTTP2 {
-			pn.subscribeClient = NewHTTP2Client(pn.Config.ConnectTimeout,
-				pn.Config.SubscribeRequestTimeout)
+			pn.subscribeClient = newHTTP2Client(pn.Config.ConnectTimeout,
+				pn.Config.SubscribeRequestTimeout,
+				pn.Config.MaxIdleConnsPerHost)
 		} else {
 			pn.subscribeClient = NewHTTP1Client(pn.Config.ConnectTimeout,
 				pn.Config.SubscribeRequestTimeout, pn.Config.MaxIdleConnsPerHost)
