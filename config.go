@@ -93,7 +93,7 @@ func NewConfigWithUserId(userId UserId) *Config {
 		StoreTokensOnGrant:            true,
 		FileMessagePublishRetryLimit:  5,
 		UseRandomInitializationVector: true,
-		UseHTTP2:                      true,
+		UseHTTP2:                      false,
 	}
 
 	return &c
