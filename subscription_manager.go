@@ -1056,6 +1056,8 @@ func (m *SubscriptionManager) reconnect() {
 	m.reconnectionManager.stopHeartbeatTimer()
 	m.stopSubscribeLoop()
 
+	m.pubnub.invalidateManagedHTTPClientsAfterSubscribeReconnect()
+
 	combinedChannels := m.stateManager.prepareChannelList(true)
 	combinedGroups := m.stateManager.prepareGroupList(true)
 
