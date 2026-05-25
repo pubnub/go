@@ -268,7 +268,8 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	} else if len(responseBody) > 1000 {
 		responseBody = responseBody[:1000] + fmt.Sprintf("... (truncated, total: %d bytes)", len(val))
 	}
-	opts.getPubNub().loggerManager.LogNetworkResponse(PNLogLevelDebug, res.StatusCode, req.URL.String(), responseBody, true)
+	opts.getPubNub().rememberLastTransportProtocol(res)
+	opts.getPubNub().loggerManager.LogNetworkResponse(PNLogLevelDebug, res.StatusCode, req.URL.String(), responseBody, opts.operationType(), res, true)
 
 	status = createStatus(PNUnknownCategory, string(val), responseInfo, nil)
 
@@ -350,7 +351,12 @@ func parseResponse(resp *http.Response, opts endpoint) ([]byte, StatusResponse, 
 		if len(logBodyStr) > 1000 {
 			logBodyStr = logBodyStr[:1000] + fmt.Sprintf("... (truncated, total: %d bytes)", len(bodyBytes))
 		}
-		opts.getPubNub().loggerManager.LogNetworkResponse(logLevel, resp.StatusCode, resp.Request.URL.String(), logBodyStr, true)
+		respURL := ""
+		if resp.Request != nil && resp.Request.URL != nil {
+			respURL = resp.Request.URL.String()
+		}
+		opts.getPubNub().rememberLastTransportProtocol(resp)
+		opts.getPubNub().loggerManager.LogNetworkResponse(logLevel, resp.StatusCode, respURL, logBodyStr, opts.operationType(), resp, true)
 
 		if resp.StatusCode == 408 {
 			opts.getPubNub().loggerManager.LogError(e, "RequestTimeout", opts.operationType(), true)

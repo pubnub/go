@@ -84,6 +84,21 @@ type PubNub struct {
 	tokenManager         *TokenManager
 	previousCipherKey    string
 	previousIvFlag       bool
+
+	// lastNegotiatedProto is res.Proto from the most recent completed HTTP response (internal).
+	lastNegotiatedProtoMu sync.Mutex
+	lastNegotiatedProto   string
+}
+
+// rememberLastTransportProtocol stores res.Proto from the last HTTP response (e.g. "HTTP/2.0", "HTTP/1.1").
+// It is a no-op if res is nil.
+func (pn *PubNub) rememberLastTransportProtocol(res *http.Response) {
+	if res == nil {
+		return
+	}
+	pn.lastNegotiatedProtoMu.Lock()
+	pn.lastNegotiatedProto = res.Proto
+	pn.lastNegotiatedProtoMu.Unlock()
 }
 
 // TODO this needs to be tested
