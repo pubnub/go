@@ -271,19 +271,31 @@ func TestHereNowPaginationBasic(t *testing.T) {
 	assert := assert.New(t)
 
 	channelName := randomized("pagination-test")
+	t.Logf("TestHereNowPaginationBasic: channel=%s", channelName)
+
+	// Diagnostic: attach a trace-level SDK logger to every PubNub instance in this test.
+	// Default loggers write to os.Stdout, which `go test -json` (used by gotestsum on CI)
+	// captures and attributes to this test. Use this output to inspect subscribe/heartbeat/
+	// HereNow lifecycle when the test fails on CI but passes locally.
+	traceLogger := pubnub.NewDefaultLogger(pubnub.PNLogLevelTrace)
 
 	// Create 3 PubNub instances with unique UUIDs
 	config1 := configCopy()
 	config1.SetUserId(pubnub.UserId("user-1-" + randomized("uuid")))
+	config1.Loggers = []pubnub.PNLogger{traceLogger}
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	config2.SetUserId(pubnub.UserId("user-2-" + randomized("uuid")))
+	config2.Loggers = []pubnub.PNLogger{traceLogger}
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	config3.SetUserId(pubnub.UserId("user-3-" + randomized("uuid")))
+	config3.Loggers = []pubnub.PNLogger{traceLogger}
 	pn3 := pubnub.NewPubNub(config3)
+
+	t.Logf("UUIDs: pn1=%s pn2=%s pn3=%s", config1.UUID, config2.UUID, config3.UUID)
 
 	// Subscribe all 3 instances to the same channel
 	pn1.Subscribe().Channels([]string{channelName}).Execute()
