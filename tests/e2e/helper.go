@@ -130,6 +130,74 @@ ForLoop:
 	}
 }
 
+// eventually polls check at an exponentially-growing interval (starting at initialInterval,
+// capped at 2s) until it returns ok=true, or timeout elapses. On success it returns the
+// converged value; on timeout it fails the test with a description that includes the last
+// observed value, so CI failures stay diagnosable instead of producing a bare "expected X got Y".
+//
+// Use this for e2e assertions against eventually-consistent PubNub state (presence
+// registration, message delivery, channel-group propagation, …) in place of fixed
+// time.Sleep calls. Returning the converged value keeps callers free of outer
+// state-capture variables.
+//
+// Example:
+//
+//	res := eventually(t, 30*time.Second, 250*time.Millisecond,
+//	    fmt.Sprintf("channel %s reaches occupancy 3", ch),
+//	    func() (*pubnub.HereNowResponse, bool) {
+//	        r, _, err := pn.HereNow().Channels([]string{ch}).Execute()
+//	        return r, err == nil && r != nil && r.TotalOccupancy >= 3
+//	    })
+func eventually[T any](
+	t *testing.T,
+	timeout, initialInterval time.Duration,
+	description string,
+	check func() (T, bool),
+) T {
+	t.Helper()
+	const maxInterval = 2 * time.Second
+	deadline := time.Now().Add(timeout)
+	delay := initialInterval
+	var last T
+	for {
+		v, ok := check()
+		last = v
+		if ok {
+			return v
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("eventually: %s did not converge within %v (last value=%#v)",
+				description, timeout, last)
+			return last
+		}
+		time.Sleep(delay)
+		if delay < maxInterval {
+			if delay *= 2; delay > maxInterval {
+				delay = maxInterval
+			}
+		}
+	}
+}
+
+// waitForOccupancy polls HereNow until channel reports at least expected total occupants,
+// or timeout elapses. Returns the last HereNow response so callers can run further
+// assertions on real data. Built on top of eventually.
+func waitForOccupancy(t *testing.T, pn *pubnub.PubNub, channel string, expected int, timeout time.Duration) *pubnub.HereNowResponse {
+	t.Helper()
+	return eventually(t, timeout, 250*time.Millisecond,
+		fmt.Sprintf("channel %s reaches occupancy %d", channel, expected),
+		func() (*pubnub.HereNowResponse, bool) {
+			r, _, err := pn.HereNow().
+				Channels([]string{channel}).
+				Limit(100).
+				Offset(0).
+				IncludeUUIDs(true).
+				Execute()
+			return r, err == nil && r != nil && r.TotalOccupancy >= expected
+		},
+	)
+}
+
 func heyIterator(count int) <-chan string {
 	channel := make(chan string)
 

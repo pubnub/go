@@ -295,8 +295,9 @@ func TestHereNowPaginationBasic(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Test 1: Get first 2 users (Limit=2, Offset=0)
 	res1, _, err1 := pn1.HereNow().
@@ -366,8 +367,9 @@ func TestHereNowPaginationFull(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Paginate through all users one by one (Limit=1)
 	allUUIDs := make(map[string]bool)
@@ -423,8 +425,9 @@ func TestHereNowLimitLargerThanCount(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Set limit to 10 (larger than the 3 users present)
 	res, _, err := pn1.HereNow().
@@ -469,8 +472,9 @@ func TestHereNowOffsetBeyondCount(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Set offset to 5 (beyond the 3 users present)
 	res, _, err := pn1.HereNow().
@@ -518,8 +522,9 @@ func TestHereNowDefaultBehavior(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Call HereNow without setting Limit or Offset (should use defaults: limit=1000, offset=0)
 	res, _, err := pn1.HereNow().
@@ -565,8 +570,9 @@ func TestHereNowOutOfRangeParameters(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Test with out-of-range limit (above maximum)
 	_, _, err1 := pn1.HereNow().
