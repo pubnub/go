@@ -279,19 +279,25 @@ func TestHereNowPaginationBasic(t *testing.T) {
 	// HereNow lifecycle when the test fails on CI but passes locally.
 	traceLogger := pubnub.NewDefaultLogger(pubnub.PNLogLevelTrace)
 
-	// Create 3 PubNub instances with unique UUIDs
+	// Create 3 PubNub instances with unique UUIDs. SetPresenceTimeout(20) makes the
+	// subscribe long-poll carry a heartbeat= query parameter, which is what tells the
+	// PubNub presence edge to register the subscriber. Without it, strict keysets do
+	// not track the subscriber and HereNow will report occupancy:0 indefinitely.
 	config1 := configCopy()
 	config1.SetUserId(pubnub.UserId("user-1-" + randomized("uuid")))
+	config1.SetPresenceTimeout(20)
 	config1.Loggers = []pubnub.PNLogger{traceLogger}
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	config2.SetUserId(pubnub.UserId("user-2-" + randomized("uuid")))
+	config2.SetPresenceTimeout(20)
 	config2.Loggers = []pubnub.PNLogger{traceLogger}
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	config3.SetUserId(pubnub.UserId("user-3-" + randomized("uuid")))
+	config3.SetPresenceTimeout(20)
 	config3.Loggers = []pubnub.PNLogger{traceLogger}
 	pn3 := pubnub.NewPubNub(config3)
 
@@ -359,14 +365,17 @@ func TestHereNowPaginationFull(t *testing.T) {
 	// Create 3 PubNub instances with unique UUIDs
 	config1 := configCopy()
 	config1.SetUserId(pubnub.UserId("user-1-" + randomized("uuid")))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	config2.SetUserId(pubnub.UserId("user-2-" + randomized("uuid")))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	config3.SetUserId(pubnub.UserId("user-3-" + randomized("uuid")))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances
@@ -417,14 +426,17 @@ func TestHereNowLimitLargerThanCount(t *testing.T) {
 	// Create 3 PubNub instances
 	config1 := configCopy()
 	config1.SetUserId(pubnub.UserId("user-1-" + randomized("uuid")))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	config2.SetUserId(pubnub.UserId("user-2-" + randomized("uuid")))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	config3.SetUserId(pubnub.UserId("user-3-" + randomized("uuid")))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances
@@ -464,14 +476,17 @@ func TestHereNowOffsetBeyondCount(t *testing.T) {
 	// Create 3 PubNub instances
 	config1 := configCopy()
 	config1.SetUserId(pubnub.UserId("user-1-" + randomized("uuid")))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	config2.SetUserId(pubnub.UserId("user-2-" + randomized("uuid")))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	config3.SetUserId(pubnub.UserId("user-3-" + randomized("uuid")))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances
@@ -512,16 +527,19 @@ func TestHereNowDefaultBehavior(t *testing.T) {
 	config1 := configCopy()
 	userId1 := "user-1-" + randomized("uuid")
 	config1.SetUserId(pubnub.UserId(userId1))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	userId2 := "user-2-" + randomized("uuid")
 	config2.SetUserId(pubnub.UserId(userId2))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	userId3 := "user-3-" + randomized("uuid")
 	config3.SetUserId(pubnub.UserId(userId3))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances
@@ -560,16 +578,19 @@ func TestHereNowOutOfRangeParameters(t *testing.T) {
 	config1 := configCopy()
 	userId1 := "user-1-" + randomized("uuid")
 	config1.SetUserId(pubnub.UserId(userId1))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	userId2 := "user-2-" + randomized("uuid")
 	config2.SetUserId(pubnub.UserId(userId2))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	userId3 := "user-3-" + randomized("uuid")
 	config3.SetUserId(pubnub.UserId(userId3))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances
