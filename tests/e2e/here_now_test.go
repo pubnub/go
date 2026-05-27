@@ -9,6 +9,7 @@ import (
 	pubnub "github.com/pubnub/go/v8"
 	"github.com/pubnub/go/v8/tests/stubs"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHereNowNotStubbed(t *testing.T) {
@@ -269,6 +270,7 @@ func TestHereNowSingleChannelAndGroup(t *testing.T) {
 
 func TestHereNowPaginationBasic(t *testing.T) {
 	assert := assert.New(t)
+	require := require.New(t)
 
 	channelName := randomized("pagination-test")
 
@@ -308,8 +310,10 @@ func TestHereNowPaginationBasic(t *testing.T) {
 
 	assert.Nil(err1)
 	assert.Equal(3, res1.TotalOccupancy)
-	assert.Equal(1, len(res1.Channels))
-	assert.Equal(2, len(res1.Channels[0].Occupants))
+	// require: subsequent code dereferences res1.Channels[0] and indexes into
+	// its Occupants slice. Stop the test cleanly (no panic) if these are empty.
+	require.Equal(1, len(res1.Channels))
+	require.Equal(2, len(res1.Channels[0].Occupants))
 
 	// Collect UUIDs from first page
 	firstPageUUIDs := make(map[string]bool)
@@ -327,8 +331,10 @@ func TestHereNowPaginationBasic(t *testing.T) {
 
 	assert.Nil(err2)
 	assert.Equal(3, res2.TotalOccupancy)
-	assert.Equal(1, len(res2.Channels))
-	assert.Equal(1, len(res2.Channels[0].Occupants))
+	// require: line below indexes res2.Channels[0].Occupants[0]; avoid panic
+	// (index out of range) when presence has not yet propagated.
+	require.Equal(1, len(res2.Channels))
+	require.Equal(1, len(res2.Channels[0].Occupants))
 
 	// Verify no duplicate UUIDs between pages
 	thirdUserUUID := res2.Channels[0].Occupants[0].UUID
@@ -340,6 +346,7 @@ func TestHereNowPaginationBasic(t *testing.T) {
 
 func TestHereNowPaginationFull(t *testing.T) {
 	assert := assert.New(t)
+	require := require.New(t)
 
 	channelName := randomized("pagination-full")
 
@@ -382,8 +389,10 @@ func TestHereNowPaginationFull(t *testing.T) {
 
 		assert.Nil(err)
 		assert.Equal(3, res.TotalOccupancy)
-		assert.Equal(1, len(res.Channels))
-		assert.Equal(1, len(res.Channels[0].Occupants))
+		// require: line below indexes res.Channels[0].Occupants[0]; avoid panic
+		// (index out of range) when presence has not yet propagated.
+		require.Equal(1, len(res.Channels))
+		require.Equal(1, len(res.Channels[0].Occupants))
 
 		// Collect UUID
 		uuid := res.Channels[0].Occupants[0].UUID
@@ -397,6 +406,7 @@ func TestHereNowPaginationFull(t *testing.T) {
 
 func TestHereNowLimitLargerThanCount(t *testing.T) {
 	assert := assert.New(t)
+	require := require.New(t)
 
 	channelName := randomized("limit-larger")
 
@@ -436,13 +446,15 @@ func TestHereNowLimitLargerThanCount(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(3, res.TotalOccupancy)
-	assert.Equal(1, len(res.Channels))
+	// require: next line dereferences res.Channels[0]; avoid panic on empty.
+	require.Equal(1, len(res.Channels))
 	// Should return all 3 users even though limit is 10
 	assert.Equal(3, len(res.Channels[0].Occupants))
 }
 
 func TestHereNowOffsetBeyondCount(t *testing.T) {
 	assert := assert.New(t)
+	require := require.New(t)
 
 	channelName := randomized("offset-beyond")
 
@@ -482,13 +494,15 @@ func TestHereNowOffsetBeyondCount(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(3, res.TotalOccupancy)
-	assert.Equal(1, len(res.Channels))
+	// require: next line dereferences res.Channels[0]; avoid panic on empty.
+	require.Equal(1, len(res.Channels))
 	// Should return 0 occupants since offset skips all users
 	assert.Equal(0, len(res.Channels[0].Occupants))
 }
 
 func TestHereNowDefaultBehavior(t *testing.T) {
 	assert := assert.New(t)
+	require := require.New(t)
 
 	channelName := randomized("default-behavior")
 
@@ -529,7 +543,8 @@ func TestHereNowDefaultBehavior(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(3, res.TotalOccupancy)
-	assert.Equal(1, len(res.Channels))
+	// require: next line dereferences res.Channels[0]; avoid panic on empty.
+	require.Equal(1, len(res.Channels))
 	// Should return all 3 users with default settings
 	assert.Equal(3, len(res.Channels[0].Occupants))
 }
