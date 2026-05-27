@@ -33,9 +33,9 @@ func TestMessageActionsListenersWithMA(t *testing.T) {
 	MessageActionsListenersCommon(t, false, false, true)
 }
 
-// func  TestMessageActionsListenersEncWithMA(t *testing.T) {
-// 	MessageActionsListenersCommon(t, true, false, true)
-// }
+func TestMessageActionsListenersEncWithMA(t *testing.T) {
+	MessageActionsListenersCommon(t, true, false, true)
+}
 
 func TestMessageActionsListenersWithMetaMA(t *testing.T) {
 	MessageActionsListenersCommon(t, false, true, true)
