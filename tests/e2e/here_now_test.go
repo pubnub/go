@@ -272,17 +272,23 @@ func TestHereNowPaginationBasic(t *testing.T) {
 
 	channelName := randomized("pagination-test")
 
-	// Create 3 PubNub instances with unique UUIDs
+	// Create 3 PubNub instances with unique UUIDs. SetPresenceTimeout(20) makes the
+	// subscribe long-poll carry a heartbeat= query parameter, which is what tells the
+	// PubNub presence edge to register the subscriber. Without it, strict keysets do
+	// not track the subscriber and HereNow will report occupancy:0 indefinitely.
 	config1 := configCopy()
 	config1.SetUserId(pubnub.UserId("user-1-" + randomized("uuid")))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	config2.SetUserId(pubnub.UserId("user-2-" + randomized("uuid")))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	config3.SetUserId(pubnub.UserId("user-3-" + randomized("uuid")))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances to the same channel
@@ -295,8 +301,9 @@ func TestHereNowPaginationBasic(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Test 1: Get first 2 users (Limit=2, Offset=0)
 	res1, _, err1 := pn1.HereNow().
@@ -346,14 +353,17 @@ func TestHereNowPaginationFull(t *testing.T) {
 	// Create 3 PubNub instances with unique UUIDs
 	config1 := configCopy()
 	config1.SetUserId(pubnub.UserId("user-1-" + randomized("uuid")))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	config2.SetUserId(pubnub.UserId("user-2-" + randomized("uuid")))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	config3.SetUserId(pubnub.UserId("user-3-" + randomized("uuid")))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances
@@ -366,8 +376,9 @@ func TestHereNowPaginationFull(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Paginate through all users one by one (Limit=1)
 	allUUIDs := make(map[string]bool)
@@ -403,14 +414,17 @@ func TestHereNowLimitLargerThanCount(t *testing.T) {
 	// Create 3 PubNub instances
 	config1 := configCopy()
 	config1.SetUserId(pubnub.UserId("user-1-" + randomized("uuid")))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	config2.SetUserId(pubnub.UserId("user-2-" + randomized("uuid")))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	config3.SetUserId(pubnub.UserId("user-3-" + randomized("uuid")))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances
@@ -423,8 +437,9 @@ func TestHereNowLimitLargerThanCount(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Set limit to 10 (larger than the 3 users present)
 	res, _, err := pn1.HereNow().
@@ -449,14 +464,17 @@ func TestHereNowOffsetBeyondCount(t *testing.T) {
 	// Create 3 PubNub instances
 	config1 := configCopy()
 	config1.SetUserId(pubnub.UserId("user-1-" + randomized("uuid")))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	config2.SetUserId(pubnub.UserId("user-2-" + randomized("uuid")))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	config3.SetUserId(pubnub.UserId("user-3-" + randomized("uuid")))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances
@@ -469,8 +487,9 @@ func TestHereNowOffsetBeyondCount(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Set offset to 5 (beyond the 3 users present)
 	res, _, err := pn1.HereNow().
@@ -496,16 +515,19 @@ func TestHereNowDefaultBehavior(t *testing.T) {
 	config1 := configCopy()
 	userId1 := "user-1-" + randomized("uuid")
 	config1.SetUserId(pubnub.UserId(userId1))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	userId2 := "user-2-" + randomized("uuid")
 	config2.SetUserId(pubnub.UserId(userId2))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	userId3 := "user-3-" + randomized("uuid")
 	config3.SetUserId(pubnub.UserId(userId3))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances
@@ -518,8 +540,9 @@ func TestHereNowDefaultBehavior(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Call HereNow without setting Limit or Offset (should use defaults: limit=1000, offset=0)
 	res, _, err := pn1.HereNow().
@@ -543,16 +566,19 @@ func TestHereNowOutOfRangeParameters(t *testing.T) {
 	config1 := configCopy()
 	userId1 := "user-1-" + randomized("uuid")
 	config1.SetUserId(pubnub.UserId(userId1))
+	config1.SetPresenceTimeout(20)
 	pn1 := pubnub.NewPubNub(config1)
 
 	config2 := configCopy()
 	userId2 := "user-2-" + randomized("uuid")
 	config2.SetUserId(pubnub.UserId(userId2))
+	config2.SetPresenceTimeout(20)
 	pn2 := pubnub.NewPubNub(config2)
 
 	config3 := configCopy()
 	userId3 := "user-3-" + randomized("uuid")
 	config3.SetUserId(pubnub.UserId(userId3))
+	config3.SetPresenceTimeout(20)
 	pn3 := pubnub.NewPubNub(config3)
 
 	// Subscribe all 3 instances
@@ -565,8 +591,9 @@ func TestHereNowOutOfRangeParameters(t *testing.T) {
 	defer pn2.Unsubscribe().Channels([]string{channelName}).Execute()
 	defer pn3.Unsubscribe().Channels([]string{channelName}).Execute()
 
-	// Wait for presence to register
-	time.Sleep(3 * time.Second)
+	// Wait for presence to register (HereNow is eventually consistent; CI runners
+	// can be slower than 3 s to converge so we poll with a deadline instead).
+	waitForOccupancy(t, pn1, channelName, 3, 30*time.Second)
 
 	// Test with out-of-range limit (above maximum)
 	_, _, err1 := pn1.HereNow().

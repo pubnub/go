@@ -18,7 +18,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "8.1.0"
+	Version = "8.2.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -77,6 +77,8 @@ type PubNub struct {
 	instanceID           string
 	client               *http.Client
 	subscribeClient      *http.Client
+	txnHTTPClientPinned  bool // true after SetClient; SDK skips discarding transactional *http.Client on HTTP/2 reconnect
+	subscribeClientPinned bool // true after SetSubscribeClient
 	requestWorkers       *RequestWorkers
 	jobQueue             chan *JobQItem
 	ctx                  Context
@@ -84,6 +86,58 @@ type PubNub struct {
 	tokenManager         *TokenManager
 	previousCipherKey    string
 	previousIvFlag       bool
+
+	// lastNegotiatedProto is res.Proto from the most recent completed HTTP response (internal).
+	lastNegotiatedProtoMu sync.Mutex
+	lastNegotiatedProto   string
+}
+
+// rememberLastTransportProtocol stores res.Proto from the last HTTP response (e.g. "HTTP/2.0", "HTTP/1.1").
+// It is a no-op if res is nil.
+func (pn *PubNub) rememberLastTransportProtocol(res *http.Response) {
+	if res == nil {
+		return
+	}
+	pn.lastNegotiatedProtoMu.Lock()
+	pn.lastNegotiatedProto = res.Proto
+	pn.lastNegotiatedProtoMu.Unlock()
+}
+
+// invalidateManagedHTTPClientsAfterSubscribeReconnect drops SDK-managed *http.Client instances when
+// UseHTTP2 is true so the next request re-runs TLS+ALPN; pinned clients (Set{,Subscribe}Client)
+// keep their pointer and only have idle connections closed. Called from SubscriptionManager.reconnect.
+func (pn *PubNub) invalidateManagedHTTPClientsAfterSubscribeReconnect() {
+	if pn.Config == nil || !pn.Config.UseHTTP2 {
+		return
+	}
+
+	var lastProto string
+	pn.lastNegotiatedProtoMu.Lock()
+	lastProto = pn.lastNegotiatedProto
+	pn.lastNegotiatedProtoMu.Unlock()
+
+	pn.Lock()
+	defer pn.Unlock()
+
+	txnDiscard, subDiscard := false, false
+	if pn.client != nil {
+		pn.client.CloseIdleConnections()
+		if !pn.txnHTTPClientPinned {
+			pn.client = nil
+			txnDiscard = true
+		}
+	}
+	if pn.subscribeClient != nil {
+		pn.subscribeClient.CloseIdleConnections()
+		if !pn.subscribeClientPinned {
+			pn.subscribeClient = nil
+			subDiscard = true
+		}
+	}
+	pn.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf(
+		"HTTP/2 reconnect: refreshed transports (discarded transactional client=%v, discarded subscribe client=%v, transactional pinned=%v, subscribe pinned=%v, prior response protocol=%q)",
+		txnDiscard, subDiscard, pn.txnHTTPClientPinned, pn.subscribeClientPinned, lastProto,
+	), false)
 }
 
 // TODO this needs to be tested
@@ -472,6 +526,7 @@ func (pn *PubNub) HeartbeatWithContext(ctx Context) *heartbeatBuilder {
 // SetClient Set a client for transactional requests (Non Subscribe).
 func (pn *PubNub) SetClient(c *http.Client) {
 	pn.Lock()
+	pn.txnHTTPClientPinned = true
 	pn.client = c
 	pn.Unlock()
 }
@@ -483,8 +538,9 @@ func (pn *PubNub) GetClient() *http.Client {
 
 	if pn.client == nil {
 		if pn.Config.UseHTTP2 {
-			pn.client = NewHTTP2Client(pn.Config.ConnectTimeout,
-				pn.Config.SubscribeRequestTimeout)
+			pn.client = newHTTP2Client(pn.Config.ConnectTimeout,
+				pn.Config.NonSubscribeRequestTimeout,
+				pn.Config.MaxIdleConnsPerHost)
 		} else {
 			pn.client = NewHTTP1Client(pn.Config.ConnectTimeout,
 				pn.Config.NonSubscribeRequestTimeout,
@@ -498,6 +554,7 @@ func (pn *PubNub) GetClient() *http.Client {
 // SetSubscribeClient Set a client for transactional requests.
 func (pn *PubNub) SetSubscribeClient(client *http.Client) {
 	pn.Lock()
+	pn.subscribeClientPinned = true
 	pn.subscribeClient = client
 	pn.Unlock()
 }
@@ -509,8 +566,9 @@ func (pn *PubNub) GetSubscribeClient() *http.Client {
 	if pn.subscribeClient == nil {
 
 		if pn.Config.UseHTTP2 {
-			pn.subscribeClient = NewHTTP2Client(pn.Config.ConnectTimeout,
-				pn.Config.SubscribeRequestTimeout)
+			pn.subscribeClient = newHTTP2Client(pn.Config.ConnectTimeout,
+				pn.Config.SubscribeRequestTimeout,
+				pn.Config.MaxIdleConnsPerHost)
 		} else {
 			pn.subscribeClient = NewHTTP1Client(pn.Config.ConnectTimeout,
 				pn.Config.SubscribeRequestTimeout, pn.Config.MaxIdleConnsPerHost)
@@ -773,9 +831,28 @@ func (pn *PubNub) Destroy() {
 	pn.requestWorkers.Close()
 	pn.loggerManager.LogSimple(PNLogLevelTrace, "Request workers closed", false)
 	pn.tokenManager.CleanUp()
-	pn.client.CloseIdleConnections()
+	pn.closeManagedHTTPClients()
 	pn.loggerManager.LogSimple(PNLogLevelInfo, "PubNub instance destroyed", false)
 
+}
+
+// closeManagedHTTPClients snapshots both lazy HTTP clients under pn.Lock (race-free with
+// Get/SetClient and the reconnect-invalidation path), then nils them and closes idle connections
+// outside the lock; either client may be nil and both are closed to avoid the subscribe-side leak.
+func (pn *PubNub) closeManagedHTTPClients() {
+	pn.Lock()
+	txn := pn.client
+	sub := pn.subscribeClient
+	pn.client = nil
+	pn.subscribeClient = nil
+	pn.Unlock()
+
+	if txn != nil {
+		txn.CloseIdleConnections()
+	}
+	if sub != nil {
+		sub.CloseIdleConnections()
+	}
 }
 
 func (pn *PubNub) getPublishSequence() int {

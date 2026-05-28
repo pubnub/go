@@ -46,7 +46,7 @@ type Config struct {
 	Loggers                      []PNLogger         // Custom loggers for enhanced logging. If empty, no logging will occur unless the deprecated Log field is set.
 	SuppressLeaveEvents          bool               // When true the SDK doesn't send out the leave requests.
 	DisablePNOtherProcessing     bool               // PNOther processing looks for pn_other in the JSON on the recevied message
-	UseHTTP2                     bool               // HTTP2 Flag
+	UseHTTP2                     bool               // When true (the default), the SDK uses a transport that prefers HTTP/2 via TLS ALPN on HTTPS and automatically falls back to HTTP/1.1 when the origin does not advertise HTTP/2.
 	MessageQueueOverflowCount    int                // When the limit is exceeded by the number of messages received in a single subscribe request, a status event PNRequestMessageCountExceededCategory is fired.
 	MaxIdleConnsPerHost          int                // Used to set the value of HTTP Transport's MaxIdleConnsPerHost.
 	MaxWorkers                   int                // Number of max workers for Publish and Grant requests
@@ -93,6 +93,7 @@ func NewConfigWithUserId(userId UserId) *Config {
 		StoreTokensOnGrant:            true,
 		FileMessagePublishRetryLimit:  5,
 		UseRandomInitializationVector: true,
+		UseHTTP2:                      true,
 	}
 
 	return &c

@@ -2,6 +2,7 @@ package pubnub
 
 import (
 	"fmt"
+	"net/http"
 	"path/filepath"
 	"runtime"
 	"sync"
@@ -131,18 +132,24 @@ func (lm *loggerManager) LogNetworkRequest(level PNLogLevel, method, url string,
 	})
 }
 
-// LogNetworkResponse logs an HTTP response.
+// LogNetworkResponse logs an HTTP response when a request completes, including negotiated protocol.
 // includeCallsite: if true, captures the file and line number of the caller
-func (lm *loggerManager) LogNetworkResponse(level PNLogLevel, statusCode int, url, body string, includeCallsite bool) {
+func (lm *loggerManager) LogNetworkResponse(level PNLogLevel, statusCode int, url, body string, operation OperationType, res *http.Response, includeCallsite bool) {
+	protocol := ""
+	if res != nil {
+		protocol = res.Proto
+	}
 	lm.log(NetworkResponseLogMessage{
 		BaseLogMessage: BaseLogMessage{
 			Timestamp:  time.Now(),
 			InstanceID: lm.instanceID,
 			LogLevel:   level,
-			Message:    "HTTP Response",
+			Message:    "HTTP Response completed",
 			Callsite:   lm.captureCallsite(includeCallsite, 2),
 		},
+		Operation:  operation,
 		StatusCode: statusCode,
+		Protocol:   protocol,
 		URL:        url,
 		Body:       body,
 	})

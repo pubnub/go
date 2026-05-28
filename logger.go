@@ -57,7 +57,9 @@ type NetworkRequestLogMessage struct {
 // NetworkResponseLogMessage contains HTTP response details.
 type NetworkResponseLogMessage struct {
 	BaseLogMessage
+	Operation  OperationType
 	StatusCode int
+	Protocol   string // negotiated protocol from http.Response.Proto (e.g. HTTP/2.0, HTTP/1.1)
 	URL        string
 	Body       string
 }
@@ -94,8 +96,13 @@ func (msg NetworkRequestLogMessage) String() string {
 
 // String implements fmt.Stringer for NetworkResponseLogMessage
 func (msg NetworkResponseLogMessage) String() string {
-	return fmt.Sprintf("%s Received response with %d content %s for request url %s",
-		formatLogBase(msg), msg.StatusCode, msg.Body, msg.URL)
+	op := msg.Operation.String()
+	proto := msg.Protocol
+	if proto == "" && msg.StatusCode > 0 {
+		proto = "(unknown)"
+	}
+	return fmt.Sprintf("%s PubNub request completed: operation=%s protocol=%s status=%d url=%s body=%s",
+		formatLogBase(msg), op, proto, msg.StatusCode, msg.URL, msg.Body)
 }
 
 // String implements fmt.Stringer for ErrorLogMessage
@@ -154,7 +161,7 @@ func formatParamsMap(params map[string]interface{}) string {
 // Available message types:
 //   - SimpleLogMessage: General purpose logs
 //   - NetworkRequestLogMessage: HTTP request details
-//   - NetworkResponseLogMessage: HTTP response details
+//   - NetworkResponseLogMessage: HTTP response details (includes operation and protocol when available)
 //   - ErrorLogMessage: Error information with context
 //   - UserInputLogMessage: API call parameters
 //

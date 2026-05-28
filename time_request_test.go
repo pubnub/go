@@ -1,12 +1,87 @@
 package pubnub
 
 import (
+	"net/http"
 	"net/url"
 	"testing"
 
 	h "github.com/pubnub/go/v8/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
+
+// protoCaptureTransport records the negotiated protocol from the underlying RoundTripper
+// (e.g. "HTTP/2.0" vs "HTTP/1.1") for integration checks.
+type protoCaptureTransport struct {
+	base http.RoundTripper
+	dest *string
+}
+
+func (p *protoCaptureTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	resp, err := p.base.RoundTrip(req)
+	if resp != nil && p.dest != nil {
+		*p.dest = resp.Proto
+	}
+	return resp, err
+}
+
+// TestTimeRequestUsesHTTP2OnH2PubNubAPIOrigin exercises the PubNub HTTP stack against the
+// h2.pubnubapi.com origin, which terminates HTTP/2. Requires outbound HTTPS access.
+func TestTimeRequestUsesHTTP2OnH2PubNubAPIOrigin(t *testing.T) {
+	assert := assert.New(t)
+
+	const h2Origin = "h2.pubnubapi.com"
+
+	config := NewConfigWithUserId(UserId(GenerateUUID()))
+	config.Origin = h2Origin
+	config.UseHTTP2 = true
+
+	pn := NewPubNub(config)
+
+	base := pn.GetClient()
+	var negotiatedProto string
+	pn.SetClient(&http.Client{
+		Transport: &protoCaptureTransport{base: base.Transport, dest: &negotiatedProto},
+		Timeout:   base.Timeout,
+	})
+
+	_, s, err := pn.Time().Execute()
+
+	assert.Nil(err)
+	assert.Equal(200, s.StatusCode)
+	assert.Equal(h2Origin, s.Origin)
+	assert.Equal("HTTP/2.0", negotiatedProto,
+		"h2.pubnubapi.com should negotiate HTTP/2; got %s (TLS / connectivity)", negotiatedProto)
+}
+
+// TestTimeRequestUsesHTTP11WhenUseHTTP2FalseOnH2PubNubAPIOrigin checks that UseHTTP2=false selects
+// the HTTP/1-only client so TLS negotiates HTTP/1.1 even against the h2-named origin (which must
+// still offer http/1.1 ALPN). Requires outbound HTTPS access.
+func TestTimeRequestUsesHTTP11WhenUseHTTP2FalseOnH2PubNubAPIOrigin(t *testing.T) {
+	assert := assert.New(t)
+
+	const h2Origin = "h2.pubnubapi.com"
+
+	config := NewConfigWithUserId(UserId(GenerateUUID()))
+	config.Origin = h2Origin
+	config.UseHTTP2 = false
+
+	pn := NewPubNub(config)
+
+	base := pn.GetClient()
+	var negotiatedProto string
+	pn.SetClient(&http.Client{
+		Transport: &protoCaptureTransport{base: base.Transport, dest: &negotiatedProto},
+		Timeout:   base.Timeout,
+	})
+
+	_, s, err := pn.Time().Execute()
+
+	assert.Nil(err)
+	assert.Equal(200, s.StatusCode)
+	assert.Equal(h2Origin, s.Origin)
+	assert.Equal("HTTP/1.1", negotiatedProto,
+		"with UseHTTP2=false expect HTTP/1.1 ALPN against h2.pubnubapi.com; got %s", negotiatedProto)
+}
 
 func TestTimeRequestHTTP2(t *testing.T) {
 	assert := assert.New(t)

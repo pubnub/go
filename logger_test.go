@@ -459,7 +459,9 @@ func TestNetworkResponseLogMessage_String(t *testing.T) {
 			InstanceID: "test-id",
 			LogLevel:   PNLogLevelDebug,
 		},
+		Operation:  PNPublishOperation,
 		StatusCode: 200,
+		Protocol:   "HTTP/2.0",
 		URL:        "https://ps.pndsn.com/publish",
 		Body:       "test response",
 	}
@@ -472,6 +474,15 @@ func TestNetworkResponseLogMessage_String(t *testing.T) {
 
 	if !strings.Contains(str, "https://ps.pndsn.com/publish") {
 		t.Errorf("Expected string to contain URL, got: %s", str)
+	}
+	if !strings.Contains(str, "PubNub request completed") {
+		t.Errorf("Expected completion banner, got: %s", str)
+	}
+	if !strings.Contains(str, "operation=Publish") {
+		t.Errorf("Expected operation Publish, got: %s", str)
+	}
+	if !strings.Contains(str, "protocol=HTTP/2.0") {
+		t.Errorf("Expected protocol field, got: %s", str)
 	}
 }
 
