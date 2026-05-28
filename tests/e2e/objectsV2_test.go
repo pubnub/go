@@ -1,12 +1,10 @@
 package e2e
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"reflect"
 	"testing"
-	"time"
 
 	pubnub "github.com/pubnub/go/v8"
 	"github.com/stretchr/testify/assert"
@@ -133,18 +131,14 @@ func TestObjectsV2UUIDMetadataSetUpdateGetRemove(t *testing.T) {
 		a.Equal(uuidType, res.Data.Type)
 	}
 
-	// PubNub Objects v2 GET is eventually consistent against SetUUIDMetadata writes
-	// (CI hits a stale replica intermittently). Poll until the updated status propagates
-	// to the read path before asserting on it; without this the assertion sees the
-	// previous status ("active" instead of "inactive") and the test fails non-deterministically.
-	getRes := eventually(t, 10*time.Second, 250*time.Millisecond,
-		fmt.Sprintf("UUID %s status update propagates to GetUUIDMetadata", id),
-		func() (*pubnub.PNGetUUIDMetadataResponse, bool) {
-			r, _, e := pn.GetUUIDMetadata().Include(incl).UUID(id).Execute()
-			return r, e == nil && r != nil && r.Data.Status == statusUpdated
-		})
-	a.Equal(statusUpdated, getRes.Data.Status)
-	a.Equal(uuidType, getRes.Data.Type)
+	getRes, st, err := pn.GetUUIDMetadata().Include(incl).UUID(id).Execute()
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	if getRes != nil {
+		a.Equal(statusUpdated, getRes.Data.Status)
+		a.Equal(uuidType, getRes.Data.Type)
+	}
+
 }
 
 func removeUUIDMetadata(a *assert.Assertions, pn *pubnub.PubNub, id string) {
@@ -278,17 +272,15 @@ func TestObjectsV2UUIDMetadataETagConditionalUpdate(t *testing.T) {
 	a.NotEmpty(res.Data.ETag)
 	initialETag := res.Data.ETag
 
-	// Step 2: Get metadata to verify ETag.
-	// PubNub Objects v2 is eventually consistent against just-created objects, so CI
-	// regularly observes the GET hitting a replica that hasn't seen the Set yet and
-	// returning 404. Poll until the just-created object becomes visible with the
-	// expected ETag, otherwise the next line panics dereferencing getRes.Data.
-	getRes := eventually(t, 10*time.Second, 250*time.Millisecond,
-		fmt.Sprintf("UUID %s metadata visible to GET after Set (initial ETag)", id),
-		func() (*pubnub.PNGetUUIDMetadataResponse, bool) {
-			r, _, e := pn.GetUUIDMetadata().Include(incl).UUID(id).Execute()
-			return r, e == nil && r != nil && r.Data.ETag == initialETag
-		})
+	// Step 2: Get metadata to verify ETag
+	getRes, st, err := pn.GetUUIDMetadata().
+		Include(incl).
+		UUID(id).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.NotNil(getRes)
 	a.Equal(initialETag, getRes.Data.ETag)
 
 	// Step 3: Try to update with incorrect ETag - should fail with 412
@@ -305,17 +297,16 @@ func TestObjectsV2UUIDMetadataETagConditionalUpdate(t *testing.T) {
 	a.Equal(412, st.StatusCode)
 	a.Equal(pubnub.PNPreconditionFailedCategory, st.Category)
 
-	// Step 4: Verify data was NOT changed. Step 3's 412 means the write was rejected on
-	// the primary, but a subsequent GET can still hit a different replica that's lagging;
-	// poll until any replica we hit confirms the initial state is intact.
-	getRes = eventually(t, 10*time.Second, 250*time.Millisecond,
-		fmt.Sprintf("UUID %s metadata still shows initial state after failed conditional update", id),
-		func() (*pubnub.PNGetUUIDMetadataResponse, bool) {
-			r, _, e := pn.GetUUIDMetadata().Include(incl).UUID(id).Execute()
-			return r, e == nil && r != nil && r.Data.Name == initialName && r.Data.ETag == initialETag
-		})
-	a.Equal(initialName, getRes.Data.Name)
-	a.Equal(initialETag, getRes.Data.ETag)
+	// Step 4: Verify data was NOT changed
+	getRes, st, err = pn.GetUUIDMetadata().
+		Include(incl).
+		UUID(id).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
+	a.Equal(initialName, getRes.Data.Name) // Should still be initial name
+	a.Equal(initialETag, getRes.Data.ETag) // ETag unchanged
 
 	// Step 5: Update with correct ETag - should succeed
 	res, st, err = pn.SetUUIDMetadata().
@@ -332,14 +323,14 @@ func TestObjectsV2UUIDMetadataETagConditionalUpdate(t *testing.T) {
 	a.NotEqual(initialETag, res.Data.ETag) // ETag should change after update
 	newETag := res.Data.ETag
 
-	// Step 6: Verify the update was successful. Same read-after-write story as Step 2;
-	// poll until the update is visible everywhere we land.
-	getRes = eventually(t, 10*time.Second, 250*time.Millisecond,
-		fmt.Sprintf("UUID %s metadata update propagates to GET (new ETag)", id),
-		func() (*pubnub.PNGetUUIDMetadataResponse, bool) {
-			r, _, e := pn.GetUUIDMetadata().Include(incl).UUID(id).Execute()
-			return r, e == nil && r != nil && r.Data.Name == updatedName && r.Data.ETag == newETag
-		})
+	// Step 6: Verify the update was successful
+	getRes, st, err = pn.GetUUIDMetadata().
+		Include(incl).
+		UUID(id).
+		Execute()
+
+	a.Nil(err)
+	a.Equal(200, st.StatusCode)
 	a.Equal(updatedName, getRes.Data.Name)
 	a.Equal(newETag, getRes.Data.ETag)
 }

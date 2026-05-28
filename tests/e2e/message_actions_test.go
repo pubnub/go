@@ -53,12 +53,7 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 	eventWaitTime := 3
 	assert := assert.New(t)
 
-	cfg := configCopy()
-	// Diagnostic: attach a trace-level SDK logger so the next CI run captures the
-	// underlying transport error for the *url.Error that fails GetMessageActions #3.
-	// `go test -json` (gotestsum on CI) attributes stdout to the running test.
-	cfg.Loggers = []pubnub.PNLogger{pubnub.NewDefaultLogger(pubnub.PNLogLevelTrace)}
-	pnMA := pubnub.NewPubNub(cfg)
+	pnMA := pubnub.NewPubNub(configCopy())
 
 	r := GenRandom()
 
@@ -206,24 +201,18 @@ func MessageActionsListenersCommon(t *testing.T, encrypted, withMeta, withMessag
 		//fmt.Println("recActionTimetokenM1", recActionTimetokenM1, limit)
 
 		resGetMA1, _, errGetMA1 := pnMA.GetMessageActions().Channel(chMA).Execute()
-		// Diagnostic: %v on *pnerr.ConnectionError unwraps the underlying *url.Error
-		// (testify's assert.Nil prints %#v which only shows the pointer, hiding the cause).
-		t.Logf("GetMessageActions #1 err=%v", errGetMA1)
 		assert.Nil(errGetMA1)
 		MatchGetMA(1, assert, resGetMA1, recActionType, recActionTimetoken, recActionValue, recMessageTimetoken)
 
 		resGetMA2, _, errGetMA2 := pnMA.GetMessageActions().Channel(chMA).Start(recActionTimetokenM1).Execute()
-		t.Logf("GetMessageActions #2 err=%v", errGetMA2)
 		assert.Nil(errGetMA2)
 		MatchGetMA(2, assert, resGetMA2, recActionType, recActionTimetoken, recActionValue, recMessageTimetoken)
 
 		resGetMA3, _, errGetMA3 := pnMA.GetMessageActions().Channel(chMA).Start(recActionTimetokenM1).End(recActionTimetoken).Execute()
-		t.Logf("GetMessageActions #3 err=%v", errGetMA3)
 		assert.Nil(errGetMA3)
 		MatchGetMA(3, assert, resGetMA3, recActionType, recActionTimetoken, recActionValue, recMessageTimetoken)
 
 		resGetMA4, _, errGetMA4 := pnMA.GetMessageActions().Channel(chMA).Limit(limit).Execute()
-		t.Logf("GetMessageActions #4 err=%v", errGetMA4)
 		assert.Nil(errGetMA4)
 		MatchGetMA(4, assert, resGetMA4, recActionType, recActionTimetoken, recActionValue, recMessageTimetoken)
 
