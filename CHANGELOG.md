@@ -1,3 +1,16 @@
+## 8.2.0
+May 28 2026
+
+#### Added
+- `Config.UseHTTP2` now defaults to `true` and `NewHTTP2Client` is rebuilt on `net/http.Transport` with `ForceAttemptHTTP2` + `http2.ConfigureTransport`, so HTTPS connections prefer HTTP/2 via TLS ALPN and fall back to HTTP/1.1 when the origin doesn't advertise h2. The single subscribe loop reuses the cached `*http.Client` across long-poll cycles, and on `SubscriptionManager.reconnect` SDK-managed clients are dropped so the next request re-runs TLS+ALPN — user-supplied clients pinned via `SetClient`/`SetSubscribeClient` are preserved. Set `UseHTTP2 = false` to opt out.
+- Network response log messages now carry the `OperationType` and the negotiated protocol from `*http.Response.Proto`. The formatted line becomes `PubNub request completed: operation=<Op> protocol=<HTTP/x.y> status=<n> url=<…> body=<…>`, and the value is also retained on the `PubNub` instance as `lastNegotiatedProto` for internal use. No public API change.
+
+#### Fixed
+- `Destroy` previously dereferenced `pn.client` unconditionally, read the field without holding `pn.Lock`, and never closed `pn.subscribeClient` (most impactful on HTTP/2 where one long-lived session per origin holds the only physical connection). The new `closeManagedHTTPClients` snapshots both clients under `pn.Lock`, clears the pointers, and calls `CloseIdleConnections` outside the lock on whichever clients are non-nil.
+
+#### Modified
+- Add a generic `eventually` polling test helper and update the gotestsum-based runner to automatically retry failing tests up to 3 times.
+
 ## v8.1.0
 November 17 2025
 
