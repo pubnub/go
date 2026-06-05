@@ -40,7 +40,7 @@ jobs:
           cache: true
       - name: Install gotestsum
         run: |
-          go install gotest.tools/gotestsum@v1.12.0
+          go install gotest.tools/gotestsum@v1.13.0
           gotestsum --version
       - name: Build and run tests
         run: bash ./scripts/run-tests-gotestsum.sh -mod=mod testname
