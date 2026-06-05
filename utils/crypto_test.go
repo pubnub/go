@@ -508,3 +508,30 @@ func TestDecryptStuffFromPython(t *testing.T) {
 	fmt.Printf("%s: => %d\n", r2, len(r2))
 	fmt.Printf("%s: => %d\n", r3, len(r3))
 }
+
+func TestComplexClassDecryption(t *testing.T) {
+	assert := assert.New(t)
+
+	customComplexMessage := initComplexMessage()
+	plaintext, err := json.Marshal(customComplexMessage)
+	assert.NoError(err)
+
+	encrypted := EncryptString("enigma", string(plaintext), false)
+	decrypted, decErr := DecryptString("enigma", encrypted, false)
+	assert.NoError(decErr)
+	assert.Equal(string(plaintext), decrypted)
+}
+
+func TestComplexClassEncryption(t *testing.T) {
+	assert := assert.New(t)
+
+	customComplexMessage := initComplexMessage()
+
+	plaintext, err := json.Marshal(customComplexMessage)
+	assert.NoError(err)
+
+	encrypted := EncryptString("enigma", string(plaintext), false)
+	decrypted, decErr := DecryptString("enigma", encrypted, false)
+	assert.NoError(decErr)
+	assert.Equal(string(plaintext), decrypted)
+}

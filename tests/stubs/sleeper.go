@@ -22,10 +22,8 @@ func NewSleeperClient(timeout int) *http.Client {
 	}
 }
 
-// RoundTrip function helper for 1.6
 func (s *Sleeper) RoundTrip(req *http.Request) (*http.Response,
 	error) {
-	// function helper for 1.6
 	cancel := GetRequestCancelChannel(req)
 
 	select {

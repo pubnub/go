@@ -172,9 +172,6 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 
 	ctx := opts.context()
 	if ctx != nil {
-		// with !go1.7 you can't assign context directly to a request,
-		// the request.cancel is mapped to the ctx.Done() channel instead
-		// go1.7 can assign context to an executed request
 		req = setRequestContext(req, ctx)
 	}
 
