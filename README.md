@@ -1,9 +1,8 @@
 # PubNub Go SDK
 
-[![GoDoc](https://godoc.org/github.com/pubnub/go?status.svg)](https://godoc.org/github.com/pubnub/go)
-[![Build Status](https://travis-ci.com/pubnub/go.svg?branch=master)](https://travis-ci.com/pubnub/go)
+[![Go Reference](https://pkg.go.dev/badge/github.com/pubnub/go/v9.svg)](https://pkg.go.dev/github.com/pubnub/go/v9)
 [![codecov.io](https://codecov.io/github/pubnub/go/coverage.svg)](https://codecov.io/github/pubnub/go)
-[![Go Report Card](https://goreportcard.com/badge/github.com/pubnub/go)](https://goreportcard.com/report/github.com/pubnub/go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pubnub/go/v9)](https://goreportcard.com/report/github.com/pubnub/go/v9)
 
 This is the official PubNub Go SDK repository.
 
@@ -11,7 +10,7 @@ PubNub takes care of the infrastructure and APIs needed for the realtime communi
 
 ## Requirements
 
-* Go (1.9+)
+* Go 1.25 or later
 
 ## Get keys
 
@@ -19,17 +18,19 @@ You will need the publish and subscribe keys to authenticate your app. Get your 
 
 ## Configure PubNub
 
-1. Integrate PubNub into your project using the `go` command:
+1. Integrate PubNub into your project:
 
-    ```go
-    go get github.com/pubnub/go
+    ```bash
+    go get github.com/pubnub/go/v9
     ```
 
-    If you encounter dependency issues, use the `dep ensure` command to resolve them.
-
-1. Create a new file and add the following code:
+2. Create a new file and add the following code:
 
     ```go
+    package main
+
+    import pubnub "github.com/pubnub/go/v9"
+
     func main() {
         config := pubnub.NewConfigWithUserId("userId")
         config.SubscribeKey = "mySubscribeKey"
@@ -42,6 +43,12 @@ You will need the publish and subscribe keys to authenticate your app. Get your 
 ## Add event listeners
 
 ```go
+import (
+    "fmt"
+
+    pubnub "github.com/pubnub/go/v9"
+)
+
 listener := pubnub.NewListener()
 doneConnect := make(chan bool)
 donePublish := make(chan bool)
@@ -120,9 +127,21 @@ if err != nil {
 }
 ```
 
+## Upgrading from v8
+
+v9 requires Go 1.25+ and uses a new module import path:
+
+```bash
+go get github.com/pubnub/go/v9@latest
+```
+
+```go
+import pubnub "github.com/pubnub/go/v9"
+```
+
 ## Documentation
 
-[API reference for Go](https://www.pubnub.com/docs/go/pubnub-go-sdk-v4)
+[PubNub Go SDK documentation](https://www.pubnub.com/docs/sdks/go)
 
 ## Support
 
