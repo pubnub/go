@@ -911,6 +911,6 @@ sdks:
                       - x86-64
                       - arm64
                     minimum-os-version:
-                      - macOS 13 Ventura
+                      - macOS 13.0
                     maximum-os-version:
-                      - macOS 15 Sequoia
+                      - macOS 15.7
