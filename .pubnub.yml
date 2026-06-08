@@ -805,10 +805,10 @@ supported-platforms:
     editors: 
       - "1.25"      
     platforms: 
-      - "FreeBSD 8-STABLE or later, amd64, 386"
-      - "Linux 2.6 or later, amd64, 386."
-      - "Mac OS X 10.8 or later, amd64"
-      - "Windows 7 or later, amd64, 386"
+      - "FreeBSD 13.0 or later, amd64, arm64"
+      - "Linux 3.10 or later, amd64, arm64"
+      - "macOS 13 Ventura or later, amd64, arm64"
+      - "Windows 10 or later, amd64, arm64"
     version: "PubNub Go SDK"
 sdks:
   -
@@ -833,7 +833,6 @@ sdks:
               -
                 name: "Go"
                 min-version: "1.25"
-                max-version: "1.25"
                 license: "https://golang.org/doc/tos"
                 license-url: "https://golang.org/doc/tos"
                 location: "Should be installed on the computer"
@@ -891,26 +890,31 @@ sdks:
                 supported-operating-systems:                  
                   Windows:
                     target-architecture:
-                      - i386
                       - amd64
+                      - arm64
                     minimum-os-version:
-                      - Windows 7 Professional
-                      - Windows 7 Enterprise
-                      - Windows 7 Ultimate
+                      - Windows 10
+                      - Windows Server 2019
                     maximum-os-version:
-                      - Windows 10 Enterprise
+                      - Windows 11
+                      - Windows Server 2025
                   Linux:
                     target-architecture:
-                      - i386
                       - amd64
-                    maximum-os-version:
-                      - Ubuntu 20.04 LTS
+                      - arm64
                     minimum-os-version:
-                      - Ubuntu 12.04
+                      - Ubuntu 22.04 LTS
+                      - Debian 12
+                      - RHEL 9
+                    maximum-os-version:
+                      - Ubuntu 26.04 LTS
+                      - Debian 13
+                      - RHEL 10
                   macOS:
                     target-architecture:
                       - x86-64
+                      - arm64
                     minimum-os-version:
-                      - Mac OS X 10.8
+                      - macOS 13 Ventura
                     maximum-os-version:
-                      - macOS 11.3.1
+                      - macOS 15 Sequoia
