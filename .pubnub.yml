@@ -904,12 +904,8 @@ sdks:
                       - arm64
                     minimum-os-version:
                       - Ubuntu 22.04 LTS
-                      - Debian 12
-                      - RHEL 9
                     maximum-os-version:
-                      - Ubuntu 26.04 LTS
-                      - Debian 13
-                      - RHEL 10
+                      - Ubuntu 24.04.1 LTS
                   macOS:
                     target-architecture:
                       - x86-64
