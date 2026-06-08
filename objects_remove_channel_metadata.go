@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyPNRemoveChannelMetadataResponse *PNRemoveChannelMetadataResponse
@@ -62,7 +62,7 @@ func (o *removeChannelMetadataOpts) GetLogParams() map[string]interface{} {
 // Execute runs the removeChannelMetadata request.
 func (b *removeChannelMetadataBuilder) Execute() (*PNRemoveChannelMetadataResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemoveChannelMetadataOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNRemoveChannelMetadataResponse, status, err

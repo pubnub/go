@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v9/utils"
 )
 
 const listChannelsOfPushPath = "/v1/push/sub-key/%s/devices/%s"
@@ -93,7 +93,7 @@ func (o *listPushProvisionsRequestOpts) GetLogParams() map[string]interface{} {
 func (b *listPushProvisionsRequestBuilder) Execute() (
 	*ListPushProvisionsRequestResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNPushNotificationsEnabledChannelsOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyListPushProvisionsRequestResponse, status, err

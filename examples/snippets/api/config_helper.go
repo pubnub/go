@@ -3,7 +3,7 @@ package pubnub_samples_test
 import (
 	"os"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 )
 
 func setPubnubExampleConfigData(config *pubnub.Config) *pubnub.Config {

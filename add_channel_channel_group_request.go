@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/utils"
 )
 
 const addChannelToChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s"
@@ -74,7 +74,7 @@ func (o *addChannelOpts) GetLogParams() map[string]interface{} {
 func (b *addChannelToChannelGroupBuilder) Execute() (
 	*AddChannelToChannelGroupResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAddChannelsToChannelGroupOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyAddChannelToChannelGroupResp, status, err

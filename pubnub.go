@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pubnub/go/v8/crypto"
+	"github.com/pubnub/go/v9/crypto"
 
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/utils"
 )
 
 // Default constants
@@ -67,25 +67,25 @@ const (
 type PubNub struct {
 	sync.RWMutex
 
-	Config               *Config
-	nextPublishSequence  int
-	publishSequenceMutex sync.RWMutex
-	subscriptionManager  *SubscriptionManager
-	telemetryManager     *TelemetryManager
-	heartbeatManager     *HeartbeatManager
-	loggerManager        *loggerManager
-	instanceID           string
-	client               *http.Client
-	subscribeClient      *http.Client
-	txnHTTPClientPinned  bool // true after SetClient; SDK skips discarding transactional *http.Client on HTTP/2 reconnect
+	Config                *Config
+	nextPublishSequence   int
+	publishSequenceMutex  sync.RWMutex
+	subscriptionManager   *SubscriptionManager
+	telemetryManager      *TelemetryManager
+	heartbeatManager      *HeartbeatManager
+	loggerManager         *loggerManager
+	instanceID            string
+	client                *http.Client
+	subscribeClient       *http.Client
+	txnHTTPClientPinned   bool // true after SetClient; SDK skips discarding transactional *http.Client on HTTP/2 reconnect
 	subscribeClientPinned bool // true after SetSubscribeClient
-	requestWorkers       *RequestWorkers
-	jobQueue             chan *JobQItem
-	ctx                  Context
-	cancel               func()
-	tokenManager         *TokenManager
-	previousCipherKey    string
-	previousIvFlag       bool
+	requestWorkers        *RequestWorkers
+	jobQueue              chan *JobQItem
+	ctx                   Context
+	cancel                func()
+	tokenManager          *TokenManager
+	previousCipherKey     string
+	previousIvFlag        bool
 
 	// lastNegotiatedProto is res.Proto from the most recent completed HTTP response (internal).
 	lastNegotiatedProtoMu sync.Mutex

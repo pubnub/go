@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 )
 
 func theTTL(ctx context.Context, arg1 int) error {

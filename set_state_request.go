@@ -8,8 +8,8 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v9/utils"
 )
 
 const setStatePath = "/v2/presence/sub-key/%s/channel/%s/uuid/%s/data"
@@ -83,7 +83,7 @@ func (o *setStateOpts) GetLogParams() map[string]interface{} {
 // Execute runs the the Set State request and returns the SetStateResponse
 func (b *setStateBuilder) Execute() (*SetStateResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSetStateOperation, b.opts.GetLogParams(), true)
-	
+
 	stateOperation := StateOperation{}
 	stateOperation.channels = b.opts.Channels
 	stateOperation.channelGroups = b.opts.ChannelGroups

@@ -1,4 +1,4 @@
-module github.com/pubnub/go/v8
+module github.com/pubnub/go/v9
 
 go 1.25.0
 

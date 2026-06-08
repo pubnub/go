@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptySetChannelMembersResponse *PNSetChannelMembersResponse
@@ -123,7 +123,7 @@ func (o *setChannelMembersOpts) GetLogParams() map[string]interface{} {
 // Execute runs the setChannelMembers request.
 func (b *setChannelMembersBuilder) Execute() (*PNSetChannelMembersResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSetChannelMembersOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptySetChannelMembersResponse, status, err

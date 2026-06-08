@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubnub/go/v8/pnerr"
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v9/utils"
 )
 
 type endpointOpts struct {

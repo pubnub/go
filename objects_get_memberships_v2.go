@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyGetMembershipsResponse *PNGetMembershipsResponse
@@ -132,7 +132,7 @@ func (b *getMembershipsBuilderV2) Execute() (*PNGetMembershipsResponse, StatusRe
 	}
 
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetMembershipsOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGetMembershipsResponse, status, err

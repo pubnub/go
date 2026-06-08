@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptySendFileResponse *PNSendFileResponse
@@ -152,7 +152,7 @@ func (o *sendFileOpts) GetLogParams() map[string]interface{} {
 // Execute runs the sendFile request.
 func (b *sendFileBuilder) Execute() (*PNSendFileResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSendFileOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptySendFileResponse, status, err

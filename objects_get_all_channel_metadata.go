@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyGetAllChannelMetadataResponse *PNGetAllChannelMetadataResponse
@@ -119,7 +119,7 @@ func (o *getAllChannelMetadataOpts) GetLogParams() map[string]interface{} {
 // Execute runs the getAllChannelMetadata request.
 func (b *getAllChannelMetadataBuilder) Execute() (*PNGetAllChannelMetadataResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetAllChannelMetadataOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGetAllChannelMetadataResponse, status, err

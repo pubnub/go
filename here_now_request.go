@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var hereNowPath = "/v2/presence/sub_key/%s/channel/%s"
@@ -119,7 +119,7 @@ func (o *hereNowOpts) GetLogParams() map[string]interface{} {
 // Execute runs the HereNow request.
 func (b *hereNowBuilder) Execute() (*HereNowResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNHereNowOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyHereNowResponse, status, err

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/utils"
 )
 
 const leavePath = "/v2/presence/sub-key/%s/channel/%s/leave"
@@ -56,7 +56,7 @@ func (o *leaveOpts) GetLogParams() map[string]interface{} {
 // Execute runs the Leave request.
 func (b *leaveBuilder) Execute() (StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNUnsubscribeOperation, b.opts.GetLogParams(), true)
-	
+
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
 		return status, err

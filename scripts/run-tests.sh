@@ -36,7 +36,7 @@ fi
 
 # Parse test suite output.
 parse_test_utput () {
-  TES_SUIITE_BASE="github.com/pubnub/go/v8/"
+  TES_SUIITE_BASE="github.com/pubnub/go/v9/"
   TEST_RESULTS=""
   TEST_SUITE_RESULTS=""
   TEST_CASE_NAME=""

@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v8/pnerr"
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v9/utils"
 )
 
 const getStatePath = "/v2/presence/sub-key/%s/channel/%s/uuid/%s"
@@ -91,7 +91,7 @@ func (o *getStateOpts) GetLogParams() map[string]interface{} {
 func (b *getStateBuilder) Execute() (
 	*GetStateResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetStateOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGetStateResp, status, err

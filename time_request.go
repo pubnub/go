@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 const timePath = "/time/0"
@@ -52,7 +52,7 @@ func (o *timeOpts) GetLogParams() map[string]interface{} {
 // Execute runs the Time request and fetches the time from the server.
 func (b *timeBuilder) Execute() (*TimeResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNTimeOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyTimeResp, status, err

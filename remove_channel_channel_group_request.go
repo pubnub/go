@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/utils"
 )
 
 const removeChannelFromChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s"
@@ -67,7 +67,7 @@ func (o *removeChannelOpts) GetLogParams() map[string]interface{} {
 func (b *removeChannelFromChannelGroupBuilder) Execute() (
 	*RemoveChannelFromChannelGroupResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemoveChannelFromChannelGroupOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyRemoveChannelFromChannelGroupResponse, status, err

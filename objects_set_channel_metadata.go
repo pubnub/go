@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyPNSetChannelMetadataResponse *PNSetChannelMetadataResponse
@@ -133,7 +133,7 @@ func (o *setChannelMetadataOpts) GetLogParams() map[string]interface{} {
 // Execute runs the setChannelMetadata request.
 func (b *setChannelMetadataBuilder) Execute() (*PNSetChannelMetadataResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNSetChannelMetadataOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNSetChannelMetadataResponse, status, err
