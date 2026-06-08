@@ -1,6 +1,15 @@
 ---
-version: 8.2.0
+version: 8.2.1
 changelog:
+  - date: 2026-06-08
+    version: 8.2.1
+    changes:
+      - type: improvement
+        text: "Bump minimum supported Go version to 1.25. **BREAKING CHANGE**."
+      - type: improvement
+        text: "Remove legacy code and files related to unsupported Go versions."
+      - type: improvement
+        text: "Update `golang.org/x/net` to v0.55.0."
   - date: 2026-05-28
     version: 8.2.0
     changes:
@@ -828,7 +837,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/8.2.0
+            location: https://github.com/pubnub/go/releases/tag/8.2.1
             requires:
               -
                 name: "Go"

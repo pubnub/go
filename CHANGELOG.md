@@ -1,3 +1,11 @@
+## 8.2.1
+June 08 2026
+
+#### Modified
+- Bump minimum supported Go version to 1.25. **BREAKING CHANGE**.
+- Remove legacy code and files related to unsupported Go versions.
+- Update `golang.org/x/net` to v0.55.0.
+
 ## 8.2.0
 May 28 2026
 
