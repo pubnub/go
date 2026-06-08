@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"context"
 	crypto_rand "crypto/rand"
 	"encoding/binary"
 	"errors"
@@ -15,9 +16,21 @@ import (
 
 	"github.com/joho/godotenv"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 	"github.com/stretchr/testify/assert"
 )
+
+const (
+	ERR_CONTEXT_CANCELLED = "context canceled"
+	ERR_CONTEXT_DEADLINE  = "context deadline exceeded"
+)
+
+func contextWithTimeout(parent context.Context,
+	timeout time.Duration) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(parent, timeout)
+}
+
+var backgroundContext = context.Background()
 
 var enableDebuggingInTests = false
 

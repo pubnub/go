@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyPNGetAllUUIDMetadataResponse *PNGetAllUUIDMetadataResponse
@@ -119,7 +119,7 @@ func (o *getAllUUIDMetadataOpts) GetLogParams() map[string]interface{} {
 // Execute runs the getAllUUIDMetadata request.
 func (b *getAllUUIDMetadataBuilder) Execute() (*PNGetAllUUIDMetadataResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetAllUUIDMetadataOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGetAllUUIDMetadataResponse, status, err

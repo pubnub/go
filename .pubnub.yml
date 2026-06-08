@@ -1,6 +1,15 @@
 ---
-version: 8.2.0
+version: 9.0.0
 changelog:
+  - date: 2026-06-08
+    version: 9.0.0
+    changes:
+      - type: improvement
+        text: "Bump minimum supported Go version to 1.25. **BREAKING CHANGE**."
+      - type: improvement
+        text: "Remove legacy code and files related to unsupported Go versions."
+      - type: improvement
+        text: "Update `golang.org/x/net` to v0.55.0."
   - date: 2026-05-28
     version: 8.2.0
     changes:
@@ -803,13 +812,12 @@ scm: github.com/pubnub/go
 supported-platforms: 
   - 
     editors: 
-      - "1.18.9"      
-      - "1.19.4"      
+      - "1.25"      
     platforms: 
-      - "FreeBSD 8-STABLE or later, amd64, 386"
-      - "Linux 2.6 or later, amd64, 386."
-      - "Mac OS X 10.8 or later, amd64"
-      - "Windows 7 or later, amd64, 386"
+      - "FreeBSD 13.0 or later, amd64, arm64"
+      - "Linux 3.10 or later, amd64, arm64"
+      - "macOS 13 Ventura or later, amd64, arm64"
+      - "Windows 10 or later, amd64, arm64"
     version: "PubNub Go SDK"
 sdks:
   -
@@ -829,12 +837,11 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/8.2.0
+            location: https://github.com/pubnub/go/releases/tag/9.0.0
             requires:
               -
                 name: "Go"
-                min-version: "1.18.9"
-                max-version: "1.19.4"
+                min-version: "1.25"
                 license: "https://golang.org/doc/tos"
                 license-url: "https://golang.org/doc/tos"
                 location: "Should be installed on the computer"
@@ -892,26 +899,27 @@ sdks:
                 supported-operating-systems:                  
                   Windows:
                     target-architecture:
-                      - i386
                       - amd64
+                      - arm64
                     minimum-os-version:
-                      - Windows 7 Professional
-                      - Windows 7 Enterprise
-                      - Windows 7 Ultimate
-                    maximum-os-version:
+                      - Windows 10 Pro
                       - Windows 10 Enterprise
+                    maximum-os-version:
+                      - Windows 11 Pro
+                      - Windows 11 Enterprise
                   Linux:
                     target-architecture:
-                      - i386
                       - amd64
-                    maximum-os-version:
-                      - Ubuntu 20.04 LTS
+                      - arm64
                     minimum-os-version:
-                      - Ubuntu 12.04
+                      - Ubuntu 22.04 LTS
+                    maximum-os-version:
+                      - Ubuntu 24.04.1 LTS
                   macOS:
                     target-architecture:
                       - x86-64
+                      - arm64
                     minimum-os-version:
-                      - Mac OS X 10.8
+                      - macOS 13.0
                     maximum-os-version:
-                      - macOS 11.3.1
+                      - macOS 15.7

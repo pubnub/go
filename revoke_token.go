@@ -7,8 +7,8 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v9/utils"
 )
 
 const revokeTokenPath = "/v3/pam/%s/grant/%s"
@@ -62,7 +62,7 @@ func (o *revokeTokenOpts) GetLogParams() map[string]interface{} {
 // Execute runs the Grant request.
 func (b *revokeTokenBuilder) Execute() (*PNRevokeTokenResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerRevokeToken, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNRevokeTokenResponse, status, err

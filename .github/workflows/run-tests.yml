@@ -33,14 +33,14 @@ jobs:
           ref: v1
           token: ${{ secrets.GH_TOKEN }}
           path: .github/.release/actions
-      - name: Setup Go 1.19.4
+      - name: Setup Go 1.25
         uses: actions/setup-go@v5
         with:
-          go-version: 1.19.4
+          go-version: 1.25
           cache: true
       - name: Install gotestsum
         run: |
-          go install gotest.tools/gotestsum@v1.12.0
+          go install gotest.tools/gotestsum@v1.13.0
           gotestsum --version
       - name: Build and run tests
         run: bash ./scripts/run-tests-gotestsum.sh -mod=mod testname
@@ -66,10 +66,10 @@ jobs:
         uses: ./.github/.release/actions/actions/mock-server
         with:
           token: ${{ secrets.GH_TOKEN }}
-      - name: Setup Go 1.19.4
+      - name: Setup Go 1.25
         uses: actions/setup-go@v5
         with:
-          go-version: 1.19.4
+          go-version: 1.25
           cache: true
       - name: Run acceptance tests (optional)
         run: |

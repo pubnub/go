@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v9/utils"
 )
 
 const allChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s"
@@ -59,7 +59,7 @@ func (o *allChannelGroupOpts) GetLogParams() map[string]interface{} {
 func (b *allChannelGroupBuilder) Execute() (
 	*AllChannelGroupResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNChannelsForGroupOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyAllChannelGroupResponse, status, err

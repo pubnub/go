@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var whereNowPath = "/v2/presence/sub-key/%s/uuid/%s"
@@ -69,7 +69,7 @@ func (b *whereNowBuilder) Execute() (*WhereNowResponse, StatusResponse, error) {
 	}
 
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNWhereNowOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyWhereNowResponse, status, err

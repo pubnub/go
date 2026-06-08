@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 )
 
 /*
@@ -17,7 +17,7 @@ package pubnub_samples_test
 import (
 	"fmt"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 )
 
 // snippet.end
@@ -125,7 +125,7 @@ import (
 	"fmt"
 	"time"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 )
 
 // snippet.end
@@ -325,7 +325,7 @@ import (
 	"fmt"
 	"time"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 )
 
 // snippet.end
@@ -514,7 +514,7 @@ import (
 	"time"
 	"strconv"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 )
 
 // snippet.end

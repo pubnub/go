@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyPNRemoveMessageActionsResponse *PNRemoveMessageActionsResponse
@@ -76,7 +76,7 @@ func (o *removeMessageActionsOpts) GetLogParams() map[string]interface{} {
 // Execute runs the removeMessageActions request.
 func (b *removeMessageActionsBuilder) Execute() (*PNRemoveMessageActionsResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemoveMessageActionsOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNRemoveMessageActionsResponse, status, err

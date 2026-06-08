@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyPNAddMessageActionsResponse *PNAddMessageActionsResponse
@@ -82,7 +82,7 @@ func (o *addMessageActionsOpts) GetLogParams() map[string]interface{} {
 // Execute runs the addMessageActions request.
 func (b *addMessageActionsBuilder) Execute() (*PNAddMessageActionsResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAddMessageActionsOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNAddMessageActionsResponse, status, err

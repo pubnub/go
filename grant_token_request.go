@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 const grantTokenPath = "/v3/pam/%s/grant"
@@ -157,7 +157,7 @@ func (o *grantTokenOpts) GetLogParams() map[string]interface{} {
 // Execute runs the Grant request.
 func (b *grantTokenBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerGrantToken, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGrantTokenResponse, status, err
@@ -263,7 +263,7 @@ func (b *grantTokenObjectsBuilder) QueryParam(queryParam map[string]string) *gra
 // Execute runs the Grant request.
 func (b *grantTokenObjectsBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerGrantToken, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGrantTokenResponse, status, err
@@ -339,7 +339,7 @@ func (b *grantTokenEntitiesBuilder) QueryParam(queryParam map[string]string) *gr
 // Execute runs the Grant request.
 func (b *grantTokenEntitiesBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerGrantToken, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGrantTokenResponse, status, err

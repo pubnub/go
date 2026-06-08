@@ -8,8 +8,8 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/pubnub/go/v8/crypto"
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/crypto"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 // encodeNonAsciiChars creates unicode string of the non-ascii chars.

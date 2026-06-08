@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyPNRemoveUUIDMetadataResponse *PNRemoveUUIDMetadataResponse
@@ -68,7 +68,7 @@ func (b *removeUUIDMetadataBuilder) Execute() (*PNRemoveUUIDMetadataResponse, St
 	}
 
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemoveUUIDMetadataOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNRemoveUUIDMetadataResponse, status, err

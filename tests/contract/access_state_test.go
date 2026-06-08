@@ -1,6 +1,6 @@
 package contract
 
-import pubnub "github.com/pubnub/go/v8"
+import pubnub "github.com/pubnub/go/v9"
 
 type accessStateKey struct{}
 

@@ -3,7 +3,7 @@ package contract
 import (
 	"context"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 )
 
 func iHaveAKeysetWithAccessManagerEnabled(ctx context.Context) error {

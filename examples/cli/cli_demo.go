@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 
 	"net/http"
 	_ "net/http/pprof"
@@ -71,12 +71,12 @@ func connect() {
 			case status := <-listener.Status:
 				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
 				fmt.Println(" --- STATUS: ")
-				fmt.Println(fmt.Sprintf("%s status.Error %s", outputPrefix, status.Error))
-				fmt.Println(fmt.Sprintf("%s status.Category %s", outputPrefix, status.Category))
-				fmt.Println(fmt.Sprintf("%s status.Operation %s", outputPrefix, status.Operation))
+				fmt.Println(fmt.Sprintf("%s status.Error %v", outputPrefix, status.Error))
+				fmt.Println(fmt.Sprintf("%s status.Category %v", outputPrefix, status.Category))
+				fmt.Println(fmt.Sprintf("%s status.Operation %v", outputPrefix, status.Operation))
 				fmt.Println(fmt.Sprintf("%s status.StatusCode %d", outputPrefix, status.StatusCode))
-				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, status.ErrorData))
-				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, status.ClientRequest))
+				fmt.Println(fmt.Sprintf("%s %v", outputPrefix, status.ErrorData))
+				fmt.Println(fmt.Sprintf("%s %v", outputPrefix, status.ClientRequest))
 				fmt.Println("")
 				fmt.Println(fmt.Sprintf("%s", outputSuffix))
 			case msg := <-listener.Message:
@@ -100,7 +100,7 @@ func connect() {
 			case presence := <-listener.Presence:
 				fmt.Print(fmt.Sprintf("%s Subscribe Response:", outputPrefix))
 				fmt.Println(" --- PRESENCE: ")
-				fmt.Println(fmt.Sprintf("%s %s", outputPrefix, presence))
+				fmt.Println(fmt.Sprintf("%s %v", outputPrefix, presence))
 				fmt.Println("")
 				fmt.Println(fmt.Sprintf("%s", outputSuffix))
 			case uuidEvent := <-listener.UUIDEvent:
@@ -2043,7 +2043,7 @@ func parseHistory(res *pubnub.HistoryResponse, status pubnub.StatusResponse, err
 		fmt.Println(fmt.Sprintf("%s StartTimetoken %d", outputPrefix, res.StartTimetoken))
 		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	} else {
-		fmt.Println(fmt.Sprintf("%s StatusResponse %s %e", outputPrefix, status.Error, err))
+		fmt.Println(fmt.Sprintf("%s StatusResponse %v %v", outputPrefix, status.Error, err))
 	}
 }
 
@@ -2137,7 +2137,7 @@ func publish(i int, ch string) {
 		showErr("Error while publishing: " + err.Error())
 	}
 
-	fmt.Println(fmt.Sprintf("%s\nPublish Response: msg %s\n%s %s\n%s", outputPrefix, msg, res, status, outputSuffix))
+	fmt.Println(fmt.Sprintf("%s\nPublish Response: msg %s\n%v %v\n%s", outputPrefix, msg, res, status, outputSuffix))
 }
 
 func publishRequest(args []string) {
@@ -2210,7 +2210,7 @@ func publishRequest(args []string) {
 
 		fmt.Println(fmt.Sprintf("%s Publish Response:", outputPrefix))
 
-		fmt.Println(fmt.Sprintf("%s %s", res, status))
+		fmt.Println(fmt.Sprintf("%v %v", res, status))
 		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	}
 }
@@ -2250,7 +2250,7 @@ func fireRequest(args []string) {
 
 		fmt.Println(fmt.Sprintf("%s Publish Response:", outputPrefix))
 
-		fmt.Println(fmt.Sprintf("%s %s", res, status))
+		fmt.Println(fmt.Sprintf("%v %v", res, status))
 		fmt.Println(fmt.Sprintf("%s", outputSuffix))
 	}
 }

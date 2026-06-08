@@ -1,14 +1,11 @@
-//go:build go1.7
-// +build go1.7
-
 package stubs
 
 import "net/http"
 
 func GetRequestCancelChannel(req *http.Request) <-chan error {
-	channel := make(chan error)
+	channel := make(chan error, 1)
 
-	func() {
+	go func() {
 		<-req.Context().Done()
 		channel <- req.Context().Err()
 	}()

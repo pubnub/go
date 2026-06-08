@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/utils"
 )
 
 const addChannelsToPushPath = "/v1/push/sub-key/%s/devices/%s"
@@ -87,7 +87,7 @@ func (o *addChannelsToPushOpts) GetLogParams() map[string]interface{} {
 // Execute runs add Push Notifications on channels request
 func (b *addPushNotificationsOnChannelsBuilder) Execute() (*AddPushNotificationsOnChannelsResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNPushNotificationsEnabledChannelsOperation, b.opts.GetLogParams(), true)
-	
+
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyAddPushNotificationsOnChannelsResponse, status, err

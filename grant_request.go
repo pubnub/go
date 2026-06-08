@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 const grantPath = "/v2/auth/grant/sub-key/%s"
@@ -163,7 +163,7 @@ func (o *grantOpts) GetLogParams() map[string]interface{} {
 // Execute runs the Grant request.
 func (b *grantBuilder) Execute() (*GrantResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerGrant, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyGrantResponse, status, err

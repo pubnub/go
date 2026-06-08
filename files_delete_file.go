@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyDeleteFileResponse *PNDeleteFileResponse
@@ -77,7 +77,7 @@ func (o *deleteFileOpts) GetLogParams() map[string]interface{} {
 // Execute runs the deleteFile request.
 func (b *deleteFileBuilder) Execute() (*PNDeleteFileResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNDeleteFileOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyDeleteFileResponse, status, err

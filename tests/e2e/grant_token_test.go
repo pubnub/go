@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	pubnub "github.com/pubnub/go/v8"
+	pubnub "github.com/pubnub/go/v9"
 	"github.com/stretchr/testify/assert"
 )
 

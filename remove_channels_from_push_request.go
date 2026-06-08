@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v8/utils"
+	"github.com/pubnub/go/v9/utils"
 )
 
 const removeChannelsFromPushPath = "/v1/push/sub-key/%s/devices/%s"
@@ -90,7 +90,7 @@ func (o *removeChannelsFromPushOpts) GetLogParams() map[string]interface{} {
 // Execute runs the RemovePushNotificationsFromChannels request.
 func (b *removeChannelsFromPushBuilder) Execute() (*RemoveChannelsFromPushResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemovePushNotificationsFromChannelsOperation, b.opts.GetLogParams(), true)
-	
+
 	_, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyRemoveChannelsFromPushResponse, status, err

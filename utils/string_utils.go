@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	uuid "github.com/google/uuid"
-	pnerr "github.com/pubnub/go/v8/pnerr"
+	pnerr "github.com/pubnub/go/v9/pnerr"
 )
 
 // JoinChannels encodes and joins channels
@@ -33,9 +33,6 @@ func EncodeJSONAsPathComponent(jsonBytes string) string {
 	u := &url.URL{Path: jsonBytes}
 	encodedPath := u.String()
 
-	// Go 1.8 inserts a ./ per RFC 3986 §4.2. Previous versions
-	// will be unaffected by this under the assumption that jsonBytes
-	// represents valid JSON
 	return strings.TrimLeft(encodedPath, "./")
 }
 

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	h "github.com/pubnub/go/v8/tests/helpers"
-	"github.com/pubnub/go/v8/utils"
+	h "github.com/pubnub/go/v9/tests/helpers"
+	"github.com/pubnub/go/v9/utils"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyPNGetMessageActionsResponse *PNGetMessageActionsResponse
@@ -89,7 +89,7 @@ func (o *getMessageActionsOpts) GetLogParams() map[string]interface{} {
 // Execute runs the getMessageActions request.
 func (b *getMessageActionsBuilder) Execute() (*PNGetMessageActionsResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNGetMessageActionsOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyPNGetMessageActionsResponse, status, err

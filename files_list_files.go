@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v8/pnerr"
+	"github.com/pubnub/go/v9/pnerr"
 )
 
 var emptyListFilesResponse *PNListFilesResponse
@@ -85,7 +85,7 @@ func (o *listFilesOpts) GetLogParams() map[string]interface{} {
 // Execute runs the listFiles request.
 func (b *listFilesBuilder) Execute() (*PNListFilesResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNListFilesOperation, b.opts.GetLogParams(), true)
-	
+
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
 		return emptyListFilesResponse, status, err

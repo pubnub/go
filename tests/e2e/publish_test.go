@@ -3,13 +3,12 @@ package e2e
 import (
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
-	pubnub "github.com/pubnub/go/v8"
-	"github.com/pubnub/go/v8/pnerr"
-	"github.com/pubnub/go/v8/tests/stubs"
+	pubnub "github.com/pubnub/go/v9"
+	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v9/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -59,8 +58,6 @@ func TestPublishSuccessSlice(t *testing.T) {
 	assert.Nil(err)
 }
 
-// !go1.8 returns just "request canceled" error for canceled context
-// go1.8 returns "context deadline exceeded" error in such case
 func TestPublishContextTimeout(t *testing.T) {
 	assert := assert.New(t)
 	ms := 50
@@ -76,13 +73,7 @@ func TestPublishContextTimeout(t *testing.T) {
 		Execute()
 
 	if err != nil {
-		// 1.6 hack
-		if strings.Contains(err.Error(), "request canceled") {
-			return
-		}
-
 		assert.Contains(err.Error(), "context deadline exceeded")
-		return
 	}
 }
 
@@ -105,13 +96,7 @@ func TestPublishContextCancel(t *testing.T) {
 		Execute()
 
 	if err != nil {
-		// 1.6 hack
-		if strings.Contains(err.Error(), "request canceled") {
-			return
-		}
-
 		assert.Contains(err.Error(), "context canceled")
-		return
 	}
 }
 
