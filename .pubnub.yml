@@ -893,11 +893,11 @@ sdks:
                       - amd64
                       - arm64
                     minimum-os-version:
-                      - Windows 10
-                      - Windows Server 2019
+                      - Windows 10 Pro
+                      - Windows 10 Enterprise
                     maximum-os-version:
-                      - Windows 11
-                      - Windows Server 2025
+                      - Windows 11 Pro
+                      - Windows 11 Enterprise
                   Linux:
                     target-architecture:
                       - amd64
