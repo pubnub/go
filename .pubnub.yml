@@ -1,8 +1,13 @@
 ---
-version: 9.0.0
+version: v9.0.1
 changelog:
+  - date: 2026-06-15
+    version: v9.0.1
+    changes:
+      - type: bug
+        text: "Fix version naming back  from 'X.X.X' to 'vX.X.X'."
   - date: 2026-06-08
-    version: 9.0.0
+    version: v9.0.0
     changes:
       - type: improvement
         text: "Bump minimum supported Go version to 1.25. **BREAKING CHANGE**."
@@ -11,7 +16,7 @@ changelog:
       - type: improvement
         text: "Update `golang.org/x/net` to v0.55.0."
   - date: 2026-05-28
-    version: 8.2.0
+    version: v8.2.0
     changes:
       - type: feature
         text: "`Config.UseHTTP2` now defaults to `true` and `NewHTTP2Client` is rebuilt on `net/http.Transport` with `ForceAttemptHTTP2` + `http2.ConfigureTransport`, so HTTPS connections prefer HTTP/2 via TLS ALPN and fall back to HTTP/1.1 when the origin doesn't advertise h2. The single subscribe loop reuses the cached `*http.Client` across long-poll cycles, and on `SubscriptionManager.reconnect` SDK-managed clients are dropped so the next request re-runs TLS+ALPN — user-supplied clients pinned via `SetClient`/`SetSubscribeClient` are preserved. Set `UseHTTP2 = false` to opt out."
@@ -837,7 +842,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/9.0.0
+            location: https://github.com/pubnub/go/releases/tag/v9.0.1
             requires:
               -
                 name: "Go"
