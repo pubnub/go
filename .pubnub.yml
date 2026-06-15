@@ -5,7 +5,7 @@ changelog:
     version: v9.0.1
     changes:
       - type: bug
-        text: "Fix version naming back  from "X.X.X" to "vX.X.X"."
+        text: "Fix version naming back  from 'X.X.X' to 'vX.X.X'."
   - date: 2026-06-08
     version: v9.0.0
     changes:
