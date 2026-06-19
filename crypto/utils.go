@@ -3,6 +3,7 @@ package crypto
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/subtle"
 	"fmt"
 )
 
@@ -38,22 +39,29 @@ func padWithPKCS7(data []byte) []byte {
 // returns the unpadded data as byte array.
 func unpadPKCS7(data []byte) ([]byte, error) {
 	blocklen := 16
-	if len(data)%blocklen != 0 || len(data) == 0 {
+	if len(data) == 0 || len(data)%blocklen != 0 {
 		return nil, fmt.Errorf("invalid data len %d", len(data))
 	}
-	padlen := int(data[len(data)-1])
-	if padlen > blocklen || padlen == 0 {
-		return nil, fmt.Errorf("padding is invalid")
-	}
-	// check padding
-	pad := data[len(data)-padlen:]
-	for i := 0; i < padlen; i++ {
-		if pad[i] != byte(padlen) {
-			return nil, fmt.Errorf("padding is invalid")
-		}
+
+	// Validate the PKCS#7 padding in constant time. The padding length is the
+	// last byte and the last padlen bytes must all equal padlen. Branching on
+	// the pad length or on which byte is wrong would leak a padding oracle, so
+	// every byte of the final block is examined and the result is folded into
+	// "good", which stays 1 only when the padding is fully valid.
+	n := len(data)
+	padlen := int(data[n-1])
+	good := subtle.ConstantTimeLessOrEq(1, padlen) & subtle.ConstantTimeLessOrEq(padlen, blocklen)
+	for j := 1; j <= blocklen; j++ {
+		inPad := subtle.ConstantTimeLessOrEq(j, padlen)
+		isPadByte := subtle.ConstantTimeByteEq(data[n-j], byte(padlen))
+		good &= isPadByte | (1 ^ inPad)
 	}
 
-	return data[:len(data)-padlen], nil
+	if good != 1 {
+		return nil, fmt.Errorf("padding is invalid")
+	}
+
+	return data[:n-padlen], nil
 }
 
 func unsupportedHeaderVersion(version int) error {

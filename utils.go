@@ -46,7 +46,8 @@ func encryptString(module crypto.CryptoModule, message string, loggerMgr *logger
 	encryptedData, e := module.Encrypt([]byte(encodeNonASCIIChars(message)))
 	if e != nil {
 		if loggerMgr != nil {
-			loggerMgr.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: encryption of message failed due to %v", e), false)
+			loggerMgr.LogSimple(PNLogLevelError, "Crypto: encryption of message failed", false)
+			loggerMgr.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto: encryption of message failed due to %v", e), false)
 		}
 		return "", e
 	}
@@ -132,14 +133,16 @@ func encryptStreamAndCopyTo(module crypto.CryptoModule, reader io.Reader, writer
 	encryptedStream, e := module.EncryptStream(reader)
 	if e != nil {
 		if loggerMgr != nil {
-			loggerMgr.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: encryption of file failed due to %v", e), false)
+			loggerMgr.LogSimple(PNLogLevelError, "Crypto: encryption of file failed", false)
+			loggerMgr.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto: encryption of file failed due to %v", e), false)
 		}
 		return e
 	}
 	_, e = io.Copy(writer, encryptedStream)
 	if e != nil {
 		if loggerMgr != nil {
-			loggerMgr.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: encryption of file failed due to %v", e), false)
+			loggerMgr.LogSimple(PNLogLevelError, "Crypto: encryption of file failed", false)
+			loggerMgr.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto: encryption of file failed due to %v", e), false)
 		}
 		return e
 	}
@@ -156,7 +159,8 @@ func decryptString(cryptoModule crypto.CryptoModule, message string, loggerMgr *
 	value, decodeErr := base64.StdEncoding.DecodeString(message)
 	if decodeErr != nil {
 		if loggerMgr != nil {
-			loggerMgr.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: decryption of message failed due to %v", decodeErr), false)
+			loggerMgr.LogSimple(PNLogLevelError, "Crypto: decryption of message failed", false)
+			loggerMgr.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto: decryption of message failed due to %v", decodeErr), false)
 		}
 		return "***decrypt error***", fmt.Errorf("decrypt error on decode: %s", decodeErr)
 	}
@@ -164,7 +168,8 @@ func decryptString(cryptoModule crypto.CryptoModule, message string, loggerMgr *
 	val, e := cryptoModule.Decrypt(value)
 	if e != nil {
 		if loggerMgr != nil {
-			loggerMgr.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: decryption of message failed due to %v", e), false)
+			loggerMgr.LogSimple(PNLogLevelError, "Crypto: decryption of message failed", false)
+			loggerMgr.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto: decryption of message failed due to %v", e), false)
 		}
 		return string(val), e
 	}
