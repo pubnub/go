@@ -60,6 +60,21 @@ func TestCryptorHeader_ParseHeaderStreamWithLargeMetadata(t *testing.T) {
 	assert.Equal(t, encrypted, remaining)
 }
 
+func TestCryptorHeader_ParseHeaderStreamWithLongSizeIndicatorAndSmallMetadata(t *testing.T) {
+	encrypted := []byte("encrypted")
+	data := append([]byte{'P', 'N', 'E', 'D', 1, 'a', 'b', 'c', 'd', 0xff, 0x00, 0x01, 'm'}, encrypted...)
+	reader := bufio.NewReader(bytes.NewReader(data))
+
+	id, streamData, e := parseHeaderStream(reader)
+
+	assert.NoError(t, e)
+	assert.Equal(t, "abcd", *id)
+	assert.Equal(t, []byte{'m'}, streamData.Metadata)
+	remaining, e := io.ReadAll(streamData.Reader)
+	assert.NoError(t, e)
+	assert.Equal(t, encrypted, remaining)
+}
+
 func TestCryptorHeader_ParseMalformedHeaderReturnsError(t *testing.T) {
 	_, _, e := parseHeader([]byte("PNED"))
 

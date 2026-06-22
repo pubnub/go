@@ -89,7 +89,7 @@ func (m *module) Encrypt(message []byte) ([]byte, error) {
 func (m *module) Decrypt(data []byte) (r []byte, e error) {
 	defer func() {
 		if rec := recover(); rec != nil {
-			r, e = nil, fmt.Errorf("decryption panic: %v", rec)
+			r, e = nil, errors.New("decryption error")
 		}
 	}()
 
@@ -146,7 +146,7 @@ func (m *module) EncryptStream(input io.Reader) (io.Reader, error) {
 func (m *module) DecryptStream(input io.Reader) (r io.Reader, e error) {
 	defer func() {
 		if rec := recover(); rec != nil {
-			r, e = nil, fmt.Errorf("decryption panic: %v", rec)
+			r, e = nil, errors.New("decryption error")
 		}
 	}()
 

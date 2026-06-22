@@ -160,8 +160,9 @@ func parseHeaderStream(bufData *bufio.Reader) (cryptorId *string, encrypted *Enc
 	}
 
 	var metadataSize int64
+	longSize := peeked[sizePosition] == longSizeIndicator
 	position := int64(sizePosition)
-	if peeked[sizePosition] == longSizeIndicator {
+	if longSize {
 		peeked, err = bufData.Peek(sizePosition + longSizeLength)
 		if err != nil {
 			return nil, nil, errTruncatedHeader
@@ -172,7 +173,7 @@ func parseHeaderStream(bufData *bufio.Reader) (cryptorId *string, encrypted *Enc
 		position += shortSizeLength
 		metadataSize = int64(peeked[sizePosition])
 	}
-	if metadataSize > maxShortSize {
+	if longSize {
 		_, e := bufData.Discard(sentinelLength + 1 + cryptorIdLength + longSizeLength)
 		if e != nil {
 			return nil, nil, e
