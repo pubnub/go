@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/subtle"
+	"errors"
 	"fmt"
 )
 
@@ -40,7 +41,7 @@ func padWithPKCS7(data []byte) []byte {
 func unpadPKCS7(data []byte) ([]byte, error) {
 	blocklen := 16
 	if len(data) == 0 || len(data)%blocklen != 0 {
-		return nil, fmt.Errorf("invalid data len %d", len(data))
+		return nil, errors.New("decryption error")
 	}
 
 	// Validate the PKCS#7 padding in constant time. The padding length is the
@@ -58,7 +59,7 @@ func unpadPKCS7(data []byte) ([]byte, error) {
 	}
 
 	if good != 1 {
-		return nil, fmt.Errorf("padding is invalid")
+		return nil, errors.New("decryption error")
 	}
 
 	return data[:n-padlen], nil

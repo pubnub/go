@@ -113,7 +113,7 @@ func (m *module) Decrypt(data []byte) (r []byte, e error) {
 	}
 
 	if r, e = m.decryptors[*id].Decrypt(encryptedData); e != nil {
-		return nil, fmt.Errorf("decryption error: %s", e.Error())
+		return nil, errors.New("decryption error")
 	}
 
 	return r, nil
@@ -177,7 +177,7 @@ func (m *module) DecryptStream(input io.Reader) (r io.Reader, e error) {
 	}
 
 	if r, e = m.decryptors[*id].DecryptStream(encryptedStreamData); e != nil {
-		return nil, fmt.Errorf("decryption error: %s", e.Error())
+		return nil, errors.New("decryption error")
 	}
 
 	return r, nil
