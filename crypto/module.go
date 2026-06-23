@@ -86,7 +86,13 @@ func (m *module) Encrypt(message []byte) ([]byte, error) {
 	return append(header, encryptedData.Data...), nil
 }
 
-func (m *module) Decrypt(data []byte) ([]byte, error) {
+func (m *module) Decrypt(data []byte) (r []byte, e error) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			r, e = nil, errors.New("decryption error")
+		}
+	}()
+
 	if len(data) == 0 {
 		return nil, errors.New("decryption error: can't decrypt empty data")
 	}
@@ -106,9 +112,8 @@ func (m *module) Decrypt(data []byte) ([]byte, error) {
 		return nil, errors.New("decryption error: can't decrypt empty data")
 	}
 
-	var r []byte
 	if r, e = m.decryptors[*id].Decrypt(encryptedData); e != nil {
-		return nil, fmt.Errorf("decryption error: %s", e.Error())
+		return nil, errors.New("decryption error")
 	}
 
 	return r, nil
@@ -138,7 +143,13 @@ func (m *module) EncryptStream(input io.Reader) (io.Reader, error) {
 	return io.MultiReader(headerReader, encryptedStreamData.Reader), nil
 }
 
-func (m *module) DecryptStream(input io.Reader) (io.Reader, error) {
+func (m *module) DecryptStream(input io.Reader) (r io.Reader, e error) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			r, e = nil, errors.New("decryption error")
+		}
+	}()
+
 	bufData := bufio.NewReader(input)
 
 	id, encryptedStreamData, e := parseHeaderStream(bufData)
@@ -165,9 +176,8 @@ func (m *module) DecryptStream(input io.Reader) (io.Reader, error) {
 		return nil, fmt.Errorf("decryption error: %s", e.Error())
 	}
 
-	var r io.Reader
 	if r, e = m.decryptors[*id].DecryptStream(encryptedStreamData); e != nil {
-		return nil, fmt.Errorf("decryption error: %s", e.Error())
+		return nil, errors.New("decryption error")
 	}
 
 	return r, nil

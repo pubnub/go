@@ -665,6 +665,10 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 		var err error
 		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub)
 		if err != nil {
+			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto: decryption of file message failed due to %v", err), false)
+			// Surface only a generic error to customers; the specific reason is kept at Debug level to avoid leaking a decryption failure oracle.
+			err = errors.New("file message decryption failed")
+			m.pubnub.loggerManager.LogError(err, "FileMessageDecryptFailed", PNSubscribeOperation, true)
 			pnStatus := &PNStatus{
 				Category:         PNBadRequestCategory,
 				ErrorData:        err,
@@ -672,7 +676,6 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 				Operation:        PNSubscribeOperation,
 				AffectedChannels: []string{channel},
 			}
-			m.pubnub.loggerManager.LogError(err, "FileMessageDecryptFailed", PNSubscribeOperation, true)
 			m.listenerManager.announceStatus(pnStatus)
 
 		}
@@ -684,6 +687,10 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 		var err error
 		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub)
 		if err != nil {
+			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto: decryption of message failed due to %v", err), false)
+			// Surface only a generic error to customers; the specific reason is kept at Debug level to avoid leaking a decryption failure oracle.
+			err = errors.New("message decryption failed")
+			m.pubnub.loggerManager.LogError(err, "MessageDecryptFailed", PNSubscribeOperation, true)
 			pnStatus := &PNStatus{
 				Category:         PNBadRequestCategory,
 				ErrorData:        err,
@@ -691,7 +698,6 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 				Operation:        PNSubscribeOperation,
 				AffectedChannels: []string{channel},
 			}
-			m.pubnub.loggerManager.LogError(err, "MessageDecryptFailed", PNSubscribeOperation, true)
 			m.listenerManager.announceStatus(pnStatus)
 
 		}

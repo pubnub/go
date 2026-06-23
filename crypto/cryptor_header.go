@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	math "math"
-	"strconv"
 )
 
 const versionPosition = 4
@@ -22,6 +22,7 @@ const maxShortSize = 254
 const sentinelLength = 4
 
 var sentinel = [sentinelLength]byte{0x50, 0x4E, 0x45, 0x44}
+var errTruncatedHeader = errors.New("decryption error: truncated header")
 
 func headerV1(cryptorId string, metadata []byte) ([]byte, error) {
 	cryptorDataSize := len(metadata)
@@ -79,6 +80,10 @@ func peekHeaderCryptorId(data []byte) (cryptorId *string, e error) {
 		return &legacyId, nil
 	}
 
+	if len(data) < cryptorIdPosition+cryptorIdLength {
+		return nil, errTruncatedHeader
+	}
+
 	if data[versionPosition] != versionV1 {
 		return nil, unsupportedHeaderVersion(int(data[versionPosition]))
 	}
@@ -95,34 +100,51 @@ func parseHeader(data []byte) (cryptorId *string, encrData *EncryptedData, e err
 	if (*id) == legacyId {
 		return id, &EncryptedData{Data: data, Metadata: nil}, nil
 	}
+	if len(data) < sizePosition+shortSizeLength {
+		return nil, nil, errTruncatedHeader
+	}
 	var headerSize int64
 	position := int64(sizePosition)
 	if data[sizePosition] == longSizeIndicator {
+		if len(data) < sizePosition+longSizeLength {
+			return nil, nil, errTruncatedHeader
+		}
 		position += longSizeLength
 
-		headerSize, err = strconv.ParseInt(string(data[sizePosition:sizePosition+longSizeLength]), 10, 32)
-		if err != nil {
-			return nil, nil, err
-		}
+		headerSize = int64(binary.BigEndian.Uint16(data[sizePosition+shortSizeLength : sizePosition+longSizeLength]))
 	} else {
 		position += shortSizeLength
 		headerSize = int64(data[sizePosition])
 	}
 
+	if int64(len(data)) < position+headerSize {
+		return nil, nil, errTruncatedHeader
+	}
+
 	metadata := data[position : position+headerSize]
 	position += int64(len(metadata))
-
-	if int64(len(data)) < position {
-		return nil, nil, fmt.Errorf("decryption error: %w", e)
-	}
 
 	return id, &EncryptedData{Data: data[position:], Metadata: metadata}, nil
 }
 
 func parseHeaderStream(bufData *bufio.Reader) (cryptorId *string, encrypted *EncryptedStreamData, e error) {
-	peeked, err := bufData.Peek(sentinelLength + 1 + cryptorIdLength + longSizeLength)
+	peeked, err := bufData.Peek(sentinelLength)
 	if err != nil {
-		return nil, nil, fmt.Errorf("decryption error: %w", err)
+		return &legacyId, &EncryptedStreamData{
+			Reader:   bufData,
+			Metadata: nil,
+		}, nil
+	}
+	if !bytes.Equal(peeked[:sentinelLength], sentinel[:]) {
+		return &legacyId, &EncryptedStreamData{
+			Reader:   bufData,
+			Metadata: nil,
+		}, nil
+	}
+
+	peeked, err = bufData.Peek(sizePosition + shortSizeLength)
+	if err != nil {
+		return nil, nil, errTruncatedHeader
 	}
 
 	id, err := peekHeaderCryptorId(peeked)
@@ -138,19 +160,20 @@ func parseHeaderStream(bufData *bufio.Reader) (cryptorId *string, encrypted *Enc
 	}
 
 	var metadataSize int64
+	longSize := peeked[sizePosition] == longSizeIndicator
 	position := int64(sizePosition)
-	if peeked[sizePosition] == longSizeIndicator {
-		position += longSizeLength
-		var e error
-		metadataSize, e = strconv.ParseInt(string(peeked[sizePosition:sizePosition+longSizeLength]), 10, 32)
-		if e != nil {
-			return nil, nil, e
+	if longSize {
+		peeked, err = bufData.Peek(sizePosition + longSizeLength)
+		if err != nil {
+			return nil, nil, errTruncatedHeader
 		}
+		position += longSizeLength
+		metadataSize = int64(binary.BigEndian.Uint16(peeked[sizePosition+shortSizeLength : sizePosition+longSizeLength]))
 	} else {
 		position += shortSizeLength
 		metadataSize = int64(peeked[sizePosition])
 	}
-	if metadataSize > 254 {
+	if longSize {
 		_, e := bufData.Discard(sentinelLength + 1 + cryptorIdLength + longSizeLength)
 		if e != nil {
 			return nil, nil, e
@@ -164,7 +187,7 @@ func parseHeaderStream(bufData *bufio.Reader) (cryptorId *string, encrypted *Enc
 	m := make([]byte, metadataSize)
 	_, e = io.ReadFull(bufData, m)
 	if e != nil {
-		return nil, nil, e
+		return nil, nil, errTruncatedHeader
 	}
 
 	return id, &EncryptedStreamData{

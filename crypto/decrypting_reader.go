@@ -54,7 +54,7 @@ func (decryptingReader *blockModeDecryptingReader) decryptUntilPFull(p []byte) (
 		decryptingReader.err = e
 
 		if errors.Is(e, io.ErrUnexpectedEOF) {
-			return alreadyWrote, errors.New("encrypted data length is not a multiple of the block size")
+			return alreadyWrote, errors.New("decryption error")
 		}
 
 		if e != nil && e != io.EOF {

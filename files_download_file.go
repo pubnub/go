@@ -127,7 +127,8 @@ func (b *downloadFileBuilder) Execute() (*PNDownloadFileResponse, StatusResponse
 		b.opts.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: decrypting file", false)
 		r, e := cryptoModule.DecryptStream(resp.Body)
 		if e != nil {
-			b.opts.pubnub.loggerManager.LogSimple(PNLogLevelError, fmt.Sprintf("Crypto: decryption of file failed due to %v", e), false)
+			b.opts.pubnub.loggerManager.LogSimple(PNLogLevelError, "Crypto: decryption of file failed", false)
+			b.opts.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto: decryption of file failed due to %v", e), false)
 			return nil, stat, e
 		}
 		b.opts.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Crypto: file decrypted successfully", false)
