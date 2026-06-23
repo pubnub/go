@@ -1,3 +1,12 @@
+## v9.0.2
+June 23 2026
+
+#### Fixed
+- Fixed AES-CBC crypto header parsing for payloads with large metadata, preventing malformed encrypted input from causing panics and preserving compatibility with the existing encrypted payload format.
+
+#### Modified
+- PKCS#7 unpadding is now constant-time, and decryption/encryption failures surface only a generic error.
+
 ## v9.0.1
 June 15 2026
 

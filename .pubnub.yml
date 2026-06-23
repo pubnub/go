@@ -1,6 +1,13 @@
 ---
-version: v9.0.1
+version: v9.0.2
 changelog:
+  - date: 2026-06-23
+    version: v9.0.2
+    changes:
+      - type: bug
+        text: "Fixed AES-CBC crypto header parsing for payloads with large metadata, preventing malformed encrypted input from causing panics and preserving compatibility with the existing encrypted payload format."
+      - type: improvement
+        text: "PKCS#7 unpadding is now constant-time, and decryption/encryption failures surface only a generic error."
   - date: 2026-06-15
     version: v9.0.1
     changes:
@@ -842,7 +849,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v9.0.1
+            location: https://github.com/pubnub/go/releases/tag/v9.0.2
             requires:
               -
                 name: "Go"
