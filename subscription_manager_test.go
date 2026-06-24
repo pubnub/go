@@ -5,6 +5,7 @@ import (
 	"log"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/pubnub/go/v9/crypto"
 	"github.com/stretchr/testify/assert"
@@ -606,6 +607,320 @@ func TestProcessSubscribePayloadWithCustomMessageType(t *testing.T) {
 
 	processSubscribePayload(pn.subscriptionManager, *sm)
 	<-done
+}
+
+func waitForSubscribeStatus(t *testing.T, listener *Listener) *PNStatus {
+	t.Helper()
+
+	select {
+	case status := <-listener.Status:
+		return status
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for subscribe status")
+		return nil
+	}
+}
+
+func assertUnknownSubscribeStatus(t *testing.T, listener *Listener, channel string) {
+	t.Helper()
+
+	status := waitForSubscribeStatus(t, listener)
+	assert.True(t, status.Error)
+	assert.Equal(t, PNUnknownCategory, status.Category)
+	assert.Equal(t, PNSubscribeOperation, status.Operation)
+	assert.Equal(t, []string{channel}, status.AffectedChannels)
+}
+
+func TestProcessPresencePayloadInvalidHereNowRefreshAnnouncesUnknownStatus(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "cg-pnpres",
+		Channel:           "channel-pnpres",
+		Payload: map[string]interface{}{
+			"action":           "join",
+			"timestamp":        int64(15078947309567840),
+			"uuid":             "bfce00ff4018fce180438bb04afc8da8",
+			"occupancy":        float64(1),
+			"here_now_refresh": "true",
+		},
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	assertUnknownSubscribeStatus(t, listener, "channel-pnpres")
+	select {
+	case presence := <-listener.Presence:
+		assert.Failf(t, "unexpected presence event", "event: %#v", presence)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestProcessMessageActionsPayloadMalformedFieldsAnnounceUnknownStatus(t *testing.T) {
+	tests := []struct {
+		name    string
+		payload interface{}
+	}{
+		{
+			name: "invalid event",
+			payload: map[string]interface{}{
+				"event": 42,
+			},
+		},
+		{
+			name: "invalid data",
+			payload: map[string]interface{}{
+				"event": "added",
+				"data":  nil,
+			},
+		},
+		{
+			name: "invalid action type",
+			payload: map[string]interface{}{
+				"event": "added",
+				"data": map[string]interface{}{
+					"type": nil,
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			listener := NewListener()
+			pn := NewPubNub(NewDemoConfig())
+			pn.AddListener(listener)
+
+			sm := &subscribeMessage{
+				Shard:             "1",
+				SubscriptionMatch: "channel",
+				Channel:           "channel",
+				Payload:           tt.payload,
+				MessageType:       PNMessageTypeMessageActions,
+			}
+
+			processSubscribePayload(pn.subscriptionManager, *sm)
+
+			assertUnknownSubscribeStatus(t, listener, "channel")
+			select {
+			case event := <-listener.MessageActionsEvent:
+				assert.Failf(t, "unexpected message actions event", "event: %#v", event)
+			case <-time.After(50 * time.Millisecond):
+			}
+		})
+	}
+}
+
+func TestProcessMessageActionsPayloadValidPayloadAnnouncesEvent(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		IssuingClientID:   "uuid-1",
+		Payload: map[string]interface{}{
+			"event": "added",
+			"data": map[string]interface{}{
+				"type":             "reaction",
+				"value":            "smile",
+				"actionTimetoken":  "123",
+				"messageTimetoken": "456",
+			},
+		},
+		MessageType: PNMessageTypeMessageActions,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case event := <-listener.MessageActionsEvent:
+		assert.Equal(t, PNMessageActionsAdded, event.Event)
+		assert.Equal(t, "reaction", event.Data.ActionType)
+		assert.Equal(t, "smile", event.Data.ActionValue)
+		assert.Equal(t, "123", event.Data.ActionTimetoken)
+		assert.Equal(t, "456", event.Data.MessageTimetoken)
+		assert.Equal(t, "uuid-1", event.Data.UUID)
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for message actions event")
+	}
+
+	select {
+	case status := <-listener.Status:
+		assert.Failf(t, "unexpected status", "status: %#v", status)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestProcessObjectsPayloadMalformedFieldsAnnounceUnknownStatus(t *testing.T) {
+	tests := []struct {
+		name    string
+		payload interface{}
+	}{
+		{
+			name: "invalid type",
+			payload: map[string]interface{}{
+				"type":    42,
+				"event":   "set",
+				"version": "2.0",
+			},
+		},
+		{
+			name: "invalid data",
+			payload: map[string]interface{}{
+				"type":    "uuid",
+				"event":   "set",
+				"version": "2.0",
+				"data":    nil,
+			},
+		},
+		{
+			name: "invalid nested uuid",
+			payload: map[string]interface{}{
+				"type":    "membership",
+				"event":   "set",
+				"version": "2.0",
+				"data": map[string]interface{}{
+					"uuid": nil,
+				},
+			},
+		},
+		{
+			name: "invalid custom",
+			payload: map[string]interface{}{
+				"type":    "uuid",
+				"event":   "set",
+				"version": "2.0",
+				"data": map[string]interface{}{
+					"id":     "uuid-1",
+					"custom": "not-a-map",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			listener := NewListener()
+			pn := NewPubNub(NewDemoConfig())
+			pn.AddListener(listener)
+
+			sm := &subscribeMessage{
+				Shard:             "1",
+				SubscriptionMatch: "channel",
+				Channel:           "channel",
+				Payload:           tt.payload,
+				MessageType:       PNMessageTypeObjects,
+			}
+
+			processSubscribePayload(pn.subscriptionManager, *sm)
+
+			assertUnknownSubscribeStatus(t, listener, "channel")
+			select {
+			case event := <-listener.UUIDEvent:
+				assert.Failf(t, "unexpected uuid event", "event: %#v", event)
+			case event := <-listener.ChannelEvent:
+				assert.Failf(t, "unexpected channel event", "event: %#v", event)
+			case event := <-listener.MembershipEvent:
+				assert.Failf(t, "unexpected membership event", "event: %#v", event)
+			case <-time.After(50 * time.Millisecond):
+			}
+		})
+	}
+}
+
+func TestProcessObjectsPayloadValidUUIDPayloadAnnouncesEvent(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload: map[string]interface{}{
+			"type":    "uuid",
+			"event":   "set",
+			"version": "2.0",
+			"data": map[string]interface{}{
+				"id":   "uuid-1",
+				"name": "User One",
+				"custom": map[string]interface{}{
+					"role": "admin",
+				},
+			},
+		},
+		MessageType: PNMessageTypeObjects,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case event := <-listener.UUIDEvent:
+		assert.Equal(t, PNObjectsEvent(PNObjectsEventSet), event.Event)
+		assert.Equal(t, "uuid-1", event.UUID)
+		assert.Equal(t, "User One", event.Name)
+		assert.Equal(t, "admin", event.Custom["role"])
+		assert.Equal(t, "channel", event.Channel)
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for uuid event")
+	}
+
+	select {
+	case status := <-listener.Status:
+		assert.Failf(t, "unexpected status", "status: %#v", status)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestProcessFilePayloadMalformedPayloadAnnouncesUnknownStatus(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload:           "not-a-file-payload",
+		MessageType:       PNMessageTypeFile,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	assertUnknownSubscribeStatus(t, listener, "channel")
+	select {
+	case event := <-listener.File:
+		assert.Failf(t, "unexpected file event", "event: %#v", event)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestSafeProcessSubscribePayloadRecoversAndAnnouncesUnknownStatus(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	cryptoModule, err := crypto.NewAesCbcCryptoModule("enigma", true)
+	assert.Nil(t, err)
+	pn.Config.CryptoModule = cryptoModule
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload:           nil,
+	}
+
+	assert.NotPanics(t, func() {
+		safeProcessSubscribePayload(pn.subscriptionManager, *sm)
+	})
+
+	assertUnknownSubscribeStatus(t, listener, "channel")
 }
 
 func TestDecryptionProcessOnEncryptedMessage(t *testing.T) {

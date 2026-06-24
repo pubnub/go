@@ -433,6 +433,89 @@ func TestGrantErrorResponseParsing(t *testing.T) {
 	assert.Contains(err.Error(), "null payload")
 }
 
+func TestGrantNestedErrorResponseParsing(t *testing.T) {
+	tests := []struct {
+		name      string
+		jsonBytes []byte
+		contains  string
+	}{
+		{
+			name:      "channel is not string",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"channel":42,"auths":{"my-auth-key":{"r":1}}},"service":"Access Manager","status":200}`),
+			contains:  "invalid channel field",
+		},
+		{
+			name:      "root auths is not map",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"channel":"ch1","auths":"bad-auths"},"service":"Access Manager","status":200}`),
+			contains:  "invalid auths field",
+		},
+		{
+			name:      "auth key value is not map",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"channel":"ch1","auths":{"my-auth-key":null}},"service":"Access Manager","status":200}`),
+			contains:  "invalid auth key",
+		},
+		{
+			name:      "channel groups value is not string or map",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"channel-groups":42},"service":"Access Manager","status":200}`),
+			contains:  "invalid channel-groups field",
+		},
+		{
+			name:      "channel group entry is not map",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"channel-groups":{"cg1":null}},"service":"Access Manager","status":200}`),
+			contains:  "invalid channel group",
+		},
+		{
+			name:      "channel group auths is not map",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"channel-groups":{"cg1":{"auths":null}}},"service":"Access Manager","status":200}`),
+			contains:  "invalid auths for channel group",
+		},
+		{
+			name:      "channels field is not map",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"channels":42},"service":"Access Manager","status":200}`),
+			contains:  "invalid channels field",
+		},
+		{
+			name:      "channel entry is not map",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"channels":{"ch1":null}},"service":"Access Manager","status":200}`),
+			contains:  "invalid channel",
+		},
+		{
+			name:      "channel auths is not map",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"channels":{"ch1":{"auths":null}}},"service":"Access Manager","status":200}`),
+			contains:  "invalid channel",
+		},
+		{
+			name:      "uuids field is not map",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"uuids":42},"service":"Access Manager","status":200}`),
+			contains:  "invalid uuids field",
+		},
+		{
+			name:      "uuid auth permission is not number",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"uuids":{"uuid1":{"auths":{"my-auth-key":{"r":"bad"}}}}},"service":"Access Manager","status":200}`),
+			contains:  "invalid uuid",
+		},
+		{
+			name:      "root permission is not number",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":1440,"r":"bad"},"service":"Access Manager","status":200}`),
+			contains:  "invalid r permission",
+		},
+		{
+			name:      "ttl is not number",
+			jsonBytes: []byte(`{"message":"Success","payload":{"ttl":"bad"},"service":"Access Manager","status":200}`),
+			contains:  "invalid ttl field",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, err := newGrantResponse(tt.jsonBytes, StatusResponse{})
+			assert.NotNil(t, err)
+			assert.Contains(t, err.Error(), "pubnub/parsing")
+			assert.Contains(t, err.Error(), tt.contains)
+		})
+	}
+}
+
 func TestGrantSpecialCharactersInIdentifiers(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
