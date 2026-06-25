@@ -149,8 +149,36 @@ func (c *Config) GetUserId() UserId {
 	return UserId(c.UUID)
 }
 
+// secretKeyRedactPrefixLen is the number of leading characters preserved when
+// partially redacting a SecretKey for logging (e.g. "sec-c-YT… (len=54)").
+const secretKeyRedactPrefixLen = 8
+
+// redactPrefix returns a partially redacted representation of a sensitive value:
+// the first prefixLen characters followed by an ellipsis and the total length,
+// e.g. "sec-c-YT… (len=54)".
+//
+// An empty value yields an empty string. To avoid leaking short secrets, any
+// value whose length does not exceed prefixLen is fully masked with "***".
+func redactPrefix(value string, prefixLen int) string {
+	if value == "" {
+		return ""
+	}
+	if len(value) <= prefixLen {
+		return "***"
+	}
+	return fmt.Sprintf("%s\u2026 (len=%d)", value[:prefixLen], len(value))
+}
+
 // GetLogString returns a formatted string representation of the Config for logging purposes.
-// Sensitive fields (SecretKey, CipherKey) are masked with ***.
+//
+// Sensitive fields are redacted so they are never logged in full:
+//   - SecretKey is partially redacted to its first few characters and length
+//     (e.g. "sec-c-YT… (len=54)").
+//   - AuthKey and CipherKey are fully masked with "***".
+//
+// Note: the access token set via PubNub.SetToken (AuthToken) is not part of the
+// Config; it is stored in the token manager and only appears, alongside AuthKey,
+// in request URLs that are logged exclusively at the Debug level.
 func (c *Config) GetLogString() string {
 	c.RLock()
 	defer c.RUnlock()
@@ -203,7 +231,7 @@ func (c *Config) GetLogString() string {
 }`,
 		c.PublishKey,
 		c.SubscribeKey,
-		maskIfNotEmpty(c.SecretKey),
+		redactPrefix(c.SecretKey, secretKeyRedactPrefixLen),
 		maskIfNotEmpty(c.AuthKey),
 		c.Origin,
 		c.UUID,

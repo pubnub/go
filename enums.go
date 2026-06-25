@@ -48,9 +48,17 @@ type PNPushEnvironment string
 
 // PNLogLevel constants define the available log levels
 const (
-	// PNLogLevelTrace is the enum when the log level is trace
+	// PNLogLevelTrace is the enum when the log level is trace.
+	//
+	// Security warning: like Debug, the Trace level may expose sensitive fields
+	// (tokens, auth parameters, request URLs) and must not be enabled in
+	// production environments. See PNLogLevelDebug for details.
 	PNLogLevelTrace PNLogLevel = 1 + iota
-	// PNLogLevelDebug is the enum when the log level is debug
+	// PNLogLevelDebug is the enum when the log level is debug.
+	//
+	// Security warning: the Debug log level may expose sensitive fields (tokens,
+	// auth parameters, request URLs). Debug is intended for developer
+	// troubleshooting only and must not be enabled in production environments.
 	PNLogLevelDebug
 	// PNLogLevelInfo is the enum when the log level is info
 	PNLogLevelInfo
