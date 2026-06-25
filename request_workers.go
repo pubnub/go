@@ -53,6 +53,12 @@ func newRequestWorkers(workers chan chan *JobQItem, id int, ctx Context) Worker 
 // Process runs a goroutine for the worker
 func (pw Worker) Process(pubnub *PubNub) {
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				pubnub.loggerManager.LogSimple(PNLogLevelError,
+					fmt.Sprintf("Recovered from panic in worker Process, id %d: %v", pw.id, r), false)
+			}
+		}()
 	ProcessLabel:
 		for {
 			select {

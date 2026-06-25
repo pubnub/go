@@ -170,15 +170,7 @@ func redactPrefix(value string, prefixLen int) string {
 }
 
 // GetLogString returns a formatted string representation of the Config for logging purposes.
-//
-// Sensitive fields are redacted so they are never logged in full:
-//   - SecretKey is partially redacted to its first few characters and length
-//     (e.g. "sec-c-YT… (len=54)").
-//   - AuthKey and CipherKey are fully masked with "***".
-//
-// Note: the access token set via PubNub.SetToken (AuthToken) is not part of the
-// Config; it is stored in the token manager and only appears, alongside AuthKey,
-// in request URLs that are logged exclusively at the Debug level.
+// Sensitive fields (SecretKey, CipherKey) are masked.
 func (c *Config) GetLogString() string {
 	c.RLock()
 	defer c.RUnlock()

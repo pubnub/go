@@ -61,6 +61,16 @@ func fillJobQ(req *http.Request, client *http.Client, opts endpoint, j chan *Job
 }
 
 func addToJobQ(req *http.Request, client *http.Client, opts endpoint, j chan *JobQResponse, ctx Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			err := fmt.Errorf("request enqueue panic: %v", r)
+			opts.getPubNub().loggerManager.LogSimple(PNLogLevelError, err.Error(), false)
+			// Release the caller waiting on j so the request fails with an
+			// error instead of blocking forever after the panic.
+			j <- &JobQResponse{Error: err}
+		}
+	}()
+
 	if ctx != nil {
 		select {
 		case <-ctx.Done():

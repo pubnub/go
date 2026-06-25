@@ -510,6 +510,13 @@ type originationMetadata struct {
 }
 
 func subscribeMessageWorker(m *SubscriptionManager) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			err := fmt.Errorf("subscribeMessageWorker panic: %v", rec)
+			m.pubnub.loggerManager.LogError(err, "SubscribeMessageWorkerPanic", PNSubscribeOperation, true)
+		}
+	}()
+
 	m.Lock()
 	if m.ctx == nil && m.subscribeCancel == nil {
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: setting context", false)
