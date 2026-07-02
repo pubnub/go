@@ -1,6 +1,21 @@
 ---
-version: v9.0.2
+version: v9.0.3
 changelog:
+  - date: 2026-07-02
+    version: v9.0.3
+    changes:
+      - type: bug
+        text: "Add `recover` guards to SDK-owned goroutines (subscribe worker, request workers, job enqueue) so panics fail the request instead of crashing the host process."
+      - type: bug
+        text: "Replace panic-based `CheckUUID` with `ValidateUUID` and validate the UUID in `buildURL`, surfacing invalid UUIDs as handled errors; `CheckUUID` is kept but deprecated."
+      - type: bug
+        text: "Harden subscribe response parsing against malformed payloads with checked type assertions that announce a parse error instead of panicking."
+      - type: bug
+        text: "Harden Access Manager grant response parsing to validate all fields and return descriptive errors, and fix TTL parsing to accept JSON numbers."
+      - type: improvement
+        text: "Return a single generic error on LegacyCryptor decryption failures to prevent padding-oracle-style information disclosure."
+      - type: improvement
+        text: "Change redaction of `SecretKey` to show only first 8 characters and total length of the key."
   - date: 2026-06-23
     version: v9.0.2
     changes:
@@ -849,7 +864,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v9.0.2
+            location: https://github.com/pubnub/go/releases/tag/v9.0.3
             requires:
               -
                 name: "Go"
