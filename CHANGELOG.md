@@ -1,3 +1,16 @@
+## v9.0.3
+July 02 2026
+
+#### Fixed
+- Add `recover` guards to SDK-owned goroutines (subscribe worker, request workers, job enqueue) so panics fail the request instead of crashing the host process.
+- Replace panic-based `CheckUUID` with `ValidateUUID` and validate the UUID in `buildURL`, surfacing invalid UUIDs as handled errors; `CheckUUID` is kept but deprecated.
+- Harden subscribe response parsing against malformed payloads with checked type assertions that announce a parse error instead of panicking.
+- Harden Access Manager grant response parsing to validate all fields and return descriptive errors, and fix TTL parsing to accept JSON numbers.
+
+#### Modified
+- Return a single generic error on LegacyCryptor decryption failures to prevent padding-oracle-style information disclosure.
+- Change redaction of `SecretKey` to show only first 8 characters and total length of the key.
+
 ## v9.0.2
 June 23 2026
 

@@ -137,7 +137,6 @@ func defaultQuery(uuid string, telemetryManager *TelemetryManager) *url.Values {
 	v := &url.Values{}
 
 	v.Set("pnsdk", "PubNub-Go/"+Version)
-	utils.CheckUUID(uuid)
 	v.Set("uuid", uuid)
 
 	for queryName, queryParam := range telemetryManager.OperationLatency() {
@@ -159,6 +158,15 @@ func buildURL(o endpoint) (*url.URL, error) {
 	query, err := o.buildQuery()
 	if err != nil {
 		return &url.URL{}, err
+	}
+
+	// Validate the client UUID for every endpoint that sends it (those built
+	// via defaultQuery). Returning an error here lets callers handle an invalid
+	// UUID gracefully instead of panicking inside SDK-owned goroutines.
+	if query.Has("uuid") {
+		if err := utils.ValidateUUID(query.Get("uuid")); err != nil {
+			return &url.URL{}, err
+		}
 	}
 
 	if v := o.tokenManager().GetToken(); v != "" && query.Get("auth") == "" {

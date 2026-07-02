@@ -510,6 +510,13 @@ type originationMetadata struct {
 }
 
 func subscribeMessageWorker(m *SubscriptionManager) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			err := fmt.Errorf("subscribeMessageWorker panic: %v", rec)
+			m.pubnub.loggerManager.LogError(err, "SubscribeMessageWorkerPanic", PNSubscribeOperation, true)
+		}
+	}()
+
 	m.Lock()
 	if m.ctx == nil && m.subscribeCancel == nil {
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: setting context", false)
@@ -542,11 +549,87 @@ SubscribeMessageWorkerLabel:
 			break SubscribeMessageWorkerLabel
 		case message := <-m.messages:
 			m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: processing message", false)
-			processSubscribePayload(m, message)
+			safeProcessSubscribePayload(m, message)
 		}
 	}
 	m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: exited", false)
 
+}
+
+func announceSubscribePayloadParsingError(m *SubscriptionManager, channel, message string) {
+	err := errors.New(message)
+	m.pubnub.loggerManager.LogError(err, "SubscribePayloadParsingFailed", PNSubscribeOperation, true)
+	m.listenerManager.announceStatus(&PNStatus{
+		Category:         PNUnknownCategory,
+		ErrorData:        err,
+		Error:            true,
+		Operation:        PNSubscribeOperation,
+		AffectedChannels: []string{channel},
+	})
+}
+
+func safeProcessSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			err := fmt.Errorf("Subscribe payload processing panic: %v", rec)
+			m.pubnub.loggerManager.LogError(err, "SubscribePayloadProcessingPanic", PNSubscribeOperation, true)
+			m.listenerManager.announceStatus(&PNStatus{
+				Category:         PNUnknownCategory,
+				ErrorData:        err,
+				Error:            true,
+				Operation:        PNSubscribeOperation,
+				AffectedChannels: []string{payload.Channel},
+			})
+		}
+	}()
+
+	processSubscribePayload(m, payload)
+}
+
+func subscribePayloadMap(value interface{}) (map[string]interface{}, bool) {
+	payload, ok := value.(map[string]interface{})
+	if !ok {
+		return nil, false
+	}
+
+	return payload, true
+}
+
+func subscribePayloadRequiredString(payload map[string]interface{}, field string) (string, bool) {
+	value, ok := payload[field]
+	if !ok {
+		return "", false
+	}
+
+	str, ok := value.(string)
+	if !ok {
+		return "", false
+	}
+
+	return str, true
+}
+
+func subscribePayloadOptionalString(payload map[string]interface{}, field string) (string, bool) {
+	value, ok := payload[field]
+	if !ok {
+		return "", true
+	}
+
+	str, ok := value.(string)
+	if !ok {
+		return "", false
+	}
+
+	return str, true
+}
+
+func subscribePayloadOptionalMap(payload map[string]interface{}, field string) (map[string]interface{}, bool) {
+	value, ok := payload[field]
+	if !ok {
+		return nil, true
+	}
+
+	return subscribePayloadMap(value)
 }
 
 func processPresencePayload(m *SubscriptionManager, payload subscribeMessage, channel, subscriptionMatch string, publishMeta publishMetadata) {
@@ -558,13 +641,8 @@ func processPresencePayload(m *SubscriptionManager, payload subscribeMessage, ch
 	var ok, hereNowRefresh bool
 
 	if presencePayload, ok = payload.Payload.(map[string]interface{}); !ok {
-		m.listenerManager.announceStatus(&PNStatus{
-			Category:         PNUnknownCategory,
-			ErrorData:        errors.New("Presence response parsing error"),
-			Error:            true,
-			Operation:        PNSubscribeOperation,
-			AffectedChannels: []string{channel},
-		})
+		announceSubscribePayloadParsingError(m, channel, "Presence response parsing error")
+		return
 	}
 
 	action, _ = presencePayload["action"].(string)
@@ -579,20 +657,21 @@ func processPresencePayload(m *SubscriptionManager, payload subscribeMessage, ch
 		switch presencePayload["timestamp"].(type) {
 		case int:
 			timestamp = int64(presencePayload["timestamp"].(int))
-			break
 		case int64:
 			timestamp = presencePayload["timestamp"].(int64)
-			break
 		case float64:
 			timestamp = int64(presencePayload["timestamp"].(float64))
-			break
 		}
 
 	}
 
 	data = presencePayload["data"]
 	if presencePayload["here_now_refresh"] != nil {
-		hereNowRefresh = presencePayload["here_now_refresh"].(bool)
+		hereNowRefresh, ok = presencePayload["here_now_refresh"].(bool)
+		if !ok {
+			announceSubscribePayloadParsingError(m, channel, "Presence response parsing error: invalid here_now_refresh")
+			return
+		}
 	}
 	timetoken, _ := strconv.ParseInt(publishMeta.PublishTimetoken, 10, 64)
 
@@ -644,7 +723,10 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing signal: channel=%s", channel), false)
 		m.listenerManager.announceSignal(pnMessageResult)
 	case PNMessageTypeObjects:
-		pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
+		pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType, ok := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
+		if !ok {
+			return
+		}
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing objects event: type=%v, channel=%s", eventType, channel), false)
 		switch eventType {
 		case PNObjectsUUIDEvent:
@@ -658,7 +740,10 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 			m.listenerManager.announceMembershipEvent(pnMembershipEvent)
 		}
 	case PNMessageTypeMessageActions:
-		pnMessageActionsEvent := createPNMessageActionsEventResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID)
+		pnMessageActionsEvent, ok := createPNMessageActionsEventResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID)
+		if !ok {
+			return
+		}
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing message actions event: channel=%s", channel), false)
 		m.listenerManager.announceMessageActionsEvent(pnMessageActionsEvent)
 	case PNMessageTypeFile:
@@ -680,7 +765,10 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 
 		}
 
-		pnFilesEvent := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, err)
+		pnFilesEvent, ok := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, err)
+		if !ok {
+			return
+		}
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing file event: channel=%s", channel), false)
 		m.listenerManager.announceFile(pnFilesEvent)
 	default:
@@ -723,18 +811,12 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 	}
 }
 
-func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, err error) *PNFilesEvent {
+func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, err error) (*PNFilesEvent, bool) {
 	var filesPayload map[string]interface{}
 	var ok bool
 	if filesPayload, ok = filePayload.(map[string]interface{}); !ok {
-		m.listenerManager.announceStatus(&PNStatus{
-			Category:         PNUnknownCategory,
-			ErrorData:        errors.New("Files response parsing error"),
-			Error:            true,
-			Operation:        PNSubscribeOperation,
-			AffectedChannels: []string{channel},
-		})
-		return nil
+		announceSubscribePayloadParsingError(m, channel, "Files response parsing error")
+		return nil, false
 	}
 
 	resp := PNFileMessageAndDetails{}
@@ -756,39 +838,58 @@ func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualC
 		UserMetadata:      userMetadata,
 		Error:             err,
 	}
-	return pnFilesEvent
+	return pnFilesEvent, true
 }
 
-func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string) *PNMessageActionsEvent {
+func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string) (*PNMessageActionsEvent, bool) {
 	var messageActionsPayload map[string]interface{}
 	var ok bool
 	if messageActionsPayload, ok = maPayload.(map[string]interface{}); !ok {
-		m.listenerManager.announceStatus(&PNStatus{
-			Category:         PNUnknownCategory,
-			ErrorData:        errors.New("Message Actions response parsing error"),
-			Error:            true,
-			Operation:        PNSubscribeOperation,
-			AffectedChannels: []string{channel},
-		})
-		return nil
+		announceSubscribePayloadParsingError(m, channel, "Message Actions response parsing error")
+		return nil, false
 	}
-	eventType := PNMessageActionsEventType(messageActionsPayload["event"].(string))
+	event, ok := subscribePayloadRequiredString(messageActionsPayload, "event")
+	if !ok {
+		announceSubscribePayloadParsingError(m, channel, "Message Actions response parsing error: invalid event")
+		return nil, false
+	}
+	eventType := PNMessageActionsEventType(event)
 	var data map[string]interface{}
 	resp := PNMessageActionsResponse{}
 
 	if o, ok := messageActionsPayload["data"]; ok {
-		data = o.(map[string]interface{})
+		data, ok = subscribePayloadMap(o)
+		if !ok {
+			announceSubscribePayloadParsingError(m, channel, "Message Actions response parsing error: invalid data")
+			return nil, false
+		}
 		if d, ok := data["type"]; ok {
-			resp.ActionType = d.(string)
+			resp.ActionType, ok = d.(string)
+			if !ok {
+				announceSubscribePayloadParsingError(m, channel, "Message Actions response parsing error: invalid type")
+				return nil, false
+			}
 		}
 		if d, ok := data["value"]; ok {
-			resp.ActionValue = d.(string)
+			resp.ActionValue, ok = d.(string)
+			if !ok {
+				announceSubscribePayloadParsingError(m, channel, "Message Actions response parsing error: invalid value")
+				return nil, false
+			}
 		}
 		if d, ok := data["actionTimetoken"]; ok {
-			resp.ActionTimetoken = d.(string)
+			resp.ActionTimetoken, ok = d.(string)
+			if !ok {
+				announceSubscribePayloadParsingError(m, channel, "Message Actions response parsing error: invalid actionTimetoken")
+				return nil, false
+			}
 		}
 		if d, ok := data["messageTimetoken"]; ok {
-			resp.MessageTimetoken = d.(string)
+			resp.MessageTimetoken, ok = d.(string)
+			if !ok {
+				announceSubscribePayloadParsingError(m, channel, "Message Actions response parsing error: invalid messageTimetoken")
+				return nil, false
+			}
 		}
 		resp.UUID = issuingClientID
 	}
@@ -802,82 +903,125 @@ func createPNMessageActionsEventResult(maPayload interface{}, m *SubscriptionMan
 		Subscription:      subscriptionMatch,
 	}
 
-	return pnMessageActionsEvent
+	return pnMessageActionsEvent, true
 }
 
-func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) (*PNUUIDEvent, *PNChannelEvent, *PNMembershipEvent, PNObjectsEventType) {
+func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch string) (*PNUUIDEvent, *PNChannelEvent, *PNMembershipEvent, PNObjectsEventType, bool) {
 	var objectsPayload map[string]interface{}
 	var ok bool
 	if objectsPayload, ok = objPayload.(map[string]interface{}); !ok {
-		m.listenerManager.announceStatus(&PNStatus{
-			Category:         PNUnknownCategory,
-			ErrorData:        errors.New("Objects response parsing error"),
-			Error:            true,
-			Operation:        PNSubscribeOperation,
-			AffectedChannels: []string{channel},
-		})
-		return nil, nil, nil, PNObjectsNoneEvent
+		announceSubscribePayloadParsingError(m, channel, "Objects response parsing error")
+		return nil, nil, nil, PNObjectsNoneEvent, false
 	}
-	eventType := PNObjectsEventType(objectsPayload["type"].(string))
-	event := PNObjectsEvent(objectsPayload["event"].(string))
+	eventTypeString, ok := subscribePayloadRequiredString(objectsPayload, "type")
+	if !ok {
+		announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid type")
+		return nil, nil, nil, PNObjectsNoneEvent, false
+	}
+	eventString, ok := subscribePayloadRequiredString(objectsPayload, "event")
+	if !ok {
+		announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid event")
+		return nil, nil, nil, PNObjectsNoneEvent, false
+	}
+	eventType := PNObjectsEventType(eventTypeString)
+	event := PNObjectsEvent(eventString)
 	version := ""
 	if d, ok := objectsPayload["version"]; ok {
-		version = d.(string)
+		version, ok = d.(string)
+		if !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid version")
+			return nil, nil, nil, PNObjectsNoneEvent, false
+		}
 		if version == "1.0" {
 			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Ignoring objects event version 1.0", false)
-			return &PNUUIDEvent{}, &PNChannelEvent{}, &PNMembershipEvent{}, PNObjectsNoneEvent
+			return &PNUUIDEvent{}, &PNChannelEvent{}, &PNMembershipEvent{}, PNObjectsNoneEvent, true
 		}
 	} else {
 		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, "Ignoring non-versioned objects event", false)
-		return &PNUUIDEvent{}, &PNChannelEvent{}, &PNMembershipEvent{}, PNObjectsNoneEvent
+		return &PNUUIDEvent{}, &PNChannelEvent{}, &PNMembershipEvent{}, PNObjectsNoneEvent, true
 	}
 	var id, UUID, channelID, description, timestamp, updated, eTag, name, externalID, profileURL, email, status, objectType string
 	var custom, data map[string]interface{}
 	if o, ok := objectsPayload["data"]; ok {
-		data = o.(map[string]interface{})
+		data, ok = subscribePayloadMap(o)
+		if !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid data")
+			return nil, nil, nil, PNObjectsNoneEvent, false
+		}
 		if d, ok := data["uuid"]; ok {
-			u := d.(map[string]interface{})
-			UUID = u["id"].(string)
+			u, ok := subscribePayloadMap(d)
+			if !ok {
+				announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid uuid")
+				return nil, nil, nil, PNObjectsNoneEvent, false
+			}
+			UUID, ok = subscribePayloadRequiredString(u, "id")
+			if !ok {
+				announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid uuid.id")
+				return nil, nil, nil, PNObjectsNoneEvent, false
+			}
 		}
 		if d, ok := data["id"]; ok {
-			id = d.(string)
+			id, ok = d.(string)
+			if !ok {
+				announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid id")
+				return nil, nil, nil, PNObjectsNoneEvent, false
+			}
 		}
 		if d, ok := data["channel"]; ok {
-			ch := d.(map[string]interface{})
-			channelID = ch["id"].(string)
+			ch, ok := subscribePayloadMap(d)
+			if !ok {
+				announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid channel")
+				return nil, nil, nil, PNObjectsNoneEvent, false
+			}
+			channelID, ok = subscribePayloadRequiredString(ch, "id")
+			if !ok {
+				announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid channel.id")
+				return nil, nil, nil, PNObjectsNoneEvent, false
+			}
 		}
-		if d, ok := data["name"]; ok {
-			name = d.(string)
+		if name, ok = subscribePayloadOptionalString(data, "name"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid name")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
-		if d, ok := data["externalId"]; ok {
-			externalID = d.(string)
+		if externalID, ok = subscribePayloadOptionalString(data, "externalId"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid externalId")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
-		if d, ok := data["profileUrl"]; ok {
-			profileURL = d.(string)
+		if profileURL, ok = subscribePayloadOptionalString(data, "profileUrl"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid profileUrl")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
-		if d, ok := data["email"]; ok {
-			email = d.(string)
+		if email, ok = subscribePayloadOptionalString(data, "email"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid email")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
-		if d, ok := data["description"]; ok {
-			description = d.(string)
+		if description, ok = subscribePayloadOptionalString(data, "description"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid description")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
-		if d, ok := data["timestamp"]; ok {
-			timestamp = d.(string)
+		if timestamp, ok = subscribePayloadOptionalString(data, "timestamp"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid timestamp")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
-		if d, ok := data["updated"]; ok {
-			updated = d.(string)
+		if updated, ok = subscribePayloadOptionalString(data, "updated"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid updated")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
-		if d, ok := data["eTag"]; ok {
-			eTag = d.(string)
+		if eTag, ok = subscribePayloadOptionalString(data, "eTag"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid eTag")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
-		if d, ok := data["custom"]; ok {
-			custom = d.(map[string]interface{})
+		if custom, ok = subscribePayloadOptionalMap(data, "custom"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid custom")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
-		if d, ok := data["status"]; ok {
-			status = d.(string)
+		if status, ok = subscribePayloadOptionalString(data, "status"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid status")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
-		if d, ok := data["type"]; ok {
-			objectType = d.(string)
+		if objectType, ok = subscribePayloadOptionalString(data, "type"); !ok {
+			announceSubscribePayloadParsingError(m, channel, "Objects response parsing error: invalid object type")
+			return nil, nil, nil, PNObjectsNoneEvent, false
 		}
 
 	}
@@ -952,7 +1096,7 @@ func createPNObjectsResult(objPayload interface{}, m *SubscriptionManager, actua
 		Subscription:      subscriptionMatch,
 	}
 
-	return pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType
+	return pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType, true
 }
 
 func createPNMessageResult(messagePayload interface{}, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, CustomMessageType string, error error) *PNMessage {

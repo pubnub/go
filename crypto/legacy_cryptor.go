@@ -8,7 +8,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"io"
 )
 
@@ -58,12 +57,18 @@ func (c *legacyCryptor) Encrypt(message []byte) (*EncryptedData, error) {
 }
 
 func (c *legacyCryptor) Decrypt(encryptedData *EncryptedData) (r []byte, e error) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			r, e = nil, errors.New("decryption error")
+		}
+	}()
+
 	iv := make([]byte, aes.BlockSize)
 	data := encryptedData.Data
 
 	if c.randomIv {
 		if len(data) < aes.BlockSize {
-			return nil, fmt.Errorf("length of data to decrypt should be at least %d", aes.BlockSize)
+			return nil, errors.New("decryption error")
 		}
 
 		iv = data[:aes.BlockSize]
@@ -72,26 +77,14 @@ func (c *legacyCryptor) Decrypt(encryptedData *EncryptedData) (r []byte, e error
 		iv = []byte(valIV)
 	}
 
-	if len(data)%16 != 0 {
-		return nil, fmt.Errorf("length of data to decrypt should be divisible by block size")
+	if len(data)%aes.BlockSize != 0 {
+		return nil, errors.New("decryption error")
 	}
 
 	decrypter := cipher.NewCBCDecrypter(c.block, iv)
-	//to handle decryption errors
-	defer func() {
-		if rec := recover(); rec != nil {
-			r, e = nil, fmt.Errorf("decrypt error: %s", rec)
-		}
-	}()
-
 	decrypted := make([]byte, len(data))
 	decrypter.CryptBlocks(decrypted, data)
-	val, err := unpadPKCS7(decrypted)
-	if err != nil {
-		return nil, fmt.Errorf("decrypt error: %s", err)
-	}
-
-	return val, nil
+	return unpadPKCS7(decrypted)
 }
 
 func (c *legacyCryptor) EncryptStream(reader io.Reader) (*EncryptedStreamData, error) {

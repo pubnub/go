@@ -102,9 +102,23 @@ func UUID() string {
 	return fmt.Sprintf("pn-%s", uuid.New().String())
 }
 
-func CheckUUID(uuid string) {
+// ValidateUUID reports whether the supplied UUID is usable. It returns a
+// BuildRequestError when the UUID is empty or whitespace-only and nil otherwise.
+func ValidateUUID(uuid string) error {
 	if strings.TrimSpace(uuid) == "" {
-		panic(pnerr.NewBuildRequestError("uuid: UUID misisng, please set it in the PNConfig."))
+		return pnerr.NewBuildRequestError("uuid: UUID missing, please set it in the PNConfig.")
+	}
+	return nil
+}
+
+// CheckUUID panics when the supplied UUID is empty or whitespace-only.
+//
+// Deprecated: CheckUUID panics on invalid input, which can crash the process
+// when reached from an SDK-owned goroutine (e.g. the subscribe loop). Use
+// ValidateUUID and propagate the returned error instead.
+func CheckUUID(uuid string) {
+	if err := ValidateUUID(uuid); err != nil {
+		panic(err)
 	}
 }
 

@@ -355,114 +355,156 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 
 	grantData, ok := value.(map[string]interface{})
 	if !ok {
-		e := pnerr.NewResponseParsingError("Error parsing response: invalid JSON structure",
-			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+		e := newGrantResponseParsingError(jsonBytes, "invalid JSON structure",
 			fmt.Errorf("expected map[string]interface{}, got %T", value))
 		return emptyGrantResponse, status, e
 	}
 
 	payload, ok := grantData["payload"]
 	if !ok {
-		e := pnerr.NewResponseParsingError("Error parsing response: missing payload field",
-			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+		e := newGrantResponseParsingError(jsonBytes, "missing payload field",
 			fmt.Errorf("payload field not found in response"))
 		return emptyGrantResponse, status, e
 	}
 
 	if payload == nil {
-		e := pnerr.NewResponseParsingError("Error parsing response: null payload",
-			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+		e := newGrantResponseParsingError(jsonBytes, "null payload",
 			fmt.Errorf("payload field is null"))
 		return emptyGrantResponse, status, e
 	}
 
 	parsedPayload, ok := payload.(map[string]interface{})
 	if !ok {
-		e := pnerr.NewResponseParsingError("Error parsing response: invalid payload structure",
-			io.NopCloser(bytes.NewBufferString(string(jsonBytes))),
+		e := newGrantResponseParsingError(jsonBytes, "invalid payload structure",
 			fmt.Errorf("expected map[string]interface{} for payload, got %T", payload))
 		return emptyGrantResponse, status, e
 	}
-	auths, _ := parsedPayload["auths"].(map[string]interface{})
-	ttl, _ := parsedPayload["ttl"].(float64)
+	rootAuths, _, err := grantOptionalMap(parsedPayload, "auths")
+	if err != nil {
+		return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid auths field", err)
+	}
+	ttl, _, err := grantOptionalNumber(parsedPayload, "ttl")
+	if err != nil {
+		return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid ttl field", err)
+	}
 
 	if val, ok := parsedPayload["channel"]; ok {
-		channelName := val.(string)
-		auths := make(map[string]*PNAccessManagerKeyData)
-		channelMap, _ := parsedPayload["auths"].(map[string]interface{})
+		channelName, ok := val.(string)
+		if !ok {
+			return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid channel field",
+				fmt.Errorf("expected string for channel, got %T", val))
+		}
+		constructedAuthKeys := make(map[string]*PNAccessManagerKeyData)
 		entityData := &PNPAMEntityData{
 			Name: channelName,
 		}
 
-		for key, value := range channelMap {
-			auths[key] = createPNAccessManagerKeyData(value, entityData, false)
+		for key, value := range rootAuths {
+			keyData, err := createPNAccessManagerKeyData(value, entityData, false)
+			if err != nil {
+				return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, fmt.Sprintf("invalid auth key %q", key), err)
+			}
+			constructedAuthKeys[key] = keyData
 		}
 
-		entityData.AuthKeys = auths
+		entityData.AuthKeys = constructedAuthKeys
 		entityData.TTL = int(ttl)
 		constructedChannels[channelName] = entityData
 	}
 
 	if val, ok := parsedPayload["channel-groups"]; ok {
-		groupName, _ := val.(string)
 		constructedAuthKey := make(map[string]*PNAccessManagerKeyData)
 		entityData := &PNPAMEntityData{
-			Name: groupName,
+			Name: "",
 		}
 
-		if _, ok := val.(string); ok {
-			for authKeyName, value := range auths {
-				constructedAuthKey[authKeyName] = createPNAccessManagerKeyData(value, entityData, false)
+		if groupName, ok := val.(string); ok {
+			entityData.Name = groupName
+			for authKeyName, value := range rootAuths {
+				keyData, err := createPNAccessManagerKeyData(value, entityData, false)
+				if err != nil {
+					return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, fmt.Sprintf("invalid auth key %q", authKeyName), err)
+				}
+				constructedAuthKey[authKeyName] = keyData
 			}
 
 			entityData.AuthKeys = constructedAuthKey
 			constructedGroups[groupName] = entityData
-		}
-
-		if groupMap, ok := val.(map[string]interface{}); ok {
-			groupName, _ := val.(string)
-			constructedAuthKey := make(map[string]*PNAccessManagerKeyData)
-			entityData := &PNPAMEntityData{
-				Name: groupName,
-			}
-
+		} else if groupMap, ok := val.(map[string]interface{}); ok {
 			for groupName, value := range groupMap {
-				valueMap := value.(map[string]interface{})
+				valueMap, ok := value.(map[string]interface{})
+				if !ok {
+					return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, fmt.Sprintf("invalid channel group %q", groupName),
+						fmt.Errorf("expected map[string]interface{}, got %T", value))
+				}
 
 				if keys, ok := valueMap["auths"]; ok {
-					parsedKeys, _ := keys.(map[string]interface{})
+					parsedKeys, ok := keys.(map[string]interface{})
+					if !ok {
+						return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, fmt.Sprintf("invalid auths for channel group %q", groupName),
+							fmt.Errorf("expected map[string]interface{}, got %T", keys))
+					}
 
 					for keyName, value := range parsedKeys {
-						constructedAuthKey[keyName] = createPNAccessManagerKeyData(value, entityData, false)
+						keyData, err := createPNAccessManagerKeyData(value, entityData, false)
+						if err != nil {
+							return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, fmt.Sprintf("invalid auth key %q", keyName), err)
+						}
+						constructedAuthKey[keyName] = keyData
 					}
 				}
 
-				createPNAccessManagerKeyData(valueMap, entityData, true)
+				if _, err := createPNAccessManagerKeyData(valueMap, entityData, true); err != nil {
+					return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, fmt.Sprintf("invalid channel group %q permissions", groupName), err)
+				}
 
 				if val, ok := parsedPayload["ttl"]; ok {
-					parsedVal, _ := val.(float64)
+					parsedVal, ok := grantNumber(val)
+					if !ok {
+						return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid ttl field",
+							fmt.Errorf("expected number for ttl, got %T", val))
+					}
 					entityData.TTL = int(parsedVal)
 				}
 
 				entityData.AuthKeys = constructedAuthKey
 				constructedGroups[groupName] = entityData
 			}
+		} else {
+			return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid channel-groups field",
+				fmt.Errorf("expected string or map[string]interface{}, got %T", val))
 		}
 	}
 
 	if val, ok := parsedPayload["channels"]; ok {
-		channelMap, _ := val.(map[string]interface{})
+		channelMap, ok := val.(map[string]interface{})
+		if !ok {
+			return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid channels field",
+				fmt.Errorf("expected map[string]interface{}, got %T", val))
+		}
 
 		for channelName, value := range channelMap {
-			constructedChannels[channelName] = fetchChannel(channelName, value, parsedPayload)
+			channelData, err := fetchChannel(channelName, value, parsedPayload)
+			if err != nil {
+				return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, fmt.Sprintf("invalid channel %q", channelName), err)
+			}
+			constructedChannels[channelName] = channelData
 		}
 	}
 
 	if val, ok := parsedPayload["uuids"]; ok {
-		uuids, _ := val.(map[string]interface{})
+		uuids, ok := val.(map[string]interface{})
+		if !ok {
+			return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid uuids field",
+				fmt.Errorf("expected map[string]interface{}, got %T", val))
+		}
 
 		for uuid, value := range uuids {
-			constructedUUIDs[uuid] = fetchChannel(uuid, value, parsedPayload)
+			uuidData, err := fetchChannel(uuid, value, parsedPayload)
+			if err != nil {
+				return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, fmt.Sprintf("invalid uuid %q", uuid), err)
+			}
+			constructedUUIDs[uuid] = uuidData
 		}
 	}
 
@@ -475,65 +517,148 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 	resp.ChannelGroups = constructedGroups
 	resp.UUIDs = constructedUUIDs
 
-	resp.ReadEnabled = parsePerms(parsedPayload, "r")
-	resp.WriteEnabled = parsePerms(parsedPayload, "w")
-	resp.ManageEnabled = parsePerms(parsedPayload, "m")
-	resp.DeleteEnabled = parsePerms(parsedPayload, "d")
-	resp.GetEnabled = parsePerms(parsedPayload, "g")
-	resp.UpdateEnabled = parsePerms(parsedPayload, "u")
-	resp.JoinEnabled = parsePerms(parsedPayload, "j")
+	if resp.ReadEnabled, err = parsePerms(parsedPayload, "r"); err != nil {
+		return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid r permission", err)
+	}
+	if resp.WriteEnabled, err = parsePerms(parsedPayload, "w"); err != nil {
+		return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid w permission", err)
+	}
+	if resp.ManageEnabled, err = parsePerms(parsedPayload, "m"); err != nil {
+		return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid m permission", err)
+	}
+	if resp.DeleteEnabled, err = parsePerms(parsedPayload, "d"); err != nil {
+		return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid d permission", err)
+	}
+	if resp.GetEnabled, err = parsePerms(parsedPayload, "g"); err != nil {
+		return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid g permission", err)
+	}
+	if resp.UpdateEnabled, err = parsePerms(parsedPayload, "u"); err != nil {
+		return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid u permission", err)
+	}
+	if resp.JoinEnabled, err = parsePerms(parsedPayload, "j"); err != nil {
+		return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid j permission", err)
+	}
 
 	if r, ok := parsedPayload["ttl"]; ok {
-		parsedValue, _ := r.(float64)
+		parsedValue, ok := grantNumber(r)
+		if !ok {
+			return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid ttl field",
+				fmt.Errorf("expected number for ttl, got %T", r))
+		}
 		resp.TTL = int(parsedValue)
 	}
 
 	return resp, status, nil
 }
 
-func parsePerms(parsedPayload map[string]interface{}, name string) bool {
-	if r, ok := parsedPayload[name]; ok {
-		parsedValue, _ := r.(float64)
-		if parsedValue == float64(1) {
-			return true
-		} else {
-			return false
-		}
-	}
-	return false
+func newGrantResponseParsingError(jsonBytes []byte, message string, err error) error {
+	return pnerr.NewResponseParsingError("Error parsing response: "+message,
+		io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 }
 
-func fetchChannel(channelName string, value interface{}, parsedPayload map[string]interface{}) *PNPAMEntityData {
+func grantNumber(value interface{}) (float64, bool) {
+	switch typedValue := value.(type) {
+	case float64:
+		return typedValue, true
+	case int:
+		return float64(typedValue), true
+	default:
+		return 0, false
+	}
+}
+
+func grantOptionalNumber(parsedPayload map[string]interface{}, name string) (float64, bool, error) {
+	value, ok := parsedPayload[name]
+	if !ok {
+		return 0, false, nil
+	}
+
+	parsedValue, ok := grantNumber(value)
+	if !ok {
+		return 0, true, fmt.Errorf("expected number for %s, got %T", name, value)
+	}
+
+	return parsedValue, true, nil
+}
+
+func grantOptionalMap(parsedPayload map[string]interface{}, name string) (map[string]interface{}, bool, error) {
+	value, ok := parsedPayload[name]
+	if !ok {
+		return nil, false, nil
+	}
+
+	parsedValue, ok := value.(map[string]interface{})
+	if !ok {
+		return nil, true, fmt.Errorf("expected map[string]interface{} for %s, got %T", name, value)
+	}
+
+	return parsedValue, true, nil
+}
+
+func parsePerms(parsedPayload map[string]interface{}, name string) (bool, error) {
+	if r, ok := parsedPayload[name]; ok {
+		parsedValue, ok := grantNumber(r)
+		if !ok {
+			return false, fmt.Errorf("expected number for %s, got %T", name, r)
+		}
+		if parsedValue == float64(1) {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}
+	return false, nil
+}
+
+func fetchChannel(channelName string, value interface{}, parsedPayload map[string]interface{}) (*PNPAMEntityData, error) {
 
 	auths := make(map[string]*PNAccessManagerKeyData)
 	entityData := &PNPAMEntityData{
 		Name: channelName,
 	}
 
-	valueMap, _ := value.(map[string]interface{})
+	valueMap, ok := value.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("expected map[string]interface{}, got %T", value)
+	}
 
 	if val, ok := valueMap["auths"]; ok {
-		parsedValue := val.(map[string]interface{})
+		parsedValue, ok := val.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("expected map[string]interface{} for auths, got %T", val)
+		}
 
 		for key, value := range parsedValue {
-			auths[key] = createPNAccessManagerKeyData(value, entityData, false)
+			keyData, err := createPNAccessManagerKeyData(value, entityData, false)
+			if err != nil {
+				return nil, fmt.Errorf("invalid auth key %q: %w", key, err)
+			}
+			auths[key] = keyData
 		}
 	}
 
-	createPNAccessManagerKeyData(value, entityData, true)
+	if _, err := createPNAccessManagerKeyData(value, entityData, true); err != nil {
+		return nil, err
+	}
 
 	if val, ok := parsedPayload["ttl"]; ok {
-		parsedVal, _ := val.(float64)
+		parsedVal, ok := grantNumber(val)
+		if !ok {
+			return nil, fmt.Errorf("expected number for ttl, got %T", val)
+		}
 		entityData.TTL = int(parsedVal)
 	}
 
 	entityData.AuthKeys = auths
 
-	return entityData
+	return entityData, nil
 }
 
-func readKeyData(val interface{}, keyData *PNAccessManagerKeyData, entityData *PNPAMEntityData, writeToEntityData bool, grantType PNGrantType) {
-	parsedValue, _ := val.(float64)
+func readKeyData(val interface{}, keyData *PNAccessManagerKeyData, entityData *PNPAMEntityData, writeToEntityData bool, grantType PNGrantType) error {
+	parsedValue, ok := grantNumber(val)
+	if !ok {
+		return fmt.Errorf("expected number for permission, got %T", val)
+	}
 	readValue := false
 	if parsedValue == float64(1) {
 		readValue = true
@@ -573,43 +698,64 @@ func readKeyData(val interface{}, keyData *PNAccessManagerKeyData, entityData *P
 			keyData.JoinEnabled = readValue
 		}
 	}
+	return nil
 }
 
-func createPNAccessManagerKeyData(value interface{}, entityData *PNPAMEntityData, writeToEntityData bool) *PNAccessManagerKeyData {
-	valueMap := value.(map[string]interface{})
+func createPNAccessManagerKeyData(value interface{}, entityData *PNPAMEntityData, writeToEntityData bool) (*PNAccessManagerKeyData, error) {
+	valueMap, ok := value.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("expected map[string]interface{}, got %T", value)
+	}
 	keyData := &PNAccessManagerKeyData{}
 
 	if val, ok := valueMap["r"]; ok {
-		readKeyData(val, keyData, entityData, writeToEntityData, PNReadEnabled)
+		if err := readKeyData(val, keyData, entityData, writeToEntityData, PNReadEnabled); err != nil {
+			return nil, fmt.Errorf("invalid r permission: %w", err)
+		}
 	}
 
 	if val, ok := valueMap["w"]; ok {
-		readKeyData(val, keyData, entityData, writeToEntityData, PNWriteEnabled)
+		if err := readKeyData(val, keyData, entityData, writeToEntityData, PNWriteEnabled); err != nil {
+			return nil, fmt.Errorf("invalid w permission: %w", err)
+		}
 	}
 
 	if val, ok := valueMap["m"]; ok {
-		readKeyData(val, keyData, entityData, writeToEntityData, PNManageEnabled)
+		if err := readKeyData(val, keyData, entityData, writeToEntityData, PNManageEnabled); err != nil {
+			return nil, fmt.Errorf("invalid m permission: %w", err)
+		}
 	}
 
 	if val, ok := valueMap["d"]; ok {
-		readKeyData(val, keyData, entityData, writeToEntityData, PNDeleteEnabled)
+		if err := readKeyData(val, keyData, entityData, writeToEntityData, PNDeleteEnabled); err != nil {
+			return nil, fmt.Errorf("invalid d permission: %w", err)
+		}
 	}
 
 	if val, ok := valueMap["g"]; ok {
-		readKeyData(val, keyData, entityData, writeToEntityData, PNGetEnabled)
+		if err := readKeyData(val, keyData, entityData, writeToEntityData, PNGetEnabled); err != nil {
+			return nil, fmt.Errorf("invalid g permission: %w", err)
+		}
 	}
 
 	if val, ok := valueMap["u"]; ok {
-		readKeyData(val, keyData, entityData, writeToEntityData, PNUpdateEnabled)
+		if err := readKeyData(val, keyData, entityData, writeToEntityData, PNUpdateEnabled); err != nil {
+			return nil, fmt.Errorf("invalid u permission: %w", err)
+		}
 	}
 
 	if val, ok := valueMap["j"]; ok {
-		readKeyData(val, keyData, entityData, writeToEntityData, PNJoinEnabled)
+		if err := readKeyData(val, keyData, entityData, writeToEntityData, PNJoinEnabled); err != nil {
+			return nil, fmt.Errorf("invalid j permission: %w", err)
+		}
 	}
 
 	if val, ok := valueMap["ttl"]; ok {
-		parsedVal, _ := val.(int)
-		entityData.TTL = parsedVal
+		parsedVal, ok := grantNumber(val)
+		if !ok {
+			return nil, fmt.Errorf("expected number for ttl, got %T", val)
+		}
+		entityData.TTL = int(parsedVal)
 	}
-	return keyData
+	return keyData, nil
 }
