@@ -262,6 +262,19 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 	case PNPublishFileMessageOperation:
 		endpoint = "file"
 		break
+	case PNCreateEntityOperation:
+		fallthrough
+	case PNGetEntityOperation:
+		fallthrough
+	case PNGetEntitiesOperation:
+		fallthrough
+	case PNUpdateEntityOperation:
+		fallthrough
+	case PNPatchEntityOperation:
+		fallthrough
+	case PNDeleteEntityOperation:
+		endpoint = "ent"
+		break
 	default:
 		endpoint = "time"
 		break

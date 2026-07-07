@@ -377,6 +377,18 @@ const (
 	PNPublishFileMessageOperation
 	// PNAccessManagerRevokeToken is the enum used for Grant Token remove requests.
 	PNAccessManagerRevokeToken
+	// PNCreateEntityOperation is the enum used for the Create Entity operation in the Entities API.
+	PNCreateEntityOperation
+	// PNGetEntityOperation is the enum used for the Get Entity operation in the Entities API.
+	PNGetEntityOperation
+	// PNGetEntitiesOperation is the enum used for the List Entities operation in the Entities API.
+	PNGetEntitiesOperation
+	// PNUpdateEntityOperation is the enum used for the Update Entity operation in the Entities API.
+	PNUpdateEntityOperation
+	// PNPatchEntityOperation is the enum used for the Patch Entity operation in the Entities API.
+	PNPatchEntityOperation
+	// PNDeleteEntityOperation is the enum used for the Delete Entity operation in the Entities API.
+	PNDeleteEntityOperation
 )
 
 const (
@@ -697,6 +709,18 @@ func (t OperationType) String() string {
 		return "Send File To S3"
 	case PNPublishFileMessageOperation:
 		return "Publish File"
+	case PNCreateEntityOperation:
+		return "Create Entity"
+	case PNGetEntityOperation:
+		return "Get Entity"
+	case PNGetEntitiesOperation:
+		return "Get Entities"
+	case PNUpdateEntityOperation:
+		return "Update Entity"
+	case PNPatchEntityOperation:
+		return "Patch Entity"
+	case PNDeleteEntityOperation:
+		return "Delete Entity"
 	default:
 		return "No Category Matched"
 	}

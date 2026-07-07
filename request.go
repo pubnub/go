@@ -154,6 +154,14 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 		}
 
 		req, err = newRequest("PATCH", url, body, opts.config().UseHTTP2)
+	} else if opts.httpMethod() == "PUT" {
+		var body io.Reader
+		requestBodyBytes, body, err = buildBody(opts, url)
+		if err != nil {
+			return nil, createStatus(PNUnknownCategory, "", ResponseInfo{}, err), err
+		}
+
+		req, err = newRequest("PUT", url, body, opts.config().UseHTTP2)
 	} else {
 		req, err = newRequest("GET", url, nil, opts.config().UseHTTP2)
 	}
@@ -190,7 +198,7 @@ func executeRequest(opts endpoint) ([]byte, StatusResponse, error) {
 	// Log the outgoing network request
 	requestHeaders := httpHeaderToMap(req.Header)
 	requestBody := ""
-	if opts.httpMethod() == "POST" || opts.httpMethod() == "PATCH" {
+	if opts.httpMethod() == "POST" || opts.httpMethod() == "PATCH" || opts.httpMethod() == "PUT" {
 		if opts.httpMethod() == "POSTFORM" {
 			requestBody = "[Multipart form data]"
 		} else if len(requestBodyBytes) > 0 {
@@ -340,7 +348,7 @@ func parseResponse(resp *http.Response, opts endpoint) ([]byte, StatusResponse, 
 		_ = Body.Close()
 	}(resp.Body)
 
-	if (resp.StatusCode != 200) && (resp.StatusCode != 204) {
+	if (resp.StatusCode != 200) && (resp.StatusCode != 201) && (resp.StatusCode != 204) {
 		// Errors like 400, 403, 500
 		// Read body once for both error creation and logging
 		bodyBytes, _ := io.ReadAll(resp.Body)

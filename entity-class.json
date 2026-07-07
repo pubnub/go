@@ -1,0 +1,8 @@
+{
+  "data": {
+    "config": {
+      "ttlSec": 10
+    },
+    "description": "Test entity class created via SDK integration testing"
+  }
+}

@@ -60,6 +60,14 @@ const (
 	StrMissingToken = "Missing PAMv3 token"
 	// StrInvalidCustomMessageType shows `Invalid CustomMessageType` message
 	StrInvalidCustomMessageType = "Invalid CustomMessageType: size different than 3-50 or contains invalid characters"
+	// StrMissingEntityClass shows `Missing Entity Class` message
+	StrMissingEntityClass = "Missing Entity Class"
+	// StrMissingEntityID shows `Missing Entity ID` message
+	StrMissingEntityID = "Missing Entity ID"
+	// StrInvalidEntityClassVersion shows `Invalid Entity Class Version` message
+	StrInvalidEntityClassVersion = "Invalid Entity Class Version: must be >= 1"
+	// StrMissingPatchOperations shows `Missing Patch Operations` message
+	StrMissingPatchOperations = "Missing Patch Operations"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.
@@ -261,6 +269,66 @@ func (pn *PubNub) RemoveUUIDMetadata() *removeUUIDMetadataBuilder {
 // RemoveUUIDMetadataWithContext Removes the metadata from a specified UUID.
 func (pn *PubNub) RemoveUUIDMetadataWithContext(ctx Context) *removeUUIDMetadataBuilder {
 	return newRemoveUUIDMetadataBuilderWithContext(pn, ctx)
+}
+
+// CreateEntity provisions a new generic entity of a registered entity class.
+func (pn *PubNub) CreateEntity() *createEntityBuilder {
+	return newCreateEntityBuilder(pn)
+}
+
+// CreateEntityWithContext provisions a new generic entity of a registered entity class.
+func (pn *PubNub) CreateEntityWithContext(ctx Context) *createEntityBuilder {
+	return newCreateEntityBuilderWithContext(pn, ctx)
+}
+
+// GetEntity reads a single generic entity by its identifier.
+func (pn *PubNub) GetEntity() *getEntityBuilder {
+	return newGetEntityBuilder(pn)
+}
+
+// GetEntityWithContext reads a single generic entity by its identifier.
+func (pn *PubNub) GetEntityWithContext(ctx Context) *getEntityBuilder {
+	return newGetEntityBuilderWithContext(pn, ctx)
+}
+
+// GetEntities returns a paginated list of generic entities of a given class.
+func (pn *PubNub) GetEntities() *getEntitiesBuilder {
+	return newGetEntitiesBuilder(pn)
+}
+
+// GetEntitiesWithContext returns a paginated list of generic entities of a given class.
+func (pn *PubNub) GetEntitiesWithContext(ctx Context) *getEntitiesBuilder {
+	return newGetEntitiesBuilderWithContext(pn, ctx)
+}
+
+// UpdateEntity fully replaces the mutable fields of an existing entity (PUT).
+func (pn *PubNub) UpdateEntity() *updateEntityBuilder {
+	return newUpdateEntityBuilder(pn)
+}
+
+// UpdateEntityWithContext fully replaces the mutable fields of an existing entity (PUT).
+func (pn *PubNub) UpdateEntityWithContext(ctx Context) *updateEntityBuilder {
+	return newUpdateEntityBuilderWithContext(pn, ctx)
+}
+
+// PatchEntity partially updates an existing entity using RFC 6902 JSON Patch.
+func (pn *PubNub) PatchEntity() *patchEntityBuilder {
+	return newPatchEntityBuilder(pn)
+}
+
+// PatchEntityWithContext partially updates an existing entity using RFC 6902 JSON Patch.
+func (pn *PubNub) PatchEntityWithContext(ctx Context) *patchEntityBuilder {
+	return newPatchEntityBuilderWithContext(pn, ctx)
+}
+
+// DeleteEntity removes a generic entity by its identifier.
+func (pn *PubNub) DeleteEntity() *deleteEntityBuilder {
+	return newDeleteEntityBuilder(pn)
+}
+
+// DeleteEntityWithContext removes a generic entity by its identifier.
+func (pn *PubNub) DeleteEntityWithContext(ctx Context) *deleteEntityBuilder {
+	return newDeleteEntityBuilderWithContext(pn, ctx)
 }
 
 // GetAllChannelMetadata Returns a paginated list of Channel Metadata objects, optionally including the custom data object for each.
