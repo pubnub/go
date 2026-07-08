@@ -64,6 +64,10 @@ type SubscriptionManager struct {
 	queryParam                   map[string]string
 	channelsOpen                 bool
 	requestSentAt                int64
+
+	// destroyOnce guarantees the teardown in Destroy runs exactly once, even
+	// when Destroy is called concurrently from multiple goroutines.
+	destroyOnce sync.Once
 }
 
 // SubscribeOperation is the type to store the subscribe op params
@@ -162,32 +166,48 @@ func newSubscriptionManager(pubnub *PubNub, ctx Context) *SubscriptionManager {
 }
 
 // Destroy closes the subscription manager, listeners and reconnection manager instances.
+//
+// Destroy is idempotent and safe to call concurrently from multiple goroutines.
 func (m *SubscriptionManager) Destroy() {
-	if m.subscribeCancel != nil {
-		m.subscribeCancel()
-	}
-	if m.channelsOpen {
-		m.RLock()
+	m.destroyOnce.Do(func() {
+		// Read subscribeCancel and flip channelsOpen under the write lock: both
+		// fields are mutated elsewhere (stopSubscribeLoop, subscribeMessageWorker)
+		// under the same lock, so a bare read here would be a data race.
+		m.Lock()
+		cancel := m.subscribeCancel
 		m.channelsOpen = false
-		m.RUnlock()
-		m.exitSubscriptionManagerMutex.RLock()
+		m.Unlock()
+
+		if cancel != nil {
+			cancel()
+		}
+
+		// exitSubscriptionManager is lazily created and recreated by
+		// subscribeMessageWorker under exitSubscriptionManagerMutex, so its close
+		// must hold that mutex. Nil it out to prevent a late worker from sending
+		// on a closed channel.
+		m.exitSubscriptionManagerMutex.Lock()
 		if m.exitSubscriptionManager != nil {
 			close(m.exitSubscriptionManager)
+			m.exitSubscriptionManager = nil
 		}
-		m.exitSubscriptionManagerMutex.RUnlock()
+		m.exitSubscriptionManagerMutex.Unlock()
+
 		if m.listenerManager.exitListener != nil {
 			close(m.listenerManager.exitListener)
 		}
 		if m.listenerManager.exitListenerAnnounce != nil {
 			close(m.listenerManager.exitListenerAnnounce)
 		}
+
+		// Stop the reconnection loop before closing its exit channel so the
+		// non-blocking send in stopHeartbeatTimer can never target a closed
+		// channel.
+		m.reconnectionManager.stopHeartbeatTimer()
 		if m.reconnectionManager.exitReconnectionManager != nil {
-			m.reconnectionManager.stopHeartbeatTimer()
 			close(m.reconnectionManager.exitReconnectionManager)
 		}
-
-	}
-
+	})
 }
 
 func (m *SubscriptionManager) adaptState(stateOperation StateOperation) {

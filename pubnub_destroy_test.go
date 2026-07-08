@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -91,4 +92,37 @@ func TestDestroy_ClosesBothManagedClients(t *testing.T) {
 	pn.Unlock()
 	assert.Nil(t, txnPtr, "pn.client must be cleared after Destroy")
 	assert.Nil(t, subPtr, "pn.subscribeClient must be cleared after Destroy")
+}
+
+// TestSubscriptionManagerDestroyConcurrent is the regression test for the second
+// Destroy race / lock-contract violation. Before the fix, concurrent calls to
+// SubscriptionManager.Destroy raced on channelsOpen (write under RLock, read with
+// no lock) and double-closed the exit channels, panicking with
+// "close of closed channel". Run with `go test -race -count=10 -run
+// TestSubscriptionManagerDestroyConcurrent` to exercise the fix under the race
+// detector.
+func TestSubscriptionManagerDestroyConcurrent(t *testing.T) {
+	cfg := NewConfigWithUserId(UserId(GenerateUUID()))
+	cfg.SubscribeKey = "sub"
+	cfg.PublishKey = "pub"
+	cfg.SuppressLeaveEvents = true
+
+	pn := NewPubNub(cfg)
+
+	const goroutines = 8
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+
+	assert.NotPanics(t, func() {
+		for i := 0; i < goroutines; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				<-start
+				pn.subscriptionManager.Destroy()
+			}()
+		}
+		close(start)
+		wg.Wait()
+	})
 }
