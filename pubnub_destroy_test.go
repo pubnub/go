@@ -7,6 +7,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -125,4 +126,39 @@ func TestSubscriptionManagerDestroyConcurrent(t *testing.T) {
 		close(start)
 		wg.Wait()
 	})
+}
+
+// TestSubscriptionManagerDestroyRacesWithSubscribeWorker reproduces the data
+// race between Destroy (which closes and nils exitSubscriptionManager) and a
+// running subscribeMessageWorker (which selects on that channel). Run with
+// `go test -race`: the worker now selects on a snapshot taken under the mutex,
+// so Destroy can tear the manager down concurrently without a race or panic.
+func TestSubscriptionManagerDestroyRacesWithSubscribeWorker(t *testing.T) {
+	cfg := NewConfigWithUserId(UserId(GenerateUUID()))
+	cfg.SubscribeKey = "sub"
+	cfg.SuppressLeaveEvents = true
+
+	pn := NewPubNub(cfg)
+	m := pn.subscriptionManager
+
+	// Populate state so the worker enters its select loop instead of breaking
+	// immediately on an empty channel list.
+	m.stateManager.adaptSubscribeOperation(&SubscribeOperation{Channels: []string{"ch"}})
+
+	workerDone := make(chan struct{})
+	go func() {
+		subscribeMessageWorker(m)
+		close(workerDone)
+	}()
+
+	// Let the worker create and snapshot its exit channel and block in select.
+	time.Sleep(100 * time.Millisecond)
+
+	assert.NotPanics(t, func() { m.Destroy() })
+
+	select {
+	case <-workerDone:
+	case <-time.After(2 * time.Second):
+		t.Fatal("subscribeMessageWorker did not exit after Destroy")
+	}
 }

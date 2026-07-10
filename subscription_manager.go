@@ -552,6 +552,10 @@ func subscribeMessageWorker(m *SubscriptionManager) {
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: signaled old worker to exit", false)
 	}
 	m.exitSubscriptionManager = make(chan bool)
+	// Snapshot the channel under the mutex; the select loop below reads this
+	// local instead of the shared field so it never races with Destroy niling
+	// the field. Close on the underlying channel still unblocks this receive.
+	exitCh := m.exitSubscriptionManager
 	m.exitSubscriptionManagerMutex.Unlock()
 
 SubscribeMessageWorkerLabel:
@@ -564,7 +568,7 @@ SubscribeMessageWorkerLabel:
 			break
 		}
 		select {
-		case <-m.exitSubscriptionManager:
+		case <-exitCh:
 			m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "subscribeMessageWorker: exit signal received", false)
 			break SubscribeMessageWorkerLabel
 		case message := <-m.messages:
@@ -1243,9 +1247,13 @@ func (m *SubscriptionManager) reconnect() {
 func (m *SubscriptionManager) Disconnect() {
 	m.pubnub.loggerManager.LogSimple(PNLogLevelInfo, "Disconnecting subscription manager", false)
 
+	// Signal the worker to exit under the mutex so this read/send never races
+	// with Destroy closing and niling the field.
+	m.exitSubscriptionManagerMutex.Lock()
 	if m.exitSubscriptionManager != nil {
 		m.exitSubscriptionManager <- true
 	}
+	m.exitSubscriptionManagerMutex.Unlock()
 	m.reconnectionManager.stopHeartbeatTimer()
 
 	m.pubnub.heartbeatManager.stopHeartbeat(false, false)
