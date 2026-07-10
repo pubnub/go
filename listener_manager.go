@@ -7,7 +7,7 @@ import (
 
 // listenerAnnounceTimeout bounds how long an announce goroutine waits to hand an
 // event to a listener channel before dropping it, so a stalled consumer cannot
-// leak a goroutine (and the event it holds) forever — security finding H-10.
+// leak a goroutine (and the event it holds) forever.
 const listenerAnnounceTimeout = 60 * time.Second
 
 // Listener type has all the `types` of response events
@@ -47,8 +47,6 @@ type ListenerManager struct {
 	exitListenerAnnounce chan bool
 	pubnub               *PubNub
 	// announceTimeout is the per-listener send deadline for the announce* fan-out.
-	// Defaults to listenerAnnounceTimeout; a field so tests can shorten it, and a
-	// value <= 0 restores the legacy "block until delivered" behavior.
 	announceTimeout time.Duration
 }
 
