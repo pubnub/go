@@ -1,3 +1,10 @@
+## v9.0.4
+July 13 2026
+
+#### Fixed
+- Make `SubscriptionManager.Destroy` safe to call concurrently and more than once by guarding teardown with `sync.Once`, flipping `channelsOpen` under the write lock, and closing each exit channel exactly once, eliminating the data race and `close of closed channel` panic.
+- Bound each `ListenerManager.announce*` send with a 60s per-listener deadline so a stalled or absent consumer no longer parks the announce goroutine (and the event it holds) indefinitely, fixing an unbounded goroutine leak; `copyListeners` now takes an `RLock` since it only reads.
+
 ## v9.0.3
 July 02 2026
 

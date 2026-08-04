@@ -2,7 +2,13 @@ package pubnub
 
 import (
 	"sync"
+	"time"
 )
+
+// listenerAnnounceTimeout bounds how long an announce goroutine waits to hand an
+// event to a listener channel before dropping it, so a stalled consumer cannot
+// leak a goroutine (and the event it holds) forever.
+const listenerAnnounceTimeout = 60 * time.Second
 
 // Listener type has all the `types` of response events
 type Listener struct {
@@ -40,6 +46,8 @@ type ListenerManager struct {
 	exitListener         chan bool
 	exitListenerAnnounce chan bool
 	pubnub               *PubNub
+	// announceTimeout is the per-listener send deadline for the announce* fan-out.
+	announceTimeout time.Duration
 }
 
 func newListenerManager(ctx Context, pn *PubNub) *ListenerManager {
@@ -49,6 +57,7 @@ func newListenerManager(ctx Context, pn *PubNub) *ListenerManager {
 		exitListener:         make(chan bool),
 		exitListenerAnnounce: make(chan bool),
 		pubnub:               pn,
+		announceTimeout:      listenerAnnounceTimeout,
 	}
 }
 
@@ -77,24 +86,50 @@ func (m *ListenerManager) removeAllListeners() {
 }
 
 func (m *ListenerManager) copyListeners() map[*Listener]bool {
-	m.Lock()
-	lis := make(map[*Listener]bool)
+	m.RLock()
+	lis := make(map[*Listener]bool, len(m.listeners))
 	for k, v := range m.listeners {
 		lis[k] = v
 	}
-	m.Unlock()
+	m.RUnlock()
 	return lis
+}
+
+// announceEvent delivers one event to a listener channel, returning false when
+// the manager is shutting down (exit fired) so the caller stops the fan-out.
+// A positive announceTimeout drops the event on a stalled consumer; <= 0 blocks.
+func announceEvent[T any](m *ListenerManager, exit <-chan bool, ch chan<- T, event T, source string) bool {
+	if m.announceTimeout <= 0 {
+		select {
+		case <-exit:
+			m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, source+": exit listener", false)
+			return false
+		case ch <- event:
+			return true
+		}
+	}
+
+	timer := time.NewTimer(m.announceTimeout)
+	defer timer.Stop()
+
+	select {
+	case <-exit:
+		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, source+": exit listener", false)
+		return false
+	case ch <- event:
+		return true
+	case <-timer.C:
+		m.pubnub.loggerManager.LogSimple(PNLogLevelWarn, source+": slow consumer, dropping event", false)
+		return true
+	}
 }
 
 func (m *ListenerManager) announceStatus(status *PNStatus) {
 	go func() {
 		lis := m.copyListeners()
 		for l := range lis {
-			select {
-			case <-m.exitListener:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceStatus: exit listener", false)
+			if !announceEvent(m, m.exitListener, l.Status, status, "announceStatus") {
 				return
-			case l.Status <- status:
 			}
 		}
 	}()
@@ -103,31 +138,20 @@ func (m *ListenerManager) announceStatus(status *PNStatus) {
 func (m *ListenerManager) announceMessage(message *PNMessage) {
 	go func() {
 		lis := m.copyListeners()
-	AnnounceMessageLabel:
 		for l := range lis {
-			select {
-			case <-m.exitListenerAnnounce:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceMessage: exit listener", false)
-				break AnnounceMessageLabel
-			case l.Message <- message:
+			if !announceEvent(m, m.exitListenerAnnounce, l.Message, message, "announceMessage") {
+				return
 			}
 		}
-
 	}()
 }
 
 func (m *ListenerManager) announceSignal(message *PNMessage) {
 	go func() {
 		lis := m.copyListeners()
-
-	AnnounceSignalLabel:
 		for l := range lis {
-			select {
-			case <-m.exitListener:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceSignal: exit listener", false)
-				break AnnounceSignalLabel
-
-			case l.Signal <- message:
+			if !announceEvent(m, m.exitListener, l.Signal, message, "announceSignal") {
+				return
 			}
 		}
 	}()
@@ -136,16 +160,9 @@ func (m *ListenerManager) announceSignal(message *PNMessage) {
 func (m *ListenerManager) announceUUIDEvent(message *PNUUIDEvent) {
 	go func() {
 		lis := m.copyListeners()
-
-	AnnounceUUIDEventLabel:
 		for l := range lis {
-			select {
-			case <-m.exitListener:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceUUIDEvent: exit listener", false)
-				break AnnounceUUIDEventLabel
-
-			case l.UUIDEvent <- message:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceUUIDEvent: message sent", false)
+			if !announceEvent(m, m.exitListener, l.UUIDEvent, message, "announceUUIDEvent") {
+				return
 			}
 		}
 	}()
@@ -154,16 +171,9 @@ func (m *ListenerManager) announceUUIDEvent(message *PNUUIDEvent) {
 func (m *ListenerManager) announceChannelEvent(message *PNChannelEvent) {
 	go func() {
 		lis := m.copyListeners()
-
-	AnnounceChannelEventLabel:
 		for l := range lis {
-			select {
-			case <-m.exitListener:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceChannelEvent: exit listener", false)
-				break AnnounceChannelEventLabel
-
-			case l.ChannelEvent <- message:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceChannelEvent: message sent", false)
+			if !announceEvent(m, m.exitListener, l.ChannelEvent, message, "announceChannelEvent") {
+				return
 			}
 		}
 	}()
@@ -172,16 +182,9 @@ func (m *ListenerManager) announceChannelEvent(message *PNChannelEvent) {
 func (m *ListenerManager) announceMembershipEvent(message *PNMembershipEvent) {
 	go func() {
 		lis := m.copyListeners()
-
-	AnnounceMembershipEvent:
 		for l := range lis {
-			select {
-			case <-m.exitListener:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceMembershipEvent: exit listener", false)
-				break AnnounceMembershipEvent
-
-			case l.MembershipEvent <- message:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceMembershipEvent: message sent", false)
+			if !announceEvent(m, m.exitListener, l.MembershipEvent, message, "announceMembershipEvent") {
+				return
 			}
 		}
 	}()
@@ -190,16 +193,9 @@ func (m *ListenerManager) announceMembershipEvent(message *PNMembershipEvent) {
 func (m *ListenerManager) announceMessageActionsEvent(message *PNMessageActionsEvent) {
 	go func() {
 		lis := m.copyListeners()
-
-	AnnounceMessageActionsEvent:
 		for l := range lis {
-			select {
-			case <-m.exitListener:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceMessageActionsEvent: exit listener", false)
-				break AnnounceMessageActionsEvent
-
-			case l.MessageActionsEvent <- message:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceMessageActionsEvent: message sent", false)
+			if !announceEvent(m, m.exitListener, l.MessageActionsEvent, message, "announceMessageActionsEvent") {
+				return
 			}
 		}
 	}()
@@ -208,15 +204,9 @@ func (m *ListenerManager) announceMessageActionsEvent(message *PNMessageActionsE
 func (m *ListenerManager) announcePresence(presence *PNPresence) {
 	go func() {
 		lis := m.copyListeners()
-
-	AnnouncePresenceLabel:
 		for l := range lis {
-			select {
-			case <-m.exitListener:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announcePresence: exit listener", false)
-				break AnnouncePresenceLabel
-
-			case l.Presence <- presence:
+			if !announceEvent(m, m.exitListener, l.Presence, presence, "announcePresence") {
+				return
 			}
 		}
 	}()
@@ -225,15 +215,9 @@ func (m *ListenerManager) announcePresence(presence *PNPresence) {
 func (m *ListenerManager) announceFile(file *PNFilesEvent) {
 	go func() {
 		lis := m.copyListeners()
-
-	AnnounceFileLabel:
 		for l := range lis {
-			select {
-			case <-m.exitListener:
-				m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, "announceFile: exit listener", false)
-				break AnnounceFileLabel
-
-			case l.File <- file:
+			if !announceEvent(m, m.exitListener, l.File, file, "announceFile") {
+				return
 			}
 		}
 	}()
