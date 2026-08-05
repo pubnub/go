@@ -70,13 +70,15 @@ func TestPatchEntityHeaders(t *testing.T) {
 	headers, err := o.opts.buildHeaders()
 	assert.Nil(err)
 	assert.Equal(entityPatchContentType, headers["Content-Type"])
-	assert.NotEmpty(headers["Idempotency-Key"])
+	_, hasIdempotencyKey := headers["Idempotency-Key"]
+	assert.False(hasIdempotencyKey)
+	_, hasIfMatch := headers["If-Match"]
+	assert.False(hasIfMatch)
 
-	o.IfMatch("BfklQ...").IdempotencyKey("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+	o.IfMatchETag("BfklQ...")
 	headers, err = o.opts.buildHeaders()
 	assert.Nil(err)
 	assert.Equal("BfklQ...", headers["If-Match"])
-	assert.Equal("a1b2c3d4-e5f6-7890-abcd-ef1234567890", headers["Idempotency-Key"])
 }
 
 func TestPatchEntityHTTPMethodAndOperation(t *testing.T) {
@@ -118,6 +120,6 @@ func TestPatchEntityExecuteValidationError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	_, _, err := pn.PatchEntity().ID("entity-abc").Execute()
+	_, _, err := pn.DataSync.PatchEntity().ID("entity-abc").Execute()
 	assert.Contains(err.Error(), StrMissingPatchOperations)
 }

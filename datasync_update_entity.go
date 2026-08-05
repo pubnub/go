@@ -62,10 +62,10 @@ func (b *updateEntityBuilder) Payload(payload map[string]interface{}) *updateEnt
 	return b
 }
 
-// IfMatch sets the ETag for optimistic concurrency control via the If-Match header.
-func (b *updateEntityBuilder) IfMatch(eTag string) *updateEntityBuilder {
-	b.opts.IfMatch = eTag
-	b.opts.setIfMatch = true
+// IfMatchETag sets the ETag for optimistic concurrency control via the If-Match header.
+func (b *updateEntityBuilder) IfMatchETag(eTag string) *updateEntityBuilder {
+	b.opts.IfMatchETag = eTag
+	b.opts.setIfMatchETag = true
 	return b
 }
 
@@ -115,8 +115,8 @@ type updateEntityOpts struct {
 	EntityClassVersion int
 	Status             string
 	Payload            map[string]interface{}
-	IfMatch            string
-	setIfMatch         bool
+	IfMatchETag        string
+	setIfMatchETag     bool
 	QueryParam         map[string]string
 
 	Transport http.RoundTripper
@@ -166,8 +166,8 @@ func (o *updateEntityOpts) buildHeaders() (map[string]string, error) {
 	headers := map[string]string{
 		"Content-Type": entityContentType,
 	}
-	if o.setIfMatch {
-		headers["If-Match"] = o.IfMatch
+	if o.setIfMatchETag {
+		headers["If-Match"] = o.IfMatchETag
 	}
 	return headers, nil
 }

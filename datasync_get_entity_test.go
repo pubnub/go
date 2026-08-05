@@ -65,6 +65,6 @@ func TestGetEntityExecuteValidationError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	_, _, err := pn.GetEntity().Execute()
+	_, _, err := pn.DataSync.GetEntity().Execute()
 	assert.Contains(err.Error(), StrMissingEntityID)
 }

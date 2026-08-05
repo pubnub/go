@@ -35,7 +35,7 @@ func TestEntitiesCreateStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.CreateEntity().
+	res, status, err := pn.DataSync.CreateEntity().
 		ID("entity-abc").
 		EntityClass("vehicle").
 		EntityClassVersion(1).
@@ -67,7 +67,7 @@ func TestEntitiesGetStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.GetEntity().ID("entity-abc").Execute()
+	res, status, err := pn.DataSync.GetEntity().ID("entity-abc").Execute()
 
 	assert.Nil(err)
 	assert.Equal(200, status.StatusCode)
@@ -92,7 +92,7 @@ func TestEntitiesListStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.GetEntities().EntityClass("vehicle").Execute()
+	res, status, err := pn.DataSync.GetEntities().EntityClass("vehicle").Execute()
 
 	assert.Nil(err)
 	assert.Equal(200, status.StatusCode)
@@ -120,11 +120,11 @@ func TestEntitiesUpdateStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.UpdateEntity().
+	res, status, err := pn.DataSync.UpdateEntity().
 		ID("entity-abc").
 		EntityClassVersion(2).
 		Status("active").
-		IfMatch("BfklQ...").
+		IfMatchETag("BfklQ...").
 		Execute()
 
 	assert.Nil(err)
@@ -150,11 +150,11 @@ func TestEntitiesPatchStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.PatchEntity().
+	res, status, err := pn.DataSync.PatchEntity().
 		ID("entity-abc").
 		Replace("/status", "inactive").
 		Add("/payload/mileage", 42000).
-		IfMatch("BfklQ...").
+		IfMatchETag("BfklQ...").
 		Execute()
 
 	assert.Nil(err)
@@ -180,7 +180,7 @@ func TestEntitiesDeleteStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DeleteEntity().ID("entity-abc").IfMatch("Dpqr3...").Execute()
+	res, status, err := pn.DataSync.RemoveEntity().ID("entity-abc").IfMatchETag("Dpqr3...").Execute()
 
 	assert.Nil(err)
 	assert.Equal(200, status.StatusCode)

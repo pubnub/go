@@ -272,7 +272,7 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 		fallthrough
 	case PNPatchEntityOperation:
 		fallthrough
-	case PNDeleteEntityOperation:
+	case PNRemoveEntityOperation:
 		endpoint = "ent"
 		break
 	default:

@@ -49,7 +49,7 @@ func TestUpdateEntityHeaders(t *testing.T) {
 	_, hasIfMatch := headers["If-Match"]
 	assert.False(hasIfMatch)
 
-	o.IfMatch("BfklQ...")
+	o.IfMatchETag("BfklQ...")
 	headers, err = o.opts.buildHeaders()
 	assert.Nil(err)
 	assert.Equal("BfklQ...", headers["If-Match"])
@@ -94,6 +94,6 @@ func TestUpdateEntityExecuteValidationError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	_, _, err := pn.UpdateEntity().EntityClassVersion(2).Execute()
+	_, _, err := pn.DataSync.UpdateEntity().EntityClassVersion(2).Execute()
 	assert.Contains(err.Error(), StrMissingEntityID)
 }

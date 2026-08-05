@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDeleteEntityBuildPathHeaders(t *testing.T) {
+func TestRemoveEntityBuildPathHeaders(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -25,21 +25,21 @@ func TestDeleteEntityBuildPathHeaders(t *testing.T) {
 	_, hasIfMatch := headers["If-Match"]
 	assert.False(hasIfMatch)
 
-	o.IfMatch("Dpqr3...")
+	o.IfMatchETag("Dpqr3...")
 	headers, err = o.opts.buildHeaders()
 	assert.Nil(err)
 	assert.Equal("Dpqr3...", headers["If-Match"])
 }
 
-func TestDeleteEntityHTTPMethodAndOperation(t *testing.T) {
+func TestRemoveEntityHTTPMethodAndOperation(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	o := newDeleteEntityBuilder(pn)
 	assert.Equal("DELETE", o.opts.httpMethod())
-	assert.Equal(PNDeleteEntityOperation, o.opts.operationType())
+	assert.Equal(PNRemoveEntityOperation, o.opts.operationType())
 }
 
-func TestDeleteEntityValidate(t *testing.T) {
+func TestRemoveEntityValidate(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -51,19 +51,19 @@ func TestDeleteEntityValidate(t *testing.T) {
 	assert.Contains(o2.opts.validate().Error(), StrMissingSubKey)
 }
 
-func TestDeleteEntityResponseParsingEmptyBody(t *testing.T) {
+func TestRemoveEntityResponseParsingEmptyBody(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	r, _, err := newPNDeleteEntityResponse([]byte(""), newDeleteEntityOpts(pn, pn.ctx), StatusResponse{})
+	r, _, err := newPNRemoveEntityResponse([]byte(""), newDeleteEntityOpts(pn, pn.ctx), StatusResponse{})
 	assert.Nil(err)
 	assert.NotNil(r)
 }
 
-func TestDeleteEntityExecuteValidationError(t *testing.T) {
+func TestRemoveEntityExecuteValidationError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	_, _, err := pn.DeleteEntity().Execute()
+	_, _, err := pn.DataSync.RemoveEntity().Execute()
 	assert.Contains(err.Error(), StrMissingEntityID)
 }

@@ -387,8 +387,8 @@ const (
 	PNUpdateEntityOperation
 	// PNPatchEntityOperation is the enum used for the Patch Entity operation in the Entities API.
 	PNPatchEntityOperation
-	// PNDeleteEntityOperation is the enum used for the Delete Entity operation in the Entities API.
-	PNDeleteEntityOperation
+	// PNRemoveEntityOperation is the enum used for the Remove Entity operation in the Entities API.
+	PNRemoveEntityOperation
 )
 
 const (
@@ -719,8 +719,8 @@ func (t OperationType) String() string {
 		return "Update Entity"
 	case PNPatchEntityOperation:
 		return "Patch Entity"
-	case PNDeleteEntityOperation:
-		return "Delete Entity"
+	case PNRemoveEntityOperation:
+		return "Remove Entity"
 	default:
 		return "No Category Matched"
 	}

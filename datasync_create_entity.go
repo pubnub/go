@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/google/uuid"
 	"github.com/pubnub/go/v9/pnerr"
 )
 
@@ -73,13 +72,6 @@ func (b *createEntityBuilder) Payload(payload map[string]interface{}) *createEnt
 	return b
 }
 
-// IdempotencyKey sets the idempotency key (UUIDv4). If left unset a random one
-// is generated automatically, since the server requires it for POST requests.
-func (b *createEntityBuilder) IdempotencyKey(key string) *createEntityBuilder {
-	b.opts.IdempotencyKey = key
-	return b
-}
-
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *createEntityBuilder) QueryParam(queryParam map[string]string) *createEntityBuilder {
 	b.opts.QueryParam = queryParam
@@ -130,7 +122,6 @@ type createEntityOpts struct {
 	EntityClassVersion int
 	Status             string
 	Payload            map[string]interface{}
-	IdempotencyKey     string
 	QueryParam         map[string]string
 
 	Transport http.RoundTripper
@@ -179,12 +170,8 @@ func (o *createEntityOpts) buildBody() ([]byte, error) {
 }
 
 func (o *createEntityOpts) buildHeaders() (map[string]string, error) {
-	if o.IdempotencyKey == "" {
-		o.IdempotencyKey = uuid.NewString()
-	}
 	return map[string]string{
-		"Content-Type":    entityContentType,
-		"Idempotency-Key": o.IdempotencyKey,
+		"Content-Type": entityContentType,
 	}, nil
 }
 

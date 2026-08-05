@@ -43,7 +43,7 @@ func TestCreateEntityBuildPathQueryBody(t *testing.T) {
 	assert.Equal("Toyota", parsed.Data.Payload["make"])
 }
 
-func TestCreateEntityHeadersAutoIdempotency(t *testing.T) {
+func TestCreateEntityHeaders(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
@@ -52,21 +52,8 @@ func TestCreateEntityHeadersAutoIdempotency(t *testing.T) {
 	headers, err := o.opts.buildHeaders()
 	assert.Nil(err)
 	assert.Equal(entityContentType, headers["Content-Type"])
-	assert.NotEmpty(headers["Idempotency-Key"], "Idempotency-Key should be auto-generated")
-}
-
-func TestCreateEntityHeadersExplicitIdempotency(t *testing.T) {
-	assert := assert.New(t)
-	pn := NewPubNub(NewDemoConfig())
-
-	o := newCreateEntityBuilder(pn).
-		EntityClass("vehicle").
-		EntityClassVersion(1).
-		IdempotencyKey("f47ac10b-58cc-4372-a567-0e02b2c3d479")
-
-	headers, err := o.opts.buildHeaders()
-	assert.Nil(err)
-	assert.Equal("f47ac10b-58cc-4372-a567-0e02b2c3d479", headers["Idempotency-Key"])
+	_, hasIdempotencyKey := headers["Idempotency-Key"]
+	assert.False(hasIdempotencyKey)
 }
 
 func TestCreateEntityHTTPMethodAndOperation(t *testing.T) {
@@ -116,6 +103,6 @@ func TestCreateEntityExecuteValidationError(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.Config.SubscribeKey = ""
 
-	_, _, err := pn.CreateEntity().EntityClass("vehicle").EntityClassVersion(1).Execute()
+	_, _, err := pn.DataSync.CreateEntity().EntityClass("vehicle").EntityClassVersion(1).Execute()
 	assert.Contains(err.Error(), StrMissingSubKey)
 }

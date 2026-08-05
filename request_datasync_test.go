@@ -37,7 +37,7 @@ func TestExecuteRequestPUTMethod(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.SetClient(&http.Client{Transport: rt})
 
-	res, status, err := pn.UpdateEntity().
+	res, status, err := pn.DataSync.UpdateEntity().
 		ID("entity-abc").
 		EntityClassVersion(2).
 		Status("active").
@@ -60,7 +60,7 @@ func TestExecuteRequestAccepts201(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.SetClient(&http.Client{Transport: rt})
 
-	res, status, err := pn.CreateEntity().
+	res, status, err := pn.DataSync.CreateEntity().
 		EntityClass("vehicle").
 		EntityClassVersion(1).
 		Execute()
@@ -82,7 +82,7 @@ func TestExecuteRequestDeleteEmptyBody(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.SetClient(&http.Client{Transport: rt})
 
-	res, status, err := pn.DeleteEntity().ID("entity-abc").Execute()
+	res, status, err := pn.DataSync.RemoveEntity().ID("entity-abc").Execute()
 
 	assert.Nil(err)
 	assert.Equal("DELETE", rt.lastMethod)

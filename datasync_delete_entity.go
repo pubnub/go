@@ -11,7 +11,7 @@ import (
 	"github.com/pubnub/go/v9/pnerr"
 )
 
-var emptyDeleteEntityResponse *PNDeleteEntityResponse
+var emptyRemoveEntityResponse *PNRemoveEntityResponse
 
 type deleteEntityBuilder struct {
 	opts *deleteEntityOpts
@@ -29,16 +29,16 @@ func newDeleteEntityBuilderWithContext(pubnub *PubNub, context Context) *deleteE
 	return &deleteEntityBuilder{opts: newDeleteEntityOpts(pubnub, context)}
 }
 
-// ID sets the required identifier of the entity to delete.
+// ID sets the required identifier of the entity to remove.
 func (b *deleteEntityBuilder) ID(id string) *deleteEntityBuilder {
 	b.opts.ID = id
 	return b
 }
 
-// IfMatch sets the ETag for optimistic concurrency control via the If-Match header.
-func (b *deleteEntityBuilder) IfMatch(eTag string) *deleteEntityBuilder {
-	b.opts.IfMatch = eTag
-	b.opts.setIfMatch = true
+// IfMatchETag sets the ETag for optimistic concurrency control via the If-Match header.
+func (b *deleteEntityBuilder) IfMatchETag(eTag string) *deleteEntityBuilder {
+	b.opts.IfMatchETag = eTag
+	b.opts.setIfMatchETag = true
 	return b
 }
 
@@ -48,7 +48,7 @@ func (b *deleteEntityBuilder) QueryParam(queryParam map[string]string) *deleteEn
 	return b
 }
 
-// Transport sets the Transport for the deleteEntity request.
+// Transport sets the Transport for the removeEntity request.
 func (b *deleteEntityBuilder) Transport(tr http.RoundTripper) *deleteEntityBuilder {
 	b.opts.Transport = tr
 	return b
@@ -61,25 +61,25 @@ func (o *deleteEntityOpts) GetLogParams() map[string]interface{} {
 	}
 }
 
-// Execute runs the deleteEntity request.
-func (b *deleteEntityBuilder) Execute() (*PNDeleteEntityResponse, StatusResponse, error) {
-	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNDeleteEntityOperation, b.opts.GetLogParams(), true)
+// Execute runs the removeEntity request.
+func (b *deleteEntityBuilder) Execute() (*PNRemoveEntityResponse, StatusResponse, error) {
+	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNRemoveEntityOperation, b.opts.GetLogParams(), true)
 
 	rawJSON, status, err := executeRequest(b.opts)
 	if err != nil {
-		return emptyDeleteEntityResponse, status, err
+		return emptyRemoveEntityResponse, status, err
 	}
 
-	return newPNDeleteEntityResponse(rawJSON, b.opts, status)
+	return newPNRemoveEntityResponse(rawJSON, b.opts, status)
 }
 
 type deleteEntityOpts struct {
 	endpointOpts
 
-	ID         string
-	IfMatch    string
-	setIfMatch bool
-	QueryParam map[string]string
+	ID             string
+	IfMatchETag    string
+	setIfMatchETag bool
+	QueryParam     map[string]string
 
 	Transport http.RoundTripper
 }
@@ -106,8 +106,8 @@ func (o *deleteEntityOpts) buildQuery() (*url.Values, error) {
 
 func (o *deleteEntityOpts) buildHeaders() (map[string]string, error) {
 	headers := make(map[string]string)
-	if o.setIfMatch {
-		headers["If-Match"] = o.IfMatch
+	if o.setIfMatchETag {
+		headers["If-Match"] = o.IfMatchETag
 	}
 	return headers, nil
 }
@@ -117,21 +117,21 @@ func (o *deleteEntityOpts) httpMethod() string {
 }
 
 func (o *deleteEntityOpts) operationType() OperationType {
-	return PNDeleteEntityOperation
+	return PNRemoveEntityOperation
 }
 
-// PNDeleteEntityResponse is the (empty) response returned by DeleteEntity. The
+// PNRemoveEntityResponse is the (empty) response returned by RemoveEntity. The
 // server returns no body on success; the struct exists for API symmetry.
-type PNDeleteEntityResponse struct {
+type PNRemoveEntityResponse struct {
 	Status int `json:"status,omitempty"`
 }
 
-func newPNDeleteEntityResponse(jsonBytes []byte, o *deleteEntityOpts,
-	status StatusResponse) (*PNDeleteEntityResponse, StatusResponse, error) {
+func newPNRemoveEntityResponse(jsonBytes []byte, o *deleteEntityOpts,
+	status StatusResponse) (*PNRemoveEntityResponse, StatusResponse, error) {
 
-	resp := &PNDeleteEntityResponse{}
+	resp := &PNRemoveEntityResponse{}
 
-	// The delete endpoint returns an empty body on success; only attempt to
+	// The remove endpoint returns an empty body on success; only attempt to
 	// unmarshal when the server actually sent a JSON payload.
 	if len(bytes.TrimSpace(jsonBytes)) == 0 {
 		return resp, status, nil
@@ -142,8 +142,8 @@ func newPNDeleteEntityResponse(jsonBytes []byte, o *deleteEntityOpts,
 		e := pnerr.NewResponseParsingError("Error unmarshalling response",
 			io.NopCloser(bytes.NewBufferString(string(jsonBytes))), err)
 
-		o.pubnub.loggerManager.LogError(e, "DeleteEntityResponseParsingFailed", PNDeleteEntityOperation, true)
-		return emptyDeleteEntityResponse, status, e
+		o.pubnub.loggerManager.LogError(e, "RemoveEntityResponseParsingFailed", PNRemoveEntityOperation, true)
+		return emptyRemoveEntityResponse, status, e
 	}
 
 	return resp, status, nil

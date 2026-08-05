@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-
-	"github.com/google/uuid"
 )
 
 var emptyPatchEntityResponse *PNEntityResponse
@@ -75,17 +73,10 @@ func (b *patchEntityBuilder) Test(path string, value interface{}) *patchEntityBu
 	return b
 }
 
-// IfMatch sets the ETag for optimistic concurrency control via the If-Match header.
-func (b *patchEntityBuilder) IfMatch(eTag string) *patchEntityBuilder {
-	b.opts.IfMatch = eTag
-	b.opts.setIfMatch = true
-	return b
-}
-
-// IdempotencyKey sets the idempotency key (UUIDv4). If left unset a random one
-// is generated automatically, since the server requires it for PATCH requests.
-func (b *patchEntityBuilder) IdempotencyKey(key string) *patchEntityBuilder {
-	b.opts.IdempotencyKey = key
+// IfMatchETag sets the ETag for optimistic concurrency control via the If-Match header.
+func (b *patchEntityBuilder) IfMatchETag(eTag string) *patchEntityBuilder {
+	b.opts.IfMatchETag = eTag
+	b.opts.setIfMatchETag = true
 	return b
 }
 
@@ -126,9 +117,8 @@ type patchEntityOpts struct {
 
 	ID             string
 	Operations     []PNJSONPatchOperation
-	IfMatch        string
-	setIfMatch     bool
-	IdempotencyKey string
+	IfMatchETag    string
+	setIfMatchETag bool
 	QueryParam     map[string]string
 
 	Transport http.RoundTripper
@@ -167,15 +157,11 @@ func (o *patchEntityOpts) buildBody() ([]byte, error) {
 }
 
 func (o *patchEntityOpts) buildHeaders() (map[string]string, error) {
-	if o.IdempotencyKey == "" {
-		o.IdempotencyKey = uuid.NewString()
-	}
 	headers := map[string]string{
-		"Content-Type":    entityPatchContentType,
-		"Idempotency-Key": o.IdempotencyKey,
+		"Content-Type": entityPatchContentType,
 	}
-	if o.setIfMatch {
-		headers["If-Match"] = o.IfMatch
+	if o.setIfMatchETag {
+		headers["If-Match"] = o.IfMatchETag
 	}
 	return headers, nil
 }
