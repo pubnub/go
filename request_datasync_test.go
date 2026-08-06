@@ -89,3 +89,28 @@ func TestExecuteRequestDeleteEmptyBody(t *testing.T) {
 	assert.Equal(200, status.StatusCode)
 	assert.NotNil(res)
 }
+
+// TestExecuteRequestCreateRelationship verifies CreateRelationship issues POST
+// with the relationship media type and accepts a 201 Created response.
+func TestExecuteRequestCreateRelationship(t *testing.T) {
+	assert := assert.New(t)
+
+	rt := &recordingRoundTripper{statusCode: 201, body: `{"status":201,"data":{"id":"r-123","entityAId":"u123","entityBId":"s456","relationshipClass":"ProductOwner","relationshipClassVersion":1,"eTag":"1"}}`}
+
+	pn := NewPubNub(NewDemoConfig())
+	pn.SetClient(&http.Client{Transport: rt})
+
+	res, status, err := pn.DataSync.CreateRelationship().
+		EntityAID("u123").
+		EntityBID("s456").
+		RelationshipClass("ProductOwner").
+		RelationshipClassVersion(1).
+		Execute()
+
+	assert.Nil(err)
+	assert.Equal("POST", rt.lastMethod)
+	assert.Equal(201, status.StatusCode)
+	assert.NotNil(res)
+	assert.Equal("r-123", res.Data.ID)
+	assert.Equal("u123", res.Data.EntityAID)
+}

@@ -1,10 +1,8 @@
 package pubnub
 
-// This file holds the shared types and constants used by the generic Entities
-// data-plane API (see the /entities Endpoint Reference). Entities are the
-// schema-versioned, class-based base objects of the data plane. System fields
-// live at the top level of the resource while application-defined fields live
-// under Payload.
+// This file holds the shared types and constants used by the DataSync
+// data-plane API (Entities and Relationships). System fields live at the top
+// level of each resource while application-defined fields live under Payload.
 
 const (
 	// entitiesPath is the collection path used for list (GET) and create (POST).
@@ -12,14 +10,24 @@ const (
 	// entitiesIDPath is the item path used for read/update/patch/delete.
 	entitiesIDPath = "/v1/datasync/subkeys/%s/entities/%s"
 
+	// relationshipsPath is the collection path used for list (GET) and create (POST).
+	relationshipsPath = "/v1/datasync/subkeys/%s/relationships"
+	// relationshipsIDPath is the item path used for read/update/patch/delete.
+	relationshipsIDPath = "/v1/datasync/subkeys/%s/relationships/%s"
+
 	// entityContentType is the media type sent on create (POST) and full
-	// replacement (PUT) requests.
+	// replacement (PUT) entity requests.
 	entityContentType = "application/vnd.pubnub.objects.entity+json;version=1"
-	// entityPatchContentType is the media type sent on JSON Patch (PATCH) requests.
+	// relationshipContentType is the media type sent on create (POST) and full
+	// replacement (PUT) relationship requests.
+	relationshipContentType = "application/vnd.pubnub.objects.relationship+json;version=1"
+	// entityPatchContentType is the media type sent on JSON Patch (PATCH) requests
+	// for both entities and relationships.
 	entityPatchContentType = "application/json-patch+json"
 
 	// entitiesDefaultLimit is the default page size for list requests when the
-	// caller does not specify one. Valid server range is 1-100.
+	// caller does not specify one. Valid server range is 1-100. Shared by
+	// Entities and Relationships list endpoints.
 	entitiesDefaultLimit = 20
 )
 
@@ -73,11 +81,44 @@ type PNEntitiesResponse struct {
 }
 
 // PNJSONPatchOperation is a single RFC 6902 JSON Patch operation applied by
-// PatchEntity. Value is required for "add", "replace" and "test"; From is
-// required for "move" and "copy".
+// PatchEntity / PatchRelationship. Value is required for "add", "replace" and
+// "test"; From is required for "move" and "copy".
 type PNJSONPatchOperation struct {
 	Op    string      `json:"op"`
 	Path  string      `json:"path"`
 	Value interface{} `json:"value,omitempty"`
 	From  string      `json:"from,omitempty"`
+}
+
+// PNRelationship is the generic relationship resource returned by the
+// Relationships API. It links two entities (A and B). System fields and the
+// linked entity IDs are top-level; application-defined fields live under Payload.
+type PNRelationship struct {
+	ID                       string                 `json:"id"`
+	EntityAID                string                 `json:"entityAId"`
+	EntityBID                string                 `json:"entityBId"`
+	Status                   string                 `json:"status,omitempty"`
+	RelationshipClass        string                 `json:"relationshipClass"`
+	RelationshipClassVersion int                    `json:"relationshipClassVersion"`
+	Payload                  map[string]interface{} `json:"payload,omitempty"`
+	CreatedAt                string                 `json:"createdAt,omitempty"`
+	UpdatedAt                string                 `json:"updatedAt,omitempty"`
+	ETag                     string                 `json:"eTag,omitempty"`
+	ExpiresAt                string                 `json:"expiresAt,omitempty"`
+}
+
+// PNRelationshipResponse is the envelope returned by single-relationship
+// operations (create, get, update, patch).
+type PNRelationshipResponse struct {
+	Status int            `json:"status,omitempty"`
+	Data   PNRelationship `json:"data"`
+}
+
+// PNRelationshipsResponse is the envelope returned by the list
+// (GetRelationships) operation.
+type PNRelationshipsResponse struct {
+	Status int                      `json:"status,omitempty"`
+	Data   []PNRelationship         `json:"data"`
+	Meta   *PNEntityPaginationMeta  `json:"meta,omitempty"`
+	Links  *PNEntityPaginationLinks `json:"links,omitempty"`
 }

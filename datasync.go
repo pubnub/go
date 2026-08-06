@@ -65,3 +65,63 @@ func (d *DataSyncService) RemoveEntity() *deleteEntityBuilder {
 func (d *DataSyncService) RemoveEntityWithContext(ctx Context) *deleteEntityBuilder {
 	return newDeleteEntityBuilderWithContext(d.pn, ctx)
 }
+
+// CreateRelationship provisions a new relationship linking two existing entities.
+func (d *DataSyncService) CreateRelationship() *createRelationshipBuilder {
+	return newCreateRelationshipBuilder(d.pn)
+}
+
+// CreateRelationshipWithContext provisions a new relationship linking two existing entities.
+func (d *DataSyncService) CreateRelationshipWithContext(ctx Context) *createRelationshipBuilder {
+	return newCreateRelationshipBuilderWithContext(d.pn, ctx)
+}
+
+// GetRelationship reads a single relationship by its identifier.
+func (d *DataSyncService) GetRelationship() *getRelationshipBuilder {
+	return newGetRelationshipBuilder(d.pn)
+}
+
+// GetRelationshipWithContext reads a single relationship by its identifier.
+func (d *DataSyncService) GetRelationshipWithContext(ctx Context) *getRelationshipBuilder {
+	return newGetRelationshipBuilderWithContext(d.pn, ctx)
+}
+
+// GetRelationships returns a paginated list of relationships of a given class.
+func (d *DataSyncService) GetRelationships() *getRelationshipsBuilder {
+	return newGetRelationshipsBuilder(d.pn)
+}
+
+// GetRelationshipsWithContext returns a paginated list of relationships of a given class.
+func (d *DataSyncService) GetRelationshipsWithContext(ctx Context) *getRelationshipsBuilder {
+	return newGetRelationshipsBuilderWithContext(d.pn, ctx)
+}
+
+// UpdateRelationship fully replaces the mutable fields of an existing relationship (PUT).
+func (d *DataSyncService) UpdateRelationship() *updateRelationshipBuilder {
+	return newUpdateRelationshipBuilder(d.pn)
+}
+
+// UpdateRelationshipWithContext fully replaces the mutable fields of an existing relationship (PUT).
+func (d *DataSyncService) UpdateRelationshipWithContext(ctx Context) *updateRelationshipBuilder {
+	return newUpdateRelationshipBuilderWithContext(d.pn, ctx)
+}
+
+// PatchRelationship partially updates an existing relationship using RFC 6902 JSON Patch.
+func (d *DataSyncService) PatchRelationship() *patchRelationshipBuilder {
+	return newPatchRelationshipBuilder(d.pn)
+}
+
+// PatchRelationshipWithContext partially updates an existing relationship using RFC 6902 JSON Patch.
+func (d *DataSyncService) PatchRelationshipWithContext(ctx Context) *patchRelationshipBuilder {
+	return newPatchRelationshipBuilderWithContext(d.pn, ctx)
+}
+
+// RemoveRelationship removes a relationship by its identifier.
+func (d *DataSyncService) RemoveRelationship() *deleteRelationshipBuilder {
+	return newDeleteRelationshipBuilder(d.pn)
+}
+
+// RemoveRelationshipWithContext removes a relationship by its identifier.
+func (d *DataSyncService) RemoveRelationshipWithContext(ctx Context) *deleteRelationshipBuilder {
+	return newDeleteRelationshipBuilderWithContext(d.pn, ctx)
+}

@@ -68,6 +68,16 @@ const (
 	StrInvalidEntityClassVersion = "Invalid Entity Class Version: must be >= 1"
 	// StrMissingPatchOperations shows `Missing Patch Operations` message
 	StrMissingPatchOperations = "Missing Patch Operations"
+	// StrMissingRelationshipClass shows `Missing Relationship Class` message
+	StrMissingRelationshipClass = "Missing Relationship Class"
+	// StrMissingRelationshipID shows `Missing Relationship ID` message
+	StrMissingRelationshipID = "Missing Relationship ID"
+	// StrMissingEntityAID shows `Missing Entity A ID` message
+	StrMissingEntityAID = "Missing Entity A ID"
+	// StrMissingEntityBID shows `Missing Entity B ID` message
+	StrMissingEntityBID = "Missing Entity B ID"
+	// StrInvalidRelationshipClassVersion shows `Invalid Relationship Class Version` message
+	StrInvalidRelationshipClassVersion = "Invalid Relationship Class Version: must be >= 1"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.

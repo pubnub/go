@@ -186,3 +186,178 @@ func TestEntitiesDeleteStubbed(t *testing.T) {
 	assert.Equal(200, status.StatusCode)
 	assert.NotNil(res)
 }
+
+func TestRelationshipsCreateStubbed(t *testing.T) {
+	assert := assert.New(t)
+	cfg := entitiesTestConfig()
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "POST",
+		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/relationships", cfg.SubscribeKey),
+		Query:              "",
+		ResponseBody:       `{"status":201,"data":{"id":"r-123","entityAId":"u123","entityBId":"s456","relationshipClass":"ProductOwner","relationshipClassVersion":1,"status":"active","payload":{"role":"admin"},"eTag":"1"}}`,
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 201,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, status, err := pn.DataSync.CreateRelationship().
+		ID("r-123").
+		EntityAID("u123").
+		EntityBID("s456").
+		RelationshipClass("ProductOwner").
+		RelationshipClassVersion(1).
+		Status("active").
+		Payload(map[string]interface{}{"role": "admin"}).
+		Execute()
+
+	assert.Nil(err)
+	assert.Equal(201, status.StatusCode)
+	assert.Equal("r-123", res.Data.ID)
+	assert.Equal("u123", res.Data.EntityAID)
+	assert.Equal("ProductOwner", res.Data.RelationshipClass)
+	assert.Equal("1", res.Data.ETag)
+}
+
+func TestRelationshipsGetStubbed(t *testing.T) {
+	assert := assert.New(t)
+	cfg := entitiesTestConfig()
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/relationships/r-123", cfg.SubscribeKey),
+		Query:              "",
+		ResponseBody:       `{"status":200,"data":{"id":"r-123","entityAId":"u123","entityBId":"s456","relationshipClass":"ProductOwner","relationshipClassVersion":1,"status":"active","payload":{"role":"admin"},"eTag":"1"}}`,
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, status, err := pn.DataSync.GetRelationship().ID("r-123").Execute()
+
+	assert.Nil(err)
+	assert.Equal(200, status.StatusCode)
+	assert.Equal("r-123", res.Data.ID)
+	assert.Equal("admin", res.Data.Payload["role"])
+}
+
+func TestRelationshipsListStubbed(t *testing.T) {
+	assert := assert.New(t)
+	cfg := entitiesTestConfig()
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/relationships", cfg.SubscribeKey),
+		Query:              "relationship_class=ProductOwner&entity_a_id=u123&limit=20",
+		ResponseBody:       `{"data":[{"id":"r-123","entityAId":"u123","entityBId":"s456","relationshipClass":"ProductOwner","relationshipClassVersion":1,"status":"active","eTag":"1","payload":{"custom":"fields"}}],"links":{"self":"/self","next":"/next","prev":null},"meta":{"has_next":true,"has_prev":false,"next_cursor":"TjIw","prev_cursor":null,"limit":20}}`,
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, status, err := pn.DataSync.GetRelationships().
+		RelationshipClass("ProductOwner").
+		EntityAID("u123").
+		Execute()
+
+	assert.Nil(err)
+	assert.Equal(200, status.StatusCode)
+	assert.Len(res.Data, 1)
+	assert.Equal("r-123", res.Data[0].ID)
+	assert.NotNil(res.Meta)
+	assert.True(res.Meta.HasNext)
+	assert.Equal("TjIw", res.Meta.NextCursor)
+}
+
+func TestRelationshipsUpdateStubbed(t *testing.T) {
+	assert := assert.New(t)
+	cfg := entitiesTestConfig()
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "PUT",
+		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/relationships/r-123", cfg.SubscribeKey),
+		Query:              "",
+		ResponseBody:       `{"status":200,"data":{"id":"r-123","entityAId":"u123","entityBId":"s456","relationshipClass":"ProductOwner","relationshipClassVersion":2,"status":"active","eTag":"2"}}`,
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, status, err := pn.DataSync.UpdateRelationship().
+		ID("r-123").
+		RelationshipClassVersion(2).
+		Status("active").
+		IfMatchETag("1").
+		Execute()
+
+	assert.Nil(err)
+	assert.Equal(200, status.StatusCode)
+	assert.Equal(2, res.Data.RelationshipClassVersion)
+	assert.Equal("2", res.Data.ETag)
+}
+
+func TestRelationshipsPatchStubbed(t *testing.T) {
+	assert := assert.New(t)
+	cfg := entitiesTestConfig()
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "PATCH",
+		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/relationships/r-123", cfg.SubscribeKey),
+		Query:              "",
+		ResponseBody:       `{"status":200,"data":{"id":"r-123","entityAId":"u123","entityBId":"s456","relationshipClass":"ProductOwner","relationshipClassVersion":1,"status":"active","payload":{"custom":{"role":"admin"}},"eTag":"2"}}`,
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, status, err := pn.DataSync.PatchRelationship().
+		ID("r-123").
+		Add("/payload/custom/role", "admin").
+		IfMatchETag("1").
+		Execute()
+
+	assert.Nil(err)
+	assert.Equal(200, status.StatusCode)
+	assert.Equal("2", res.Data.ETag)
+	custom := res.Data.Payload["custom"].(map[string]interface{})
+	assert.Equal("admin", custom["role"])
+}
+
+func TestRelationshipsDeleteStubbed(t *testing.T) {
+	assert := assert.New(t)
+	cfg := entitiesTestConfig()
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "DELETE",
+		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/relationships/r-123", cfg.SubscribeKey),
+		Query:              "",
+		ResponseBody:       "",
+		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, status, err := pn.DataSync.RemoveRelationship().ID("r-123").IfMatchETag("2").Execute()
+
+	assert.Nil(err)
+	assert.Equal(200, status.StatusCode)
+	assert.NotNil(res)
+}

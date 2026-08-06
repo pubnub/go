@@ -389,6 +389,18 @@ const (
 	PNPatchEntityOperation
 	// PNRemoveEntityOperation is the enum used for the Remove Entity operation in the Entities API.
 	PNRemoveEntityOperation
+	// PNCreateRelationshipOperation is the enum used for the Create Relationship operation.
+	PNCreateRelationshipOperation
+	// PNGetRelationshipOperation is the enum used for the Get Relationship operation.
+	PNGetRelationshipOperation
+	// PNGetRelationshipsOperation is the enum used for the List Relationships operation.
+	PNGetRelationshipsOperation
+	// PNUpdateRelationshipOperation is the enum used for the Update Relationship operation.
+	PNUpdateRelationshipOperation
+	// PNPatchRelationshipOperation is the enum used for the Patch Relationship operation.
+	PNPatchRelationshipOperation
+	// PNRemoveRelationshipOperation is the enum used for the Remove Relationship operation.
+	PNRemoveRelationshipOperation
 )
 
 const (
@@ -721,6 +733,18 @@ func (t OperationType) String() string {
 		return "Patch Entity"
 	case PNRemoveEntityOperation:
 		return "Remove Entity"
+	case PNCreateRelationshipOperation:
+		return "Create Relationship"
+	case PNGetRelationshipOperation:
+		return "Get Relationship"
+	case PNGetRelationshipsOperation:
+		return "Get Relationships"
+	case PNUpdateRelationshipOperation:
+		return "Update Relationship"
+	case PNPatchRelationshipOperation:
+		return "Patch Relationship"
+	case PNRemoveRelationshipOperation:
+		return "Remove Relationship"
 	default:
 		return "No Category Matched"
 	}

@@ -275,6 +275,19 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 	case PNRemoveEntityOperation:
 		endpoint = "ent"
 		break
+	case PNCreateRelationshipOperation:
+		fallthrough
+	case PNGetRelationshipOperation:
+		fallthrough
+	case PNGetRelationshipsOperation:
+		fallthrough
+	case PNUpdateRelationshipOperation:
+		fallthrough
+	case PNPatchRelationshipOperation:
+		fallthrough
+	case PNRemoveRelationshipOperation:
+		endpoint = "rel"
+		break
 	default:
 		endpoint = "time"
 		break
