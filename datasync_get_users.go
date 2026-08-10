@@ -48,9 +48,9 @@ func (b *getUsersBuilder) EntityClassVersion(version int) *getUsersBuilder {
 	return b
 }
 
-// EntityClassLevel sets the optional class scope (Global or SubKey) used to
+// EntityClassLevel sets the optional class scope (Global, Account, or SubKey) used to
 // disambiguate classes with the same name defined at different levels.
-func (b *getUsersBuilder) EntityClassLevel(level string) *getUsersBuilder {
+func (b *getUsersBuilder) EntityClassLevel(level PNEntityClassLevel) *getUsersBuilder {
 	b.opts.EntityClassLevel = level
 	return b
 }
@@ -146,7 +146,7 @@ type getUsersOpts struct {
 	EntityClass           string
 	EntityClassVersion    int
 	setEntityClassVersion bool
-	EntityClassLevel      string
+	EntityClassLevel      PNEntityClassLevel
 	Cursor                string
 	Limit                 int
 	Filter                string
@@ -180,7 +180,7 @@ func (o *getUsersOpts) buildQuery() (*url.Values, error) {
 	}
 
 	if o.EntityClassLevel != "" {
-		q.Set("entity_class_level", o.EntityClassLevel)
+		q.Set("entity_class_level", string(o.EntityClassLevel))
 	}
 
 	q.Set("limit", strconv.Itoa(o.Limit))

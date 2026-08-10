@@ -38,6 +38,7 @@ type createEntityBodyData struct {
 	ID                 string                 `json:"id,omitempty"`
 	EntityClass        string                 `json:"entityClass"`
 	EntityClassVersion int                    `json:"entityClassVersion"`
+	EntityClassLevel   PNEntityClassLevel     `json:"entityClassLevel,omitempty"`
 	Status             string                 `json:"status,omitempty"`
 	Payload            map[string]interface{} `json:"payload,omitempty"`
 }
@@ -57,6 +58,13 @@ func (b *createEntityBuilder) EntityClass(entityClass string) *createEntityBuild
 // EntityClassVersion sets the required schema version of the entity class (>= 1).
 func (b *createEntityBuilder) EntityClassVersion(version int) *createEntityBuilder {
 	b.opts.EntityClassVersion = version
+	return b
+}
+
+// EntityClassLevel sets the optional class scope (Global, Account, or SubKey) used to
+// disambiguate classes with the same name defined at different levels.
+func (b *createEntityBuilder) EntityClassLevel(level PNEntityClassLevel) *createEntityBuilder {
+	b.opts.EntityClassLevel = level
 	return b
 }
 
@@ -93,6 +101,9 @@ func (o *createEntityOpts) GetLogParams() map[string]interface{} {
 	if o.ID != "" {
 		params["ID"] = o.ID
 	}
+	if o.EntityClassLevel != "" {
+		params["EntityClassLevel"] = o.EntityClassLevel
+	}
 	if o.Status != "" {
 		params["Status"] = o.Status
 	}
@@ -120,6 +131,7 @@ type createEntityOpts struct {
 	ID                 string
 	EntityClass        string
 	EntityClassVersion int
+	EntityClassLevel   PNEntityClassLevel
 	Status             string
 	Payload            map[string]interface{}
 	QueryParam         map[string]string
@@ -156,6 +168,7 @@ func (o *createEntityOpts) buildBody() ([]byte, error) {
 			ID:                 o.ID,
 			EntityClass:        o.EntityClass,
 			EntityClassVersion: o.EntityClassVersion,
+			EntityClassLevel:   o.EntityClassLevel,
 			Status:             o.Status,
 			Payload:            o.Payload,
 		},

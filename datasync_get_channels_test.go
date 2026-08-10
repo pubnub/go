@@ -24,7 +24,7 @@ func TestGetChannelsBuildPathQuery(t *testing.T) {
 	o := newGetChannelsBuilder(pn).
 		EntityClass("Channel").
 		EntityClassVersion(1).
-		EntityClassLevel("SubKey").
+		EntityClassLevel(PNEntityClassLevelSubKey).
 		Cursor("TjIw").
 		Limit(10).
 		Filter("status == 'active'").
@@ -91,7 +91,7 @@ func TestGetChannelsResponseParsing(t *testing.T) {
 	assert.Nil(err)
 	assert.Len(r.Data, 1)
 	assert.Equal("general", r.Data[0].ID)
-	assert.Equal("SubKey", r.Data[0].EntityClassLevel)
+	assert.Equal(PNEntityClassLevelSubKey, r.Data[0].EntityClassLevel)
 	assert.NotNil(r.Meta)
 	assert.True(r.Meta.HasNext)
 	assert.Equal("TjIw", r.Meta.NextCursor)

@@ -46,6 +46,10 @@ type PNMessageActionsEventType string
 // PNPushEnvironment is used as an enum to catgorize the available Message Actions Event types
 type PNPushEnvironment string
 
+// PNEntityClassLevel is the DataSync class scope used to disambiguate classes
+// with the same name defined at different levels.
+type PNEntityClassLevel string
+
 // PNLogLevel constants define the available log levels
 const (
 	// PNLogLevelTrace is the enum when the log level is trace.
@@ -75,6 +79,15 @@ const (
 	PNPushEnvironmentDevelopment PNPushEnvironment = "development"
 	//PNPushEnvironmentProduction for production
 	PNPushEnvironmentProduction PNPushEnvironment = "production"
+)
+
+const (
+	// PNEntityClassLevelGlobal is the class scope when the class is defined globally.
+	PNEntityClassLevelGlobal PNEntityClassLevel = "Global"
+	// PNEntityClassLevelAccount is the class scope when the class is defined per account.
+	PNEntityClassLevelAccount PNEntityClassLevel = "Account"
+	// PNEntityClassLevelSubKey is the class scope when the class is defined per subscribe key.
+	PNEntityClassLevelSubKey PNEntityClassLevel = "SubKey"
 )
 
 const (

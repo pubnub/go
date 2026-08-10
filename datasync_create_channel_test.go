@@ -17,7 +17,7 @@ func TestCreateChannelBuildPathQueryBody(t *testing.T) {
 	o.ID("general").
 		EntityClass("Channel").
 		EntityClassVersion(1).
-		EntityClassLevel("SubKey").
+		EntityClassLevel(PNEntityClassLevelSubKey).
 		Status("active").
 		Payload(map[string]interface{}{"name": "General", "email": "team-chat"}).
 		QueryParam(map[string]string{"q1": "v1"})
@@ -40,7 +40,7 @@ func TestCreateChannelBuildPathQueryBody(t *testing.T) {
 	assert.Equal("general", parsed.Data.ID)
 	assert.Equal("Channel", parsed.Data.EntityClass)
 	assert.Equal(1, parsed.Data.EntityClassVersion)
-	assert.Equal("SubKey", parsed.Data.EntityClassLevel)
+	assert.Equal(PNEntityClassLevelSubKey, parsed.Data.EntityClassLevel)
 	assert.Equal("active", parsed.Data.Status)
 	assert.Equal("General", parsed.Data.Payload["name"])
 }

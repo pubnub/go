@@ -34,7 +34,7 @@ type createUserBodyData struct {
 	ID                 string                 `json:"id,omitempty"`
 	EntityClass        string                 `json:"entityClass,omitempty"`
 	EntityClassVersion int                    `json:"entityClassVersion"`
-	EntityClassLevel   string                 `json:"entityClassLevel,omitempty"`
+	EntityClassLevel   PNEntityClassLevel     `json:"entityClassLevel,omitempty"`
 	Status             string                 `json:"status,omitempty"`
 	Payload            map[string]interface{} `json:"payload,omitempty"`
 }
@@ -58,9 +58,9 @@ func (b *createUserBuilder) EntityClassVersion(version int) *createUserBuilder {
 	return b
 }
 
-// EntityClassLevel sets the optional class scope (Global or SubKey) used to
+// EntityClassLevel sets the optional class scope (Global, Account, or SubKey) used to
 // disambiguate classes with the same name defined at different levels.
-func (b *createUserBuilder) EntityClassLevel(level string) *createUserBuilder {
+func (b *createUserBuilder) EntityClassLevel(level PNEntityClassLevel) *createUserBuilder {
 	b.opts.EntityClassLevel = level
 	return b
 }
@@ -130,7 +130,7 @@ type createUserOpts struct {
 	ID                 string
 	EntityClass        string
 	EntityClassVersion int
-	EntityClassLevel   string
+	EntityClassLevel   PNEntityClassLevel
 	Status             string
 	Payload            map[string]interface{}
 	QueryParam         map[string]string

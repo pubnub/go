@@ -24,6 +24,7 @@ func TestGetEntitiesBuildPathQuery(t *testing.T) {
 	o := newGetEntitiesBuilder(pn).
 		EntityClass("vehicle").
 		EntityClassVersion(1).
+		EntityClassLevel(PNEntityClassLevelSubKey).
 		Cursor("TjIw").
 		Limit(10).
 		Filter("status == 'active'").
@@ -41,6 +42,7 @@ func TestGetEntitiesBuildPathQuery(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal("vehicle", query.Get("entity_class"))
 	assert.Equal("1", query.Get("entity_class_version"))
+	assert.Equal("SubKey", query.Get("entity_class_level"))
 	assert.Equal("TjIw", query.Get("cursor"))
 	assert.Equal(strconv.Itoa(10), query.Get("limit"))
 	assert.Equal("status == 'active'", query.Get("filter"))
@@ -57,6 +59,7 @@ func TestGetEntitiesVersionOmittedWhenUnset(t *testing.T) {
 	query, err := o.opts.buildQuery()
 	assert.Nil(err)
 	assert.Equal("", query.Get("entity_class_version"))
+	assert.Equal("", query.Get("entity_class_level"))
 }
 
 func TestGetEntitiesHTTPMethodAndOperation(t *testing.T) {
@@ -89,7 +92,7 @@ func TestGetEntitiesResponseParsing(t *testing.T) {
 	assert.Nil(err)
 	assert.Len(r.Data, 1)
 	assert.Equal("i789", r.Data[0].ID)
-	assert.Equal("SubKey", r.Data[0].EntityClassLevel)
+	assert.Equal(PNEntityClassLevelSubKey, r.Data[0].EntityClassLevel)
 	assert.NotNil(r.Meta)
 	assert.True(r.Meta.HasNext)
 	assert.Equal("TjIw", r.Meta.NextCursor)

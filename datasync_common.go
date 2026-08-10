@@ -63,7 +63,7 @@ type PNEntity struct {
 	Status                string                 `json:"status,omitempty"`
 	EntityClass           string                 `json:"entityClass"`
 	EntityClassVersion    int                    `json:"entityClassVersion"`
-	EntityClassLevel      string                 `json:"entityClassLevel,omitempty"`
+	EntityClassLevel      PNEntityClassLevel     `json:"entityClassLevel,omitempty"`
 	EntityClassExtendsRef string                 `json:"entityClassExtendsRef,omitempty"`
 	Payload               map[string]interface{} `json:"payload,omitempty"`
 	CreatedAt             string                 `json:"createdAt,omitempty"`

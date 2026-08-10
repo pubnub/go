@@ -47,6 +47,13 @@ func (b *getEntitiesBuilder) EntityClassVersion(version int) *getEntitiesBuilder
 	return b
 }
 
+// EntityClassLevel sets the optional class scope (Global, Account, or SubKey) used to
+// disambiguate classes with the same name defined at different levels.
+func (b *getEntitiesBuilder) EntityClassLevel(level PNEntityClassLevel) *getEntitiesBuilder {
+	b.opts.EntityClassLevel = level
+	return b
+}
+
 // Cursor sets the pagination token returned from a previous request.
 func (b *getEntitiesBuilder) Cursor(cursor string) *getEntitiesBuilder {
 	b.opts.Cursor = cursor
@@ -100,6 +107,9 @@ func (o *getEntitiesOpts) GetLogParams() map[string]interface{} {
 	if o.setEntityClassVersion {
 		params["EntityClassVersion"] = o.EntityClassVersion
 	}
+	if o.EntityClassLevel != "" {
+		params["EntityClassLevel"] = o.EntityClassLevel
+	}
 	if o.Cursor != "" {
 		params["Cursor"] = o.Cursor
 	}
@@ -133,6 +143,7 @@ type getEntitiesOpts struct {
 	EntityClass           string
 	EntityClassVersion    int
 	setEntityClassVersion bool
+	EntityClassLevel      PNEntityClassLevel
 	Cursor                string
 	Limit                 int
 	Filter                string
@@ -164,6 +175,10 @@ func (o *getEntitiesOpts) buildQuery() (*url.Values, error) {
 
 	if o.setEntityClassVersion {
 		q.Set("entity_class_version", strconv.Itoa(o.EntityClassVersion))
+	}
+
+	if o.EntityClassLevel != "" {
+		q.Set("entity_class_level", string(o.EntityClassLevel))
 	}
 
 	q.Set("limit", strconv.Itoa(o.Limit))

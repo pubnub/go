@@ -17,7 +17,7 @@ func TestCreateUserBuildPathQueryBody(t *testing.T) {
 	o.ID("alice").
 		EntityClass("User").
 		EntityClassVersion(1).
-		EntityClassLevel("SubKey").
+		EntityClassLevel(PNEntityClassLevelSubKey).
 		Status("active").
 		Payload(map[string]interface{}{"name": "Alice", "email": "alice@example.com"}).
 		QueryParam(map[string]string{"q1": "v1"})
@@ -40,7 +40,7 @@ func TestCreateUserBuildPathQueryBody(t *testing.T) {
 	assert.Equal("alice", parsed.Data.ID)
 	assert.Equal("User", parsed.Data.EntityClass)
 	assert.Equal(1, parsed.Data.EntityClassVersion)
-	assert.Equal("SubKey", parsed.Data.EntityClassLevel)
+	assert.Equal(PNEntityClassLevelSubKey, parsed.Data.EntityClassLevel)
 	assert.Equal("active", parsed.Data.Status)
 	assert.Equal("Alice", parsed.Data.Payload["name"])
 }

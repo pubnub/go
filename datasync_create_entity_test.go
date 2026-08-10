@@ -17,6 +17,7 @@ func TestCreateEntityBuildPathQueryBody(t *testing.T) {
 	o.ID("entity-abc").
 		EntityClass("vehicle").
 		EntityClassVersion(1).
+		EntityClassLevel(PNEntityClassLevelSubKey).
 		Status("active").
 		Payload(map[string]interface{}{"make": "Toyota", "year": 2025}).
 		QueryParam(map[string]string{"q1": "v1"})
@@ -39,8 +40,24 @@ func TestCreateEntityBuildPathQueryBody(t *testing.T) {
 	assert.Equal("entity-abc", parsed.Data.ID)
 	assert.Equal("vehicle", parsed.Data.EntityClass)
 	assert.Equal(1, parsed.Data.EntityClassVersion)
+	assert.Equal(PNEntityClassLevelSubKey, parsed.Data.EntityClassLevel)
 	assert.Equal("active", parsed.Data.Status)
 	assert.Equal("Toyota", parsed.Data.Payload["make"])
+}
+
+func TestCreateEntityLevelOmittedWhenUnset(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newCreateEntityBuilder(pn).EntityClass("vehicle").EntityClassVersion(1)
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+
+	var parsed map[string]interface{}
+	assert.Nil(json.Unmarshal(body, &parsed))
+	data := parsed["data"].(map[string]interface{})
+	_, hasLevel := data["entityClassLevel"]
+	assert.False(hasLevel)
 }
 
 func TestCreateEntityHeaders(t *testing.T) {
