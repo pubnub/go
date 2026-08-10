@@ -401,6 +401,42 @@ const (
 	PNPatchRelationshipOperation
 	// PNRemoveRelationshipOperation is the enum used for the Remove Relationship operation.
 	PNRemoveRelationshipOperation
+	// PNCreateDataSyncUserOperation is the enum used for the Create User operation in the DataSync Users API.
+	PNCreateDataSyncUserOperation
+	// PNGetDataSyncUserOperation is the enum used for the Get User operation in the DataSync Users API.
+	PNGetDataSyncUserOperation
+	// PNGetDataSyncUsersOperation is the enum used for the List Users operation in the DataSync Users API.
+	PNGetDataSyncUsersOperation
+	// PNUpdateDataSyncUserOperation is the enum used for the Update User operation in the DataSync Users API.
+	PNUpdateDataSyncUserOperation
+	// PNPatchDataSyncUserOperation is the enum used for the Patch User operation in the DataSync Users API.
+	PNPatchDataSyncUserOperation
+	// PNRemoveDataSyncUserOperation is the enum used for the Remove User operation in the DataSync Users API.
+	PNRemoveDataSyncUserOperation
+	// PNCreateDataSyncChannelOperation is the enum used for the Create Channel operation in the DataSync Channels API.
+	PNCreateDataSyncChannelOperation
+	// PNGetDataSyncChannelOperation is the enum used for the Get Channel operation in the DataSync Channels API.
+	PNGetDataSyncChannelOperation
+	// PNGetDataSyncChannelsOperation is the enum used for the List Channels operation in the DataSync Channels API.
+	PNGetDataSyncChannelsOperation
+	// PNUpdateDataSyncChannelOperation is the enum used for the Update Channel operation in the DataSync Channels API.
+	PNUpdateDataSyncChannelOperation
+	// PNPatchDataSyncChannelOperation is the enum used for the Patch Channel operation in the DataSync Channels API.
+	PNPatchDataSyncChannelOperation
+	// PNRemoveDataSyncChannelOperation is the enum used for the Remove Channel operation in the DataSync Channels API.
+	PNRemoveDataSyncChannelOperation
+	// PNCreateDataSyncMembershipOperation is the enum used for the Create Membership operation in the DataSync Memberships API.
+	PNCreateDataSyncMembershipOperation
+	// PNGetDataSyncMembershipOperation is the enum used for the Get Membership operation in the DataSync Memberships API.
+	PNGetDataSyncMembershipOperation
+	// PNGetDataSyncMembershipsOperation is the enum used for the List Memberships operation in the DataSync Memberships API.
+	PNGetDataSyncMembershipsOperation
+	// PNUpdateDataSyncMembershipOperation is the enum used for the Update Membership operation in the DataSync Memberships API.
+	PNUpdateDataSyncMembershipOperation
+	// PNPatchDataSyncMembershipOperation is the enum used for the Patch Membership operation in the DataSync Memberships API.
+	PNPatchDataSyncMembershipOperation
+	// PNRemoveDataSyncMembershipOperation is the enum used for the Remove Membership operation in the DataSync Memberships API.
+	PNRemoveDataSyncMembershipOperation
 )
 
 const (
@@ -745,6 +781,42 @@ func (t OperationType) String() string {
 		return "Patch Relationship"
 	case PNRemoveRelationshipOperation:
 		return "Remove Relationship"
+	case PNCreateDataSyncUserOperation:
+		return "Create DataSync User"
+	case PNGetDataSyncUserOperation:
+		return "Get DataSync User"
+	case PNGetDataSyncUsersOperation:
+		return "Get DataSync Users"
+	case PNUpdateDataSyncUserOperation:
+		return "Update DataSync User"
+	case PNPatchDataSyncUserOperation:
+		return "Patch DataSync User"
+	case PNRemoveDataSyncUserOperation:
+		return "Remove DataSync User"
+	case PNCreateDataSyncChannelOperation:
+		return "Create DataSync Channel"
+	case PNGetDataSyncChannelOperation:
+		return "Get DataSync Channel"
+	case PNGetDataSyncChannelsOperation:
+		return "Get DataSync Channels"
+	case PNUpdateDataSyncChannelOperation:
+		return "Update DataSync Channel"
+	case PNPatchDataSyncChannelOperation:
+		return "Patch DataSync Channel"
+	case PNRemoveDataSyncChannelOperation:
+		return "Remove DataSync Channel"
+	case PNCreateDataSyncMembershipOperation:
+		return "Create DataSync Membership"
+	case PNGetDataSyncMembershipOperation:
+		return "Get DataSync Membership"
+	case PNGetDataSyncMembershipsOperation:
+		return "Get DataSync Memberships"
+	case PNUpdateDataSyncMembershipOperation:
+		return "Update DataSync Membership"
+	case PNPatchDataSyncMembershipOperation:
+		return "Patch DataSync Membership"
+	case PNRemoveDataSyncMembershipOperation:
+		return "Remove DataSync Membership"
 	default:
 		return "No Category Matched"
 	}

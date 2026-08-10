@@ -78,6 +78,12 @@ const (
 	StrMissingEntityBID = "Missing Entity B ID"
 	// StrInvalidRelationshipClassVersion shows `Invalid Relationship Class Version` message
 	StrInvalidRelationshipClassVersion = "Invalid Relationship Class Version: must be >= 1"
+	// StrMissingUserID shows `Missing User ID` message
+	StrMissingUserID = "Missing User ID"
+	// StrMissingChannelID shows `Missing Channel ID` message
+	StrMissingChannelID = "Missing Channel ID"
+	// StrMissingMembershipID shows `Missing Membership ID` message
+	StrMissingMembershipID = "Missing Membership ID"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.

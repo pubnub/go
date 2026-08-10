@@ -288,6 +288,45 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 	case PNRemoveRelationshipOperation:
 		endpoint = "rel"
 		break
+	case PNCreateDataSyncUserOperation:
+		fallthrough
+	case PNGetDataSyncUserOperation:
+		fallthrough
+	case PNGetDataSyncUsersOperation:
+		fallthrough
+	case PNUpdateDataSyncUserOperation:
+		fallthrough
+	case PNPatchDataSyncUserOperation:
+		fallthrough
+	case PNRemoveDataSyncUserOperation:
+		endpoint = "usr"
+		break
+	case PNCreateDataSyncChannelOperation:
+		fallthrough
+	case PNGetDataSyncChannelOperation:
+		fallthrough
+	case PNGetDataSyncChannelsOperation:
+		fallthrough
+	case PNUpdateDataSyncChannelOperation:
+		fallthrough
+	case PNPatchDataSyncChannelOperation:
+		fallthrough
+	case PNRemoveDataSyncChannelOperation:
+		endpoint = "chn"
+		break
+	case PNCreateDataSyncMembershipOperation:
+		fallthrough
+	case PNGetDataSyncMembershipOperation:
+		fallthrough
+	case PNGetDataSyncMembershipsOperation:
+		fallthrough
+	case PNUpdateDataSyncMembershipOperation:
+		fallthrough
+	case PNPatchDataSyncMembershipOperation:
+		fallthrough
+	case PNRemoveDataSyncMembershipOperation:
+		endpoint = "mem"
+		break
 	default:
 		endpoint = "time"
 		break
