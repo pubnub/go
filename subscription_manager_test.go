@@ -1037,3 +1037,342 @@ func TestProcessSubscribeWithCryptoModuleNoEncryptedMessage(t *testing.T) {
 	<-done
 	//pn.Destroy()
 }
+
+func TestProcessDataSyncPayloadMalformedFieldsAnnounceUnknownStatus(t *testing.T) {
+	tests := []struct {
+		name    string
+		payload interface{}
+	}{
+		{
+			name:    "not a map",
+			payload: "not-a-datasync-payload",
+		},
+		{
+			name: "invalid version type",
+			payload: map[string]interface{}{
+				"version": 1.0,
+			},
+		},
+		{
+			name: "missing metadata",
+			payload: map[string]interface{}{
+				"version": "1.0",
+				"data": map[string]interface{}{
+					"id": "i789",
+				},
+			},
+		},
+		{
+			name: "unexpected source",
+			payload: map[string]interface{}{
+				"version": "1.0",
+				"metadata": map[string]interface{}{
+					"event":  "create",
+					"source": "objects",
+					"type":   "entity",
+				},
+				"data": map[string]interface{}{
+					"id": "i789",
+				},
+			},
+		},
+		{
+			name: "invalid event",
+			payload: map[string]interface{}{
+				"version": "1.0",
+				"metadata": map[string]interface{}{
+					"event":  42,
+					"source": "data-sync",
+					"type":   "entity",
+				},
+				"data": map[string]interface{}{
+					"id": "i789",
+				},
+			},
+		},
+		{
+			name: "unsupported type",
+			payload: map[string]interface{}{
+				"version": "1.0",
+				"metadata": map[string]interface{}{
+					"event":  "create",
+					"source": "data-sync",
+					"type":   "uuid",
+				},
+				"data": map[string]interface{}{
+					"id": "i789",
+				},
+			},
+		},
+		{
+			name: "invalid payload bag",
+			payload: map[string]interface{}{
+				"version": "1.0",
+				"metadata": map[string]interface{}{
+					"event":        "create",
+					"source":       "data-sync",
+					"type":         "entity",
+					"className":    "user:adminUser:",
+					"classVersion": float64(1),
+				},
+				"data": map[string]interface{}{
+					"id":      "i789",
+					"payload": "not-a-map",
+				},
+			},
+		},
+		{
+			name: "relationship missing entityAId",
+			payload: map[string]interface{}{
+				"version": "1.0",
+				"metadata": map[string]interface{}{
+					"event":        "create",
+					"source":       "data-sync",
+					"type":         "relationship",
+					"className":    "membership",
+					"classVersion": float64(1),
+				},
+				"data": map[string]interface{}{
+					"id":        "r-1",
+					"entityBId": "user-1",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			listener := NewListener()
+			pn := NewPubNub(NewDemoConfig())
+			pn.AddListener(listener)
+
+			sm := &subscribeMessage{
+				Shard:             "1",
+				SubscriptionMatch: "channel",
+				Channel:           "channel",
+				Payload:           tt.payload,
+				MessageType:       PNMessageTypeDataSync,
+			}
+
+			processSubscribePayload(pn.subscriptionManager, *sm)
+
+			assertUnknownSubscribeStatus(t, listener, "channel")
+			select {
+			case event := <-listener.DataSyncEvent:
+				assert.Failf(t, "unexpected DataSync event", "event: %#v", event)
+			case event := <-listener.Message:
+				assert.Failf(t, "unexpected message", "event: %#v", event)
+			case event := <-listener.UUIDEvent:
+				assert.Failf(t, "unexpected uuid event", "event: %#v", event)
+			case <-time.After(50 * time.Millisecond):
+			}
+		})
+	}
+}
+
+func TestProcessDataSyncPayloadUnsupportedVersionIsIgnored(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload: map[string]interface{}{
+			"version": "3.0",
+			"metadata": map[string]interface{}{
+				"event":  "create",
+				"source": "data-sync",
+				"type":   "entity",
+			},
+			"data": map[string]interface{}{
+				"id": "i789",
+			},
+		},
+		MessageType: PNMessageTypeDataSync,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case status := <-listener.Status:
+		assert.Failf(t, "unexpected status", "status: %#v", status)
+	case event := <-listener.DataSyncEvent:
+		assert.Failf(t, "unexpected DataSync event", "event: %#v", event)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestProcessDataSyncPayloadValidEntityCreateAnnouncesEvent(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel-group",
+		Channel:           "entity-channel",
+		PublishMetaData: publishMetadata{
+			PublishTimetoken: "15078947309567840",
+		},
+		Payload: map[string]interface{}{
+			"version": "1.0",
+			"metadata": map[string]interface{}{
+				"event":        "create",
+				"source":       "data-sync",
+				"type":         "entity",
+				"className":    "user:adminUser:",
+				"classVersion": float64(1),
+			},
+			"data": map[string]interface{}{
+				"id":        "i789",
+				"updatedAt": "2021-01-01T00:00:00.000Z",
+				"createdAt": "2021-01-01T00:00:00.000Z",
+				"eTag":      "1",
+				"status":    "active",
+				"expiresAt": "2021-01-01T00:00:00.000Z",
+				"payload": map[string]interface{}{
+					"name":  "Adam",
+					"email": "adam@malpa.com",
+				},
+			},
+		},
+		MessageType: PNMessageTypeDataSync,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case event := <-listener.DataSyncEvent:
+		assert.Equal(t, "1.0", event.Version)
+		assert.Equal(t, PNDataSyncEventCreate, event.Event)
+		assert.Equal(t, "data-sync", event.Source)
+		assert.Equal(t, PNDataSyncEventTypeEntity, event.Type)
+		assert.Equal(t, "user:adminUser:", event.ClassName)
+		assert.Equal(t, 1, event.ClassVersion)
+		assert.Equal(t, int64(15078947309567840), event.Timetoken)
+		assert.Equal(t, "entity-channel", event.Channel)
+		assert.Equal(t, "channel-group", event.Subscription)
+		assert.NotNil(t, event.Entity)
+		assert.Nil(t, event.Relationship)
+		assert.Equal(t, "i789", event.Entity.ID)
+		assert.Equal(t, "user:adminUser:", event.Entity.EntityClass)
+		assert.Equal(t, 1, event.Entity.EntityClassVersion)
+		assert.Equal(t, "active", event.Entity.Status)
+		assert.Equal(t, "Adam", event.Entity.Payload["name"])
+		assert.Equal(t, "adam@malpa.com", event.Entity.Payload["email"])
+		assert.Equal(t, "1", event.Entity.ETag)
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for DataSync event")
+	}
+
+	select {
+	case status := <-listener.Status:
+		assert.Failf(t, "unexpected status", "status: %#v", status)
+	case event := <-listener.Message:
+		assert.Failf(t, "unexpected message", "event: %#v", event)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestProcessDataSyncPayloadValidRelationshipUpdateAnnouncesEvent(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload: map[string]interface{}{
+			"version": "1.0",
+			"metadata": map[string]interface{}{
+				"event":        "update",
+				"source":       "data-sync",
+				"type":         "relationship",
+				"className":    "membership",
+				"classVersion": float64(2),
+			},
+			"data": map[string]interface{}{
+				"id":        "r-123",
+				"entityAId": "channel-1",
+				"entityBId": "user-1",
+				"status":    "active",
+				"createdAt": "2021-01-01T00:00:00.000Z",
+				"updatedAt": "2021-01-02T00:00:00.000Z",
+				"eTag":      "2",
+				"payload": map[string]interface{}{
+					"role": "admin",
+				},
+			},
+		},
+		MessageType: PNMessageTypeDataSync,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case event := <-listener.DataSyncEvent:
+		assert.Equal(t, PNDataSyncEventUpdate, event.Event)
+		assert.Equal(t, PNDataSyncEventTypeRelationship, event.Type)
+		assert.Equal(t, "membership", event.ClassName)
+		assert.Equal(t, 2, event.ClassVersion)
+		assert.Nil(t, event.Entity)
+		assert.NotNil(t, event.Relationship)
+		assert.Equal(t, "r-123", event.Relationship.ID)
+		assert.Equal(t, "channel-1", event.Relationship.EntityAID)
+		assert.Equal(t, "user-1", event.Relationship.EntityBID)
+		assert.Equal(t, "membership", event.Relationship.RelationshipClass)
+		assert.Equal(t, 2, event.Relationship.RelationshipClassVersion)
+		assert.Equal(t, "admin", event.Relationship.Payload["role"])
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for DataSync event")
+	}
+}
+
+func TestProcessDataSyncPayloadValidDeleteAnnouncesEvent(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload: map[string]interface{}{
+			"version": "1.0",
+			"metadata": map[string]interface{}{
+				"event":        "delete",
+				"source":       "data-sync",
+				"type":         "entity",
+				"className":    ":Product:",
+				"classVersion": float64(1),
+			},
+			"data": map[string]interface{}{
+				"id":        "i789",
+				"deletedAt": "2021-01-01T00:00:00.000Z",
+			},
+		},
+		MessageType: PNMessageTypeDataSync,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case event := <-listener.DataSyncEvent:
+		assert.Equal(t, PNDataSyncEventDelete, event.Event)
+		assert.Equal(t, PNDataSyncEventTypeEntity, event.Type)
+		assert.Equal(t, ":Product:", event.ClassName)
+		assert.Equal(t, "i789", event.ID)
+		assert.Equal(t, "2021-01-01T00:00:00.000Z", event.DeletedAt)
+		assert.Nil(t, event.Entity)
+		assert.Nil(t, event.Relationship)
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for DataSync event")
+	}
+}
+
+func TestPNMessageTypeDataSyncValue(t *testing.T) {
+	assert.Equal(t, PNMessageType(5), PNMessageTypeDataSync)
+}

@@ -115,6 +115,28 @@ const (
 	PNObjectsEventSet = "set"
 )
 
+// PNDataSyncEvent categorizes DataSync internal-publish event names.
+type PNDataSyncEvent string
+
+// PNDataSyncEventType categorizes DataSync internal-publish resource types.
+type PNDataSyncEventType string
+
+const (
+	// PNDataSyncEventCreate is the enum when a DataSync create event occurs.
+	PNDataSyncEventCreate PNDataSyncEvent = "create"
+	// PNDataSyncEventUpdate is the enum when a DataSync update event occurs.
+	PNDataSyncEventUpdate PNDataSyncEvent = "update"
+	// PNDataSyncEventDelete is the enum when a DataSync delete event occurs.
+	PNDataSyncEventDelete PNDataSyncEvent = "delete"
+)
+
+const (
+	// PNDataSyncEventTypeEntity is the enum when the DataSync event type is entity.
+	PNDataSyncEventTypeEntity PNDataSyncEventType = "entity"
+	// PNDataSyncEventTypeRelationship is the enum when the DataSync event type is relationship.
+	PNDataSyncEventTypeRelationship PNDataSyncEventType = "relationship"
+)
+
 const (
 	// PNUUIDMetadataIncludeCustom is the enum equivalent to the value `custom` available UUID include types
 	PNUUIDMetadataIncludeCustom PNUUIDMetadataInclude = 1 + iota
@@ -220,6 +242,8 @@ const (
 	PNMessageTypeMessageActions
 	// PNMessageTypeFile is to identify Files the Subscribe response
 	PNMessageTypeFile
+	// PNMessageTypeDataSync is to identify DataSync internal publish events
+	PNMessageTypeDataSync
 )
 
 const (

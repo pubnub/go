@@ -21,6 +21,7 @@ type Listener struct {
 	MembershipEvent     chan *PNMembershipEvent
 	MessageActionsEvent chan *PNMessageActionsEvent
 	File                chan *PNFilesEvent
+	DataSyncEvent       chan *PNDataSyncEventResult
 }
 
 // NewListener initates the listener to facilitate the event handling
@@ -35,6 +36,7 @@ func NewListener() *Listener {
 		MembershipEvent:     make(chan *PNMembershipEvent),
 		MessageActionsEvent: make(chan *PNMessageActionsEvent),
 		File:                make(chan *PNFilesEvent),
+		DataSyncEvent:       make(chan *PNDataSyncEventResult),
 	}
 }
 
@@ -223,6 +225,17 @@ func (m *ListenerManager) announceFile(file *PNFilesEvent) {
 	}()
 }
 
+func (m *ListenerManager) announceDataSyncEvent(event *PNDataSyncEventResult) {
+	go func() {
+		lis := m.copyListeners()
+		for l := range lis {
+			if !announceEvent(m, m.exitListener, l.DataSyncEvent, event, "announceDataSyncEvent") {
+				return
+			}
+		}
+	}()
+}
+
 // PNStatus is the status struct
 type PNStatus struct {
 	Category              StatusCategory
@@ -348,4 +361,27 @@ type PNFilesEvent struct {
 	Publisher         string
 	Timetoken         int64
 	Error             error
+}
+
+// PNDataSyncEventResult is the Response for a DataSync internal-publish event.
+// Create/update events populate Entity or Relationship; delete events populate ID and DeletedAt.
+type PNDataSyncEventResult struct {
+	Version      string
+	Event        PNDataSyncEvent
+	Source       string
+	Type         PNDataSyncEventType
+	ClassName    string
+	ClassVersion int
+
+	Entity       *PNEntity
+	Relationship *PNRelationship
+
+	ID        string
+	DeletedAt string
+
+	Timetoken         int64
+	SubscribedChannel string
+	ActualChannel     string
+	Channel           string
+	Subscription      string
 }
