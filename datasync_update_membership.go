@@ -25,42 +25,51 @@ func newUpdateMembershipBuilderWithContext(pubnub *PubNub, context Context) *upd
 	return &updateMembershipBuilder{opts: newUpdateMembershipOpts(pubnub, context)}
 }
 
-// updateMembershipBody is the request envelope sent on PUT /memberships/{id}.
-// channelId, userId and relationshipClass are intentionally omitted because
-// they are immutable after creation.
-type updateMembershipBody struct {
-	Data updateMembershipBodyData `json:"data"`
-}
-
-type updateMembershipBodyData struct {
-	RelationshipClassVersion int                    `json:"relationshipClassVersion"`
-	Status                   string                 `json:"status,omitempty"`
-	Payload                  map[string]interface{} `json:"payload,omitempty"`
-}
-
-// ID sets the required identifier of the membership to replace.
+// ID sets the required identifier of the membership to update.
 func (b *updateMembershipBuilder) ID(id string) *updateMembershipBuilder {
 	b.opts.ID = id
 	return b
 }
 
-// RelationshipClassVersion sets the required schema version of the Membership
-// relationship class (>= 1).
-func (b *updateMembershipBuilder) RelationshipClassVersion(version int) *updateMembershipBuilder {
-	b.opts.RelationshipClassVersion = version
+// Operations sets the full list of RFC 6902 JSON Patch operations to apply.
+func (b *updateMembershipBuilder) Operations(operations []PNJSONPatchOperation) *updateMembershipBuilder {
+	b.opts.Operations = operations
 	return b
 }
 
-// Status sets the optional membership status (e.g. "active").
-func (b *updateMembershipBuilder) Status(status string) *updateMembershipBuilder {
-	b.opts.Status = status
+// Add appends an "add" JSON Patch operation.
+func (b *updateMembershipBuilder) Add(path string, value interface{}) *updateMembershipBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "add", Path: path, Value: value})
 	return b
 }
 
-// Payload sets the optional custom membership fields. Under the default PAM
-// projection this replaces the entire payload; omitted fields are removed.
-func (b *updateMembershipBuilder) Payload(payload map[string]interface{}) *updateMembershipBuilder {
-	b.opts.Payload = payload
+// Remove appends a "remove" JSON Patch operation.
+func (b *updateMembershipBuilder) Remove(path string) *updateMembershipBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "remove", Path: path})
+	return b
+}
+
+// Replace appends a "replace" JSON Patch operation.
+func (b *updateMembershipBuilder) Replace(path string, value interface{}) *updateMembershipBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "replace", Path: path, Value: value})
+	return b
+}
+
+// Move appends a "move" JSON Patch operation.
+func (b *updateMembershipBuilder) Move(from string, path string) *updateMembershipBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "move", From: from, Path: path})
+	return b
+}
+
+// Copy appends a "copy" JSON Patch operation.
+func (b *updateMembershipBuilder) Copy(from string, path string) *updateMembershipBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "copy", From: from, Path: path})
+	return b
+}
+
+// Test appends a "test" JSON Patch operation.
+func (b *updateMembershipBuilder) Test(path string, value interface{}) *updateMembershipBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "test", Path: path, Value: value})
 	return b
 }
 
@@ -85,17 +94,10 @@ func (b *updateMembershipBuilder) Transport(tr http.RoundTripper) *updateMembers
 
 // GetLogParams returns the user-provided parameters for logging
 func (o *updateMembershipOpts) GetLogParams() map[string]interface{} {
-	params := map[string]interface{}{
-		"ID":                       o.ID,
-		"RelationshipClassVersion": o.RelationshipClassVersion,
+	return map[string]interface{}{
+		"ID":         o.ID,
+		"Operations": fmt.Sprintf("%v", o.Operations),
 	}
-	if o.Status != "" {
-		params["Status"] = o.Status
-	}
-	if o.Payload != nil {
-		params["Payload"] = fmt.Sprintf("%v", o.Payload)
-	}
-	return params
 }
 
 // Execute runs the updateMembership request.
@@ -113,13 +115,11 @@ func (b *updateMembershipBuilder) Execute() (*PNDataSyncMembershipResponse, Stat
 type updateMembershipOpts struct {
 	endpointOpts
 
-	ID                       string
-	RelationshipClassVersion int
-	Status                   string
-	Payload                  map[string]interface{}
-	IfMatchETag              string
-	setIfMatchETag           bool
-	QueryParam               map[string]string
+	ID             string
+	Operations     []PNJSONPatchOperation
+	IfMatchETag    string
+	setIfMatchETag bool
+	QueryParam     map[string]string
 
 	Transport http.RoundTripper
 }
@@ -131,8 +131,8 @@ func (o *updateMembershipOpts) validate() error {
 	if o.ID == "" {
 		return newValidationError(o, StrMissingMembershipID)
 	}
-	if o.RelationshipClassVersion < 1 {
-		return newValidationError(o, StrInvalidRelationshipClassVersion)
+	if len(o.Operations) == 0 {
+		return newValidationError(o, StrMissingPatchOperations)
 	}
 	return nil
 }
@@ -148,15 +148,7 @@ func (o *updateMembershipOpts) buildQuery() (*url.Values, error) {
 }
 
 func (o *updateMembershipOpts) buildBody() ([]byte, error) {
-	b := &updateMembershipBody{
-		Data: updateMembershipBodyData{
-			RelationshipClassVersion: o.RelationshipClassVersion,
-			Status:                   o.Status,
-			Payload:                  o.Payload,
-		},
-	}
-
-	jsonEncBytes, errEnc := json.Marshal(b)
+	jsonEncBytes, errEnc := json.Marshal(o.Operations)
 	if errEnc != nil {
 		o.pubnub.loggerManager.LogError(errEnc, "UpdateMembershipSerializationFailed", PNUpdateDataSyncMembershipOperation, true)
 		return []byte{}, errEnc
@@ -166,7 +158,7 @@ func (o *updateMembershipOpts) buildBody() ([]byte, error) {
 
 func (o *updateMembershipOpts) buildHeaders() (map[string]string, error) {
 	headers := map[string]string{
-		"Content-Type": membershipContentType,
+		"Content-Type": entityPatchContentType,
 	}
 	if o.setIfMatchETag {
 		headers["If-Match"] = o.IfMatchETag
@@ -175,7 +167,7 @@ func (o *updateMembershipOpts) buildHeaders() (map[string]string, error) {
 }
 
 func (o *updateMembershipOpts) httpMethod() string {
-	return "PUT"
+	return "PATCH"
 }
 
 func (o *updateMembershipOpts) operationType() OperationType {

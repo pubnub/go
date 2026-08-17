@@ -268,9 +268,9 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 		fallthrough
 	case PNGetEntitiesOperation:
 		fallthrough
-	case PNUpdateEntityOperation:
+	case PNSetEntityOperation:
 		fallthrough
-	case PNPatchEntityOperation:
+	case PNUpdateEntityOperation:
 		fallthrough
 	case PNRemoveEntityOperation:
 		endpoint = "ent"
@@ -281,9 +281,9 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 		fallthrough
 	case PNGetRelationshipsOperation:
 		fallthrough
-	case PNUpdateRelationshipOperation:
+	case PNSetRelationshipOperation:
 		fallthrough
-	case PNPatchRelationshipOperation:
+	case PNUpdateRelationshipOperation:
 		fallthrough
 	case PNRemoveRelationshipOperation:
 		endpoint = "rel"
@@ -294,9 +294,9 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 		fallthrough
 	case PNGetDataSyncUsersOperation:
 		fallthrough
-	case PNUpdateDataSyncUserOperation:
+	case PNSetDataSyncUserOperation:
 		fallthrough
-	case PNPatchDataSyncUserOperation:
+	case PNUpdateDataSyncUserOperation:
 		fallthrough
 	case PNRemoveDataSyncUserOperation:
 		endpoint = "usr"
@@ -307,9 +307,9 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 		fallthrough
 	case PNGetDataSyncChannelsOperation:
 		fallthrough
-	case PNUpdateDataSyncChannelOperation:
+	case PNSetDataSyncChannelOperation:
 		fallthrough
-	case PNPatchDataSyncChannelOperation:
+	case PNUpdateDataSyncChannelOperation:
 		fallthrough
 	case PNRemoveDataSyncChannelOperation:
 		endpoint = "chn"
@@ -320,9 +320,9 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 		fallthrough
 	case PNGetDataSyncMembershipsOperation:
 		fallthrough
-	case PNUpdateDataSyncMembershipOperation:
+	case PNSetDataSyncMembershipOperation:
 		fallthrough
-	case PNPatchDataSyncMembershipOperation:
+	case PNUpdateDataSyncMembershipOperation:
 		fallthrough
 	case PNRemoveDataSyncMembershipOperation:
 		endpoint = "mem"

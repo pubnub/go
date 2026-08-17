@@ -25,40 +25,51 @@ func newUpdateUserBuilderWithContext(pubnub *PubNub, context Context) *updateUse
 	return &updateUserBuilder{opts: newUpdateUserOpts(pubnub, context)}
 }
 
-// updateUserBody is the request envelope sent on PUT /users/{id}.
-// entityClass is intentionally omitted because it is immutable.
-type updateUserBody struct {
-	Data updateUserBodyData `json:"data"`
-}
-
-type updateUserBodyData struct {
-	EntityClassVersion int                    `json:"entityClassVersion"`
-	Status             string                 `json:"status,omitempty"`
-	Payload            map[string]interface{} `json:"payload,omitempty"`
-}
-
-// ID sets the required identifier of the user to replace.
+// ID sets the required identifier of the user to update.
 func (b *updateUserBuilder) ID(id string) *updateUserBuilder {
 	b.opts.ID = id
 	return b
 }
 
-// EntityClassVersion sets the required schema version of the entity class (>= 1).
-func (b *updateUserBuilder) EntityClassVersion(version int) *updateUserBuilder {
-	b.opts.EntityClassVersion = version
+// Operations sets the full list of RFC 6902 JSON Patch operations to apply.
+func (b *updateUserBuilder) Operations(operations []PNJSONPatchOperation) *updateUserBuilder {
+	b.opts.Operations = operations
 	return b
 }
 
-// Status sets the optional user status (e.g. "active").
-func (b *updateUserBuilder) Status(status string) *updateUserBuilder {
-	b.opts.Status = status
+// Add appends an "add" JSON Patch operation.
+func (b *updateUserBuilder) Add(path string, value interface{}) *updateUserBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "add", Path: path, Value: value})
 	return b
 }
 
-// Payload sets the optional custom profile fields. Under the default PAM
-// projection this replaces the entire payload; omitted fields are removed.
-func (b *updateUserBuilder) Payload(payload map[string]interface{}) *updateUserBuilder {
-	b.opts.Payload = payload
+// Remove appends a "remove" JSON Patch operation.
+func (b *updateUserBuilder) Remove(path string) *updateUserBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "remove", Path: path})
+	return b
+}
+
+// Replace appends a "replace" JSON Patch operation.
+func (b *updateUserBuilder) Replace(path string, value interface{}) *updateUserBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "replace", Path: path, Value: value})
+	return b
+}
+
+// Move appends a "move" JSON Patch operation.
+func (b *updateUserBuilder) Move(from string, path string) *updateUserBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "move", From: from, Path: path})
+	return b
+}
+
+// Copy appends a "copy" JSON Patch operation.
+func (b *updateUserBuilder) Copy(from string, path string) *updateUserBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "copy", From: from, Path: path})
+	return b
+}
+
+// Test appends a "test" JSON Patch operation.
+func (b *updateUserBuilder) Test(path string, value interface{}) *updateUserBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "test", Path: path, Value: value})
 	return b
 }
 
@@ -83,17 +94,10 @@ func (b *updateUserBuilder) Transport(tr http.RoundTripper) *updateUserBuilder {
 
 // GetLogParams returns the user-provided parameters for logging
 func (o *updateUserOpts) GetLogParams() map[string]interface{} {
-	params := map[string]interface{}{
-		"ID":                 o.ID,
-		"EntityClassVersion": o.EntityClassVersion,
+	return map[string]interface{}{
+		"ID":         o.ID,
+		"Operations": fmt.Sprintf("%v", o.Operations),
 	}
-	if o.Status != "" {
-		params["Status"] = o.Status
-	}
-	if o.Payload != nil {
-		params["Payload"] = fmt.Sprintf("%v", o.Payload)
-	}
-	return params
 }
 
 // Execute runs the updateUser request.
@@ -111,13 +115,11 @@ func (b *updateUserBuilder) Execute() (*PNUserResponse, StatusResponse, error) {
 type updateUserOpts struct {
 	endpointOpts
 
-	ID                 string
-	EntityClassVersion int
-	Status             string
-	Payload            map[string]interface{}
-	IfMatchETag        string
-	setIfMatchETag     bool
-	QueryParam         map[string]string
+	ID             string
+	Operations     []PNJSONPatchOperation
+	IfMatchETag    string
+	setIfMatchETag bool
+	QueryParam     map[string]string
 
 	Transport http.RoundTripper
 }
@@ -129,8 +131,8 @@ func (o *updateUserOpts) validate() error {
 	if o.ID == "" {
 		return newValidationError(o, StrMissingUserID)
 	}
-	if o.EntityClassVersion < 1 {
-		return newValidationError(o, StrInvalidEntityClassVersion)
+	if len(o.Operations) == 0 {
+		return newValidationError(o, StrMissingPatchOperations)
 	}
 	return nil
 }
@@ -146,15 +148,7 @@ func (o *updateUserOpts) buildQuery() (*url.Values, error) {
 }
 
 func (o *updateUserOpts) buildBody() ([]byte, error) {
-	b := &updateUserBody{
-		Data: updateUserBodyData{
-			EntityClassVersion: o.EntityClassVersion,
-			Status:             o.Status,
-			Payload:            o.Payload,
-		},
-	}
-
-	jsonEncBytes, errEnc := json.Marshal(b)
+	jsonEncBytes, errEnc := json.Marshal(o.Operations)
 	if errEnc != nil {
 		o.pubnub.loggerManager.LogError(errEnc, "UpdateUserSerializationFailed", PNUpdateDataSyncUserOperation, true)
 		return []byte{}, errEnc
@@ -164,7 +158,7 @@ func (o *updateUserOpts) buildBody() ([]byte, error) {
 
 func (o *updateUserOpts) buildHeaders() (map[string]string, error) {
 	headers := map[string]string{
-		"Content-Type": userContentType,
+		"Content-Type": entityPatchContentType,
 	}
 	if o.setIfMatchETag {
 		headers["If-Match"] = o.IfMatchETag
@@ -173,7 +167,7 @@ func (o *updateUserOpts) buildHeaders() (map[string]string, error) {
 }
 
 func (o *updateUserOpts) httpMethod() string {
-	return "PUT"
+	return "PATCH"
 }
 
 func (o *updateUserOpts) operationType() OperationType {

@@ -36,24 +36,24 @@ func (d *DataSyncService) GetEntitiesWithContext(ctx Context) *getEntitiesBuilde
 	return newGetEntitiesBuilderWithContext(d.pn, ctx)
 }
 
-// UpdateEntity fully replaces the mutable fields of an existing entity (PUT).
+// SetEntity fully replaces the mutable fields of an existing entity (PUT).
+func (d *DataSyncService) SetEntity() *setEntityBuilder {
+	return newSetEntityBuilder(d.pn)
+}
+
+// SetEntityWithContext fully replaces the mutable fields of an existing entity (PUT).
+func (d *DataSyncService) SetEntityWithContext(ctx Context) *setEntityBuilder {
+	return newSetEntityBuilderWithContext(d.pn, ctx)
+}
+
+// UpdateEntity partially updates an existing entity using RFC 6902 JSON Patch.
 func (d *DataSyncService) UpdateEntity() *updateEntityBuilder {
 	return newUpdateEntityBuilder(d.pn)
 }
 
-// UpdateEntityWithContext fully replaces the mutable fields of an existing entity (PUT).
+// UpdateEntityWithContext partially updates an existing entity using RFC 6902 JSON Patch.
 func (d *DataSyncService) UpdateEntityWithContext(ctx Context) *updateEntityBuilder {
 	return newUpdateEntityBuilderWithContext(d.pn, ctx)
-}
-
-// PatchEntity partially updates an existing entity using RFC 6902 JSON Patch.
-func (d *DataSyncService) PatchEntity() *patchEntityBuilder {
-	return newPatchEntityBuilder(d.pn)
-}
-
-// PatchEntityWithContext partially updates an existing entity using RFC 6902 JSON Patch.
-func (d *DataSyncService) PatchEntityWithContext(ctx Context) *patchEntityBuilder {
-	return newPatchEntityBuilderWithContext(d.pn, ctx)
 }
 
 // RemoveEntity removes a generic entity by its identifier.
@@ -96,24 +96,24 @@ func (d *DataSyncService) GetRelationshipsWithContext(ctx Context) *getRelations
 	return newGetRelationshipsBuilderWithContext(d.pn, ctx)
 }
 
-// UpdateRelationship fully replaces the mutable fields of an existing relationship (PUT).
+// SetRelationship fully replaces the mutable fields of an existing relationship (PUT).
+func (d *DataSyncService) SetRelationship() *setRelationshipBuilder {
+	return newSetRelationshipBuilder(d.pn)
+}
+
+// SetRelationshipWithContext fully replaces the mutable fields of an existing relationship (PUT).
+func (d *DataSyncService) SetRelationshipWithContext(ctx Context) *setRelationshipBuilder {
+	return newSetRelationshipBuilderWithContext(d.pn, ctx)
+}
+
+// UpdateRelationship partially updates an existing relationship using RFC 6902 JSON Patch.
 func (d *DataSyncService) UpdateRelationship() *updateRelationshipBuilder {
 	return newUpdateRelationshipBuilder(d.pn)
 }
 
-// UpdateRelationshipWithContext fully replaces the mutable fields of an existing relationship (PUT).
+// UpdateRelationshipWithContext partially updates an existing relationship using RFC 6902 JSON Patch.
 func (d *DataSyncService) UpdateRelationshipWithContext(ctx Context) *updateRelationshipBuilder {
 	return newUpdateRelationshipBuilderWithContext(d.pn, ctx)
-}
-
-// PatchRelationship partially updates an existing relationship using RFC 6902 JSON Patch.
-func (d *DataSyncService) PatchRelationship() *patchRelationshipBuilder {
-	return newPatchRelationshipBuilder(d.pn)
-}
-
-// PatchRelationshipWithContext partially updates an existing relationship using RFC 6902 JSON Patch.
-func (d *DataSyncService) PatchRelationshipWithContext(ctx Context) *patchRelationshipBuilder {
-	return newPatchRelationshipBuilderWithContext(d.pn, ctx)
 }
 
 // RemoveRelationship removes a relationship by its identifier.
@@ -156,24 +156,24 @@ func (d *DataSyncService) GetUsersWithContext(ctx Context) *getUsersBuilder {
 	return newGetUsersBuilderWithContext(d.pn, ctx)
 }
 
-// UpdateUser fully replaces the mutable fields of an existing user (PUT).
+// SetUser fully replaces the mutable fields of an existing user (PUT).
+func (d *DataSyncService) SetUser() *setUserBuilder {
+	return newSetUserBuilder(d.pn)
+}
+
+// SetUserWithContext fully replaces the mutable fields of an existing user (PUT).
+func (d *DataSyncService) SetUserWithContext(ctx Context) *setUserBuilder {
+	return newSetUserBuilderWithContext(d.pn, ctx)
+}
+
+// UpdateUser partially updates an existing user using RFC 6902 JSON Patch.
 func (d *DataSyncService) UpdateUser() *updateUserBuilder {
 	return newUpdateUserBuilder(d.pn)
 }
 
-// UpdateUserWithContext fully replaces the mutable fields of an existing user (PUT).
+// UpdateUserWithContext partially updates an existing user using RFC 6902 JSON Patch.
 func (d *DataSyncService) UpdateUserWithContext(ctx Context) *updateUserBuilder {
 	return newUpdateUserBuilderWithContext(d.pn, ctx)
-}
-
-// PatchUser partially updates an existing user using RFC 6902 JSON Patch.
-func (d *DataSyncService) PatchUser() *patchUserBuilder {
-	return newPatchUserBuilder(d.pn)
-}
-
-// PatchUserWithContext partially updates an existing user using RFC 6902 JSON Patch.
-func (d *DataSyncService) PatchUserWithContext(ctx Context) *patchUserBuilder {
-	return newPatchUserBuilderWithContext(d.pn, ctx)
 }
 
 // RemoveUser removes a user profile by its identifier.
@@ -216,24 +216,24 @@ func (d *DataSyncService) GetChannelsWithContext(ctx Context) *getChannelsBuilde
 	return newGetChannelsBuilderWithContext(d.pn, ctx)
 }
 
-// UpdateChannel fully replaces the mutable fields of an existing channel (PUT).
+// SetChannel fully replaces the mutable fields of an existing channel (PUT).
+func (d *DataSyncService) SetChannel() *setChannelBuilder {
+	return newSetChannelBuilder(d.pn)
+}
+
+// SetChannelWithContext fully replaces the mutable fields of an existing channel (PUT).
+func (d *DataSyncService) SetChannelWithContext(ctx Context) *setChannelBuilder {
+	return newSetChannelBuilderWithContext(d.pn, ctx)
+}
+
+// UpdateChannel partially updates an existing channel using RFC 6902 JSON Patch.
 func (d *DataSyncService) UpdateChannel() *updateChannelBuilder {
 	return newUpdateChannelBuilder(d.pn)
 }
 
-// UpdateChannelWithContext fully replaces the mutable fields of an existing channel (PUT).
+// UpdateChannelWithContext partially updates an existing channel using RFC 6902 JSON Patch.
 func (d *DataSyncService) UpdateChannelWithContext(ctx Context) *updateChannelBuilder {
 	return newUpdateChannelBuilderWithContext(d.pn, ctx)
-}
-
-// PatchChannel partially updates an existing channel using RFC 6902 JSON Patch.
-func (d *DataSyncService) PatchChannel() *patchChannelBuilder {
-	return newPatchChannelBuilder(d.pn)
-}
-
-// PatchChannelWithContext partially updates an existing channel using RFC 6902 JSON Patch.
-func (d *DataSyncService) PatchChannelWithContext(ctx Context) *patchChannelBuilder {
-	return newPatchChannelBuilderWithContext(d.pn, ctx)
 }
 
 // RemoveChannel removes a channel record by its identifier.
@@ -276,24 +276,24 @@ func (d *DataSyncService) GetMembershipsWithContext(ctx Context) *getMemberships
 	return newGetMembershipsBuilderWithContext(d.pn, ctx)
 }
 
-// UpdateMembership fully replaces the mutable fields of an existing membership (PUT).
+// SetMembership fully replaces the mutable fields of an existing membership (PUT).
+func (d *DataSyncService) SetMembership() *setMembershipBuilder {
+	return newSetMembershipBuilder(d.pn)
+}
+
+// SetMembershipWithContext fully replaces the mutable fields of an existing membership (PUT).
+func (d *DataSyncService) SetMembershipWithContext(ctx Context) *setMembershipBuilder {
+	return newSetMembershipBuilderWithContext(d.pn, ctx)
+}
+
+// UpdateMembership partially updates an existing membership using RFC 6902 JSON Patch.
 func (d *DataSyncService) UpdateMembership() *updateMembershipBuilder {
 	return newUpdateMembershipBuilder(d.pn)
 }
 
-// UpdateMembershipWithContext fully replaces the mutable fields of an existing membership (PUT).
+// UpdateMembershipWithContext partially updates an existing membership using RFC 6902 JSON Patch.
 func (d *DataSyncService) UpdateMembershipWithContext(ctx Context) *updateMembershipBuilder {
 	return newUpdateMembershipBuilderWithContext(d.pn, ctx)
-}
-
-// PatchMembership partially updates an existing membership using RFC 6902 JSON Patch.
-func (d *DataSyncService) PatchMembership() *patchMembershipBuilder {
-	return newPatchMembershipBuilder(d.pn)
-}
-
-// PatchMembershipWithContext partially updates an existing membership using RFC 6902 JSON Patch.
-func (d *DataSyncService) PatchMembershipWithContext(ctx Context) *patchMembershipBuilder {
-	return newPatchMembershipBuilderWithContext(d.pn, ctx)
 }
 
 // RemoveMembership removes a membership by its identifier.

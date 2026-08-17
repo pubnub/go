@@ -15,9 +15,9 @@ func TestUpdateChannelBuildPathQueryBody(t *testing.T) {
 
 	o := newUpdateChannelBuilder(pn).
 		ID("general").
-		EntityClassVersion(1).
-		Status("active").
-		Payload(map[string]interface{}{"name": "General"}).
+		Replace("/payload/topic", "https://example.com/general").
+		Add("/payload/phone", "+1-555-0100").
+		Remove("/payload/isActive").
 		IfMatchETag("1").
 		QueryParam(map[string]string{"q1": "v1"})
 
@@ -34,21 +34,23 @@ func TestUpdateChannelBuildPathQueryBody(t *testing.T) {
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
 
-	var parsed updateChannelBody
-	assert.Nil(json.Unmarshal(body, &parsed))
-	assert.Equal(1, parsed.Data.EntityClassVersion)
-	assert.Equal("active", parsed.Data.Status)
-	assert.Equal("General", parsed.Data.Payload["name"])
+	var ops []PNJSONPatchOperation
+	assert.Nil(json.Unmarshal(body, &ops))
+	assert.Len(ops, 3)
+	assert.Equal("replace", ops[0].Op)
+	assert.Equal("/payload/topic", ops[0].Path)
+	assert.Equal("add", ops[1].Op)
+	assert.Equal("remove", ops[2].Op)
 }
 
 func TestUpdateChannelHeaders(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	o := newUpdateChannelBuilder(pn).ID("general").EntityClassVersion(1).IfMatchETag("1")
+	o := newUpdateChannelBuilder(pn).ID("general").Replace("/status", "inactive").IfMatchETag("1")
 	headers, err := o.opts.buildHeaders()
 	assert.Nil(err)
-	assert.Equal(channelContentType, headers["Content-Type"])
+	assert.Equal(entityPatchContentType, headers["Content-Type"])
 	assert.Equal("1", headers["If-Match"])
 }
 
@@ -56,7 +58,7 @@ func TestUpdateChannelHTTPMethodAndOperation(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	o := newUpdateChannelBuilder(pn)
-	assert.Equal("PUT", o.opts.httpMethod())
+	assert.Equal("PATCH", o.opts.httpMethod())
 	assert.Equal(PNUpdateDataSyncChannelOperation, o.opts.operationType())
 }
 
@@ -64,14 +66,14 @@ func TestUpdateChannelValidate(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	o := newUpdateChannelBuilder(pn).EntityClassVersion(1)
+	o := newUpdateChannelBuilder(pn).Replace("/status", "inactive")
 	assert.Contains(o.opts.validate().Error(), StrMissingChannelID)
 
-	o2 := newUpdateChannelBuilder(pn).ID("general").EntityClassVersion(0)
-	assert.Contains(o2.opts.validate().Error(), StrInvalidEntityClassVersion)
+	o2 := newUpdateChannelBuilder(pn).ID("general")
+	assert.Contains(o2.opts.validate().Error(), StrMissingPatchOperations)
 
 	pn.Config.SubscribeKey = ""
-	o3 := newUpdateChannelBuilder(pn).ID("general").EntityClassVersion(1)
+	o3 := newUpdateChannelBuilder(pn).ID("general").Replace("/status", "inactive")
 	assert.Contains(o3.opts.validate().Error(), StrMissingSubKey)
 }
 
@@ -79,6 +81,6 @@ func TestUpdateChannelExecuteValidationError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	_, _, err := pn.DataSync.UpdateChannel().EntityClassVersion(1).Execute()
-	assert.Contains(err.Error(), StrMissingChannelID)
+	_, _, err := pn.DataSync.UpdateChannel().ID("general").Execute()
+	assert.Contains(err.Error(), StrMissingPatchOperations)
 }

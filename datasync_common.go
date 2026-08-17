@@ -8,27 +8,27 @@ package pubnub
 const (
 	// entitiesPath is the collection path used for list (GET) and create (POST).
 	entitiesPath = "/v1/datasync/subkeys/%s/entities"
-	// entitiesIDPath is the item path used for read/update/patch/delete.
+	// entitiesIDPath is the item path used for read/set/update/delete.
 	entitiesIDPath = "/v1/datasync/subkeys/%s/entities/%s"
 
 	// relationshipsPath is the collection path used for list (GET) and create (POST).
 	relationshipsPath = "/v1/datasync/subkeys/%s/relationships"
-	// relationshipsIDPath is the item path used for read/update/patch/delete.
+	// relationshipsIDPath is the item path used for read/set/update/delete.
 	relationshipsIDPath = "/v1/datasync/subkeys/%s/relationships/%s"
 
 	// usersPath is the collection path used for list (GET) and create (POST).
 	usersPath = "/v1/datasync/subkeys/%s/users"
-	// usersIDPath is the item path used for read/update/patch/delete.
+	// usersIDPath is the item path used for read/set/update/delete.
 	usersIDPath = "/v1/datasync/subkeys/%s/users/%s"
 
 	// channelsPath is the collection path used for list (GET) and create (POST).
 	channelsPath = "/v1/datasync/subkeys/%s/channels"
-	// channelsIDPath is the item path used for read/update/patch/delete.
+	// channelsIDPath is the item path used for read/set/update/delete.
 	channelsIDPath = "/v1/datasync/subkeys/%s/channels/%s"
 
 	// membershipsPath is the collection path used for list (GET) and create (POST).
 	membershipsPath = "/v1/datasync/subkeys/%s/memberships"
-	// membershipsIDPath is the item path used for read/update/patch/delete.
+	// membershipsIDPath is the item path used for read/set/update/delete.
 	membershipsIDPath = "/v1/datasync/subkeys/%s/memberships/%s"
 
 	// entityContentType is the media type sent on create (POST) and full
@@ -91,7 +91,7 @@ type PNEntityPaginationLinks struct {
 }
 
 // PNEntityResponse is the envelope returned by single-entity operations
-// (create, get, update, patch).
+// (create, get, set, update).
 type PNEntityResponse struct {
 	Status int      `json:"status,omitempty"`
 	Data   PNEntity `json:"data"`
@@ -106,7 +106,7 @@ type PNEntitiesResponse struct {
 }
 
 // PNJSONPatchOperation is a single RFC 6902 JSON Patch operation applied by
-// PatchEntity / PatchRelationship. Value is required for "add", "replace" and
+// UpdateEntity / UpdateRelationship. Value is required for "add", "replace" and
 // "test"; From is required for "move" and "copy".
 type PNJSONPatchOperation struct {
 	Op    string      `json:"op"`
@@ -133,7 +133,7 @@ type PNRelationship struct {
 }
 
 // PNRelationshipResponse is the envelope returned by single-relationship
-// operations (create, get, update, patch).
+// operations (create, get, set, update).
 type PNRelationshipResponse struct {
 	Status int            `json:"status,omitempty"`
 	Data   PNRelationship `json:"data"`
@@ -153,7 +153,7 @@ type PNRelationshipsResponse struct {
 type PNUser = PNEntity
 
 // PNUserResponse is the envelope returned by single-user operations
-// (create, get, update, patch).
+// (create, get, set, update).
 type PNUserResponse = PNEntityResponse
 
 // PNUsersResponse is the envelope returned by the list (GetUsers) operation.
@@ -165,7 +165,7 @@ type PNUsersResponse = PNEntitiesResponse
 type PNDataSyncChannel = PNEntity
 
 // PNDataSyncChannelResponse is the envelope returned by single-channel operations
-// (create, get, update, patch).
+// (create, get, set, update).
 type PNDataSyncChannelResponse = PNEntityResponse
 
 // PNDataSyncChannelsResponse is the envelope returned by the list (GetChannels) operation.
@@ -190,7 +190,7 @@ type PNDataSyncMembership struct {
 }
 
 // PNDataSyncMembershipResponse is the envelope returned by single-membership
-// operations (create, get, update, patch).
+// operations (create, get, set, update).
 type PNDataSyncMembershipResponse struct {
 	Status int                  `json:"status,omitempty"`
 	Data   PNDataSyncMembership `json:"data"`

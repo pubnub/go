@@ -28,7 +28,7 @@ func (rt *recordingRoundTripper) RoundTrip(req *http.Request) (*http.Response, e
 }
 
 // TestExecuteRequestPUTMethod verifies the PUT branch added to executeRequest
-// actually issues an HTTP PUT (UpdateEntity uses PUT for full replacement).
+// actually issues an HTTP PUT (SetEntity uses PUT for full replacement).
 func TestExecuteRequestPUTMethod(t *testing.T) {
 	assert := assert.New(t)
 
@@ -37,7 +37,7 @@ func TestExecuteRequestPUTMethod(t *testing.T) {
 	pn := NewPubNub(NewDemoConfig())
 	pn.SetClient(&http.Client{Transport: rt})
 
-	res, status, err := pn.DataSync.UpdateEntity().
+	res, status, err := pn.DataSync.SetEntity().
 		ID("entity-abc").
 		EntityClassVersion(2).
 		Status("active").

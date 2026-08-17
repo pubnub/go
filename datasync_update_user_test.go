@@ -15,9 +15,9 @@ func TestUpdateUserBuildPathQueryBody(t *testing.T) {
 
 	o := newUpdateUserBuilder(pn).
 		ID("alice").
-		EntityClassVersion(1).
-		Status("active").
-		Payload(map[string]interface{}{"name": "Alice"}).
+		Replace("/payload/profileUrl", "https://example.com/alice").
+		Add("/payload/phone", "+1-555-0100").
+		Remove("/payload/isActive").
 		IfMatchETag("1").
 		QueryParam(map[string]string{"q1": "v1"})
 
@@ -34,21 +34,23 @@ func TestUpdateUserBuildPathQueryBody(t *testing.T) {
 	body, err := o.opts.buildBody()
 	assert.Nil(err)
 
-	var parsed updateUserBody
-	assert.Nil(json.Unmarshal(body, &parsed))
-	assert.Equal(1, parsed.Data.EntityClassVersion)
-	assert.Equal("active", parsed.Data.Status)
-	assert.Equal("Alice", parsed.Data.Payload["name"])
+	var ops []PNJSONPatchOperation
+	assert.Nil(json.Unmarshal(body, &ops))
+	assert.Len(ops, 3)
+	assert.Equal("replace", ops[0].Op)
+	assert.Equal("/payload/profileUrl", ops[0].Path)
+	assert.Equal("add", ops[1].Op)
+	assert.Equal("remove", ops[2].Op)
 }
 
 func TestUpdateUserHeaders(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	o := newUpdateUserBuilder(pn).ID("alice").EntityClassVersion(1).IfMatchETag("1")
+	o := newUpdateUserBuilder(pn).ID("alice").Replace("/status", "inactive").IfMatchETag("1")
 	headers, err := o.opts.buildHeaders()
 	assert.Nil(err)
-	assert.Equal(userContentType, headers["Content-Type"])
+	assert.Equal(entityPatchContentType, headers["Content-Type"])
 	assert.Equal("1", headers["If-Match"])
 }
 
@@ -56,7 +58,7 @@ func TestUpdateUserHTTPMethodAndOperation(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 	o := newUpdateUserBuilder(pn)
-	assert.Equal("PUT", o.opts.httpMethod())
+	assert.Equal("PATCH", o.opts.httpMethod())
 	assert.Equal(PNUpdateDataSyncUserOperation, o.opts.operationType())
 }
 
@@ -64,14 +66,14 @@ func TestUpdateUserValidate(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	o := newUpdateUserBuilder(pn).EntityClassVersion(1)
+	o := newUpdateUserBuilder(pn).Replace("/status", "inactive")
 	assert.Contains(o.opts.validate().Error(), StrMissingUserID)
 
-	o2 := newUpdateUserBuilder(pn).ID("alice").EntityClassVersion(0)
-	assert.Contains(o2.opts.validate().Error(), StrInvalidEntityClassVersion)
+	o2 := newUpdateUserBuilder(pn).ID("alice")
+	assert.Contains(o2.opts.validate().Error(), StrMissingPatchOperations)
 
 	pn.Config.SubscribeKey = ""
-	o3 := newUpdateUserBuilder(pn).ID("alice").EntityClassVersion(1)
+	o3 := newUpdateUserBuilder(pn).ID("alice").Replace("/status", "inactive")
 	assert.Contains(o3.opts.validate().Error(), StrMissingSubKey)
 }
 
@@ -79,6 +81,6 @@ func TestUpdateUserExecuteValidationError(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	_, _, err := pn.DataSync.UpdateUser().EntityClassVersion(1).Execute()
-	assert.Contains(err.Error(), StrMissingUserID)
+	_, _, err := pn.DataSync.UpdateUser().ID("alice").Execute()
+	assert.Contains(err.Error(), StrMissingPatchOperations)
 }

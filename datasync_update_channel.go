@@ -25,40 +25,51 @@ func newUpdateChannelBuilderWithContext(pubnub *PubNub, context Context) *update
 	return &updateChannelBuilder{opts: newUpdateChannelOpts(pubnub, context)}
 }
 
-// updateChannelBody is the request envelope sent on PUT /channels/{id}.
-// entityClass is intentionally omitted because it is immutable.
-type updateChannelBody struct {
-	Data updateChannelBodyData `json:"data"`
-}
-
-type updateChannelBodyData struct {
-	EntityClassVersion int                    `json:"entityClassVersion"`
-	Status             string                 `json:"status,omitempty"`
-	Payload            map[string]interface{} `json:"payload,omitempty"`
-}
-
-// ID sets the required identifier of the channel to replace.
+// ID sets the required identifier of the channel to update.
 func (b *updateChannelBuilder) ID(id string) *updateChannelBuilder {
 	b.opts.ID = id
 	return b
 }
 
-// EntityClassVersion sets the required schema version of the entity class (>= 1).
-func (b *updateChannelBuilder) EntityClassVersion(version int) *updateChannelBuilder {
-	b.opts.EntityClassVersion = version
+// Operations sets the full list of RFC 6902 JSON Patch operations to apply.
+func (b *updateChannelBuilder) Operations(operations []PNJSONPatchOperation) *updateChannelBuilder {
+	b.opts.Operations = operations
 	return b
 }
 
-// Status sets the optional channel status (e.g. "active").
-func (b *updateChannelBuilder) Status(status string) *updateChannelBuilder {
-	b.opts.Status = status
+// Add appends an "add" JSON Patch operation.
+func (b *updateChannelBuilder) Add(path string, value interface{}) *updateChannelBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "add", Path: path, Value: value})
 	return b
 }
 
-// Payload sets the optional custom channel fields. Under the default PAM
-// projection this replaces the entire payload; omitted fields are removed.
-func (b *updateChannelBuilder) Payload(payload map[string]interface{}) *updateChannelBuilder {
-	b.opts.Payload = payload
+// Remove appends a "remove" JSON Patch operation.
+func (b *updateChannelBuilder) Remove(path string) *updateChannelBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "remove", Path: path})
+	return b
+}
+
+// Replace appends a "replace" JSON Patch operation.
+func (b *updateChannelBuilder) Replace(path string, value interface{}) *updateChannelBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "replace", Path: path, Value: value})
+	return b
+}
+
+// Move appends a "move" JSON Patch operation.
+func (b *updateChannelBuilder) Move(from string, path string) *updateChannelBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "move", From: from, Path: path})
+	return b
+}
+
+// Copy appends a "copy" JSON Patch operation.
+func (b *updateChannelBuilder) Copy(from string, path string) *updateChannelBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "copy", From: from, Path: path})
+	return b
+}
+
+// Test appends a "test" JSON Patch operation.
+func (b *updateChannelBuilder) Test(path string, value interface{}) *updateChannelBuilder {
+	b.opts.Operations = append(b.opts.Operations, PNJSONPatchOperation{Op: "test", Path: path, Value: value})
 	return b
 }
 
@@ -83,17 +94,10 @@ func (b *updateChannelBuilder) Transport(tr http.RoundTripper) *updateChannelBui
 
 // GetLogParams returns the user-provided parameters for logging
 func (o *updateChannelOpts) GetLogParams() map[string]interface{} {
-	params := map[string]interface{}{
-		"ID":                 o.ID,
-		"EntityClassVersion": o.EntityClassVersion,
+	return map[string]interface{}{
+		"ID":         o.ID,
+		"Operations": fmt.Sprintf("%v", o.Operations),
 	}
-	if o.Status != "" {
-		params["Status"] = o.Status
-	}
-	if o.Payload != nil {
-		params["Payload"] = fmt.Sprintf("%v", o.Payload)
-	}
-	return params
 }
 
 // Execute runs the updateChannel request.
@@ -111,13 +115,11 @@ func (b *updateChannelBuilder) Execute() (*PNDataSyncChannelResponse, StatusResp
 type updateChannelOpts struct {
 	endpointOpts
 
-	ID                 string
-	EntityClassVersion int
-	Status             string
-	Payload            map[string]interface{}
-	IfMatchETag        string
-	setIfMatchETag     bool
-	QueryParam         map[string]string
+	ID             string
+	Operations     []PNJSONPatchOperation
+	IfMatchETag    string
+	setIfMatchETag bool
+	QueryParam     map[string]string
 
 	Transport http.RoundTripper
 }
@@ -129,8 +131,8 @@ func (o *updateChannelOpts) validate() error {
 	if o.ID == "" {
 		return newValidationError(o, StrMissingChannelID)
 	}
-	if o.EntityClassVersion < 1 {
-		return newValidationError(o, StrInvalidEntityClassVersion)
+	if len(o.Operations) == 0 {
+		return newValidationError(o, StrMissingPatchOperations)
 	}
 	return nil
 }
@@ -146,15 +148,7 @@ func (o *updateChannelOpts) buildQuery() (*url.Values, error) {
 }
 
 func (o *updateChannelOpts) buildBody() ([]byte, error) {
-	b := &updateChannelBody{
-		Data: updateChannelBodyData{
-			EntityClassVersion: o.EntityClassVersion,
-			Status:             o.Status,
-			Payload:            o.Payload,
-		},
-	}
-
-	jsonEncBytes, errEnc := json.Marshal(b)
+	jsonEncBytes, errEnc := json.Marshal(o.Operations)
 	if errEnc != nil {
 		o.pubnub.loggerManager.LogError(errEnc, "UpdateChannelSerializationFailed", PNUpdateDataSyncChannelOperation, true)
 		return []byte{}, errEnc
@@ -164,7 +158,7 @@ func (o *updateChannelOpts) buildBody() ([]byte, error) {
 
 func (o *updateChannelOpts) buildHeaders() (map[string]string, error) {
 	headers := map[string]string{
-		"Content-Type": channelContentType,
+		"Content-Type": entityPatchContentType,
 	}
 	if o.setIfMatchETag {
 		headers["If-Match"] = o.IfMatchETag
@@ -173,7 +167,7 @@ func (o *updateChannelOpts) buildHeaders() (map[string]string, error) {
 }
 
 func (o *updateChannelOpts) httpMethod() string {
-	return "PUT"
+	return "PATCH"
 }
 
 func (o *updateChannelOpts) operationType() OperationType {

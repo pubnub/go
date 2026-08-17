@@ -103,7 +103,7 @@ func TestEntitiesListStubbed(t *testing.T) {
 	assert.Equal("TjIw", res.Meta.NextCursor)
 }
 
-func TestEntitiesUpdateStubbed(t *testing.T) {
+func TestEntitiesSetStubbed(t *testing.T) {
 	assert := assert.New(t)
 	cfg := entitiesTestConfig()
 
@@ -120,7 +120,7 @@ func TestEntitiesUpdateStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DataSync.UpdateEntity().
+	res, status, err := pn.DataSync.SetEntity().
 		ID("entity-abc").
 		EntityClassVersion(2).
 		Status("active").
@@ -133,7 +133,7 @@ func TestEntitiesUpdateStubbed(t *testing.T) {
 	assert.Equal("Cxyz1...", res.Data.ETag)
 }
 
-func TestEntitiesPatchStubbed(t *testing.T) {
+func TestEntitiesUpdateStubbed(t *testing.T) {
 	assert := assert.New(t)
 	cfg := entitiesTestConfig()
 
@@ -150,7 +150,7 @@ func TestEntitiesPatchStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DataSync.PatchEntity().
+	res, status, err := pn.DataSync.UpdateEntity().
 		ID("entity-abc").
 		Replace("/status", "inactive").
 		Add("/payload/mileage", 42000).
@@ -278,7 +278,7 @@ func TestRelationshipsListStubbed(t *testing.T) {
 	assert.Equal("TjIw", res.Meta.NextCursor)
 }
 
-func TestRelationshipsUpdateStubbed(t *testing.T) {
+func TestRelationshipsSetStubbed(t *testing.T) {
 	assert := assert.New(t)
 	cfg := entitiesTestConfig()
 
@@ -295,7 +295,7 @@ func TestRelationshipsUpdateStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DataSync.UpdateRelationship().
+	res, status, err := pn.DataSync.SetRelationship().
 		ID("r-123").
 		RelationshipClassVersion(2).
 		Status("active").
@@ -308,7 +308,7 @@ func TestRelationshipsUpdateStubbed(t *testing.T) {
 	assert.Equal("2", res.Data.ETag)
 }
 
-func TestRelationshipsPatchStubbed(t *testing.T) {
+func TestRelationshipsUpdateStubbed(t *testing.T) {
 	assert := assert.New(t)
 	cfg := entitiesTestConfig()
 
@@ -325,7 +325,7 @@ func TestRelationshipsPatchStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DataSync.PatchRelationship().
+	res, status, err := pn.DataSync.UpdateRelationship().
 		ID("r-123").
 		Add("/payload/custom/role", "admin").
 		IfMatchETag("1").
@@ -446,7 +446,7 @@ func TestUsersListStubbed(t *testing.T) {
 	assert.Equal("TjIw", res.Meta.NextCursor)
 }
 
-func TestUsersUpdateStubbed(t *testing.T) {
+func TestUsersSetStubbed(t *testing.T) {
 	assert := assert.New(t)
 	cfg := entitiesTestConfig()
 
@@ -463,7 +463,7 @@ func TestUsersUpdateStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DataSync.UpdateUser().
+	res, status, err := pn.DataSync.SetUser().
 		ID("alice").
 		EntityClassVersion(1).
 		Status("active").
@@ -475,7 +475,7 @@ func TestUsersUpdateStubbed(t *testing.T) {
 	assert.Equal("2", res.Data.ETag)
 }
 
-func TestUsersPatchStubbed(t *testing.T) {
+func TestUsersUpdateStubbed(t *testing.T) {
 	assert := assert.New(t)
 	cfg := entitiesTestConfig()
 
@@ -492,7 +492,7 @@ func TestUsersPatchStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DataSync.PatchUser().
+	res, status, err := pn.DataSync.UpdateUser().
 		ID("alice").
 		Replace("/payload/profileUrl", "https://example.com/alice").
 		IfMatchETag("1").
@@ -611,7 +611,7 @@ func TestChannelsListStubbed(t *testing.T) {
 	assert.Equal("TjIw", res.Meta.NextCursor)
 }
 
-func TestChannelsUpdateStubbed(t *testing.T) {
+func TestChannelsSetStubbed(t *testing.T) {
 	assert := assert.New(t)
 	cfg := entitiesTestConfig()
 
@@ -628,7 +628,7 @@ func TestChannelsUpdateStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DataSync.UpdateChannel().
+	res, status, err := pn.DataSync.SetChannel().
 		ID("general").
 		EntityClassVersion(1).
 		Status("active").
@@ -640,7 +640,7 @@ func TestChannelsUpdateStubbed(t *testing.T) {
 	assert.Equal("2", res.Data.ETag)
 }
 
-func TestChannelsPatchStubbed(t *testing.T) {
+func TestChannelsUpdateStubbed(t *testing.T) {
 	assert := assert.New(t)
 	cfg := entitiesTestConfig()
 
@@ -657,7 +657,7 @@ func TestChannelsPatchStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DataSync.PatchChannel().
+	res, status, err := pn.DataSync.UpdateChannel().
 		ID("general").
 		Replace("/payload/topic", "announcements").
 		IfMatchETag("1").
@@ -779,7 +779,7 @@ func TestMembershipsListStubbed(t *testing.T) {
 	assert.Equal("TjIw", res.Meta.NextCursor)
 }
 
-func TestMembershipsUpdateStubbed(t *testing.T) {
+func TestMembershipsSetStubbed(t *testing.T) {
 	assert := assert.New(t)
 	cfg := entitiesTestConfig()
 
@@ -796,7 +796,7 @@ func TestMembershipsUpdateStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DataSync.UpdateMembership().
+	res, status, err := pn.DataSync.SetMembership().
 		ID("m-123").
 		RelationshipClassVersion(1).
 		Status("active").
@@ -808,7 +808,7 @@ func TestMembershipsUpdateStubbed(t *testing.T) {
 	assert.Equal("2", res.Data.ETag)
 }
 
-func TestMembershipsPatchStubbed(t *testing.T) {
+func TestMembershipsUpdateStubbed(t *testing.T) {
 	assert := assert.New(t)
 	cfg := entitiesTestConfig()
 
@@ -825,7 +825,7 @@ func TestMembershipsPatchStubbed(t *testing.T) {
 	pn := pubnub.NewPubNub(cfg)
 	pn.SetClient(interceptor.GetClient())
 
-	res, status, err := pn.DataSync.PatchMembership().
+	res, status, err := pn.DataSync.UpdateMembership().
 		ID("m-123").
 		Replace("/payload/role", "admin").
 		IfMatchETag("1").
