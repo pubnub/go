@@ -613,4 +613,64 @@ func grantTokenMultiAccessRegex() {
 	fmt.Printf("Token granted successfully: %s\n", response.Data.Token)
 }
 
+// snippet.grant_token_datasync
+// grantTokenDataSync demonstrates granting DataSync CRUD permissions and projections.
+func grantTokenDataSync() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+	config.SecretKey = "demo-secret"
+
+	pn := pubnub.NewPubNub(config)
+
+	response, _, err := pn.GrantToken().
+		TTL(1440).
+		AuthorizedUUID("user-123").
+		Channels(map[string]pubnub.ChannelPermissions{
+			"channel-X": {
+				Read:   true,
+				Get:    true,
+				Update: true,
+				Join:   true,
+			},
+		}).
+		DataSync(pubnub.PNDataSyncTokenScopes{
+			Entities: map[string]pubnub.DataSyncPermissions{
+				"order-456": {Get: true, Update: true},
+			},
+			Relationships: map[string]pubnub.DataSyncPermissions{
+				"user.A:channel.X": {Get: true},
+			},
+			Memberships: map[string]pubnub.DataSyncPermissions{
+				"user-123:channel-X": {Get: true},
+			},
+		}).
+		DataSyncPattern(pubnub.PNDataSyncTokenScopes{
+			Entities: map[string]pubnub.DataSyncPermissions{
+				"order-*": {Get: true},
+			},
+		}).
+		DataSyncProjections(pubnub.PNDataSyncProjections{
+			Resources: pubnub.PNDataSyncProjectionScope{
+				Entities: map[string]string{
+					"order-456": "admin",
+				},
+				Users: map[string]string{
+					"user-123": "admin",
+				},
+				Channels: map[string]string{
+					"channel-X": "moderator",
+				},
+			},
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error granting token: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Token granted successfully: %s\n", response.Data.Token)
+}
+
 // snippet.end

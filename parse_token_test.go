@@ -674,3 +674,139 @@ func TestParseTokenWithEmptyResources(t *testing.T) {
 	assert.Equal(0, len(result.Patterns.ChannelGroups))
 	assert.Equal(0, len(result.Patterns.UUIDs))
 }
+
+func TestParseTokenWithDataSyncPermissions(t *testing.T) {
+	assert := assert.New(t)
+
+	decoded := PNGrantTokenDecoded{
+		Version:        2,
+		Timestamp:      1234567890,
+		TTL:            1440,
+		AuthorizedUUID: "user-123",
+		Resources: GrantResources{
+			DataSyncEntities: map[string]int64{
+				"order-456": int64(PNGet | PNUpdate),
+			},
+			DataSyncRelationships: map[string]int64{
+				"user.A:channel.X": int64(PNGet),
+			},
+			DataSyncMemberships: map[string]int64{
+				"user-123:channel-X": int64(PNGet),
+			},
+		},
+		Patterns: GrantResources{
+			DataSyncEntities: map[string]int64{
+				"order-*": int64(PNGet),
+			},
+		},
+		Meta: map[string]interface{}{
+			"app_version": "2.0",
+			pnProjectionsMetaKey: map[string]interface{}{
+				"res": map[string]string{
+					"datasync:entities:user.A":                "admin",
+					"datasync:users:user.A":                   "admin",
+					"datasync:channels:channel-X":             "moderator",
+					"datasync:relationships:user.A:channel.X": "admin",
+				},
+				"pat": map[string]string{
+					"datasync:entities:user.*": PNDataSyncDefaultProjection,
+					"datasync:users:user.*":    PNDataSyncDefaultProjection,
+				},
+			},
+		},
+	}
+
+	token, err := createTestToken(decoded)
+	assert.Nil(err)
+
+	result, err := ParseToken(token)
+	assert.Nil(err)
+	assert.NotNil(result)
+
+	order := result.Resources.DataSync.Entities["order-456"]
+	assert.True(order.Get)
+	assert.True(order.Update)
+	assert.False(order.Create)
+	assert.False(order.Delete)
+
+	rel := result.Resources.DataSync.Relationships["user.A:channel.X"]
+	assert.True(rel.Get)
+
+	memb := result.Resources.DataSync.Memberships["user-123:channel-X"]
+	assert.True(memb.Get)
+
+	pattern := result.Patterns.DataSync.Entities["order-*"]
+	assert.True(pattern.Get)
+
+	assert.NotNil(result.Projections)
+	assert.Equal("admin", result.Projections.Resources.Entities["user.A"])
+	assert.Equal("admin", result.Projections.Resources.Users["user.A"])
+	assert.Equal("moderator", result.Projections.Resources.Channels["channel-X"])
+	assert.Equal("admin", result.Projections.Resources.Relationships["user.A:channel.X"])
+	assert.Equal(PNDataSyncDefaultProjection, result.Projections.Patterns.Entities["user.*"])
+	assert.Equal(PNDataSyncDefaultProjection, result.Projections.Patterns.Users["user.*"])
+
+	rawProj, ok := result.Meta[pnProjectionsMetaKey]
+	assert.True(ok)
+	assert.NotNil(rawProj)
+}
+
+func TestParseTokenWithDataSyncCreateDelete(t *testing.T) {
+	assert := assert.New(t)
+
+	decoded := PNGrantTokenDecoded{
+		Version:   2,
+		Timestamp: 1234567890,
+		TTL:       60,
+		Resources: GrantResources{
+			DataSyncEntities: map[string]int64{
+				"school-*": int64(PNCreate | PNGet | PNUpdate | PNDelete),
+			},
+			UUIDs: map[string]int64{
+				"user-alice": int64(PNCreate | PNGet),
+			},
+			Channels: map[string]int64{
+				"channel-X": int64(PNCreate),
+			},
+		},
+	}
+
+	token, err := createTestToken(decoded)
+	assert.Nil(err)
+
+	result, err := ParseToken(token)
+	assert.Nil(err)
+
+	entity := result.Resources.DataSync.Entities["school-*"]
+	assert.True(entity.Create)
+	assert.True(entity.Get)
+	assert.True(entity.Update)
+	assert.True(entity.Delete)
+
+	assert.True(result.Resources.UUIDs["user-alice"].Create)
+	assert.True(result.Resources.UUIDs["user-alice"].Get)
+	assert.True(result.Resources.Channels["channel-X"].Create)
+	assert.Nil(result.Projections)
+}
+
+func TestParseTokenWithoutProjectionsIsNil(t *testing.T) {
+	assert := assert.New(t)
+
+	decoded := PNGrantTokenDecoded{
+		Version:   1,
+		Timestamp: 1234567890,
+		TTL:       3600,
+		Resources: GrantResources{
+			Channels: map[string]int64{"test": 1},
+		},
+		Meta: map[string]interface{}{"custom": "value"},
+	}
+
+	token, err := createTestToken(decoded)
+	assert.Nil(err)
+
+	result, err := ParseToken(token)
+	assert.Nil(err)
+	assert.Nil(result.Projections)
+	assert.Equal("value", result.Meta["custom"])
+}

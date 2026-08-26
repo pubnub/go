@@ -8,6 +8,19 @@ import (
 	cbor "github.com/brianolson/cbor_go"
 )
 
+const (
+	dataSyncEntitiesKey      = "datasync:entities"
+	dataSyncUsersKey         = "datasync:users"
+	dataSyncChannelsKey      = "datasync:channels"
+	dataSyncRelationshipsKey = "datasync:relationships"
+	dataSyncMembershipsKey   = "datasync:memberships"
+	pnProjectionsMetaKey     = "pn-projections"
+
+	// PNDataSyncDefaultProjection is the implicit projection when a resource
+	// has no entry in meta.pn-projections.
+	PNDataSyncDefaultProjection = "__default__"
+)
+
 // PNGrantBitMask is the type for perms BitMask
 type PNGrantBitMask int64
 
@@ -62,6 +75,8 @@ const (
 	PNGroups
 	// PNUsers for users
 	PNUUIDs
+	// PNDataSync for DataSync entities, relationships, and memberships
+	PNDataSync
 )
 
 // ChannelPermissions contains all the acceptable perms for channels
@@ -73,6 +88,7 @@ type ChannelPermissions struct {
 	Manage bool
 	Update bool
 	Join   bool
+	Create bool
 }
 
 type SpacePermissions ChannelPermissions
@@ -106,6 +122,7 @@ func (p SpacePermissions) toChannelPermissions() ChannelPermissions {
 		Manage: p.Manage,
 		Update: p.Update,
 		Join:   p.Join,
+		Create: p.Create,
 	}
 }
 
@@ -119,6 +136,7 @@ type UUIDPermissions struct {
 	Get    bool
 	Update bool
 	Delete bool
+	Create bool
 }
 
 type UserPermissions UUIDPermissions
@@ -148,7 +166,57 @@ func (p UserPermissions) toUUIDPermissions() UUIDPermissions {
 		Delete: p.Delete,
 		Get:    p.Get,
 		Update: p.Update,
+		Create: p.Create,
 	}
+}
+
+// DataSyncPermissions contains the CRUD flags accepted for DataSync resource
+// types (entities, relationships, memberships).
+type DataSyncPermissions struct {
+	Get    bool
+	Create bool
+	Update bool
+	Delete bool
+}
+
+// PNDataSyncTokenScopes holds entity-level DataSync permissions keyed by
+// resource id (resources) or pattern (patterns).
+type PNDataSyncTokenScopes struct {
+	Entities      map[string]DataSyncPermissions
+	Relationships map[string]DataSyncPermissions
+	Memberships   map[string]DataSyncPermissions
+}
+
+func (s PNDataSyncTokenScopes) empty() bool {
+	return len(s.Entities) == 0 && len(s.Relationships) == 0 && len(s.Memberships) == 0
+}
+
+// PNDataSyncProjectionScope maps a DataSync resource id (or pattern) to the
+// single projection name the principal is looking through.
+// Users and Channels encode to datasync:users:{id} and datasync:channels:{id}
+// in meta.pn-projections; their CRUD permissions still use UUIDs/Channels.
+type PNDataSyncProjectionScope struct {
+	Entities      map[string]string
+	Users         map[string]string
+	Channels      map[string]string
+	Relationships map[string]string
+	Memberships   map[string]string
+}
+
+func (s PNDataSyncProjectionScope) empty() bool {
+	return len(s.Entities) == 0 && len(s.Users) == 0 && len(s.Channels) == 0 &&
+		len(s.Relationships) == 0 && len(s.Memberships) == 0
+}
+
+// PNDataSyncProjections holds DataSync projection assignments for exact
+// resources and patterns. Encoded into token meta under "pn-projections".
+type PNDataSyncProjections struct {
+	Resources PNDataSyncProjectionScope
+	Patterns  PNDataSyncProjectionScope
+}
+
+func (p PNDataSyncProjections) empty() bool {
+	return p.Resources.empty() && p.Patterns.empty()
 }
 
 // PNPAMEntityData is the struct containing the access details of the channels.
@@ -208,12 +276,14 @@ type PNToken struct {
 	Resources      PNTokenResources
 	Patterns       PNTokenResources
 	Meta           map[string]interface{}
+	Projections    *PNDataSyncProjections
 }
 
 type PNTokenResources struct {
 	Channels      map[string]ChannelPermissions
 	ChannelGroups map[string]GroupPermissions
 	UUIDs         map[string]UUIDPermissions
+	DataSync      PNDataSyncTokenScopes
 }
 
 func ParseToken(token string) (*PNToken, error) {
@@ -234,6 +304,7 @@ func ParseToken(token string) (*PNToken, error) {
 		AuthorizedUUID: permissions.AuthorizedUUID,
 		Resources:      resources,
 		Patterns:       patterns,
+		Projections:    parseDataSyncProjections(permissions.Meta),
 	}, nil
 }
 
@@ -242,6 +313,11 @@ func grantResourcesToPNTokenResources(grantResources GrantResources) PNTokenReso
 		Channels:      make(map[string]ChannelPermissions),
 		ChannelGroups: make(map[string]GroupPermissions),
 		UUIDs:         make(map[string]UUIDPermissions),
+		DataSync: PNDataSyncTokenScopes{
+			Entities:      make(map[string]DataSyncPermissions),
+			Relationships: make(map[string]DataSyncPermissions),
+			Memberships:   make(map[string]DataSyncPermissions),
+		},
 	}
 	for k, v := range grantResources.Channels {
 		tokenResources.Channels[k] = parseGrantPerms(v, PNChannels).(ChannelPermissions)
@@ -251,6 +327,15 @@ func grantResourcesToPNTokenResources(grantResources GrantResources) PNTokenReso
 	}
 	for k, v := range grantResources.UUIDs {
 		tokenResources.UUIDs[k] = parseGrantPerms(v, PNUUIDs).(UUIDPermissions)
+	}
+	for k, v := range grantResources.DataSyncEntities {
+		tokenResources.DataSync.Entities[k] = parseGrantPerms(v, PNDataSync).(DataSyncPermissions)
+	}
+	for k, v := range grantResources.DataSyncRelationships {
+		tokenResources.DataSync.Relationships[k] = parseGrantPerms(v, PNDataSync).(DataSyncPermissions)
+	}
+	for k, v := range grantResources.DataSyncMemberships {
+		tokenResources.DataSync.Memberships[k] = parseGrantPerms(v, PNDataSync).(DataSyncPermissions)
 	}
 	return tokenResources
 }
@@ -292,6 +377,7 @@ func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
 	write := i&int64(PNWrite) != 0
 	manage := i&int64(PNManage) != 0
 	delete := i&int64(PNDelete) != 0
+	create := i&int64(PNCreate) != 0
 	get := i&int64(PNGet) != 0
 	update := i&int64(PNUpdate) != 0
 	join := i&int64(PNJoin) != 0
@@ -306,17 +392,26 @@ func parseGrantPerms(i int64, resourceType PNResourceType) interface{} {
 			Get:    get,
 			Join:   join,
 			Manage: manage,
+			Create: create,
 		}
 	case PNGroups:
 		return GroupPermissions{
 			Read:   read,
 			Manage: manage,
 		}
+	case PNDataSync:
+		return DataSyncPermissions{
+			Get:    get,
+			Create: create,
+			Update: update,
+			Delete: delete,
+		}
 	default:
 		return UUIDPermissions{
 			Get:    get,
 			Update: update,
 			Delete: delete,
+			Create: create,
 		}
 	}
 }
@@ -357,11 +452,14 @@ type PermissionsBody struct {
 
 // GrantResources is the struct used to decode the server response
 type GrantResources struct {
-	Channels map[string]int64 `json:"channels" cbor:"chan"`
-	Groups   map[string]int64 `json:"groups" cbor:"grp"`
-	UUIDs    map[string]int64 `json:"uuids" cbor:"uuid"`
-	Users    map[string]int64 `json:"users" cbor:"usr"`
-	Spaces   map[string]int64 `json:"spaces" cbor:"spc"`
+	Channels              map[string]int64 `json:"channels" cbor:"chan"`
+	Groups                map[string]int64 `json:"groups" cbor:"grp"`
+	UUIDs                 map[string]int64 `json:"uuids" cbor:"uuid"`
+	Users                 map[string]int64 `json:"users" cbor:"usr"`
+	Spaces                map[string]int64 `json:"spaces" cbor:"spc"`
+	DataSyncEntities      map[string]int64 `json:"datasync:entities,omitempty" cbor:"datasync:entities"`
+	DataSyncRelationships map[string]int64 `json:"datasync:relationships,omitempty" cbor:"datasync:relationships"`
+	DataSyncMemberships   map[string]int64 `json:"datasync:memberships,omitempty" cbor:"datasync:memberships"`
 }
 
 // PNGrantTokenDecoded is the struct used to decode the server response
@@ -374,4 +472,140 @@ type PNGrantTokenDecoded struct {
 	Timestamp      int64                  `cbor:"t"`
 	TTL            int                    `cbor:"ttl"`
 	AuthorizedUUID string                 `cbor:"uuid"`
+}
+
+func encodeProjectionScope(scope PNDataSyncProjectionScope) map[string]interface{} {
+	out := make(map[string]interface{})
+	putProjectionEntries(out, dataSyncEntitiesKey, scope.Entities)
+	putProjectionEntries(out, dataSyncUsersKey, scope.Users)
+	putProjectionEntries(out, dataSyncChannelsKey, scope.Channels)
+	putProjectionEntries(out, dataSyncRelationshipsKey, scope.Relationships)
+	putProjectionEntries(out, dataSyncMembershipsKey, scope.Memberships)
+	return out
+}
+
+func putProjectionEntries(out map[string]interface{}, namespace string, ids map[string]string) {
+	for id, name := range ids {
+		if id == "" {
+			continue
+		}
+		out[namespace+":"+id] = name
+	}
+}
+
+func applyDataSyncProjections(meta map[string]interface{}, projections PNDataSyncProjections) map[string]interface{} {
+	res := encodeProjectionScope(projections.Resources)
+	pat := encodeProjectionScope(projections.Patterns)
+	if len(res) == 0 && len(pat) == 0 {
+		return meta
+	}
+
+	out := cloneStringInterfaceMap(meta)
+	existing := asInterfaceMap(out[pnProjectionsMetaKey])
+
+	if len(res) > 0 {
+		mergedRes := asInterfaceMap(existing["res"])
+		for k, v := range res {
+			mergedRes[k] = v
+		}
+		existing["res"] = mergedRes
+	}
+	if len(pat) > 0 {
+		mergedPat := asInterfaceMap(existing["pat"])
+		for k, v := range pat {
+			mergedPat[k] = v
+		}
+		existing["pat"] = mergedPat
+	}
+
+	out[pnProjectionsMetaKey] = existing
+	return out
+}
+
+func parseDataSyncProjections(meta map[string]interface{}) *PNDataSyncProjections {
+	if meta == nil {
+		return nil
+	}
+	raw, ok := meta[pnProjectionsMetaKey]
+	if !ok || raw == nil {
+		return nil
+	}
+
+	block := asInterfaceMap(raw)
+	if len(block) == 0 {
+		return nil
+	}
+
+	projections := &PNDataSyncProjections{
+		Resources: parseProjectionScope(block["res"]),
+		Patterns:  parseProjectionScope(block["pat"]),
+	}
+	if projections.empty() {
+		return nil
+	}
+	return projections
+}
+
+func parseProjectionScope(raw interface{}) PNDataSyncProjectionScope {
+	scope := PNDataSyncProjectionScope{
+		Entities:      make(map[string]string),
+		Users:         make(map[string]string),
+		Channels:      make(map[string]string),
+		Relationships: make(map[string]string),
+		Memberships:   make(map[string]string),
+	}
+	for key, val := range asInterfaceMap(raw) {
+		name, ok := val.(string)
+		if !ok || name == "" {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(key, dataSyncEntitiesKey+":"):
+			scope.Entities[key[len(dataSyncEntitiesKey)+1:]] = name
+		case strings.HasPrefix(key, dataSyncUsersKey+":"):
+			scope.Users[key[len(dataSyncUsersKey)+1:]] = name
+		case strings.HasPrefix(key, dataSyncChannelsKey+":"):
+			scope.Channels[key[len(dataSyncChannelsKey)+1:]] = name
+		case strings.HasPrefix(key, dataSyncRelationshipsKey+":"):
+			scope.Relationships[key[len(dataSyncRelationshipsKey)+1:]] = name
+		case strings.HasPrefix(key, dataSyncMembershipsKey+":"):
+			scope.Memberships[key[len(dataSyncMembershipsKey)+1:]] = name
+		}
+	}
+	return scope
+}
+
+func cloneStringInterfaceMap(meta map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{}, len(meta)+1)
+	for k, v := range meta {
+		out[k] = v
+	}
+	return out
+}
+
+func asInterfaceMap(v interface{}) map[string]interface{} {
+	switch m := v.(type) {
+	case map[string]interface{}:
+		out := make(map[string]interface{}, len(m))
+		for k, val := range m {
+			out[k] = val
+		}
+		return out
+	case map[interface{}]interface{}:
+		out := make(map[string]interface{}, len(m))
+		for k, val := range m {
+			if ks, ok := k.(string); ok {
+				out[ks] = val
+			}
+		}
+		return out
+	case map[string]string:
+		out := make(map[string]interface{}, len(m))
+		for k, val := range m {
+			out[k] = val
+		}
+		return out
+	default:
+		return map[string]interface{}{}
+	}
 }

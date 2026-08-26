@@ -792,3 +792,224 @@ func TestGrantTokenExecuteErrorHandling(t *testing.T) {
 	assert.NotNil(err)
 	assert.Contains(err.Error(), "Missing Secret Key")
 }
+
+func TestGrantTokenDataSyncBitmasks(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	o := newGrantTokenBuilder(pn)
+
+	r := o.opts.parseResourcePermissions(map[string]DataSyncPermissions{
+		"get":        {Get: true},
+		"get_update": {Get: true, Update: true},
+		"create":     {Create: true},
+		"all":        {Get: true, Create: true, Update: true, Delete: true},
+		"none":       {},
+	}, PNDataSync)
+
+	assert.Equal(int64(32), r["get"])
+	assert.Equal(int64(96), r["get_update"])
+	assert.Equal(int64(16), r["create"])
+	assert.Equal(int64(120), r["all"])
+	assert.Equal(int64(0), r["none"])
+}
+
+func TestGrantTokenUUIDAndChannelCreateBit(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+	o := newGrantTokenBuilder(pn)
+
+	uuids := o.opts.parseResourcePermissions(map[string]UUIDPermissions{
+		"user-123": {Get: true, Create: true, Update: true, Delete: true},
+	}, PNUUIDs)
+	assert.Equal(int64(120), uuids["user-123"])
+
+	channels := o.opts.parseResourcePermissions(map[string]ChannelPermissions{
+		"channel-X": {Create: true},
+	}, PNChannels)
+	assert.Equal(int64(16), channels["channel-X"])
+}
+
+func Test_GrantTokenDataSync(t *testing.T) {
+	pn := NewPubNub(NewDemoConfig())
+
+	tests := []struct {
+		name string
+		have endpoint
+		want string
+	}{{
+		name: "mixed channels datasync projections and user meta",
+		have: pn.GrantToken().
+			TTL(1440).
+			AuthorizedUUID("user-123").
+			Channels(map[string]ChannelPermissions{
+				"channel-X": {Read: true, Get: true, Update: true, Join: true},
+			}).
+			DataSync(PNDataSyncTokenScopes{
+				Entities: map[string]DataSyncPermissions{
+					"order-456": {Get: true, Update: true},
+				},
+				Relationships: map[string]DataSyncPermissions{
+					"user.A:channel.X": {Get: true},
+				},
+				Memberships: map[string]DataSyncPermissions{
+					"user-123:channel-X": {Get: true},
+				},
+			}).
+			DataSyncPattern(PNDataSyncTokenScopes{
+				Entities: map[string]DataSyncPermissions{
+					"order-*": {Get: true},
+				},
+			}).
+			DataSyncProjections(PNDataSyncProjections{
+				Resources: PNDataSyncProjectionScope{
+					Entities: map[string]string{"user.A": "admin"},
+					Relationships: map[string]string{
+						"user.A:channel.X": "admin",
+					},
+				},
+			}).
+			Meta(map[string]interface{}{
+				"app_version": "2.0",
+			}).opts,
+		want: `{"ttl":1440,"permissions":{"resources":{"channels":{"channel-X":225},"groups":{},"uuids":{},"users":{},"spaces":{},"datasync:entities":{"order-456":96},"datasync:relationships":{"user.A:channel.X":32},"datasync:memberships":{"user-123:channel-X":32}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{},"datasync:entities":{"order-*":32}},"meta":{"app_version":"2.0","pn-projections":{"res":{"datasync:entities:user.A":"admin","datasync:relationships:user.A:channel.X":"admin"}}},"uuid":"user-123"}}`,
+	}, {
+		name: "projections only",
+		have: pn.GrantToken().
+			TTL(30).
+			DataSyncProjections(PNDataSyncProjections{
+				Resources: PNDataSyncProjectionScope{
+					Entities: map[string]string{
+						"school-greenwood-001": PNDataSyncDefaultProjection,
+					},
+				},
+			}).opts,
+		want: `{"ttl":30,"permissions":{"resources":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"meta":{"pn-projections":{"res":{"datasync:entities:school-greenwood-001":"__default__"}}}}}`,
+	}, {
+		name: "user and channel projections",
+		have: pn.GrantToken().
+			TTL(60).
+			DataSyncProjections(PNDataSyncProjections{
+				Resources: PNDataSyncProjectionScope{
+					Users:    map[string]string{"user.A": "admin"},
+					Channels: map[string]string{"channel-X": "moderator"},
+				},
+				Patterns: PNDataSyncProjectionScope{
+					Users: map[string]string{"user.*": PNDataSyncDefaultProjection},
+				},
+			}).opts,
+		want: `{"ttl":60,"permissions":{"resources":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"meta":{"pn-projections":{"pat":{"datasync:users:user.*":"__default__"},"res":{"datasync:channels:channel-X":"moderator","datasync:users:user.A":"admin"}}}}}`,
+	}, {
+		name: "empty datasync omitted",
+		have: pn.GrantToken().
+			TTL(100).
+			DataSync(PNDataSyncTokenScopes{}).
+			DataSyncPattern(PNDataSyncTokenScopes{}).opts,
+		want: `{"ttl":100,"permissions":{"resources":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"meta":{}}}`,
+	}, {
+		name: "entities builder datasync",
+		have: pn.GrantToken().
+			TTL(100).
+			UsersPermissions(map[UserId]UserPermissions{
+				"user": {Get: true, Create: true},
+			}).
+			DataSync(PNDataSyncTokenScopes{
+				Memberships: map[string]DataSyncPermissions{
+					"user:channel-X": {Get: true, Update: true},
+				},
+			}).opts,
+		want: `{"ttl":100,"permissions":{"resources":{"channels":{},"groups":{},"uuids":{"user":48},"users":{},"spaces":{},"datasync:memberships":{"user:channel-X":96}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"meta":{}}}`,
+	}}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, err := tt.have.buildBody()
+			assert.Nil(t, err)
+			assert.Equalf(t, tt.want, string(body), "GrantToken(%v)", tt.have)
+		})
+	}
+}
+
+func TestGrantTokenDataSyncDoesNotMutateCallerMeta(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	meta := map[string]interface{}{
+		"app_version": "2.0",
+	}
+	opts := pn.GrantToken().
+		TTL(1440).
+		Meta(meta).
+		DataSyncProjections(PNDataSyncProjections{
+			Resources: PNDataSyncProjectionScope{
+				Entities: map[string]string{"user.A": "admin"},
+			},
+		}).opts
+
+	body, err := opts.buildBody()
+	assert.Nil(err)
+	assert.Contains(string(body), `"pn-projections"`)
+	assert.NotContains(meta, pnProjectionsMetaKey)
+}
+
+func TestGrantTokenDataSyncBuilderChaining(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	scopes := PNDataSyncTokenScopes{
+		Entities: map[string]DataSyncPermissions{"order-456": {Get: true}},
+	}
+	patterns := PNDataSyncTokenScopes{
+		Entities: map[string]DataSyncPermissions{"order-*": {Get: true}},
+	}
+	projections := PNDataSyncProjections{
+		Resources: PNDataSyncProjectionScope{
+			Entities: map[string]string{"user.A": "admin"},
+		},
+	}
+
+	root := newGrantTokenBuilder(pn)
+	assert.Equal(root, root.DataSync(scopes).DataSyncPattern(patterns).DataSyncProjections(projections))
+	assert.Equal(scopes, root.opts.DataSync)
+	assert.Equal(patterns, root.opts.DataSyncPattern)
+	assert.Equal(projections, root.opts.DataSyncProjections)
+
+	objectsBuilder := newGrantTokenBuilder(pn).Channels(map[string]ChannelPermissions{
+		"ch": {Read: true},
+	})
+	assert.Equal(objectsBuilder, objectsBuilder.DataSync(scopes).DataSyncPattern(patterns).DataSyncProjections(projections))
+	assert.Equal(scopes, objectsBuilder.opts.DataSync)
+
+	entitiesBuilder := newGrantTokenBuilder(pn).UsersPermissions(map[UserId]UserPermissions{
+		"user": {Get: true},
+	})
+	assert.Equal(entitiesBuilder, entitiesBuilder.DataSync(scopes).DataSyncPattern(patterns).DataSyncProjections(projections))
+	assert.Equal(scopes, entitiesBuilder.opts.DataSync)
+}
+
+func TestGrantTokenDataSyncProjectionMergeWinsOnCollision(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	opts := pn.GrantToken().
+		TTL(60).
+		Meta(map[string]interface{}{
+			pnProjectionsMetaKey: map[string]interface{}{
+				"res": map[string]interface{}{
+					"datasync:entities:user.A": "stale",
+					"datasync:entities:other":  "keep",
+				},
+			},
+		}).
+		DataSyncProjections(PNDataSyncProjections{
+			Resources: PNDataSyncProjectionScope{
+				Entities: map[string]string{"user.A": "admin"},
+			},
+		}).opts
+
+	body, err := opts.buildBody()
+	assert.Nil(err)
+	bodyStr := string(body)
+	assert.Contains(bodyStr, `"datasync:entities:user.A":"admin"`)
+	assert.Contains(bodyStr, `"datasync:entities:other":"keep"`)
+	assert.NotContains(bodyStr, `"stale"`)
+}

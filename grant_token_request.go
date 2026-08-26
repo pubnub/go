@@ -106,6 +106,25 @@ func (b *grantTokenBuilder) QueryParam(queryParam map[string]string) *grantToken
 	return b
 }
 
+// DataSync sets exact-id DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenBuilder) DataSync(scopes PNDataSyncTokenScopes) *grantTokenBuilder {
+	b.opts.DataSync = scopes
+	return b
+}
+
+// DataSyncPattern sets pattern DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenBuilder) DataSyncPattern(scopes PNDataSyncTokenScopes) *grantTokenBuilder {
+	b.opts.DataSyncPattern = scopes
+	return b
+}
+
+// DataSyncProjections assigns a single projection name per DataSync resource or pattern.
+// Encoded into token meta under "pn-projections".
+func (b *grantTokenBuilder) DataSyncProjections(projections PNDataSyncProjections) *grantTokenBuilder {
+	b.opts.DataSyncProjections = projections
+	return b
+}
+
 // GetLogParams returns the user-provided parameters for logging
 func (o *grantTokenOpts) GetLogParams() map[string]interface{} {
 	params := map[string]interface{}{}
@@ -151,7 +170,24 @@ func (o *grantTokenOpts) GetLogParams() map[string]interface{} {
 	if o.Meta != nil {
 		params["Meta"] = fmt.Sprintf("%v", o.Meta)
 	}
+	if !o.DataSync.empty() {
+		params["DataSync"] = dataSyncScopeLog(o.DataSync)
+	}
+	if !o.DataSyncPattern.empty() {
+		params["DataSyncPattern"] = dataSyncScopeLog(o.DataSyncPattern)
+	}
+	if !o.DataSyncProjections.empty() {
+		params["DataSyncProjections"] = true
+	}
 	return params
+}
+
+func dataSyncScopeLog(scopes PNDataSyncTokenScopes) map[string]int {
+	return map[string]int{
+		"Entities":      len(scopes.Entities),
+		"Relationships": len(scopes.Relationships),
+		"Memberships":   len(scopes.Memberships),
+	}
 }
 
 // Execute runs the Grant request.
@@ -260,6 +296,25 @@ func (b *grantTokenObjectsBuilder) QueryParam(queryParam map[string]string) *gra
 	return b
 }
 
+// DataSync sets exact-id DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenObjectsBuilder) DataSync(scopes PNDataSyncTokenScopes) *grantTokenObjectsBuilder {
+	b.opts.DataSync = scopes
+	return b
+}
+
+// DataSyncPattern sets pattern DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenObjectsBuilder) DataSyncPattern(scopes PNDataSyncTokenScopes) *grantTokenObjectsBuilder {
+	b.opts.DataSyncPattern = scopes
+	return b
+}
+
+// DataSyncProjections assigns a single projection name per DataSync resource or pattern.
+// Encoded into token meta under "pn-projections".
+func (b *grantTokenObjectsBuilder) DataSyncProjections(projections PNDataSyncProjections) *grantTokenObjectsBuilder {
+	b.opts.DataSyncProjections = projections
+	return b
+}
+
 // Execute runs the Grant request.
 func (b *grantTokenObjectsBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerGrantToken, b.opts.GetLogParams(), true)
@@ -336,6 +391,25 @@ func (b *grantTokenEntitiesBuilder) QueryParam(queryParam map[string]string) *gr
 	return b
 }
 
+// DataSync sets exact-id DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenEntitiesBuilder) DataSync(scopes PNDataSyncTokenScopes) *grantTokenEntitiesBuilder {
+	b.opts.DataSync = scopes
+	return b
+}
+
+// DataSyncPattern sets pattern DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenEntitiesBuilder) DataSyncPattern(scopes PNDataSyncTokenScopes) *grantTokenEntitiesBuilder {
+	b.opts.DataSyncPattern = scopes
+	return b
+}
+
+// DataSyncProjections assigns a single projection name per DataSync resource or pattern.
+// Encoded into token meta under "pn-projections".
+func (b *grantTokenEntitiesBuilder) DataSyncProjections(projections PNDataSyncProjections) *grantTokenEntitiesBuilder {
+	b.opts.DataSyncProjections = projections
+	return b
+}
+
 // Execute runs the Grant request.
 func (b *grantTokenEntitiesBuilder) Execute() (*PNGrantTokenResponse, StatusResponse, error) {
 	b.opts.pubnub.loggerManager.LogUserInput(PNLogLevelDebug, PNAccessManagerGrantToken, b.opts.GetLogParams(), true)
@@ -373,6 +447,9 @@ type grantTokenOpts struct {
 	QueryParam           map[string]string
 	Meta                 map[string]interface{}
 	AuthorizedUUID       string
+	DataSync             PNDataSyncTokenScopes
+	DataSyncPattern      PNDataSyncTokenScopes
+	DataSyncProjections  PNDataSyncProjections
 
 	// Max: 525600
 	// Min: 1
@@ -438,6 +515,7 @@ func (o *grantTokenOpts) parseResourcePermissions(resource interface{}, resource
 				bmVal = o.setBitmask(v.Update, PNUpdate, bmVal)
 				bmVal = o.setBitmask(v.Manage, PNManage, bmVal)
 				bmVal = o.setBitmask(v.Get, PNGet, bmVal)
+				bmVal = o.setBitmask(v.Create, PNCreate, bmVal)
 				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: channel permissions bitmask=%d", bmVal), false)
 				r[k] = bmVal
 			}
@@ -471,7 +549,26 @@ func (o *grantTokenOpts) parseResourcePermissions(resource interface{}, resource
 				bmVal = o.setBitmask(v.Get, PNGet, bmVal)
 				bmVal = o.setBitmask(v.Update, PNUpdate, bmVal)
 				bmVal = o.setBitmask(v.Delete, PNDelete, bmVal)
+				bmVal = o.setBitmask(v.Create, PNCreate, bmVal)
 				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: UUID permissions bitmask=%d", bmVal), false)
+				r[k] = bmVal
+			}
+			return r
+		}
+		return make(map[string]int64)
+
+	case PNDataSync:
+		resourceWithPerms := resource.(map[string]DataSyncPermissions)
+		resourceWithPermsLen := len(resourceWithPerms)
+		if resourceWithPermsLen > 0 {
+			r := make(map[string]int64, resourceWithPermsLen)
+			for k, v := range resourceWithPerms {
+				bmVal = int64(0)
+				bmVal = o.setBitmask(v.Get, PNGet, bmVal)
+				bmVal = o.setBitmask(v.Create, PNCreate, bmVal)
+				bmVal = o.setBitmask(v.Update, PNUpdate, bmVal)
+				bmVal = o.setBitmask(v.Delete, PNDelete, bmVal)
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: DataSync permissions bitmask=%d", bmVal), false)
 				r[k] = bmVal
 			}
 			return r
@@ -498,22 +595,46 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 	if meta == nil {
 		meta = make(map[string]interface{})
 	}
+	if !o.DataSyncProjections.empty() {
+		meta = applyDataSyncProjections(meta, o.DataSyncProjections)
+	}
+
+	resources := GrantResources{
+		Channels: o.parseResourcePermissions(o.Channels, PNChannels),
+		Groups:   o.parseResourcePermissions(o.ChannelGroups, PNGroups),
+		UUIDs:    o.parseResourcePermissions(o.UUIDs, PNUUIDs),
+		Users:    make(map[string]int64),
+		Spaces:   make(map[string]int64),
+	}
+	patterns := GrantResources{
+		Channels: o.parseResourcePermissions(o.ChannelsPattern, PNChannels),
+		Groups:   o.parseResourcePermissions(o.ChannelGroupsPattern, PNGroups),
+		UUIDs:    o.parseResourcePermissions(o.UUIDsPattern, PNUUIDs),
+		Users:    make(map[string]int64),
+		Spaces:   make(map[string]int64),
+	}
+	if len(o.DataSync.Entities) > 0 {
+		resources.DataSyncEntities = o.parseResourcePermissions(o.DataSync.Entities, PNDataSync)
+	}
+	if len(o.DataSync.Relationships) > 0 {
+		resources.DataSyncRelationships = o.parseResourcePermissions(o.DataSync.Relationships, PNDataSync)
+	}
+	if len(o.DataSync.Memberships) > 0 {
+		resources.DataSyncMemberships = o.parseResourcePermissions(o.DataSync.Memberships, PNDataSync)
+	}
+	if len(o.DataSyncPattern.Entities) > 0 {
+		patterns.DataSyncEntities = o.parseResourcePermissions(o.DataSyncPattern.Entities, PNDataSync)
+	}
+	if len(o.DataSyncPattern.Relationships) > 0 {
+		patterns.DataSyncRelationships = o.parseResourcePermissions(o.DataSyncPattern.Relationships, PNDataSync)
+	}
+	if len(o.DataSyncPattern.Memberships) > 0 {
+		patterns.DataSyncMemberships = o.parseResourcePermissions(o.DataSyncPattern.Memberships, PNDataSync)
+	}
 
 	permissions := PermissionsBody{
-		Resources: GrantResources{
-			Channels: o.parseResourcePermissions(o.Channels, PNChannels),
-			Groups:   o.parseResourcePermissions(o.ChannelGroups, PNGroups),
-			UUIDs:    o.parseResourcePermissions(o.UUIDs, PNUUIDs),
-			Users:    make(map[string]int64),
-			Spaces:   make(map[string]int64),
-		},
-		Patterns: GrantResources{
-			Channels: o.parseResourcePermissions(o.ChannelsPattern, PNChannels),
-			Groups:   o.parseResourcePermissions(o.ChannelGroupsPattern, PNGroups),
-			UUIDs:    o.parseResourcePermissions(o.UUIDsPattern, PNUUIDs),
-			Users:    make(map[string]int64),
-			Spaces:   make(map[string]int64),
-		},
+		Resources:      resources,
+		Patterns:       patterns,
 		Meta:           meta,
 		AuthorizedUUID: o.AuthorizedUUID,
 	}
