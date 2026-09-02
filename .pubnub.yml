@@ -1,6 +1,11 @@
 ---
-version: v9.0.4
+version: v9.0.5
 changelog:
+  - date: 2026-09-02
+    version: v9.0.5
+    changes:
+      - type: bug
+        text: "Subscribe now classifies payloads from the `e` field (`MessageType`) before presence or message handling, so newer or unknown server event types are not announced as messages. Known types (signal, objects, message actions, files) are dispatched as before; unknown values are skipped and logged at debug. When `e` is 0, presence is detected from a `-pnpres` channel or subscription match."
   - date: 2026-07-13
     version: v9.0.4
     changes:
@@ -871,7 +876,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v9.0.4
+            location: https://github.com/pubnub/go/releases/tag/v9.0.5
             requires:
               -
                 name: "Go"

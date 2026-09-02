@@ -730,7 +730,7 @@ func processPresencePayload(m *SubscriptionManager, payload subscribeMessage, ch
 	m.listenerManager.announcePresence(pnPresenceResult)
 }
 
-func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage, channel, subscriptionMatch string, publishMeta publishMetadata) {
+func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage, channel, subscriptionMatch string, publishMeta publishMetadata) bool {
 	actualCh := ""
 	subscribedCh := channel
 	timetoken, _ := strconv.ParseInt(publishMeta.PublishTimetoken, 10, 64)
@@ -746,10 +746,11 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 		pnMessageResult := createPNMessageResult(payload.Payload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, payload.CustomMessageType /*no error*/, nil)
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing signal: channel=%s", channel), false)
 		m.listenerManager.announceSignal(pnMessageResult)
+		return true
 	case PNMessageTypeObjects:
 		pnUUIDEvent, pnChannelEvent, pnMembershipEvent, eventType, ok := createPNObjectsResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch)
 		if !ok {
-			return
+			return true
 		}
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing objects event: type=%v, channel=%s", eventType, channel), false)
 		switch eventType {
@@ -763,13 +764,15 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 			m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Membership event: %s", pnMembershipEvent.UUID), false)
 			m.listenerManager.announceMembershipEvent(pnMembershipEvent)
 		}
+		return true
 	case PNMessageTypeMessageActions:
 		pnMessageActionsEvent, ok := createPNMessageActionsEventResult(payload.Payload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID)
 		if !ok {
-			return
+			return true
 		}
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing message actions event: channel=%s", channel), false)
 		m.listenerManager.announceMessageActionsEvent(pnMessageActionsEvent)
+		return true
 	case PNMessageTypeFile:
 		var err error
 		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub)
@@ -791,32 +794,49 @@ func processNonPresencePayload(m *SubscriptionManager, payload subscribeMessage,
 
 		pnFilesEvent, ok := createPNFilesEvent(messagePayload, m, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, err)
 		if !ok {
-			return
+			return true
 		}
 		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing file event: channel=%s", channel), false)
 		m.listenerManager.announceFile(pnFilesEvent)
+		return true
 	default:
-		var err error
-		messagePayload, err = parseCipherInterface(payload.Payload, m.pubnub)
-		if err != nil {
-			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto: decryption of message failed due to %v", err), false)
-			// Surface only a generic error to customers; the specific reason is kept at Debug level to avoid leaking a decryption failure oracle.
-			err = errors.New("message decryption failed")
-			m.pubnub.loggerManager.LogError(err, "MessageDecryptFailed", PNSubscribeOperation, true)
-			pnStatus := &PNStatus{
-				Category:         PNBadRequestCategory,
-				ErrorData:        err,
-				Error:            true,
-				Operation:        PNSubscribeOperation,
-				AffectedChannels: []string{channel},
-			}
-			m.listenerManager.announceStatus(pnStatus)
-
-		}
-		pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, payload.CustomMessageType, err)
-		m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing message: channel=%s", channel), false)
-		m.listenerManager.announceMessage(pnMessageResult)
+		return false
 	}
+}
+
+func processMessagePayload(m *SubscriptionManager, payload subscribeMessage, channel, subscriptionMatch string, publishMeta publishMetadata) {
+	actualCh := ""
+	subscribedCh := channel
+	timetoken, _ := strconv.ParseInt(publishMeta.PublishTimetoken, 10, 64)
+
+	if subscriptionMatch != "" {
+		actualCh = channel
+		subscribedCh = subscriptionMatch
+	}
+
+	messagePayload, err := parseCipherInterface(payload.Payload, m.pubnub)
+	if err != nil {
+		m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Crypto: decryption of message failed due to %v", err), false)
+		// Surface only a generic error to customers; the specific reason is kept at Debug level to avoid leaking a decryption failure oracle.
+		err = errors.New("message decryption failed")
+		m.pubnub.loggerManager.LogError(err, "MessageDecryptFailed", PNSubscribeOperation, true)
+		pnStatus := &PNStatus{
+			Category:         PNBadRequestCategory,
+			ErrorData:        err,
+			Error:            true,
+			Operation:        PNSubscribeOperation,
+			AffectedChannels: []string{channel},
+		}
+		m.listenerManager.announceStatus(pnStatus)
+	}
+
+	pnMessageResult := createPNMessageResult(messagePayload, actualCh, subscribedCh, channel, subscriptionMatch, payload.IssuingClientID, payload.UserMetadata, timetoken, payload.CustomMessageType, err)
+	m.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Announcing message: channel=%s", channel), false)
+	m.listenerManager.announceMessage(pnMessageResult)
+}
+
+func isPresenceSubscribeChannel(name string) bool {
+	return strings.Contains(name, "-pnpres")
 }
 
 func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
@@ -828,11 +848,21 @@ func processSubscribePayload(m *SubscriptionManager, payload subscribeMessage) {
 		subscriptionMatch = ""
 	}
 
-	if strings.Contains(payload.Channel, "-pnpres") {
-		processPresencePayload(m, payload, channel, subscriptionMatch, publishMetadata)
-	} else {
-		processNonPresencePayload(m, payload, channel, subscriptionMatch, publishMetadata)
+	// Identify event type from `e` first so newer server event types are not
+	// misclassified as message or presence. Unknown `e` values are ignored.
+	if payload.MessageType != 0 {
+		if !processNonPresencePayload(m, payload, channel, subscriptionMatch, publishMetadata) {
+			m.pubnub.loggerManager.LogSimple(PNLogLevelDebug, fmt.Sprintf("Unknown event type (%d) has been received", payload.MessageType), false)
+		}
+		return
 	}
+
+	if isPresenceSubscribeChannel(channel) || isPresenceSubscribeChannel(subscriptionMatch) {
+		processPresencePayload(m, payload, channel, subscriptionMatch, publishMetadata)
+		return
+	}
+
+	processMessagePayload(m, payload, channel, subscriptionMatch, publishMetadata)
 }
 
 func createPNFilesEvent(filePayload interface{}, m *SubscriptionManager, actualCh, subscribedCh, channel, subscriptionMatch, issuingClientID string, userMetadata interface{}, timetoken int64, err error) (*PNFilesEvent, bool) {
