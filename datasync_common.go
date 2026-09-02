@@ -56,6 +56,10 @@ const (
 	entitiesDefaultLimit = 20
 )
 
+func conflictingDataSyncFilters(filterFast, filter string) bool {
+	return filterFast != "" && filter != ""
+}
+
 // PNEntity is the generic entity resource returned by the Entities API.
 // System fields are top-level; application-defined fields live under Payload.
 type PNEntity struct {

@@ -216,6 +216,9 @@ func buildURL(o endpoint) (*url.URL, error) {
 	if v := query.Get("filter"); v != "" {
 		query.Set("filter", utils.URLEncode(v))
 	}
+	if v := query.Get("filter_fast"); v != "" {
+		query.Set("filter_fast", utils.URLEncode(v))
+	}
 	if v := query.Get("include"); v != "" {
 		query.Set("include", utils.URLEncode(v))
 	}

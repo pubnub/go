@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"github.com/pubnub/go/v9/pnerr"
-	"github.com/pubnub/go/v9/utils"
 )
 
 var emptyGetUsersResponse *PNUsersResponse
@@ -67,16 +66,19 @@ func (b *getUsersBuilder) Limit(limit int) *getUsersBuilder {
 	return b
 }
 
-// Filter sets the AppContext Query Language filter expression.
-func (b *getUsersBuilder) Filter(filter string) *getUsersBuilder {
-	b.opts.Filter = filter
+// FilterFast sets the strongly consistent filter expression (query param
+// filter_fast). It always reflects the latest writes but accepts fewer
+// conditions than Filter. FilterFast and Filter cannot both be set.
+func (b *getUsersBuilder) FilterFast(filterFast string) *getUsersBuilder {
+	b.opts.FilterFast = filterFast
 	return b
 }
 
-// FilterAdvanced sets the extended filter expression supporting logical
-// operators and nested conditions.
-func (b *getUsersBuilder) FilterAdvanced(filterAdvanced string) *getUsersBuilder {
-	b.opts.FilterAdvanced = filterAdvanced
+// Filter sets the eventually consistent filter expression (query param
+// filter). It accepts more conditions than FilterFast; recent writes may
+// not yet be reflected. FilterFast and Filter cannot both be set.
+func (b *getUsersBuilder) Filter(filter string) *getUsersBuilder {
+	b.opts.Filter = filter
 	return b
 }
 
@@ -116,11 +118,11 @@ func (o *getUsersOpts) GetLogParams() map[string]interface{} {
 	if o.Cursor != "" {
 		params["Cursor"] = o.Cursor
 	}
+	if o.FilterFast != "" {
+		params["FilterFast"] = o.FilterFast
+	}
 	if o.Filter != "" {
 		params["Filter"] = o.Filter
-	}
-	if o.FilterAdvanced != "" {
-		params["FilterAdvanced"] = o.FilterAdvanced
 	}
 	if len(o.Sort) > 0 {
 		params["Sort"] = o.Sort
@@ -149,8 +151,8 @@ type getUsersOpts struct {
 	EntityClassLevel      PNEntityClassLevel
 	Cursor                string
 	Limit                 int
+	FilterFast            string
 	Filter                string
-	FilterAdvanced        string
 	Sort                  []string
 	QueryParam            map[string]string
 
@@ -160,6 +162,9 @@ type getUsersOpts struct {
 func (o *getUsersOpts) validate() error {
 	if o.config().SubscribeKey == "" {
 		return newValidationError(o, StrMissingSubKey)
+	}
+	if conflictingDataSyncFilters(o.FilterFast, o.Filter) {
+		return newValidationError(o, StrExclusiveDataSyncFilter)
 	}
 	return nil
 }
@@ -188,13 +193,12 @@ func (o *getUsersOpts) buildQuery() (*url.Values, error) {
 	if o.Cursor != "" {
 		q.Set("cursor", o.Cursor)
 	}
-	// "filter" and "sort" are URL-encoded centrally in buildURL; "filter_advanced"
-	// is not, so it is encoded here.
+	// "filter", "filter_fast" and "sort" are URL-encoded centrally in buildURL.
+	if o.FilterFast != "" {
+		q.Set("filter_fast", o.FilterFast)
+	}
 	if o.Filter != "" {
 		q.Set("filter", o.Filter)
-	}
-	if o.FilterAdvanced != "" {
-		q.Set("filter_advanced", utils.URLEncode(o.FilterAdvanced))
 	}
 	if len(o.Sort) > 0 {
 		SetQueryParamAsCommaSepString(q, o.Sort, "sort")

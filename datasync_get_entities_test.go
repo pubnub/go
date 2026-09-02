@@ -27,8 +27,7 @@ func TestGetEntitiesBuildPathQuery(t *testing.T) {
 		EntityClassLevel(PNEntityClassLevelSubKey).
 		Cursor("TjIw").
 		Limit(10).
-		Filter("status == 'active'").
-		FilterAdvanced("status == 'active' AND year > 2020").
+		FilterFast("status == 'active'").
 		Sort([]string{"-createdAt", "+id"}).
 		QueryParam(map[string]string{"q1": "v1"})
 
@@ -45,10 +44,24 @@ func TestGetEntitiesBuildPathQuery(t *testing.T) {
 	assert.Equal("SubKey", query.Get("entity_class_level"))
 	assert.Equal("TjIw", query.Get("cursor"))
 	assert.Equal(strconv.Itoa(10), query.Get("limit"))
-	assert.Equal("status == 'active'", query.Get("filter"))
+	assert.Equal("status == 'active'", query.Get("filter_fast"))
+	assert.Equal("", query.Get("filter"))
 	assert.Equal("-createdAt,+id", query.Get("sort"))
 	assert.Equal("v1", query.Get("q1"))
-	assert.NotEmpty(query.Get("filter_advanced"))
+}
+
+func TestGetEntitiesFilterQueryParam(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newGetEntitiesBuilder(pn).
+		EntityClass("vehicle").
+		Filter("status == 'active' AND year > 2020")
+
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("status == 'active' AND year > 2020", query.Get("filter"))
+	assert.Equal("", query.Get("filter_fast"))
 }
 
 func TestGetEntitiesVersionOmittedWhenUnset(t *testing.T) {
@@ -76,6 +89,11 @@ func TestGetEntitiesValidate(t *testing.T) {
 
 	o := newGetEntitiesBuilder(pn)
 	assert.Contains(o.opts.validate().Error(), StrMissingEntityClass)
+
+	o3 := newGetEntitiesBuilder(pn).EntityClass("vehicle").
+		FilterFast("status == 'active'").
+		Filter("status == 'active' AND year > 2020")
+	assert.Contains(o3.opts.validate().Error(), StrExclusiveDataSyncFilter)
 
 	pn.Config.SubscribeKey = ""
 	o2 := newGetEntitiesBuilder(pn).EntityClass("vehicle")
@@ -107,4 +125,11 @@ func TestGetEntitiesExecuteValidationError(t *testing.T) {
 
 	_, _, err := pn.DataSync.GetEntities().Execute()
 	assert.Contains(err.Error(), StrMissingEntityClass)
+
+	_, _, err = pn.DataSync.GetEntities().
+		EntityClass("vehicle").
+		FilterFast("status == 'active'").
+		Filter("status == 'active' AND year > 2020").
+		Execute()
+	assert.Contains(err.Error(), StrExclusiveDataSyncFilter)
 }

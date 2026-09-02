@@ -84,6 +84,8 @@ const (
 	StrMissingChannelID = "Missing Channel ID"
 	// StrMissingMembershipID shows `Missing Membership ID` message
 	StrMissingMembershipID = "Missing Membership ID"
+	// StrExclusiveDataSyncFilter shows that FilterFast and Filter cannot both be set
+	StrExclusiveDataSyncFilter = "FilterFast and Filter cannot both be set"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.

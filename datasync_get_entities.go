@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"github.com/pubnub/go/v9/pnerr"
-	"github.com/pubnub/go/v9/utils"
 )
 
 var emptyGetEntitiesResponse *PNEntitiesResponse
@@ -66,16 +65,19 @@ func (b *getEntitiesBuilder) Limit(limit int) *getEntitiesBuilder {
 	return b
 }
 
-// Filter sets the AppContext Query Language filter expression.
-func (b *getEntitiesBuilder) Filter(filter string) *getEntitiesBuilder {
-	b.opts.Filter = filter
+// FilterFast sets the strongly consistent filter expression (query param
+// filter_fast). It always reflects the latest writes but accepts fewer
+// conditions than Filter. FilterFast and Filter cannot both be set.
+func (b *getEntitiesBuilder) FilterFast(filterFast string) *getEntitiesBuilder {
+	b.opts.FilterFast = filterFast
 	return b
 }
 
-// FilterAdvanced sets the extended filter expression supporting logical
-// operators and nested conditions.
-func (b *getEntitiesBuilder) FilterAdvanced(filterAdvanced string) *getEntitiesBuilder {
-	b.opts.FilterAdvanced = filterAdvanced
+// Filter sets the eventually consistent filter expression (query param
+// filter). It accepts more conditions than FilterFast; recent writes may
+// not yet be reflected. FilterFast and Filter cannot both be set.
+func (b *getEntitiesBuilder) Filter(filter string) *getEntitiesBuilder {
+	b.opts.Filter = filter
 	return b
 }
 
@@ -113,11 +115,11 @@ func (o *getEntitiesOpts) GetLogParams() map[string]interface{} {
 	if o.Cursor != "" {
 		params["Cursor"] = o.Cursor
 	}
+	if o.FilterFast != "" {
+		params["FilterFast"] = o.FilterFast
+	}
 	if o.Filter != "" {
 		params["Filter"] = o.Filter
-	}
-	if o.FilterAdvanced != "" {
-		params["FilterAdvanced"] = o.FilterAdvanced
 	}
 	if len(o.Sort) > 0 {
 		params["Sort"] = o.Sort
@@ -146,8 +148,8 @@ type getEntitiesOpts struct {
 	EntityClassLevel      PNEntityClassLevel
 	Cursor                string
 	Limit                 int
+	FilterFast            string
 	Filter                string
-	FilterAdvanced        string
 	Sort                  []string
 	QueryParam            map[string]string
 
@@ -160,6 +162,9 @@ func (o *getEntitiesOpts) validate() error {
 	}
 	if o.EntityClass == "" {
 		return newValidationError(o, StrMissingEntityClass)
+	}
+	if conflictingDataSyncFilters(o.FilterFast, o.Filter) {
+		return newValidationError(o, StrExclusiveDataSyncFilter)
 	}
 	return nil
 }
@@ -186,13 +191,12 @@ func (o *getEntitiesOpts) buildQuery() (*url.Values, error) {
 	if o.Cursor != "" {
 		q.Set("cursor", o.Cursor)
 	}
-	// "filter" and "sort" are URL-encoded centrally in buildURL; "filter_advanced"
-	// is not, so it is encoded here.
+	// "filter", "filter_fast" and "sort" are URL-encoded centrally in buildURL.
+	if o.FilterFast != "" {
+		q.Set("filter_fast", o.FilterFast)
+	}
 	if o.Filter != "" {
 		q.Set("filter", o.Filter)
-	}
-	if o.FilterAdvanced != "" {
-		q.Set("filter_advanced", utils.URLEncode(o.FilterAdvanced))
 	}
 	if len(o.Sort) > 0 {
 		SetQueryParamAsCommaSepString(q, o.Sort, "sort")

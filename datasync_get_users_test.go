@@ -27,8 +27,7 @@ func TestGetUsersBuildPathQuery(t *testing.T) {
 		EntityClassLevel(PNEntityClassLevelSubKey).
 		Cursor("TjIw").
 		Limit(10).
-		Filter("status == 'active'").
-		FilterAdvanced("status == 'active' AND location == 'Pune'").
+		FilterFast("status == 'active'").
 		Sort([]string{"-createdAt", "+id"}).
 		QueryParam(map[string]string{"q1": "v1"})
 
@@ -45,10 +44,21 @@ func TestGetUsersBuildPathQuery(t *testing.T) {
 	assert.Equal("SubKey", query.Get("entity_class_level"))
 	assert.Equal("TjIw", query.Get("cursor"))
 	assert.Equal(strconv.Itoa(10), query.Get("limit"))
-	assert.Equal("status == 'active'", query.Get("filter"))
+	assert.Equal("status == 'active'", query.Get("filter_fast"))
+	assert.Equal("", query.Get("filter"))
 	assert.Equal("-createdAt,+id", query.Get("sort"))
 	assert.Equal("v1", query.Get("q1"))
-	assert.NotEmpty(query.Get("filter_advanced"))
+}
+
+func TestGetUsersFilterQueryParam(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newGetUsersBuilder(pn).Filter("status == 'active' AND location == 'Pune'")
+	query, err := o.opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("status == 'active' AND location == 'Pune'", query.Get("filter"))
+	assert.Equal("", query.Get("filter_fast"))
 }
 
 func TestGetUsersOptionalFiltersOmittedWhenUnset(t *testing.T) {
@@ -81,6 +91,16 @@ func TestGetUsersValidate(t *testing.T) {
 	assert.Contains(o.opts.validate().Error(), StrMissingSubKey)
 }
 
+func TestGetUsersValidateRejectsBothFilters(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newGetUsersBuilder(pn).
+		FilterFast("status == 'active'").
+		Filter("status == 'active' AND location == 'Pune'")
+	assert.Contains(o.opts.validate().Error(), StrExclusiveDataSyncFilter)
+}
+
 func TestGetUsersResponseParsing(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
@@ -107,4 +127,15 @@ func TestGetUsersExecuteValidationError(t *testing.T) {
 
 	_, _, err := pn.DataSync.GetUsers().Execute()
 	assert.Contains(err.Error(), StrMissingSubKey)
+}
+
+func TestGetUsersExecuteBothFiltersError(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	_, _, err := pn.DataSync.GetUsers().
+		FilterFast("status == 'active'").
+		Filter("status == 'active' AND location == 'Pune'").
+		Execute()
+	assert.Contains(err.Error(), StrExclusiveDataSyncFilter)
 }
