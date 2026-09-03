@@ -572,6 +572,157 @@ func TestProcessSubscribePayloadCipherErr(t *testing.T) {
 	//pn.Destroy()
 }
 
+func assertNoSubscribeListenerEvents(t *testing.T, listener *Listener) {
+	t.Helper()
+
+	select {
+	case status := <-listener.Status:
+		assert.Failf(t, "unexpected status", "status: %#v", status)
+	case message := <-listener.Message:
+		assert.Failf(t, "unexpected message", "message: %#v", message)
+	case presence := <-listener.Presence:
+		assert.Failf(t, "unexpected presence event", "event: %#v", presence)
+	case signal := <-listener.Signal:
+		assert.Failf(t, "unexpected signal", "signal: %#v", signal)
+	case event := <-listener.UUIDEvent:
+		assert.Failf(t, "unexpected uuid event", "event: %#v", event)
+	case event := <-listener.ChannelEvent:
+		assert.Failf(t, "unexpected channel event", "event: %#v", event)
+	case event := <-listener.MembershipEvent:
+		assert.Failf(t, "unexpected membership event", "event: %#v", event)
+	case event := <-listener.MessageActionsEvent:
+		assert.Failf(t, "unexpected message actions event", "event: %#v", event)
+	case event := <-listener.File:
+		assert.Failf(t, "unexpected file event", "event: %#v", event)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestProcessSubscribePayloadUnknownEventTypeIsSkipped(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	logger := &testLogger{minLevel: PNLogLevelDebug}
+	pn.loggerManager.AddLogger(logger)
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel",
+		Payload:           "future-event",
+		MessageType:       6,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	assertNoSubscribeListenerEvents(t, listener)
+
+	found := false
+	for _, logMsg := range logger.logs {
+		if logMsg.GetLogLevel() == PNLogLevelDebug && logMsg.GetMessage() == "Unknown event type (6) has been received" {
+			found = true
+			break
+		}
+	}
+	assert.True(t, found, "expected debug log for unknown event type")
+}
+
+func TestProcessSubscribePayloadUnknownEventTypeOnPresenceChannelIsSkipped(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel-pnpres",
+		Channel:           "channel-pnpres",
+		Payload: map[string]interface{}{
+			"action":    "join",
+			"timestamp": int64(15078947309567840),
+			"uuid":      "bfce00ff4018fce180438bb04afc8da8",
+			"occupancy": float64(1),
+		},
+		MessageType: 7,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	assertNoSubscribeListenerEvents(t, listener)
+}
+
+func TestProcessSubscribePayloadKnownTypeTakesPriorityOverPresenceChannel(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel-pnpres",
+		Channel:           "channel-pnpres",
+		Payload:           "signal-body",
+		MessageType:       PNMessageTypeSignal,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case signal := <-listener.Signal:
+		assert.Equal(t, "signal-body", signal.Message)
+		assert.Equal(t, "channel-pnpres", signal.Channel)
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for signal")
+	}
+
+	assertNoSubscribeListenerEvents(t, listener)
+}
+
+func TestProcessSubscribePayloadPresenceFromSubscriptionMatch(t *testing.T) {
+	assert := assert.New(t)
+	done := make(chan bool)
+	pn := NewPubNub(NewDemoConfig())
+	listener := NewListener()
+
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				assert.Nil(status.Error)
+				done <- true
+				return
+			case _ = <-listener.Message:
+				assert.Fail("No error")
+				done <- true
+				return
+			case presence := <-listener.Presence:
+				assert.Equal("join", presence.Event)
+				assert.Equal("channel", presence.Channel)
+				assert.Equal("cg-pnpres", presence.SubscribedChannel)
+				done <- true
+				return
+			}
+		}
+	}()
+
+	pn.AddListener(listener)
+
+	payload := &map[string]interface{}{
+		"action":    "join",
+		"timestamp": int64(15078947309567840),
+		"uuid":      "bfce00ff4018fce180438bb04afc8da8",
+		"occupancy": float64(1),
+	}
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "cg-pnpres",
+		Channel:           "channel",
+		Payload:           *payload,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+	<-done
+}
+
 func TestProcessSubscribePayloadWithCustomMessageType(t *testing.T) {
 	assert := assert.New(t)
 	done := make(chan bool)

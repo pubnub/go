@@ -1,3 +1,9 @@
+## v9.0.5
+September 02 2026
+
+#### Fixed
+- Subscribe now classifies payloads from the `e` field (`MessageType`) before presence or message handling, so newer or unknown server event types are not announced as messages. Known types (signal, objects, message actions, files) are dispatched as before; unknown values are skipped and logged at debug. When `e` is 0, presence is detected from a `-pnpres` channel or subscription match.
+
 ## v9.0.4
 July 13 2026
 
