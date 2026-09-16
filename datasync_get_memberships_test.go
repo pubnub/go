@@ -28,7 +28,7 @@ func TestGetMembershipsBuildPathQuery(t *testing.T) {
 		Cursor("TjIw").
 		Limit(10).
 		FilterFast("status == 'active'").
-		Sort([]string{"-createdAt", "+id"}).
+		Sort([]string{"createdAt:desc", "id"}).
 		QueryParam(map[string]string{"q1": "v1"})
 
 	path, err := o.opts.buildPath()
@@ -46,7 +46,7 @@ func TestGetMembershipsBuildPathQuery(t *testing.T) {
 	assert.Equal(strconv.Itoa(10), query.Get("limit"))
 	assert.Equal("status == 'active'", query.Get("filter_fast"))
 	assert.Equal("", query.Get("filter"))
-	assert.Equal("-createdAt,+id", query.Get("sort"))
+	assert.Equal("createdAt:desc,id", query.Get("sort"))
 	assert.Equal("v1", query.Get("q1"))
 }
 
@@ -54,10 +54,10 @@ func TestGetMembershipsFilterQueryParam(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	o := newGetMembershipsBuilder(pn).Filter("status == 'active' AND role == 'admin'")
+	o := newGetMembershipsBuilder(pn).Filter("status == 'active' && role == 'admin'")
 	query, err := o.opts.buildQuery()
 	assert.Nil(err)
-	assert.Equal("status == 'active' AND role == 'admin'", query.Get("filter"))
+	assert.Equal("status == 'active' && role == 'admin'", query.Get("filter"))
 	assert.Equal("", query.Get("filter_fast"))
 }
 
@@ -97,7 +97,7 @@ func TestGetMembershipsValidateRejectsBothFilters(t *testing.T) {
 
 	o := newGetMembershipsBuilder(pn).
 		FilterFast("status == 'active'").
-		Filter("status == 'active' AND role == 'admin'")
+		Filter("status == 'active' && role == 'admin'")
 	assert.Contains(o.opts.validate().Error(), StrExclusiveDataSyncFilter)
 }
 
@@ -105,7 +105,7 @@ func TestGetMembershipsResponseParsing(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	jsonBytes := []byte(`{"data":[{"id":"m-123","channelId":"general","userId":"alice","relationshipClass":"Membership","relationshipClassVersion":1,"status":"active","eTag":"1","payload":{"role":"moderator"}}],"links":{"self":"/self","next":"/next","prev":null},"meta":{"has_next":true,"has_prev":false,"next_cursor":"TjIw","prev_cursor":null,"limit":20}}`)
+	jsonBytes := []byte(`{"data":[{"id":"m-123","channelId":"general","userId":"alice","relationshipClass":"Membership","relationshipClassVersion":1,"status":"active","eTag":"1","payload":{"role":"moderator"}}],"links":{"self":"/self","next":"/next"},"meta":{"has_next":true,"next_cursor":"TjIw","limit":20}}`)
 
 	r, _, err := newPNDataSyncMembershipsResponse(jsonBytes, newGetMembershipsOpts(pn, pn.ctx), StatusResponse{})
 	assert.Nil(err)
@@ -136,7 +136,7 @@ func TestGetMembershipsExecuteBothFiltersError(t *testing.T) {
 
 	_, _, err := pn.DataSync.GetMemberships().
 		FilterFast("status == 'active'").
-		Filter("status == 'active' AND role == 'admin'").
+		Filter("status == 'active' && role == 'admin'").
 		Execute()
 	assert.Contains(err.Error(), StrExclusiveDataSyncFilter)
 }

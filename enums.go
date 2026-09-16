@@ -131,10 +131,19 @@ const (
 )
 
 const (
-	// PNDataSyncEventTypeEntity is the enum when the DataSync event type is entity.
+	// PNDataSyncEventTypeEntity is the enum when the DataSync event type is a custom entity.
 	PNDataSyncEventTypeEntity PNDataSyncEventType = "entity"
-	// PNDataSyncEventTypeRelationship is the enum when the DataSync event type is relationship.
+	// PNDataSyncEventTypeRelationship is the enum when the DataSync event type is a custom relationship.
 	PNDataSyncEventTypeRelationship PNDataSyncEventType = "relationship"
+	// PNDataSyncEventTypeUser is the enum when the DataSync event type is a user
+	// (the built-in User class or a subclass of it).
+	PNDataSyncEventTypeUser PNDataSyncEventType = "user"
+	// PNDataSyncEventTypeChannel is the enum when the DataSync event type is a channel
+	// (the built-in Channel class or a subclass of it).
+	PNDataSyncEventTypeChannel PNDataSyncEventType = "channel"
+	// PNDataSyncEventTypeMembership is the enum when the DataSync event type is a membership
+	// (the built-in Membership class or a subclass of it).
+	PNDataSyncEventTypeMembership PNDataSyncEventType = "membership"
 )
 
 const (

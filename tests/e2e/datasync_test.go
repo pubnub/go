@@ -84,7 +84,7 @@ func TestEntitiesListStubbed(t *testing.T) {
 		Method:             "GET",
 		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/entities", cfg.SubscribeKey),
 		Query:              "entity_class=vehicle&limit=20",
-		ResponseBody:       `{"data":[{"id":"i789","status":"active","entityClass":"vehicle","entityClassVersion":1,"entityClassLevel":"SubKey","eTag":"1","payload":{"custom":"fields"}}],"links":{"self":"/self","next":"/next","prev":null},"meta":{"has_next":true,"has_prev":false,"next_cursor":"TjIw","prev_cursor":null,"limit":20}}`,
+		ResponseBody:       `{"data":[{"id":"i789","status":"active","entityClass":"vehicle","entityClassVersion":1,"entityClassLevel":"SubKey","eTag":"1","payload":{"custom":"fields"}}],"links":{"self":"/self","next":"/next"},"meta":{"has_next":true,"next_cursor":"TjIw","limit":20}}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
 	})
@@ -256,7 +256,7 @@ func TestRelationshipsListStubbed(t *testing.T) {
 		Method:             "GET",
 		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/relationships", cfg.SubscribeKey),
 		Query:              "relationship_class=ProductOwner&entity_a_id=u123&limit=20",
-		ResponseBody:       `{"data":[{"id":"r-123","entityAId":"u123","entityBId":"s456","relationshipClass":"ProductOwner","relationshipClassVersion":1,"status":"active","eTag":"1","payload":{"custom":"fields"}}],"links":{"self":"/self","next":"/next","prev":null},"meta":{"has_next":true,"has_prev":false,"next_cursor":"TjIw","prev_cursor":null,"limit":20}}`,
+		ResponseBody:       `{"data":[{"id":"r-123","entityAId":"u123","entityBId":"s456","relationshipClass":"ProductOwner","relationshipClassVersion":1,"status":"active","eTag":"1","payload":{"custom":"fields"}}],"links":{"self":"/self","next":"/next"},"meta":{"has_next":true,"next_cursor":"TjIw","limit":20}}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
 	})
@@ -427,7 +427,7 @@ func TestUsersListStubbed(t *testing.T) {
 		Method:             "GET",
 		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/users", cfg.SubscribeKey),
 		Query:              "limit=20",
-		ResponseBody:       `{"data":[{"id":"alice","status":"active","entityClass":"User","entityClassVersion":1,"entityClassLevel":"SubKey","eTag":"1","payload":{"name":"Alice"}}],"links":{"self":"/self","next":"/next","prev":null},"meta":{"has_next":true,"has_prev":false,"next_cursor":"TjIw","prev_cursor":null,"limit":20}}`,
+		ResponseBody:       `{"data":[{"id":"alice","status":"active","entityClass":"User","entityClassVersion":1,"entityClassLevel":"SubKey","eTag":"1","payload":{"name":"Alice"}}],"links":{"self":"/self","next":"/next"},"meta":{"has_next":true,"next_cursor":"TjIw","limit":20}}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
 	})
@@ -592,7 +592,7 @@ func TestChannelsListStubbed(t *testing.T) {
 		Method:             "GET",
 		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/channels", cfg.SubscribeKey),
 		Query:              "limit=20",
-		ResponseBody:       `{"data":[{"id":"general","status":"active","entityClass":"Channel","entityClassVersion":1,"entityClassLevel":"SubKey","eTag":"1","payload":{"name":"General"}}],"links":{"self":"/self","next":"/next","prev":null},"meta":{"has_next":true,"has_prev":false,"next_cursor":"TjIw","prev_cursor":null,"limit":20}}`,
+		ResponseBody:       `{"data":[{"id":"general","status":"active","entityClass":"Channel","entityClassVersion":1,"entityClassLevel":"SubKey","eTag":"1","payload":{"name":"General"}}],"links":{"self":"/self","next":"/next"},"meta":{"has_next":true,"next_cursor":"TjIw","limit":20}}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
 	})
@@ -760,7 +760,7 @@ func TestMembershipsListStubbed(t *testing.T) {
 		Method:             "GET",
 		Path:               fmt.Sprintf("/v1/datasync/subkeys/%s/memberships", cfg.SubscribeKey),
 		Query:              "channel_id=general&limit=20",
-		ResponseBody:       `{"data":[{"id":"m-123","channelId":"general","userId":"alice","relationshipClass":"Membership","relationshipClassVersion":1,"status":"active","eTag":"1","payload":{"role":"moderator"}}],"links":{"self":"/self","next":"/next","prev":null},"meta":{"has_next":true,"has_prev":false,"next_cursor":"TjIw","prev_cursor":null,"limit":20}}`,
+		ResponseBody:       `{"data":[{"id":"m-123","channelId":"general","userId":"alice","relationshipClass":"Membership","relationshipClassVersion":1,"status":"active","eTag":"1","payload":{"role":"moderator"}}],"links":{"self":"/self","next":"/next"},"meta":{"has_next":true,"next_cursor":"TjIw","limit":20}}`,
 		IgnoreQueryKeys:    []string{"pnsdk", "uuid"},
 		ResponseStatusCode: 200,
 	})

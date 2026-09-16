@@ -1247,6 +1247,11 @@ func createPNDataSyncEventResult(objPayload interface{}, m *SubscriptionManager,
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid className")
 		return nil, false
 	}
+	classLevelString, ok := subscribePayloadOptionalString(metadata, "classLevel")
+	if !ok {
+		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid classLevel")
+		return nil, false
+	}
 	classVersion, ok := subscribePayloadOptionalInt(metadata, "classVersion")
 	if !ok {
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid classVersion")
@@ -1259,12 +1264,14 @@ func createPNDataSyncEventResult(objPayload interface{}, m *SubscriptionManager,
 		return nil, false
 	}
 
+	classLevel := PNEntityClassLevel(classLevelString)
 	result := &PNDataSyncEventResult{
 		Version:           version,
 		Event:             PNDataSyncEvent(eventString),
 		Source:            source,
 		Type:              PNDataSyncEventType(typeString),
 		ClassName:         className,
+		ClassLevel:        classLevel,
 		ClassVersion:      classVersion,
 		Timetoken:         timetoken,
 		ActualChannel:     actualCh,
@@ -1293,8 +1300,8 @@ func createPNDataSyncEventResult(objPayload interface{}, m *SubscriptionManager,
 	}
 
 	switch eventType {
-	case PNDataSyncEventTypeEntity:
-		entity, ok := parseDataSyncEntityFromEventData(data, className, classVersion, m, channel)
+	case PNDataSyncEventTypeEntity, PNDataSyncEventTypeUser, PNDataSyncEventTypeChannel:
+		entity, ok := parseDataSyncEntityFromEventData(data, className, classVersion, classLevel, m, channel)
 		if !ok {
 			return nil, false
 		}
@@ -1305,6 +1312,12 @@ func createPNDataSyncEventResult(objPayload interface{}, m *SubscriptionManager,
 			return nil, false
 		}
 		result.Relationship = relationship
+	case PNDataSyncEventTypeMembership:
+		membership, ok := parseDataSyncMembershipFromEventData(data, className, classVersion, m, channel)
+		if !ok {
+			return nil, false
+		}
+		result.Membership = membership
 	default:
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: unsupported type")
 		return nil, false
@@ -1313,62 +1326,87 @@ func createPNDataSyncEventResult(objPayload interface{}, m *SubscriptionManager,
 	return result, true
 }
 
-func parseDataSyncEntityFromEventData(data map[string]interface{}, className string, classVersion int, m *SubscriptionManager, channel string) (*PNEntity, bool) {
+// dataSyncEventObjectFields holds the system fields shared by entity,
+// relationship, and membership create/update event payloads.
+type dataSyncEventObjectFields struct {
+	id        string
+	status    string
+	createdAt string
+	updatedAt string
+	eTag      string
+	expiresAt string
+	payload   map[string]interface{}
+}
+
+func parseDataSyncEventObjectFields(data map[string]interface{}, m *SubscriptionManager, channel string) (dataSyncEventObjectFields, bool) {
 	id, ok := subscribePayloadRequiredString(data, "id")
 	if !ok {
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid id")
-		return nil, false
+		return dataSyncEventObjectFields{}, false
 	}
 	status, ok := subscribePayloadOptionalString(data, "status")
 	if !ok {
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid status")
-		return nil, false
+		return dataSyncEventObjectFields{}, false
 	}
 	createdAt, ok := subscribePayloadOptionalString(data, "createdAt")
 	if !ok {
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid createdAt")
-		return nil, false
+		return dataSyncEventObjectFields{}, false
 	}
 	updatedAt, ok := subscribePayloadOptionalString(data, "updatedAt")
 	if !ok {
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid updatedAt")
-		return nil, false
+		return dataSyncEventObjectFields{}, false
 	}
 	eTag, ok := subscribePayloadOptionalString(data, "eTag")
 	if !ok {
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid eTag")
-		return nil, false
+		return dataSyncEventObjectFields{}, false
 	}
 	expiresAt, ok := subscribePayloadOptionalString(data, "expiresAt")
 	if !ok {
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid expiresAt")
-		return nil, false
+		return dataSyncEventObjectFields{}, false
 	}
 	payloadBag, ok := subscribePayloadOptionalMap(data, "payload")
 	if !ok {
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid payload")
+		return dataSyncEventObjectFields{}, false
+	}
+
+	return dataSyncEventObjectFields{
+		id:        id,
+		status:    status,
+		createdAt: createdAt,
+		updatedAt: updatedAt,
+		eTag:      eTag,
+		expiresAt: expiresAt,
+		payload:   payloadBag,
+	}, true
+}
+
+func parseDataSyncEntityFromEventData(data map[string]interface{}, className string, classVersion int, classLevel PNEntityClassLevel, m *SubscriptionManager, channel string) (*PNEntity, bool) {
+	fields, ok := parseDataSyncEventObjectFields(data, m, channel)
+	if !ok {
 		return nil, false
 	}
 
 	return &PNEntity{
-		ID:                 id,
-		Status:             status,
+		ID:                 fields.id,
+		Status:             fields.status,
 		EntityClass:        className,
 		EntityClassVersion: classVersion,
-		Payload:            payloadBag,
-		CreatedAt:          createdAt,
-		UpdatedAt:          updatedAt,
-		ETag:               eTag,
-		ExpiresAt:          expiresAt,
+		EntityClassLevel:   classLevel,
+		Payload:            fields.payload,
+		CreatedAt:          fields.createdAt,
+		UpdatedAt:          fields.updatedAt,
+		ETag:               fields.eTag,
+		ExpiresAt:          fields.expiresAt,
 	}, true
 }
 
 func parseDataSyncRelationshipFromEventData(data map[string]interface{}, className string, classVersion int, m *SubscriptionManager, channel string) (*PNRelationship, bool) {
-	id, ok := subscribePayloadRequiredString(data, "id")
-	if !ok {
-		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid id")
-		return nil, false
-	}
 	entityAID, ok := subscribePayloadRequiredString(data, "entityAId")
 	if !ok {
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid entityAId")
@@ -1379,49 +1417,54 @@ func parseDataSyncRelationshipFromEventData(data map[string]interface{}, classNa
 		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid entityBId")
 		return nil, false
 	}
-	status, ok := subscribePayloadOptionalString(data, "status")
+	fields, ok := parseDataSyncEventObjectFields(data, m, channel)
 	if !ok {
-		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid status")
-		return nil, false
-	}
-	createdAt, ok := subscribePayloadOptionalString(data, "createdAt")
-	if !ok {
-		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid createdAt")
-		return nil, false
-	}
-	updatedAt, ok := subscribePayloadOptionalString(data, "updatedAt")
-	if !ok {
-		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid updatedAt")
-		return nil, false
-	}
-	eTag, ok := subscribePayloadOptionalString(data, "eTag")
-	if !ok {
-		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid eTag")
-		return nil, false
-	}
-	expiresAt, ok := subscribePayloadOptionalString(data, "expiresAt")
-	if !ok {
-		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid expiresAt")
-		return nil, false
-	}
-	payloadBag, ok := subscribePayloadOptionalMap(data, "payload")
-	if !ok {
-		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid payload")
 		return nil, false
 	}
 
 	return &PNRelationship{
-		ID:                       id,
+		ID:                       fields.id,
 		EntityAID:                entityAID,
 		EntityBID:                entityBID,
-		Status:                   status,
+		Status:                   fields.status,
 		RelationshipClass:        className,
 		RelationshipClassVersion: classVersion,
-		Payload:                  payloadBag,
-		CreatedAt:                createdAt,
-		UpdatedAt:                updatedAt,
-		ETag:                     eTag,
-		ExpiresAt:                expiresAt,
+		Payload:                  fields.payload,
+		CreatedAt:                fields.createdAt,
+		UpdatedAt:                fields.updatedAt,
+		ETag:                     fields.eTag,
+		ExpiresAt:                fields.expiresAt,
+	}, true
+}
+
+func parseDataSyncMembershipFromEventData(data map[string]interface{}, className string, classVersion int, m *SubscriptionManager, channel string) (*PNDataSyncMembership, bool) {
+	channelID, ok := subscribePayloadRequiredString(data, "channelId")
+	if !ok {
+		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid channelId")
+		return nil, false
+	}
+	userID, ok := subscribePayloadRequiredString(data, "userId")
+	if !ok {
+		announceSubscribePayloadParsingError(m, channel, "DataSync response parsing error: invalid userId")
+		return nil, false
+	}
+	fields, ok := parseDataSyncEventObjectFields(data, m, channel)
+	if !ok {
+		return nil, false
+	}
+
+	return &PNDataSyncMembership{
+		ID:                       fields.id,
+		ChannelID:                channelID,
+		UserID:                   userID,
+		Status:                   fields.status,
+		RelationshipClass:        className,
+		RelationshipClassVersion: classVersion,
+		Payload:                  fields.payload,
+		CreatedAt:                fields.createdAt,
+		UpdatedAt:                fields.updatedAt,
+		ETag:                     fields.eTag,
+		ExpiresAt:                fields.expiresAt,
 	}, true
 }
 

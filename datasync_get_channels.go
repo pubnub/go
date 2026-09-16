@@ -82,8 +82,8 @@ func (b *getChannelsBuilder) Filter(filter string) *getChannelsBuilder {
 	return b
 }
 
-// Sort sets the comma-separated list of fields to sort by, each prefixed with
-// + for ascending or - for descending. Example: "-createdAt,+id".
+// Sort sets the fields to sort by. Each entry is a property name, optionally
+// suffixed with :desc (ascending by default). Example: "createdAt:desc,id".
 func (b *getChannelsBuilder) Sort(sort []string) *getChannelsBuilder {
 	b.opts.Sort = sort
 	return b

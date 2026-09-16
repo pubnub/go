@@ -81,8 +81,8 @@ func (b *getEntitiesBuilder) Filter(filter string) *getEntitiesBuilder {
 	return b
 }
 
-// Sort sets the comma-separated list of fields to sort by, each prefixed with
-// + for ascending or - for descending. Example: "-createdAt,+id".
+// Sort sets the fields to sort by. Each entry is a property name, optionally
+// suffixed with :desc (ascending by default). Example: "createdAt:desc,id".
 func (b *getEntitiesBuilder) Sort(sort []string) *getEntitiesBuilder {
 	b.opts.Sort = sort
 	return b

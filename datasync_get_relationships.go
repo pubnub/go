@@ -86,8 +86,8 @@ func (b *getRelationshipsBuilder) Filter(filter string) *getRelationshipsBuilder
 	return b
 }
 
-// Sort sets the comma-separated list of fields to sort by, each prefixed with
-// + for ascending or - for descending. Example: "-createdAt,+id".
+// Sort sets the fields to sort by. Each entry is a property name, optionally
+// suffixed with :desc (ascending by default). Example: "createdAt:desc,id".
 func (b *getRelationshipsBuilder) Sort(sort []string) *getRelationshipsBuilder {
 	b.opts.Sort = sort
 	return b

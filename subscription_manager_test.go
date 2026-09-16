@@ -1289,6 +1289,57 @@ func TestProcessDataSyncPayloadMalformedFieldsAnnounceUnknownStatus(t *testing.T
 				},
 			},
 		},
+		{
+			name: "membership missing channelId",
+			payload: map[string]interface{}{
+				"version": "1.0",
+				"metadata": map[string]interface{}{
+					"event":        "create",
+					"source":       "data-sync",
+					"type":         "membership",
+					"className":    "Membership",
+					"classVersion": float64(1),
+				},
+				"data": map[string]interface{}{
+					"id":     "m-1",
+					"userId": "user-alice",
+				},
+			},
+		},
+		{
+			name: "membership missing userId",
+			payload: map[string]interface{}{
+				"version": "1.0",
+				"metadata": map[string]interface{}{
+					"event":        "create",
+					"source":       "data-sync",
+					"type":         "membership",
+					"className":    "Membership",
+					"classVersion": float64(1),
+				},
+				"data": map[string]interface{}{
+					"id":        "m-1",
+					"channelId": "channel-summer-sale",
+				},
+			},
+		},
+		{
+			name: "invalid classLevel type",
+			payload: map[string]interface{}{
+				"version": "1.0",
+				"metadata": map[string]interface{}{
+					"event":        "create",
+					"source":       "data-sync",
+					"type":         "entity",
+					"className":    "Product",
+					"classLevel":   1,
+					"classVersion": float64(1),
+				},
+				"data": map[string]interface{}{
+					"id": "product-1",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -1407,6 +1458,7 @@ func TestProcessDataSyncPayloadValidEntityCreateAnnouncesEvent(t *testing.T) {
 		assert.Equal(t, "channel-group", event.Subscription)
 		assert.NotNil(t, event.Entity)
 		assert.Nil(t, event.Relationship)
+		assert.Nil(t, event.Membership)
 		assert.Equal(t, "i789", event.Entity.ID)
 		assert.Equal(t, "user:adminUser:", event.Entity.EntityClass)
 		assert.Equal(t, 1, event.Entity.EntityClassVersion)
@@ -1471,6 +1523,7 @@ func TestProcessDataSyncPayloadValidRelationshipUpdateAnnouncesEvent(t *testing.
 		assert.Equal(t, 2, event.ClassVersion)
 		assert.Nil(t, event.Entity)
 		assert.NotNil(t, event.Relationship)
+		assert.Nil(t, event.Membership)
 		assert.Equal(t, "r-123", event.Relationship.ID)
 		assert.Equal(t, "channel-1", event.Relationship.EntityAID)
 		assert.Equal(t, "user-1", event.Relationship.EntityBID)
@@ -1519,6 +1572,217 @@ func TestProcessDataSyncPayloadValidDeleteAnnouncesEvent(t *testing.T) {
 		assert.Equal(t, "2021-01-01T00:00:00.000Z", event.DeletedAt)
 		assert.Nil(t, event.Entity)
 		assert.Nil(t, event.Relationship)
+		assert.Nil(t, event.Membership)
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for DataSync event")
+	}
+}
+
+func TestProcessDataSyncPayloadValidUserCreateAnnouncesEvent(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel-group",
+		Channel:           "user-alice",
+		PublishMetaData: publishMetadata{
+			PublishTimetoken: "15078947309567840",
+		},
+		Payload: map[string]interface{}{
+			"version": "1.0",
+			"metadata": map[string]interface{}{
+				"event":        "create",
+				"source":       "data-sync",
+				"type":         "user",
+				"className":    "User",
+				"classLevel":   "Global",
+				"classVersion": float64(1),
+			},
+			"data": map[string]interface{}{
+				"id":        "user-alice",
+				"updatedAt": "2026-07-03T09:15:00Z",
+				"createdAt": "2026-07-03T09:15:00Z",
+				"eTag":      "1",
+				"status":    "active",
+				"payload": map[string]interface{}{
+					"email": "alice@acme.test",
+				},
+			},
+		},
+		MessageType: PNMessageTypeDataSync,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case event := <-listener.DataSyncEvent:
+		assert.Equal(t, PNDataSyncEventCreate, event.Event)
+		assert.Equal(t, PNDataSyncEventTypeUser, event.Type)
+		assert.Equal(t, "User", event.ClassName)
+		assert.Equal(t, PNEntityClassLevelGlobal, event.ClassLevel)
+		assert.Equal(t, 1, event.ClassVersion)
+		assert.NotNil(t, event.Entity)
+		assert.Nil(t, event.Relationship)
+		assert.Nil(t, event.Membership)
+		assert.Equal(t, "user-alice", event.Entity.ID)
+		assert.Equal(t, "User", event.Entity.EntityClass)
+		assert.Equal(t, PNEntityClassLevelGlobal, event.Entity.EntityClassLevel)
+		assert.Equal(t, "alice@acme.test", event.Entity.Payload["email"])
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for DataSync event")
+	}
+}
+
+func TestProcessDataSyncPayloadValidChannelUpdateAnnouncesEvent(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "channel-summer-sale",
+		Payload: map[string]interface{}{
+			"version": "1.0",
+			"metadata": map[string]interface{}{
+				"event":        "update",
+				"source":       "data-sync",
+				"type":         "channel",
+				"className":    "LiveSale",
+				"classLevel":   "SubKey",
+				"classVersion": float64(2),
+			},
+			"data": map[string]interface{}{
+				"id":        "channel-summer-sale",
+				"status":    "live",
+				"createdAt": "2026-07-03T09:15:00Z",
+				"updatedAt": "2026-07-03T10:00:00Z",
+				"eTag":      "2",
+				"payload": map[string]interface{}{
+					"name": "Summer Sale",
+				},
+			},
+		},
+		MessageType: PNMessageTypeDataSync,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case event := <-listener.DataSyncEvent:
+		assert.Equal(t, PNDataSyncEventUpdate, event.Event)
+		assert.Equal(t, PNDataSyncEventTypeChannel, event.Type)
+		assert.Equal(t, "LiveSale", event.ClassName)
+		assert.Equal(t, PNEntityClassLevelSubKey, event.ClassLevel)
+		assert.NotNil(t, event.Entity)
+		assert.Nil(t, event.Relationship)
+		assert.Nil(t, event.Membership)
+		assert.Equal(t, "channel-summer-sale", event.Entity.ID)
+		assert.Equal(t, "LiveSale", event.Entity.EntityClass)
+		assert.Equal(t, PNEntityClassLevelSubKey, event.Entity.EntityClassLevel)
+		assert.Equal(t, "Summer Sale", event.Entity.Payload["name"])
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for DataSync event")
+	}
+}
+
+func TestProcessDataSyncPayloadValidMembershipCreateAnnouncesEvent(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "user-alice",
+		Payload: map[string]interface{}{
+			"version": "1.0",
+			"metadata": map[string]interface{}{
+				"event":        "create",
+				"source":       "data-sync",
+				"type":         "membership",
+				"className":    "Membership",
+				"classLevel":   "Global",
+				"classVersion": float64(1),
+			},
+			"data": map[string]interface{}{
+				"id":        "membership-alice-sale",
+				"status":    "active",
+				"eTag":      "d4e5f6",
+				"createdAt": "2026-07-03T09:15:00Z",
+				"updatedAt": "2026-07-03T09:15:00Z",
+				"channelId": "channel-summer-sale",
+				"userId":    "user-alice",
+				"payload": map[string]interface{}{
+					"role": "viewer",
+				},
+			},
+		},
+		MessageType: PNMessageTypeDataSync,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case event := <-listener.DataSyncEvent:
+		assert.Equal(t, PNDataSyncEventCreate, event.Event)
+		assert.Equal(t, PNDataSyncEventTypeMembership, event.Type)
+		assert.Equal(t, "Membership", event.ClassName)
+		assert.Equal(t, PNEntityClassLevelGlobal, event.ClassLevel)
+		assert.Nil(t, event.Entity)
+		assert.Nil(t, event.Relationship)
+		assert.NotNil(t, event.Membership)
+		assert.Equal(t, "membership-alice-sale", event.Membership.ID)
+		assert.Equal(t, "channel-summer-sale", event.Membership.ChannelID)
+		assert.Equal(t, "user-alice", event.Membership.UserID)
+		assert.Equal(t, "Membership", event.Membership.RelationshipClass)
+		assert.Equal(t, 1, event.Membership.RelationshipClassVersion)
+		assert.Equal(t, "viewer", event.Membership.Payload["role"])
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for DataSync event")
+	}
+}
+
+func TestProcessDataSyncPayloadValidMembershipDeleteAnnouncesEvent(t *testing.T) {
+	listener := NewListener()
+	pn := NewPubNub(NewDemoConfig())
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel",
+		Channel:           "user-alice",
+		Payload: map[string]interface{}{
+			"version": "1.0",
+			"metadata": map[string]interface{}{
+				"event":        "delete",
+				"source":       "data-sync",
+				"type":         "membership",
+				"className":    "Membership",
+				"classLevel":   "Global",
+				"classVersion": float64(1),
+			},
+			"data": map[string]interface{}{
+				"id":        "membership-alice-sale",
+				"deletedAt": "2026-07-03T09:20:00Z",
+			},
+		},
+		MessageType: PNMessageTypeDataSync,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+
+	select {
+	case event := <-listener.DataSyncEvent:
+		assert.Equal(t, PNDataSyncEventDelete, event.Event)
+		assert.Equal(t, PNDataSyncEventTypeMembership, event.Type)
+		assert.Equal(t, "membership-alice-sale", event.ID)
+		assert.Equal(t, "2026-07-03T09:20:00Z", event.DeletedAt)
+		assert.Nil(t, event.Entity)
+		assert.Nil(t, event.Relationship)
+		assert.Nil(t, event.Membership)
 	case <-time.After(time.Second):
 		t.Fatal("timed out waiting for DataSync event")
 	}

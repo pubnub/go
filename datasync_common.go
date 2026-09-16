@@ -77,12 +77,11 @@ type PNEntity struct {
 }
 
 // PNEntityPaginationMeta carries the cursor-based pagination metadata returned
-// by list responses.
+// by list responses. Pagination is currently forward-only: pass NextCursor back
+// as Cursor on the next list call and stop when HasNext is false.
 type PNEntityPaginationMeta struct {
 	NextCursor string `json:"next_cursor,omitempty"`
-	PrevCursor string `json:"prev_cursor,omitempty"`
 	HasNext    bool   `json:"has_next"`
-	HasPrev    bool   `json:"has_prev"`
 	Limit      int    `json:"limit,omitempty"`
 }
 
@@ -91,7 +90,6 @@ type PNEntityPaginationMeta struct {
 type PNEntityPaginationLinks struct {
 	Self string `json:"self,omitempty"`
 	Next string `json:"next,omitempty"`
-	Prev string `json:"prev,omitempty"`
 }
 
 // PNEntityResponse is the envelope returned by single-entity operations

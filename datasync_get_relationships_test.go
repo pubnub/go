@@ -29,7 +29,7 @@ func TestGetRelationshipsBuildPathQuery(t *testing.T) {
 		Cursor("TjIw").
 		Limit(10).
 		FilterFast("status == 'active'").
-		Sort([]string{"-createdAt", "+id"}).
+		Sort([]string{"createdAt:desc", "id"}).
 		QueryParam(map[string]string{"q1": "v1"})
 
 	path, err := o.opts.buildPath()
@@ -48,7 +48,7 @@ func TestGetRelationshipsBuildPathQuery(t *testing.T) {
 	assert.Equal(strconv.Itoa(10), query.Get("limit"))
 	assert.Equal("status == 'active'", query.Get("filter_fast"))
 	assert.Equal("", query.Get("filter"))
-	assert.Equal("-createdAt,+id", query.Get("sort"))
+	assert.Equal("createdAt:desc,id", query.Get("sort"))
 	assert.Equal("v1", query.Get("q1"))
 }
 
@@ -58,10 +58,10 @@ func TestGetRelationshipsFilterQueryParam(t *testing.T) {
 
 	o := newGetRelationshipsBuilder(pn).
 		RelationshipClass("ProductOwner").
-		Filter("status == 'active' AND role == 'admin'")
+		Filter("status == 'active' && role == 'admin'")
 	query, err := o.opts.buildQuery()
 	assert.Nil(err)
-	assert.Equal("status == 'active' AND role == 'admin'", query.Get("filter"))
+	assert.Equal("status == 'active' && role == 'admin'", query.Get("filter"))
 	assert.Equal("", query.Get("filter_fast"))
 }
 
@@ -94,7 +94,7 @@ func TestGetRelationshipsValidate(t *testing.T) {
 
 	o3 := newGetRelationshipsBuilder(pn).RelationshipClass("ProductOwner").
 		FilterFast("status == 'active'").
-		Filter("status == 'active' AND role == 'admin'")
+		Filter("status == 'active' && role == 'admin'")
 	assert.Contains(o3.opts.validate().Error(), StrExclusiveDataSyncFilter)
 
 	pn.Config.SubscribeKey = ""
@@ -106,7 +106,7 @@ func TestGetRelationshipsResponseParsing(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())
 
-	jsonBytes := []byte(`{"data":[{"id":"r-123","entityAId":"u123","entityBId":"s456","relationshipClass":"ProductOwner","relationshipClassVersion":1,"status":"active","eTag":"1","payload":{"custom":"fields"}}],"links":{"self":"/self","next":"/next","prev":null},"meta":{"has_next":true,"has_prev":false,"next_cursor":"TjIw","prev_cursor":null,"limit":20}}`)
+	jsonBytes := []byte(`{"data":[{"id":"r-123","entityAId":"u123","entityBId":"s456","relationshipClass":"ProductOwner","relationshipClassVersion":1,"status":"active","eTag":"1","payload":{"custom":"fields"}}],"links":{"self":"/self","next":"/next"},"meta":{"has_next":true,"next_cursor":"TjIw","limit":20}}`)
 
 	r, _, err := newPNRelationshipsResponse(jsonBytes, newGetRelationshipsOpts(pn, pn.ctx), StatusResponse{})
 	assert.Nil(err)
@@ -131,7 +131,7 @@ func TestGetRelationshipsExecuteValidationError(t *testing.T) {
 	_, _, err = pn.DataSync.GetRelationships().
 		RelationshipClass("ProductOwner").
 		FilterFast("status == 'active'").
-		Filter("status == 'active' AND role == 'admin'").
+		Filter("status == 'active' && role == 'admin'").
 		Execute()
 	assert.Contains(err.Error(), StrExclusiveDataSyncFilter)
 }
