@@ -13,21 +13,51 @@ import (
 )
 
 const (
-	dsEntityClass   = "GoE2EEntity"
-	dsStatusClass   = "GoE2EStatus"
-	dsRelClass      = "GoE2ERel"
-	dsClassVersion  = 1
-	dsGrantTTL      = 30
-	dsFilterTimeout = 15 * time.Second
-	dsEventTimeout  = 15 * time.Second
+	dsEntityClass       = "GoE2EEntity"
+	dsStatusClass       = "GoE2EStatus"
+	dsRelClass          = "GoE2ERel"
+	dsUserClass         = "User"
+	dsGoE2EUserClass    = "GoE2EUser"
+	dsChannelClass      = "Channel"
+	dsGoE2EChannelClass = "GoE2EChannel"
+	dsMembershipClass   = "Membership"
+	dsClassVersion      = 1
+	dsGrantTTL          = 30
+	dsFilterTimeout     = 15 * time.Second
+	dsEventTimeout      = 15 * time.Second
 )
 
 func dsCRUD() pubnub.DataSyncPermissions {
 	return pubnub.DataSyncPermissions{Get: true, Create: true, Update: true, Delete: true}
 }
 
+func dsUUIDCRUD() pubnub.UUIDPermissions {
+	return pubnub.UUIDPermissions{Get: true, Create: true, Update: true, Delete: true}
+}
+
+func dsChannelResourcePerms() pubnub.ChannelPermissions {
+	return pubnub.ChannelPermissions{Read: true, Get: true, Create: true, Update: true, Delete: true}
+}
+
 func dsIDPattern() string {
 	return "goe2e-.*"
+}
+
+// GrantToken validates user patterns as regex ("*" is Invalid RegExp). Live
+// DataSync User matching accepted "goe2e-*" and rejected "^goe2e-.*$". Grant
+// both forms so either matcher authorizes goe2e-usr / goe2e-gusr IDs.
+func dsUserPerms(p pubnub.UUIDPermissions) map[string]pubnub.UUIDPermissions {
+	return map[string]pubnub.UUIDPermissions{
+		"goe2e-*":  p,
+		"goe2e-.*": p,
+	}
+}
+
+func dsUserAnyPerms() map[string]pubnub.UUIDPermissions {
+	return map[string]pubnub.UUIDPermissions{
+		".*":      dsUUIDCRUD(),
+		"goe2e-*": dsUUIDCRUD(),
+	}
 }
 
 func skipWithoutDSKeys(t *testing.T) {
@@ -60,20 +90,35 @@ type dsGrant struct {
 	EntityPatterns       map[string]pubnub.DataSyncPermissions
 	Relationships        map[string]pubnub.DataSyncPermissions
 	RelationshipPatterns map[string]pubnub.DataSyncPermissions
+	Memberships          map[string]pubnub.DataSyncPermissions
+	MembershipPatterns   map[string]pubnub.DataSyncPermissions
+	UUIDs                map[string]pubnub.UUIDPermissions
+	UUIDPatterns         map[string]pubnub.UUIDPermissions
+	Users                map[string]pubnub.UUIDPermissions
+	UsersPatterns        map[string]pubnub.UUIDPermissions
 	EntityProjections    map[string]string
 	EntityProjPatterns   map[string]string
+	UserProjections      map[string]string
+	UserProjPatterns     map[string]string
+	ChannelProjections   map[string]string
+	ChannelProjPatterns  map[string]string
 	RelProjections       map[string]string
 	RelProjPatterns      map[string]string
+	MemProjections       map[string]string
+	MemProjPatterns      map[string]string
 	Channels             map[string]pubnub.ChannelPermissions
 	ChannelPatterns      map[string]pubnub.ChannelPermissions
 }
 
 type dsLive struct {
-	t        *testing.T
-	admin    *pubnub.PubNub
-	client   *pubnub.PubNub
-	entities []string
-	rels     []string
+	t           *testing.T
+	admin       *pubnub.PubNub
+	client      *pubnub.PubNub
+	entities    []string
+	rels        []string
+	users       []string
+	channels    []string
+	memberships []string
 }
 
 func newDSLive(t *testing.T) *dsLive {
@@ -86,8 +131,17 @@ func newDSLive(t *testing.T) *dsLive {
 		client: pubnub.NewPubNub(dsClientConfig()),
 	}
 	t.Cleanup(func() {
+		for i := len(h.memberships) - 1; i >= 0; i-- {
+			_, _, _ = h.admin.DataSync.RemoveMembership().ID(h.memberships[i]).Execute()
+		}
 		for i := len(h.rels) - 1; i >= 0; i-- {
 			_, _, _ = h.admin.DataSync.RemoveRelationship().ID(h.rels[i]).Execute()
+		}
+		for i := len(h.users) - 1; i >= 0; i-- {
+			_, _, _ = h.admin.DataSync.RemoveUser().ID(h.users[i]).Execute()
+		}
+		for i := len(h.channels) - 1; i >= 0; i-- {
+			_, _, _ = h.admin.DataSync.RemoveChannel().ID(h.channels[i]).Execute()
 		}
 		for i := len(h.entities) - 1; i >= 0; i-- {
 			_, _, _ = h.admin.DataSync.RemoveEntity().ID(h.entities[i]).Execute()
@@ -112,6 +166,27 @@ func (h *dsLive) trackRel(id string) {
 	h.rels = append(h.rels, id)
 }
 
+func (h *dsLive) trackUser(id string) {
+	if id == "" {
+		return
+	}
+	h.users = append(h.users, id)
+}
+
+func (h *dsLive) trackChannel(id string) {
+	if id == "" {
+		return
+	}
+	h.channels = append(h.channels, id)
+}
+
+func (h *dsLive) trackMembership(id string) {
+	if id == "" {
+		return
+	}
+	h.memberships = append(h.memberships, id)
+}
+
 func (h *dsLive) grant(g dsGrant) {
 	h.t.Helper()
 	builder := h.admin.GrantToken().
@@ -124,30 +199,53 @@ func (h *dsLive) grant(g dsGrant) {
 	if len(g.ChannelPatterns) > 0 {
 		builder = builder.ChannelsPattern(g.ChannelPatterns)
 	}
-	if len(g.Entities) > 0 || len(g.Relationships) > 0 {
+	if len(g.UUIDs) > 0 {
+		builder = builder.UUIDs(g.UUIDs)
+	}
+	if len(g.UUIDPatterns) > 0 {
+		builder = builder.UUIDsPattern(g.UUIDPatterns)
+	}
+	if len(g.Users) > 0 {
+		builder = builder.Users(g.Users)
+	}
+	if len(g.UsersPatterns) > 0 {
+		builder = builder.UsersPattern(g.UsersPatterns)
+	}
+	if len(g.Entities) > 0 || len(g.Relationships) > 0 || len(g.Memberships) > 0 {
 		builder = builder.DataSync(pubnub.PNDataSyncTokenScopes{
 			Entities:      g.Entities,
 			Relationships: g.Relationships,
+			Memberships:   g.Memberships,
 		})
 	}
-	if len(g.EntityPatterns) > 0 || len(g.RelationshipPatterns) > 0 {
+	if len(g.EntityPatterns) > 0 || len(g.RelationshipPatterns) > 0 || len(g.MembershipPatterns) > 0 {
 		builder = builder.DataSyncPattern(pubnub.PNDataSyncTokenScopes{
 			Entities:      g.EntityPatterns,
 			Relationships: g.RelationshipPatterns,
+			Memberships:   g.MembershipPatterns,
 		})
 	}
 	proj := pubnub.PNDataSyncProjections{
 		Resources: pubnub.PNDataSyncProjectionScope{
 			Entities:      g.EntityProjections,
+			Users:         g.UserProjections,
+			Channels:      g.ChannelProjections,
 			Relationships: g.RelProjections,
+			Memberships:   g.MemProjections,
 		},
 		Patterns: pubnub.PNDataSyncProjectionScope{
 			Entities:      g.EntityProjPatterns,
+			Users:         g.UserProjPatterns,
+			Channels:      g.ChannelProjPatterns,
 			Relationships: g.RelProjPatterns,
+			Memberships:   g.MemProjPatterns,
 		},
 	}
 	if len(g.EntityProjections) > 0 || len(g.RelProjections) > 0 ||
-		len(g.EntityProjPatterns) > 0 || len(g.RelProjPatterns) > 0 {
+		len(g.EntityProjPatterns) > 0 || len(g.RelProjPatterns) > 0 ||
+		len(g.UserProjections) > 0 || len(g.UserProjPatterns) > 0 ||
+		len(g.ChannelProjections) > 0 || len(g.ChannelProjPatterns) > 0 ||
+		len(g.MemProjections) > 0 || len(g.MemProjPatterns) > 0 {
 		builder = builder.DataSyncProjections(proj)
 	}
 
@@ -158,20 +256,50 @@ func (h *dsLive) grant(g dsGrant) {
 	h.client.SetToken(res.Data.Token)
 }
 
+func dsEventChannelPatterns() map[string]pubnub.ChannelPermissions {
+	return map[string]pubnub.ChannelPermissions{
+		"^goe2e-.*$":            dsChannelResourcePerms(),
+		"^__admin__goe2e-.*$":   {Read: true},
+		"^__private__goe2e-.*$": {Read: true},
+	}
+}
+
+// Global User/Channel classes only expose __default__. Named projections
+// (admin/private) exist on GoE2EUser / GoE2EChannel. IDs are prefixed so the
+// two do not share a catch-all goe2e-.* projection (that caused DS-0202 on
+// Global Channel/User reads).
+func dsUserProjPatterns(custom string) map[string]string {
+	return map[string]string{
+		"goe2e-usr-.*":  custom,
+		"goe2e-gusr-.*": pubnub.PNDataSyncDefaultProjection,
+	}
+}
+
+func dsChannelProjPatterns(custom string) map[string]string {
+	return map[string]string{
+		"goe2e-chn-.*":  custom,
+		"goe2e-gchn-.*": pubnub.PNDataSyncDefaultProjection,
+	}
+}
+
 func (h *dsLive) grantHappy() {
 	h.t.Helper()
 	// Named projections (admin/private) do not include GoE2EEntity / GoE2ERel
-	// /status. Client writes under this grant must omit Status.
+	// / GoE2EUser / GoE2EChannel /status. Client writes under this grant must
+	// omit Status. Membership has no custom projection schema here, so it uses
+	// __default__. DataSync User CRUD is Users/UsersPattern (token users).
+	// Channel CRUD is channel Get/Create/Update/Delete (plus Read for subscribe).
 	h.grant(dsGrant{
 		EntityPatterns:       map[string]pubnub.DataSyncPermissions{dsIDPattern(): dsCRUD()},
 		RelationshipPatterns: map[string]pubnub.DataSyncPermissions{dsIDPattern(): dsCRUD()},
+		MembershipPatterns:   map[string]pubnub.DataSyncPermissions{dsIDPattern(): dsCRUD()},
+		UsersPatterns:        dsUserPerms(dsUUIDCRUD()),
 		EntityProjPatterns:   map[string]string{dsIDPattern(): "admin"},
+		UserProjPatterns:     dsUserProjPatterns("admin"),
+		ChannelProjPatterns:  dsChannelProjPatterns("admin"),
 		RelProjPatterns:      map[string]string{dsIDPattern(): "admin"},
-		ChannelPatterns: map[string]pubnub.ChannelPermissions{
-			"^goe2e-.*$":            {Read: true},
-			"^__admin__goe2e-.*$":   {Read: true},
-			"^__private__goe2e-.*$": {Read: true},
-		},
+		MemProjPatterns:      map[string]string{dsIDPattern(): pubnub.PNDataSyncDefaultProjection},
+		ChannelPatterns:      dsEventChannelPatterns(),
 	})
 }
 
@@ -180,13 +308,14 @@ func (h *dsLive) grantProjection(name string) {
 	h.grant(dsGrant{
 		EntityPatterns:       map[string]pubnub.DataSyncPermissions{dsIDPattern(): dsCRUD()},
 		RelationshipPatterns: map[string]pubnub.DataSyncPermissions{dsIDPattern(): dsCRUD()},
+		MembershipPatterns:   map[string]pubnub.DataSyncPermissions{dsIDPattern(): dsCRUD()},
+		UsersPatterns:        dsUserPerms(dsUUIDCRUD()),
 		EntityProjPatterns:   map[string]string{dsIDPattern(): name},
+		UserProjPatterns:     dsUserProjPatterns(name),
+		ChannelProjPatterns:  dsChannelProjPatterns(name),
 		RelProjPatterns:      map[string]string{dsIDPattern(): name},
-		ChannelPatterns: map[string]pubnub.ChannelPermissions{
-			"^goe2e-.*$":            {Read: true},
-			"^__admin__goe2e-.*$":   {Read: true},
-			"^__private__goe2e-.*$": {Read: true},
-		},
+		MemProjPatterns:      map[string]string{dsIDPattern(): name},
+		ChannelPatterns:      dsEventChannelPatterns(),
 	})
 }
 
@@ -493,7 +622,7 @@ func waitDSEvent(t *testing.T, events <-chan *pubnub.PNDataSyncEventResult, matc
 				return ev
 			}
 		case <-deadline:
-			t.Fatalf("timeout waiting for DataSync event (last=%#v). If subscribe connected but no event arrived, enable DataSync event rules for GoE2EEntity/GoE2ERel v1 on the keyset", last)
+			t.Fatalf("timeout waiting for DataSync event (last=%#v). If subscribe connected but no event arrived, enable DataSync event rules for the class under test (GoE2EEntity/GoE2ERel/GoE2EUser/GoE2EChannel/User/Channel/Membership) on the keyset", last)
 			return last
 		}
 	}

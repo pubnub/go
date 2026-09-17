@@ -306,18 +306,22 @@ func TestGrantTokenObjectsBuilderSetters(t *testing.T) {
 	uuids := map[string]UUIDPermissions{
 		"uuid1": {Get: true, Update: true},
 	}
+	users := map[string]UUIDPermissions{
+		"user1": {Get: true, Create: true},
+	}
 
 	builder := newGrantTokenBuilder(pn)
 	objectsBuilder := builder.Channels(channels)
 
 	// Test method chaining
-	result := objectsBuilder.ChannelGroups(groups).UUIDs(uuids)
+	result := objectsBuilder.ChannelGroups(groups).UUIDs(uuids).Users(users)
 	assert.Equal(objectsBuilder, result)
 
 	// Verify all values are set correctly
 	assert.Equal(channels, objectsBuilder.opts.Channels)
 	assert.Equal(groups, objectsBuilder.opts.ChannelGroups)
 	assert.Equal(uuids, objectsBuilder.opts.UUIDs)
+	assert.Equal(users, objectsBuilder.opts.Users)
 }
 
 func TestGrantTokenObjectsBuilderPatterns(t *testing.T) {
@@ -333,18 +337,22 @@ func TestGrantTokenObjectsBuilderPatterns(t *testing.T) {
 	uuidPatterns := map[string]UUIDPermissions{
 		"uuid.*": {Get: true, Update: true},
 	}
+	userPatterns := map[string]UUIDPermissions{
+		"user.*": {Get: true, Create: true},
+	}
 
 	builder := newGrantTokenBuilder(pn)
 	objectsBuilder := builder.ChannelsPattern(channelPatterns)
 
 	// Test pattern methods
-	result := objectsBuilder.ChannelGroupsPattern(groupPatterns).UUIDsPattern(uuidPatterns)
+	result := objectsBuilder.ChannelGroupsPattern(groupPatterns).UUIDsPattern(uuidPatterns).UsersPattern(userPatterns)
 	assert.Equal(objectsBuilder, result)
 
 	// Verify all pattern values are set correctly
 	assert.Equal(channelPatterns, objectsBuilder.opts.ChannelsPattern)
 	assert.Equal(groupPatterns, objectsBuilder.opts.ChannelGroupsPattern)
 	assert.Equal(uuidPatterns, objectsBuilder.opts.UUIDsPattern)
+	assert.Equal(userPatterns, objectsBuilder.opts.UsersPattern)
 }
 
 func TestGrantTokenObjectsBuilderAuthorizedUUID(t *testing.T) {
@@ -918,6 +926,17 @@ func Test_GrantTokenDataSync(t *testing.T) {
 				},
 			}).opts,
 		want: `{"ttl":100,"permissions":{"resources":{"channels":{},"groups":{},"uuids":{"user":48},"users":{},"spaces":{},"datasync:memberships":{"user:channel-X":96}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"meta":{}}}`,
+	}, {
+		name: "users not uuids",
+		have: pn.GrantToken().
+			TTL(100).
+			Users(map[string]UUIDPermissions{
+				"goe2e-usr-1": {Get: true, Create: true, Update: true, Delete: true},
+			}).
+			UsersPattern(map[string]UUIDPermissions{
+				"goe2e-.*": {Get: true, Create: true, Update: true, Delete: true},
+			}).opts,
+		want: `{"ttl":100,"permissions":{"resources":{"channels":{},"groups":{},"uuids":{},"users":{"goe2e-usr-1":120},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{"goe2e-.*":120},"spaces":{}},"meta":{}}}`,
 	}}
 
 	for _, tt := range tests {

@@ -194,7 +194,9 @@ func (s PNDataSyncTokenScopes) empty() bool {
 // PNDataSyncProjectionScope maps a DataSync resource id (or pattern) to the
 // single projection name the principal is looking through.
 // Users and Channels encode to datasync:users:{id} and datasync:channels:{id}
-// in meta.pn-projections; their CRUD permissions still use UUIDs/Channels.
+// in meta.pn-projections. Channel CRUD uses Channel permissions. DataSync
+// User CRUD uses Users()/UsersPattern() (token users). UUIDs()/UUIDsPattern()
+// grant App Context uuid permissions and do not authorize DataSync User.
 type PNDataSyncProjectionScope struct {
 	Entities      map[string]string
 	Users         map[string]string
