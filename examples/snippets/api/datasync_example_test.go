@@ -39,7 +39,7 @@ func Example_createUserBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
+	resetDataSyncExampleUser(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.CreateUser().
@@ -56,7 +56,7 @@ func Example_createUserBasicUsage() {
 	fmt.Printf("User created, status: %d\n", status.StatusCode)
 
 	// Output:
-	// User created, status: 200
+	// User created, status: 201
 }
 
 // snippet.get_user_basic_usage
@@ -74,12 +74,7 @@ func Example_getUserBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
+	seedDataSyncExampleUser(pn)
 	// snippet.show
 
 	res, status, err := pn.DataSync.GetUser().
@@ -112,12 +107,7 @@ func Example_getUsersBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
+	seedDataSyncExampleUser(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetUsers().
@@ -150,12 +140,7 @@ func Example_getUsersFilterFast() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
+	seedDataSyncExampleUser(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetUsers().
@@ -188,12 +173,7 @@ func Example_getUsersFilter() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
+	seedDataSyncExampleUser(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetUsers().
@@ -226,12 +206,7 @@ func Example_getUsersPagination() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
+	seedDataSyncExampleUser(pn)
 	// snippet.show
 
 	res, status, err := pn.DataSync.GetUsers().
@@ -275,12 +250,7 @@ func Example_setUserBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
+	seedDataSyncExampleUser(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.SetUser().
@@ -315,12 +285,7 @@ func Example_updateUserBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
+	seedDataSyncExampleUser(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.UpdateUser().
@@ -354,12 +319,7 @@ func Example_removeUserBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
+	seedDataSyncExampleUser(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.RemoveUser().
@@ -394,7 +354,7 @@ func Example_createChannelBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
+	resetDataSyncExampleChannel(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.CreateChannel().
@@ -411,7 +371,7 @@ func Example_createChannelBasicUsage() {
 	fmt.Printf("Channel created, status: %d\n", status.StatusCode)
 
 	// Output:
-	// Channel created, status: 200
+	// Channel created, status: 201
 }
 
 // snippet.get_channel_basic_usage
@@ -429,12 +389,7 @@ func Example_getChannelBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
+	seedDataSyncExampleChannel(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetChannel().
@@ -467,12 +422,7 @@ func Example_getChannelsBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
+	seedDataSyncExampleChannel(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetChannels().
@@ -505,12 +455,7 @@ func Example_getChannelsFilterFast() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
+	seedDataSyncExampleChannel(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetChannels().
@@ -543,12 +488,7 @@ func Example_getChannelsFilter() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
+	seedDataSyncExampleChannel(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetChannels().
@@ -581,12 +521,7 @@ func Example_getChannelsPagination() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
+	seedDataSyncExampleChannel(pn)
 	// snippet.show
 
 	res, status, err := pn.DataSync.GetChannels().
@@ -630,12 +565,7 @@ func Example_setChannelBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
+	seedDataSyncExampleChannel(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.SetChannel().
@@ -670,12 +600,7 @@ func Example_updateChannelBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
+	seedDataSyncExampleChannel(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.UpdateChannel().
@@ -709,12 +634,7 @@ func Example_removeChannelBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
+	seedDataSyncExampleChannel(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.RemoveChannel().
@@ -749,19 +669,8 @@ func Example_createMembershipBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
-	pn.DataSync.RemoveMembership().ID("membership-alice-summer-sale").Execute()
+	seedDataSyncExampleUser(pn)
+	seedDataSyncExampleChannel(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.CreateMembership().
@@ -780,7 +689,7 @@ func Example_createMembershipBasicUsage() {
 	fmt.Printf("Membership created, status: %d\n", status.StatusCode)
 
 	// Output:
-	// Membership created, status: 200
+	// Membership created, status: 201
 }
 
 // snippet.get_membership_basic_usage
@@ -798,26 +707,7 @@ func Example_getMembershipBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
-	pn.DataSync.RemoveMembership().ID("membership-alice-summer-sale").Execute()
-	pn.DataSync.CreateMembership().
-		ID("membership-alice-summer-sale").
-		ChannelID("channel-summer-sale").
-		UserID("user-alice").
-		RelationshipClassVersion(1).
-		Payload(map[string]interface{}{"role": "viewer"}).
-		Execute()
+	seedDataSyncExampleMembership(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetMembership().
@@ -850,26 +740,7 @@ func Example_getMembershipsBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
-	pn.DataSync.RemoveMembership().ID("membership-alice-summer-sale").Execute()
-	pn.DataSync.CreateMembership().
-		ID("membership-alice-summer-sale").
-		ChannelID("channel-summer-sale").
-		UserID("user-alice").
-		RelationshipClassVersion(1).
-		Payload(map[string]interface{}{"role": "viewer"}).
-		Execute()
+	seedDataSyncExampleMembership(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetMemberships().
@@ -903,26 +774,7 @@ func Example_getMembershipsByChannelID() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
-	pn.DataSync.RemoveMembership().ID("membership-alice-summer-sale").Execute()
-	pn.DataSync.CreateMembership().
-		ID("membership-alice-summer-sale").
-		ChannelID("channel-summer-sale").
-		UserID("user-alice").
-		RelationshipClassVersion(1).
-		Payload(map[string]interface{}{"role": "viewer"}).
-		Execute()
+	seedDataSyncExampleMembership(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetMemberships().
@@ -955,30 +807,11 @@ func Example_getMembershipsFilterFast() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
-	pn.DataSync.RemoveMembership().ID("membership-alice-summer-sale").Execute()
-	pn.DataSync.CreateMembership().
-		ID("membership-alice-summer-sale").
-		ChannelID("channel-summer-sale").
-		UserID("user-alice").
-		RelationshipClassVersion(1).
-		Payload(map[string]interface{}{"role": "viewer"}).
-		Execute()
+	seedDataSyncExampleMembership(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetMemberships().
-		FilterFast("role == \"viewer\"").
+		FilterFast("status == \"active\"").
 		Execute()
 
 	if err != nil {
@@ -1007,30 +840,11 @@ func Example_getMembershipsFilter() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
-	pn.DataSync.RemoveMembership().ID("membership-alice-summer-sale").Execute()
-	pn.DataSync.CreateMembership().
-		ID("membership-alice-summer-sale").
-		ChannelID("channel-summer-sale").
-		UserID("user-alice").
-		RelationshipClassVersion(1).
-		Payload(map[string]interface{}{"role": "viewer"}).
-		Execute()
+	seedDataSyncExampleMembership(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.GetMemberships().
-		Filter("role LIKE \"*view*\"").
+		Filter("status == \"active\"").
 		Execute()
 
 	if err != nil {
@@ -1059,26 +873,7 @@ func Example_getMembershipsPagination() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
-	pn.DataSync.RemoveMembership().ID("membership-alice-summer-sale").Execute()
-	pn.DataSync.CreateMembership().
-		ID("membership-alice-summer-sale").
-		ChannelID("channel-summer-sale").
-		UserID("user-alice").
-		RelationshipClassVersion(1).
-		Payload(map[string]interface{}{"role": "viewer"}).
-		Execute()
+	seedDataSyncExampleMembership(pn)
 	// snippet.show
 
 	res, status, err := pn.DataSync.GetMemberships().
@@ -1122,26 +917,7 @@ func Example_setMembershipBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
-	pn.DataSync.RemoveMembership().ID("membership-alice-summer-sale").Execute()
-	pn.DataSync.CreateMembership().
-		ID("membership-alice-summer-sale").
-		ChannelID("channel-summer-sale").
-		UserID("user-alice").
-		RelationshipClassVersion(1).
-		Payload(map[string]interface{}{"role": "viewer"}).
-		Execute()
+	seedDataSyncExampleMembership(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.SetMembership().
@@ -1176,26 +952,7 @@ func Example_updateMembershipBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
-	pn.DataSync.RemoveMembership().ID("membership-alice-summer-sale").Execute()
-	pn.DataSync.CreateMembership().
-		ID("membership-alice-summer-sale").
-		ChannelID("channel-summer-sale").
-		UserID("user-alice").
-		RelationshipClassVersion(1).
-		Payload(map[string]interface{}{"role": "viewer"}).
-		Execute()
+	seedDataSyncExampleMembership(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.UpdateMembership().
@@ -1229,26 +986,7 @@ func Example_removeMembershipBasicUsage() {
 	pn := pubnub.NewPubNub(config)
 
 	// snippet.hide
-	pn.DataSync.RemoveUser().ID("user-alice").Execute()
-	pn.DataSync.CreateUser().
-		ID("user-alice").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Alice", "type": "shopper"}).
-		Execute()
-	pn.DataSync.RemoveChannel().ID("channel-summer-sale").Execute()
-	pn.DataSync.CreateChannel().
-		ID("channel-summer-sale").
-		EntityClassVersion(1).
-		Payload(map[string]interface{}{"name": "Summer Sale", "type": "promotion"}).
-		Execute()
-	pn.DataSync.RemoveMembership().ID("membership-alice-summer-sale").Execute()
-	pn.DataSync.CreateMembership().
-		ID("membership-alice-summer-sale").
-		ChannelID("channel-summer-sale").
-		UserID("user-alice").
-		RelationshipClassVersion(1).
-		Payload(map[string]interface{}{"role": "viewer"}).
-		Execute()
+	seedDataSyncExampleMembership(pn)
 	// snippet.show
 
 	_, status, err := pn.DataSync.RemoveMembership().
@@ -1267,6 +1005,9 @@ func Example_removeMembershipBasicUsage() {
 }
 
 // ==================== Entities ====================
+// These snippets are compiled but not executed as tests. They use the `product`
+// class, which must be provisioned via the Admin API; the Go SDK cannot create
+// classes, and `product` is not present on the CI DS_* keyset.
 
 // snippet.create_entity_basic_usage
 // Example_createEntityBasicUsage demonstrates creating a custom DataSync entity
@@ -1299,9 +1040,6 @@ func Example_createEntityBasicUsage() {
 	}
 
 	fmt.Printf("Entity created, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Entity created, status: 200
 }
 
 // snippet.get_entity_basic_usage
@@ -1338,9 +1076,6 @@ func Example_getEntityBasicUsage() {
 	}
 
 	fmt.Printf("Entity retrieved, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Entity retrieved, status: 200
 }
 
 // snippet.get_entities_basic_usage
@@ -1378,9 +1113,6 @@ func Example_getEntitiesBasicUsage() {
 	}
 
 	fmt.Printf("Entities listed, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Entities listed, status: 200
 }
 
 // snippet.get_entities_filter_fast
@@ -1418,9 +1150,6 @@ func Example_getEntitiesFilterFast() {
 	}
 
 	fmt.Printf("Filtered entities retrieved, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Filtered entities retrieved, status: 200
 }
 
 // snippet.get_entities_filter
@@ -1458,9 +1187,6 @@ func Example_getEntitiesFilter() {
 	}
 
 	fmt.Printf("Filtered entities retrieved, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Filtered entities retrieved, status: 200
 }
 
 // snippet.get_entities_pagination
@@ -1510,9 +1236,6 @@ func Example_getEntitiesPagination() {
 			fmt.Printf("Error: %v\n", err)
 		}
 	}
-
-	// Output:
-	// Entities page retrieved, status: 200
 }
 
 // snippet.set_entity_basic_usage
@@ -1551,9 +1274,6 @@ func Example_setEntityBasicUsage() {
 	}
 
 	fmt.Printf("Entity replaced, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Entity replaced, status: 200
 }
 
 // snippet.update_entity_basic_usage
@@ -1591,9 +1311,6 @@ func Example_updateEntityBasicUsage() {
 	}
 
 	fmt.Printf("Entity updated, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Entity updated, status: 200
 }
 
 // snippet.update_entity_multiple_operations
@@ -1642,9 +1359,6 @@ func Example_updateEntityMultipleOperations() {
 	}
 
 	fmt.Printf("Entity patched with guard, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Entity patched with guard, status: 200
 }
 
 // snippet.remove_entity_basic_usage
@@ -1681,12 +1395,12 @@ func Example_removeEntityBasicUsage() {
 	}
 
 	fmt.Printf("Entity removed, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Entity removed, status: 200
 }
 
 // ==================== Relationships ====================
+// These snippets are compiled but not executed as tests. They use the
+// `ProductOwner` class, which must be provisioned via the Admin API; the Go SDK
+// cannot create classes, and `ProductOwner` is not present on the CI DS_* keyset.
 
 // snippet.create_relationship_basic_usage
 // Example_createRelationshipBasicUsage demonstrates linking two entities
@@ -1734,9 +1448,6 @@ func Example_createRelationshipBasicUsage() {
 	}
 
 	fmt.Printf("Relationship created, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Relationship created, status: 200
 }
 
 // snippet.get_relationship_basic_usage
@@ -1788,9 +1499,6 @@ func Example_getRelationshipBasicUsage() {
 	}
 
 	fmt.Printf("Relationship retrieved, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Relationship retrieved, status: 200
 }
 
 // snippet.get_relationships_basic_usage
@@ -1843,9 +1551,6 @@ func Example_getRelationshipsBasicUsage() {
 	}
 
 	fmt.Printf("Relationships listed, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Relationships listed, status: 200
 }
 
 // snippet.get_relationships_by_entity_b_id
@@ -1898,9 +1603,6 @@ func Example_getRelationshipsByEntityBID() {
 	}
 
 	fmt.Printf("Incoming relationships listed, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Incoming relationships listed, status: 200
 }
 
 // snippet.get_relationships_filter_fast
@@ -1953,9 +1655,6 @@ func Example_getRelationshipsFilterFast() {
 	}
 
 	fmt.Printf("Filtered relationships retrieved, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Filtered relationships retrieved, status: 200
 }
 
 // snippet.get_relationships_filter
@@ -2008,9 +1707,6 @@ func Example_getRelationshipsFilter() {
 	}
 
 	fmt.Printf("Filtered relationships retrieved, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Filtered relationships retrieved, status: 200
 }
 
 // snippet.get_relationships_pagination
@@ -2075,9 +1771,6 @@ func Example_getRelationshipsPagination() {
 			fmt.Printf("Error: %v\n", err)
 		}
 	}
-
-	// Output:
-	// Relationships page retrieved, status: 200
 }
 
 // snippet.set_relationship_basic_usage
@@ -2131,9 +1824,6 @@ func Example_setRelationshipBasicUsage() {
 	}
 
 	fmt.Printf("Relationship replaced, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Relationship replaced, status: 200
 }
 
 // snippet.update_relationship_basic_usage
@@ -2186,9 +1876,6 @@ func Example_updateRelationshipBasicUsage() {
 	}
 
 	fmt.Printf("Relationship updated, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Relationship updated, status: 200
 }
 
 // snippet.remove_relationship_basic_usage
@@ -2240,9 +1927,6 @@ func Example_removeRelationshipBasicUsage() {
 	}
 
 	fmt.Printf("Relationship removed, status: %d\n", status.StatusCode)
-
-	// Output:
-	// Relationship removed, status: 200
 }
 
 // ==================== Real-time updates ====================
