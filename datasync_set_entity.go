@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -55,10 +54,12 @@ func (b *setEntityBuilder) Status(status string) *setEntityBuilder {
 	return b
 }
 
-// Payload sets the optional user-defined custom properties. This replaces the
-// entire payload; omitted fields are removed.
+// Payload sets the user-defined custom properties. This replaces the entire
+// payload; omitted keys are removed. An empty map is sent as {}. Not calling
+// Payload, or passing nil, omits the field so the server resets it to default.
 func (b *setEntityBuilder) Payload(payload map[string]interface{}) *setEntityBuilder {
 	b.opts.Payload = payload
+	b.opts.setPayload = true
 	return b
 }
 
@@ -115,6 +116,7 @@ type setEntityOpts struct {
 	EntityClassVersion int
 	Status             string
 	Payload            map[string]interface{}
+	setPayload         bool
 	IfMatchETag        string
 	setIfMatchETag     bool
 	QueryParam         map[string]string
@@ -146,15 +148,7 @@ func (o *setEntityOpts) buildQuery() (*url.Values, error) {
 }
 
 func (o *setEntityOpts) buildBody() ([]byte, error) {
-	b := &setEntityBody{
-		Data: setEntityBodyData{
-			EntityClassVersion: o.EntityClassVersion,
-			Status:             o.Status,
-			Payload:            o.Payload,
-		},
-	}
-
-	jsonEncBytes, errEnc := json.Marshal(b)
+	jsonEncBytes, errEnc := marshalDataSyncSetBody("entityClassVersion", o.EntityClassVersion, o.Status, o.Payload, o.setPayload)
 	if errEnc != nil {
 		o.pubnub.loggerManager.LogError(errEnc, "SetEntitySerializationFailed", PNSetEntityOperation, true)
 		return []byte{}, errEnc

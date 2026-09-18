@@ -670,12 +670,14 @@ func TestParseTokenWithEmptyResources(t *testing.T) {
 	assert.Equal(0, len(result.Resources.Channels))
 	assert.Equal(0, len(result.Resources.ChannelGroups))
 	assert.Equal(0, len(result.Resources.UUIDs))
+	assert.Equal(0, len(result.Resources.Users))
 	assert.Nil(result.Resources.DataSync.Entities)
 	assert.Nil(result.Resources.DataSync.Relationships)
 	assert.Nil(result.Resources.DataSync.Memberships)
 	assert.Equal(0, len(result.Patterns.Channels))
 	assert.Equal(0, len(result.Patterns.ChannelGroups))
 	assert.Equal(0, len(result.Patterns.UUIDs))
+	assert.Equal(0, len(result.Patterns.Users))
 	assert.Nil(result.Patterns.DataSync.Entities)
 	assert.Nil(result.Patterns.DataSync.Relationships)
 	assert.Nil(result.Patterns.DataSync.Memberships)
@@ -690,6 +692,9 @@ func TestParseTokenWithDataSyncPermissions(t *testing.T) {
 		TTL:            1440,
 		AuthorizedUUID: "user-123",
 		Resources: GrantResources{
+			Users: map[string]int64{
+				"user.A": int64(PNGet | PNUpdate),
+			},
 			DataSyncEntities: map[string]int64{
 				"order-456": int64(PNGet | PNUpdate),
 			},
@@ -701,6 +706,9 @@ func TestParseTokenWithDataSyncPermissions(t *testing.T) {
 			},
 		},
 		Patterns: GrantResources{
+			Users: map[string]int64{
+				"user.*": int64(PNGet),
+			},
 			DataSyncEntities: map[string]int64{
 				"order-*": int64(PNGet),
 			},
@@ -728,6 +736,18 @@ func TestParseTokenWithDataSyncPermissions(t *testing.T) {
 	result, err := ParseToken(token)
 	assert.Nil(err)
 	assert.NotNil(result)
+
+	user := result.Resources.Users["user.A"]
+	assert.True(user.Get)
+	assert.True(user.Update)
+	assert.False(user.Create)
+	assert.False(user.Delete)
+	assert.NotContains(result.Resources.UUIDs, "user.A")
+
+	userPattern := result.Patterns.Users["user.*"]
+	assert.True(userPattern.Get)
+	assert.False(userPattern.Update)
+	assert.NotContains(result.Patterns.UUIDs, "user.*")
 
 	order := result.Resources.DataSync.Entities["order-456"]
 	assert.True(order.Get)
@@ -771,6 +791,9 @@ func TestParseTokenWithDataSyncCreateDelete(t *testing.T) {
 			UUIDs: map[string]int64{
 				"user-alice": int64(PNCreate | PNGet),
 			},
+			Users: map[string]int64{
+				"goe2e-usr-1": int64(PNCreate | PNGet | PNUpdate | PNDelete),
+			},
 			Channels: map[string]int64{
 				"channel-X": int64(PNCreate),
 			},
@@ -791,6 +814,15 @@ func TestParseTokenWithDataSyncCreateDelete(t *testing.T) {
 
 	assert.True(result.Resources.UUIDs["user-alice"].Create)
 	assert.True(result.Resources.UUIDs["user-alice"].Get)
+	assert.NotContains(result.Resources.Users, "user-alice")
+
+	dsUser := result.Resources.Users["goe2e-usr-1"]
+	assert.True(dsUser.Create)
+	assert.True(dsUser.Get)
+	assert.True(dsUser.Update)
+	assert.True(dsUser.Delete)
+	assert.NotContains(result.Resources.UUIDs, "goe2e-usr-1")
+
 	assert.True(result.Resources.Channels["channel-X"].Create)
 	assert.Nil(result.Projections)
 }

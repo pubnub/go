@@ -285,7 +285,10 @@ type PNTokenResources struct {
 	Channels      map[string]ChannelPermissions
 	ChannelGroups map[string]GroupPermissions
 	UUIDs         map[string]UUIDPermissions
-	DataSync      PNDataSyncTokenScopes
+	// Users is DataSync User CRUD (token users / CBOR usr), not App Context
+	// uuid permissions. Those remain in UUIDs.
+	Users    map[string]UUIDPermissions
+	DataSync PNDataSyncTokenScopes
 }
 
 func ParseToken(token string) (*PNToken, error) {
@@ -324,6 +327,12 @@ func grantResourcesToPNTokenResources(grantResources GrantResources) PNTokenReso
 	}
 	for k, v := range grantResources.UUIDs {
 		tokenResources.UUIDs[k] = parseGrantPerms(v, PNUUIDs).(UUIDPermissions)
+	}
+	if len(grantResources.Users) > 0 {
+		tokenResources.Users = make(map[string]UUIDPermissions, len(grantResources.Users))
+		for k, v := range grantResources.Users {
+			tokenResources.Users[k] = parseGrantPerms(v, PNUUIDs).(UUIDPermissions)
+		}
 	}
 	if len(grantResources.DataSyncEntities) > 0 {
 		tokenResources.DataSync.Entities = make(map[string]DataSyncPermissions, len(grantResources.DataSyncEntities))

@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -55,10 +54,13 @@ func (b *setChannelBuilder) Status(status string) *setChannelBuilder {
 	return b
 }
 
-// Payload sets the optional custom channel fields. Under the default PAM
-// projection this replaces the entire payload; omitted fields are removed.
+// Payload sets the custom channel fields. Under the default PAM projection this
+// replaces the entire payload; omitted keys are removed. An empty map is sent
+// as {}. Not calling Payload, or passing nil, omits the field so the server
+// resets it to default.
 func (b *setChannelBuilder) Payload(payload map[string]interface{}) *setChannelBuilder {
 	b.opts.Payload = payload
+	b.opts.setPayload = true
 	return b
 }
 
@@ -115,6 +117,7 @@ type setChannelOpts struct {
 	EntityClassVersion int
 	Status             string
 	Payload            map[string]interface{}
+	setPayload         bool
 	IfMatchETag        string
 	setIfMatchETag     bool
 	QueryParam         map[string]string
@@ -146,15 +149,7 @@ func (o *setChannelOpts) buildQuery() (*url.Values, error) {
 }
 
 func (o *setChannelOpts) buildBody() ([]byte, error) {
-	b := &setChannelBody{
-		Data: setChannelBodyData{
-			EntityClassVersion: o.EntityClassVersion,
-			Status:             o.Status,
-			Payload:            o.Payload,
-		},
-	}
-
-	jsonEncBytes, errEnc := json.Marshal(b)
+	jsonEncBytes, errEnc := marshalDataSyncSetBody("entityClassVersion", o.EntityClassVersion, o.Status, o.Payload, o.setPayload)
 	if errEnc != nil {
 		o.pubnub.loggerManager.LogError(errEnc, "SetChannelSerializationFailed", PNSetDataSyncChannelOperation, true)
 		return []byte{}, errEnc

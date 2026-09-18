@@ -38,6 +38,60 @@ func TestSetEntityBuildPathBody(t *testing.T) {
 	assert.False(strings.Contains(string(body), "entityClass\":"))
 }
 
+func TestSetEntityEmptyPayloadIsSent(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetEntityBuilder(pn).
+		ID("entity-abc").
+		EntityClassVersion(2).
+		Payload(map[string]interface{}{})
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+	assert.Contains(string(body), `"payload":{}`)
+
+	var parsed setEntityBody
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.NotNil(parsed.Data.Payload)
+	assert.Empty(parsed.Data.Payload)
+}
+
+func TestSetEntityOmittedPayloadIsNotSent(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetEntityBuilder(pn).
+		ID("entity-abc").
+		EntityClassVersion(2)
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+	assert.NotContains(string(body), `"payload"`)
+
+	var parsed setEntityBody
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Nil(parsed.Data.Payload)
+}
+
+func TestSetEntityNilPayloadIsNotSent(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newSetEntityBuilder(pn).
+		ID("entity-abc").
+		EntityClassVersion(2).
+		Payload(nil)
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+	assert.NotContains(string(body), `"payload"`)
+
+	var parsed setEntityBody
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Nil(parsed.Data.Payload)
+}
+
 func TestSetEntityHeaders(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())

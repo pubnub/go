@@ -62,6 +62,54 @@ func TestUpdateEntityMoveCopyTest(t *testing.T) {
 	assert.Equal("test", ops[2].Op)
 }
 
+func TestUpdateEntityPatchNullAndFalsyValues(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	o := newUpdateEntityBuilder(pn).
+		ID("entity-abc").
+		Replace("/payload/color", nil).
+		Add("/payload/enabled", false).
+		Add("/payload/count", 0).
+		Add("/payload/name", "").
+		Test("/payload/color", nil).
+		Remove("/payload/old").
+		Move("/payload/a", "/payload/b").
+		Copy("/payload/c", "/payload/d")
+
+	body, err := o.opts.buildBody()
+	assert.Nil(err)
+
+	var ops []map[string]interface{}
+	assert.Nil(json.Unmarshal(body, &ops))
+	assert.Len(ops, 8)
+
+	_, hasValue := ops[0]["value"]
+	assert.True(hasValue)
+	assert.Nil(ops[0]["value"])
+
+	assert.Equal(false, ops[1]["value"])
+	assert.Equal(float64(0), ops[2]["value"])
+	assert.Equal("", ops[3]["value"])
+
+	_, hasValue = ops[4]["value"]
+	assert.True(hasValue)
+	assert.Nil(ops[4]["value"])
+
+	_, hasValue = ops[5]["value"]
+	assert.False(hasValue)
+	_, hasFrom := ops[5]["from"]
+	assert.False(hasFrom)
+
+	_, hasValue = ops[6]["value"]
+	assert.False(hasValue)
+	assert.Equal("/payload/a", ops[6]["from"])
+
+	_, hasValue = ops[7]["value"]
+	assert.False(hasValue)
+	assert.Equal("/payload/c", ops[7]["from"])
+}
+
 func TestUpdateEntityHeaders(t *testing.T) {
 	assert := assert.New(t)
 	pn := NewPubNub(NewDemoConfig())

@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -57,10 +56,13 @@ func (b *setMembershipBuilder) Status(status string) *setMembershipBuilder {
 	return b
 }
 
-// Payload sets the optional custom membership fields. Under the default PAM
-// projection this replaces the entire payload; omitted fields are removed.
+// Payload sets the custom membership fields. Under the default PAM projection
+// this replaces the entire payload; omitted keys are removed. An empty map is
+// sent as {}. Not calling Payload, or passing nil, omits the field so the
+// server resets it to default.
 func (b *setMembershipBuilder) Payload(payload map[string]interface{}) *setMembershipBuilder {
 	b.opts.Payload = payload
+	b.opts.setPayload = true
 	return b
 }
 
@@ -117,6 +119,7 @@ type setMembershipOpts struct {
 	RelationshipClassVersion int
 	Status                   string
 	Payload                  map[string]interface{}
+	setPayload               bool
 	IfMatchETag              string
 	setIfMatchETag           bool
 	QueryParam               map[string]string
@@ -148,15 +151,7 @@ func (o *setMembershipOpts) buildQuery() (*url.Values, error) {
 }
 
 func (o *setMembershipOpts) buildBody() ([]byte, error) {
-	b := &setMembershipBody{
-		Data: setMembershipBodyData{
-			RelationshipClassVersion: o.RelationshipClassVersion,
-			Status:                   o.Status,
-			Payload:                  o.Payload,
-		},
-	}
-
-	jsonEncBytes, errEnc := json.Marshal(b)
+	jsonEncBytes, errEnc := marshalDataSyncSetBody("relationshipClassVersion", o.RelationshipClassVersion, o.Status, o.Payload, o.setPayload)
 	if errEnc != nil {
 		o.pubnub.loggerManager.LogError(errEnc, "SetMembershipSerializationFailed", PNSetDataSyncMembershipOperation, true)
 		return []byte{}, errEnc

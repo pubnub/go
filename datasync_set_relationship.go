@@ -1,7 +1,6 @@
 package pubnub
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -56,10 +55,13 @@ func (b *setRelationshipBuilder) Status(status string) *setRelationshipBuilder {
 	return b
 }
 
-// Payload sets the optional user-defined custom properties. Under the default
-// PAM projection this replaces the entire payload; omitted fields are removed.
+// Payload sets the user-defined custom properties. Under the default PAM
+// projection this replaces the entire payload; omitted keys are removed. An
+// empty map is sent as {}. Not calling Payload, or passing nil, omits the
+// field so the server resets it to default.
 func (b *setRelationshipBuilder) Payload(payload map[string]interface{}) *setRelationshipBuilder {
 	b.opts.Payload = payload
+	b.opts.setPayload = true
 	return b
 }
 
@@ -116,6 +118,7 @@ type setRelationshipOpts struct {
 	RelationshipClassVersion int
 	Status                   string
 	Payload                  map[string]interface{}
+	setPayload               bool
 	IfMatchETag              string
 	setIfMatchETag           bool
 	QueryParam               map[string]string
@@ -147,15 +150,7 @@ func (o *setRelationshipOpts) buildQuery() (*url.Values, error) {
 }
 
 func (o *setRelationshipOpts) buildBody() ([]byte, error) {
-	b := &setRelationshipBody{
-		Data: setRelationshipBodyData{
-			RelationshipClassVersion: o.RelationshipClassVersion,
-			Status:                   o.Status,
-			Payload:                  o.Payload,
-		},
-	}
-
-	jsonEncBytes, errEnc := json.Marshal(b)
+	jsonEncBytes, errEnc := marshalDataSyncSetBody("relationshipClassVersion", o.RelationshipClassVersion, o.Status, o.Payload, o.setPayload)
 	if errEnc != nil {
 		o.pubnub.loggerManager.LogError(errEnc, "SetRelationshipSerializationFailed", PNSetRelationshipOperation, true)
 		return []byte{}, errEnc

@@ -1,5 +1,7 @@
 package pubnub
 
+import "encoding/json"
+
 // This file holds the shared types and constants used by the DataSync
 // data-plane API (Entities, Relationships, Users, Channels and Memberships).
 // System fields live at the top level of each resource while application-defined
@@ -60,6 +62,22 @@ func conflictingDataSyncFilters(filterFast, filter string) bool {
 	return filterFast != "" && filter != ""
 }
 
+// marshalDataSyncSetBody encodes a Set (PUT) envelope. Payload is omitted when
+// the setter was never called or was called with nil (REST PUT resets omitted
+// writable fields to their default). An explicit empty map is sent as {}.
+func marshalDataSyncSetBody(versionField string, version int, status string, payload map[string]interface{}, setPayload bool) ([]byte, error) {
+	data := map[string]interface{}{
+		versionField: version,
+	}
+	if status != "" {
+		data["status"] = status
+	}
+	if setPayload && payload != nil {
+		data["payload"] = payload
+	}
+	return json.Marshal(map[string]interface{}{"data": data})
+}
+
 // PNEntity is the generic entity resource returned by the Entities API.
 // System fields are top-level; application-defined fields live under Payload.
 type PNEntity struct {
@@ -115,6 +133,24 @@ type PNJSONPatchOperation struct {
 	Path  string      `json:"path"`
 	Value interface{} `json:"value,omitempty"`
 	From  string      `json:"from,omitempty"`
+}
+
+// MarshalJSON implements RFC 6902 encoding. add/replace/test always emit
+// "value", including JSON null. remove/move/copy omit "value". from is emitted
+// only when set (move/copy).
+func (op PNJSONPatchOperation) MarshalJSON() ([]byte, error) {
+	m := map[string]interface{}{
+		"op":   op.Op,
+		"path": op.Path,
+	}
+	switch op.Op {
+	case "add", "replace", "test":
+		m["value"] = op.Value
+	}
+	if op.From != "" {
+		m["from"] = op.From
+	}
+	return json.Marshal(m)
 }
 
 // PNRelationship is the generic relationship resource returned by the
