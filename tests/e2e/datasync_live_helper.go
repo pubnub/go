@@ -538,6 +538,16 @@ func waitRelationshipsFilterFast(t *testing.T, pn *pubnub.PubNub, filter string,
 		})
 }
 
+func waitMembershipGone(t *testing.T, pn *pubnub.PubNub, id string) {
+	t.Helper()
+	_ = eventually(t, dsFilterTimeout, 250*time.Millisecond,
+		fmt.Sprintf("GetMembership %s returns 404", id),
+		func() (int, bool) {
+			_, st, err := pn.DataSync.GetMembership().ID(id).Execute()
+			return st.StatusCode, err != nil && st.StatusCode == 404
+		})
+}
+
 type dsEventSub struct {
 	events chan *pubnub.PNDataSyncEventResult
 	stop   chan struct{}

@@ -670,9 +670,15 @@ func TestParseTokenWithEmptyResources(t *testing.T) {
 	assert.Equal(0, len(result.Resources.Channels))
 	assert.Equal(0, len(result.Resources.ChannelGroups))
 	assert.Equal(0, len(result.Resources.UUIDs))
+	assert.Nil(result.Resources.DataSync.Entities)
+	assert.Nil(result.Resources.DataSync.Relationships)
+	assert.Nil(result.Resources.DataSync.Memberships)
 	assert.Equal(0, len(result.Patterns.Channels))
 	assert.Equal(0, len(result.Patterns.ChannelGroups))
 	assert.Equal(0, len(result.Patterns.UUIDs))
+	assert.Nil(result.Patterns.DataSync.Entities)
+	assert.Nil(result.Patterns.DataSync.Relationships)
+	assert.Nil(result.Patterns.DataSync.Memberships)
 }
 
 func TestParseTokenWithDataSyncPermissions(t *testing.T) {

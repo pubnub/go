@@ -315,11 +315,6 @@ func grantResourcesToPNTokenResources(grantResources GrantResources) PNTokenReso
 		Channels:      make(map[string]ChannelPermissions),
 		ChannelGroups: make(map[string]GroupPermissions),
 		UUIDs:         make(map[string]UUIDPermissions),
-		DataSync: PNDataSyncTokenScopes{
-			Entities:      make(map[string]DataSyncPermissions),
-			Relationships: make(map[string]DataSyncPermissions),
-			Memberships:   make(map[string]DataSyncPermissions),
-		},
 	}
 	for k, v := range grantResources.Channels {
 		tokenResources.Channels[k] = parseGrantPerms(v, PNChannels).(ChannelPermissions)
@@ -330,14 +325,23 @@ func grantResourcesToPNTokenResources(grantResources GrantResources) PNTokenReso
 	for k, v := range grantResources.UUIDs {
 		tokenResources.UUIDs[k] = parseGrantPerms(v, PNUUIDs).(UUIDPermissions)
 	}
-	for k, v := range grantResources.DataSyncEntities {
-		tokenResources.DataSync.Entities[k] = parseGrantPerms(v, PNDataSync).(DataSyncPermissions)
+	if len(grantResources.DataSyncEntities) > 0 {
+		tokenResources.DataSync.Entities = make(map[string]DataSyncPermissions, len(grantResources.DataSyncEntities))
+		for k, v := range grantResources.DataSyncEntities {
+			tokenResources.DataSync.Entities[k] = parseGrantPerms(v, PNDataSync).(DataSyncPermissions)
+		}
 	}
-	for k, v := range grantResources.DataSyncRelationships {
-		tokenResources.DataSync.Relationships[k] = parseGrantPerms(v, PNDataSync).(DataSyncPermissions)
+	if len(grantResources.DataSyncRelationships) > 0 {
+		tokenResources.DataSync.Relationships = make(map[string]DataSyncPermissions, len(grantResources.DataSyncRelationships))
+		for k, v := range grantResources.DataSyncRelationships {
+			tokenResources.DataSync.Relationships[k] = parseGrantPerms(v, PNDataSync).(DataSyncPermissions)
+		}
 	}
-	for k, v := range grantResources.DataSyncMemberships {
-		tokenResources.DataSync.Memberships[k] = parseGrantPerms(v, PNDataSync).(DataSyncPermissions)
+	if len(grantResources.DataSyncMemberships) > 0 {
+		tokenResources.DataSync.Memberships = make(map[string]DataSyncPermissions, len(grantResources.DataSyncMemberships))
+		for k, v := range grantResources.DataSyncMemberships {
+			tokenResources.DataSync.Memberships[k] = parseGrantPerms(v, PNDataSync).(DataSyncPermissions)
+		}
 	}
 	return tokenResources
 }

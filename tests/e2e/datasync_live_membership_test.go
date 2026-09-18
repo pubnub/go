@@ -218,8 +218,7 @@ func TestDataSyncLiveMembershipCascadeOnUserRemove(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 200, status.StatusCode)
 
-	_, memStatus, memErr := h.client.DataSync.GetMembership().ID(mem.ID).Execute()
-	assertServerCode(t, memErr, memStatus, 404)
+	waitMembershipGone(t, h.client, mem.ID)
 }
 
 func TestDataSyncLiveMembershipCascadeOnChannelRemove(t *testing.T) {
@@ -236,6 +235,5 @@ func TestDataSyncLiveMembershipCascadeOnChannelRemove(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 200, status.StatusCode)
 
-	_, memStatus, memErr := h.client.DataSync.GetMembership().ID(mem.ID).Execute()
-	assertServerCode(t, memErr, memStatus, 404)
+	waitMembershipGone(t, h.client, mem.ID)
 }
