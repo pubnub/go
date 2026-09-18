@@ -147,6 +147,9 @@ func Example_getUUIDMetadataWithIncludes() {
 		Type("employee").
 		Execute()
 
+	// Small delay to ensure metadata is persisted before retrieval
+	time.Sleep(2 * time.Second)
+
 	// Get user metadata with all include options
 	response, status, err := pn.GetUUIDMetadata().
 		UUID("user-with-all").

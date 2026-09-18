@@ -60,6 +60,32 @@ const (
 	StrMissingToken = "Missing PAMv3 token"
 	// StrInvalidCustomMessageType shows `Invalid CustomMessageType` message
 	StrInvalidCustomMessageType = "Invalid CustomMessageType: size different than 3-50 or contains invalid characters"
+	// StrMissingEntityClass shows `Missing Entity Class` message
+	StrMissingEntityClass = "Missing Entity Class"
+	// StrMissingEntityID shows `Missing Entity ID` message
+	StrMissingEntityID = "Missing Entity ID"
+	// StrInvalidEntityClassVersion shows `Invalid Entity Class Version` message
+	StrInvalidEntityClassVersion = "Invalid Entity Class Version: must be >= 1"
+	// StrMissingPatchOperations shows `Missing Patch Operations` message
+	StrMissingPatchOperations = "Missing Patch Operations"
+	// StrMissingRelationshipClass shows `Missing Relationship Class` message
+	StrMissingRelationshipClass = "Missing Relationship Class"
+	// StrMissingRelationshipID shows `Missing Relationship ID` message
+	StrMissingRelationshipID = "Missing Relationship ID"
+	// StrMissingEntityAID shows `Missing Entity A ID` message
+	StrMissingEntityAID = "Missing Entity A ID"
+	// StrMissingEntityBID shows `Missing Entity B ID` message
+	StrMissingEntityBID = "Missing Entity B ID"
+	// StrInvalidRelationshipClassVersion shows `Invalid Relationship Class Version` message
+	StrInvalidRelationshipClassVersion = "Invalid Relationship Class Version: must be >= 1"
+	// StrMissingUserID shows `Missing User ID` message
+	StrMissingUserID = "Missing User ID"
+	// StrMissingChannelID shows `Missing Channel ID` message
+	StrMissingChannelID = "Missing Channel ID"
+	// StrMissingMembershipID shows `Missing Membership ID` message
+	StrMissingMembershipID = "Missing Membership ID"
+	// StrExclusiveDataSyncFilter shows that FilterFast and Filter cannot both be set
+	StrExclusiveDataSyncFilter = "FilterFast and Filter cannot both be set"
 )
 
 // PubNub No server connection will be established when you create a new PubNub object.
@@ -86,6 +112,9 @@ type PubNub struct {
 	tokenManager          *TokenManager
 	previousCipherKey     string
 	previousIvFlag        bool
+
+	// DataSync groups DataSync API entry points (e.g. pn.DataSync.CreateEntity()).
+	DataSync *DataSyncService
 
 	// lastNegotiatedProto is res.Proto from the most recent completed HTTP response (internal).
 	lastNegotiatedProtoMu sync.Mutex
@@ -951,6 +980,7 @@ func NewPubNub(pnconf *Config) *PubNub {
 	pn.jobQueue = make(chan *JobQItem)
 	pn.requestWorkers = pn.newNonSubQueueProcessor(pnconf.MaxWorkers, ctx)
 	pn.tokenManager = newTokenManager(pn, ctx)
+	pn.DataSync = &DataSyncService{pn: pn}
 
 	return pn
 }

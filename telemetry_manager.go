@@ -262,6 +262,71 @@ func telemetryEndpointNameForOperation(t OperationType) string {
 	case PNPublishFileMessageOperation:
 		endpoint = "file"
 		break
+	case PNCreateEntityOperation:
+		fallthrough
+	case PNGetEntityOperation:
+		fallthrough
+	case PNGetEntitiesOperation:
+		fallthrough
+	case PNSetEntityOperation:
+		fallthrough
+	case PNUpdateEntityOperation:
+		fallthrough
+	case PNRemoveEntityOperation:
+		endpoint = "ent"
+		break
+	case PNCreateRelationshipOperation:
+		fallthrough
+	case PNGetRelationshipOperation:
+		fallthrough
+	case PNGetRelationshipsOperation:
+		fallthrough
+	case PNSetRelationshipOperation:
+		fallthrough
+	case PNUpdateRelationshipOperation:
+		fallthrough
+	case PNRemoveRelationshipOperation:
+		endpoint = "rel"
+		break
+	case PNCreateDataSyncUserOperation:
+		fallthrough
+	case PNGetDataSyncUserOperation:
+		fallthrough
+	case PNGetDataSyncUsersOperation:
+		fallthrough
+	case PNSetDataSyncUserOperation:
+		fallthrough
+	case PNUpdateDataSyncUserOperation:
+		fallthrough
+	case PNRemoveDataSyncUserOperation:
+		endpoint = "usr"
+		break
+	case PNCreateDataSyncChannelOperation:
+		fallthrough
+	case PNGetDataSyncChannelOperation:
+		fallthrough
+	case PNGetDataSyncChannelsOperation:
+		fallthrough
+	case PNSetDataSyncChannelOperation:
+		fallthrough
+	case PNUpdateDataSyncChannelOperation:
+		fallthrough
+	case PNRemoveDataSyncChannelOperation:
+		endpoint = "chn"
+		break
+	case PNCreateDataSyncMembershipOperation:
+		fallthrough
+	case PNGetDataSyncMembershipOperation:
+		fallthrough
+	case PNGetDataSyncMembershipsOperation:
+		fallthrough
+	case PNSetDataSyncMembershipOperation:
+		fallthrough
+	case PNUpdateDataSyncMembershipOperation:
+		fallthrough
+	case PNRemoveDataSyncMembershipOperation:
+		endpoint = "mem"
+		break
 	default:
 		endpoint = "time"
 		break

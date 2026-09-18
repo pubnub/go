@@ -12,6 +12,9 @@ env:
   PAM_SECRET_KEY: ${{ secrets.PAM_SECRET_KEY }}
   PUBLISH_KEY: ${{ secrets.PUBLISH_KEY }}
   SUBSCRIBE_KEY: ${{ secrets.SUBSCRIBE_KEY}}
+  DS_PUBLISH_KEY: ${{ secrets.DS_PUBLISH_KEY }}
+  DS_SUBSCRIBE_KEY: ${{ secrets.DS_SUBSCRIBE_KEY }}
+  DS_SECRET_KEY: ${{ secrets.DS_SECRET_KEY }}
 defaults:
   run:
     shell: bash
