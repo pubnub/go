@@ -31,3 +31,12 @@ func setPubnubExamplePAMConfigData(config *pubnub.Config) *pubnub.Config {
 
 	return config
 }
+
+func setPubnubExampleDataSyncConfigData(config *pubnub.Config) *pubnub.Config {
+	config.SetUserId("GO_SDK_EXAMPLE_USER")
+	config.PublishKey = os.Getenv("DS_PUBLISH_KEY")
+	config.SubscribeKey = os.Getenv("DS_SUBSCRIBE_KEY")
+	config.SecretKey = os.Getenv("DS_SECRET_KEY")
+
+	return config
+}
