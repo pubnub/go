@@ -84,8 +84,6 @@ const (
 const (
 	// PNEntityClassLevelGlobal is the class scope when the class is defined globally.
 	PNEntityClassLevelGlobal PNEntityClassLevel = "Global"
-	// PNEntityClassLevelAccount is the class scope when the class is defined per account.
-	PNEntityClassLevelAccount PNEntityClassLevel = "Account"
 	// PNEntityClassLevelSubKey is the class scope when the class is defined per subscribe key.
 	PNEntityClassLevelSubKey PNEntityClassLevel = "SubKey"
 )

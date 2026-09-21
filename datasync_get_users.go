@@ -47,7 +47,7 @@ func (b *getUsersBuilder) EntityClassVersion(version int) *getUsersBuilder {
 	return b
 }
 
-// EntityClassLevel sets the optional class scope (Global, Account, or SubKey) used to
+// EntityClassLevel sets the optional class scope (Global or SubKey) used to
 // disambiguate classes with the same name defined at different levels.
 func (b *getUsersBuilder) EntityClassLevel(level PNEntityClassLevel) *getUsersBuilder {
 	b.opts.EntityClassLevel = level

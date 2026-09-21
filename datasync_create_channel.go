@@ -58,7 +58,7 @@ func (b *createChannelBuilder) EntityClassVersion(version int) *createChannelBui
 	return b
 }
 
-// EntityClassLevel sets the optional class scope (Global, Account, or SubKey) used to
+// EntityClassLevel sets the optional class scope (Global or SubKey) used to
 // disambiguate classes with the same name defined at different levels.
 func (b *createChannelBuilder) EntityClassLevel(level PNEntityClassLevel) *createChannelBuilder {
 	b.opts.EntityClassLevel = level
