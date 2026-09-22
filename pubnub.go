@@ -65,7 +65,7 @@ const (
 	// StrMissingEntityID shows `Missing Entity ID` message
 	StrMissingEntityID = "Missing Entity ID"
 	// StrInvalidEntityClassVersion shows `Invalid Entity Class Version` message
-	StrInvalidEntityClassVersion = "10.0.0"
+	StrInvalidEntityClassVersion = "Invalid Entity Class Version: must be >= 1"
 	// StrMissingPatchOperations shows `Missing Patch Operations` message
 	StrMissingPatchOperations = "Missing Patch Operations"
 	// StrMissingRelationshipClass shows `Missing Relationship Class` message
@@ -77,7 +77,7 @@ const (
 	// StrMissingEntityBID shows `Missing Entity B ID` message
 	StrMissingEntityBID = "Missing Entity B ID"
 	// StrInvalidRelationshipClassVersion shows `Invalid Relationship Class Version` message
-	StrInvalidRelationshipClassVersion = "10.0.0"
+	StrInvalidRelationshipClassVersion = "Invalid Relationship Class Version: must be >= 1"
 	// StrMissingUserID shows `Missing User ID` message
 	StrMissingUserID = "Missing User ID"
 	// StrMissingChannelID shows `Missing Channel ID` message
