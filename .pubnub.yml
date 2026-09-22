@@ -1,6 +1,13 @@
 ---
-version: v9.0.5
+version: v10.0.0
 changelog:
+  - date: 2026-09-22
+    version: v10.0.0
+    changes:
+      - type: feature
+        text: "Add Data Sync feature support."
+      - type: feature
+        text: "Add Data Sync support to `GrantToken`. Deprecate  old `UsersPermissions` and `UserPatternsPermissions` Grant methods."
   - date: 2026-09-02
     version: v9.0.5
     changes:
@@ -911,7 +918,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v9.0.5
+            location: https://github.com/pubnub/go/releases/tag/v10.0.0
             requires:
               -
                 name: "Go"
