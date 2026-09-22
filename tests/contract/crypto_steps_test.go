@@ -11,8 +11,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pubnub/go/v9/crypto"
-	"github.com/pubnub/go/v9/utils"
+	"github.com/pubnub/go/v10/crypto"
+	"github.com/pubnub/go/v10/utils"
 )
 
 func cryptor(ctx context.Context, cryptor string) error {

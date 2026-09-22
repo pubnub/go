@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/pubnub/go/v9/utils"
+	"github.com/pubnub/go/v10/utils"
 )
 
 const leavePath = "/v2/presence/sub-key/%s/channel/%s/leave"

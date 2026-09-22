@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	pubnub "github.com/pubnub/go/v9"
+	pubnub "github.com/pubnub/go/v10"
 )
 
 // snippet.end

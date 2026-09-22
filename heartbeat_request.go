@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pubnub/go/v9/utils"
+	"github.com/pubnub/go/v10/utils"
 )
 
 const heartbeatPath = "/v2/presence/sub-key/%s/channel/%s/heartbeat"

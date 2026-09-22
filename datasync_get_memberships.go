@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v10/pnerr"
 )
 
 var emptyGetDataSyncMembershipsResponse *PNDataSyncMembershipsResponse

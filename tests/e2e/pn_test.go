@@ -10,7 +10,7 @@ import (
 
 	//"time"
 
-	pubnub "github.com/pubnub/go/v9"
+	pubnub "github.com/pubnub/go/v10"
 )
 
 // import _ "net/http/pprof"

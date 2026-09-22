@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v9/utils"
+	"github.com/pubnub/go/v10/utils"
 )
 
 const addChannelsToPushPath = "/v1/push/sub-key/%s/devices/%s"

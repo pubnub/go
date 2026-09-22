@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	pubnub "github.com/pubnub/go/v9"
+	pubnub "github.com/pubnub/go/v10"
 )
 
 func main() {

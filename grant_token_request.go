@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v10/pnerr"
 )
 
 const grantTokenPath = "/v3/pam/%s/grant"

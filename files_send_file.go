@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v10/pnerr"
 )
 
 var emptySendFileResponse *PNSendFileResponse

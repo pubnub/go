@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	h "github.com/pubnub/go/v9/tests/helpers"
+	h "github.com/pubnub/go/v10/tests/helpers"
 	"github.com/stretchr/testify/assert"
 )
 

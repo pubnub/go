@@ -1,8 +1,8 @@
 # PubNub Go SDK
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/pubnub/go/v9.svg)](https://pkg.go.dev/github.com/pubnub/go/v9)
+[![Go Reference](https://pkg.go.dev/badge/github.com/pubnub/go/v10.svg)](https://pkg.go.dev/github.com/pubnub/go/v10)
 [![codecov.io](https://codecov.io/github/pubnub/go/coverage.svg)](https://codecov.io/github/pubnub/go)
-[![Go Report Card](https://goreportcard.com/badge/github.com/pubnub/go/v9)](https://goreportcard.com/report/github.com/pubnub/go/v9)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pubnub/go/v10)](https://goreportcard.com/report/github.com/pubnub/go/v10)
 
 This is the official PubNub Go SDK repository.
 
@@ -21,7 +21,7 @@ You will need the publish and subscribe keys to authenticate your app. Get your 
 1. Integrate PubNub into your project:
 
     ```bash
-    go get github.com/pubnub/go/v9
+    go get github.com/pubnub/go/v10
     ```
 
 2. Create a new file and add the following code:
@@ -29,7 +29,7 @@ You will need the publish and subscribe keys to authenticate your app. Get your 
     ```go
     package main
 
-    import pubnub "github.com/pubnub/go/v9"
+    import pubnub "github.com/pubnub/go/v10"
 
     func main() {
         config := pubnub.NewConfigWithUserId("userId")
@@ -46,7 +46,7 @@ You will need the publish and subscribe keys to authenticate your app. Get your 
 import (
     "fmt"
 
-    pubnub "github.com/pubnub/go/v9"
+    pubnub "github.com/pubnub/go/v10"
 )
 
 listener := pubnub.NewListener()
@@ -127,16 +127,16 @@ if err != nil {
 }
 ```
 
-## Upgrading from v8
+## Upgrading
 
-v9 requires Go 1.25+ and uses a new module import path:
+v9 and later require Go 1.25 or later. v10 does not raise that requirement; it changes the module import path:
 
 ```bash
-go get github.com/pubnub/go/v9@latest
+go get github.com/pubnub/go/v10@latest
 ```
 
 ```go
-import pubnub "github.com/pubnub/go/v9"
+import pubnub "github.com/pubnub/go/v10"
 ```
 
 ## Documentation
