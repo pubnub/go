@@ -1,6 +1,13 @@
 ---
-version: v9.0.5
+version: v10.0.0
 changelog:
+  - date: 2026-09-22
+    version: v10.0.0
+    changes:
+      - type: feature
+        text: "Add Data Sync feature support."
+      - type: feature
+        text: "Add Data Sync support to `GrantToken`. Deprecate  old `UsersPermissions` and `UserPatternsPermissions` Grant methods."
   - date: 2026-09-02
     version: v9.0.5
     changes:
@@ -801,6 +808,41 @@ features:
     - SUBSCRIBE-USER-LISTENER
     - SUBSCRIBE-MESSAGE-ACTIONS-LISTENER
     - SUBSCRIBE-FILE-LISTENER
+  data-sync:
+    - DATASYNC-USER-CREATE
+    - DATASYNC-USER-GET
+    - DATASYNC-USER-GET-ALL
+    - DATASYNC-USER-UPDATE
+    - DATASYNC-USER-PATCH
+    - DATASYNC-USER-DELETE
+    - DATASYNC-CHANNEL-CREATE
+    - DATASYNC-CHANNEL-GET
+    - DATASYNC-CHANNEL-GET-ALL
+    - DATASYNC-CHANNEL-UPDATE
+    - DATASYNC-CHANNEL-PATCH
+    - DATASYNC-CHANNEL-DELETE
+    - DATASYNC-MEMBERSHIP-CREATE
+    - DATASYNC-MEMBERSHIP-GET
+    - DATASYNC-MEMBERSHIP-GET-ALL
+    - DATASYNC-MEMBERSHIP-UPDATE
+    - DATASYNC-MEMBERSHIP-PATCH
+    - DATASYNC-MEMBERSHIP-DELETE
+    - DATASYNC-ENTITY-CREATE
+    - DATASYNC-ENTITY-GET
+    - DATASYNC-ENTITY-GET-ALL
+    - DATASYNC-ENTITY-UPDATE
+    - DATASYNC-ENTITY-PATCH
+    - DATASYNC-ENTITY-DELETE
+    - DATASYNC-RELATIONSHIP-CREATE
+    - DATASYNC-RELATIONSHIP-GET
+    - DATASYNC-RELATIONSHIP-GET-ALL
+    - DATASYNC-RELATIONSHIP-UPDATE
+    - DATASYNC-RELATIONSHIP-PATCH
+    - DATASYNC-RELATIONSHIP-DELETE
+    - DATASYNC-FILTERING
+    - DATASYNC-SORTING
+    - DATASYNC-EVENTS-LISTENER
+    - DATASYNC-ACCESS-MANAGER
   objects:
     - OBJECTS-FILTERING
     - OBJECTS-SORTING
@@ -876,7 +918,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v9.0.5
+            location: https://github.com/pubnub/go/releases/tag/v10.0.0
             requires:
               -
                 name: "Go"

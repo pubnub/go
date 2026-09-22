@@ -46,6 +46,10 @@ type PNMessageActionsEventType string
 // PNPushEnvironment is used as an enum to catgorize the available Message Actions Event types
 type PNPushEnvironment string
 
+// PNEntityClassLevel is the DataSync class scope used to disambiguate classes
+// with the same name defined at different levels.
+type PNEntityClassLevel string
+
 // PNLogLevel constants define the available log levels
 const (
 	// PNLogLevelTrace is the enum when the log level is trace.
@@ -78,6 +82,13 @@ const (
 )
 
 const (
+	// PNEntityClassLevelGlobal is the class scope when the class is defined globally.
+	PNEntityClassLevelGlobal PNEntityClassLevel = "Global"
+	// PNEntityClassLevelSubKey is the class scope when the class is defined per subscribe key.
+	PNEntityClassLevelSubKey PNEntityClassLevel = "SubKey"
+)
+
+const (
 	// PNMessageActionsAdded is the enum when the event of type `added` occurs
 	PNMessageActionsAdded PNMessageActionsEventType = "added"
 	// PNMessageActionsRemoved is the enum when the event of type `removed` occurs
@@ -100,6 +111,37 @@ const (
 	PNObjectsEventRemove PNObjectsEvent = "delete"
 	// PNObjectsEventSet is the enum when the event `set` occurs
 	PNObjectsEventSet = "set"
+)
+
+// PNDataSyncEvent categorizes DataSync internal-publish event names.
+type PNDataSyncEvent string
+
+// PNDataSyncEventType categorizes DataSync internal-publish resource types.
+type PNDataSyncEventType string
+
+const (
+	// PNDataSyncEventCreate is the enum when a DataSync create event occurs.
+	PNDataSyncEventCreate PNDataSyncEvent = "create"
+	// PNDataSyncEventUpdate is the enum when a DataSync update event occurs.
+	PNDataSyncEventUpdate PNDataSyncEvent = "update"
+	// PNDataSyncEventDelete is the enum when a DataSync delete event occurs.
+	PNDataSyncEventDelete PNDataSyncEvent = "delete"
+)
+
+const (
+	// PNDataSyncEventTypeEntity is the enum when the DataSync event type is a custom entity.
+	PNDataSyncEventTypeEntity PNDataSyncEventType = "entity"
+	// PNDataSyncEventTypeRelationship is the enum when the DataSync event type is a custom relationship.
+	PNDataSyncEventTypeRelationship PNDataSyncEventType = "relationship"
+	// PNDataSyncEventTypeUser is the enum when the DataSync event type is a user
+	// (the built-in User class or a subclass of it).
+	PNDataSyncEventTypeUser PNDataSyncEventType = "user"
+	// PNDataSyncEventTypeChannel is the enum when the DataSync event type is a channel
+	// (the built-in Channel class or a subclass of it).
+	PNDataSyncEventTypeChannel PNDataSyncEventType = "channel"
+	// PNDataSyncEventTypeMembership is the enum when the DataSync event type is a membership
+	// (the built-in Membership class or a subclass of it).
+	PNDataSyncEventTypeMembership PNDataSyncEventType = "membership"
 )
 
 const (
@@ -207,6 +249,8 @@ const (
 	PNMessageTypeMessageActions
 	// PNMessageTypeFile is to identify Files the Subscribe response
 	PNMessageTypeFile
+	// PNMessageTypeDataSync is to identify DataSync internal publish events
+	PNMessageTypeDataSync
 )
 
 const (
@@ -377,6 +421,66 @@ const (
 	PNPublishFileMessageOperation
 	// PNAccessManagerRevokeToken is the enum used for Grant Token remove requests.
 	PNAccessManagerRevokeToken
+	// PNCreateEntityOperation is the enum used for the Create Entity operation in the Entities API.
+	PNCreateEntityOperation
+	// PNGetEntityOperation is the enum used for the Get Entity operation in the Entities API.
+	PNGetEntityOperation
+	// PNGetEntitiesOperation is the enum used for the List Entities operation in the Entities API.
+	PNGetEntitiesOperation
+	// PNSetEntityOperation is the enum used for the Set Entity operation in the Entities API.
+	PNSetEntityOperation
+	// PNUpdateEntityOperation is the enum used for the Update Entity operation in the Entities API.
+	PNUpdateEntityOperation
+	// PNRemoveEntityOperation is the enum used for the Remove Entity operation in the Entities API.
+	PNRemoveEntityOperation
+	// PNCreateRelationshipOperation is the enum used for the Create Relationship operation.
+	PNCreateRelationshipOperation
+	// PNGetRelationshipOperation is the enum used for the Get Relationship operation.
+	PNGetRelationshipOperation
+	// PNGetRelationshipsOperation is the enum used for the List Relationships operation.
+	PNGetRelationshipsOperation
+	// PNSetRelationshipOperation is the enum used for the Set Relationship operation.
+	PNSetRelationshipOperation
+	// PNUpdateRelationshipOperation is the enum used for the Update Relationship operation.
+	PNUpdateRelationshipOperation
+	// PNRemoveRelationshipOperation is the enum used for the Remove Relationship operation.
+	PNRemoveRelationshipOperation
+	// PNCreateDataSyncUserOperation is the enum used for the Create User operation in the DataSync Users API.
+	PNCreateDataSyncUserOperation
+	// PNGetDataSyncUserOperation is the enum used for the Get User operation in the DataSync Users API.
+	PNGetDataSyncUserOperation
+	// PNGetDataSyncUsersOperation is the enum used for the List Users operation in the DataSync Users API.
+	PNGetDataSyncUsersOperation
+	// PNSetDataSyncUserOperation is the enum used for the Set User operation in the DataSync Users API.
+	PNSetDataSyncUserOperation
+	// PNUpdateDataSyncUserOperation is the enum used for the Update User operation in the DataSync Users API.
+	PNUpdateDataSyncUserOperation
+	// PNRemoveDataSyncUserOperation is the enum used for the Remove User operation in the DataSync Users API.
+	PNRemoveDataSyncUserOperation
+	// PNCreateDataSyncChannelOperation is the enum used for the Create Channel operation in the DataSync Channels API.
+	PNCreateDataSyncChannelOperation
+	// PNGetDataSyncChannelOperation is the enum used for the Get Channel operation in the DataSync Channels API.
+	PNGetDataSyncChannelOperation
+	// PNGetDataSyncChannelsOperation is the enum used for the List Channels operation in the DataSync Channels API.
+	PNGetDataSyncChannelsOperation
+	// PNSetDataSyncChannelOperation is the enum used for the Set Channel operation in the DataSync Channels API.
+	PNSetDataSyncChannelOperation
+	// PNUpdateDataSyncChannelOperation is the enum used for the Update Channel operation in the DataSync Channels API.
+	PNUpdateDataSyncChannelOperation
+	// PNRemoveDataSyncChannelOperation is the enum used for the Remove Channel operation in the DataSync Channels API.
+	PNRemoveDataSyncChannelOperation
+	// PNCreateDataSyncMembershipOperation is the enum used for the Create Membership operation in the DataSync Memberships API.
+	PNCreateDataSyncMembershipOperation
+	// PNGetDataSyncMembershipOperation is the enum used for the Get Membership operation in the DataSync Memberships API.
+	PNGetDataSyncMembershipOperation
+	// PNGetDataSyncMembershipsOperation is the enum used for the List Memberships operation in the DataSync Memberships API.
+	PNGetDataSyncMembershipsOperation
+	// PNSetDataSyncMembershipOperation is the enum used for the Set Membership operation in the DataSync Memberships API.
+	PNSetDataSyncMembershipOperation
+	// PNUpdateDataSyncMembershipOperation is the enum used for the Update Membership operation in the DataSync Memberships API.
+	PNUpdateDataSyncMembershipOperation
+	// PNRemoveDataSyncMembershipOperation is the enum used for the Remove Membership operation in the DataSync Memberships API.
+	PNRemoveDataSyncMembershipOperation
 )
 
 const (
@@ -697,6 +801,66 @@ func (t OperationType) String() string {
 		return "Send File To S3"
 	case PNPublishFileMessageOperation:
 		return "Publish File"
+	case PNCreateEntityOperation:
+		return "Create Entity"
+	case PNGetEntityOperation:
+		return "Get Entity"
+	case PNGetEntitiesOperation:
+		return "Get Entities"
+	case PNSetEntityOperation:
+		return "Set Entity"
+	case PNUpdateEntityOperation:
+		return "Update Entity"
+	case PNRemoveEntityOperation:
+		return "Remove Entity"
+	case PNCreateRelationshipOperation:
+		return "Create Relationship"
+	case PNGetRelationshipOperation:
+		return "Get Relationship"
+	case PNGetRelationshipsOperation:
+		return "Get Relationships"
+	case PNSetRelationshipOperation:
+		return "Set Relationship"
+	case PNUpdateRelationshipOperation:
+		return "Update Relationship"
+	case PNRemoveRelationshipOperation:
+		return "Remove Relationship"
+	case PNCreateDataSyncUserOperation:
+		return "Create DataSync User"
+	case PNGetDataSyncUserOperation:
+		return "Get DataSync User"
+	case PNGetDataSyncUsersOperation:
+		return "Get DataSync Users"
+	case PNSetDataSyncUserOperation:
+		return "Set DataSync User"
+	case PNUpdateDataSyncUserOperation:
+		return "Update DataSync User"
+	case PNRemoveDataSyncUserOperation:
+		return "Remove DataSync User"
+	case PNCreateDataSyncChannelOperation:
+		return "Create DataSync Channel"
+	case PNGetDataSyncChannelOperation:
+		return "Get DataSync Channel"
+	case PNGetDataSyncChannelsOperation:
+		return "Get DataSync Channels"
+	case PNSetDataSyncChannelOperation:
+		return "Set DataSync Channel"
+	case PNUpdateDataSyncChannelOperation:
+		return "Update DataSync Channel"
+	case PNRemoveDataSyncChannelOperation:
+		return "Remove DataSync Channel"
+	case PNCreateDataSyncMembershipOperation:
+		return "Create DataSync Membership"
+	case PNGetDataSyncMembershipOperation:
+		return "Get DataSync Membership"
+	case PNGetDataSyncMembershipsOperation:
+		return "Get DataSync Memberships"
+	case PNSetDataSyncMembershipOperation:
+		return "Set DataSync Membership"
+	case PNUpdateDataSyncMembershipOperation:
+		return "Update DataSync Membership"
+	case PNRemoveDataSyncMembershipOperation:
+		return "Remove DataSync Membership"
 	default:
 		return "No Category Matched"
 	}

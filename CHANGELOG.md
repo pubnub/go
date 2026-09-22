@@ -1,3 +1,10 @@
+## v10.0.0
+September 22 2026
+
+#### Added
+- Add Data Sync feature support.
+- Add Data Sync support to `GrantToken`. Deprecate  old `UsersPermissions` and `UserPatternsPermissions` Grant methods.
+
 ## v9.0.5
 September 02 2026
 

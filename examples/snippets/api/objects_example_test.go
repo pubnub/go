@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	pubnub "github.com/pubnub/go/v9"
+	pubnub "github.com/pubnub/go/v10"
 )
 
 // snippet.end
@@ -146,6 +146,9 @@ func Example_getUUIDMetadataWithIncludes() {
 		Status("active").
 		Type("employee").
 		Execute()
+
+	// Small delay to ensure metadata is persisted before retrieval
+	time.Sleep(2 * time.Second)
 
 	// Get user metadata with all include options
 	response, status, err := pn.GetUUIDMetadata().

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/pubnub/go/v9/utils"
+	"github.com/pubnub/go/v10/utils"
 )
 
 const removeAllPushChannelsForDevicePath = "/v1/push/sub-key/%s/devices/%s/remove"

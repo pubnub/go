@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/pubnub/go/v9/pnerr"
+	"github.com/pubnub/go/v10/pnerr"
 )
 
 const grantTokenPath = "/v3/pam/%s/grant"
@@ -85,6 +85,12 @@ func (b *grantTokenBuilder) UUIDs(uuids map[string]UUIDPermissions) *grantTokenO
 	return newGrantTokenObjectsBuilder(b.opts).UUIDs(uuids)
 }
 
+// Users sets DataSync User CRUD permissions (token resources.users).
+// This is not the same as UUIDs(), which writes App Context uuid permissions.
+func (b *grantTokenBuilder) Users(users map[string]UUIDPermissions) *grantTokenObjectsBuilder {
+	return newGrantTokenObjectsBuilder(b.opts).Users(users)
+}
+
 // ChannelsPattern sets the ChannelPermissions for the Grant request.
 func (b *grantTokenBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenObjectsBuilder {
 	return newGrantTokenObjectsBuilder(b.opts).ChannelsPattern(channels)
@@ -99,10 +105,34 @@ func (b *grantTokenBuilder) UUIDsPattern(uuids map[string]UUIDPermissions) *gran
 	return newGrantTokenObjectsBuilder(b.opts).UUIDsPattern(uuids)
 }
 
+// UsersPattern sets DataSync User CRUD pattern permissions (token patterns.users).
+func (b *grantTokenBuilder) UsersPattern(users map[string]UUIDPermissions) *grantTokenObjectsBuilder {
+	return newGrantTokenObjectsBuilder(b.opts).UsersPattern(users)
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *grantTokenBuilder) QueryParam(queryParam map[string]string) *grantTokenBuilder {
 	b.opts.QueryParam = queryParam
 
+	return b
+}
+
+// DataSync sets exact-id DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenBuilder) DataSync(scopes PNDataSyncTokenScopes) *grantTokenBuilder {
+	b.opts.DataSync = scopes
+	return b
+}
+
+// DataSyncPattern sets pattern DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenBuilder) DataSyncPattern(scopes PNDataSyncTokenScopes) *grantTokenBuilder {
+	b.opts.DataSyncPattern = scopes
+	return b
+}
+
+// DataSyncProjections assigns a single projection name per DataSync resource or pattern.
+// Encoded into token meta under "pn-projections".
+func (b *grantTokenBuilder) DataSyncProjections(projections PNDataSyncProjections) *grantTokenBuilder {
+	b.opts.DataSyncProjections = projections
 	return b
 }
 
@@ -133,6 +163,13 @@ func (o *grantTokenOpts) GetLogParams() map[string]interface{} {
 		}
 		params["UUIDs"] = uuidNames
 	}
+	if len(o.Users) > 0 {
+		userNames := make([]string, 0, len(o.Users))
+		for k := range o.Users {
+			userNames = append(userNames, k)
+		}
+		params["Users"] = userNames
+	}
 	if len(o.ChannelsPattern) > 0 {
 		params["ChannelsPattern"] = fmt.Sprintf("(%d patterns)", len(o.ChannelsPattern))
 	}
@@ -141,6 +178,9 @@ func (o *grantTokenOpts) GetLogParams() map[string]interface{} {
 	}
 	if len(o.UUIDsPattern) > 0 {
 		params["UUIDsPattern"] = fmt.Sprintf("(%d patterns)", len(o.UUIDsPattern))
+	}
+	if len(o.UsersPattern) > 0 {
+		params["UsersPattern"] = fmt.Sprintf("(%d patterns)", len(o.UsersPattern))
 	}
 	if o.AuthorizedUUID != "" {
 		params["AuthorizedUUID"] = o.AuthorizedUUID
@@ -151,7 +191,24 @@ func (o *grantTokenOpts) GetLogParams() map[string]interface{} {
 	if o.Meta != nil {
 		params["Meta"] = fmt.Sprintf("%v", o.Meta)
 	}
+	if !o.DataSync.empty() {
+		params["DataSync"] = dataSyncScopeLog(o.DataSync)
+	}
+	if !o.DataSyncPattern.empty() {
+		params["DataSyncPattern"] = dataSyncScopeLog(o.DataSyncPattern)
+	}
+	if !o.DataSyncProjections.empty() {
+		params["DataSyncProjections"] = true
+	}
 	return params
+}
+
+func dataSyncScopeLog(scopes PNDataSyncTokenScopes) map[string]int {
+	return map[string]int{
+		"Entities":      len(scopes.Entities),
+		"Relationships": len(scopes.Relationships),
+		"Memberships":   len(scopes.Memberships),
+	}
 }
 
 // Execute runs the Grant request.
@@ -174,6 +231,9 @@ func (b *grantTokenBuilder) SpacesPermissions(spacesPermissions map[SpaceId]Spac
 	return newGrantTokenEntitiesBuilder(b.opts).SpacesPermissions(spacesPermissions)
 }
 
+// UsersPermissions sets App Context UUID permissions (token uuids).
+//
+// Deprecated: Use UUIDs for App Context UUID grants, or Users for DataSync User CRUD.
 func (b *grantTokenBuilder) UsersPermissions(usersPermissions map[UserId]UserPermissions) *grantTokenEntitiesBuilder {
 	return newGrantTokenEntitiesBuilder(b.opts).UsersPermissions(usersPermissions)
 }
@@ -182,6 +242,9 @@ func (b *grantTokenBuilder) SpacePatternsPermissions(spacePatternsPermissions ma
 	return newGrantTokenEntitiesBuilder(b.opts).SpacePatternsPermissions(spacePatternsPermissions)
 }
 
+// UserPatternsPermissions sets App Context UUID pattern permissions (token uuids).
+//
+// Deprecated: Use UUIDsPattern for App Context UUID grants, or UsersPattern for DataSync User CRUD.
 func (b *grantTokenBuilder) UserPatternsPermissions(userPatternsPermissions map[string]UserPermissions) *grantTokenEntitiesBuilder {
 	return newGrantTokenEntitiesBuilder(b.opts).UserPatternsPermissions(userPatternsPermissions)
 }
@@ -233,6 +296,12 @@ func (b *grantTokenObjectsBuilder) UUIDs(uuids map[string]UUIDPermissions) *gran
 	return b
 }
 
+// Users sets DataSync User CRUD permissions (token resources.users).
+func (b *grantTokenObjectsBuilder) Users(users map[string]UUIDPermissions) *grantTokenObjectsBuilder {
+	b.opts.Users = users
+	return b
+}
+
 // Channels sets the Channels for the Grant request.
 func (b *grantTokenObjectsBuilder) ChannelsPattern(channels map[string]ChannelPermissions) *grantTokenObjectsBuilder {
 	b.opts.ChannelsPattern = channels
@@ -253,10 +322,35 @@ func (b *grantTokenObjectsBuilder) UUIDsPattern(uuids map[string]UUIDPermissions
 	return b
 }
 
+// UsersPattern sets DataSync User CRUD pattern permissions (token patterns.users).
+func (b *grantTokenObjectsBuilder) UsersPattern(users map[string]UUIDPermissions) *grantTokenObjectsBuilder {
+	b.opts.UsersPattern = users
+	return b
+}
+
 // QueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
 func (b *grantTokenObjectsBuilder) QueryParam(queryParam map[string]string) *grantTokenObjectsBuilder {
 	b.opts.QueryParam = queryParam
 
+	return b
+}
+
+// DataSync sets exact-id DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenObjectsBuilder) DataSync(scopes PNDataSyncTokenScopes) *grantTokenObjectsBuilder {
+	b.opts.DataSync = scopes
+	return b
+}
+
+// DataSyncPattern sets pattern DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenObjectsBuilder) DataSyncPattern(scopes PNDataSyncTokenScopes) *grantTokenObjectsBuilder {
+	b.opts.DataSyncPattern = scopes
+	return b
+}
+
+// DataSyncProjections assigns a single projection name per DataSync resource or pattern.
+// Encoded into token meta under "pn-projections".
+func (b *grantTokenObjectsBuilder) DataSyncProjections(projections PNDataSyncProjections) *grantTokenObjectsBuilder {
+	b.opts.DataSyncProjections = projections
 	return b
 }
 
@@ -303,6 +397,9 @@ func (b *grantTokenEntitiesBuilder) SpacesPermissions(spaces map[SpaceId]SpacePe
 	return b
 }
 
+// UsersPermissions sets App Context UUID permissions (token uuids).
+//
+// Deprecated: Use UUIDs for App Context UUID grants, or Users for DataSync User CRUD.
 func (b *grantTokenEntitiesBuilder) UsersPermissions(users map[UserId]UserPermissions) *grantTokenEntitiesBuilder {
 	b.opts.UUIDs = toUUIDsPermissionsMap(users)
 
@@ -316,6 +413,9 @@ func (b *grantTokenEntitiesBuilder) SpacePatternsPermissions(spaces map[string]S
 	return b
 }
 
+// UserPatternsPermissions sets App Context UUID pattern permissions (token uuids).
+//
+// Deprecated: Use UUIDsPattern for App Context UUID grants, or UsersPattern for DataSync User CRUD.
 func (b *grantTokenEntitiesBuilder) UserPatternsPermissions(users map[string]UserPermissions) *grantTokenEntitiesBuilder {
 	b.opts.UUIDsPattern = toUUIDPatternsPermissionsMap(users)
 
@@ -333,6 +433,25 @@ func (b *grantTokenEntitiesBuilder) Meta(meta map[string]interface{}) *grantToke
 func (b *grantTokenEntitiesBuilder) QueryParam(queryParam map[string]string) *grantTokenEntitiesBuilder {
 	b.opts.QueryParam = queryParam
 
+	return b
+}
+
+// DataSync sets exact-id DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenEntitiesBuilder) DataSync(scopes PNDataSyncTokenScopes) *grantTokenEntitiesBuilder {
+	b.opts.DataSync = scopes
+	return b
+}
+
+// DataSyncPattern sets pattern DataSync permissions (entities, relationships, memberships).
+func (b *grantTokenEntitiesBuilder) DataSyncPattern(scopes PNDataSyncTokenScopes) *grantTokenEntitiesBuilder {
+	b.opts.DataSyncPattern = scopes
+	return b
+}
+
+// DataSyncProjections assigns a single projection name per DataSync resource or pattern.
+// Encoded into token meta under "pn-projections".
+func (b *grantTokenEntitiesBuilder) DataSyncProjections(projections PNDataSyncProjections) *grantTokenEntitiesBuilder {
+	b.opts.DataSyncProjections = projections
 	return b
 }
 
@@ -367,12 +486,17 @@ type grantTokenOpts struct {
 	Channels             map[string]ChannelPermissions
 	ChannelGroups        map[string]GroupPermissions
 	UUIDs                map[string]UUIDPermissions
+	Users                map[string]UUIDPermissions
 	ChannelsPattern      map[string]ChannelPermissions
 	ChannelGroupsPattern map[string]GroupPermissions
 	UUIDsPattern         map[string]UUIDPermissions
+	UsersPattern         map[string]UUIDPermissions
 	QueryParam           map[string]string
 	Meta                 map[string]interface{}
 	AuthorizedUUID       string
+	DataSync             PNDataSyncTokenScopes
+	DataSyncPattern      PNDataSyncTokenScopes
+	DataSyncProjections  PNDataSyncProjections
 
 	// Max: 525600
 	// Min: 1
@@ -438,6 +562,7 @@ func (o *grantTokenOpts) parseResourcePermissions(resource interface{}, resource
 				bmVal = o.setBitmask(v.Update, PNUpdate, bmVal)
 				bmVal = o.setBitmask(v.Manage, PNManage, bmVal)
 				bmVal = o.setBitmask(v.Get, PNGet, bmVal)
+				bmVal = o.setBitmask(v.Create, PNCreate, bmVal)
 				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: channel permissions bitmask=%d", bmVal), false)
 				r[k] = bmVal
 			}
@@ -471,7 +596,26 @@ func (o *grantTokenOpts) parseResourcePermissions(resource interface{}, resource
 				bmVal = o.setBitmask(v.Get, PNGet, bmVal)
 				bmVal = o.setBitmask(v.Update, PNUpdate, bmVal)
 				bmVal = o.setBitmask(v.Delete, PNDelete, bmVal)
+				bmVal = o.setBitmask(v.Create, PNCreate, bmVal)
 				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: UUID permissions bitmask=%d", bmVal), false)
+				r[k] = bmVal
+			}
+			return r
+		}
+		return make(map[string]int64)
+
+	case PNDataSync:
+		resourceWithPerms := resource.(map[string]DataSyncPermissions)
+		resourceWithPermsLen := len(resourceWithPerms)
+		if resourceWithPermsLen > 0 {
+			r := make(map[string]int64, resourceWithPermsLen)
+			for k, v := range resourceWithPerms {
+				bmVal = int64(0)
+				bmVal = o.setBitmask(v.Get, PNGet, bmVal)
+				bmVal = o.setBitmask(v.Create, PNCreate, bmVal)
+				bmVal = o.setBitmask(v.Update, PNUpdate, bmVal)
+				bmVal = o.setBitmask(v.Delete, PNDelete, bmVal)
+				o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Grant token: DataSync permissions bitmask=%d", bmVal), false)
 				r[k] = bmVal
 			}
 			return r
@@ -498,22 +642,46 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 	if meta == nil {
 		meta = make(map[string]interface{})
 	}
+	if !o.DataSyncProjections.empty() {
+		meta = applyDataSyncProjections(meta, o.DataSyncProjections)
+	}
+
+	resources := GrantResources{
+		Channels: o.parseResourcePermissions(o.Channels, PNChannels),
+		Groups:   o.parseResourcePermissions(o.ChannelGroups, PNGroups),
+		UUIDs:    o.parseResourcePermissions(o.UUIDs, PNUUIDs),
+		Users:    o.parseResourcePermissions(o.Users, PNUUIDs),
+		Spaces:   make(map[string]int64),
+	}
+	patterns := GrantResources{
+		Channels: o.parseResourcePermissions(o.ChannelsPattern, PNChannels),
+		Groups:   o.parseResourcePermissions(o.ChannelGroupsPattern, PNGroups),
+		UUIDs:    o.parseResourcePermissions(o.UUIDsPattern, PNUUIDs),
+		Users:    o.parseResourcePermissions(o.UsersPattern, PNUUIDs),
+		Spaces:   make(map[string]int64),
+	}
+	if len(o.DataSync.Entities) > 0 {
+		resources.DataSyncEntities = o.parseResourcePermissions(o.DataSync.Entities, PNDataSync)
+	}
+	if len(o.DataSync.Relationships) > 0 {
+		resources.DataSyncRelationships = o.parseResourcePermissions(o.DataSync.Relationships, PNDataSync)
+	}
+	if len(o.DataSync.Memberships) > 0 {
+		resources.DataSyncMemberships = o.parseResourcePermissions(o.DataSync.Memberships, PNDataSync)
+	}
+	if len(o.DataSyncPattern.Entities) > 0 {
+		patterns.DataSyncEntities = o.parseResourcePermissions(o.DataSyncPattern.Entities, PNDataSync)
+	}
+	if len(o.DataSyncPattern.Relationships) > 0 {
+		patterns.DataSyncRelationships = o.parseResourcePermissions(o.DataSyncPattern.Relationships, PNDataSync)
+	}
+	if len(o.DataSyncPattern.Memberships) > 0 {
+		patterns.DataSyncMemberships = o.parseResourcePermissions(o.DataSyncPattern.Memberships, PNDataSync)
+	}
 
 	permissions := PermissionsBody{
-		Resources: GrantResources{
-			Channels: o.parseResourcePermissions(o.Channels, PNChannels),
-			Groups:   o.parseResourcePermissions(o.ChannelGroups, PNGroups),
-			UUIDs:    o.parseResourcePermissions(o.UUIDs, PNUUIDs),
-			Users:    make(map[string]int64),
-			Spaces:   make(map[string]int64),
-		},
-		Patterns: GrantResources{
-			Channels: o.parseResourcePermissions(o.ChannelsPattern, PNChannels),
-			Groups:   o.parseResourcePermissions(o.ChannelGroupsPattern, PNGroups),
-			UUIDs:    o.parseResourcePermissions(o.UUIDsPattern, PNUUIDs),
-			Users:    make(map[string]int64),
-			Spaces:   make(map[string]int64),
-		},
+		Resources:      resources,
+		Patterns:       patterns,
 		Meta:           meta,
 		AuthorizedUUID: o.AuthorizedUUID,
 	}

@@ -32,6 +32,13 @@ func Test_toUUIDsPermissionsMap(t *testing.T) {
 		}},
 		want: map[string]UUIDPermissions{"a": {
 			Delete: true,
+		}}}, {
+		name: "Create",
+		have: map[UserId]UserPermissions{"a": {
+			Create: true,
+		}},
+		want: map[string]UUIDPermissions{"a": {
+			Create: true,
 		}}}}
 
 	for _, tt := range tests {
@@ -95,6 +102,13 @@ func Test_toChannelsPermissionsMap(t *testing.T) {
 		}},
 		want: map[string]ChannelPermissions{"a": {
 			Join: true,
+		}}}, {
+		name: "Create",
+		have: map[SpaceId]SpacePermissions{"a": {
+			Create: true,
+		}},
+		want: map[string]ChannelPermissions{"a": {
+			Create: true,
 		}}},
 	}
 	for _, tt := range tests {

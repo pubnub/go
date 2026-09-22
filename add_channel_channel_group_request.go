@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pubnub/go/v9/utils"
+	"github.com/pubnub/go/v10/utils"
 )
 
 const addChannelToChannelGroupPath = "/v1/channel-registration/sub-key/%s/channel-group/%s"
