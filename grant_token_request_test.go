@@ -134,6 +134,52 @@ func Test_GrantToken(t *testing.T) {
 					},
 				}).opts,
 			want: `{"ttl":100,"permissions":{"resources":{"channels":{"channel":1},"groups":{},"uuids":{"user":104},"users":{},"spaces":{}},"patterns":{"channels":{"channel":3},"groups":{},"uuids":{"users*":40},"users":{},"spaces":{}},"meta":{}}}`},
+		{
+			name: "GrantToken categories only",
+			have: pn.GrantToken().
+				TTL(60).
+				Categories(PNGrantCategories{
+					Channels: CategoryPermissions{Get: true},
+					UUIDs:    CategoryPermissions{Get: true},
+				}).opts,
+			want: `{"ttl":60,"permissions":{"resources":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"categories":{"channels":32,"uuids":32},"meta":{}}}`},
+		{
+			name: "GrantToken channel category with resource grant",
+			have: pn.GrantToken().
+				TTL(60).
+				Channels(map[string]ChannelPermissions{
+					"channel": {
+						Read: true,
+					},
+				}).
+				Categories(PNGrantCategories{
+					Channels: CategoryPermissions{Get: true},
+				}).opts,
+			want: `{"ttl":60,"permissions":{"resources":{"channels":{"channel":1},"groups":{},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"categories":{"channels":32},"meta":{}}}`},
+		{
+			name: "GrantToken uuid category on entities builder",
+			have: pn.GrantToken().
+				TTL(60).
+				SpacesPermissions(map[SpaceId]SpacePermissions{
+					"space": {
+						Read: true,
+					},
+				}).
+				Categories(PNGrantCategories{
+					UUIDs: CategoryPermissions{Get: true},
+				}).opts,
+			want: `{"ttl":60,"permissions":{"resources":{"channels":{"space":1},"groups":{},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"categories":{"uuids":32},"meta":{}}}`},
+		{
+			name: "GrantToken false category get is omitted",
+			have: pn.GrantToken().
+				TTL(60).
+				Channels(map[string]ChannelPermissions{
+					"channel": {
+						Read: true,
+					},
+				}).
+				Categories(PNGrantCategories{}).opts,
+			want: `{"ttl":60,"permissions":{"resources":{"channels":{"channel":1},"groups":{},"uuids":{},"users":{},"spaces":{}},"patterns":{"channels":{},"groups":{},"uuids":{},"users":{},"spaces":{}},"meta":{}}}`},
 	}
 
 	for _, tt := range tests {

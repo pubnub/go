@@ -170,6 +170,26 @@ func (p UserPermissions) toUUIDPermissions() UUIDPermissions {
 	}
 }
 
+// CategoryPermissions is a category-level App Context enumeration grant.
+// Get is the only permission the grant API accepts.
+type CategoryPermissions struct {
+	Get bool
+}
+
+// PNGrantCategories grants permission to list all App Context metadata of a
+// resource type on the subscribe key.
+// Channels.Get lists channel metadata.
+// UUIDs.Get lists uuid metadata.
+// Named resource and pattern Get grants cover one resource or pattern.
+type PNGrantCategories struct {
+	Channels CategoryPermissions
+	UUIDs    CategoryPermissions
+}
+
+func (c PNGrantCategories) empty() bool {
+	return !c.Channels.Get && !c.UUIDs.Get
+}
+
 // DataSyncPermissions contains the CRUD flags accepted for DataSync resource
 // types (entities, relationships, memberships).
 type DataSyncPermissions struct {
@@ -277,6 +297,7 @@ type PNToken struct {
 	AuthorizedUUID string
 	Resources      PNTokenResources
 	Patterns       PNTokenResources
+	Categories     PNGrantCategories
 	Meta           map[string]interface{}
 	Projections    *PNDataSyncProjections
 }
@@ -309,8 +330,16 @@ func ParseToken(token string) (*PNToken, error) {
 		AuthorizedUUID: permissions.AuthorizedUUID,
 		Resources:      resources,
 		Patterns:       patterns,
+		Categories:     grantCategoriesToPN(permissions.Categories),
 		Projections:    parseDataSyncProjections(permissions.Meta),
 	}, nil
+}
+
+func grantCategoriesToPN(categories GrantCategories) PNGrantCategories {
+	return PNGrantCategories{
+		Channels: CategoryPermissions{Get: categories.Channels&int64(PNGet) != 0},
+		UUIDs:    CategoryPermissions{Get: categories.UUIDs&int64(PNGet) != 0},
+	}
 }
 
 func grantResourcesToPNTokenResources(grantResources GrantResources) PNTokenResources {
@@ -457,12 +486,20 @@ type GrantResourcesWithPermissions struct {
 	GroupsPattern   map[string]GroupPermissionsWithToken
 }
 
-// PermissionsBody is the struct used to decode the server response
+// PermissionsBody is the Grant Token request permissions object.
 type PermissionsBody struct {
 	Resources      GrantResources         `json:"resources"`
 	Patterns       GrantResources         `json:"patterns"`
+	Categories     *GrantCategories       `json:"categories,omitempty"`
 	Meta           map[string]interface{} `json:"meta"`
 	AuthorizedUUID string                 `json:"uuid,omitempty"`
+}
+
+// GrantCategories is the bitmask form of category permissions.
+// JSON names are the grant-request keys. CBOR names are the token keys under cat.
+type GrantCategories struct {
+	Channels int64 `json:"channels,omitempty" cbor:"chan"`
+	UUIDs    int64 `json:"uuids,omitempty" cbor:"uuid"`
 }
 
 // GrantResources is the struct used to decode the server response
@@ -481,6 +518,7 @@ type GrantResources struct {
 type PNGrantTokenDecoded struct {
 	Resources      GrantResources         `cbor:"res"`
 	Patterns       GrantResources         `cbor:"pat"`
+	Categories     GrantCategories        `cbor:"cat"`
 	Meta           map[string]interface{} `cbor:"meta"`
 	Signature      []byte                 `cbor:"sig"`
 	Version        int                    `cbor:"v"`

@@ -117,6 +117,15 @@ func (b *grantTokenBuilder) QueryParam(queryParam map[string]string) *grantToken
 	return b
 }
 
+// Categories sets category-level App Context enumeration permissions.
+// Channels.Get grants listing all channel metadata.
+// UUIDs.Get grants listing all uuid metadata.
+// Each granted category is sent as the GET permission bit (32).
+func (b *grantTokenBuilder) Categories(categories PNGrantCategories) *grantTokenBuilder {
+	b.opts.Categories = categories
+	return b
+}
+
 // DataSync sets exact-id DataSync permissions (entities, relationships, memberships).
 func (b *grantTokenBuilder) DataSync(scopes PNDataSyncTokenScopes) *grantTokenBuilder {
 	b.opts.DataSync = scopes
@@ -199,6 +208,12 @@ func (o *grantTokenOpts) GetLogParams() map[string]interface{} {
 	}
 	if !o.DataSyncProjections.empty() {
 		params["DataSyncProjections"] = true
+	}
+	if !o.Categories.empty() {
+		params["Categories"] = map[string]bool{
+			"Channels": o.Categories.Channels.Get,
+			"UUIDs":    o.Categories.UUIDs.Get,
+		}
 	}
 	return params
 }
@@ -335,6 +350,15 @@ func (b *grantTokenObjectsBuilder) QueryParam(queryParam map[string]string) *gra
 	return b
 }
 
+// Categories sets category-level App Context enumeration permissions.
+// Channels.Get grants listing all channel metadata.
+// UUIDs.Get grants listing all uuid metadata.
+// Each granted category is sent as the GET permission bit (32).
+func (b *grantTokenObjectsBuilder) Categories(categories PNGrantCategories) *grantTokenObjectsBuilder {
+	b.opts.Categories = categories
+	return b
+}
+
 // DataSync sets exact-id DataSync permissions (entities, relationships, memberships).
 func (b *grantTokenObjectsBuilder) DataSync(scopes PNDataSyncTokenScopes) *grantTokenObjectsBuilder {
 	b.opts.DataSync = scopes
@@ -436,6 +460,15 @@ func (b *grantTokenEntitiesBuilder) QueryParam(queryParam map[string]string) *gr
 	return b
 }
 
+// Categories sets category-level App Context enumeration permissions.
+// Channels.Get grants listing all channel metadata.
+// UUIDs.Get grants listing all uuid metadata.
+// Each granted category is sent as the GET permission bit (32).
+func (b *grantTokenEntitiesBuilder) Categories(categories PNGrantCategories) *grantTokenEntitiesBuilder {
+	b.opts.Categories = categories
+	return b
+}
+
 // DataSync sets exact-id DataSync permissions (entities, relationships, memberships).
 func (b *grantTokenEntitiesBuilder) DataSync(scopes PNDataSyncTokenScopes) *grantTokenEntitiesBuilder {
 	b.opts.DataSync = scopes
@@ -497,6 +530,7 @@ type grantTokenOpts struct {
 	DataSync             PNDataSyncTokenScopes
 	DataSyncPattern      PNDataSyncTokenScopes
 	DataSyncProjections  PNDataSyncProjections
+	Categories           PNGrantCategories
 
 	// Max: 525600
 	// Min: 1
@@ -682,6 +716,7 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 	permissions := PermissionsBody{
 		Resources:      resources,
 		Patterns:       patterns,
+		Categories:     categoryPermissionsBody(o.Categories),
 		Meta:           meta,
 		AuthorizedUUID: o.AuthorizedUUID,
 	}
@@ -707,6 +742,20 @@ func (o *grantTokenOpts) buildBody() ([]byte, error) {
 		return []byte{}, errEnc
 	}
 	return jsonEncBytes, nil
+}
+
+func categoryPermissionsBody(categories PNGrantCategories) *GrantCategories {
+	if categories.empty() {
+		return nil
+	}
+	body := &GrantCategories{}
+	if categories.Channels.Get {
+		body.Channels = int64(PNGet)
+	}
+	if categories.UUIDs.Get {
+		body.UUIDs = int64(PNGet)
+	}
+	return body
 }
 
 func (o *grantTokenOpts) httpMethod() string {
