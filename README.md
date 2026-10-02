@@ -1,3 +1,5 @@
+![PubNub Go SDK](images/go-header.png)
+
 # PubNub Go SDK
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/pubnub/go/v10.svg)](https://pkg.go.dev/github.com/pubnub/go/v10)
