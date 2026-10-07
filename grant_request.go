@@ -122,6 +122,29 @@ func (b *grantBuilder) UUIDs(targetUUIDs []string) *grantBuilder {
 	return b
 }
 
+// PNGrantCategory selects an App Context enumeration category for PAM v2 Grant.
+// It is separate from a channel, channel group, or uuid resource name.
+// PNGrantCategoryChannels lists channel metadata.
+// PNGrantCategoryUUIDs lists uuid metadata.
+// Get grants or revokes the permission. No separate category permission bit is sent.
+type PNGrantCategory string
+
+const (
+	// PNGrantCategoryChannels lists all channel metadata on the subscribe key.
+	PNGrantCategoryChannels PNGrantCategory = "channels"
+	// PNGrantCategoryUUIDs lists all uuid metadata on the subscribe key.
+	PNGrantCategoryUUIDs PNGrantCategory = "uuids"
+)
+
+// Categories selects App Context enumeration categories for the Grant request.
+// The selection is sent as the category query parameter, for example category=channels,uuids.
+// Category grants require at least one auth key and only the Get permission.
+func (b *grantBuilder) Categories(categories []PNGrantCategory) *grantBuilder {
+	b.opts.Categories = categories
+
+	return b
+}
+
 // Meta sets the Meta for the Grant request.
 func (b *grantBuilder) Meta(meta map[string]interface{}) *grantBuilder {
 	b.opts.Meta = meta
@@ -143,6 +166,7 @@ func (o *grantOpts) GetLogParams() map[string]interface{} {
 		"Channels":      o.Channels,
 		"ChannelGroups": o.ChannelGroups,
 		"UUIDs":         o.UUIDs,
+		"Categories":    o.Categories,
 		"Read":          o.Read,
 		"Write":         o.Write,
 		"Manage":        o.Manage,
@@ -188,6 +212,7 @@ type grantOpts struct {
 	Channels      []string
 	ChannelGroups []string
 	UUIDs         []string
+	Categories    []PNGrantCategory
 	QueryParam    map[string]string
 	Meta          map[string]interface{}
 
@@ -224,6 +249,28 @@ func (o *grantOpts) validate() error {
 
 	if o.config().SecretKey == "" {
 		return newValidationError(o, StrMissingSecretKey)
+	}
+
+	return o.validateCategories()
+}
+
+func (o *grantOpts) validateCategories() error {
+	if len(o.Categories) == 0 {
+		return nil
+	}
+
+	for _, category := range o.Categories {
+		if category != PNGrantCategoryChannels && category != PNGrantCategoryUUIDs {
+			return newValidationError(o, StrInvalidCategory)
+		}
+	}
+
+	if len(o.AuthKeys) == 0 {
+		return newValidationError(o, StrMissingAuthKey)
+	}
+
+	if o.Read || o.Write || o.Manage || o.Delete || o.Update || o.Join {
+		return newValidationError(o, StrInvalidCategoryPermissions)
 	}
 
 	return nil
@@ -300,6 +347,14 @@ func (o *grantOpts) buildQuery() (*url.Values, error) {
 		q.Set("target-uuid", strings.Join(o.UUIDs, ","))
 	}
 
+	if len(o.Categories) > 0 {
+		names := make([]string, 0, len(o.Categories))
+		for _, category := range o.Categories {
+			names = append(names, string(category))
+		}
+		q.Set("category", strings.Join(names, ","))
+	}
+
 	if o.setTTL {
 		if o.TTL >= -1 {
 			q.Set("ttl", fmt.Sprintf("%d", o.TTL))
@@ -327,6 +382,8 @@ type GrantResponse struct {
 	Channels      map[string]*PNPAMEntityData
 	ChannelGroups map[string]*PNPAMEntityData
 	UUIDs         map[string]*PNPAMEntityData
+	// Categories holds category-level grants keyed by "channels" and "uuids".
+	Categories map[string]*PNPAMEntityData
 
 	ReadEnabled   bool
 	WriteEnabled  bool
@@ -506,6 +563,24 @@ func newGrantResponse(jsonBytes []byte, status StatusResponse) (
 			}
 			constructedUUIDs[uuid] = uuidData
 		}
+	}
+
+	if val, ok := parsedPayload["categories"]; ok {
+		categories, ok := val.(map[string]interface{})
+		if !ok {
+			return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, "invalid categories field",
+				fmt.Errorf("expected map[string]interface{}, got %T", val))
+		}
+
+		constructedCategories := make(map[string]*PNPAMEntityData, len(categories))
+		for name, value := range categories {
+			categoryData, err := fetchChannel(name, value, parsedPayload)
+			if err != nil {
+				return emptyGrantResponse, status, newGrantResponseParsingError(jsonBytes, fmt.Sprintf("invalid category %q", name), err)
+			}
+			constructedCategories[name] = categoryData
+		}
+		resp.Categories = constructedCategories
 	}
 
 	level, _ := parsedPayload["level"].(string)
