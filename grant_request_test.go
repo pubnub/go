@@ -663,6 +663,169 @@ func TestGrantTTL(t *testing.T) {
 	assert.Equal(10, gb.opts.TTL)
 }
 
+func TestGrantCategoriesQuery(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	opts := newGrantBuilder(pn).
+		AuthKeys([]string{"auth-key"}).
+		Categories([]PNGrantCategory{PNGrantCategoryChannels, PNGrantCategoryUUIDs}).
+		Get(true).
+		TTL(10).
+		opts
+
+	assert.Nil(opts.validate())
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+
+	expected := &url.Values{}
+	expected.Set("auth", "auth-key")
+	expected.Set("category", "channels,uuids")
+	expected.Set("r", "0")
+	expected.Set("w", "0")
+	expected.Set("m", "0")
+	expected.Set("d", "0")
+	expected.Set("g", "1")
+	expected.Set("ttl", "10")
+	h.AssertQueriesEqual(t, expected, query, []string{"pnsdk", "uuid", "timestamp"}, []string{})
+}
+
+func TestGrantCategoryRevokeQuery(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	opts := newGrantBuilder(pn).
+		AuthKeys([]string{"auth-key"}).
+		Categories([]PNGrantCategory{PNGrantCategoryChannels}).
+		Get(false).
+		opts
+
+	assert.Nil(opts.validate())
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("channels", query.Get("category"))
+	assert.Equal("0", query.Get("g"))
+	assert.Empty(query.Get("u"))
+	assert.Empty(query.Get("j"))
+}
+
+func TestGrantCategoriesWithResourceGet(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	opts := newGrantBuilder(pn).
+		AuthKeys([]string{"auth-key"}).
+		Channels([]string{"channel"}).
+		Categories([]PNGrantCategory{PNGrantCategoryUUIDs}).
+		Get(true).
+		opts
+
+	assert.Nil(opts.validate())
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+	assert.Equal("uuids", query.Get("category"))
+	assert.Equal("channel", query.Get("channel"))
+	assert.Equal("1", query.Get("g"))
+}
+
+func TestGrantCategoriesAbsentLeavesQueryUnchanged(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	opts := newGrantBuilder(pn).
+		Channels([]string{"channel"}).
+		Read(true).
+		opts
+
+	assert.Nil(opts.validate())
+
+	query, err := opts.buildQuery()
+	assert.Nil(err)
+	assert.Empty(query.Get("category"))
+	assert.Empty(query.Get("auth"))
+	assert.Equal("1", query.Get("r"))
+}
+
+func TestGrantCategoriesValidation(t *testing.T) {
+	pn := NewPubNub(NewDemoConfig())
+
+	tests := []struct {
+		name    string
+		opts    *grantOpts
+		wantErr string
+	}{
+		{
+			name: "missing auth key",
+			opts: newGrantBuilder(pn).
+				Categories([]PNGrantCategory{PNGrantCategoryChannels}).
+				Get(true).
+				opts,
+			wantErr: "pubnub/validation: pubnub: Grant: Missing Auth Key",
+		},
+		{
+			name: "read is rejected",
+			opts: newGrantBuilder(pn).
+				AuthKeys([]string{"auth-key"}).
+				Categories([]PNGrantCategory{PNGrantCategoryChannels, PNGrantCategoryUUIDs}).
+				Get(true).
+				Read(true).
+				opts,
+			wantErr: "pubnub/validation: pubnub: Grant: Category grants accept only the Get permission",
+		},
+		{
+			name: "write is rejected",
+			opts: newGrantBuilder(pn).
+				AuthKeys([]string{"auth-key"}).
+				Categories([]PNGrantCategory{PNGrantCategoryUUIDs}).
+				Write(true).
+				opts,
+			wantErr: "pubnub/validation: pubnub: Grant: Category grants accept only the Get permission",
+		},
+		{
+			name: "invalid category",
+			opts: newGrantBuilder(pn).
+				AuthKeys([]string{"auth-key"}).
+				Categories([]PNGrantCategory{"users"}).
+				Get(true).
+				opts,
+			wantErr: "pubnub/validation: pubnub: Grant: Invalid Category",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.opts.validate()
+			assert.EqualError(t, err, tt.wantErr)
+		})
+	}
+}
+
+func TestGrantCategoryResponse(t *testing.T) {
+	assert := assert.New(t)
+	jsonBytes := []byte(`{"message":"Success","payload":{"level":"category","subscribe_key":"sub-c-test","ttl":10,"categories":{"channels":{"auths":{"auth-key":{"r":0,"w":0,"m":0,"d":0,"g":1,"u":0,"j":0}}},"uuids":{"auths":{"auth-key":{"r":0,"w":0,"m":0,"d":0,"g":1,"u":0,"j":0}}}}},"service":"Access Manager","status":200}`)
+
+	res, _, err := newGrantResponse(jsonBytes, StatusResponse{})
+
+	assert.Nil(err)
+	assert.Equal("category", res.Level)
+	assert.Equal(10, res.TTL)
+	assert.True(res.Categories["channels"].AuthKeys["auth-key"].GetEnabled)
+	assert.False(res.Categories["channels"].AuthKeys["auth-key"].ReadEnabled)
+	assert.True(res.Categories["uuids"].AuthKeys["auth-key"].GetEnabled)
+	assert.False(res.Categories["uuids"].AuthKeys["auth-key"].WriteEnabled)
+}
+
+func TestGrantCategoryResponseInvalid(t *testing.T) {
+	jsonBytes := []byte(`{"message":"Success","payload":{"level":"category","categories":["channels"]},"service":"Access Manager","status":200}`)
+
+	_, _, err := newGrantResponse(jsonBytes, StatusResponse{})
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "invalid categories field")
+}
+
 func optsWithReadWriteManageAndProperTTL(pn *PubNub) *grantOpts {
 	opts := newGrantOpts(pn, pn.ctx)
 	opts.Read = true

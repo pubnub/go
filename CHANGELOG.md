@@ -1,3 +1,9 @@
+## v10.1.0
+October 08 2026
+
+#### Added
+- GrantToken().Categories and Grant().Categories allow GetAllChannelMetadata and GetAllUUIDMetadata. Set CategoryPermissions.Get on Channels, UUIDs, or both; ParseToken returns those flags, and unset categories are omitted. PAM v2 selects channels, uuids, or both with Get() and an auth key.
+
 ## v10.0.0
 September 22 2026
 

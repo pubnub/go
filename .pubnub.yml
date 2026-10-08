@@ -1,6 +1,11 @@
 ---
-version: v10.0.0
+version: v10.1.0
 changelog:
+  - date: 2026-10-08
+    version: v10.1.0
+    changes:
+      - type: feature
+        text: "GrantToken().Categories and Grant().Categories allow GetAllChannelMetadata and GetAllUUIDMetadata. Set CategoryPermissions.Get on Channels, UUIDs, or both; ParseToken returns those flags, and unset categories are omitted. PAM v2 selects channels, uuids, or both with Get() and an auth key."
   - date: 2026-09-22
     version: v10.0.0
     changes:
@@ -918,7 +923,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v10.0.0
+            location: https://github.com/pubnub/go/releases/tag/v10.1.0
             requires:
               -
                 name: "Go"

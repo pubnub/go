@@ -847,4 +847,80 @@ func TestParseTokenWithoutProjectionsIsNil(t *testing.T) {
 	assert.Nil(err)
 	assert.Nil(result.Projections)
 	assert.Equal("value", result.Meta["custom"])
+	assert.False(result.Categories.Channels.Get)
+	assert.False(result.Categories.UUIDs.Get)
+}
+
+func TestParseTokenWithCategoryPermissions(t *testing.T) {
+	assert := assert.New(t)
+
+	decoded := PNGrantTokenDecoded{
+		Version:   2,
+		Timestamp: 1234567890,
+		TTL:       60,
+		Categories: GrantCategories{
+			Channels: int64(PNGet),
+			UUIDs:    int64(PNGet),
+		},
+	}
+
+	token, err := createTestToken(decoded)
+	assert.Nil(err)
+
+	result, err := ParseToken(token)
+	assert.Nil(err)
+	assert.NotNil(result)
+	assert.True(result.Categories.Channels.Get)
+	assert.True(result.Categories.UUIDs.Get)
+}
+
+func TestParseTokenWithChannelCategoryOnly(t *testing.T) {
+	assert := assert.New(t)
+
+	decoded := PNGrantTokenDecoded{
+		Version:   2,
+		Timestamp: 1234567890,
+		TTL:       60,
+		Resources: GrantResources{
+			Channels: map[string]int64{"channel": int64(PNRead)},
+		},
+		Categories: GrantCategories{
+			Channels: int64(PNGet),
+		},
+	}
+
+	token, err := createTestToken(decoded)
+	assert.Nil(err)
+
+	result, err := ParseToken(token)
+	assert.Nil(err)
+	assert.True(result.Categories.Channels.Get)
+	assert.False(result.Categories.UUIDs.Get)
+	assert.True(result.Resources.Channels["channel"].Read)
+	assert.False(result.Resources.Channels["channel"].Get)
+}
+
+func TestParseTokenCategorySectionOmitsUnsetKey(t *testing.T) {
+	assert := assert.New(t)
+
+	payload := map[string]interface{}{
+		"v":   2,
+		"t":   1234567890,
+		"ttl": 60,
+		"cat": map[string]int64{
+			"chan": int64(PNGet),
+		},
+	}
+
+	var buf bytes.Buffer
+	err := cbor.NewEncoder(&buf).Encode(payload)
+	assert.Nil(err)
+
+	token := base64.StdEncoding.EncodeToString(buf.Bytes())
+	result, err := ParseToken(token)
+	assert.Nil(err)
+	assert.True(result.Categories.Channels.Get)
+	assert.False(result.Categories.UUIDs.Get)
+	assert.Equal(2, result.Version)
+	assert.Equal(60, result.TTL)
 }

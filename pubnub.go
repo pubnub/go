@@ -18,7 +18,7 @@ import (
 // Default constants
 const (
 	// Version :the version of the SDK
-	Version = "10.0.0"
+	Version = "10.1.0"
 	// MaxSequence for publish messages
 	MaxSequence = 65535
 )
@@ -36,6 +36,12 @@ const (
 	StrMissingMessage = "Missing Message"
 	// StrMissingSecretKey shows Missing Secret Key message
 	StrMissingSecretKey = "Missing Secret Key"
+	// StrMissingAuthKey shows Missing Auth Key message
+	StrMissingAuthKey = "Missing Auth Key"
+	// StrInvalidCategory shows Invalid Category message
+	StrInvalidCategory = "Invalid Category"
+	// StrInvalidCategoryPermissions shows that a category grant cannot include other permissions
+	StrInvalidCategoryPermissions = "Category grants accept only the Get permission"
 	// StrMissingUUID shows Missing UUID message
 	StrMissingUUID = "Missing UUID"
 	// StrMissingDeviceID shows Missing Device ID message
