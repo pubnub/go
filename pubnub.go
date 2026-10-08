@@ -113,6 +113,7 @@ type PubNub struct {
 	subscribeClientPinned bool // true after SetSubscribeClient
 	requestWorkers        *RequestWorkers
 	jobQueue              chan *JobQItem
+	jobQueueCloseOnce     sync.Once
 	ctx                   Context
 	cancel                func()
 	tokenManager          *TokenManager
@@ -848,20 +849,13 @@ func (pn *PubNub) Destroy() {
 	pn.subscriptionManager.RemoveAllListeners()
 	pn.loggerManager.LogSimple(PNLogLevelTrace, "All listeners removed", false)
 
-	// Check if jobQueue is already closed before attempting to close it
-	select {
-	case _, ok := <-pn.jobQueue:
-		if !ok {
-			pn.loggerManager.LogSimple(PNLogLevelTrace, "Job queue already closed", false)
-			break
-		}
-		// If the channel is open, proceed to close it
+	// Closing jobQueue ends RequestWorkers.ReadQueue, which would otherwise
+	// keep this instance reachable. Once, so a second Destroy doesn't panic
+	// (#169). A send racing the close panics, and addToJobQ recovers it.
+	pn.jobQueueCloseOnce.Do(func() {
 		close(pn.jobQueue)
 		pn.loggerManager.LogSimple(PNLogLevelTrace, "Job queue closed", false)
-	default:
-		// If the channel is closed, no action is needed
-		pn.loggerManager.LogSimple(PNLogLevelTrace, "Job queue already closed", false)
-	}
+	})
 
 	pn.requestWorkers.Close()
 	pn.loggerManager.LogSimple(PNLogLevelTrace, "Request workers closed", false)
