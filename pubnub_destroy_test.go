@@ -210,3 +210,19 @@ func TestDestroy_TwiceWithoutWorkers(t *testing.T) {
 		pn.Destroy()
 	})
 }
+
+// TestDestroy_Twice closes worker JobChannels on the first call. A second
+// Destroy must not panic with "close of closed channel" at the default worker count.
+func TestDestroy_Twice(t *testing.T) {
+	cfg := NewConfigWithUserId(UserId(GenerateUUID()))
+	cfg.SubscribeKey = "sub"
+	cfg.SuppressLeaveEvents = true
+	cfg.MaxWorkers = 20
+
+	pn := NewPubNub(cfg)
+
+	assert.NotPanics(t, func() {
+		pn.Destroy()
+		pn.Destroy()
+	})
+}

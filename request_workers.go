@@ -3,6 +3,7 @@ package pubnub
 import (
 	"fmt"
 	"net/http"
+	"sync"
 )
 
 type nonSubMsgType int
@@ -31,6 +32,7 @@ type RequestWorkers struct {
 	WorkersChannel chan chan *JobQItem
 	MaxWorkers     int
 	Sem            chan bool
+	closeOnce      sync.Once
 }
 
 // Worker is the type to store the worker info
@@ -109,11 +111,13 @@ func (p *RequestWorkers) ReadQueue(pubnub *PubNub) {
 	pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Worker queue exiting", false)
 }
 
-// Close closes the workers
+// Close closes the workers. A second call is a no-op so Destroy can run twice
+// without panicking on an already closed JobChannel.
 func (p *RequestWorkers) Close() {
-
-	for _, w := range p.Workers {
-		close(w.JobChannel)
-		w.ctx.Done()
-	}
+	p.closeOnce.Do(func() {
+		for _, w := range p.Workers {
+			close(w.JobChannel)
+			w.ctx.Done()
+		}
+	})
 }
