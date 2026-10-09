@@ -849,9 +849,10 @@ func (pn *PubNub) Destroy() {
 	pn.subscriptionManager.RemoveAllListeners()
 	pn.loggerManager.LogSimple(PNLogLevelTrace, "All listeners removed", false)
 
-	// Closing jobQueue ends RequestWorkers.ReadQueue, which would otherwise
-	// keep this instance reachable. Once, so a second Destroy doesn't panic
-	// (#169). A send racing the close panics, and addToJobQ recovers it.
+	// Close jobQueue so RequestWorkers.ReadQueue returns. An open queue keeps
+	// this instance reachable after Destroy. Close it once so a second Destroy
+	// is safe. A send racing the close panics, and addToJobQ turns that into
+	// a request error.
 	pn.jobQueueCloseOnce.Do(func() {
 		close(pn.jobQueue)
 		pn.loggerManager.LogSimple(PNLogLevelTrace, "Job queue closed", false)

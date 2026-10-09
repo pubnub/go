@@ -164,9 +164,8 @@ func TestSubscriptionManagerDestroyRacesWithSubscribeWorker(t *testing.T) {
 	}
 }
 
-// TestDestroy_FreesInstance covers the job-queue leak: Destroy never closed
-// pn.jobQueue, so RequestWorkers.ReadQueue ranged over it forever and kept the
-// whole instance reachable after Destroy.
+// TestDestroy_FreesInstance checks that a destroyed client becomes unreachable.
+// ReadQueue ranges over jobQueue and holds the instance until that channel is closed.
 func TestDestroy_FreesInstance(t *testing.T) {
 	freed := make(chan struct{})
 	func() {
@@ -195,8 +194,9 @@ func TestDestroy_FreesInstance(t *testing.T) {
 	}
 }
 
-// TestDestroy_TwiceWithoutWorkers keeps the case #169 fixed: a second Destroy
-// must not panic closing pn.jobQueue again when no request workers were started.
+// TestDestroy_TwiceWithoutWorkers checks that a second Destroy is safe when
+// no request workers were started. ReadQueue is still running and jobQueue
+// must be closed only once.
 func TestDestroy_TwiceWithoutWorkers(t *testing.T) {
 	cfg := NewConfigWithUserId(UserId(GenerateUUID()))
 	cfg.SubscribeKey = "sub"
@@ -211,8 +211,8 @@ func TestDestroy_TwiceWithoutWorkers(t *testing.T) {
 	})
 }
 
-// TestDestroy_Twice closes worker JobChannels on the first call. A second
-// Destroy must not panic with "close of closed channel" at the default worker count.
+// TestDestroy_Twice checks that a second Destroy is safe at the default worker
+// count. The first call closes jobQueue and each worker JobChannel.
 func TestDestroy_Twice(t *testing.T) {
 	cfg := NewConfigWithUserId(UserId(GenerateUUID()))
 	cfg.SubscribeKey = "sub"

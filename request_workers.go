@@ -111,8 +111,8 @@ func (p *RequestWorkers) ReadQueue(pubnub *PubNub) {
 	pubnub.loggerManager.LogSimple(PNLogLevelTrace, "Worker queue exiting", false)
 }
 
-// Close closes the workers. A second call is a no-op so Destroy can run twice
-// without panicking on an already closed JobChannel.
+// Close closes every worker JobChannel. A second call is a no-op, so Destroy
+// can run again without closing a channel twice.
 func (p *RequestWorkers) Close() {
 	p.closeOnce.Do(func() {
 		for _, w := range p.Workers {
