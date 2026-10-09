@@ -5,5 +5,8 @@
   ],
   "pubnub.go": [
     { "pattern": "^[ \\t]*Version = \"(.*)\"", "cleared": true }
-  ]
+  ],
+  "VERSION": [
+  { "pattern": "^(v?(\\d+\\.?){2,}([a-zA-Z0-9-]+(\\.?\\d+)?)?)$", "cleared": true }
+]
 }
