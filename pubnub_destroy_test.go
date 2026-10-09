@@ -3,6 +3,7 @@ package pubnub
 import (
 	"io"
 	"net/http"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -161,4 +162,51 @@ func TestSubscriptionManagerDestroyRacesWithSubscribeWorker(t *testing.T) {
 	case <-time.After(2 * time.Second):
 		t.Fatal("subscribeMessageWorker did not exit after Destroy")
 	}
+}
+
+// TestDestroy_FreesInstance covers the job-queue leak: Destroy never closed
+// pn.jobQueue, so RequestWorkers.ReadQueue ranged over it forever and kept the
+// whole instance reachable after Destroy.
+func TestDestroy_FreesInstance(t *testing.T) {
+	freed := make(chan struct{})
+	func() {
+		cfg := NewConfigWithUserId(UserId(GenerateUUID()))
+		cfg.PublishKey = "pub"
+		cfg.SubscribeKey = "sub"
+		cfg.SuppressLeaveEvents = true
+
+		pn := NewPubNub(cfg)
+		pn.SetClient(&http.Client{Transport: &closeCountingTransport{}})
+		pn.Publish().Channel("ch").Message("hi").Execute()
+		pn.Destroy()
+		runtime.AddCleanup(pn, func(c chan struct{}) { close(c) }, freed)
+	}()
+
+	deadline := time.After(5 * time.Second)
+	for {
+		runtime.GC()
+		select {
+		case <-freed:
+			return
+		case <-deadline:
+			t.Fatal("PubNub instance still reachable 5s after Destroy")
+		case <-time.After(50 * time.Millisecond):
+		}
+	}
+}
+
+// TestDestroy_TwiceWithoutWorkers keeps the case #169 fixed: a second Destroy
+// must not panic closing pn.jobQueue again when no request workers were started.
+func TestDestroy_TwiceWithoutWorkers(t *testing.T) {
+	cfg := NewConfigWithUserId(UserId(GenerateUUID()))
+	cfg.SubscribeKey = "sub"
+	cfg.SuppressLeaveEvents = true
+	cfg.MaxWorkers = 0
+
+	pn := NewPubNub(cfg)
+
+	assert.NotPanics(t, func() {
+		pn.Destroy()
+		pn.Destroy()
+	})
 }
