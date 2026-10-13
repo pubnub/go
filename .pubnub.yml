@@ -1,6 +1,11 @@
 ---
-version: v10.1.0
+version: v10.1.1
 changelog:
+  - date: 2026-10-13
+    version: v10.1.1
+    changes:
+      - type: bug
+        text: "Destroy now closes the job queue once, so the request-worker loop can exit and the PubNub instance can be garbage collected. A second Destroy is safe: the job queue and each worker job channel are closed only once. A request that races the close fails with an error instead of panicking."
   - date: 2026-10-08
     version: v10.1.0
     changes:
@@ -923,7 +928,7 @@ sdks:
             distribution-type: package
             distribution-repository: GitHub
             package-name: Go
-            location: https://github.com/pubnub/go/releases/tag/v10.1.0
+            location: https://github.com/pubnub/go/releases/tag/v10.1.1
             requires:
               -
                 name: "Go"
