@@ -1,3 +1,9 @@
+## v10.1.1
+October 13 2026
+
+#### Fixed
+- Destroy now closes the job queue once, so the request-worker loop can exit and the PubNub instance can be garbage collected. A second Destroy is safe: the job queue and each worker job channel are closed only once. A request that races the close fails with an error instead of panicking. Fixed the following issues reported by [@sigJoe](https://github.com/sigJoe): [#192](https://github.com/pubnub/go/issues/192).
+
 ## v10.1.0
 October 08 2026
 
