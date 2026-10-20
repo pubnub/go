@@ -1,150 +1,179 @@
-![PubNub Go SDK](images/go-header.png)
-
 # PubNub Go SDK
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/pubnub/go/v10.svg)](https://pkg.go.dev/github.com/pubnub/go/v10)
-[![codecov.io](https://codecov.io/github/pubnub/go/coverage.svg)](https://codecov.io/github/pubnub/go)
-[![Go Report Card](https://goreportcard.com/badge/github.com/pubnub/go/v10)](https://goreportcard.com/report/github.com/pubnub/go/v10)
 
-This is the official PubNub Go SDK repository.
+PubNub provides global infrastructure for real-time, interactive applications.
 
-PubNub takes care of the infrastructure and APIs needed for the realtime communication layer of your application. Work on your app's logic and let PubNub handle sending and receiving data across the world in less than 100ms.
+Publish and receive messages in Go. Use this SDK for Go server, CLI, desktop, and backend applications.
+
+[Documentation](https://www.pubnub.com/docs/sdks/go) · [API reference](https://www.pubnub.com/docs/sdks/go/api-reference/publish-and-subscribe) · [Changelog](https://www.pubnub.com/docs/sdks/go/changelog) · [Support](https://support.pubnub.com/)
 
 ## Requirements
 
-* Go 1.25 or later
+| Requirement | Supported version or setup |
+| --- | --- |
+| Go | [Go 1.25 or later](https://www.pubnub.com/docs/sdks/go) |
+| Module | [`github.com/pubnub/go/v10`](https://github.com/pubnub/go) |
+| Go modules | Initialize a Go module before adding the SDK. |
 
-## Get keys
+## Installation
 
-You will need the publish and subscribe keys to authenticate your app. Get your keys from the [Admin Portal](https://dashboard.pubnub.com/).
+From the root of the Go module:
 
-## Configure PubNub
+```sh
+go get github.com/pubnub/go/v10
+```
 
-1. Integrate PubNub into your project:
+For other installation methods, see [environment setup](https://www.pubnub.com/docs/sdks/go).
 
-    ```bash
-    go get github.com/pubnub/go/v10
-    ```
+## Quickstart
 
-2. Create a new file and add the following code:
+This example runs in a Go 1.25+ command-line application. It subscribes to `hello_world`, publishes one message, and prints the received text.
 
-    ```go
-    package main
+### Get your keys
 
-    import pubnub "github.com/pubnub/go/v10"
+1. Open the [PubNub Admin Portal](https://admin.pubnub.com/).
+2. Create an app and a keyset for development, or select an existing development keyset.
+3. Copy its publish key and subscribe key.
 
-    func main() {
-        config := pubnub.NewConfigWithUserId("userId")
-        config.SubscribeKey = "mySubscribeKey"
-        config.PublishKey = "myPublishKey"
+If Access Manager is enabled, obtain a token from your trusted backend and call `pn.SetToken(token)`. Keep the secret key on the backend.
 
-        pn := pubnub.NewPubNub(config)
-    }
-    ```
+### Send and receive a message
 
-## Add event listeners
+Create `main.go` in the module root and add:
+
+Replace the key placeholders. Use a User ID that identifies the user or device in your app.
 
 ```go
-import (
-    "fmt"
+package main
 
-    pubnub "github.com/pubnub/go/v10"
+import (
+	"fmt"
+
+	pubnub "github.com/pubnub/go/v10"
 )
 
-listener := pubnub.NewListener()
-doneConnect := make(chan bool)
-donePublish := make(chan bool)
+func main() {
+	// Replace with your keys from the Admin Portal
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("hello-world-user"))
+	config.PublishKey = "YOUR_PUBLISH_KEY"
+	config.SubscribeKey = "YOUR_SUBSCRIBE_KEY"
 
-msg := map[string]interface{}{
-    "msg": "Hello world",
-}
-go func() {
-    for {
-        select {
-        case status := <-listener.Status:
-            switch status.Category {
-            case pubnub.PNDisconnectedCategory:
-                // This event happens when all channels/groups have been unsubscribed (graceful disconnect)
-            case pubnub.PNDisconnectedUnexpectedlyCategory:
-                // This event happens when radio / connectivity is lost
-            case pubnub.PNConnectedCategory:
-                // Connect event. You can do stuff like publish, and know you'll get it.
-                // Or just use the connected event to confirm you are subscribed for
-                // UI / internal notifications, etc
-                doneConnect <- true
-            case pubnub.PNReconnectedCategory:
-                // Happens as part of our regular operation. This event happens when
-                // radio / connectivity is lost, then regained.
-            }
-        case message := <-listener.Message:
-            // Handle new message stored in message.message
-            if message.Channel != "" {
-                // Message has been received on channel group stored in
-                // message.Channel
-            } else {
-                // Message has been received on channel stored in
-                // message.Subscription
-            }
-            if msg, ok := message.Message.(map[string]interface{}); ok {
-                fmt.Println(msg["msg"])
-            }
-            /*
-                log the following items with your favorite logger
-                    - message.Message
-                    - message.Subscription
-                    - message.Timetoken
-            */
+	pn := pubnub.NewPubNub(config)
 
-            donePublish <- true
-        case <-listener.Presence:
-            // handle presence
-        }
-    }
-}()
+	listener := pubnub.NewListener()
+	pn.AddListener(listener)
 
-pn.AddListener(listener)
-```
+	connected := make(chan struct{})
+	received := make(chan struct{})
 
-## Publish and subscribe
+	// Print the message when it arrives, then stop listening
+	go func() {
+		for {
+			select {
+			case status := <-listener.Status:
+				// The connection is ready a moment after subscribe
+				if status.Category == pubnub.PNConnectedCategory {
+					close(connected)
+				}
+			case message := <-listener.Message:
+				// Print the content of the received message
+				fmt.Println(message.Message)
 
-In this code, publishing a message is triggered when the subscribe call is finished successfully. The `Publish()` method uses the `msg` variable that is used in the following code.
+				// Unsubscribe to stop receiving messages. This sample needs only one message.
+				pn.UnsubscribeAll()
+				close(received)
+				return
+			}
+		}
+	}()
 
-```go
-msg := map[string]interface{}{
-        "msg": "Hello world!"
-}
+	// Start receiving messages on hello_world
+	pn.Subscribe().
+		Channels([]string{"hello_world"}).
+		Execute()
 
-pn.Subscribe().
-    Channels([]string{"hello_world"}).
-    Execute()
+	// Publish only after the subscription is connected, so this client receives the message
+	<-connected
 
-<-doneConnect
+	// Publish a "Hello world" message to the hello_world channel
+	_, _, err := pn.Publish().
+		Channel("hello_world").
+		Message("Hello world").
+		Execute()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-response, status, err := pn.Publish().
-    Channel("hello_world").Message(msg).Execute()
-
-if err != nil {
-     // Request processing failed.
-     // Handle message publish error
+	<-received
 }
 ```
 
-## Upgrading
+### Run the example
 
-v9 and later require Go 1.25 or later. v10 does not raise that requirement; it changes the module import path:
-
-```bash
-go get github.com/pubnub/go/v10@latest
+```sh
+go run main.go
 ```
 
-```go
-import pubnub "github.com/pubnub/go/v10"
+The terminal should show:
+
+```text
+Hello world
 ```
 
-## Documentation
+The example calls `pn.UnsubscribeAll()` after receiving the message.
 
-[PubNub Go SDK documentation](https://www.pubnub.com/docs/sdks/go)
+For a complete application, see the [getting started guide](https://www.pubnub.com/docs/sdks/go).
 
-## Support
+## Next steps
 
-If you **need help** or have a **general question**, contact <support@pubnub.com>.
+| Task | Documentation |
+| --- | --- |
+| Configure the client | [Configuration](https://www.pubnub.com/docs/sdks/go/api-reference/configuration) |
+| Work with subscriptions and messages | [Publish & Subscribe](https://www.pubnub.com/docs/sdks/go/api-reference/publish-and-subscribe) |
+| Check channel occupancy | [Presence](https://www.pubnub.com/docs/sdks/go/api-reference/presence) |
+| Read message history | [Message Persistence](https://www.pubnub.com/docs/sdks/go/api-reference/storage-and-playback) |
+
+## Build with an AI coding assistant
+
+The [PubNub MCP server](https://www.pubnub.com/docs/ai/pubnub-mcp-server) gives an AI coding assistant access to PubNub SDK documentation and PubNub APIs. Connect the assistant to the hosted server at `https://mcp.pubnub.com`, or run `npx @pubnub/mcp@latest` locally.
+
+The [server repository](https://github.com/pubnub/pubnub-mcp-server) has setup steps for VS Code, Cursor, Claude Code, Claude Desktop, Codex, Gemini CLI, and OpenCode.
+
+## Before production
+
+Use [Access Manager](https://www.pubnub.com/docs/sdks/go/api-reference/access-manager) to grant each client the permissions it needs. Keep the secret key on your backend. Never include it in a distributed client.
+
+Reuse the PubNub client for the service/session lifetime. Call `pn.UnsubscribeAll()` when the client should stop its subscriptions.
+
+Live delivery through PubNub SDKs is at-most-once. A subscriber can miss messages while disconnected or if its buffer overflows. For longer-gap recovery, see [Message Persistence](https://www.pubnub.com/docs/sdks/go/api-reference/storage-and-playback).
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| Go cannot resolve the PubNub import | Use the current v10 module path `github.com/pubnub/go/v10`, then run `go mod tidy`. See the [Go repository](https://github.com/pubnub/go). |
+| A publish succeeds but no message appears | Check the message handler, subscription readiness, keyset, and channel name. |
+| The program exits before the subscribed message arrives | Wait for `PNConnectedCategory` before publishing and keep the process alive until the message is consumed. See [Publish & Subscribe](https://www.pubnub.com/docs/sdks/go/api-reference/publish-and-subscribe). |
+| Extra clients or duplicate messages during development | Own one PubNub client at service/application scope instead of creating a new client for each server request or development reload. Unsubscribe during shutdown. |
+
+For setup help, see the [Go SDK documentation](https://www.pubnub.com/docs/sdks/go). Check [network status](https://status.pubnub.com/) for service incidents.
+
+## Releases
+
+Read the [changelog](https://www.pubnub.com/docs/sdks/go/changelog) before upgrading.
+
+For a major version change, review the migration guidance linked from the [Go SDK documentation](https://www.pubnub.com/docs/sdks/go) and the [Go SDK changelog](https://www.pubnub.com/docs/sdks/go/changelog).
+
+## Support and contributions
+
+For setup or account help, contact [PubNub Support](https://support.pubnub.com/).
+
+For a reproducible SDK bug, use [GitHub Issues](https://github.com/pubnub/go/issues). Include the SDK version, runtime, and a small reproduction with credentials removed.
+
+Run `go test ./...` and the repository's lint/build workflow for the affected packages, and include tests for behavioral changes before opening a pull request.
+
+## License
+
+See the [PubNub Software Development Kit License](https://github.com/pubnub/go/blob/master/LICENSE).
