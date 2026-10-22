@@ -14,6 +14,136 @@ import (
 
 const respSuccess = `[1,"Sent","14981595400555832"]`
 
+func TestPublishQoSQueryStub(t *testing.T) {
+	assert := assert.New(t)
+	cfg := pubnub.NewDemoConfig()
+	cfg.SecretKey = ""
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/publish/%s/%s/0/ch/0/%s", cfg.PublishKey, cfg.SubscribeKey, "%22hey%22"),
+		Query:              "qos=1",
+		ResponseBody:       respSuccess,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "seqn"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, _, err := pn.Publish().Channel("ch").Message("hey").QoS(true).Execute()
+
+	assert.Nil(err)
+	assert.Equal(int64(14981595400555832), res.Timestamp)
+}
+
+func TestPublishQoSPostQueryStub(t *testing.T) {
+	assert := assert.New(t)
+	cfg := pubnub.NewDemoConfig()
+	cfg.SecretKey = ""
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "POST",
+		Path:               fmt.Sprintf("/publish/%s/%s/0/ch/0", cfg.PublishKey, cfg.SubscribeKey),
+		Query:              "qos=1",
+		ResponseBody:       respSuccess,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "seqn"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, _, err := pn.Publish().Channel("ch").Message("hey").UsePost(true).QoS(true).Execute()
+
+	assert.Nil(err)
+	assert.Equal(int64(14981595400555832), res.Timestamp)
+}
+
+func TestPublishQoSDisabledQueryStub(t *testing.T) {
+	assert := assert.New(t)
+	cfg := pubnub.NewDemoConfig()
+	cfg.SecretKey = ""
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/publish/%s/%s/0/ch/0/%s", cfg.PublishKey, cfg.SubscribeKey, "%22hey%22"),
+		Query:              "",
+		ResponseBody:       respSuccess,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk", "seqn"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, _, err := pn.Publish().Channel("ch").Message("hey").QoS(false).Execute()
+
+	assert.Nil(err)
+	assert.Equal(int64(14981595400555832), res.Timestamp)
+}
+
+func TestPublishQoSSuccessNotStubbed(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+
+	res, _, err := pn.Publish().
+		Channel(randomized("ch")).Message("hey").ShouldStore(false).QoS(true).Execute()
+
+	assert.Nil(err)
+	if res != nil {
+		assert.True(14981595400555832 < res.Timestamp)
+	}
+}
+
+func TestPublishQoSPostSuccessNotStubbed(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+
+	res, _, err := pn.Publish().
+		Channel(randomized("ch")).Message("hey").UsePost(true).ShouldStore(false).QoS(true).Execute()
+
+	assert.Nil(err)
+	if res != nil {
+		assert.True(14981595400555832 < res.Timestamp)
+	}
+}
+
+func TestPublishQoSHTTP11SuccessNotStubbed(t *testing.T) {
+	assert := assert.New(t)
+
+	cfg := configCopy()
+	cfg.UseHTTP2 = false
+	pn := pubnub.NewPubNub(cfg)
+
+	res, _, err := pn.Publish().
+		Channel(randomized("ch")).Message("hey").ShouldStore(false).QoS(true).Execute()
+
+	assert.Nil(err)
+	if res != nil {
+		assert.True(14981595400555832 < res.Timestamp)
+	}
+}
+
+func TestPublishQoSSignedNotStubbed(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(pamConfigCopy())
+
+	res, _, err := pn.Publish().
+		Channel(randomized("ch")).Message("hey").QoS(true).Execute()
+
+	assert.Nil(err)
+	if res != nil {
+		assert.True(14981595400555832 < res.Timestamp)
+	}
+}
+
 // NOTICE: not stubbed publish
 func TestPublishSuccessNotStubbed(t *testing.T) {
 	assert := assert.New(t)

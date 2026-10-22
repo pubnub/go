@@ -9,8 +9,71 @@ import (
 	"time"
 
 	pubnub "github.com/pubnub/go/v10"
+	"github.com/pubnub/go/v10/tests/stubs"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestSignalQoSQueryStub(t *testing.T) {
+	assert := assert.New(t)
+	cfg := pubnub.NewDemoConfig()
+	cfg.SecretKey = ""
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/signal/%s/%s/0/ch/0/%s", cfg.PublishKey, cfg.SubscribeKey, "%22hey%22"),
+		Query:              "qos=1",
+		ResponseBody:       `[1,"Sent","14981595400555832"]`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, _, err := pn.Signal().Channel("ch").Message("hey").QoS(true).Execute()
+
+	assert.Nil(err)
+	assert.Equal(int64(14981595400555832), res.Timestamp)
+}
+
+func TestSignalQoSDisabledQueryStub(t *testing.T) {
+	assert := assert.New(t)
+	cfg := pubnub.NewDemoConfig()
+	cfg.SecretKey = ""
+
+	interceptor := stubs.NewInterceptor()
+	interceptor.AddStub(&stubs.Stub{
+		Method:             "GET",
+		Path:               fmt.Sprintf("/signal/%s/%s/0/ch/0/%s", cfg.PublishKey, cfg.SubscribeKey, "%22hey%22"),
+		Query:              "",
+		ResponseBody:       `[1,"Sent","14981595400555832"]`,
+		IgnoreQueryKeys:    []string{"uuid", "pnsdk"},
+		ResponseStatusCode: 200,
+	})
+
+	pn := pubnub.NewPubNub(cfg)
+	pn.SetClient(interceptor.GetClient())
+
+	res, _, err := pn.Signal().Channel("ch").Message("hey").QoS(false).Execute()
+
+	assert.Nil(err)
+	assert.Equal(int64(14981595400555832), res.Timestamp)
+}
+
+func TestSignalQoSNotStubbed(t *testing.T) {
+	assert := assert.New(t)
+
+	pn := pubnub.NewPubNub(configCopy())
+
+	res, _, err := pn.Signal().
+		Channel(randomized("ch")).Message("hey").QoS(true).Execute()
+
+	assert.Nil(err)
+	if res != nil {
+		assert.True(res.Timestamp > 0)
+	}
+}
 
 func TestSignal(t *testing.T) {
 	assert := assert.New(t)
