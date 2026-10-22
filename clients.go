@@ -59,3 +59,29 @@ func newHTTP2Client(connectTimeout, responseReadTimeout, maxIdleConnsPerHost int
 		Timeout:   time.Duration(responseReadTimeout) * time.Second,
 	}
 }
+
+// qosMinRequestTimeout is the shortest lifetime a QoS publish or signal may use.
+// The server can hold the response while it propagates the message.
+const qosMinRequestTimeout = 30 * time.Second
+
+// clientForQoS returns the HTTP client for one QoS publish or signal.
+//
+// The base client is never modified. Timeout 0 means no client-level deadline
+// and is kept. A positive timeout already at or above qosMinRequestTimeout is
+// kept, including the same client pointer. A shorter positive timeout is raised
+// on a new client that shares the base transport, redirect policy, and cookie jar,
+// so proxy and HTTP protocol settings stay in effect.
+func clientForQoS(base *http.Client) *http.Client {
+	if base == nil {
+		return &http.Client{Timeout: qosMinRequestTimeout}
+	}
+	if base.Timeout <= 0 || base.Timeout >= qosMinRequestTimeout {
+		return base
+	}
+	return &http.Client{
+		Transport:     base.Transport,
+		CheckRedirect: base.CheckRedirect,
+		Jar:           base.Jar,
+		Timeout:       qosMinRequestTimeout,
+	}
+}

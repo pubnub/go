@@ -51,6 +51,8 @@ Start with the narrowest relevant test, then broaden when the scope warrants it.
 
 Do not use `scripts/run-tests.sh`; it is legacy. Prefer `scripts/run-tests-gotestsum.sh` (see `Makefile` / CI workflow).
 
+When giving or running a test command, use `gotestsum` instead of raw `go test`. Pass `go test` flags after `--`. Example: `gotestsum --format=testname -- -run QoS ./tests/e2e/`.
+
 ## Before completing a coding task
 
 1. Inspect the diff for unrelated changes.
