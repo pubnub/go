@@ -466,6 +466,99 @@ func Example_revokeToken() {
 	// Token revoked successfully
 }
 
+// snippet.grant_token_categories
+// grantTokenCategories demonstrates granting a token that lists all channel and uuid metadata
+func grantTokenCategories() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+	config.SecretKey = "demo-secret"
+
+	pn := pubnub.NewPubNub(config)
+
+	// Category permissions need no resources. Get is the only permission they accept.
+	response, _, err := pn.GrantToken().
+		TTL(60).
+		AuthorizedUUID("user-123").
+		Categories(pubnub.PNGrantCategories{
+			Channels: pubnub.CategoryPermissions{Get: true}, // Allow listing all channel metadata
+			UUIDs:    pubnub.CategoryPermissions{Get: true}, // Allow listing all uuid metadata
+		}).
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error granting token: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Token granted successfully: %s\n", response.Data.Token)
+}
+
+// snippet.parse_token_categories
+// parseTokenCategories demonstrates reading the category permissions of a token
+func parseTokenCategories() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+	config.SecretKey = "demo-secret"
+
+	pn := pubnub.NewPubNub(config)
+
+	// snippet.hide
+	// First, grant a token to parse
+	grantResp, _, _ := pn.GrantToken().
+		TTL(60).
+		Categories(pubnub.PNGrantCategories{
+			Channels: pubnub.CategoryPermissions{Get: true},
+			UUIDs:    pubnub.CategoryPermissions{Get: true},
+		}).
+		Execute()
+	token := grantResp.Data.Token
+	// snippet.show
+
+	parsedToken, err := pubnub.ParseToken(token)
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	// Category permissions are decoded from the "cat" section of the token
+	fmt.Printf("List all channel metadata: %v\n", parsedToken.Categories.Channels.Get)
+	fmt.Printf("List all uuid metadata: %v\n", parsedToken.Categories.UUIDs.Get)
+}
+
+// snippet.grant_categories
+// grantCategories demonstrates granting category permissions with the Access Manager v2 Grant method
+func grantCategories() {
+	config := pubnub.NewConfigWithUserId(pubnub.UserId("demo-user"))
+	config.SubscribeKey = "demo"
+	config.PublishKey = "demo"
+	config.SecretKey = "demo-secret"
+
+	pn := pubnub.NewPubNub(config)
+
+	// Category grants need at least one auth key and accept only the Get permission
+	_, status, err := pn.Grant().
+		Categories([]pubnub.PNGrantCategory{
+			pubnub.PNGrantCategoryChannels, // Allow listing all channel metadata
+			pubnub.PNGrantCategoryUUIDs,    // Allow listing all uuid metadata
+		}).
+		AuthKeys([]string{"my-auth-key"}).
+		Get(true).
+		TTL(60). // Permissions valid for 60 minutes
+		Execute()
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if status.StatusCode == 200 {
+		fmt.Println("Category permissions granted successfully")
+	}
+}
+
 // snippet.grant_token_multi_access
 // grantTokenMultiAccess demonstrates granting different levels of access to various resources
 func grantTokenMultiAccess() {
