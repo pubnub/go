@@ -27,12 +27,18 @@ func NewLegacyCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error
 		return nil, e
 	}
 	aesCbc, e := NewAesCbcCryptor(cipherKey)
-
 	if e != nil {
 		return nil, e
 	}
 
-	return NewCryptoModule(legacy, []Cryptor{aesCbc}), nil
+	// AES-GCM joins the decryption set only. New data is still encrypted
+	// with the legacy cryptor.
+	aesGcm, e := newAesGcmCryptor(cipherKey)
+	if e != nil {
+		return nil, e
+	}
+
+	return NewCryptoModule(legacy, []Cryptor{aesCbc, aesGcm}), nil
 }
 
 func NewAesCbcCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error) {
@@ -46,7 +52,14 @@ func NewAesCbcCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error
 		return nil, e
 	}
 
-	return NewCryptoModule(aesCbc, []Cryptor{legacy}), nil
+	// AES-GCM joins the decryption set only. New data is still encrypted
+	// with the AES-CBC cryptor.
+	aesGcm, e := newAesGcmCryptor(cipherKey)
+	if e != nil {
+		return nil, e
+	}
+
+	return NewCryptoModule(aesCbc, []Cryptor{legacy, aesGcm}), nil
 }
 
 func NewCryptoModule(defaultCryptor Cryptor, decryptors []Cryptor) CryptoModule {
@@ -108,7 +121,9 @@ func (m *module) Decrypt(data []byte) (r []byte, e error) {
 		return nil, fmt.Errorf("unknown crypto error: unknown cryptor id %s", *id)
 	}
 
-	if len(encryptedData.Data) == 0 {
+	// GCM keeps the authentication tag in metadata, so a valid empty plaintext
+	// has an empty ciphertext body. Other cryptors always produce a body.
+	if len(encryptedData.Data) == 0 && *id != aesGcmCryptorID {
 		return nil, errors.New("decryption error: can't decrypt empty data")
 	}
 
@@ -157,13 +172,17 @@ func (m *module) DecryptStream(input io.Reader) (r io.Reader, e error) {
 		return nil, e
 	}
 
-	peeked, e := bufData.Peek(1)
-	if e != nil {
-		return nil, fmt.Errorf("decryption error: %w", e)
-	}
+	// GCM keeps the authentication tag in metadata, so a valid empty plaintext
+	// leaves no ciphertext bytes to peek.
+	if *id != aesGcmCryptorID {
+		peeked, e := bufData.Peek(1)
+		if e != nil {
+			return nil, fmt.Errorf("decryption error: %w", e)
+		}
 
-	if len(peeked) == 0 {
-		return nil, errors.New("decryption error: can't decrypt empty data")
+		if len(peeked) == 0 {
+			return nil, errors.New("decryption error: can't decrypt empty data")
+		}
 	}
 
 	decryptor := m.decryptors[*id]
