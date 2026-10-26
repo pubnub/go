@@ -25,12 +25,14 @@ const (
 // aesGcmCryptor decrypts AES-256-GCM payloads. The key is SHA-256(cipherKey),
 // which is 32 bytes, and the additional authenticated data is empty.
 //
-// Factories register this cryptor only in the decryption set. Encrypt is
-// implemented so this package can produce ciphertext for tests and for a
-// later opt-in encryptor. It is not selected when a module encrypts.
+// Factories register this cryptor only in the decryption set. Encrypt returns
+// an error until AES-GCM encryption is enabled.
 type aesGcmCryptor struct {
 	aead cipher.AEAD
 }
+
+// errAesGcmEncryptionUnavailable is returned until AES-GCM encryption is enabled.
+var errAesGcmEncryptionUnavailable = errors.New("encryption error: AES-GCM encryption is not available")
 
 func newAesGcmCryptor(cipherKey string) (ExtendedCryptor, error) {
 	sum := sha256.Sum256([]byte(cipherKey))
@@ -55,7 +57,9 @@ func (c *aesGcmCryptor) Id() string {
 }
 
 func (c *aesGcmCryptor) Encrypt(message []byte) (*EncryptedData, error) {
-	return c.encryptWithNonce(message, generateIV(gcmNonceSize))
+	// Temporary: this cryptor is decryption-only. Remove this return when
+	// AES-GCM encryption is enabled.
+	return nil, errAesGcmEncryptionUnavailable
 }
 
 func (c *aesGcmCryptor) encryptWithNonce(message, nonce []byte) (*EncryptedData, error) {

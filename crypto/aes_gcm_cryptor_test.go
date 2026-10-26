@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"io"
 	"testing"
-	"testing/quick"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -142,10 +141,13 @@ func TestAesGcm_RejectsInvalidPayloads(t *testing.T) {
 	assert.EqualError(t, e, "decryption error")
 
 	_, e = cryptor.Encrypt(nil)
-	assert.EqualError(t, e, "encryption error: can't encrypt empty data")
+	assert.EqualError(t, e, errAesGcmEncryptionUnavailable.Error())
 
-	_, e = cryptor.EncryptStream(bytes.NewReader(nil))
-	assert.EqualError(t, e, "encryption error: can't encrypt empty data")
+	_, e = cryptor.Encrypt([]byte("Hello world"))
+	assert.EqualError(t, e, errAesGcmEncryptionUnavailable.Error())
+
+	_, e = cryptor.EncryptStream(bytes.NewReader([]byte("Hello world")))
+	assert.EqualError(t, e, errAesGcmEncryptionUnavailable.Error())
 }
 
 func TestAesGcm_EmptyPlaintextDecryptsWhenTagIsInMetadata(t *testing.T) {
@@ -216,21 +218,13 @@ func TestAesGcm_FactoriesDecryptItAndDoNotEncryptWithIt(t *testing.T) {
 	assert.Equal(t, plaintext, roundTrip)
 }
 
-func TestAesGcm_RoundTrip(t *testing.T) {
+func TestAesGcm_EncryptIsDisabled(t *testing.T) {
 	cryptor := mustGcm(t, "enigma")
-	check := func(in []byte) bool {
-		if len(in) == 0 {
-			_, e := cryptor.Encrypt(in)
-			return e != nil
-		}
-		encrypted, e := cryptor.Encrypt(in)
-		if e != nil || len(encrypted.Metadata) != gcmMetadataSize {
-			return false
-		}
-		out, e := cryptor.Decrypt(encrypted)
-		return e == nil && bytes.Equal(in, out)
-	}
-	require.NoError(t, quick.Check(check, &quick.Config{MaxCount: 100}))
+	_, e := cryptor.Encrypt([]byte("Hello world"))
+	assert.EqualError(t, e, errAesGcmEncryptionUnavailable.Error())
+
+	_, e = cryptor.EncryptStream(bytes.NewReader([]byte("Hello world")))
+	assert.EqualError(t, e, errAesGcmEncryptionUnavailable.Error())
 }
 
 func mustGcm(t *testing.T, cipherKey string) *aesGcmCryptor {

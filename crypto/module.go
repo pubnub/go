@@ -31,8 +31,6 @@ func NewLegacyCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error
 		return nil, e
 	}
 
-	// AES-GCM joins the decryption set only. New data is still encrypted
-	// with the legacy cryptor.
 	aesGcm, e := newAesGcmCryptor(cipherKey)
 	if e != nil {
 		return nil, e
@@ -52,8 +50,6 @@ func NewAesCbcCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error
 		return nil, e
 	}
 
-	// AES-GCM joins the decryption set only. New data is still encrypted
-	// with the AES-CBC cryptor.
 	aesGcm, e := newAesGcmCryptor(cipherKey)
 	if e != nil {
 		return nil, e
