@@ -96,6 +96,24 @@ func TestAesGcm_KnownCiphertexts(t *testing.T) {
 			plaintext: "\x00\xff\x7f\x80",
 			payload:   "504e4544014143474d1c000102030405060708090a0b8fefca7becf7235b4d09b970d4d56d19c411f0f1",
 		},
+		{
+			name:      "json-emoji",
+			cipherKey: "enigma",
+			plaintext: `{"text":"Hello, 世界! 🌍","n":42}`,
+			payload:   "504e4544014143474d1cfffffffffffffffffffffffff835d4d739805631c5cdcc34676072590d54b73ce2509d4e7655043f5b103cb4f1e78738a73a2f56109813955359b4784774de1954",
+		},
+		{
+			name:      "unicode-key-multiblock",
+			cipherKey: "ключ 🔑 key",
+			plaintext: "Line one\n\tLine two with \"quotes\" & symbols <>/\\ — spans several AES blocks.",
+			payload:   "504e4544014143474d1c0000000000000000000000008390572d9b05255f3097614e888fcca4326052d9ff1b757ed8810f5d6f87a7c021920eb09b82e47049efecf5094f6f5837691e9fb66539dfc47d434cc01b783527c4d62ae2d8163043f86dc7ac405b90971ceaa07134add2be50dfd60f",
+		},
+		{
+			name:      "single-byte",
+			cipherKey: "customKey",
+			plaintext: "a",
+			payload:   "504e4544014143474d1ca1a2a3a4a5a6a7a8a9aaabaceef1ccce8f5a09087348786b99b75076fb",
+		},
 	}
 
 	for _, tc := range cases {
