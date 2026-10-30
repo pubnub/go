@@ -11,15 +11,13 @@ import (
 
 // aesGcmCryptorID is the 4-byte identifier written into the PNED header.
 //
-// Metadata layout is fixed at 28 bytes: the 12-byte nonce followed by the
-// 16-byte authentication tag. The ciphertext is stored after the header and
-// is not padded. AES-GCM does not use PKCS#7.
+// Metadata is the 12-byte nonce. The 16-byte authentication tag is appended
+// to the ciphertext. AES-GCM does not use PKCS#7.
 const aesGcmCryptorID = "ACGM"
 
 const (
-	gcmNonceSize    = 12
-	gcmTagSize      = 16
-	gcmMetadataSize = gcmNonceSize + gcmTagSize
+	gcmNonceSize = 12
+	gcmTagSize   = 16
 )
 
 // aesGcmCryptor decrypts AES-256-GCM payloads. The key is SHA-256(cipherKey),
@@ -70,22 +68,15 @@ func (c *aesGcmCryptor) encryptWithNonce(message, nonce []byte) (*EncryptedData,
 		return nil, errors.New("encryption error")
 	}
 
-	// Seal appends the authentication tag after the ciphertext. The wire
-	// format stores that tag in metadata, next to the nonce, and keeps only
-	// the ciphertext in the body.
+	// Seal appends the authentication tag after the ciphertext. That tag stays
+	// on the body. Metadata carries only the nonce.
 	sealed := c.aead.Seal(nil, nonce, message, nil)
-	ciphertextLen := len(sealed) - gcmTagSize
-
-	metadata := make([]byte, gcmMetadataSize)
+	metadata := make([]byte, gcmNonceSize)
 	copy(metadata, nonce)
-	copy(metadata[gcmNonceSize:], sealed[ciphertextLen:])
-
-	ciphertext := make([]byte, ciphertextLen)
-	copy(ciphertext, sealed[:ciphertextLen])
 
 	return &EncryptedData{
 		Metadata: metadata,
-		Data:     ciphertext,
+		Data:     sealed,
 	}, nil
 }
 
@@ -96,17 +87,11 @@ func (c *aesGcmCryptor) Decrypt(encryptedData *EncryptedData) (r []byte, e error
 		}
 	}()
 
-	if encryptedData == nil || len(encryptedData.Metadata) != gcmMetadataSize {
+	if encryptedData == nil || len(encryptedData.Metadata) != gcmNonceSize || len(encryptedData.Data) < gcmTagSize {
 		return nil, errors.New("decryption error")
 	}
 
-	nonce := encryptedData.Metadata[:gcmNonceSize]
-	tag := encryptedData.Metadata[gcmNonceSize:]
-	sealed := make([]byte, len(encryptedData.Data)+gcmTagSize)
-	copy(sealed, encryptedData.Data)
-	copy(sealed[len(encryptedData.Data):], tag)
-
-	plain, e := c.aead.Open(nil, nonce, sealed, nil)
+	plain, e := c.aead.Open(nil, encryptedData.Metadata, encryptedData.Data, nil)
 	if e != nil {
 		return nil, errors.New("decryption error")
 	}

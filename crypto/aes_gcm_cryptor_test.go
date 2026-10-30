@@ -51,7 +51,7 @@ func TestAesGcm_EncryptAndDecryptMatchStdlib(t *testing.T) {
 			require.NoError(t, e)
 			assert.Equal(t, metadata, encrypted.Metadata)
 			assert.Equal(t, ciphertext, encrypted.Data)
-			assert.Equal(t, byte(0x1c), mustHeader(t, encrypted.Metadata)[sizePosition])
+			assert.Equal(t, byte(0x0c), mustHeader(t, encrypted.Metadata)[sizePosition])
 
 			decrypted, e := cryptor.Decrypt(encrypted)
 			require.NoError(t, e)
@@ -70,8 +70,8 @@ func TestAesGcm_EncryptAndDecryptMatchStdlib(t *testing.T) {
 }
 
 func TestAesGcm_KnownCiphertexts(t *testing.T) {
-	// Full PNED payloads. Metadata is the 12-byte nonce followed by the
-	// 16-byte tag; the remaining bytes are ciphertext.
+	// Full PNED payloads. Metadata is the 12-byte nonce. The body is
+	// ciphertext followed by the 16-byte authentication tag.
 	cases := []struct {
 		name      string
 		cipherKey string
@@ -82,37 +82,49 @@ func TestAesGcm_KnownCiphertexts(t *testing.T) {
 			name:      "hello",
 			cipherKey: "enigma",
 			plaintext: "Hello world",
-			payload:   "504e4544014143474d1c0102030405060708090a0b0cdabd1d02d7219c77218ad262c4a9aeccea1b5780788b593294f898",
+			payload:   "504e4544014143474d0c0102030405060708090a0b0cea1b5780788b593294f898dabd1d02d7219c77218ad262c4a9aecc",
 		},
 		{
 			name:      "unicode",
 			cipherKey: "enigma",
 			plaintext: "héllo 你好",
-			payload:   "504e4544014143474d1c111111111111111111111111a5dd072360f4433e2979f440fc7827b3d138fbfc4bd0c337e29d9f2c98",
+			payload:   "504e4544014143474d0c111111111111111111111111d138fbfc4bd0c337e29d9f2c98a5dd072360f4433e2979f440fc7827b3",
 		},
 		{
 			name:      "binary",
 			cipherKey: "myCipherKey",
 			plaintext: "\x00\xff\x7f\x80",
-			payload:   "504e4544014143474d1c000102030405060708090a0b8fefca7becf7235b4d09b970d4d56d19c411f0f1",
+			payload:   "504e4544014143474d0c000102030405060708090a0bc411f0f18fefca7becf7235b4d09b970d4d56d19",
 		},
 		{
 			name:      "json-emoji",
 			cipherKey: "enigma",
 			plaintext: `{"text":"Hello, 世界! 🌍","n":42}`,
-			payload:   "504e4544014143474d1cfffffffffffffffffffffffff835d4d739805631c5cdcc34676072590d54b73ce2509d4e7655043f5b103cb4f1e78738a73a2f56109813955359b4784774de1954",
+			payload:   "504e4544014143474d0cffffffffffffffffffffffff0d54b73ce2509d4e7655043f5b103cb4f1e78738a73a2f56109813955359b4784774de1954f835d4d739805631c5cdcc3467607259",
+		},
+		{
+			name:      "one-block",
+			cipherKey: "enigma",
+			plaintext: "0123456789abcdef",
+			payload:   "504e4544014143474d0c8f5a2d1b6e9c4ef0a37d83b9fd24a488008bd084305aaee605b349028c21b92d48f4dd5c71e99dce881c2ec9",
+		},
+		{
+			name:      "multi-block-json",
+			cipherKey: "enigma",
+			plaintext: `{"text":"Hello, 世界! 🌍","n":42,"list":[1,2,3],"nested":{"ok":true}}`,
+			payload:   "504e4544014143474d0cffffffffffffffffffffffff0d54b73ce2509d4e7655043f5b103cb4f1e78738a73a2f56109813955359b4784774de19050b4f14f7a439a859ac6c327856fe1af874bbe888945c603004176ddab22578e407663346d307669e83fa4c9a8b13743a07a21b7f",
 		},
 		{
 			name:      "unicode-key-multiblock",
 			cipherKey: "ключ 🔑 key",
 			plaintext: "Line one\n\tLine two with \"quotes\" & symbols <>/\\ — spans several AES blocks.",
-			payload:   "504e4544014143474d1c0000000000000000000000008390572d9b05255f3097614e888fcca4326052d9ff1b757ed8810f5d6f87a7c021920eb09b82e47049efecf5094f6f5837691e9fb66539dfc47d434cc01b783527c4d62ae2d8163043f86dc7ac405b90971ceaa07134add2be50dfd60f",
+			payload:   "504e4544014143474d0c000000000000000000000000326052d9ff1b757ed8810f5d6f87a7c021920eb09b82e47049efecf5094f6f5837691e9fb66539dfc47d434cc01b783527c4d62ae2d8163043f86dc7ac405b90971ceaa07134add2be50dfd60f8390572d9b05255f3097614e888fcca4",
 		},
 		{
 			name:      "single-byte",
 			cipherKey: "customKey",
 			plaintext: "a",
-			payload:   "504e4544014143474d1ca1a2a3a4a5a6a7a8a9aaabaceef1ccce8f5a09087348786b99b75076fb",
+			payload:   "504e4544014143474d0ca1a2a3a4a5a6a7a8a9aaabacfbeef1ccce8f5a09087348786b99b75076",
 		},
 	}
 
@@ -122,7 +134,7 @@ func TestAesGcm_KnownCiphertexts(t *testing.T) {
 			id, encrypted, e := parseHeader(payload)
 			require.NoError(t, e)
 			require.Equal(t, aesGcmCryptorID, *id)
-			assert.Len(t, encrypted.Metadata, gcmMetadataSize)
+			assert.Len(t, encrypted.Metadata, gcmNonceSize)
 
 			decrypted, e := mustGcm(t, tc.cipherKey).Decrypt(encrypted)
 			require.NoError(t, e)
@@ -143,16 +155,19 @@ func TestAesGcm_RejectsInvalidPayloads(t *testing.T) {
 	metadata, ciphertext := mustSealStdlib(t, "enigma", nonce, plaintext)
 	cryptor := mustGcm(t, "enigma")
 
-	tampered := append([]byte{}, metadata...)
-	tampered[gcmNonceSize] ^= 0xff
-	_, e := cryptor.Decrypt(&EncryptedData{Metadata: tampered, Data: ciphertext})
+	tampered := append([]byte{}, ciphertext...)
+	tampered[len(tampered)-1] ^= 0xff
+	_, e := cryptor.Decrypt(&EncryptedData{Metadata: metadata, Data: tampered})
 	assert.EqualError(t, e, "decryption error")
 
 	other := mustGcm(t, "other-key")
 	_, e = other.Decrypt(&EncryptedData{Metadata: metadata, Data: ciphertext})
 	assert.EqualError(t, e, "decryption error")
 
-	_, e = cryptor.Decrypt(&EncryptedData{Metadata: metadata[:gcmMetadataSize-1], Data: ciphertext})
+	_, e = cryptor.Decrypt(&EncryptedData{Metadata: metadata[:gcmNonceSize-1], Data: ciphertext})
+	assert.EqualError(t, e, "decryption error")
+
+	_, e = cryptor.Decrypt(&EncryptedData{Metadata: metadata, Data: ciphertext[:gcmTagSize-1]})
 	assert.EqualError(t, e, "decryption error")
 
 	_, e = cryptor.Decrypt(nil)
@@ -168,11 +183,11 @@ func TestAesGcm_RejectsInvalidPayloads(t *testing.T) {
 	assert.EqualError(t, e, errAesGcmEncryptionUnavailable.Error())
 }
 
-func TestAesGcm_EmptyPlaintextDecryptsWhenTagIsInMetadata(t *testing.T) {
+func TestAesGcm_EmptyPlaintextDecrypts(t *testing.T) {
 	nonce := mustDecodeHex(t, "090807060504030201000102")
 	metadata, ciphertext := mustSealStdlib(t, "enigma", nonce, nil)
-	assert.Empty(t, ciphertext)
-	assert.Len(t, metadata, gcmMetadataSize)
+	assert.Equal(t, nonce, metadata)
+	assert.Len(t, ciphertext, gcmTagSize)
 
 	cryptor := mustGcm(t, "enigma")
 	decrypted, e := cryptor.Decrypt(&EncryptedData{Metadata: metadata, Data: ciphertext})
@@ -283,10 +298,7 @@ func mustSealStdlib(t *testing.T, cipherKey string, nonce, plaintext []byte) (me
 	aead, e := cipher.NewGCM(block)
 	require.NoError(t, e)
 	sealed := aead.Seal(nil, nonce, plaintext, nil)
-	ciphertext = append([]byte{}, sealed[:len(sealed)-gcmTagSize]...)
-	tag := sealed[len(sealed)-gcmTagSize:]
-	metadata = make([]byte, 0, gcmMetadataSize)
-	metadata = append(metadata, nonce...)
-	metadata = append(metadata, tag...)
+	metadata = append([]byte{}, nonce...)
+	ciphertext = sealed
 	return metadata, ciphertext
 }
