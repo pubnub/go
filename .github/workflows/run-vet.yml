@@ -1,0 +1,41 @@
+name: Vet
+
+on:
+  push:
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  vet:
+    name: go vet
+    runs-on:
+      group: organization/Default
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Go 1.25
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: true
+      - name: Vet library packages
+        run: |
+          set -euo pipefail
+          overlay="$(mktemp)"
+          {
+            printf '%s' '{"Replace":{'
+            sep=""
+            while IFS= read -r -d '' f; do
+              abs="$(cd "$(dirname "$f")" && pwd)/$(basename "$f")"
+              printf '%s"%s":""' "$sep" "$abs"
+              sep=","
+            done < <(find . -type f -name '*_test.go' -print0)
+            printf '%s\n' '}}'
+          } > "$overlay"
+          mapfile -t pkgs < <(go list ./... | grep -Ev '/(examples|tests)(/|$)')
+          go vet -overlay "$overlay" "${pkgs[@]}"
