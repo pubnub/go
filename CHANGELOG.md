@@ -1,3 +1,9 @@
+## v10.2.0
+November 02 2026
+
+#### Added
+- `NewLegacyCryptoModule` and `NewAesCbcCryptoModule` now also can decrypt AES-GCM payloads. Encryption still uses the module's existing cryptor.
+
 ## v10.1.1
 October 13 2026
 
