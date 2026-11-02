@@ -27,12 +27,16 @@ func NewLegacyCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error
 		return nil, e
 	}
 	aesCbc, e := NewAesCbcCryptor(cipherKey)
-
 	if e != nil {
 		return nil, e
 	}
 
-	return NewCryptoModule(legacy, []Cryptor{aesCbc}), nil
+	aesGcm, e := newAesGcmCryptor(cipherKey)
+	if e != nil {
+		return nil, e
+	}
+
+	return NewCryptoModule(legacy, []Cryptor{aesCbc, aesGcm}), nil
 }
 
 func NewAesCbcCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error) {
@@ -46,7 +50,12 @@ func NewAesCbcCryptoModule(cipherKey string, randomIv bool) (CryptoModule, error
 		return nil, e
 	}
 
-	return NewCryptoModule(aesCbc, []Cryptor{legacy}), nil
+	aesGcm, e := newAesGcmCryptor(cipherKey)
+	if e != nil {
+		return nil, e
+	}
+
+	return NewCryptoModule(aesCbc, []Cryptor{legacy, aesGcm}), nil
 }
 
 func NewCryptoModule(defaultCryptor Cryptor, decryptors []Cryptor) CryptoModule {

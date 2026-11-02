@@ -548,6 +548,59 @@ func waitMembershipGone(t *testing.T, pn *pubnub.PubNub, id string) {
 		})
 }
 
+// dsPointRead is the last observation from a DataSync point read. eventually
+// includes it in the timeout message when the resource never becomes visible.
+type dsPointRead[T any] struct {
+	Value  T
+	Status int
+	Err    error
+	Body   string
+}
+
+// waitPointRead polls get until it returns HTTP 200.
+// A successful create can return before a following Get stops answering DS-0100
+// (entity not found). 404, 5xx, and transport failures (status 0) are retried
+// for dsFilterTimeout. Any other status fails the test immediately.
+func waitPointRead[T any](
+	t *testing.T,
+	description string,
+	ready func(T) bool,
+	get func() (T, pubnub.StatusResponse, error),
+) T {
+	t.Helper()
+	got := eventually(t, dsFilterTimeout, 250*time.Millisecond, description, func() (dsPointRead[T], bool) {
+		v, st, err := get()
+		read := dsPointRead[T]{Value: v, Status: st.StatusCode, Err: err, Body: st.OriginalResponse}
+		if err == nil && st.StatusCode == 200 && ready(v) {
+			return read, true
+		}
+		if st.StatusCode == 0 || st.StatusCode == 404 || st.StatusCode >= 500 {
+			return read, false
+		}
+		t.Fatalf("%s: err=%v status=%d body=%s", description, err, st.StatusCode, st.OriginalResponse)
+		return read, false
+	})
+	return got.Value
+}
+
+func waitUser(t *testing.T, pn *pubnub.PubNub, id string) *pubnub.PNUserResponse {
+	t.Helper()
+	return waitPointRead(t, fmt.Sprintf("GetUser %s is visible", id),
+		func(r *pubnub.PNUserResponse) bool { return r != nil },
+		func() (*pubnub.PNUserResponse, pubnub.StatusResponse, error) {
+			return pn.DataSync.GetUser().ID(id).Execute()
+		})
+}
+
+func waitChannel(t *testing.T, pn *pubnub.PubNub, id string) *pubnub.PNDataSyncChannelResponse {
+	t.Helper()
+	return waitPointRead(t, fmt.Sprintf("GetChannel %s is visible", id),
+		func(r *pubnub.PNDataSyncChannelResponse) bool { return r != nil },
+		func() (*pubnub.PNDataSyncChannelResponse, pubnub.StatusResponse, error) {
+			return pn.DataSync.GetChannel().ID(id).Execute()
+		})
+}
+
 type dsEventSub struct {
 	events chan *pubnub.PNDataSyncEventResult
 	stop   chan struct{}

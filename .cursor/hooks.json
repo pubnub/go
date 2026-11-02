@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": "python .cursor/hooks/go_test_wrap_windows.py --hook",
+        "matcher": "Shell",
+        "timeout": 20
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "python .cursor/hooks/gofmt_batch.py --record",
+        "timeout": 10
+      }
+    ],
+    "stop": [
+      {
+        "command": "python .cursor/hooks/gofmt_batch.py --format",
+        "timeout": 30
+      }
+    ]
+  }
+}
