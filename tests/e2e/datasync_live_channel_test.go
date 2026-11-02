@@ -21,12 +21,7 @@ func TestDataSyncLiveChannelCreateGetGlobal(t *testing.T) {
 	assert.NotEmpty(t, stored.ETag)
 	assert.Equal(t, "Lobby", stored.Payload["name"])
 
-	res, status, err := h.client.DataSync.GetChannel().ID(id).Execute()
-	assert.Nil(t, err)
-	assert.Equal(t, 200, status.StatusCode)
-	if res == nil {
-		t.Fatal("GetChannel returned a nil response")
-	}
+	res := waitChannel(t, h.client, id)
 	assert.Equal(t, id, res.Data.ID)
 	assert.Equal(t, dsChannelClass, res.Data.EntityClass)
 	assert.Equal(t, "Lobby", res.Data.Payload["name"])
@@ -47,9 +42,7 @@ func TestDataSyncLiveChannelCreateGetCustom(t *testing.T) {
 	assert.NotEmpty(t, stored.ETag)
 	assert.Equal(t, "undeclared", stored.Payload["scratch"])
 
-	res, status, err := h.client.DataSync.GetChannel().ID(id).Execute()
-	assert.Nil(t, err)
-	assert.Equal(t, 200, status.StatusCode)
+	res := waitChannel(t, h.client, id)
 	assert.Equal(t, id, res.Data.ID)
 	assert.Equal(t, "Alpha", res.Data.Payload["topic"])
 	assert.EqualValues(t, 10, res.Data.Payload["capacity"])
@@ -75,9 +68,7 @@ func TestDataSyncLiveChannelCreateServerGeneratedID(t *testing.T) {
 	assert.NotEmpty(t, created.ID)
 	assert.Equal(t, dsGoE2EChannelClass, created.EntityClass)
 
-	res, status, err := h.client.DataSync.GetChannel().ID(created.ID).Execute()
-	assert.Nil(t, err)
-	assert.Equal(t, 200, status.StatusCode)
+	res := waitChannel(t, h.client, created.ID)
 	assert.Equal(t, created.ID, res.Data.ID)
 }
 

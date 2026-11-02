@@ -21,12 +21,7 @@ func TestDataSyncLiveUserCreateGetGlobal(t *testing.T) {
 	assert.NotEmpty(t, stored.ETag)
 	assert.Equal(t, "Ada", stored.Payload["name"])
 
-	res, status, err := h.client.DataSync.GetUser().ID(id).Execute()
-	assert.Nil(t, err)
-	assert.Equal(t, 200, status.StatusCode)
-	if res == nil {
-		t.Fatal("GetUser returned a nil response")
-	}
+	res := waitUser(t, h.client, id)
 	assert.Equal(t, id, res.Data.ID)
 	assert.Equal(t, dsUserClass, res.Data.EntityClass)
 	assert.Equal(t, "Ada", res.Data.Payload["name"])
@@ -47,12 +42,7 @@ func TestDataSyncLiveUserCreateGetCustom(t *testing.T) {
 	assert.NotEmpty(t, stored.ETag)
 	assert.Equal(t, "undeclared", stored.Payload["scratch"])
 
-	res, status, err := h.client.DataSync.GetUser().ID(id).Execute()
-	assert.Nil(t, err)
-	assert.Equal(t, 200, status.StatusCode)
-	if res == nil {
-		t.Fatal("GetUser returned a nil response")
-	}
+	res := waitUser(t, h.client, id)
 	assert.Equal(t, id, res.Data.ID)
 	assert.Equal(t, "Alpha", res.Data.Payload["displayName"])
 	assert.EqualValues(t, 10, res.Data.Payload["score"])
@@ -76,9 +66,7 @@ func TestDataSyncLiveUserCreateServerGeneratedID(t *testing.T) {
 	assert.NotEmpty(t, created.ID)
 	assert.Equal(t, dsGoE2EUserClass, created.EntityClass)
 
-	res, status, err := h.client.DataSync.GetUser().ID(created.ID).Execute()
-	assert.Nil(t, err)
-	assert.Equal(t, 200, status.StatusCode)
+	res := waitUser(t, h.client, created.ID)
 	assert.Equal(t, created.ID, res.Data.ID)
 }
 
