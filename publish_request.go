@@ -32,6 +32,7 @@ type publishOpts struct {
 	ShouldStore    bool
 	Serialize      bool
 	DoNotReplicate bool
+	QoS            bool
 	QueryParam     map[string]string
 
 	CustomMessageType string
@@ -156,6 +157,17 @@ func (b *publishBuilder) DoNotReplicate(repl bool) *publishBuilder {
 	return b
 }
 
+// QoS asks the server to propagate the message before it returns the publish response.
+// The call is allowed at least 30 seconds. A longer timeout already set on the
+// non-subscribe HTTP client is kept.
+//
+// Canceling the context from PublishWithContext stops the local wait. It does
+// not roll back a publish the server has already accepted.
+func (b *publishBuilder) QoS(qos bool) *publishBuilder {
+	b.opts.QoS = qos
+	return b
+}
+
 // Transport sets the Transport for the Publish request.
 func (b *publishBuilder) Transport(tr http.RoundTripper) *publishBuilder {
 	b.opts.Transport = tr
@@ -197,6 +209,9 @@ func (o *publishOpts) GetLogParams() map[string]interface{} {
 	}
 	if o.CustomMessageType != "" {
 		params["CustomMessageType"] = o.CustomMessageType
+	}
+	if o.QoS {
+		params["QoS"] = true
 	}
 	// Truncate message for logging
 	if o.Message != nil {
@@ -391,6 +406,9 @@ func (o *publishOpts) buildQuery() (*url.Values, error) {
 	if o.DoNotReplicate == true {
 		q.Set("norep", "true")
 	}
+	if o.QoS {
+		q.Set("qos", "1")
+	}
 	o.pubnub.loggerManager.LogSimple(PNLogLevelTrace, fmt.Sprintf("Publish: query params=%v", q), false)
 
 	return q, nil
@@ -431,4 +449,12 @@ func (o *publishOpts) httpMethod() string {
 
 func (o *publishOpts) operationType() OperationType {
 	return PNPublishOperation
+}
+
+func (o *publishOpts) client() *http.Client {
+	base := o.endpointOpts.client()
+	if !o.QoS {
+		return base
+	}
+	return clientForQoS(base)
 }

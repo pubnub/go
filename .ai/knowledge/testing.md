@@ -25,4 +25,6 @@ Optional local tools: `make install-tools` (gotestsum, gocovmerge).
 
 `scripts/run-tests.sh` is legacy and unused — do not use it.
 
+When giving or running a test command, use `gotestsum` instead of raw `go test`. Pass `go test` flags after `--`. Example: `gotestsum --format=testname -- -run QoS ./tests/e2e/`.
+
 When verifying a change, prefer the narrowest relevant target first, then broaden if the task requires it. Do not invent E2E keys; use demo/stub patterns when keys are unavailable.

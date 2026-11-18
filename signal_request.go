@@ -78,6 +78,17 @@ func (b *signalBuilder) CustomMessageType(messageType string) *signalBuilder {
 	return b
 }
 
+// QoS asks the server to propagate the signal before it returns the response.
+// The call is allowed at least 30 seconds. A longer timeout already set on the
+// non-subscribe HTTP client is kept.
+//
+// Canceling the context from SignalWithContext stops the local wait. It does
+// not roll back a signal the server has already accepted.
+func (b *signalBuilder) QoS(qos bool) *signalBuilder {
+	b.opts.QoS = qos
+	return b
+}
+
 // GetLogParams returns the user-provided parameters for logging
 func (o *signalOpts) GetLogParams() map[string]interface{} {
 	params := map[string]interface{}{
@@ -86,6 +97,9 @@ func (o *signalOpts) GetLogParams() map[string]interface{} {
 	}
 	if o.CustomMessageType != "" {
 		params["CustomMessageType"] = o.CustomMessageType
+	}
+	if o.QoS {
+		params["QoS"] = true
 	}
 	// Truncate message for logging
 	if o.Message != nil {
@@ -116,6 +130,7 @@ type signalOpts struct {
 	Message           interface{}
 	Channel           string
 	UsePost           bool
+	QoS               bool
 	QueryParam        map[string]string
 	Transport         http.RoundTripper
 	CustomMessageType string
@@ -174,6 +189,9 @@ func (o *signalOpts) buildQuery() (*url.Values, error) {
 	if len(o.CustomMessageType) > 0 {
 		q.Set("custom_message_type", o.CustomMessageType)
 	}
+	if o.QoS {
+		q.Set("qos", "1")
+	}
 
 	return q, nil
 }
@@ -211,6 +229,14 @@ func (o *signalOpts) connectTimeout() int {
 
 func (o *signalOpts) operationType() OperationType {
 	return PNSignalOperation
+}
+
+func (o *signalOpts) client() *http.Client {
+	base := o.endpointOpts.client()
+	if !o.QoS {
+		return base
+	}
+	return clientForQoS(base)
 }
 
 // SignalResponse is the response to Signal request.
