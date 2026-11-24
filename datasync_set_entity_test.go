@@ -34,8 +34,43 @@ func TestSetEntityBuildPathBody(t *testing.T) {
 	assert.Equal(2, parsed.Data.EntityClassVersion)
 	assert.Equal("active", parsed.Data.Status)
 	assert.Equal("blue", parsed.Data.Payload["color"])
-	// entityClass must NOT be present in the body (immutable)
+	assert.Empty(parsed.Data.EntityClass)
+	assert.Empty(parsed.Data.EntityClassLevel)
 	assert.False(strings.Contains(string(body), "entityClass\":"))
+	assert.NotContains(string(body), `"entityClassLevel"`)
+}
+
+func TestSetEntityClassIdentity(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	classOnly := newSetEntityBuilder(pn).
+		ID("entity-abc").
+		EntityClass("Product").
+		EntityClassVersion(1)
+	body, err := classOnly.opts.buildBody()
+	assert.Nil(err)
+	assert.Contains(string(body), `"entityClass":"Product"`)
+	assert.NotContains(string(body), `"entityClassLevel"`)
+
+	var parsed setEntityBody
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Equal("Product", parsed.Data.EntityClass)
+	assert.Empty(parsed.Data.EntityClassLevel)
+
+	both := newSetEntityBuilder(pn).
+		ID("entity-abc").
+		EntityClass("Product").
+		EntityClassLevel(PNEntityClassLevelSubKey).
+		EntityClassVersion(1).
+		Status("active")
+	body, err = both.opts.buildBody()
+	assert.Nil(err)
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Equal("Product", parsed.Data.EntityClass)
+	assert.Equal(PNEntityClassLevelSubKey, parsed.Data.EntityClassLevel)
+	assert.Equal(1, parsed.Data.EntityClassVersion)
+	assert.Equal("active", parsed.Data.Status)
 }
 
 func TestSetEntityEmptyPayloadIsSent(t *testing.T) {

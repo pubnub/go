@@ -25,26 +25,46 @@ func newSetUserBuilderWithContext(pubnub *PubNub, context Context) *setUserBuild
 }
 
 // setUserBody is the request envelope sent on PUT /users/{id}.
-// entityClass is intentionally omitted because it is immutable.
+// entityClass and entityClassLevel are omitted unless their setters are called.
 type setUserBody struct {
 	Data setUserBodyData `json:"data"`
 }
 
 type setUserBodyData struct {
+	EntityClass        string                 `json:"entityClass,omitempty"`
 	EntityClassVersion int                    `json:"entityClassVersion"`
+	EntityClassLevel   PNEntityClassLevel     `json:"entityClassLevel,omitempty"`
 	Status             string                 `json:"status,omitempty"`
 	Payload            map[string]interface{} `json:"payload,omitempty"`
 }
 
-// ID sets the required identifier of the user to replace.
+// ID sets the required identifier of the user to create or replace.
 func (b *setUserBuilder) ID(id string) *setUserBuilder {
 	b.opts.ID = id
+	return b
+}
+
+// EntityClass sets the optional user class, sent as entityClass. On creation,
+// omit it to use the Global User class; an explicit class must be User or a
+// descendant. On replacement, a supplied name must match the stored class;
+// omitting it makes no assertion.
+func (b *setUserBuilder) EntityClass(entityClass string) *setUserBuilder {
+	b.opts.EntityClass = entityClass
 	return b
 }
 
 // EntityClassVersion sets the required schema version of the entity class (>= 1).
 func (b *setUserBuilder) EntityClassVersion(version int) *setUserBuilder {
 	b.opts.EntityClassVersion = version
+	return b
+}
+
+// EntityClassLevel sets the optional class scope (Global or SubKey), sent as
+// entityClassLevel. On creation it disambiguates classes that share a name.
+// On replacement, a supplied level must match the stored identity; omitting it
+// makes no assertion.
+func (b *setUserBuilder) EntityClassLevel(level PNEntityClassLevel) *setUserBuilder {
+	b.opts.EntityClassLevel = level
 	return b
 }
 
@@ -89,6 +109,12 @@ func (o *setUserOpts) GetLogParams() map[string]interface{} {
 		"ID":                 o.ID,
 		"EntityClassVersion": o.EntityClassVersion,
 	}
+	if o.EntityClass != "" {
+		params["EntityClass"] = o.EntityClass
+	}
+	if o.EntityClassLevel != "" {
+		params["EntityClassLevel"] = o.EntityClassLevel
+	}
 	if o.Status != "" {
 		params["Status"] = o.Status
 	}
@@ -114,7 +140,9 @@ type setUserOpts struct {
 	endpointOpts
 
 	ID                 string
+	EntityClass        string
 	EntityClassVersion int
+	EntityClassLevel   PNEntityClassLevel
 	Status             string
 	Payload            map[string]interface{}
 	setPayload         bool
@@ -149,7 +177,7 @@ func (o *setUserOpts) buildQuery() (*url.Values, error) {
 }
 
 func (o *setUserOpts) buildBody() ([]byte, error) {
-	jsonEncBytes, errEnc := marshalDataSyncSetBody("entityClassVersion", o.EntityClassVersion, o.Status, o.Payload, o.setPayload)
+	jsonEncBytes, errEnc := marshalDataSyncEntitySetBody(o.EntityClassVersion, o.EntityClass, o.EntityClassLevel, o.Status, o.Payload, o.setPayload)
 	if errEnc != nil {
 		o.pubnub.loggerManager.LogError(errEnc, "SetUserSerializationFailed", PNSetDataSyncUserOperation, true)
 		return []byte{}, errEnc

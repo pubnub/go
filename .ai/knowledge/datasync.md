@@ -25,7 +25,11 @@ Paths, vendor content types, `entitiesDefaultLimit` (20, server range 1–100), 
 
 ## Set, update, and concurrency
 
-Set is a full replacement. Class identity is immutable and omitted from the body. `marshalDataSyncSetBody` omits `payload` when `Payload` was never called or was passed `nil` (the server resets it). An explicit empty map is sent as `{}`.
+Set is a full replacement of the mutable fields. Without `IfMatchETag`, the server creates a missing record (201) or replaces a live one (200). A nonempty `If-Match`, including `*`, stays update-only.
+
+On entity, user, and channel PUT, `entityClass` and `entityClassLevel` are sent only when `EntityClass` or `EntityClassLevel` is non-empty. Omitting them makes no class assertion. A missing generic entity is created only when `entityClass` is present. A missing user or channel with neither field is created as Global User or Global Channel. On replacement, a supplied class or level must match the stored identity. Relationship and membership PUT do not send a class name or class level.
+
+`marshalDataSyncSetBody` omits `payload` when `Payload` was never called or was passed `nil` (the server resets it). An explicit empty map is sent as `{}`. Entity, user, and channel PUT use `marshalDataSyncEntitySetBody`, which follows the same payload rule and adds the class fields above.
 
 Update is RFC 6902 JSON Patch (`application/json-patch+json`). Builders expose `Operations` plus `Add`, `Remove`, `Replace`, `Move`, `Copy`, and `Test`. `PNJSONPatchOperation.MarshalJSON` always emits `value` for add, replace, and test, including JSON null.
 
