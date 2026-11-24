@@ -247,6 +247,8 @@ func TestDataSyncLiveEventsMembershipFanout(t *testing.T) {
 			ev.ID == memID
 	})
 	assert.NotEmpty(t, delEv.DeletedAt)
+	assert.Equal(t, chID, delEv.ChannelID)
+	assert.Equal(t, userID, delEv.UserID)
 	assert.Nil(t, delEv.Membership)
 }
 

@@ -177,6 +177,8 @@ func TestDataSyncLiveEventsRelationshipFanout(t *testing.T) {
 			ev.ID == relID
 	})
 	assert.NotEmpty(t, delEv.DeletedAt)
+	assert.Equal(t, aID, delEv.EntityAID)
+	assert.Equal(t, bID, delEv.EntityBID)
 	assert.Nil(t, delEv.Relationship)
 }
 

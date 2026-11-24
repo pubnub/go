@@ -45,7 +45,7 @@ DataSync validation strings live next to the others in `pubnub.go` (`StrMissingE
 
 ## Events
 
-Events are not a REST endpoint. Subscribe message type 5 with `source: "data-sync"` and `version: "1.0"` is parsed by `createPNDataSyncEventResult` in `subscription_manager.go` and delivered on `Listener.DataSyncEvent` as `PNDataSyncEventResult`. Other versions are ignored. Create and update fill `Entity` (entity, user, and channel kinds), `Relationship`, or `Membership`. Delete fills `ID` and `DeletedAt` and leaves the resource nil.
+Events are not a REST endpoint. Subscribe message type 5 with `source: "data-sync"` and `version: "1.0"` is parsed by `createPNDataSyncEventResult` in `subscription_manager.go` and delivered on `Listener.DataSyncEvent` as `PNDataSyncEventResult`. Other versions are ignored. Create and update fill `Entity` (entity, user, and channel kinds), `Relationship`, or `Membership`. Delete fills `ID` and `DeletedAt` and leaves the resource nil. Relationship deletes also fill `EntityAID` / `EntityBID` and membership deletes fill `ChannelID` / `UserID`; a missing or non-string linked ID is logged at error level and left empty, and the event is still delivered.
 
 Subscribe to the resource id. The admin projection arrives on the channel `__admin__` plus that id. Every subscribed channel shares one `DataSyncEvent` stream, so match on `Channel`.
 
