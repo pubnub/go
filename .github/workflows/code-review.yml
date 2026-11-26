@@ -1,0 +1,84 @@
+name: Code Review
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+
+concurrency:
+  group: review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: Run review
+    # Skips draft PRs and fork PRs. Fork PRs get no OIDC token, so they cannot
+    # assume the Bedrock role, and only same-repo authors can trigger model spend.
+    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on:
+      group: macos-gh
+    timeout-minutes: 20
+    outputs:
+      findings: ${{ steps.review.outputs.findings }}
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: read
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # The model can read the workspace, so the token must not stay in git config.
+      - name: Checkout review action
+        uses: actions/checkout@v4
+        with:
+          repository: pubnub/client-engineering-deployment-tools
+          ref: feat/code-review
+          token: ${{ secrets.GH_TOKEN }}
+          path: .github/.release/actions
+          persist-credentials: false
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run review
+        id: review
+        uses: ./.github/.release/actions/actions/code-review/review
+        with:
+          bedrock-role-arn: ${{ secrets.BEDROCK_ROLE_ARN }}
+          bedrock-region: ${{ secrets.BEDROCK_REGION }}
+          model: ${{ secrets.CODEX_MODEL }}
+
+  post:
+    name: Post findings as PR review comments
+    needs: review
+    if: needs.review.result == 'success'
+    runs-on:
+      group: organization/Default
+    timeout-minutes: 10
+    # This job never runs a model. It only posts the validated findings.
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout review action
+        uses: actions/checkout@v4
+        with:
+          repository: pubnub/client-engineering-deployment-tools
+          ref: feat/code-review
+          token: ${{ secrets.GH_TOKEN }}
+          path: .github/.release/actions
+          persist-credentials: false
+
+      - name: Post review
+        uses: ./.github/.release/actions/actions/code-review/post
+        with:
+          findings: ${{ needs.review.outputs.findings }}
