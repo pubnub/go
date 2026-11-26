@@ -39,24 +39,23 @@ func dsChannelResourcePerms() pubnub.ChannelPermissions {
 	return pubnub.ChannelPermissions{Read: true, Get: true, Create: true, Update: true, Delete: true}
 }
 
+// dsIDPattern matches live test ids (goe2e-ent-…, goe2e-usr-…). DataSync
+// accepts only .*, ^literal$, ^literal.*, ^literal.*$, .*literal$, and the
+// (?:a|b|c) forms of those. Unanchored "goe2e-.*" and glob "goe2e-*" are
+// rejected with DS-0202.
 func dsIDPattern() string {
-	return "goe2e-.*"
+	return "^goe2e-.*$"
 }
 
-// GrantToken validates user patterns as regex ("*" is Invalid RegExp). Live
-// DataSync User matching accepted "goe2e-*" and rejected "^goe2e-.*$". Grant
-// both forms so either matcher authorizes goe2e-usr / goe2e-gusr IDs.
 func dsUserPerms(p pubnub.UUIDPermissions) map[string]pubnub.UUIDPermissions {
 	return map[string]pubnub.UUIDPermissions{
-		"goe2e-*":  p,
-		"goe2e-.*": p,
+		dsIDPattern(): p,
 	}
 }
 
 func dsUserAnyPerms() map[string]pubnub.UUIDPermissions {
 	return map[string]pubnub.UUIDPermissions{
-		".*":      dsUUIDCRUD(),
-		"goe2e-*": dsUUIDCRUD(),
+		".*": dsUUIDCRUD(),
 	}
 }
 
@@ -266,19 +265,19 @@ func dsEventChannelPatterns() map[string]pubnub.ChannelPermissions {
 
 // Global User/Channel classes only expose __default__. Named projections
 // (admin/private) exist on GoE2EUser / GoE2EChannel. IDs are prefixed so the
-// two do not share a catch-all goe2e-.* projection (that caused DS-0202 on
+// two do not share a catch-all ^goe2e-.*$ projection (that caused DS-0202 on
 // Global Channel/User reads).
 func dsUserProjPatterns(custom string) map[string]string {
 	return map[string]string{
-		"goe2e-usr-.*":  custom,
-		"goe2e-gusr-.*": pubnub.PNDataSyncDefaultProjection,
+		"^goe2e-usr-.*$":  custom,
+		"^goe2e-gusr-.*$": pubnub.PNDataSyncDefaultProjection,
 	}
 }
 
 func dsChannelProjPatterns(custom string) map[string]string {
 	return map[string]string{
-		"goe2e-chn-.*":  custom,
-		"goe2e-gchn-.*": pubnub.PNDataSyncDefaultProjection,
+		"^goe2e-chn-.*$":  custom,
+		"^goe2e-gchn-.*$": pubnub.PNDataSyncDefaultProjection,
 	}
 }
 

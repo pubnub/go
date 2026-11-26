@@ -62,3 +62,5 @@ Grant encoding lives in `grant_common.go`.
 - DataSync User CRUD uses `Users()` / `UsersPattern()` (token users). `UUIDs()` / `UUIDsPattern()` grant App Context uuid permissions and do not authorize DataSync User. Channel CRUD uses channel permissions.
 
 Live DataSync tests use `DS_PUBLISH_KEY` / `DS_SUBSCRIBE_KEY` / `DS_SECRET_KEY` and skip when any is unset. See [testing.md](testing.md).
+
+The data plane rejects a token that contains a pattern outside a fixed set with `DS-0202` (`Unsupported grant pattern`). Allowed shapes are `.*`, `^literal$`, `^literal.*`, `^literal.*$`, `.*literal$`, and the `(?:a|b|c)` forms of those. Live tests therefore use anchored prefixes such as `^goe2e-.*$`, not `goe2e-.*` or `goe2e-*`.
