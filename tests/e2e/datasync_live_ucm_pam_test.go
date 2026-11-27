@@ -68,9 +68,7 @@ func TestDataSyncLivePAMUserExactIDGrant(t *testing.T) {
 	h.grant(dsGrant{
 		Users: map[string]pubnub.UUIDPermissions{allowed: dsUUIDCRUD()},
 		UsersPatterns: map[string]pubnub.UUIDPermissions{
-			allowed:                          dsUUIDCRUD(),
-			allowed + "*":                    dsUUIDCRUD(),
-			regexp.QuoteMeta(allowed) + ".*": dsUUIDCRUD(),
+			"^" + regexp.QuoteMeta(allowed) + "$": dsUUIDCRUD(),
 		},
 		UserProjections:     map[string]string{allowed: "admin"},
 		UserProjPatterns:    dsUserProjPatterns("admin"),

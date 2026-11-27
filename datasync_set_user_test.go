@@ -39,6 +39,41 @@ func TestSetUserBuildPathQueryBody(t *testing.T) {
 	assert.Equal(1, parsed.Data.EntityClassVersion)
 	assert.Equal("active", parsed.Data.Status)
 	assert.Equal("Alice", parsed.Data.Payload["name"])
+	assert.Empty(parsed.Data.EntityClass)
+	assert.Empty(parsed.Data.EntityClassLevel)
+	assert.NotContains(string(body), `"entityClass":`)
+	assert.NotContains(string(body), `"entityClassLevel"`)
+}
+
+func TestSetUserClassIdentity(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	classOnly := newSetUserBuilder(pn).
+		ID("alice").
+		EntityClass("User").
+		EntityClassVersion(1)
+	body, err := classOnly.opts.buildBody()
+	assert.Nil(err)
+	assert.Contains(string(body), `"entityClass":"User"`)
+	assert.NotContains(string(body), `"entityClassLevel"`)
+
+	var parsed setUserBody
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Equal("User", parsed.Data.EntityClass)
+	assert.Empty(parsed.Data.EntityClassLevel)
+
+	both := newSetUserBuilder(pn).
+		ID("alice").
+		EntityClass("Profile").
+		EntityClassLevel(PNEntityClassLevelGlobal).
+		EntityClassVersion(2)
+	body, err = both.opts.buildBody()
+	assert.Nil(err)
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Equal("Profile", parsed.Data.EntityClass)
+	assert.Equal(PNEntityClassLevelGlobal, parsed.Data.EntityClassLevel)
+	assert.Equal(2, parsed.Data.EntityClassVersion)
 }
 
 func TestSetUserHeaders(t *testing.T) {

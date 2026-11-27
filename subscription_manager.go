@@ -1296,6 +1296,14 @@ func createPNDataSyncEventResult(objPayload interface{}, m *SubscriptionManager,
 		}
 		result.ID = id
 		result.DeletedAt = deletedAt
+		switch eventType {
+		case PNDataSyncEventTypeRelationship:
+			result.EntityAID = parseDataSyncDeleteEventLinkedID(data, "entityAId", m, channel)
+			result.EntityBID = parseDataSyncDeleteEventLinkedID(data, "entityBId", m, channel)
+		case PNDataSyncEventTypeMembership:
+			result.ChannelID = parseDataSyncDeleteEventLinkedID(data, "channelId", m, channel)
+			result.UserID = parseDataSyncDeleteEventLinkedID(data, "userId", m, channel)
+		}
 		return result, true
 	}
 
@@ -1324,6 +1332,18 @@ func createPNDataSyncEventResult(objPayload interface{}, m *SubscriptionManager,
 	}
 
 	return result, true
+}
+
+// parseDataSyncDeleteEventLinkedID reads the ID of a resource linked by a
+// deleted relationship or membership. The server always sends these IDs, so a
+// missing or non-string value is logged as an error and returned empty rather
+// than dropping the delete event.
+func parseDataSyncDeleteEventLinkedID(data map[string]interface{}, field string, m *SubscriptionManager, channel string) string {
+	id, ok := subscribePayloadRequiredString(data, field)
+	if !ok {
+		m.pubnub.loggerManager.LogSimple(PNLogLevelError, fmt.Sprintf("DataSync response parsing error: invalid %s in delete event on channel %s", field, channel), false)
+	}
+	return id
 }
 
 // dataSyncEventObjectFields holds the system fields shared by entity,

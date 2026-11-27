@@ -365,7 +365,10 @@ type PNFilesEvent struct {
 
 // PNDataSyncEventResult is the Response for a DataSync internal-publish event.
 // Create/update events populate Entity (entity, user, and channel kinds),
-// Relationship, or Membership; delete events populate ID and DeletedAt.
+// Relationship, or Membership; delete events populate ID and DeletedAt and
+// leave those resources nil. Relationship delete events also populate EntityAID
+// and EntityBID, and membership delete events populate ChannelID and UserID, so
+// a listener can tell which link was removed.
 type PNDataSyncEventResult struct {
 	Version      string
 	Event        PNDataSyncEvent
@@ -381,6 +384,10 @@ type PNDataSyncEventResult struct {
 
 	ID        string
 	DeletedAt string
+	EntityAID string
+	EntityBID string
+	ChannelID string
+	UserID    string
 
 	Timetoken         int64
 	SubscribedChannel string

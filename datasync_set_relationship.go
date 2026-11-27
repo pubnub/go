@@ -25,21 +25,51 @@ func newSetRelationshipBuilderWithContext(pubnub *PubNub, context Context) *setR
 }
 
 // setRelationshipBody is the request envelope sent on PUT /relationships/{id}.
-// entityAId, entityBId and relationshipClass are intentionally omitted because
-// they are immutable after creation (same pattern as SetEntity).
+// relationshipClass, entityAId, and entityBId are omitted unless their setters
+// are called.
 type setRelationshipBody struct {
 	Data setRelationshipBodyData `json:"data"`
 }
 
 type setRelationshipBodyData struct {
+	EntityAID                string                 `json:"entityAId,omitempty"`
+	EntityBID                string                 `json:"entityBId,omitempty"`
+	RelationshipClass        string                 `json:"relationshipClass,omitempty"`
 	RelationshipClassVersion int                    `json:"relationshipClassVersion"`
 	Status                   string                 `json:"status,omitempty"`
 	Payload                  map[string]interface{} `json:"payload,omitempty"`
 }
 
-// ID sets the required identifier of the relationship to replace.
+// ID sets the required identifier of the relationship to create or replace.
 func (b *setRelationshipBuilder) ID(id string) *setRelationshipBuilder {
 	b.opts.ID = id
+	return b
+}
+
+// RelationshipClass sets the optional relationship class name, sent as
+// relationshipClass. The server requires it when this PUT creates a missing
+// relationship. On replacement, a supplied name must match the stored class;
+// omitting it makes no assertion.
+func (b *setRelationshipBuilder) RelationshipClass(relationshipClass string) *setRelationshipBuilder {
+	b.opts.RelationshipClass = relationshipClass
+	return b
+}
+
+// EntityAID sets the optional first linked entity identifier, sent as
+// entityAId. The server requires it when this PUT creates a missing
+// relationship. On replacement, a supplied ID must match the stored
+// participant; omitting it makes no assertion.
+func (b *setRelationshipBuilder) EntityAID(entityAID string) *setRelationshipBuilder {
+	b.opts.EntityAID = entityAID
+	return b
+}
+
+// EntityBID sets the optional second linked entity identifier, sent as
+// entityBId. The server requires it when this PUT creates a missing
+// relationship. On replacement, a supplied ID must match the stored
+// participant; omitting it makes no assertion.
+func (b *setRelationshipBuilder) EntityBID(entityBID string) *setRelationshipBuilder {
+	b.opts.EntityBID = entityBID
 	return b
 }
 
@@ -90,6 +120,15 @@ func (o *setRelationshipOpts) GetLogParams() map[string]interface{} {
 		"ID":                       o.ID,
 		"RelationshipClassVersion": o.RelationshipClassVersion,
 	}
+	if o.RelationshipClass != "" {
+		params["RelationshipClass"] = o.RelationshipClass
+	}
+	if o.EntityAID != "" {
+		params["EntityAID"] = o.EntityAID
+	}
+	if o.EntityBID != "" {
+		params["EntityBID"] = o.EntityBID
+	}
 	if o.Status != "" {
 		params["Status"] = o.Status
 	}
@@ -115,6 +154,9 @@ type setRelationshipOpts struct {
 	endpointOpts
 
 	ID                       string
+	RelationshipClass        string
+	EntityAID                string
+	EntityBID                string
 	RelationshipClassVersion int
 	Status                   string
 	Payload                  map[string]interface{}
@@ -150,7 +192,7 @@ func (o *setRelationshipOpts) buildQuery() (*url.Values, error) {
 }
 
 func (o *setRelationshipOpts) buildBody() ([]byte, error) {
-	jsonEncBytes, errEnc := marshalDataSyncSetBody("relationshipClassVersion", o.RelationshipClassVersion, o.Status, o.Payload, o.setPayload)
+	jsonEncBytes, errEnc := marshalDataSyncRelationshipSetBody(o.RelationshipClassVersion, o.RelationshipClass, o.EntityAID, o.EntityBID, o.Status, o.Payload, o.setPayload)
 	if errEnc != nil {
 		o.pubnub.loggerManager.LogError(errEnc, "SetRelationshipSerializationFailed", PNSetRelationshipOperation, true)
 		return []byte{}, errEnc

@@ -34,8 +34,8 @@ SDK version constant: `Version` in `pubnub.go` (release tooling owns bumps).
 - Public response/domain types are often prefixed `PN…`.
 - Builders and opts are normally unexported; fluent setters and `Execute` are the caller-facing surface.
 - Follow nearby endpoints for API shape (paths, bodies, headers, validation).
-- Adding a `PN…Operation` requires updating both the iota constant **and** `OperationType.String()`.
-- Do not reorder existing Objects operation constants in `enums.go`.
+- Adding a `PN…Operation` requires updating both the iota constant **and** `OperationType.String()`. `TestOperationTypeInvariants` fails when a constant has no `String()` case.
+- Do not reorder existing Objects operation constants in `enums.go`, or insert a constant before or among them. `TestOperationTypeInvariants` fails when that order or the Objects iota values change.
 
 ## Validation
 

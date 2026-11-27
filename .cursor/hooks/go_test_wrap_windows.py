@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Cursor preToolUse hook: wrap Go test runs and keep only failures.
 
-Windows only. Cursor loads this project hook on every platform, including
-macOS, Linux, and cloud agents. The ``_windows`` name does not filter by OS.
-On non-Windows hosts ``--hook`` reads stdin and returns ``{"permission":"allow"}``
-so the original command runs unchanged. Wrapping uses ``powershell.exe`` and
-``%LOCALAPPDATA%``, which exist on Windows.
+Windows only for wrapping. Cursor loads this project hook on every platform,
+including macOS, Linux, and cloud agents. The ``_windows`` name does not
+filter by OS. On non-Windows hosts ``--hook`` returns ``{"permission":"allow"}``
+so the original command runs unchanged, except ``go test ./...`` (and the
+other all-package forms below), which is denied on every OS. Wrapping uses
+``powershell.exe`` and ``%LOCALAPPDATA%``, which exist on Windows.
 
 preToolUse cannot replace a Shell tool's output after the fact. The command is
 rewritten so the process the agent runs prints failed tests, their errors, and
@@ -81,6 +82,29 @@ GO_NON_TEST = re.compile(
     r"(?i)(?:^|[\s;&|])go\s+(?:build|mod|install|get|run|fmt|vet|generate|doc|list|clean|work|env|version|tool)\b"
 )
 
+# ./... and .\... select every package under the current directory.
+# A bare "..." argument does the same from the module root.
+# ./crypto/... is a different pattern and stays allowed.
+ALL_PACKAGES = re.compile(
+    r"(?i)(?:^|[\s;&|=\"'])(?:\.[\\/]\.\.\.|\.\.\.)/?(?=$|[\s;&|\"'])"
+)
+
+MAKE_TEST_COVERAGE = re.compile(
+    r"(?i)\bmake\b(?:\s+[^\n|;&]*)?\btest-coverage\b"
+)
+
+# CI package list from scripts/run-tests-gotestsum.sh, plus the library
+# packages the implementation skill compiles when they change.
+ALL_PACKAGES_REFUSAL = (
+    "Refusing to run tests for every package (`go test ./...`, `go test ...`, "
+    "`go test .\\...`, the same arguments to gotestsum, or `make test-coverage`). "
+    "That selection includes examples/snippets and examples/cli. CI does not test "
+    "them, and `go test` vet fails on examples/snippets/onboarding.go. "
+    "Run the CI packages instead: "
+    "`go test -count=1 ./ ./utils/ ./tests/helpers/ ./tests/e2e/ ./examples/snippets/api/` "
+    "and, when those packages changed, `go test -count=1 ./crypto/... ./pnerr/`."
+)
+
 RUN_LINE = re.compile(r"^=== RUN\s+(?P<name>\S+)")
 FAIL_HEADER = re.compile(r"^--- FAIL:\s+(?P<name>\S+)\s+\(")
 PASS_HEADER = re.compile(r"^--- PASS:\s+(?P<name>\S+)\s+\(")
@@ -111,6 +135,26 @@ def emit(payload: dict[str, Any]) -> None:
 def allow() -> int:
     emit({"permission": "allow"})
     return 0
+
+
+def deny(message: str) -> int:
+    emit(
+        {
+            "permission": "deny",
+            "user_message": message,
+            "agent_message": message,
+        }
+    )
+    return 0
+
+
+def refuses_all_packages(command: str) -> bool:
+    """True when a Go test command would select every package in the module."""
+    if not is_go_test_command(command):
+        return False
+    if MAKE_TEST_COVERAGE.search(command):
+        return True
+    return ALL_PACKAGES.search(command) is not None
 
 
 def is_windows() -> bool:
@@ -469,8 +513,6 @@ def hook_main() -> int:
         raw = sys.stdin.read()
     except Exception:
         raw = ""
-    if not is_windows():
-        return allow()
     try:
         payload = json.loads(raw) if raw.strip() else {}
     except json.JSONDecodeError:
@@ -481,6 +523,11 @@ def hook_main() -> int:
 
     tool_input = parse_tool_input(payload)
     command = command_from_input(tool_input, payload)
+    # Denied on every OS. The rest of this hook only wraps output on Windows.
+    if refuses_all_packages(command):
+        return deny(ALL_PACKAGES_REFUSAL)
+    if not is_windows():
+        return allow()
     if not is_go_test_command(command):
         return allow()
 
@@ -581,6 +628,41 @@ def self_test() -> int:
     for command in non_test_cases:
         if is_go_test_command(command):
             print(f"FAIL expected skip: {command}")
+            failed += 1
+
+    refused_cases = [
+        "go test ./...",
+        "go test -count=1 -v ./...",
+        "go test ./... -count=1",
+        r"go test .\...",
+        "go test ...",
+        'go test -coverpkg=./... ./',
+        "gotestsum --format=testname -- ./...",
+        "gotestsum --packages=./... -- -v",
+        "make test-coverage",
+        "make test-coverage FORMAT=standard-verbose",
+    ]
+    allowed_cases = [
+        "go test -count=1 ./",
+        "go test -count=1 ./ ./utils/ ./tests/helpers/ ./tests/e2e/ ./examples/snippets/api/",
+        "go test -count=1 ./crypto/...",
+        "go test -count=1 -run '^$' ./ ./crypto/... ./utils/ ./tests/helpers/ ./tests/e2e/ ./examples/snippets/api/",
+        "go test -count=1 -run '^TestOperationTypeInvariants$' ./",
+        "gotestsum --format=testname -- -v ./",
+        "make test",
+        "make test-quick",
+        "make test-dev",
+        "echo go test ./...",
+        "go build ./...",
+        "go vet ./...",
+    ]
+    for command in refused_cases:
+        if not refuses_all_packages(command):
+            print(f"FAIL expected refuse: {command}")
+            failed += 1
+    for command in allowed_cases:
+        if refuses_all_packages(command):
+            print(f"FAIL expected allow: {command}")
             failed += 1
 
     sample = [

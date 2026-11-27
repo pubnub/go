@@ -66,8 +66,62 @@ func conflictingDataSyncFilters(filterFast, filter string) bool {
 // the setter was never called or was called with nil (REST PUT resets omitted
 // writable fields to their default). An explicit empty map is sent as {}.
 func marshalDataSyncSetBody(versionField string, version int, status string, payload map[string]interface{}, setPayload bool) ([]byte, error) {
+	return marshalDataSyncSetDocument(versionField, version, nil, status, payload, setPayload)
+}
+
+// marshalDataSyncEntitySetBody encodes a Set (PUT) envelope for an entity, user,
+// or channel. entityClass and entityClassLevel are omitted when empty so a
+// replace makes no class assertion. Payload follows marshalDataSyncSetBody.
+func marshalDataSyncEntitySetBody(version int, entityClass string, entityClassLevel PNEntityClassLevel, status string, payload map[string]interface{}, setPayload bool) ([]byte, error) {
+	fields := map[string]interface{}{}
+	if entityClass != "" {
+		fields["entityClass"] = entityClass
+	}
+	if entityClassLevel != "" {
+		fields["entityClassLevel"] = entityClassLevel
+	}
+	return marshalDataSyncSetDocument("entityClassVersion", version, fields, status, payload, setPayload)
+}
+
+// marshalDataSyncRelationshipSetBody encodes a Set (PUT) envelope for a
+// relationship. relationshipClass, entityAId, and entityBId are omitted when
+// empty so a replace makes no identity assertion. Payload follows
+// marshalDataSyncSetBody.
+func marshalDataSyncRelationshipSetBody(version int, relationshipClass, entityAID, entityBID, status string, payload map[string]interface{}, setPayload bool) ([]byte, error) {
+	fields := map[string]interface{}{}
+	if relationshipClass != "" {
+		fields["relationshipClass"] = relationshipClass
+	}
+	if entityAID != "" {
+		fields["entityAId"] = entityAID
+	}
+	if entityBID != "" {
+		fields["entityBId"] = entityBID
+	}
+	return marshalDataSyncSetDocument("relationshipClassVersion", version, fields, status, payload, setPayload)
+}
+
+// marshalDataSyncMembershipSetBody encodes a Set (PUT) envelope for a
+// membership. channelId and userId are omitted when empty so a replace makes
+// no participant assertion. The class is always Global Membership. Payload
+// follows marshalDataSyncSetBody.
+func marshalDataSyncMembershipSetBody(version int, channelID, userID, status string, payload map[string]interface{}, setPayload bool) ([]byte, error) {
+	fields := map[string]interface{}{}
+	if channelID != "" {
+		fields["channelId"] = channelID
+	}
+	if userID != "" {
+		fields["userId"] = userID
+	}
+	return marshalDataSyncSetDocument("relationshipClassVersion", version, fields, status, payload, setPayload)
+}
+
+func marshalDataSyncSetDocument(versionField string, version int, fields map[string]interface{}, status string, payload map[string]interface{}, setPayload bool) ([]byte, error) {
 	data := map[string]interface{}{
 		versionField: version,
+	}
+	for key, value := range fields {
+		data[key] = value
 	}
 	if status != "" {
 		data["status"] = status

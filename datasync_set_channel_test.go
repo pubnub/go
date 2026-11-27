@@ -39,6 +39,41 @@ func TestSetChannelBuildPathQueryBody(t *testing.T) {
 	assert.Equal(1, parsed.Data.EntityClassVersion)
 	assert.Equal("active", parsed.Data.Status)
 	assert.Equal("General", parsed.Data.Payload["name"])
+	assert.Empty(parsed.Data.EntityClass)
+	assert.Empty(parsed.Data.EntityClassLevel)
+	assert.NotContains(string(body), `"entityClass":`)
+	assert.NotContains(string(body), `"entityClassLevel"`)
+}
+
+func TestSetChannelClassIdentity(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	classOnly := newSetChannelBuilder(pn).
+		ID("general").
+		EntityClass("Channel").
+		EntityClassVersion(1)
+	body, err := classOnly.opts.buildBody()
+	assert.Nil(err)
+	assert.Contains(string(body), `"entityClass":"Channel"`)
+	assert.NotContains(string(body), `"entityClassLevel"`)
+
+	var parsed setChannelBody
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Equal("Channel", parsed.Data.EntityClass)
+	assert.Empty(parsed.Data.EntityClassLevel)
+
+	both := newSetChannelBuilder(pn).
+		ID("general").
+		EntityClass("Room").
+		EntityClassLevel(PNEntityClassLevelSubKey).
+		EntityClassVersion(3)
+	body, err = both.opts.buildBody()
+	assert.Nil(err)
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Equal("Room", parsed.Data.EntityClass)
+	assert.Equal(PNEntityClassLevelSubKey, parsed.Data.EntityClassLevel)
+	assert.Equal(3, parsed.Data.EntityClassVersion)
 }
 
 func TestSetChannelHeaders(t *testing.T) {

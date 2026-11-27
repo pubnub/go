@@ -25,7 +25,13 @@ Paths, vendor content types, `entitiesDefaultLimit` (20, server range 1–100), 
 
 ## Set, update, and concurrency
 
-Set is a full replacement. Class identity is immutable and omitted from the body. `marshalDataSyncSetBody` omits `payload` when `Payload` was never called or was passed `nil` (the server resets it). An explicit empty map is sent as `{}`.
+Set is a full replacement of the mutable fields. Without `IfMatchETag`, the server creates a missing record (201) or replaces a live one (200). A nonempty `If-Match`, including `*`, stays update-only.
+
+On entity, user, and channel PUT, `entityClass` and `entityClassLevel` are sent only when `EntityClass` or `EntityClassLevel` is non-empty. Omitting them makes no class assertion. A missing generic entity is created only when `entityClass` is present. A missing user or channel with neither field is created as Global User or Global Channel. On replacement, a supplied class or level must match the stored identity; a mismatch is rejected with HTTP 400.
+
+Relationship PUT sends `relationshipClass`, `entityAId`, and `entityBId` only when those setters are non-empty. All three are required to create a missing relationship. There is no class level. Membership PUT sends `channelId` and `userId` only when those setters are non-empty. Both are required to create a missing membership, and the class is always Global Membership. On replacement, a supplied relationship class, participant, channel, or user must match the stored identity; a mismatch is rejected with HTTP 400. Omitting an identity field makes no assertion.
+
+`marshalDataSyncSetBody` omits `payload` when `Payload` was never called or was passed `nil` (the server resets it). An explicit empty map is sent as `{}`. Entity, user, and channel PUT use `marshalDataSyncEntitySetBody`. Relationship PUT uses `marshalDataSyncRelationshipSetBody`. Membership PUT uses `marshalDataSyncMembershipSetBody`. Each follows the same payload rule.
 
 Update is RFC 6902 JSON Patch (`application/json-patch+json`). Builders expose `Operations` plus `Add`, `Remove`, `Replace`, `Move`, `Copy`, and `Test`. `PNJSONPatchOperation.MarshalJSON` always emits `value` for add, replace, and test, including JSON null.
 
@@ -45,7 +51,7 @@ DataSync validation strings live next to the others in `pubnub.go` (`StrMissingE
 
 ## Events
 
-Events are not a REST endpoint. Subscribe message type 5 with `source: "data-sync"` and `version: "1.0"` is parsed by `createPNDataSyncEventResult` in `subscription_manager.go` and delivered on `Listener.DataSyncEvent` as `PNDataSyncEventResult`. Other versions are ignored. Create and update fill `Entity` (entity, user, and channel kinds), `Relationship`, or `Membership`. Delete fills `ID` and `DeletedAt` and leaves the resource nil.
+Events are not a REST endpoint. Subscribe message type 5 with `source: "data-sync"` and `version: "1.0"` is parsed by `createPNDataSyncEventResult` in `subscription_manager.go` and delivered on `Listener.DataSyncEvent` as `PNDataSyncEventResult`. Other versions are ignored. Create and update fill `Entity` (entity, user, and channel kinds), `Relationship`, or `Membership`. Delete fills `ID` and `DeletedAt` and leaves the resource nil. Relationship deletes also fill `EntityAID` / `EntityBID` and membership deletes fill `ChannelID` / `UserID`; a missing or non-string linked ID is logged at error level and left empty, and the event is still delivered.
 
 Subscribe to the resource id. The admin projection arrives on the channel `__admin__` plus that id. Every subscribed channel shares one `DataSyncEvent` stream, so match on `Channel`.
 
@@ -58,3 +64,5 @@ Grant encoding lives in `grant_common.go`.
 - DataSync User CRUD uses `Users()` / `UsersPattern()` (token users). `UUIDs()` / `UUIDsPattern()` grant App Context uuid permissions and do not authorize DataSync User. Channel CRUD uses channel permissions.
 
 Live DataSync tests use `DS_PUBLISH_KEY` / `DS_SUBSCRIBE_KEY` / `DS_SECRET_KEY` and skip when any is unset. See [testing.md](testing.md).
+
+The data plane rejects a token that contains a pattern outside a fixed set with `DS-0202` (`Unsupported grant pattern`). Allowed shapes are `.*`, `^literal$`, `^literal.*`, `^literal.*$`, `.*literal$`, and the `(?:a|b|c)` forms of those. Live tests therefore use anchored prefixes such as `^goe2e-.*$`, not `goe2e-.*` or `goe2e-*`.

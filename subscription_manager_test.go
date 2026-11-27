@@ -1570,11 +1570,189 @@ func TestProcessDataSyncPayloadValidDeleteAnnouncesEvent(t *testing.T) {
 		assert.Equal(t, ":Product:", event.ClassName)
 		assert.Equal(t, "i789", event.ID)
 		assert.Equal(t, "2021-01-01T00:00:00.000Z", event.DeletedAt)
+		assert.Empty(t, event.EntityAID)
+		assert.Empty(t, event.EntityBID)
+		assert.Empty(t, event.ChannelID)
+		assert.Empty(t, event.UserID)
 		assert.Nil(t, event.Entity)
 		assert.Nil(t, event.Relationship)
 		assert.Nil(t, event.Membership)
 	case <-time.After(time.Second):
 		t.Fatal("timed out waiting for DataSync event")
+	}
+}
+
+func TestProcessDataSyncPayloadValidRelationshipDeleteAnnouncesLinkedEntityIDs(t *testing.T) {
+	logger := &testLogger{minLevel: PNLogLevelError}
+	config := NewDemoConfig()
+	config.Loggers = []PNLogger{logger}
+	listener := NewListener()
+	pn := NewPubNub(config)
+	pn.AddListener(listener)
+
+	sm := &subscribeMessage{
+		Shard:             "1",
+		SubscriptionMatch: "channel-1",
+		Channel:           "channel-1",
+		Payload: map[string]interface{}{
+			"version": "1.0",
+			"metadata": map[string]interface{}{
+				"event":        "delete",
+				"source":       "data-sync",
+				"type":         "relationship",
+				"className":    "membership",
+				"classLevel":   "SubKey",
+				"classVersion": float64(2),
+			},
+			"data": map[string]interface{}{
+				"id":        "r-123",
+				"deletedAt": "2026-11-24T11:46:23.078443Z",
+				"entityAId": "channel-1",
+				"entityBId": "user-1",
+			},
+		},
+		MessageType: PNMessageTypeDataSync,
+	}
+
+	processSubscribePayload(pn.subscriptionManager, *sm)
+	assert.Empty(t, logger.logs)
+
+	select {
+	case event := <-listener.DataSyncEvent:
+		assert.Equal(t, PNDataSyncEventDelete, event.Event)
+		assert.Equal(t, PNDataSyncEventTypeRelationship, event.Type)
+		assert.Equal(t, "membership", event.ClassName)
+		assert.Equal(t, PNEntityClassLevelSubKey, event.ClassLevel)
+		assert.Equal(t, 2, event.ClassVersion)
+		assert.Equal(t, "r-123", event.ID)
+		assert.Equal(t, "2026-11-24T11:46:23.078443Z", event.DeletedAt)
+		assert.Equal(t, "channel-1", event.EntityAID)
+		assert.Equal(t, "user-1", event.EntityBID)
+		assert.Empty(t, event.ChannelID)
+		assert.Empty(t, event.UserID)
+		assert.Nil(t, event.Entity)
+		assert.Nil(t, event.Relationship)
+		assert.Nil(t, event.Membership)
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for DataSync event")
+	}
+
+	select {
+	case status := <-listener.Status:
+		assert.Failf(t, "unexpected status", "status: %#v", status)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestProcessDataSyncPayloadDeleteWithInvalidLinkedIDsLogsErrorAndAnnouncesEvent(t *testing.T) {
+	tests := []struct {
+		name          string
+		eventType     string
+		data          map[string]interface{}
+		wantEntityAID string
+		wantEntityBID string
+		wantChannelID string
+		wantUserID    string
+		wantErrorLogs []string
+	}{
+		{
+			name:          "relationship missing entityAId",
+			eventType:     "relationship",
+			data:          map[string]interface{}{"id": "r-1", "entityBId": "user-1"},
+			wantEntityBID: "user-1",
+			wantErrorLogs: []string{"DataSync response parsing error: invalid entityAId in delete event on channel channel"},
+		},
+		{
+			name:          "relationship non-string entityBId",
+			eventType:     "relationship",
+			data:          map[string]interface{}{"id": "r-1", "entityAId": "channel-1", "entityBId": float64(7)},
+			wantEntityAID: "channel-1",
+			wantErrorLogs: []string{"DataSync response parsing error: invalid entityBId in delete event on channel channel"},
+		},
+		{
+			name:      "relationship missing both entity IDs",
+			eventType: "relationship",
+			data:      map[string]interface{}{"id": "r-1"},
+			wantErrorLogs: []string{
+				"DataSync response parsing error: invalid entityAId in delete event on channel channel",
+				"DataSync response parsing error: invalid entityBId in delete event on channel channel",
+			},
+		},
+		{
+			name:       "membership missing channelId",
+			eventType:  "membership",
+			data:       map[string]interface{}{"id": "m-1", "userId": "user-alice"},
+			wantUserID: "user-alice",
+			wantErrorLogs: []string{
+				"DataSync response parsing error: invalid channelId in delete event on channel channel",
+			},
+		},
+		{
+			name:          "membership non-string userId",
+			eventType:     "membership",
+			data:          map[string]interface{}{"id": "m-1", "channelId": "channel-summer-sale", "userId": true},
+			wantChannelID: "channel-summer-sale",
+			wantErrorLogs: []string{
+				"DataSync response parsing error: invalid userId in delete event on channel channel",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			logger := &testLogger{minLevel: PNLogLevelError}
+			config := NewDemoConfig()
+			config.Loggers = []PNLogger{logger}
+			listener := NewListener()
+			pn := NewPubNub(config)
+			pn.AddListener(listener)
+
+			sm := &subscribeMessage{
+				Shard:             "1",
+				SubscriptionMatch: "channel",
+				Channel:           "channel",
+				Payload: map[string]interface{}{
+					"version": "1.0",
+					"metadata": map[string]interface{}{
+						"event":        "delete",
+						"source":       "data-sync",
+						"type":         tt.eventType,
+						"className":    "Membership",
+						"classVersion": float64(1),
+					},
+					"data": tt.data,
+				},
+				MessageType: PNMessageTypeDataSync,
+			}
+
+			processSubscribePayload(pn.subscriptionManager, *sm)
+
+			var gotErrorLogs []string
+			for _, logMsg := range logger.logs {
+				assert.Equal(t, PNLogLevelError, logMsg.GetLogLevel())
+				gotErrorLogs = append(gotErrorLogs, logMsg.GetMessage())
+			}
+			assert.Equal(t, tt.wantErrorLogs, gotErrorLogs)
+
+			select {
+			case event := <-listener.DataSyncEvent:
+				assert.Equal(t, PNDataSyncEventDelete, event.Event)
+				assert.Equal(t, PNDataSyncEventType(tt.eventType), event.Type)
+				assert.Equal(t, tt.data["id"], event.ID)
+				assert.Equal(t, tt.wantEntityAID, event.EntityAID)
+				assert.Equal(t, tt.wantEntityBID, event.EntityBID)
+				assert.Equal(t, tt.wantChannelID, event.ChannelID)
+				assert.Equal(t, tt.wantUserID, event.UserID)
+			case <-time.After(time.Second):
+				t.Fatal("timed out waiting for DataSync event")
+			}
+
+			select {
+			case status := <-listener.Status:
+				assert.Failf(t, "unexpected status", "status: %#v", status)
+			case <-time.After(50 * time.Millisecond):
+			}
+		})
 	}
 }
 
@@ -1767,6 +1945,8 @@ func TestProcessDataSyncPayloadValidMembershipDeleteAnnouncesEvent(t *testing.T)
 			"data": map[string]interface{}{
 				"id":        "membership-alice-sale",
 				"deletedAt": "2026-07-03T09:20:00Z",
+				"channelId": "channel-summer-sale",
+				"userId":    "user-alice",
 			},
 		},
 		MessageType: PNMessageTypeDataSync,
@@ -1780,6 +1960,10 @@ func TestProcessDataSyncPayloadValidMembershipDeleteAnnouncesEvent(t *testing.T)
 		assert.Equal(t, PNDataSyncEventTypeMembership, event.Type)
 		assert.Equal(t, "membership-alice-sale", event.ID)
 		assert.Equal(t, "2026-07-03T09:20:00Z", event.DeletedAt)
+		assert.Equal(t, "channel-summer-sale", event.ChannelID)
+		assert.Equal(t, "user-alice", event.UserID)
+		assert.Empty(t, event.EntityAID)
+		assert.Empty(t, event.EntityBID)
 		assert.Nil(t, event.Entity)
 		assert.Nil(t, event.Relationship)
 		assert.Nil(t, event.Membership)

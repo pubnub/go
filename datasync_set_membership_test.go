@@ -39,6 +39,42 @@ func TestSetMembershipBuildPathQueryBody(t *testing.T) {
 	assert.Equal(1, parsed.Data.RelationshipClassVersion)
 	assert.Equal("active", parsed.Data.Status)
 	assert.Equal("admin", parsed.Data.Payload["role"])
+	assert.Empty(parsed.Data.ChannelID)
+	assert.Empty(parsed.Data.UserID)
+	assert.NotContains(string(body), `"channelId"`)
+	assert.NotContains(string(body), `"userId"`)
+}
+
+func TestSetMembershipIdentity(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	channelOnly := newSetMembershipBuilder(pn).
+		ID("m-123").
+		ChannelID("general").
+		RelationshipClassVersion(1)
+	body, err := channelOnly.opts.buildBody()
+	assert.Nil(err)
+	assert.Contains(string(body), `"channelId":"general"`)
+	assert.NotContains(string(body), `"userId"`)
+
+	var parsed setMembershipBody
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Equal("general", parsed.Data.ChannelID)
+	assert.Empty(parsed.Data.UserID)
+
+	both := newSetMembershipBuilder(pn).
+		ID("m-123").
+		ChannelID("general").
+		UserID("alice").
+		RelationshipClassVersion(2)
+	body, err = both.opts.buildBody()
+	assert.Nil(err)
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Equal("general", parsed.Data.ChannelID)
+	assert.Equal("alice", parsed.Data.UserID)
+	assert.Equal(2, parsed.Data.RelationshipClassVersion)
+	assert.NotContains(string(body), `"relationshipClass":`)
 }
 
 func TestSetMembershipHeaders(t *testing.T) {
