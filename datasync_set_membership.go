@@ -25,21 +25,40 @@ func newSetMembershipBuilderWithContext(pubnub *PubNub, context Context) *setMem
 }
 
 // setMembershipBody is the request envelope sent on PUT /memberships/{id}.
-// channelId, userId and relationshipClass are intentionally omitted because
-// they are immutable after creation.
+// channelId and userId are omitted unless their setters are called. The class
+// is always Global Membership.
 type setMembershipBody struct {
 	Data setMembershipBodyData `json:"data"`
 }
 
 type setMembershipBodyData struct {
+	ChannelID                string                 `json:"channelId,omitempty"`
+	UserID                   string                 `json:"userId,omitempty"`
 	RelationshipClassVersion int                    `json:"relationshipClassVersion"`
 	Status                   string                 `json:"status,omitempty"`
 	Payload                  map[string]interface{} `json:"payload,omitempty"`
 }
 
-// ID sets the required identifier of the membership to replace.
+// ID sets the required identifier of the membership to create or replace.
 func (b *setMembershipBuilder) ID(id string) *setMembershipBuilder {
 	b.opts.ID = id
+	return b
+}
+
+// ChannelID sets the optional linked channel identifier, sent as channelId.
+// The server requires it when this PUT creates a missing membership. On
+// replacement, a supplied ID must match the stored channel; omitting it makes
+// no assertion. The membership class is always Global Membership.
+func (b *setMembershipBuilder) ChannelID(channelID string) *setMembershipBuilder {
+	b.opts.ChannelID = channelID
+	return b
+}
+
+// UserID sets the optional linked user identifier, sent as userId. The server
+// requires it when this PUT creates a missing membership. On replacement, a
+// supplied ID must match the stored user; omitting it makes no assertion.
+func (b *setMembershipBuilder) UserID(userID string) *setMembershipBuilder {
+	b.opts.UserID = userID
 	return b
 }
 
@@ -91,6 +110,12 @@ func (o *setMembershipOpts) GetLogParams() map[string]interface{} {
 		"ID":                       o.ID,
 		"RelationshipClassVersion": o.RelationshipClassVersion,
 	}
+	if o.ChannelID != "" {
+		params["ChannelID"] = o.ChannelID
+	}
+	if o.UserID != "" {
+		params["UserID"] = o.UserID
+	}
 	if o.Status != "" {
 		params["Status"] = o.Status
 	}
@@ -116,6 +141,8 @@ type setMembershipOpts struct {
 	endpointOpts
 
 	ID                       string
+	ChannelID                string
+	UserID                   string
 	RelationshipClassVersion int
 	Status                   string
 	Payload                  map[string]interface{}
@@ -151,7 +178,7 @@ func (o *setMembershipOpts) buildQuery() (*url.Values, error) {
 }
 
 func (o *setMembershipOpts) buildBody() ([]byte, error) {
-	jsonEncBytes, errEnc := marshalDataSyncSetBody("relationshipClassVersion", o.RelationshipClassVersion, o.Status, o.Payload, o.setPayload)
+	jsonEncBytes, errEnc := marshalDataSyncMembershipSetBody(o.RelationshipClassVersion, o.ChannelID, o.UserID, o.Status, o.Payload, o.setPayload)
 	if errEnc != nil {
 		o.pubnub.loggerManager.LogError(errEnc, "SetMembershipSerializationFailed", PNSetDataSyncMembershipOperation, true)
 		return []byte{}, errEnc

@@ -40,11 +40,47 @@ func TestSetRelationshipBuildPathHeadersBody(t *testing.T) {
 	assert.Equal(2, parsed.Data.RelationshipClassVersion)
 	assert.Equal("active", parsed.Data.Status)
 	assert.Equal("fields", parsed.Data.Payload["custom"])
-
-	// Immutable link fields must NOT be present in the body.
+	assert.Empty(parsed.Data.RelationshipClass)
+	assert.Empty(parsed.Data.EntityAID)
+	assert.Empty(parsed.Data.EntityBID)
 	assert.False(strings.Contains(string(body), "entityAId"))
 	assert.False(strings.Contains(string(body), "entityBId"))
 	assert.False(strings.Contains(string(body), "relationshipClass\":"))
+}
+
+func TestSetRelationshipIdentity(t *testing.T) {
+	assert := assert.New(t)
+	pn := NewPubNub(NewDemoConfig())
+
+	classOnly := newSetRelationshipBuilder(pn).
+		ID("r-123").
+		RelationshipClass("ProductOwner").
+		RelationshipClassVersion(1)
+	body, err := classOnly.opts.buildBody()
+	assert.Nil(err)
+	assert.Contains(string(body), `"relationshipClass":"ProductOwner"`)
+	assert.NotContains(string(body), "entityAId")
+	assert.NotContains(string(body), "entityBId")
+
+	var parsed setRelationshipBody
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Equal("ProductOwner", parsed.Data.RelationshipClass)
+	assert.Empty(parsed.Data.EntityAID)
+	assert.Empty(parsed.Data.EntityBID)
+
+	all := newSetRelationshipBuilder(pn).
+		ID("r-123").
+		RelationshipClass("ProductOwner").
+		EntityAID("user-alice").
+		EntityBID("product-42").
+		RelationshipClassVersion(2)
+	body, err = all.opts.buildBody()
+	assert.Nil(err)
+	assert.Nil(json.Unmarshal(body, &parsed))
+	assert.Equal("ProductOwner", parsed.Data.RelationshipClass)
+	assert.Equal("user-alice", parsed.Data.EntityAID)
+	assert.Equal("product-42", parsed.Data.EntityBID)
+	assert.Equal(2, parsed.Data.RelationshipClassVersion)
 }
 
 func TestSetRelationshipHTTPMethodAndOperation(t *testing.T) {

@@ -127,7 +127,7 @@ Guidelines from the repository owner. They override SDK conventions when the two
 - Follow the closest peer for the builder shape: unexported `…Builder` and `…Opts` embedding `endpointOpts`; `new…Builder` delegating to `new…BuilderWithContext`; fluent setters; `GetLogParams`; `Execute` calling `LogUserInput`, then `executeRequest`, then the response parser.
 - Exported setters and types get a one-line godoc in the peer's voice. Where it applies, state the contract: required or optional, units, ranges, unset behavior.
 - Validation uses `newValidationError(o, Str…)`. Reuse existing `Str…` constants; add new ones next to their siblings in `pubnub.go`. Never change existing message text.
-- A new operation needs the iota constant appended in its group, a `String()` case, and a telemetry case. Never reorder existing constants.
+- A new operation needs the iota constant appended in its group, a `String()` case, and a telemetry case. Never reorder existing constants. `TestOperationTypeInvariants` fails when the `String()` case is missing or when the Objects constants are reordered, inserted into, or renumbered. Do not add a new constant to `operationStringGaps`.
 - When "unset" differs from the zero value on the wire, track it with a private `set…` flag, as peers do (`setPayload`, `setIfMatchETag`).
 - Public API changes are additive. A change that breaks an existing exported signature or behavior needs explicit approval from Step 2.
 - New examples and tests use `NewConfigWithUserId`. Acronyms on new exported identifiers stay `UUID`, `HTTP`, `TLS`, `TTL`.
@@ -169,9 +169,10 @@ Add e2e tests or example snippets only when Step 2 put them in scope. Live tests
 | Example snippets | `go test -count=1 ./examples/snippets/api/` |
 | Full CI shape | `make test` (needs `make` and `bash`) |
 
-Order: compile, gofmt, vet, targeted tests, root package, then every other affected package.
+Order: compile, gofmt, vet, targeted tests, `TestOperationTypeInvariants`, root package, then every other affected package.
 
-- Do not run `go test ./...`. It includes `examples/snippets` and `examples/cli`, which CI does not test, and `go test` vet already fails on `examples/snippets/onboarding.go`.
+- Before Step 5, run `go test -count=1 -run '^TestOperationTypeInvariants$' ./`. The root package run includes it. A narrower `-run` does not. Do not start the review loop when this test fails.
+- Do not run `go test ./...`, `go test ...`, `go test .\...`, those arguments via gotestsum, or `make test-coverage`. The preToolUse hook denies those commands. They include `examples/snippets` and `examples/cli`, which CI does not test, and `go test` vet already fails on `examples/snippets/onboarding.go`. Use the package list in the table above.
 - Live tests (e2e and snippets) need keys. Check presence without printing values: `Test-Path .env` and `[bool]$env:PUBLISH_KEY`, plus `DS_PUBLISH_KEY`, `DS_SUBSCRIBE_KEY`, `DS_SECRET_KEY` for DataSync. Without keys, report them as not run; do not count a skip as a pass.
 - CI runs utils, helpers, and e2e with `-race`. When the change touches goroutines or shared state, run `go test -race` on the affected package. If the race detector is unavailable locally (no cgo or gcc), report it as not run.
 - On Windows the repository hook replaces Go test output with a `GO TEST SUMMARY`. Treat it as the result. Read `raw_log` only when a failure message is missing.

@@ -37,5 +37,6 @@ Feature-shared constants and domain types often live in `*_common.go` (e.g. `dat
 
 - Operation enums are `PN…Operation` values of type `OperationType` in `enums.go`.
 - When adding an operation, add both the iota constant **and** a matching `case` in `OperationType.String()`. Validation errors use that string via `newValidationError`.
-- Comments in `enums.go` state that **enum order must be maintained** for Objects API sections — do not reorder existing Objects constants.
+- Comments in `enums.go` state that **enum order must be maintained** for Objects API sections — do not reorder existing Objects constants, and do not insert a constant before or among them. Append new Objects constants after `PNGetChannelMetadataOperation`.
+- `TestOperationTypeInvariants` reads `enums.go` and fails when a constant has no `OperationType.String()` case, or when the Objects constants are reordered or renumbered. Two existing constants (`PNMessageCountsOperation`, `PNAccessManagerRevokeToken`) still use the default `"No Category Matched"`; their validation tests assert that text, so the test allowlists them. A new constant does not belong on that list.
 - Telemetry short codes for new operation families live in `telemetry_manager.go`; follow nearby DataSync / Objects cases.
